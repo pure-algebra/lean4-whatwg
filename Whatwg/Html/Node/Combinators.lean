@@ -1,4 +1,5 @@
 import Whatwg.Html.Node.Typed
+import Whatwg.Html.Node.Admit
 
 /-!
 # Whatwg.Html.Node.Combinators
@@ -77,18 +78,18 @@ both are admitted exactly where the content set names `PCDATA`. -/
 
 /-- TyXML `val txt : string wrap -> [> txt] elt`. -/
 def txt {set : ContentSet} (s : String)
-    (h : Content.Admits set .pcdata := by decide) : Child set :=
+    (h : Content.Admits set .pcdata := by admits) : Child set :=
   Child.text s h
 
 /-- TyXML `val entity : string -> [> txt] elt`. -/
 def entity {set : ContentSet} (name : String)
-    (h : Content.Admits set .pcdata := by decide) : Child set :=
+    (h : Content.Admits set .pcdata := by admits) : Child set :=
   Child.entity name h
 
 /-- Place a typed element in a child position: `Child.of` under a short name,
 for use inside a children list. -/
 def el {set : ContentSet} {t : Tag} (e : Element t (childSet set t))
-    (h : Content.Admits set t := by decide) : Child set :=
+    (h : Content.Admits set t := by admits) : Child set :=
   Child.of e h
 
 /-! ## Element constructors, in `html_sigs.mli` order -/
@@ -99,7 +100,7 @@ as in `html_sigs.mli`; their content sets are the ones `childSet` assigns
 them under `html_content_fun`. -/
 def html (head : Element .head .metadata_without_title) (body : Element .body .flow5)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .html_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .html_attrib attrs := by admits) :
     Element .html .html_content_fun :=
   ⟨attrs, [head.toRaw, body.toRaw]⟩
 /-- TyXML `val head : ?a:head_attrib attrib list -> [< title] elt wrap ->
@@ -108,13 +109,13 @@ first and the remaining metadata follows. -/
 def head (title : Element .title .title_content_fun)
     (children : List (Child .metadata_without_title) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .head_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .head_attrib attrs := by admits) :
     Element .head .metadata_without_title :=
   ⟨attrs, title.toRaw :: children.map Child.raw⟩
 /-- TyXML `val base : ([< base_attrib], [> base]) nullary`: no children. -/
 def base
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .base_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .base_attrib attrs := by admits) :
     Element .base .notag :=
   ⟨attrs, []⟩
 
@@ -122,7 +123,7 @@ def base
 child, checked against `title_content_fun`. -/
 def title (child : Child .title_content_fun)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .title_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .title_attrib attrs := by admits) :
     Element .title .title_content_fun :=
   ⟨attrs, [child.raw]⟩
 
@@ -130,7 +131,7 @@ def title (child : Child .title_content_fun)
 are checked against `flow5`. -/
 def body (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .body_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .body_attrib attrs := by admits) :
     Element .body .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -146,7 +147,7 @@ def svg (attrs : List (Attr × String) := []) : Element .svg .notag :=
 are checked against `flow5_without_header_footer`. -/
 def footer (children : List (Child .flow5_without_header_footer) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .footer_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .footer_attrib attrs := by admits) :
     Element .footer .flow5_without_header_footer :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -154,7 +155,7 @@ def footer (children : List (Child .flow5_without_header_footer) := [])
 are checked against `flow5_without_header_footer`. -/
 def header (children : List (Child .flow5_without_header_footer) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .header_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .header_attrib attrs := by admits) :
     Element .header .flow5_without_header_footer :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -162,7 +163,7 @@ def header (children : List (Child .flow5_without_header_footer) := [])
 are checked against `flow5`. -/
 def «section» (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .section_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .section_attrib attrs := by admits) :
     Element .«section» .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -170,7 +171,7 @@ def «section» (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def nav (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .nav_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .nav_attrib attrs := by admits) :
     Element .nav .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -178,7 +179,7 @@ def nav (children : List (Child .flow5) := [])
 are checked against `phrasing`. -/
 def h1 (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .h1_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .h1_attrib attrs := by admits) :
     Element .h1 .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -186,7 +187,7 @@ def h1 (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def h2 (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .h2_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .h2_attrib attrs := by admits) :
     Element .h2 .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -194,7 +195,7 @@ def h2 (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def h3 (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .h3_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .h3_attrib attrs := by admits) :
     Element .h3 .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -202,7 +203,7 @@ def h3 (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def h4 (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .h4_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .h4_attrib attrs := by admits) :
     Element .h4 .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -210,7 +211,7 @@ def h4 (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def h5 (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .h5_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .h5_attrib attrs := by admits) :
     Element .h5 .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -218,7 +219,7 @@ def h5 (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def h6 (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .h6_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .h6_attrib attrs := by admits) :
     Element .h6 .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -226,7 +227,7 @@ def h6 (children : List (Child .phrasing) := [])
 are checked against `hgroup_content_fun`. -/
 def hgroup (children : List (Child .hgroup_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .hgroup_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .hgroup_attrib attrs := by admits) :
     Element .hgroup .hgroup_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -234,7 +235,7 @@ def hgroup (children : List (Child .hgroup_content_fun) := [])
 are checked against `flow5_without_sectioning_heading_header_footer_address`. -/
 def address (children : List (Child .flow5_without_sectioning_heading_header_footer_address) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .address_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .address_attrib attrs := by admits) :
     Element .address .flow5_without_sectioning_heading_header_footer_address :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -242,7 +243,7 @@ def address (children : List (Child .flow5_without_sectioning_heading_header_foo
 are checked against `flow5`. -/
 def article (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .article_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .article_attrib attrs := by admits) :
     Element .article .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -250,7 +251,7 @@ def article (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def aside (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .aside_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .aside_attrib attrs := by admits) :
     Element .aside .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -258,7 +259,7 @@ def aside (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def main (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .main_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .main_attrib attrs := by admits) :
     Element .main .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -266,7 +267,7 @@ def main (children : List (Child .flow5) := [])
 are checked against `phrasing`. -/
 def p (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .p_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .p_attrib attrs := by admits) :
     Element .p .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -274,7 +275,7 @@ def p (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def pre (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .pre_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .pre_attrib attrs := by admits) :
     Element .pre .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -282,7 +283,7 @@ def pre (children : List (Child .phrasing) := [])
 are checked against `flow5`. -/
 def blockquote (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .blockquote_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .blockquote_attrib attrs := by admits) :
     Element .blockquote .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -290,7 +291,7 @@ def blockquote (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def dialog (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .dialog_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .dialog_attrib attrs := by admits) :
     Element .dialog .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -298,7 +299,7 @@ def dialog (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def div (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .div_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .div_attrib attrs := by admits) :
     Element .div .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -306,7 +307,7 @@ def div (children : List (Child .flow5) := [])
 are checked against `dl_content_fun`. -/
 def dl (children : List (Child .dl_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .dl_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .dl_attrib attrs := by admits) :
     Element .dl .dl_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -314,7 +315,7 @@ def dl (children : List (Child .dl_content_fun) := [])
 are checked against `ol_content_fun`. -/
 def ol (children : List (Child .ol_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .ol_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .ol_attrib attrs := by admits) :
     Element .ol .ol_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -322,7 +323,7 @@ def ol (children : List (Child .ol_content_fun) := [])
 are checked against `ul_content_fun`. -/
 def ul (children : List (Child .ul_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .ul_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .ul_attrib attrs := by admits) :
     Element .ul .ul_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -330,7 +331,7 @@ def ul (children : List (Child .ul_content_fun) := [])
 are checked against `flow5`. -/
 def dd (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .dd_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .dd_attrib attrs := by admits) :
     Element .dd .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -338,7 +339,7 @@ def dd (children : List (Child .flow5) := [])
 are checked against `flow5_without_sectioning_heading_header_footer`. -/
 def dt (children : List (Child .flow5_without_sectioning_heading_header_footer) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .dt_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .dt_attrib attrs := by admits) :
     Element .dt .flow5_without_sectioning_heading_header_footer :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -346,7 +347,7 @@ def dt (children : List (Child .flow5_without_sectioning_heading_header_footer) 
 are checked against `flow5`. -/
 def li (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .li_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .li_attrib attrs := by admits) :
     Element .li .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -354,7 +355,7 @@ def li (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def figcaption (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .figcaption_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .figcaption_attrib attrs := by admits) :
     Element .figcaption .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -364,13 +365,13 @@ before the flow children, so `` `Bottom `` is not expressible. -/
 def figure (children : List (Child .flow5) := [])
     (figcaption : Option (Element .figcaption .flow5) := none)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .figure_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .figure_attrib attrs := by admits) :
     Element .figure .flow5 :=
   ⟨attrs, figcaption.toList.map Element.toRaw ++ children.map Child.raw⟩
 /-- TyXML `val hr : ([< hr_attrib], [> hr]) nullary`: no children. -/
 def hr
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .hr_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .hr_attrib attrs := by admits) :
     Element .hr .notag :=
   ⟨attrs, []⟩
 
@@ -378,7 +379,7 @@ def hr
 are checked against `phrasing`. -/
 def b (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .b_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .b_attrib attrs := by admits) :
     Element .b .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -386,7 +387,7 @@ def b (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def i (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .i_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .i_attrib attrs := by admits) :
     Element .i .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -394,7 +395,7 @@ def i (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def u (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .u_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .u_attrib attrs := by admits) :
     Element .u .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -402,7 +403,7 @@ def u (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def small (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .small_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .small_attrib attrs := by admits) :
     Element .small .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -410,7 +411,7 @@ def small (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def sub (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .sub_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .sub_attrib attrs := by admits) :
     Element .sub .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -418,7 +419,7 @@ def sub (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def sup (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .sup_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .sup_attrib attrs := by admits) :
     Element .sup .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -426,14 +427,14 @@ def sup (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def mark (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .mark_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .mark_attrib attrs := by admits) :
     Element .mark .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val wbr : ([< wbr_attrib], [> wbr]) nullary`: no children. -/
 def wbr
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .wbr_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .wbr_attrib attrs := by admits) :
     Element .wbr .notag :=
   ⟨attrs, []⟩
 
@@ -442,21 +443,21 @@ direction is carried as the `dir` attribute, whose value is a plain `String`
 at this pin. -/
 def bdo (dir : String) (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .bdo_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .bdo_attrib attrs := by admits) :
     Element .bdo .phrasing :=
   ⟨(Attr.dir, dir) :: attrs, children.map Child.raw⟩
 /-- TyXML `val abbr : ([< abbr_attrib], [< abbr_content_fun], [> abbr]) star`: its children
 are checked against `phrasing`. -/
 def abbr (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .abbr_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .abbr_attrib attrs := by admits) :
     Element .abbr .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val br : ([< br_attrib], [> br]) nullary`: no children. -/
 def br
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .br_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .br_attrib attrs := by admits) :
     Element .br .notag :=
   ⟨attrs, []⟩
 
@@ -464,7 +465,7 @@ def br
 are checked against `phrasing`. -/
 def cite (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .cite_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .cite_attrib attrs := by admits) :
     Element .cite .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -472,7 +473,7 @@ def cite (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def code (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .code_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .code_attrib attrs := by admits) :
     Element .code .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -480,7 +481,7 @@ def code (children : List (Child .phrasing) := [])
 are checked against `phrasing_without_dfn`. -/
 def dfn (children : List (Child .phrasing_without_dfn) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .dfn_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .dfn_attrib attrs := by admits) :
     Element .dfn .phrasing_without_dfn :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -488,7 +489,7 @@ def dfn (children : List (Child .phrasing_without_dfn) := [])
 are checked against `phrasing`. -/
 def em (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .em_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .em_attrib attrs := by admits) :
     Element .em .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -496,7 +497,7 @@ def em (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def kbd (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .kbd_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .kbd_attrib attrs := by admits) :
     Element .kbd .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -504,7 +505,7 @@ def kbd (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def q (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .q_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .q_attrib attrs := by admits) :
     Element .q .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -512,7 +513,7 @@ def q (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def samp (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .samp_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .samp_attrib attrs := by admits) :
     Element .samp .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -520,7 +521,7 @@ def samp (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def span (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .span_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .span_attrib attrs := by admits) :
     Element .span .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -528,7 +529,7 @@ def span (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def strong (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .strong_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .strong_attrib attrs := by admits) :
     Element .strong .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -536,7 +537,7 @@ def strong (children : List (Child .phrasing) := [])
 are checked against `phrasing_without_time`. -/
 def time (children : List (Child .phrasing_without_time) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .time_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .time_attrib attrs := by admits) :
     Element .time .phrasing_without_time :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -544,7 +545,7 @@ def time (children : List (Child .phrasing_without_time) := [])
 are checked against `phrasing`. -/
 def var (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .var_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .var_attrib attrs := by admits) :
     Element .var .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -553,7 +554,7 @@ children are checked against the payload the enclosing content set assigns
 it, which unification takes from `childSet` at the child position. -/
 def a {inner : ContentSet} (children : List (Child inner) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .a_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .a_attrib attrs := by admits) :
     Element .a inner :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -562,7 +563,7 @@ children are checked against the payload the enclosing content set assigns
 it, which unification takes from `childSet` at the child position. -/
 def del {inner : ContentSet} (children : List (Child inner) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .del_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .del_attrib attrs := by admits) :
     Element .del inner :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -571,7 +572,7 @@ children are checked against the payload the enclosing content set assigns
 it, which unification takes from `childSet` at the child position. -/
 def ins {inner : ContentSet} (children : List (Child inner) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .ins_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .ins_attrib attrs := by admits) :
     Element .ins inner :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -580,21 +581,21 @@ def ins {inner : ContentSet} (children : List (Child inner) := [])
 become attributes. -/
 def img (src : String) (alt : String)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .img_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .img_attrib attrs := by admits) :
     Element .img .notag :=
   ⟨(Attr.src, src) :: (Attr.alt, alt) :: attrs, []⟩
 /-- TyXML `val picture : img:([< img] elt wrap) -> ... star`: the required
 `img` is the first positional argument and heads the children. -/
 def picture (img : Element .img .notag) (children : List (Child .picture_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .picture_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .picture_attrib attrs := by admits) :
     Element .picture .picture_content_fun :=
   ⟨attrs, img.toRaw :: children.map Child.raw⟩
 /-- TyXML `val iframe : ([< iframe_attrib], [< iframe_content_fun], [> iframe]) star`: its children
 are checked against `iframe_content_fun`. -/
 def iframe (children : List (Child .iframe_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .iframe_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .iframe_attrib attrs := by admits) :
     Element .iframe .iframe_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -604,20 +605,20 @@ optional leading list of `param` children. -/
 def object_ {inner : ContentSet} (children : List (Child inner) := [])
     (params : List (Element .param .notag) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .object__attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .object__attrib attrs := by admits) :
     Element .object inner :=
   ⟨attrs, params.map Element.toRaw ++ children.map Child.raw⟩
 /-- TyXML `val param : ([< param_attrib], [> param]) nullary`: no children. -/
 def param
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .param_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .param_attrib attrs := by admits) :
     Element .param .notag :=
   ⟨attrs, []⟩
 
 /-- TyXML `val embed : ([< embed_attrib], [> embed]) nullary`: no children. -/
 def embed
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .embed_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .embed_attrib attrs := by admits) :
     Element .embed .notag :=
   ⟨attrs, []⟩
 
@@ -628,7 +629,7 @@ def audio {inner : ContentSet} (children : List (Child inner) := [])
     (src : Option String := none)
     (srcs : List (Element .source .notag) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .audio_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .audio_attrib attrs := by admits) :
     Element .audio inner :=
   ⟨src.toList.map (fun u => (Attr.src, u)) ++ attrs,
    srcs.map Element.toRaw ++ children.map Child.raw⟩
@@ -639,7 +640,7 @@ def video {inner : ContentSet} (children : List (Child inner) := [])
     (src : Option String := none)
     (srcs : List (Element .source .notag) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .video_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .video_attrib attrs := by admits) :
     Element .video inner :=
   ⟨src.toList.map (fun u => (Attr.src, u)) ++ attrs,
    srcs.map Element.toRaw ++ children.map Child.raw⟩
@@ -648,14 +649,14 @@ children are checked against the payload the enclosing content set assigns
 it, which unification takes from `childSet` at the child position. -/
 def canvas {inner : ContentSet} (children : List (Child inner) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .canvas_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .canvas_attrib attrs := by admits) :
     Element .canvas inner :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val source : ([< source_attrib], [> source]) nullary`: no children. -/
 def source
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .source_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .source_attrib attrs := by admits) :
     Element .source .notag :=
   ⟨attrs, []⟩
 
@@ -663,7 +664,7 @@ def source
 the required `alt` becomes an attribute. -/
 def area (alt : String)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .area_attrib_inline attrs := by decide) :
+    (_ha : AttrsAdmitted .area_attrib_inline attrs := by admits) :
     Element .area .notag :=
   ⟨(Attr.alt, alt) :: attrs, []⟩
 /-- TyXML `val map : ([< map_attrib], 'a, [> 'a map]) star`: transparent, so its
@@ -671,7 +672,7 @@ children are checked against the payload the enclosing content set assigns
 it, which unification takes from `childSet` at the child position. -/
 def map {inner : ContentSet} (children : List (Child inner) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .map_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .map_attrib attrs := by admits) :
     Element .map inner :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -679,7 +680,7 @@ def map {inner : ContentSet} (children : List (Child inner) := [])
 are checked against `flow5_without_table`. -/
 def caption (children : List (Child .flow5_without_table) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .caption_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .caption_attrib attrs := by admits) :
     Element .caption .flow5_without_table :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -692,7 +693,7 @@ def table (children : List (Child .table_content_fun) := [])
     (thead : Option (Element .thead .thead_content_fun) := none)
     (tfoot : Option (Element .tfoot .tfoot_content_fun) := none)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .table_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .table_attrib attrs := by admits) :
     Element .table .table_content_fun :=
   ⟨attrs, caption.toList.map Element.toRaw ++ columns.map Element.toRaw
     ++ thead.toList.map Element.toRaw ++ tfoot.toList.map Element.toRaw
@@ -706,7 +707,7 @@ def tablex (children : List (Child .tablex_content_fun) := [])
     (thead : Option (Element .thead .thead_content_fun) := none)
     (tfoot : Option (Element .tfoot .tfoot_content_fun) := none)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .tablex_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .tablex_attrib attrs := by admits) :
     Element .table .tablex_content_fun :=
   ⟨attrs, caption.toList.map Element.toRaw ++ columns.map Element.toRaw
     ++ thead.toList.map Element.toRaw ++ tfoot.toList.map Element.toRaw
@@ -715,14 +716,14 @@ def tablex (children : List (Child .tablex_content_fun) := [])
 are checked against `colgroup_content_fun`. -/
 def colgroup (children : List (Child .colgroup_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .colgroup_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .colgroup_attrib attrs := by admits) :
     Element .colgroup .colgroup_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val col : ([< col_attrib], [> col]) nullary`: no children. -/
 def col
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .col_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .col_attrib attrs := by admits) :
     Element .col .notag :=
   ⟨attrs, []⟩
 
@@ -730,7 +731,7 @@ def col
 are checked against `thead_content_fun`. -/
 def thead (children : List (Child .thead_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .thead_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .thead_attrib attrs := by admits) :
     Element .thead .thead_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -738,7 +739,7 @@ def thead (children : List (Child .thead_content_fun) := [])
 are checked against `tbody_content_fun`. -/
 def tbody (children : List (Child .tbody_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .tbody_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .tbody_attrib attrs := by admits) :
     Element .tbody .tbody_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -746,7 +747,7 @@ def tbody (children : List (Child .tbody_content_fun) := [])
 are checked against `tfoot_content_fun`. -/
 def tfoot (children : List (Child .tfoot_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .tfoot_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .tfoot_attrib attrs := by admits) :
     Element .tfoot .tfoot_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -754,7 +755,7 @@ def tfoot (children : List (Child .tfoot_content_fun) := [])
 are checked against `flow5`. -/
 def td (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .td_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .td_attrib attrs := by admits) :
     Element .td .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -762,7 +763,7 @@ def td (children : List (Child .flow5) := [])
 are checked against `flow5`. -/
 def th (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .th_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .th_attrib attrs := by admits) :
     Element .th .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -770,7 +771,7 @@ def th (children : List (Child .flow5) := [])
 are checked against `tr_content_fun`. -/
 def tr (children : List (Child .tr_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .tr_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .tr_attrib attrs := by admits) :
     Element .tr .tr_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -778,7 +779,7 @@ def tr (children : List (Child .tr_content_fun) := [])
 are checked against `flow5_without_form`. -/
 def form (children : List (Child .flow5_without_form) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .form_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .form_attrib attrs := by admits) :
     Element .form .flow5_without_form :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -787,14 +788,14 @@ optional legend heads the children. -/
 def fieldset (children : List (Child .flow5) := [])
     (legend : Option (Element .legend .phrasing) := none)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .fieldset_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .fieldset_attrib attrs := by admits) :
     Element .fieldset .flow5 :=
   ⟨attrs, legend.toList.map Element.toRaw ++ children.map Child.raw⟩
 /-- TyXML `val legend : ([< legend_attrib], [< legend_content_fun], [> legend]) star`: its children
 are checked against `phrasing`. -/
 def legend (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .legend_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .legend_attrib attrs := by admits) :
     Element .legend .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -802,14 +803,14 @@ def legend (children : List (Child .phrasing) := [])
 are checked against `phrasing_without_label`. -/
 def label (children : List (Child .phrasing_without_label) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .label_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .label_attrib attrs := by admits) :
     Element .label .phrasing_without_label :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val input : ([< input_attrib], [> input]) nullary`: no children. -/
 def input
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .input_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .input_attrib attrs := by admits) :
     Element .input .notag :=
   ⟨attrs, []⟩
 
@@ -817,7 +818,7 @@ def input
 are checked against `phrasing_without_interactive`. -/
 def button (children : List (Child .phrasing_without_interactive) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .button_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .button_attrib attrs := by admits) :
     Element .button .phrasing_without_interactive :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -825,14 +826,14 @@ def button (children : List (Child .phrasing_without_interactive) := [])
 are checked against `select_content_fun`. -/
 def select (children : List (Child .select_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .select_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .select_attrib attrs := by admits) :
     Element .select .select_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val datalist : ([< datalist_attrib], [> datalist]) nullary`: no children. -/
 def datalist
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .datalist_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .datalist_attrib attrs := by admits) :
     Element .datalist .notag :=
   ⟨attrs, []⟩
 
@@ -840,14 +841,14 @@ def datalist
 becomes the `label` attribute. -/
 def optgroup (label : String) (children : List (Child .optgroup_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .optgroup_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .optgroup_attrib attrs := by admits) :
     Element .optgroup .optgroup_content_fun :=
   ⟨(Attr.label, label) :: attrs, children.map Child.raw⟩
 /-- TyXML `val option : (option_attrib, [< option_content_fun], [> option]) unary`: exactly one
 child, checked against `option_content_fun`. -/
 def option (child : Child .option_content_fun)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .option_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .option_attrib attrs := by admits) :
     Element .option .option_content_fun :=
   ⟨attrs, [child.raw]⟩
 
@@ -855,14 +856,14 @@ def option (child : Child .option_content_fun)
 child, checked against `textarea_content`. -/
 def textarea (child : Child .textarea_content)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .textarea_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .textarea_attrib attrs := by admits) :
     Element .textarea .textarea_content :=
   ⟨attrs, [child.raw]⟩
 
 /-- TyXML `val keygen : ([< keygen_attrib], [> keygen]) nullary`: no children. -/
 def keygen
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .keygen_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .keygen_attrib attrs := by admits) :
     Element .keygen .notag :=
   ⟨attrs, []⟩
 
@@ -870,7 +871,7 @@ def keygen
 are checked against `phrasing_without_progress`. -/
 def progress (children : List (Child .phrasing_without_progress) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .progress_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .progress_attrib attrs := by admits) :
     Element .progress .phrasing_without_progress :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -878,7 +879,7 @@ def progress (children : List (Child .phrasing_without_progress) := [])
 are checked against `phrasing_without_meter`. -/
 def meter (children : List (Child .phrasing_without_meter) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .meter_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .meter_attrib attrs := by admits) :
     Element .meter .phrasing_without_meter :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -886,7 +887,7 @@ def meter (children : List (Child .phrasing_without_meter) := [])
 are checked against `phrasing`. -/
 def output_elt (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .output_elt_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .output_elt_attrib attrs := by admits) :
     Element .output .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -894,14 +895,14 @@ def output_elt (children : List (Child .phrasing) := [])
 summary is the first positional argument and heads the children. -/
 def details (summary : Element .summary .phrasing) (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .details_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .details_attrib attrs := by admits) :
     Element .details .flow5 :=
   ⟨attrs, summary.toRaw :: children.map Child.raw⟩
 /-- TyXML `val summary : ([< summary_attrib], [< summary_content_fun], [> summary]) star`: its children
 are checked against `phrasing`. -/
 def summary (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .summary_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .summary_attrib attrs := by admits) :
     Element .summary .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -909,13 +910,13 @@ def summary (children : List (Child .phrasing) := [])
 the required label becomes the `label` attribute. -/
 def command (label : String)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .command_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .command_attrib attrs := by admits) :
     Element .command .notag :=
   ⟨(Attr.label, label) :: attrs, []⟩
 /-- TyXML `val menu : ([< menu_attrib], [> menu]) nullary`: no children. -/
 def menu
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .menu_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .menu_attrib attrs := by admits) :
     Element .menu .notag :=
   ⟨attrs, []⟩
 
@@ -923,7 +924,7 @@ def menu
 child, checked against `script_content_fun`. -/
 def script (child : Child .script_content_fun)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .script_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .script_attrib attrs := by admits) :
     Element .script .script_content_fun :=
   ⟨attrs, [child.raw]⟩
 
@@ -931,7 +932,7 @@ def script (child : Child .script_content_fun)
 are checked against `flow5_without_noscript`. -/
 def noscript (children : List (Child .flow5_without_noscript) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .noscript_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .noscript_attrib attrs := by admits) :
     Element .noscript .flow5_without_noscript :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -939,14 +940,14 @@ def noscript (children : List (Child .flow5_without_noscript) := [])
 are checked against `flow5`. -/
 def template (children : List (Child .flow5) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .template_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .template_attrib attrs := by admits) :
     Element .template .flow5 :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- TyXML `val meta : ([< meta_attrib], [> meta]) nullary`: no children. -/
 def «meta»
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .meta_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .meta_attrib attrs := by admits) :
     Element .«meta» .notag :=
   ⟨attrs, []⟩
 
@@ -954,7 +955,7 @@ def «meta»
 are checked against `style_content_fun`. -/
 def style (children : List (Child .style_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .style_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .style_attrib attrs := by admits) :
     Element .style .style_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -963,14 +964,14 @@ def style (children : List (Child .style_content_fun) := [])
 and become attributes. -/
 def link (rel : String) (href : String)
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .link_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .link_attrib attrs := by admits) :
     Element .link .notag :=
   ⟨(Attr.rel, rel) :: (Attr.href, href) :: attrs, []⟩
 /-- TyXML `val rt : ([< rt_attrib], [< rt_content_fun], [> rt]) star`: its children
 are checked against `phrasing`. -/
 def rt (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .rt_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .rt_attrib attrs := by admits) :
     Element .rt .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -978,7 +979,7 @@ def rt (children : List (Child .phrasing) := [])
 are checked against `phrasing`. -/
 def rp (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .rp_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .rp_attrib attrs := by admits) :
     Element .rp .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -986,7 +987,7 @@ def rp (children : List (Child .phrasing) := [])
 are checked against `ruby_content_fun`. -/
 def ruby (children : List (Child .ruby_content_fun) := [])
     (attrs : List (Attr × String) := [])
-    (_ha : AttrsAdmitted .ruby_attrib attrs := by decide) :
+    (_ha : AttrsAdmitted .ruby_attrib attrs := by admits) :
     Element .ruby .ruby_content_fun :=
   ⟨attrs, children.map Child.raw⟩
 end Whatwg.Html.E

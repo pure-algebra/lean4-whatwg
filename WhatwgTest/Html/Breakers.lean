@@ -9,9 +9,14 @@ and the `#guard_msgs` docstring above each one pins the exact diagnostic, so
 a probe that started failing for a different reason — a renamed combinator, a
 syntax slip, an argument in the wrong position — would fail this file rather
 than pass it silently. Each rejection below is the auto-parameter `h` of
-`Child.of`/`Child.text` (child admission, `Whatwg.Html.Content.Admits`) or the
+`E.el`/`E.txt` (child admission, `Whatwg.Html.Content.Admits`) or the
 auto-parameter `_ha` of a combinator (attribute admission,
-`Whatwg.Html.AttrsAdmitted`), and the pinned message names which.
+`Whatwg.Html.AttrsAdmitted`), both discharged by the `admits` tactic of
+`Whatwg.Html.Node.Admit`, whose pinned message names the rejected element
+(or text, or attribute) and the set that excludes it, with a transparent
+payload already resolved: the third and fourth probes report
+`phrasing_without_interactive`, the payload a link carries in a paragraph,
+rather than `childSet ContentSet.phrasing Tag.a`.
 
 The last two probes are rejected by the type checker rather than by a
 `decide`: a nullary combinator has no children parameter at all, so a list of
@@ -33,9 +38,7 @@ open Whatwg.Html.Schema (Tag ContentSet Attr)
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  Content.Admits ContentSet.phrasing_without_interactive Tag.button
-is false
+info: <button> is not admitted here: the content set `phrasing_without_interactive` does not name it
 ---
 info: E.p [E.el (E.button [E.el (E.button [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
 -/
@@ -47,9 +50,7 @@ info: E.p [E.el (E.button [E.el (E.button [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : 
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  Content.Admits ContentSet.phrasing Tag.div
-is false
+info: <div> is not admitted here: the content set `phrasing` does not name it
 ---
 info: E.p [E.el (E.div [] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
 -/
@@ -65,9 +66,7 @@ info: E.p [E.el (E.div [] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasin
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  Content.Admits (childSet ContentSet.phrasing Tag.a) Tag.div
-is false
+info: <div> is not admitted here: the content set `phrasing_without_interactive` does not name it
 ---
 info: E.p [E.el (E.a [E.el (E.div [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
 -/
@@ -80,9 +79,7 @@ info: E.p [E.el (E.a [E.el (E.div [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element 
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  Content.Admits (childSet ContentSet.phrasing Tag.a) Tag.a
-is false
+info: <a> is not admitted here: the content set `phrasing_without_interactive` does not name it
 ---
 info: E.p [E.el (E.a [E.el (E.a [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
 -/
@@ -94,9 +91,7 @@ info: E.p [E.el (E.a [E.el (E.a [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Ta
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  Content.Admits ContentSet.ul_content_fun Tag.pcdata
-is false
+info: text is not admitted here: the content set `ul_content_fun` does not name it
 ---
 info: E.ul [E.txt "loose text" ⋯] [] ⋯ : Element Tag.ul ContentSet.ul_content_fun
 -/
@@ -108,9 +103,7 @@ info: E.ul [E.txt "loose text" ⋯] [] ⋯ : Element Tag.ul ContentSet.ul_conten
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  Content.Admits ContentSet.flow5 Tag.title
-is false
+info: <title> is not admitted here: the content set `flow5` does not name it
 ---
 info: E.body [E.el (E.title (E.txt "t" ⋯) [] ⋯) ⋯] [] ⋯ : Element Tag.body ContentSet.flow5
 -/
@@ -121,9 +114,7 @@ info: E.body [E.el (E.title (E.txt "t" ⋯) [] ⋯) ⋯] [] ⋯ : Element Tag.bo
 /--
 info: could not synthesize default value for parameter '_ha' using tactics
 ---
-info: Tactic `decide` proved that the proposition
-  AttrsAdmitted Schema.AttrSet.div_attrib [A.a_href "/target"]
-is false
+info: attribute `href` is not admitted on this element: the attribute set `div_attrib` does not name it
 ---
 info: E.div [] [A.a_href "/target"] ⋯ : Element Tag.div ContentSet.flow5
 -/

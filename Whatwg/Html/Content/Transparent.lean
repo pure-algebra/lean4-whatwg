@@ -257,6 +257,19 @@ theorem nontransparent_element_content_isSome :
 
 /-! ## The child-set resolver -/
 
+/-- The generated flat table `Tag.content?` agrees with the list lookup it
+stands in for at every tag, by reflection over `Tag.all`. The table is
+therefore a proven projection of `elements` and not a second source of the
+schema; the resolver below reads it because the elaborator reduces the
+resolver at every element node of a typed tree, and the list lookup cost
+about thirty-five thousand heartbeats per node against seven for a flat
+match (`WhatwgTest/Html/DecideBenchmark.lean`). -/
+theorem content?_eq_element? (t : Tag) :
+    t.content? = (Tag.element? t).bind Element.content := by
+  have h := forall_tag_of_all
+    (fun t => Tag.content? t == (Tag.element? t).bind Element.content) (by decide +kernel) t
+  exact beq_iff_eq.mp h
+
 /-- The content set the children of a `parent` element must satisfy when that
 element sits in the context set `ctx`.
 
@@ -264,16 +277,16 @@ The payload table wins where it has an entry: that is TyXML's transparency,
 and it is context-sensitive, so an `a` in a `phrasing` context resolves to
 `phrasing_without_interactive` while the same `a` in a `flow5` context
 resolves to `flow5_without_interactive`. Where the table has no entry the
-element's own content set is used, which covers every non-transparent parent
-and also a `transparent` tag appearing in one of the five `payloadFree` sets
-of this module. `none` is returned only when the parent has no element row at
+element's own content set is used, read from the flat table `Tag.content?`,
+which covers every non-transparent parent and also a `transparent` tag
+appearing in one of the five `payloadFree` sets of this module. `none` is returned only when the parent has no element row at
 all (`PCDATA`, `Img_interactive`, and the three `*_interactive` variants) or
 when its row carries no content set (`svg`); `resolveChildSet_none` states
 exactly that. -/
 def resolveChildSet (parent : Tag) (ctx : ContentSet) : Option ContentSet :=
   match ctx.transparentPayload parent with
   | some payload => some payload
-  | none => (Tag.element? parent).bind Element.content
+  | none => parent.content?
 
 /-- Where the payload table has an entry, the resolver returns it. -/
 theorem resolveChildSet_payload (parent : Tag) (ctx : ContentSet) (p : ContentSet)
@@ -285,7 +298,7 @@ set. -/
 theorem resolveChildSet_element (parent : Tag) (ctx : ContentSet)
     (h : ctx.transparentPayload parent = none) :
     resolveChildSet parent ctx = (Tag.element? parent).bind Element.content := by
-  simp [resolveChildSet, h]
+  simp [resolveChildSet, h, content?_eq_element?]
 
 /-- The resolver returns nothing only where the element row supplies
 nothing. -/
@@ -295,7 +308,7 @@ theorem resolveChildSet_none (parent : Tag) (ctx : ContentSet)
   unfold resolveChildSet at h
   cases hp : ctx.transparentPayload parent with
   | some p => rw [hp] at h; exact absurd h (by simp)
-  | none => rw [hp] at h; exact h
+  | none => rw [hp, content?_eq_element?] at h; exact h
 
 /-- A void parent resolves to the empty content set in every context. This is
 the shape node T2 of the proof graph needs: a typed tree can put no child

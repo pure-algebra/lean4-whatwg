@@ -6,6 +6,7 @@ import Whatwg.Html.Content.Divergence
 import Whatwg.Html.Node.Raw
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Erasure
+import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Combinators
 import Whatwg.Html.Print.Escape
 import Whatwg.Html.Print.Render
@@ -43,7 +44,9 @@ H3 landed: `Whatwg.Html.Schema` holds the generated data (tags, attributes,
 content sets, element rows) behind the projection's drift gate,
 `Whatwg.Html.Content` holds the lattice, transparent coherence and the
 admission relation, `Whatwg.Html.Node` holds the raw tree, the tag-indexed
-tree, its 111 element combinators and erasure, and H4 adds
+tree, the `admits` tactic that discharges its obligations by compiled
+evaluation and a kernel-checked `Eq.refl`, its 111 element combinators and
+erasure, and H4 adds
 `Whatwg.Html.Print` with the escaper, the serializer, and the decoder that
 inverts the serializer on the sublanguage its own output determines.
 `Whatwg.Html.Syntax`, `Whatwg.Html.Bridge`, `Whatwg.Html.Svg` and

@@ -273,6 +273,126 @@ def Tag.elementIndex? : Tag → Option Nat
 def Tag.element? (t : Tag) : Option Element :=
   t.elementIndex?.bind (elements[·]?)
 
+/-- The content set of the first constructor of a tag, as one flat match
+over `Tag`: `none` for a tag without a constructor and for `svg`, whose row
+carries no content set. It denotes `(Tag.element? t).bind Element.content`
+(`Whatwg.Html.Content.content?_eq_element?` proves the equation over
+`Tag.all`) and exists because the child-set resolver of the typed tree is
+reduced by the elaborator at every element node: a flat match costs one iota
+step where the list lookup walks `elements`. -/
+def Tag.content? : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .abbr => some .phrasing
+  | .address => some .flow5_without_sectioning_heading_header_footer_address
+  | .area => some .notag
+  | .article => some .flow5
+  | .aside => some .flow5
+  | .audio => some .flow5_without_media
+  | .b => some .phrasing
+  | .base => some .notag
+  | .bdo => some .phrasing
+  | .blockquote => some .flow5
+  | .body => some .flow5
+  | .br => some .notag
+  | .button => some .phrasing_without_interactive
+  | .canvas => some .flow5
+  | .caption => some .flow5_without_table
+  | .cite => some .phrasing
+  | .code => some .phrasing
+  | .col => some .notag
+  | .colgroup => some .colgroup_content_fun
+  | .command => some .notag
+  | .datalist => some .notag
+  | .dd => some .flow5
+  | .del => some .flow5
+  | .details => some .flow5
+  | .dfn => some .phrasing_without_dfn
+  | .dialog => some .flow5
+  | .div => some .flow5
+  | .dl => some .dl_content_fun
+  | .dt => some .flow5_without_sectioning_heading_header_footer
+  | .em => some .phrasing
+  | .embed => some .notag
+  | .fieldset => some .flow5
+  | .figcaption => some .flow5
+  | .figure => some .flow5
+  | .footer => some .flow5_without_header_footer
+  | .form => some .flow5_without_form
+  | .h1 => some .phrasing
+  | .h2 => some .phrasing
+  | .h3 => some .phrasing
+  | .h4 => some .phrasing
+  | .h5 => some .phrasing
+  | .h6 => some .phrasing
+  | .head => some .metadata_without_title
+  | .header => some .flow5_without_header_footer
+  | .hgroup => some .hgroup_content_fun
+  | .hr => some .notag
+  | .html => some .html_content_fun
+  | .i => some .phrasing
+  | .iframe => some .iframe_content_fun
+  | .img => some .notag
+  | .input => some .notag
+  | .ins => some .flow5
+  | .kbd => some .phrasing
+  | .keygen => some .notag
+  | .label => some .phrasing_without_label
+  | .legend => some .phrasing
+  | .li => some .flow5
+  | .link => some .notag
+  | .main => some .flow5
+  | .map => some .flow5
+  | .mark => some .phrasing
+  | .menu => some .notag
+  | .«meta» => some .notag
+  | .meter => some .phrasing_without_meter
+  | .nav => some .flow5
+  | .noscript => some .flow5_without_noscript
+  | .object => some .flow5
+  | .ol => some .ol_content_fun
+  | .optgroup => some .optgroup_content_fun
+  | .option => some .option_content_fun
+  | .output => some .phrasing
+  | .p => some .phrasing
+  | .param => some .notag
+  | .picture => some .picture_content_fun
+  | .pre => some .phrasing
+  | .progress => some .phrasing_without_progress
+  | .q => some .phrasing
+  | .rp => some .phrasing
+  | .rt => some .phrasing
+  | .ruby => some .ruby_content_fun
+  | .samp => some .phrasing
+  | .script => some .script_content_fun
+  | .«section» => some .flow5
+  | .select => some .select_content_fun
+  | .small => some .phrasing
+  | .source => some .notag
+  | .span => some .phrasing
+  | .strong => some .phrasing
+  | .style => some .style_content_fun
+  | .sub => some .phrasing
+  | .summary => some .phrasing
+  | .sup => some .phrasing
+  | .svg => none
+  | .table => some .table_content_fun
+  | .tbody => some .tbody_content_fun
+  | .td => some .flow5
+  | .template => some .flow5
+  | .textarea => some .textarea_content
+  | .tfoot => some .tfoot_content_fun
+  | .th => some .flow5
+  | .thead => some .thead_content_fun
+  | .time => some .phrasing_without_time
+  | .title => some .title_content_fun
+  | .tr => some .tr_content_fun
+  | .u => some .phrasing
+  | .ul => some .ul_content_fun
+  | .var => some .phrasing
+  | .video => some .flow5_without_media
+  | .wbr => some .notag
+  | _ => none
+
 /-- The text constructors of `Html_sigs.T` (result tag `PCDATA`): `txt`, `entity`, `space`, `cdata`, `cdata_script`, `cdata_style`, `pcdata`. -/
 def textCtors : List String := ["txt", "entity", "space", "cdata", "cdata_script", "cdata_style", "pcdata"]
 

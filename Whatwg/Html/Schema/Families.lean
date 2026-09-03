@@ -741,230 +741,578 @@ def ContentSet.contains : ContentSet → Tag → Bool
   | .transparent_without_noscript, t => Sets.transparent_without_noscript t
   | .ul_content_fun, t => Sets.ul_content_fun t
 
+/-- The transparent payloads of `colgroup_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.colgroup_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_flow5`: 0 of 115 tags carry one. -/
+def Payloads.core_flow5 : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_flow5_without_interactive`: 0 of 115 tags carry one. -/
+def Payloads.core_flow5_without_interactive : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_flow5_without_media`: 0 of 115 tags carry one. -/
+def Payloads.core_flow5_without_media : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_flow5_without_noscript`: 0 of 115 tags carry one. -/
+def Payloads.core_flow5_without_noscript : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_phrasing`: 0 of 115 tags carry one. -/
+def Payloads.core_phrasing : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_phrasing_without_interactive`: 0 of 115 tags carry one. -/
+def Payloads.core_phrasing_without_interactive : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_phrasing_without_media`: 0 of 115 tags carry one. -/
+def Payloads.core_phrasing_without_media : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `core_phrasing_without_noscript`: 0 of 115 tags carry one. -/
+def Payloads.core_phrasing_without_noscript : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `dl_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.dl_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `flow5`: 12 of 115 tags carry one. -/
+def Payloads.flow5 : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .noscript => some .flow5_without_noscript
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .audio_interactive => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_form`: 12 of 115 tags carry one. -/
+def Payloads.flow5_without_form : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .noscript => some .flow5_without_noscript
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .audio_interactive => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_header_footer`: 12 of 115 tags carry one. -/
+def Payloads.flow5_without_header_footer : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive_header_footer
+  | .noscript => some .flow5_without_noscript
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .audio_interactive => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_interactive`: 8 of 115 tags carry one. -/
+def Payloads.flow5_without_interactive : Tag → Option ContentSet
+  | .noscript => some .flow5_without_noscript
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_interactive_header_footer`: 8 of 115 tags carry one. -/
+def Payloads.flow5_without_interactive_header_footer : Tag → Option ContentSet
+  | .noscript => some .flow5_without_noscript
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_media`: 8 of 115 tags carry one. -/
+def Payloads.flow5_without_media : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .noscript => some .flow5_without_noscript
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .map => some .flow5
+  | .canvas => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_noscript`: 11 of 115 tags carry one. -/
+def Payloads.flow5_without_noscript : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .video => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio_interactive => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_sectioning_heading_header_footer`: 12 of 115 tags carry one. -/
+def Payloads.flow5_without_sectioning_heading_header_footer : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .noscript => some .flow5_without_noscript
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .audio_interactive => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_sectioning_heading_header_footer_address`: 12 of 115 tags carry one. -/
+def Payloads.flow5_without_sectioning_heading_header_footer_address : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .noscript => some .flow5_without_noscript
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .audio_interactive => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `flow5_without_table`: 12 of 115 tags carry one. -/
+def Payloads.flow5_without_table : Tag → Option ContentSet
+  | .a => some .flow5_without_interactive
+  | .noscript => some .flow5_without_noscript
+  | .canvas => some .flow5
+  | .map => some .flow5
+  | .ins => some .flow5
+  | .del => some .flow5
+  | .object => some .flow5
+  | .object_interactive => some .flow5
+  | .audio_interactive => some .flow5_without_media
+  | .video_interactive => some .flow5_without_media
+  | .audio => some .flow5_without_media
+  | .video => some .flow5_without_media
+  | _ => none
+
+/-- The transparent payloads of `formassociated`: 0 of 115 tags carry one. -/
+def Payloads.formassociated : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `formatblock`: 0 of 115 tags carry one. -/
+def Payloads.formatblock : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `heading`: 0 of 115 tags carry one. -/
+def Payloads.heading : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `hgroup_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.hgroup_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `html_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.html_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `iframe_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.iframe_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `labelable`: 0 of 115 tags carry one. -/
+def Payloads.labelable : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `labelable_without_interactive`: 0 of 115 tags carry one. -/
+def Payloads.labelable_without_interactive : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `listed`: 0 of 115 tags carry one. -/
+def Payloads.listed : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `metadata_without_title`: 0 of 115 tags carry one. -/
+def Payloads.metadata_without_title : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `notag`: 0 of 115 tags carry one. -/
+def Payloads.notag : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `ol_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.ol_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `optgroup_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.optgroup_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `option_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.option_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `phrasing`: 12 of 115 tags carry one. -/
+def Payloads.phrasing : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing
+  | .map => some .phrasing
+  | .ins => some .phrasing
+  | .del => some .phrasing
+  | .object => some .phrasing
+  | .object_interactive => some .phrasing
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_dfn`: 12 of 115 tags carry one. -/
+def Payloads.phrasing_without_dfn : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing_without_dfn
+  | .map => some .phrasing_without_dfn
+  | .ins => some .phrasing_without_dfn
+  | .del => some .phrasing_without_dfn
+  | .object => some .phrasing_without_dfn
+  | .object_interactive => some .phrasing_without_dfn
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_interactive`: 8 of 115 tags carry one. -/
+def Payloads.phrasing_without_interactive : Tag → Option ContentSet
+  | .noscript => some .phrasing_without_noscript
+  | .ins => some .phrasing
+  | .del => some .phrasing
+  | .object => some .phrasing
+  | .canvas => some .phrasing
+  | .map => some .phrasing
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_label`: 12 of 115 tags carry one. -/
+def Payloads.phrasing_without_label : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing_without_label
+  | .map => some .phrasing_without_label
+  | .ins => some .phrasing_without_label
+  | .del => some .phrasing_without_label
+  | .object => some .phrasing_without_label
+  | .object_interactive => some .phrasing_without_label
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_media`: 8 of 115 tags carry one. -/
+def Payloads.phrasing_without_media : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .ins => some .phrasing
+  | .del => some .phrasing
+  | .map => some .phrasing
+  | .canvas => some .phrasing
+  | .object => some .phrasing
+  | .object_interactive => some .phrasing
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_meter`: 12 of 115 tags carry one. -/
+def Payloads.phrasing_without_meter : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing_without_meter
+  | .map => some .phrasing_without_meter
+  | .ins => some .phrasing_without_meter
+  | .del => some .phrasing_without_meter
+  | .object => some .phrasing_without_meter
+  | .object_interactive => some .phrasing_without_meter
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_noscript`: 11 of 115 tags carry one. -/
+def Payloads.phrasing_without_noscript : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .ins => some .phrasing
+  | .del => some .phrasing
+  | .canvas => some .phrasing
+  | .map => some .phrasing
+  | .object => some .phrasing
+  | .object_interactive => some .phrasing
+  | .video => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio_interactive => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_progress`: 12 of 115 tags carry one. -/
+def Payloads.phrasing_without_progress : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing_without_progress
+  | .map => some .phrasing_without_progress
+  | .ins => some .phrasing_without_progress
+  | .del => some .phrasing_without_progress
+  | .object => some .phrasing_without_progress
+  | .object_interactive => some .phrasing_without_progress
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `phrasing_without_time`: 12 of 115 tags carry one. -/
+def Payloads.phrasing_without_time : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing_without_time
+  | .map => some .phrasing_without_time
+  | .ins => some .phrasing_without_time
+  | .del => some .phrasing_without_time
+  | .object => some .phrasing_without_time
+  | .object_interactive => some .phrasing_without_time
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `picture_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.picture_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `resetable`: 0 of 115 tags carry one. -/
+def Payloads.resetable : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `rp`: 0 of 115 tags carry one. -/
+def Payloads.rp : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `rt`: 0 of 115 tags carry one. -/
+def Payloads.rt : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `ruby_content_fun`: 12 of 115 tags carry one. -/
+def Payloads.ruby_content_fun : Tag → Option ContentSet
+  | .a => some .phrasing_without_interactive
+  | .noscript => some .phrasing_without_noscript
+  | .canvas => some .phrasing
+  | .map => some .phrasing
+  | .ins => some .phrasing
+  | .del => some .phrasing
+  | .object => some .phrasing
+  | .object_interactive => some .phrasing
+  | .audio_interactive => some .phrasing_without_media
+  | .video_interactive => some .phrasing_without_media
+  | .audio => some .phrasing_without_media
+  | .video => some .phrasing_without_media
+  | _ => none
+
+/-- The transparent payloads of `script`: 0 of 115 tags carry one. -/
+def Payloads.script : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `script_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.script_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `sectioning`: 0 of 115 tags carry one. -/
+def Payloads.sectioning : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `select_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.select_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `source`: 0 of 115 tags carry one. -/
+def Payloads.source : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `style_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.style_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `submitable`: 0 of 115 tags carry one. -/
+def Payloads.submitable : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `table_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.table_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `tablex_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.tablex_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `tbody_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.tbody_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `template`: 0 of 115 tags carry one. -/
+def Payloads.template : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `textarea_content`: 0 of 115 tags carry one. -/
+def Payloads.textarea_content : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `tfoot_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.tfoot_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `thead_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.thead_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `title_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.title_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `tr_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.tr_content_fun : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `transparent`: 0 of 115 tags carry one. -/
+def Payloads.transparent : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `transparent_without_interactive`: 0 of 115 tags carry one. -/
+def Payloads.transparent_without_interactive : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `transparent_without_media`: 0 of 115 tags carry one. -/
+def Payloads.transparent_without_media : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `transparent_without_noscript`: 0 of 115 tags carry one. -/
+def Payloads.transparent_without_noscript : Tag → Option ContentSet
+  | _ => none
+
+/-- The transparent payloads of `ul_content_fun`: 0 of 115 tags carry one. -/
+def Payloads.ul_content_fun : Tag → Option ContentSet
+  | _ => none
+
 /-- TyXML's transparent rule: the content set the payload of a transparent
 tag assigns to that element's children when it appears in the given set
 (`` `A of flow5_without_interactive `` inside `flow5`, so a link in flow
 context may not contain interactive content). `none` when the set names the
-tag without a content-set payload (ruling HP-4). -/
+tag without a content-set payload (ruling HP-4). Dispatches to the set's
+own `Payloads` function, as `contains` does to `Sets`, so that reducing one
+lookup instantiates a matcher of one set's rows rather than of all 69 sets'
+rows at once; the child-set resolver of the typed tree is reduced by the
+elaborator at every element node. -/
 def ContentSet.transparentPayload : ContentSet → Tag → Option ContentSet
-  | .flow5, .a => some .flow5_without_interactive
-  | .flow5, .noscript => some .flow5_without_noscript
-  | .flow5, .canvas => some .flow5
-  | .flow5, .map => some .flow5
-  | .flow5, .ins => some .flow5
-  | .flow5, .del => some .flow5
-  | .flow5, .object => some .flow5
-  | .flow5, .object_interactive => some .flow5
-  | .flow5, .audio_interactive => some .flow5_without_media
-  | .flow5, .video_interactive => some .flow5_without_media
-  | .flow5, .audio => some .flow5_without_media
-  | .flow5, .video => some .flow5_without_media
-  | .flow5_without_form, .a => some .flow5_without_interactive
-  | .flow5_without_form, .noscript => some .flow5_without_noscript
-  | .flow5_without_form, .canvas => some .flow5
-  | .flow5_without_form, .map => some .flow5
-  | .flow5_without_form, .ins => some .flow5
-  | .flow5_without_form, .del => some .flow5
-  | .flow5_without_form, .object => some .flow5
-  | .flow5_without_form, .object_interactive => some .flow5
-  | .flow5_without_form, .audio_interactive => some .flow5_without_media
-  | .flow5_without_form, .video_interactive => some .flow5_without_media
-  | .flow5_without_form, .audio => some .flow5_without_media
-  | .flow5_without_form, .video => some .flow5_without_media
-  | .flow5_without_header_footer, .a => some .flow5_without_interactive_header_footer
-  | .flow5_without_header_footer, .noscript => some .flow5_without_noscript
-  | .flow5_without_header_footer, .canvas => some .flow5
-  | .flow5_without_header_footer, .map => some .flow5
-  | .flow5_without_header_footer, .ins => some .flow5
-  | .flow5_without_header_footer, .del => some .flow5
-  | .flow5_without_header_footer, .object => some .flow5
-  | .flow5_without_header_footer, .object_interactive => some .flow5
-  | .flow5_without_header_footer, .audio_interactive => some .flow5_without_media
-  | .flow5_without_header_footer, .video_interactive => some .flow5_without_media
-  | .flow5_without_header_footer, .audio => some .flow5_without_media
-  | .flow5_without_header_footer, .video => some .flow5_without_media
-  | .flow5_without_interactive, .noscript => some .flow5_without_noscript
-  | .flow5_without_interactive, .ins => some .flow5
-  | .flow5_without_interactive, .del => some .flow5
-  | .flow5_without_interactive, .object => some .flow5
-  | .flow5_without_interactive, .canvas => some .flow5
-  | .flow5_without_interactive, .map => some .flow5
-  | .flow5_without_interactive, .audio => some .flow5_without_media
-  | .flow5_without_interactive, .video => some .flow5_without_media
-  | .flow5_without_interactive_header_footer, .noscript => some .flow5_without_noscript
-  | .flow5_without_interactive_header_footer, .ins => some .flow5
-  | .flow5_without_interactive_header_footer, .del => some .flow5
-  | .flow5_without_interactive_header_footer, .object => some .flow5
-  | .flow5_without_interactive_header_footer, .canvas => some .flow5
-  | .flow5_without_interactive_header_footer, .map => some .flow5
-  | .flow5_without_interactive_header_footer, .audio => some .flow5_without_media
-  | .flow5_without_interactive_header_footer, .video => some .flow5_without_media
-  | .flow5_without_media, .a => some .flow5_without_interactive
-  | .flow5_without_media, .noscript => some .flow5_without_noscript
-  | .flow5_without_media, .ins => some .flow5
-  | .flow5_without_media, .del => some .flow5
-  | .flow5_without_media, .map => some .flow5
-  | .flow5_without_media, .canvas => some .flow5
-  | .flow5_without_media, .object => some .flow5
-  | .flow5_without_media, .object_interactive => some .flow5
-  | .flow5_without_noscript, .a => some .flow5_without_interactive
-  | .flow5_without_noscript, .ins => some .flow5
-  | .flow5_without_noscript, .del => some .flow5
-  | .flow5_without_noscript, .canvas => some .flow5
-  | .flow5_without_noscript, .map => some .flow5
-  | .flow5_without_noscript, .object => some .flow5
-  | .flow5_without_noscript, .object_interactive => some .flow5
-  | .flow5_without_noscript, .video => some .flow5_without_media
-  | .flow5_without_noscript, .audio => some .flow5_without_media
-  | .flow5_without_noscript, .video_interactive => some .flow5_without_media
-  | .flow5_without_noscript, .audio_interactive => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer, .a => some .flow5_without_interactive
-  | .flow5_without_sectioning_heading_header_footer, .noscript => some .flow5_without_noscript
-  | .flow5_without_sectioning_heading_header_footer, .canvas => some .flow5
-  | .flow5_without_sectioning_heading_header_footer, .map => some .flow5
-  | .flow5_without_sectioning_heading_header_footer, .ins => some .flow5
-  | .flow5_without_sectioning_heading_header_footer, .del => some .flow5
-  | .flow5_without_sectioning_heading_header_footer, .object => some .flow5
-  | .flow5_without_sectioning_heading_header_footer, .object_interactive => some .flow5
-  | .flow5_without_sectioning_heading_header_footer, .audio_interactive => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer, .video_interactive => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer, .audio => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer, .video => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer_address, .a => some .flow5_without_interactive
-  | .flow5_without_sectioning_heading_header_footer_address, .noscript => some .flow5_without_noscript
-  | .flow5_without_sectioning_heading_header_footer_address, .canvas => some .flow5
-  | .flow5_without_sectioning_heading_header_footer_address, .map => some .flow5
-  | .flow5_without_sectioning_heading_header_footer_address, .ins => some .flow5
-  | .flow5_without_sectioning_heading_header_footer_address, .del => some .flow5
-  | .flow5_without_sectioning_heading_header_footer_address, .object => some .flow5
-  | .flow5_without_sectioning_heading_header_footer_address, .object_interactive => some .flow5
-  | .flow5_without_sectioning_heading_header_footer_address, .audio_interactive => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer_address, .video_interactive => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer_address, .audio => some .flow5_without_media
-  | .flow5_without_sectioning_heading_header_footer_address, .video => some .flow5_without_media
-  | .flow5_without_table, .a => some .flow5_without_interactive
-  | .flow5_without_table, .noscript => some .flow5_without_noscript
-  | .flow5_without_table, .canvas => some .flow5
-  | .flow5_without_table, .map => some .flow5
-  | .flow5_without_table, .ins => some .flow5
-  | .flow5_without_table, .del => some .flow5
-  | .flow5_without_table, .object => some .flow5
-  | .flow5_without_table, .object_interactive => some .flow5
-  | .flow5_without_table, .audio_interactive => some .flow5_without_media
-  | .flow5_without_table, .video_interactive => some .flow5_without_media
-  | .flow5_without_table, .audio => some .flow5_without_media
-  | .flow5_without_table, .video => some .flow5_without_media
-  | .phrasing, .a => some .phrasing_without_interactive
-  | .phrasing, .noscript => some .phrasing_without_noscript
-  | .phrasing, .canvas => some .phrasing
-  | .phrasing, .map => some .phrasing
-  | .phrasing, .ins => some .phrasing
-  | .phrasing, .del => some .phrasing
-  | .phrasing, .object => some .phrasing
-  | .phrasing, .object_interactive => some .phrasing
-  | .phrasing, .audio_interactive => some .phrasing_without_media
-  | .phrasing, .video_interactive => some .phrasing_without_media
-  | .phrasing, .audio => some .phrasing_without_media
-  | .phrasing, .video => some .phrasing_without_media
-  | .phrasing_without_dfn, .a => some .phrasing_without_interactive
-  | .phrasing_without_dfn, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_dfn, .canvas => some .phrasing_without_dfn
-  | .phrasing_without_dfn, .map => some .phrasing_without_dfn
-  | .phrasing_without_dfn, .ins => some .phrasing_without_dfn
-  | .phrasing_without_dfn, .del => some .phrasing_without_dfn
-  | .phrasing_without_dfn, .object => some .phrasing_without_dfn
-  | .phrasing_without_dfn, .object_interactive => some .phrasing_without_dfn
-  | .phrasing_without_dfn, .audio_interactive => some .phrasing_without_media
-  | .phrasing_without_dfn, .video_interactive => some .phrasing_without_media
-  | .phrasing_without_dfn, .audio => some .phrasing_without_media
-  | .phrasing_without_dfn, .video => some .phrasing_without_media
-  | .phrasing_without_interactive, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_interactive, .ins => some .phrasing
-  | .phrasing_without_interactive, .del => some .phrasing
-  | .phrasing_without_interactive, .object => some .phrasing
-  | .phrasing_without_interactive, .canvas => some .phrasing
-  | .phrasing_without_interactive, .map => some .phrasing
-  | .phrasing_without_interactive, .audio => some .phrasing_without_media
-  | .phrasing_without_interactive, .video => some .phrasing_without_media
-  | .phrasing_without_label, .a => some .phrasing_without_interactive
-  | .phrasing_without_label, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_label, .canvas => some .phrasing_without_label
-  | .phrasing_without_label, .map => some .phrasing_without_label
-  | .phrasing_without_label, .ins => some .phrasing_without_label
-  | .phrasing_without_label, .del => some .phrasing_without_label
-  | .phrasing_without_label, .object => some .phrasing_without_label
-  | .phrasing_without_label, .object_interactive => some .phrasing_without_label
-  | .phrasing_without_label, .audio_interactive => some .phrasing_without_media
-  | .phrasing_without_label, .video_interactive => some .phrasing_without_media
-  | .phrasing_without_label, .audio => some .phrasing_without_media
-  | .phrasing_without_label, .video => some .phrasing_without_media
-  | .phrasing_without_media, .a => some .phrasing_without_interactive
-  | .phrasing_without_media, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_media, .ins => some .phrasing
-  | .phrasing_without_media, .del => some .phrasing
-  | .phrasing_without_media, .map => some .phrasing
-  | .phrasing_without_media, .canvas => some .phrasing
-  | .phrasing_without_media, .object => some .phrasing
-  | .phrasing_without_media, .object_interactive => some .phrasing
-  | .phrasing_without_meter, .a => some .phrasing_without_interactive
-  | .phrasing_without_meter, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_meter, .canvas => some .phrasing_without_meter
-  | .phrasing_without_meter, .map => some .phrasing_without_meter
-  | .phrasing_without_meter, .ins => some .phrasing_without_meter
-  | .phrasing_without_meter, .del => some .phrasing_without_meter
-  | .phrasing_without_meter, .object => some .phrasing_without_meter
-  | .phrasing_without_meter, .object_interactive => some .phrasing_without_meter
-  | .phrasing_without_meter, .audio_interactive => some .phrasing_without_media
-  | .phrasing_without_meter, .video_interactive => some .phrasing_without_media
-  | .phrasing_without_meter, .audio => some .phrasing_without_media
-  | .phrasing_without_meter, .video => some .phrasing_without_media
-  | .phrasing_without_noscript, .a => some .phrasing_without_interactive
-  | .phrasing_without_noscript, .ins => some .phrasing
-  | .phrasing_without_noscript, .del => some .phrasing
-  | .phrasing_without_noscript, .canvas => some .phrasing
-  | .phrasing_without_noscript, .map => some .phrasing
-  | .phrasing_without_noscript, .object => some .phrasing
-  | .phrasing_without_noscript, .object_interactive => some .phrasing
-  | .phrasing_without_noscript, .video => some .phrasing_without_media
-  | .phrasing_without_noscript, .audio => some .phrasing_without_media
-  | .phrasing_without_noscript, .video_interactive => some .phrasing_without_media
-  | .phrasing_without_noscript, .audio_interactive => some .phrasing_without_media
-  | .phrasing_without_progress, .a => some .phrasing_without_interactive
-  | .phrasing_without_progress, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_progress, .canvas => some .phrasing_without_progress
-  | .phrasing_without_progress, .map => some .phrasing_without_progress
-  | .phrasing_without_progress, .ins => some .phrasing_without_progress
-  | .phrasing_without_progress, .del => some .phrasing_without_progress
-  | .phrasing_without_progress, .object => some .phrasing_without_progress
-  | .phrasing_without_progress, .object_interactive => some .phrasing_without_progress
-  | .phrasing_without_progress, .audio_interactive => some .phrasing_without_media
-  | .phrasing_without_progress, .video_interactive => some .phrasing_without_media
-  | .phrasing_without_progress, .audio => some .phrasing_without_media
-  | .phrasing_without_progress, .video => some .phrasing_without_media
-  | .phrasing_without_time, .a => some .phrasing_without_interactive
-  | .phrasing_without_time, .noscript => some .phrasing_without_noscript
-  | .phrasing_without_time, .canvas => some .phrasing_without_time
-  | .phrasing_without_time, .map => some .phrasing_without_time
-  | .phrasing_without_time, .ins => some .phrasing_without_time
-  | .phrasing_without_time, .del => some .phrasing_without_time
-  | .phrasing_without_time, .object => some .phrasing_without_time
-  | .phrasing_without_time, .object_interactive => some .phrasing_without_time
-  | .phrasing_without_time, .audio_interactive => some .phrasing_without_media
-  | .phrasing_without_time, .video_interactive => some .phrasing_without_media
-  | .phrasing_without_time, .audio => some .phrasing_without_media
-  | .phrasing_without_time, .video => some .phrasing_without_media
-  | .ruby_content_fun, .a => some .phrasing_without_interactive
-  | .ruby_content_fun, .noscript => some .phrasing_without_noscript
-  | .ruby_content_fun, .canvas => some .phrasing
-  | .ruby_content_fun, .map => some .phrasing
-  | .ruby_content_fun, .ins => some .phrasing
-  | .ruby_content_fun, .del => some .phrasing
-  | .ruby_content_fun, .object => some .phrasing
-  | .ruby_content_fun, .object_interactive => some .phrasing
-  | .ruby_content_fun, .audio_interactive => some .phrasing_without_media
-  | .ruby_content_fun, .video_interactive => some .phrasing_without_media
-  | .ruby_content_fun, .audio => some .phrasing_without_media
-  | .ruby_content_fun, .video => some .phrasing_without_media
-  | _, _ => none
+  | .colgroup_content_fun, t => Payloads.colgroup_content_fun t
+  | .core_flow5, t => Payloads.core_flow5 t
+  | .core_flow5_without_interactive, t => Payloads.core_flow5_without_interactive t
+  | .core_flow5_without_media, t => Payloads.core_flow5_without_media t
+  | .core_flow5_without_noscript, t => Payloads.core_flow5_without_noscript t
+  | .core_phrasing, t => Payloads.core_phrasing t
+  | .core_phrasing_without_interactive, t => Payloads.core_phrasing_without_interactive t
+  | .core_phrasing_without_media, t => Payloads.core_phrasing_without_media t
+  | .core_phrasing_without_noscript, t => Payloads.core_phrasing_without_noscript t
+  | .dl_content_fun, t => Payloads.dl_content_fun t
+  | .flow5, t => Payloads.flow5 t
+  | .flow5_without_form, t => Payloads.flow5_without_form t
+  | .flow5_without_header_footer, t => Payloads.flow5_without_header_footer t
+  | .flow5_without_interactive, t => Payloads.flow5_without_interactive t
+  | .flow5_without_interactive_header_footer, t => Payloads.flow5_without_interactive_header_footer t
+  | .flow5_without_media, t => Payloads.flow5_without_media t
+  | .flow5_without_noscript, t => Payloads.flow5_without_noscript t
+  | .flow5_without_sectioning_heading_header_footer, t => Payloads.flow5_without_sectioning_heading_header_footer t
+  | .flow5_without_sectioning_heading_header_footer_address, t => Payloads.flow5_without_sectioning_heading_header_footer_address t
+  | .flow5_without_table, t => Payloads.flow5_without_table t
+  | .formassociated, t => Payloads.formassociated t
+  | .formatblock, t => Payloads.formatblock t
+  | .heading, t => Payloads.heading t
+  | .hgroup_content_fun, t => Payloads.hgroup_content_fun t
+  | .html_content_fun, t => Payloads.html_content_fun t
+  | .iframe_content_fun, t => Payloads.iframe_content_fun t
+  | .labelable, t => Payloads.labelable t
+  | .labelable_without_interactive, t => Payloads.labelable_without_interactive t
+  | .listed, t => Payloads.listed t
+  | .metadata_without_title, t => Payloads.metadata_without_title t
+  | .notag, t => Payloads.notag t
+  | .ol_content_fun, t => Payloads.ol_content_fun t
+  | .optgroup_content_fun, t => Payloads.optgroup_content_fun t
+  | .option_content_fun, t => Payloads.option_content_fun t
+  | .phrasing, t => Payloads.phrasing t
+  | .phrasing_without_dfn, t => Payloads.phrasing_without_dfn t
+  | .phrasing_without_interactive, t => Payloads.phrasing_without_interactive t
+  | .phrasing_without_label, t => Payloads.phrasing_without_label t
+  | .phrasing_without_media, t => Payloads.phrasing_without_media t
+  | .phrasing_without_meter, t => Payloads.phrasing_without_meter t
+  | .phrasing_without_noscript, t => Payloads.phrasing_without_noscript t
+  | .phrasing_without_progress, t => Payloads.phrasing_without_progress t
+  | .phrasing_without_time, t => Payloads.phrasing_without_time t
+  | .picture_content_fun, t => Payloads.picture_content_fun t
+  | .resetable, t => Payloads.resetable t
+  | .rp, t => Payloads.rp t
+  | .rt, t => Payloads.rt t
+  | .ruby_content_fun, t => Payloads.ruby_content_fun t
+  | .script, t => Payloads.script t
+  | .script_content_fun, t => Payloads.script_content_fun t
+  | .sectioning, t => Payloads.sectioning t
+  | .select_content_fun, t => Payloads.select_content_fun t
+  | .source, t => Payloads.source t
+  | .style_content_fun, t => Payloads.style_content_fun t
+  | .submitable, t => Payloads.submitable t
+  | .table_content_fun, t => Payloads.table_content_fun t
+  | .tablex_content_fun, t => Payloads.tablex_content_fun t
+  | .tbody_content_fun, t => Payloads.tbody_content_fun t
+  | .template, t => Payloads.template t
+  | .textarea_content, t => Payloads.textarea_content t
+  | .tfoot_content_fun, t => Payloads.tfoot_content_fun t
+  | .thead_content_fun, t => Payloads.thead_content_fun t
+  | .title_content_fun, t => Payloads.title_content_fun t
+  | .tr_content_fun, t => Payloads.tr_content_fun t
+  | .transparent, t => Payloads.transparent t
+  | .transparent_without_interactive, t => Payloads.transparent_without_interactive t
+  | .transparent_without_media, t => Payloads.transparent_without_media t
+  | .transparent_without_noscript, t => Payloads.transparent_without_noscript t
+  | .ul_content_fun, t => Payloads.ul_content_fun t
 
 end Whatwg.Html.Schema

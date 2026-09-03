@@ -52,32 +52,53 @@ kernel checks (`decide +kernel`). -/
 set_option maxHeartbeats 20 in
 theorem flow5_div_kernel : Sets.flow5 .div = true := by decide +kernel
 
-/-! ## Whole-tree cost at H3.3–H3.4
+/-! ## Whole-tree cost at H3.3–H3.4, remeasured after H4.1
 
 The two probes below build a typed tree rather than deciding one membership,
 so each measures the whole per-node bill of `Whatwg.Html.Node.Typed`: for
 every child, one `Content.Admits` decided by `decide` after `childSet` has
-resolved the context through `ContentSet.transparentPayload`, and for every
-element, one `AttrsAdmitted` over its (here empty) attribute list.
+resolved the context, and for every element, one `AttrsAdmitted` over its
+(here empty) attribute list.
 
 Measured on this pin by bisecting `maxHeartbeats` (the largest value that
-still fails, then the smallest that passes):
+still fails, then the smallest that passes), in the option's units of a
+thousand heartbeats:
 
 | Probe | Nodes | Fails at | Passes at | Bound set here |
 | --- | --- | --- | --- | --- |
-| deep: 15 nested `div`, then `p`, then a text run | 17 | 350 | 375 | 1200 |
-| wide: one `ul` with 30 `li`, each holding a text run | 61 | 550 | 600 | 1800 |
+| deep: 15 nested `div`, then `p`, then a text run | 17 | 256 | 259 | 1200 |
+| wide: one `ul` with 30 `li`, each holding a text run | 61 | 434 | 437 | 1800 |
 
-That is roughly 22 heartbeats per node on the deep tree and 10 on the wide
-one. The two figures differ because the sets differ, not because the shape
-does: every child of the deep tree is resolved against `flow5` or `phrasing`
-and pays a `childSet` lookup in the payload table, while every child of the
-wide tree is resolved against the one-tag set `ul_content_fun`. Neither probe
-shows superlinear growth in the number of nodes at these sizes, which is what
-the next slice needs to know before it decides whether a document of a few
-thousand nodes can be elaborated at all. Each bound carries roughly a
-threefold margin so that ordinary machine-to-machine variation does not turn
-the gate red.
+At H3.4 the same probes failed at 350 and 550; the generated flat tables of
+H4.1 took them to 317 and 522, and the `admits` tactic of
+`Whatwg.Html.Node.Admit`, which evaluates each obligation with the compiled
+schema and hands the kernel `Eq.refl true`, to the figures above. Where the cost goes, from
+single-node probes with an empty file at about 10 as the baseline: one
+combinator application with an empty attribute list costs about 9; one
+`decide` on a closed admission about 6; and each unification of
+`childSet set t` against the combinator's fixed content set, of which the
+application elaborator performs three per `E.el`, about 10 the first time
+and little afterwards, because `whnf` caches the closed term. The default
+budget of 200 therefore holds a tree of roughly fifteen nested or fifty
+flat element nodes; a larger construction through the combinators must
+raise `maxHeartbeats`.
+
+Four routes were measured and rejected at H4.1. `decide +kernel` on every
+auto-parameter (356 and 567): the tactic is not the cost. `by exact rfl`
+(445 and above 700): worse, since `decide` evaluates the `Decidable` instance
+where `rfl` unifies at default transparency. A default value in place of the
+tactic: impossible, because a default value is elaborated at the definition
+site, where the set and tag are variables. And a cheaper `childSet`: the
+generated `Tag.content?` and the per-set `Payloads` functions of H4.1 took
+the resolver from a list walk and one 69-by-115 matcher to flat matches,
+which is what moved the figures from 350 and 550, and nothing further is
+left to flatten. The `admits` tactic then removed the `decide` reductions.
+What remains, about six per combinator application, is the application
+elaborator's own work, and that is why `html!` (H5) builds a document's
+term directly, through the same compiled evaluation and kernel-checked
+`Eq.refl` the tactic uses, rather than through these combinators.
+Each bound carries roughly a threefold margin so that ordinary
+machine-to-machine variation does not turn the gate red.
 
 These are finite probes, reported as such: evidence about the cost of
 elaborating two particular trees, not a theorem about the content model. -/
