@@ -2,6 +2,7 @@ import Whatwg.Html.Schema.Tags
 import Whatwg.Html.Schema.Attributes
 import Whatwg.Html.Schema.Families
 import Whatwg.Html.Schema.ContentModel
+import Whatwg.Html.Schema.Standard
 
 /-!
 # Whatwg.Html.Schema

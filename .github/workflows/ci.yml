@@ -16,7 +16,7 @@ jobs:
       # The production libraries and gate executables; the test root with its
       # elaboration-time axiom gate is built by the default targets below.
       - name: Build production libraries and gate executables
-        run: lake --wfail build Whatwg Gates vendorseal citations census urlinventory urlcensus
+        run: lake --wfail build Whatwg Gates vendorseal citations census urlinventory urlcensus htmlstandard
       - name: Vendor seal in both directions
         run: lake exe vendorseal
       - name: Internal-citation gate
@@ -25,6 +25,11 @@ jobs:
         run: lake exe urlinventory
       - name: URL authored census and assignment projection drift
         run: lake exe urlcensus
+      # The HTML Standard's element definitions (slice H6):
+      # generated/html-standard-elements.tsv and Whatwg/Html/Schema/Standard.lean
+      # against a fresh regeneration from the sealed source.
+      - name: HTML Standard element projection drift
+        run: lake exe htmlstandard
       # Every census step links a coverage numerator: since the first P3
       # witnesses landed, bin/Census.lean imports
       # WhatwgTest/Audit/SpecCoverage.lean so that the block below is

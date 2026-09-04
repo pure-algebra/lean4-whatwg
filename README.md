@@ -33,6 +33,7 @@ lake exe vendorseal              # vendor/ against generated/vendor-manifest.tsv
 lake exe citations               # no line-numbered citation into a protected authored document
 lake exe urlinventory            # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
 lake exe urlcensus               # the authored URL census and its source assignments against a regeneration
+lake exe htmlstandard            # generated/html-standard-elements.tsv and Whatwg/Html/Schema/Standard.lean against the sealed HTML Standard source
 lake exe census                  # the Streams census and coverage emit
 lake exe census --standard infra # the Infra definition census
 lake exe census --standard webidl # the Web IDL promise and exception census
