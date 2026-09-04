@@ -49,9 +49,39 @@ def excluded (x : Exclusions) (t : Tag) : Bool :=
   (x.flags.zip (hits t)).any fun p => p.1 && p.2
 
 /-- The tag may stand at the position: the base or the labelled extras name
-it, and no inherited exclusion excludes it. -/
+it, and no inherited exclusion excludes it. This is the attribute-free
+reading, in which every conditional category is read as holding. -/
 def admits (c : Ctx) (t : Tag) : Bool :=
   (c.base.contains t || c.extra.contains t) && !excluded c.excl t
+
+/-- Interactive content, given the element's attributes: the standard's
+condition where its row states one (`a` with `href`, `input` not hidden,
+`audio` and `video` with `controls`, `img` with `usemap`), the table otherwise. -/
+def interactiveWith (t : Tag) (attrs : List (String × String)) : Bool :=
+  match t.interactiveIf with
+  | some cond => cond.holds attrs
+  | none => Cats.interactive t
+
+/-- Membership of a tag in a base, given its attributes: the flow and
+phrasing bases consult the row's condition (`link` and `meta` are flow and
+phrasing content with `itemprop`). -/
+def baseContainsWith (b : Base) (t : Tag) (attrs : List (String × String)) : Bool :=
+  b.contains t &&
+    (match b, t.flowIf, t.phrasingIf with
+      | .flow, some cond, _ => cond.holds attrs
+      | .phrasing, _, some cond => cond.holds attrs
+      | _, _, _ => true)
+
+/-- What each flag excludes at a tag with the given attributes. -/
+def hitsWith (t : Tag) (attrs : List (String × String)) : List Bool :=
+  interactiveWith t attrs :: (hits t).tail
+
+def excludedWith (x : Exclusions) (t : Tag) (attrs : List (String × String)) : Bool :=
+  (x.flags.zip (hitsWith t attrs)).any fun p => p.1 && p.2
+
+/-- The tag with these attributes may stand at the position. -/
+def admitsWith (c : Ctx) (t : Tag) (attrs : List (String × String)) : Bool :=
+  (baseContainsWith c.base t attrs || c.extra.contains t) && !excludedWith c.excl t attrs
 
 /-- The context of an element's children. -/
 def child (c : Ctx) (t : Tag) : Ctx :=
@@ -119,11 +149,29 @@ theorem admits_antitone {x y : Exclusions} (h : x.le y = true) (b : Base) (e : L
     rw [hy.2] at this
     exact absurd this (by decide)
 
+/-- With no attributes, a conditional category holds only where its condition
+holds of nothing; the attribute-free `admits` is not `admitsWith c t []` in
+general, and the two are related only by `admitsWith_le_admits` below. -/
+theorem admitsWith_le_admits (c : Ctx) (t : Tag) (attrs : List (String × String)) :
+    Ctx.admitsWith c t attrs = true → (c.base.contains t || c.extra.contains t) = true := by
+  simp only [Ctx.admitsWith, Ctx.baseContainsWith, Bool.and_eq_true, Bool.or_eq_true]
+  intro h
+  rcases h.1 with ⟨hb, _⟩ | he
+  · exact Or.inl hb
+  · exact Or.inr he
+
 /-- A void element's children context admits nothing. -/
 theorem void_child_admits_none (c : Ctx) (t : Tag) (hv : t.isVoid = true) (child : Tag) :
     (c.child t).admits child = false := by
   simp only [Ctx.admits, Ctx.child, void_not_transparent t hv, void_ownBase_nothing t hv,
     void_labelled_nil t hv, Bool.false_eq_true, ↓reduceIte, List.contains, List.elem_nil]
+  simp [Base.contains, nothing_empty]
+
+theorem void_child_admitsWith_none (c : Ctx) (t : Tag) (hv : t.isVoid = true) (child : Tag)
+    (attrs : List (String × String)) : (c.child t).admitsWith child attrs = false := by
+  simp only [Ctx.admitsWith, Ctx.baseContainsWith, Ctx.child, void_not_transparent t hv,
+    void_ownBase_nothing t hv, void_labelled_nil t hv, Bool.false_eq_true, ↓reduceIte,
+    List.contains, List.elem_nil]
   simp [Base.contains, nothing_empty]
 
 /-- A transparent element's children are checked against its context's base

@@ -143,6 +143,10 @@ def proofOf (lhs : Expr) : TermElabM Expr := do
 def admitsProof (ctxE : Expr) (t : Tag) : TermElabM Expr := do
   proofOf (mkApp2 (mkConst ``Ctx.admits) ctxE (← tagExpr t))
 
+/-- The admission of an element with its attributes. -/
+def admitsWithProof (ctxE : Expr) (t : Tag) (attrsE : Expr) : TermElabM Expr := do
+  proofOf (mkApp3 (mkConst ``Ctx.admitsWith) ctxE (← tagExpr t) (mkApp (mkConst ``rawAttrs) attrsE))
+
 /-! ## Attributes -/
 
 structure AttrOut where
@@ -219,9 +223,15 @@ def openOf (stx : Syntax) : TermElabM (Option Open) := do
     return some { nameStx := stx[1], tag, attrs := stx[2].getArgs, kids := stx[4].getArgs }
   return none
 
+/-- The raw attributes, as values, of an element's attribute list. -/
+def rawAttrValues (attrs : Array AttrOut) : List (String × String) :=
+  attrs.toList.filterMap fun a => match a.value with
+    | .lit (.strVal v) => some (a.markup, v)
+    | _ => some (a.markup, "")
+
 /-- Elaborate an element placed in the context `ctx` (as a value and as the
 expression `ctxE`): the raw literal and a term of type `Element tag ctx`. -/
-def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × Expr)
+def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × Expr × Array AttrOut)
   | 0, o, _, _, _ => throwErrorAt o.nameStx "html!: the document nests too deeply"
   | fuel + 1, o, ctx, ctxE, root => do
     let t := o.tag
@@ -229,6 +239,8 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
     if t.isVoid && !o.kids.isEmpty then
       throwErrorAt o.nameStx ("<" ++ name ++ "> is a void element and takes no children")
     let tE ← tagExpr t
+    let attrs ← elabAttrs t o.attrs
+    let attrsE ← attrsTerm attrs
     let inner := ctx.child t
     let innerE := mkApp2 (mkConst ``Ctx.child) ctxE tE
     let rawT := Lean.mkConst ``RawNode
@@ -254,10 +266,10 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
       else
         let some k ← openOf kid | throwErrorAt kid "html!: unsupported node"
         let c := k.tag
-        unless inner.admits c do
+        let (raw, e, kattrs) ← elabElement fuel k inner innerE false
+        unless inner.admitsWith c (rawAttrValues kattrs) do
           throwErrorAt k.nameStx (Admit.admitMessage inner c)
-        let (raw, e) ← elabElement fuel k inner innerE false
-        let h ← admitsProof innerE c
+        let h ← admitsWithProof innerE c (← attrsTerm kattrs)
         raws := raws.push raw
         let cE ← tagExpr c
         steps := steps.push fun n rest hrest =>
@@ -270,8 +282,6 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
       hc := steps[j]! raws[j]! rest hc
       rest := mkApp3 (mkConst ``List.cons [Level.zero]) rawT raws[j]! rest
     let childrenE := rest
-    let attrs ← elabAttrs t o.attrs
-    let attrsE ← attrsTerm attrs
     let rawAttrsE ← rawAttrsTerm attrs
     let raw := mkApp3 (mkConst ``RawNode.element) (mkStrLit name) rawAttrsE childrenE
     let ha ← proofOf (mkApp2 (mkConst ``Whatwg.Html.Content.attrsOk) tE (mkApp (mkConst ``rawAttrs) attrsE))
@@ -292,7 +302,7 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
           (mkApp2 (mkConst ``Whatwg.Html.Content.validAll) innerE childrenE) (mkConst ``Bool.true)
         pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars hc)))
       else pure hc
-    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ha, hs, evidence, ht])
+    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ha, hs, evidence, ht], attrs)
 
 /-- The default context of a root, by the root's categories. -/
 def defaultCtx (t : Tag) : Ctx :=
@@ -312,17 +322,17 @@ def defaultCtx (t : Tag) : Ctx :=
   if let some e := expected then
     if e.isAppOfArity ``Child 1 then
       if let some ctx ← Admit.ctx? 4096 (e.getArg! 0) then
-        unless ctx.admits t do throwErrorAt o.nameStx (Admit.admitMessage ctx t)
         let ctxE := e.getArg! 0
-        let (_, elem) ← elabElement fuel o ctx ctxE true
-        return mkApp4 (mkConst ``Child.of) (← tagExpr t) ctxE elem (← admitsProof ctxE t)
+        let (_, elem, rattrs) ← elabElement fuel o ctx ctxE true
+        unless ctx.admitsWith t (rawAttrValues rattrs) do throwErrorAt o.nameStx (Admit.admitMessage ctx t)
+        return mkApp4 (mkConst ``Child.of) (← tagExpr t) ctxE elem (← admitsWithProof ctxE t (← attrsTerm rattrs))
     if e.isAppOfArity ``Element 2 then
       if let some t' ← Admit.tag? (e.getArg! 0) then
         unless t' == t do
           throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <" ++ t.markupText ++ ">")
         if let some ctx ← Admit.ctx? 4096 (e.getArg! 1) then
-          return (← elabElement fuel o ctx (e.getArg! 1) true).2
+          return (← elabElement fuel o ctx (e.getArg! 1) true).2.1
   let ctx := defaultCtx t
-  return (← elabElement fuel o ctx (← ctxExpr ctx) true).2
+  return (← elabElement fuel o ctx (← ctxExpr ctx) true).2.1
 
 end Whatwg.Html.Syntax

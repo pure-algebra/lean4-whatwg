@@ -67,6 +67,14 @@ example : Element .div Ctx.flow :=
   E.div [E.el (E.a [E.el (E.div [E.txt "block link"])] [A.a_href "/x"])]
 
 example : Ctx.child Ctx.phrasing .a = { base := .phrasing, excl := { interactive := true, a := true } } := by decide
+
+/-- Interactive content is decided with the attributes: a link without `href`
+is not interactive and may stand in a `button`; an `input` in the hidden
+state is not interactive and may stand in a link. -/
+example : Element .button Ctx.flow := E.button [E.el (E.a [E.txt "x"])]
+example : Element .a Ctx.flow := E.a [E.el (E.input [A.a_type "hidden", A.a_name "t"])] [A.a_href "/x"]
+example : Ctx.admitsWith (Ctx.child Ctx.flow .button) .a [] = true := by decide
+example : Ctx.admitsWith (Ctx.child Ctx.flow .button) .a [("href", "/x")] = false := by decide
 example : Ctx.child Ctx.flow .a = { base := .flow, excl := { interactive := true, a := true } } := by decide
 /-- Exclusions accumulate through every element, not only transparent ones. -/
 example : (Ctx.child (Ctx.child Ctx.flow .dfn) .span).excl = { dfn := true } := by decide

@@ -44,6 +44,16 @@ example : (Ctx.child Ctx.metadata .noscript).base = .only_link_style_meta_strict
 -- under `decide`).
 #guard Ctx.describe (Ctx.child Ctx.phrasing .a) == "phrasing, excluding interactive content, a"
 
+/-! ## Attribute conditions -/
+
+example : Tag.interactiveIf .a = some (.hasAny ["href"]) := by decide
+example : Tag.interactiveIf .input = some (.attrNot "type" "hidden") := by decide
+example : Ctx.interactiveWith .a [] = false ∧ Ctx.interactiveWith .a [("href", "/")] = true := by decide
+example : Ctx.interactiveWith .input [("type", "Hidden")] = false := by decide
+example : Ctx.interactiveWith .button [] = true := by decide
+example : validIn Ctx.flow (.element "button" [] [.element "a" [] [.text "x"]]) = true := by decide +kernel
+example : validIn Ctx.flow (.element "button" [] [.element "a" [("href", "/")] [.text "x"]]) = false := by decide +kernel
+
 /-! ## Sequences -/
 
 example : Seq.accepts Bases.flow (.seq (.tag .head) (.tag .body)) [.head, .body] = true := by decide

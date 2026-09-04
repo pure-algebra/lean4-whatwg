@@ -52,6 +52,18 @@ info: E.p [E.el (E.a [E.el (E.div [] [] ⋯ ⋯) ⋯] [] ⋯ ⋯) ⋯] [] ⋯ �
 #guard_msgs in
 #check_failure (E.p [E.el (E.a [E.el (E.div [])])] : Element .p Ctx.flow)
 
+-- Rejected by `h`: a link with `href` is interactive content, which `button`
+-- excludes; the same link without `href` is admitted (`Builders`).
+/--
+info: could not synthesize default value for parameter 'h' using tactics
+---
+info: <a> is not admitted here: the context is phrasing, excluding interactive content
+---
+info: E.button [E.el (E.a [E.txt "x" ⋯] [A.a_href "/x"] ⋯ ⋯) ⋯] [] ⋯ ⋯ : Element Tag.button Ctx.flow
+-/
+#guard_msgs in
+#check_failure (E.button [E.el (E.a [E.txt "x"] [A.a_href "/x"])] : Element .button Ctx.flow)
+
 -- A descendant exclusion holds through a non-transparent element.
 /--
 info: could not synthesize default value for parameter 'h' using tactics

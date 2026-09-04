@@ -1,5 +1,6 @@
 import Whatwg.Html.Schema.Readings
 import Whatwg.Html.Schema.Exclusions
+import Whatwg.Html.Schema.Condition
 import Whatwg.Html.Schema.Tags
 import Whatwg.Html.Schema.Sequence
 import Whatwg.Html.Schema.Attributes

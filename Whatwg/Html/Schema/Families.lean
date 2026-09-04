@@ -1,5 +1,6 @@
 import Whatwg.Html.Schema.Tags
 import Whatwg.Html.Schema.Exclusions
+import Whatwg.Html.Schema.Condition
 
 /-!
 # Whatwg.Html.Schema.Families
@@ -94,6 +95,33 @@ def Cats.scriptSupporting : Tag → Bool
 def Cats.media : Tag → Bool
   | .video | .audio => true
   | _ => false
+
+/-- The attribute condition under which a tag is interactive content, for the tags whose
+category is conditional in the projection; `none` where it is unconditional.
+A sentence not read mechanically is `always`. -/
+def Tag.interactiveIf : Tag → Option Condition
+  | .a => some (.hasAny ["href"])
+  | .img => some (.hasAny ["usemap", "controls"])
+  | .video => some (.hasAny ["controls"])
+  | .audio => some (.hasAny ["controls"])
+  | .input => some (.attrNot "type" "hidden")
+  | _ => none
+
+/-- The attribute condition under which a tag is flow content, for the tags whose
+category is conditional in the projection; `none` where it is unconditional.
+A sentence not read mechanically is `always`. -/
+def Tag.flowIf : Tag → Option Condition
+  | .link => some (.always)
+  | .«meta» => some (.hasAny ["itemprop"])
+  | _ => none
+
+/-- The attribute condition under which a tag is phrasing content, for the tags whose
+category is conditional in the projection; `none` where it is unconditional.
+A sentence not read mechanically is `always`. -/
+def Tag.phrasingIf : Tag → Option Condition
+  | .link => some (.always)
+  | .«meta» => some (.hasAny ["itemprop"])
+  | _ => none
 
 /-- A base of a context: a distinct membership the readings name. `document` admits `html` alone. -/
 inductive Base where

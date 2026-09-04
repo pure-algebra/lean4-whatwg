@@ -16,8 +16,8 @@ namespace Whatwg.Html
 open Whatwg.Html.Schema
 open Whatwg.Html.Content (Ctx)
 
-theorem Child.of_raw {t : Tag} {ctx : Ctx} (e : Element t ctx) (h : ctx.admits t = true) :
-    (Child.of e h).raw = e.toRaw := rfl
+theorem Child.of_raw {t : Tag} {ctx : Ctx} (e : Element t ctx)
+    (h : ctx.admitsWith t (rawAttrs e.attrs) = true) : (Child.of e h).raw = e.toRaw := rfl
 
 theorem Child.text_raw {ctx : Ctx} (s : String) (h : ctx.admits .pcdata = true) :
     (Child.text (ctx := ctx) s h).raw = .text s := rfl

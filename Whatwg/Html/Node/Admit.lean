@@ -167,6 +167,14 @@ syntax (name := admitsTactic) "admits" : tactic
           goal.assign reflTrue
           replaceMainGoal []
           return
+    if lhs.isAppOfArity ``Ctx.admitsWith 3 then
+      if let some c ← ctx? 4096 (lhs.getArg! 0) then
+        if let some t ← tag? (lhs.getArg! 1) then
+          if let some attrs ← rawAttrs? (lhs.getArg! 2) then
+            unless c.admitsWith t attrs do throwError admitMessage c t
+            goal.assign reflTrue
+            replaceMainGoal []
+            return
     if lhs.isAppOfArity ``Whatwg.Html.Content.seqOk 3 then
       if let some t ← tag? (lhs.getArg! 1) then
         if t.seq?.isNone then

@@ -43,6 +43,11 @@ example : Element .div Ctx.flow := html! <div data-role="nav" aria-label="Intro"
 example : (html! <div data-role="nav">"x"</div> : Element .div Ctx.flow).toRaw =
     .element "div" [("data-role", "nav")] [.text "x"] := rfl
 
+/-- A link without `href` is not interactive content, so it may stand in a
+button; a hidden `input` may stand in a link. -/
+example : Element .button Ctx.flow := html! <button><a>"x"</a></button>
+example : Element .a Ctx.flow := html! <a href="/x"><input type="hidden" name="t" /></a>
+
 /-- A dashed attribute name. -/
 example : Element .«meta» Ctx.metadata := html! <meta http-equiv="refresh" />
 

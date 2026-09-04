@@ -12,7 +12,9 @@ against (`Element.valid`), the definition a parser's output will be checked
 by, and the definition the print theorems apply to.
 
 An element is valid at a position when its name is an element of the
-standard, the position admits it, its attributes are admitted on it with
+standard, the position admits it given its attributes (`Ctx.admitsWith`:
+an `a` without `href` is not interactive content), its attributes are
+admitted on it with
 values of the kinds the attribute index gives them and no name repeated,
 its children follow its ordered model when it has one (`seqOk`), and every
 child is valid at `ctx.child t`. Text and entities are valid where
@@ -123,7 +125,7 @@ mutual
 def validIn (ctx : Ctx) : RawNode → Bool
   | .element name attrs children =>
     match Tag.ofName? name with
-    | some t => ctx.admits t && attrsOk t attrs && seqOk (ctx.child t) t children && validAll (ctx.child t) children
+    | some t => ctx.admitsWith t attrs && attrsOk t attrs && seqOk (ctx.child t) t children && validAll (ctx.child t) children
     | none => false
   | .text _ => ctx.admits .pcdata
   | .entity _ => ctx.admits .pcdata
@@ -155,7 +157,7 @@ theorem validIn_entity (ctx : Ctx) (s : String) (h : ctx.admits .pcdata = true) 
 
 theorem validIn_element (ctx : Ctx) (t : Tag) (m : String) (hm : t.markupName = some m)
     (attrs : List (String × String)) (children : List RawNode)
-    (h : ctx.admits t = true) (ha : attrsOk t attrs = true) (hs : seqOk (ctx.child t) t children = true)
+    (h : ctx.admitsWith t attrs = true) (ha : attrsOk t attrs = true) (hs : seqOk (ctx.child t) t children = true)
     (hc : validAll (ctx.child t) children = true) :
     validIn ctx (.element m attrs children) = true := by
   simp [validIn, ofName?_markupName t m hm, h, ha, hs, hc]
@@ -173,7 +175,7 @@ theorem validAll_void_nil (c : Ctx) (t : Tag) (hv : t.isVoid = true) (children :
       simp only [validIn] at h1
       cases hn : Tag.ofName? name with
       | none => simp [hn] at h1
-      | some tag => simp [hn, void_child_admits_none c t hv tag] at h1
+      | some tag => simp [hn, void_child_admitsWith_none c t hv tag] at h1
     | text s => simp [validIn, void_child_admits_none c t hv] at h1
     | entity s => simp [validIn, void_child_admits_none c t hv] at h1
     | comment s =>

@@ -10,7 +10,8 @@ already-erased children, and three proofs: that its attributes are admitted
 on `t` with conforming values, that its children follow its ordered model
 when it has one, and that every child is valid at `ctx.child t`. A `Child ctx` is a raw node with the proof that it is valid
 at `ctx`. Placing an element in a child position (`Child.of`) needs only
-the admission of its tag, and yields the validity of its erasure:
+the admission of its tag given its attributes, and yields the validity of
+its erasure:
 `Element.valid` is the soundness theorem, and it is by construction.
 
 The index is the *parent* context. A combinator is therefore polymorphic
@@ -70,8 +71,8 @@ def Element.toRaw {t : Tag} {ctx : Ctx} (e : Element t ctx) : RawNode :=
 
 /-- Soundness of the typed tree: an element the position admits erases to a
 raw node the checker accepts there. -/
-theorem Element.valid {t : Tag} {ctx : Ctx} (e : Element t ctx) (h : ctx.admits t = true) :
-    validIn ctx e.toRaw = true := by
+theorem Element.valid {t : Tag} {ctx : Ctx} (e : Element t ctx)
+    (h : ctx.admitsWith t (rawAttrs e.attrs) = true) : validIn ctx e.toRaw = true := by
   obtain ⟨m, hm⟩ : ∃ m, t.markupName = some m := by
     cases hn : t.markupName with
     | none => have ht := e.htag; simp [hn] at ht
@@ -94,7 +95,8 @@ def Element.ofChildren {t : Tag} {ctx : Ctx} (cs : List (Child (ctx.child t)))
   ⟨attrs, cs.map Child.raw, ha, hs, validAll_children cs, ht⟩
 
 /-- Place an element in a child position. -/
-def Child.of {t : Tag} {ctx : Ctx} (e : Element t ctx) (h : ctx.admits t = true := by decide) : Child ctx :=
+def Child.of {t : Tag} {ctx : Ctx} (e : Element t ctx)
+    (h : ctx.admitsWith t (rawAttrs e.attrs) = true := by decide) : Child ctx :=
   ⟨e.toRaw, e.valid h⟩
 
 /-- A text run, where the base names text. -/
@@ -106,8 +108,8 @@ def Child.entity {ctx : Ctx} (name : String) (h : ctx.admits .pcdata = true := b
   ⟨.entity name, Content.validIn_entity ctx name h⟩
 
 /-- An element placed at a position, as a document of the checker. -/
-def Element.toDoc {t : Tag} {ctx : Ctx} (e : Element t ctx) (h : ctx.admits t = true := by decide) :
-    Content.Doc ctx :=
+def Element.toDoc {t : Tag} {ctx : Ctx} (e : Element t ctx)
+    (h : ctx.admitsWith t (rawAttrs e.attrs) = true := by decide) : Content.Doc ctx :=
   ⟨e.toRaw, e.valid h⟩
 
 end Whatwg.Html

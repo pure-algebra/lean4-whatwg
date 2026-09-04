@@ -78,6 +78,16 @@ open Whatwg.Html.Content (Ctx)
 #guard_msgs in
 #check_failure (html! <div><title>"x"</title></div> : Element .div Ctx.flow)
 
+/-! ## Attribute-dependent categories -/
+
+/-- info: <a> is not admitted here: the context is phrasing, excluding interactive content -/
+#guard_msgs in
+#check_failure (html! <button><a href="/x">"x"</a></button> : Element .button Ctx.flow)
+
+/-- info: <input> is not admitted here: the context is flow, excluding interactive content, a -/
+#guard_msgs in
+#check_failure (html! <a href="/x"><input type="text" /></a> : Element .a Ctx.flow)
+
 /-! ## The ordered models -/
 
 /-- info: the children of <html> do not follow its content model: head body -/

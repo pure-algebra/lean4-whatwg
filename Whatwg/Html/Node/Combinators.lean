@@ -38,7 +38,7 @@ def entity {ctx : Ctx} (name : String)
 
 /-- Place a typed element in a child position: `Child.of` under a short name. -/
 def el {ctx : Ctx} {t : Tag} (e : Element t ctx)
-    (h : ctx.admits t = true := by admits) : Child ctx :=
+    (h : ctx.admitsWith t (rawAttrs e.attrs) = true := by admits) : Child ctx :=
   Child.of e h
 
 /-- `html`: authored: "A head element followed by a body element.": the two, order not enforced. -/
