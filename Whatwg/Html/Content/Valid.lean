@@ -57,8 +57,9 @@ def hasPrefix (pre s : String) : Bool := pre.toList.isPrefixOf s.toList
 /-- The index rows of an attribute that apply to an element: the rows
 naming it, else the global rows. -/
 def rowsFor (a : Attr) (t : Tag) : List AttrRow :=
-  let named := attributeRows.filter fun r => r.attr == a && r.elements.contains t
-  if named.isEmpty then attributeRows.filter fun r => r.attr == a && r.global else named
+  let rows := a.indexRows
+  let named := rows.filter fun r => r.elements.contains t
+  if named.isEmpty then rows.filter (·.global) else named
 
 /-- The value conforms to the kind its row gives it. -/
 def valueOk (a : Attr) (t : Tag) (markup value : String) : Bool :=

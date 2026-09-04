@@ -82,6 +82,10 @@ def emitBoolSet (fn : String) (doc : String) (domain : String) (members : List S
     let alts := String.intercalate "\n  | " chunks
     s!"/-- {doc} -/\ndef {fn} : {domain} → Bool\n  | {alts} => true\n  | _ => false\n\n"
 
+/-- A name as a Lean `List Char` pattern: `['a', 'b']`. -/
+def charsPattern (name : String) : String :=
+  "[" ++ ", ".intercalate (name.toList.map fun c => "'" ++ (if c == '\'' then "\\'" else toString c) ++ "'") ++ "]"
+
 def emitEnum (name : String) (doc : String) (ctors : List String) : String :=
   let lines := Id.run do
     let mut out : List String := []
@@ -403,8 +407,9 @@ def emitTags (s : Schema) : String :=
   emitStringFn "Tag.variantName" "The tag's name: its markup name, or `pcdata` for text." "Tag" (s.tags.map fun t => (t, t)) ++
   "/-- The markup name of an element tag; `none` for text. -/\ndef Tag.markupName : Tag → Option String\n" ++
   "\n".intercalate (s.rows.map fun r => s!"  | .{ctorName r.name} => some \"{r.name}\"") ++ "\n  | _ => none\n\n" ++
-  "/-- The tag of a markup name; `none` for any other string. -/\ndef Tag.ofName? : String → Option Tag\n" ++
-  "\n".intercalate (s.rows.map fun r => s!"  | \"{r.name}\" => some .{ctorName r.name}") ++ "\n  | _ => none\n\n" ++
+  "/-- The tag of a markup name spelled as characters; `none` for any other\nlist. A `List Char` match compiles to a character-by-character decision\ntree, which the kernel walks in about the same time for every name, where a\n`String` match compares against every earlier arm (performance review §4). -/\ndef Tag.ofChars? : List Char → Option Tag\n" ++
+  "\n".intercalate (s.rows.map fun r => s!"  | {charsPattern r.name} => some .{ctorName r.name}") ++ "\n  | _ => none\n\n" ++
+  "/-- The tag of a markup name; `none` for any other string. -/\ndef Tag.ofName? (s : String) : Option Tag := Tag.ofChars? s.toList\n\n" ++
   emitBoolSet "Tag.isVoid"
     (s!"The void elements, from the standard's own list (`Void elements` in the\nsyntax section, span digest `{s.voidDigest}`).") "Tag" s.voidTags s.tags ++
   emitBoolSet "Tag.isTransparent" "The transparent elements: their content is their context's, minus what they exclude (`Whatwg.Html.Schema.Readings.transparents`)." "Tag"
@@ -506,8 +511,20 @@ def emitAttributes (s : Schema) : String := Id.run do
     out := out ++ emitBoolSet s!"AttrSets.{r.name}_attrib" s!"The attributes of `{r.name}`: {members.length} of {names.length}." "Attr" members names
   out := out ++ "/-- Membership, dispatching to the set's own function. -/\ndef AttrSet.contains : AttrSet → Attr → Bool\n" ++
     "\n".intercalate (setNames.map fun n => s!"  | .{ctorName n}, a => AttrSets.{n} a") ++ "\n\n"
-  out := out ++ "/-- The attribute of a markup name; `none` for any other string (the\nprefixes are matched by `String.startsWith` in the checker, not here). -/\ndef Attr.ofName? : String → Option Attr\n" ++
-    "\n".intercalate ((names.filter fun n => !n.endsWith "-").map fun n => s!"  | \"{n}\" => some .{ctorName n}") ++ "\n  | _ => none\n\n"
+  out := out ++ "/-- The attribute of a markup name spelled as characters (the prefixes are\nmatched by prefix in the checker, not here); a character decision tree, see\n`Tag.ofChars?`. -/\ndef Attr.ofChars? : List Char → Option Attr\n" ++
+    "\n".intercalate ((names.filter fun n => !n.endsWith "-").map fun n => s!"  | {charsPattern n} => some .{ctorName n}") ++ "\n  | _ => none\n\n" ++
+    "/-- The attribute of a markup name; `none` for any other string. -/\ndef Attr.ofName? (s : String) : Option Attr := Attr.ofChars? s.toList\n\n"
+  -- the rows of each attribute, as one flat match, so a lookup does not filter all rows
+  out := out ++ "/-- The index rows of an attribute, as one flat match over `Attr`: the same\nrows as `attributeRows.filter (·.attr == a)`, so that a value check reads a\nhandful of rows instead of filtering the whole index (performance review §4). -/\ndef Attr.indexRows : Attr → List AttrRow\n" ++
+    "\n".intercalate (names.map fun n =>
+      let mine := s.attrs.filter (·.markup == n)
+      let extra := extraAttrs.filter (fun (m, _, _) => m == n)
+      -- one row per line: a structure instance continued on a second line does
+      -- not parse inside a match alternative
+      let oneLine (r : String) : String := collapse (r.replace "\n" " ")
+      let rowsText := (mine.map fun o => oneLine (rowText o)) ++ (extra.map fun (m, k, d) =>
+        "{ attr := ." ++ ctorName m ++ ", markup := " ++ m.quote ++ ", handler := false, elements := [], global := true, kind := " ++ k.render ++ ", keywords := [], allowEmpty := false, description := " ++ d.quote ++ ", digest := \"\" }")
+      s!"  | .{ctorName n} =>\n    [" ++ ",\n     ".intercalate rowsText ++ "]") ++ "\n\n"
   out := out ++ "end Whatwg.Html.Schema\n"
   return out
 

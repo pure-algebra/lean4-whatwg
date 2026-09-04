@@ -14,13 +14,14 @@ of a thousand heartbeats:
 | noncomputable, memoized (one lemma per distinct obligation) | 142 | 147 | 200 (the default) |
 | computable, unmemoized | not re-measured | | 1000 |
 | computable, memoized | not re-measured | | 1000 |
-| noncomputable, every `li` with two attributes (500 attribute obligations) | 212 | 215 | not pinned |
+| noncomputable, every `li` with two attributes (500 attribute obligations) | 190 | 193 | not pinned |
 
 Reading (figures after the context-indexed core of H7 and its sequence
 obligations; before them 114 and 642). Elaboration and kernel checking
-together cost about 0.25 per node, and about 0.2 per attribute in the
-kernel's evaluation of `attrsOk`, which matches an attribute name against
-the index by string comparison,
+together cost about 0.25 per node, and about 0.15 per attribute in the
+kernel's evaluation of `attrsOk`, which matches an attribute name by a
+character decision tree (`Attr.ofChars?`) and reads the attribute's own
+rows (`Attr.indexRows`),
 against about 12 per node through the combinators
 (`WhatwgTest/Html/DecideBenchmark.lean`), so a document of five hundred
 nodes elaborates within the default budget with room to spare. The two

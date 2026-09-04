@@ -4009,243 +4009,759 @@ def AttrSet.contains : AttrSet → Attr → Bool
   | .slot_attrib, a => AttrSets.slot_attrib a
   | .canvas_attrib, a => AttrSets.canvas_attrib a
 
-/-- The attribute of a markup name; `none` for any other string (the
-prefixes are matched by `String.startsWith` in the checker, not here). -/
-def Attr.ofName? : String → Option Attr
-  | "abbr" => some .abbr
-  | "accept" => some .accept
-  | "accept-charset" => some .accept_charset
-  | "accesskey" => some .accesskey
-  | "action" => some .action
-  | "allow" => some .allow
-  | "allowfullscreen" => some .allowfullscreen
-  | "alpha" => some .alpha
-  | "alt" => some .alt
-  | "as" => some .as
-  | "async" => some .async
-  | "autocapitalize" => some .autocapitalize
-  | "autocomplete" => some .autocomplete
-  | "autocorrect" => some .autocorrect
-  | "autofocus" => some .autofocus
-  | "autoplay" => some .autoplay
-  | "blocking" => some .blocking
-  | "charset" => some .charset
-  | "checked" => some .checked
-  | "cite" => some .cite
-  | "class" => some .«class»
-  | "closedby" => some .closedby
-  | "color" => some .color
-  | "colorspace" => some .colorspace
-  | "cols" => some .cols
-  | "colspan" => some .colspan
-  | "command" => some .command
-  | "commandfor" => some .commandfor
-  | "content" => some .content
-  | "contenteditable" => some .contenteditable
-  | "controls" => some .controls
-  | "coords" => some .coords
-  | "crossorigin" => some .crossorigin
-  | "data" => some .«data»
-  | "datetime" => some .datetime
-  | "decoding" => some .decoding
-  | "default" => some .default
-  | "defer" => some .defer
-  | "dir" => some .dir
-  | "dirname" => some .dirname
-  | "disabled" => some .disabled
-  | "download" => some .download
-  | "draggable" => some .draggable
-  | "enctype" => some .enctype
-  | "enterkeyhint" => some .enterkeyhint
-  | "fetchpriority" => some .fetchpriority
-  | "for" => some .«for»
-  | "form" => some .form
-  | "formaction" => some .formaction
-  | "formenctype" => some .formenctype
-  | "formmethod" => some .formmethod
-  | "formnovalidate" => some .formnovalidate
-  | "formtarget" => some .formtarget
-  | "headers" => some .headers
-  | "headingoffset" => some .headingoffset
-  | "headingreset" => some .headingreset
-  | "height" => some .height
-  | "hidden" => some .hidden
-  | "high" => some .high
-  | "href" => some .href
-  | "hreflang" => some .hreflang
-  | "http-equiv" => some .http_equiv
-  | "id" => some .id
-  | "imagesizes" => some .imagesizes
-  | "imagesrcset" => some .imagesrcset
-  | "inert" => some .inert
-  | "inputmode" => some .inputmode
-  | "integrity" => some .integrity
-  | "is" => some .is
-  | "ismap" => some .ismap
-  | "itemid" => some .itemid
-  | "itemprop" => some .itemprop
-  | "itemref" => some .itemref
-  | "itemscope" => some .itemscope
-  | "itemtype" => some .itemtype
-  | "kind" => some .kind
-  | "label" => some .label
-  | "lang" => some .lang
-  | "list" => some .list
-  | "loading" => some .loading
-  | "loop" => some .loop
-  | "low" => some .low
-  | "max" => some .max
-  | "maxlength" => some .maxlength
-  | "media" => some .media
-  | "method" => some .method
-  | "min" => some .min
-  | "minlength" => some .minlength
-  | "multiple" => some .multiple
-  | "muted" => some .muted
-  | "name" => some .name
-  | "nomodule" => some .nomodule
-  | "nonce" => some .nonce
-  | "novalidate" => some .novalidate
-  | "open" => some .«open»
-  | "optimum" => some .optimum
-  | "pattern" => some .pattern
-  | "ping" => some .ping
-  | "placeholder" => some .placeholder
-  | "playsinline" => some .playsinline
-  | "popover" => some .popover
-  | "popovertarget" => some .popovertarget
-  | "popovertargetaction" => some .popovertargetaction
-  | "poster" => some .poster
-  | "preload" => some .preload
-  | "readonly" => some .readonly
-  | "referrerpolicy" => some .referrerpolicy
-  | "rel" => some .rel
-  | "required" => some .required
-  | "reversed" => some .reversed
-  | "rows" => some .rows
-  | "rowspan" => some .rowspan
-  | "sandbox" => some .sandbox
-  | "scope" => some .scope
-  | "selected" => some .selected
-  | "shadowrootclonable" => some .shadowrootclonable
-  | "shadowrootcustomelementregistry" => some .shadowrootcustomelementregistry
-  | "shadowrootdelegatesfocus" => some .shadowrootdelegatesfocus
-  | "shadowrootmode" => some .shadowrootmode
-  | "shadowrootserializable" => some .shadowrootserializable
-  | "shadowrootslotassignment" => some .shadowrootslotassignment
-  | "shape" => some .shape
-  | "size" => some .size
-  | "sizes" => some .sizes
-  | "slot" => some .slot
-  | "span" => some .span
-  | "spellcheck" => some .spellcheck
-  | "src" => some .src
-  | "srcdoc" => some .srcdoc
-  | "srclang" => some .srclang
-  | "srcset" => some .srcset
-  | "start" => some .start
-  | "step" => some .step
-  | "style" => some .style
-  | "tabindex" => some .tabindex
-  | "target" => some .target
-  | "title" => some .title
-  | "translate" => some .translate
-  | "type" => some .«type»
-  | "usemap" => some .usemap
-  | "value" => some .value
-  | "width" => some .width
-  | "wrap" => some .wrap
-  | "writingsuggestions" => some .writingsuggestions
-  | "onafterprint" => some .onafterprint
-  | "onauxclick" => some .onauxclick
-  | "onbeforeinput" => some .onbeforeinput
-  | "onbeforematch" => some .onbeforematch
-  | "onbeforeprint" => some .onbeforeprint
-  | "onbeforeunload" => some .onbeforeunload
-  | "onbeforetoggle" => some .onbeforetoggle
-  | "onblur" => some .onblur
-  | "oncancel" => some .oncancel
-  | "oncanplay" => some .oncanplay
-  | "oncanplaythrough" => some .oncanplaythrough
-  | "onchange" => some .onchange
-  | "onclick" => some .onclick
-  | "onclose" => some .onclose
-  | "oncommand" => some .oncommand
-  | "oncontextlost" => some .oncontextlost
-  | "oncontextmenu" => some .oncontextmenu
-  | "oncontextrestored" => some .oncontextrestored
-  | "oncopy" => some .oncopy
-  | "oncuechange" => some .oncuechange
-  | "oncut" => some .oncut
-  | "ondblclick" => some .ondblclick
-  | "ondrag" => some .ondrag
-  | "ondragend" => some .ondragend
-  | "ondragenter" => some .ondragenter
-  | "ondragleave" => some .ondragleave
-  | "ondragover" => some .ondragover
-  | "ondragstart" => some .ondragstart
-  | "ondrop" => some .ondrop
-  | "ondurationchange" => some .ondurationchange
-  | "onemptied" => some .onemptied
-  | "onended" => some .onended
-  | "onerror" => some .onerror
-  | "onfocus" => some .onfocus
-  | "onformdata" => some .onformdata
-  | "onhashchange" => some .onhashchange
-  | "oninput" => some .oninput
-  | "oninvalid" => some .oninvalid
-  | "onkeydown" => some .onkeydown
-  | "onkeypress" => some .onkeypress
-  | "onkeyup" => some .onkeyup
-  | "onlanguagechange" => some .onlanguagechange
-  | "onload" => some .onload
-  | "onloadeddata" => some .onloadeddata
-  | "onloadedmetadata" => some .onloadedmetadata
-  | "onloadstart" => some .onloadstart
-  | "onmessage" => some .onmessage
-  | "onmessageerror" => some .onmessageerror
-  | "onmousedown" => some .onmousedown
-  | "onmouseenter" => some .onmouseenter
-  | "onmouseleave" => some .onmouseleave
-  | "onmousemove" => some .onmousemove
-  | "onmouseout" => some .onmouseout
-  | "onmouseover" => some .onmouseover
-  | "onmouseup" => some .onmouseup
-  | "onoffline" => some .onoffline
-  | "ononline" => some .ononline
-  | "onpagehide" => some .onpagehide
-  | "onpagereveal" => some .onpagereveal
-  | "onpageshow" => some .onpageshow
-  | "onpageswap" => some .onpageswap
-  | "onpaste" => some .onpaste
-  | "onpause" => some .onpause
-  | "onplay" => some .onplay
-  | "onplaying" => some .onplaying
-  | "onpopstate" => some .onpopstate
-  | "onprogress" => some .onprogress
-  | "onratechange" => some .onratechange
-  | "onreset" => some .onreset
-  | "onresize" => some .onresize
-  | "onrejectionhandled" => some .onrejectionhandled
-  | "onscroll" => some .onscroll
-  | "onscrollend" => some .onscrollend
-  | "onsecuritypolicyviolation" => some .onsecuritypolicyviolation
-  | "onseeked" => some .onseeked
-  | "onseeking" => some .onseeking
-  | "onselect" => some .onselect
-  | "onslotchange" => some .onslotchange
-  | "onstalled" => some .onstalled
-  | "onstorage" => some .onstorage
-  | "onsubmit" => some .onsubmit
-  | "onsuspend" => some .onsuspend
-  | "ontimeupdate" => some .ontimeupdate
-  | "ontoggle" => some .ontoggle
-  | "onunhandledrejection" => some .onunhandledrejection
-  | "onunload" => some .onunload
-  | "onvolumechange" => some .onvolumechange
-  | "onwaiting" => some .onwaiting
-  | "onwheel" => some .onwheel
-  | "role" => some .role
+/-- The attribute of a markup name spelled as characters (the prefixes are
+matched by prefix in the checker, not here); a character decision tree, see
+`Tag.ofChars?`. -/
+def Attr.ofChars? : List Char → Option Attr
+  | ['a', 'b', 'b', 'r'] => some .abbr
+  | ['a', 'c', 'c', 'e', 'p', 't'] => some .accept
+  | ['a', 'c', 'c', 'e', 'p', 't', '-', 'c', 'h', 'a', 'r', 's', 'e', 't'] => some .accept_charset
+  | ['a', 'c', 'c', 'e', 's', 's', 'k', 'e', 'y'] => some .accesskey
+  | ['a', 'c', 't', 'i', 'o', 'n'] => some .action
+  | ['a', 'l', 'l', 'o', 'w'] => some .allow
+  | ['a', 'l', 'l', 'o', 'w', 'f', 'u', 'l', 'l', 's', 'c', 'r', 'e', 'e', 'n'] => some .allowfullscreen
+  | ['a', 'l', 'p', 'h', 'a'] => some .alpha
+  | ['a', 'l', 't'] => some .alt
+  | ['a', 's'] => some .as
+  | ['a', 's', 'y', 'n', 'c'] => some .async
+  | ['a', 'u', 't', 'o', 'c', 'a', 'p', 'i', 't', 'a', 'l', 'i', 'z', 'e'] => some .autocapitalize
+  | ['a', 'u', 't', 'o', 'c', 'o', 'm', 'p', 'l', 'e', 't', 'e'] => some .autocomplete
+  | ['a', 'u', 't', 'o', 'c', 'o', 'r', 'r', 'e', 'c', 't'] => some .autocorrect
+  | ['a', 'u', 't', 'o', 'f', 'o', 'c', 'u', 's'] => some .autofocus
+  | ['a', 'u', 't', 'o', 'p', 'l', 'a', 'y'] => some .autoplay
+  | ['b', 'l', 'o', 'c', 'k', 'i', 'n', 'g'] => some .blocking
+  | ['c', 'h', 'a', 'r', 's', 'e', 't'] => some .charset
+  | ['c', 'h', 'e', 'c', 'k', 'e', 'd'] => some .checked
+  | ['c', 'i', 't', 'e'] => some .cite
+  | ['c', 'l', 'a', 's', 's'] => some .«class»
+  | ['c', 'l', 'o', 's', 'e', 'd', 'b', 'y'] => some .closedby
+  | ['c', 'o', 'l', 'o', 'r'] => some .color
+  | ['c', 'o', 'l', 'o', 'r', 's', 'p', 'a', 'c', 'e'] => some .colorspace
+  | ['c', 'o', 'l', 's'] => some .cols
+  | ['c', 'o', 'l', 's', 'p', 'a', 'n'] => some .colspan
+  | ['c', 'o', 'm', 'm', 'a', 'n', 'd'] => some .command
+  | ['c', 'o', 'm', 'm', 'a', 'n', 'd', 'f', 'o', 'r'] => some .commandfor
+  | ['c', 'o', 'n', 't', 'e', 'n', 't'] => some .content
+  | ['c', 'o', 'n', 't', 'e', 'n', 't', 'e', 'd', 'i', 't', 'a', 'b', 'l', 'e'] => some .contenteditable
+  | ['c', 'o', 'n', 't', 'r', 'o', 'l', 's'] => some .controls
+  | ['c', 'o', 'o', 'r', 'd', 's'] => some .coords
+  | ['c', 'r', 'o', 's', 's', 'o', 'r', 'i', 'g', 'i', 'n'] => some .crossorigin
+  | ['d', 'a', 't', 'a'] => some .«data»
+  | ['d', 'a', 't', 'e', 't', 'i', 'm', 'e'] => some .datetime
+  | ['d', 'e', 'c', 'o', 'd', 'i', 'n', 'g'] => some .decoding
+  | ['d', 'e', 'f', 'a', 'u', 'l', 't'] => some .default
+  | ['d', 'e', 'f', 'e', 'r'] => some .defer
+  | ['d', 'i', 'r'] => some .dir
+  | ['d', 'i', 'r', 'n', 'a', 'm', 'e'] => some .dirname
+  | ['d', 'i', 's', 'a', 'b', 'l', 'e', 'd'] => some .disabled
+  | ['d', 'o', 'w', 'n', 'l', 'o', 'a', 'd'] => some .download
+  | ['d', 'r', 'a', 'g', 'g', 'a', 'b', 'l', 'e'] => some .draggable
+  | ['e', 'n', 'c', 't', 'y', 'p', 'e'] => some .enctype
+  | ['e', 'n', 't', 'e', 'r', 'k', 'e', 'y', 'h', 'i', 'n', 't'] => some .enterkeyhint
+  | ['f', 'e', 't', 'c', 'h', 'p', 'r', 'i', 'o', 'r', 'i', 't', 'y'] => some .fetchpriority
+  | ['f', 'o', 'r'] => some .«for»
+  | ['f', 'o', 'r', 'm'] => some .form
+  | ['f', 'o', 'r', 'm', 'a', 'c', 't', 'i', 'o', 'n'] => some .formaction
+  | ['f', 'o', 'r', 'm', 'e', 'n', 'c', 't', 'y', 'p', 'e'] => some .formenctype
+  | ['f', 'o', 'r', 'm', 'm', 'e', 't', 'h', 'o', 'd'] => some .formmethod
+  | ['f', 'o', 'r', 'm', 'n', 'o', 'v', 'a', 'l', 'i', 'd', 'a', 't', 'e'] => some .formnovalidate
+  | ['f', 'o', 'r', 'm', 't', 'a', 'r', 'g', 'e', 't'] => some .formtarget
+  | ['h', 'e', 'a', 'd', 'e', 'r', 's'] => some .headers
+  | ['h', 'e', 'a', 'd', 'i', 'n', 'g', 'o', 'f', 'f', 's', 'e', 't'] => some .headingoffset
+  | ['h', 'e', 'a', 'd', 'i', 'n', 'g', 'r', 'e', 's', 'e', 't'] => some .headingreset
+  | ['h', 'e', 'i', 'g', 'h', 't'] => some .height
+  | ['h', 'i', 'd', 'd', 'e', 'n'] => some .hidden
+  | ['h', 'i', 'g', 'h'] => some .high
+  | ['h', 'r', 'e', 'f'] => some .href
+  | ['h', 'r', 'e', 'f', 'l', 'a', 'n', 'g'] => some .hreflang
+  | ['h', 't', 't', 'p', '-', 'e', 'q', 'u', 'i', 'v'] => some .http_equiv
+  | ['i', 'd'] => some .id
+  | ['i', 'm', 'a', 'g', 'e', 's', 'i', 'z', 'e', 's'] => some .imagesizes
+  | ['i', 'm', 'a', 'g', 'e', 's', 'r', 'c', 's', 'e', 't'] => some .imagesrcset
+  | ['i', 'n', 'e', 'r', 't'] => some .inert
+  | ['i', 'n', 'p', 'u', 't', 'm', 'o', 'd', 'e'] => some .inputmode
+  | ['i', 'n', 't', 'e', 'g', 'r', 'i', 't', 'y'] => some .integrity
+  | ['i', 's'] => some .is
+  | ['i', 's', 'm', 'a', 'p'] => some .ismap
+  | ['i', 't', 'e', 'm', 'i', 'd'] => some .itemid
+  | ['i', 't', 'e', 'm', 'p', 'r', 'o', 'p'] => some .itemprop
+  | ['i', 't', 'e', 'm', 'r', 'e', 'f'] => some .itemref
+  | ['i', 't', 'e', 'm', 's', 'c', 'o', 'p', 'e'] => some .itemscope
+  | ['i', 't', 'e', 'm', 't', 'y', 'p', 'e'] => some .itemtype
+  | ['k', 'i', 'n', 'd'] => some .kind
+  | ['l', 'a', 'b', 'e', 'l'] => some .label
+  | ['l', 'a', 'n', 'g'] => some .lang
+  | ['l', 'i', 's', 't'] => some .list
+  | ['l', 'o', 'a', 'd', 'i', 'n', 'g'] => some .loading
+  | ['l', 'o', 'o', 'p'] => some .loop
+  | ['l', 'o', 'w'] => some .low
+  | ['m', 'a', 'x'] => some .max
+  | ['m', 'a', 'x', 'l', 'e', 'n', 'g', 't', 'h'] => some .maxlength
+  | ['m', 'e', 'd', 'i', 'a'] => some .media
+  | ['m', 'e', 't', 'h', 'o', 'd'] => some .method
+  | ['m', 'i', 'n'] => some .min
+  | ['m', 'i', 'n', 'l', 'e', 'n', 'g', 't', 'h'] => some .minlength
+  | ['m', 'u', 'l', 't', 'i', 'p', 'l', 'e'] => some .multiple
+  | ['m', 'u', 't', 'e', 'd'] => some .muted
+  | ['n', 'a', 'm', 'e'] => some .name
+  | ['n', 'o', 'm', 'o', 'd', 'u', 'l', 'e'] => some .nomodule
+  | ['n', 'o', 'n', 'c', 'e'] => some .nonce
+  | ['n', 'o', 'v', 'a', 'l', 'i', 'd', 'a', 't', 'e'] => some .novalidate
+  | ['o', 'p', 'e', 'n'] => some .«open»
+  | ['o', 'p', 't', 'i', 'm', 'u', 'm'] => some .optimum
+  | ['p', 'a', 't', 't', 'e', 'r', 'n'] => some .pattern
+  | ['p', 'i', 'n', 'g'] => some .ping
+  | ['p', 'l', 'a', 'c', 'e', 'h', 'o', 'l', 'd', 'e', 'r'] => some .placeholder
+  | ['p', 'l', 'a', 'y', 's', 'i', 'n', 'l', 'i', 'n', 'e'] => some .playsinline
+  | ['p', 'o', 'p', 'o', 'v', 'e', 'r'] => some .popover
+  | ['p', 'o', 'p', 'o', 'v', 'e', 'r', 't', 'a', 'r', 'g', 'e', 't'] => some .popovertarget
+  | ['p', 'o', 'p', 'o', 'v', 'e', 'r', 't', 'a', 'r', 'g', 'e', 't', 'a', 'c', 't', 'i', 'o', 'n'] => some .popovertargetaction
+  | ['p', 'o', 's', 't', 'e', 'r'] => some .poster
+  | ['p', 'r', 'e', 'l', 'o', 'a', 'd'] => some .preload
+  | ['r', 'e', 'a', 'd', 'o', 'n', 'l', 'y'] => some .readonly
+  | ['r', 'e', 'f', 'e', 'r', 'r', 'e', 'r', 'p', 'o', 'l', 'i', 'c', 'y'] => some .referrerpolicy
+  | ['r', 'e', 'l'] => some .rel
+  | ['r', 'e', 'q', 'u', 'i', 'r', 'e', 'd'] => some .required
+  | ['r', 'e', 'v', 'e', 'r', 's', 'e', 'd'] => some .reversed
+  | ['r', 'o', 'w', 's'] => some .rows
+  | ['r', 'o', 'w', 's', 'p', 'a', 'n'] => some .rowspan
+  | ['s', 'a', 'n', 'd', 'b', 'o', 'x'] => some .sandbox
+  | ['s', 'c', 'o', 'p', 'e'] => some .scope
+  | ['s', 'e', 'l', 'e', 'c', 't', 'e', 'd'] => some .selected
+  | ['s', 'h', 'a', 'd', 'o', 'w', 'r', 'o', 'o', 't', 'c', 'l', 'o', 'n', 'a', 'b', 'l', 'e'] => some .shadowrootclonable
+  | ['s', 'h', 'a', 'd', 'o', 'w', 'r', 'o', 'o', 't', 'c', 'u', 's', 't', 'o', 'm', 'e', 'l', 'e', 'm', 'e', 'n', 't', 'r', 'e', 'g', 'i', 's', 't', 'r', 'y'] => some .shadowrootcustomelementregistry
+  | ['s', 'h', 'a', 'd', 'o', 'w', 'r', 'o', 'o', 't', 'd', 'e', 'l', 'e', 'g', 'a', 't', 'e', 's', 'f', 'o', 'c', 'u', 's'] => some .shadowrootdelegatesfocus
+  | ['s', 'h', 'a', 'd', 'o', 'w', 'r', 'o', 'o', 't', 'm', 'o', 'd', 'e'] => some .shadowrootmode
+  | ['s', 'h', 'a', 'd', 'o', 'w', 'r', 'o', 'o', 't', 's', 'e', 'r', 'i', 'a', 'l', 'i', 'z', 'a', 'b', 'l', 'e'] => some .shadowrootserializable
+  | ['s', 'h', 'a', 'd', 'o', 'w', 'r', 'o', 'o', 't', 's', 'l', 'o', 't', 'a', 's', 's', 'i', 'g', 'n', 'm', 'e', 'n', 't'] => some .shadowrootslotassignment
+  | ['s', 'h', 'a', 'p', 'e'] => some .shape
+  | ['s', 'i', 'z', 'e'] => some .size
+  | ['s', 'i', 'z', 'e', 's'] => some .sizes
+  | ['s', 'l', 'o', 't'] => some .slot
+  | ['s', 'p', 'a', 'n'] => some .span
+  | ['s', 'p', 'e', 'l', 'l', 'c', 'h', 'e', 'c', 'k'] => some .spellcheck
+  | ['s', 'r', 'c'] => some .src
+  | ['s', 'r', 'c', 'd', 'o', 'c'] => some .srcdoc
+  | ['s', 'r', 'c', 'l', 'a', 'n', 'g'] => some .srclang
+  | ['s', 'r', 'c', 's', 'e', 't'] => some .srcset
+  | ['s', 't', 'a', 'r', 't'] => some .start
+  | ['s', 't', 'e', 'p'] => some .step
+  | ['s', 't', 'y', 'l', 'e'] => some .style
+  | ['t', 'a', 'b', 'i', 'n', 'd', 'e', 'x'] => some .tabindex
+  | ['t', 'a', 'r', 'g', 'e', 't'] => some .target
+  | ['t', 'i', 't', 'l', 'e'] => some .title
+  | ['t', 'r', 'a', 'n', 's', 'l', 'a', 't', 'e'] => some .translate
+  | ['t', 'y', 'p', 'e'] => some .«type»
+  | ['u', 's', 'e', 'm', 'a', 'p'] => some .usemap
+  | ['v', 'a', 'l', 'u', 'e'] => some .value
+  | ['w', 'i', 'd', 't', 'h'] => some .width
+  | ['w', 'r', 'a', 'p'] => some .wrap
+  | ['w', 'r', 'i', 't', 'i', 'n', 'g', 's', 'u', 'g', 'g', 'e', 's', 't', 'i', 'o', 'n', 's'] => some .writingsuggestions
+  | ['o', 'n', 'a', 'f', 't', 'e', 'r', 'p', 'r', 'i', 'n', 't'] => some .onafterprint
+  | ['o', 'n', 'a', 'u', 'x', 'c', 'l', 'i', 'c', 'k'] => some .onauxclick
+  | ['o', 'n', 'b', 'e', 'f', 'o', 'r', 'e', 'i', 'n', 'p', 'u', 't'] => some .onbeforeinput
+  | ['o', 'n', 'b', 'e', 'f', 'o', 'r', 'e', 'm', 'a', 't', 'c', 'h'] => some .onbeforematch
+  | ['o', 'n', 'b', 'e', 'f', 'o', 'r', 'e', 'p', 'r', 'i', 'n', 't'] => some .onbeforeprint
+  | ['o', 'n', 'b', 'e', 'f', 'o', 'r', 'e', 'u', 'n', 'l', 'o', 'a', 'd'] => some .onbeforeunload
+  | ['o', 'n', 'b', 'e', 'f', 'o', 'r', 'e', 't', 'o', 'g', 'g', 'l', 'e'] => some .onbeforetoggle
+  | ['o', 'n', 'b', 'l', 'u', 'r'] => some .onblur
+  | ['o', 'n', 'c', 'a', 'n', 'c', 'e', 'l'] => some .oncancel
+  | ['o', 'n', 'c', 'a', 'n', 'p', 'l', 'a', 'y'] => some .oncanplay
+  | ['o', 'n', 'c', 'a', 'n', 'p', 'l', 'a', 'y', 't', 'h', 'r', 'o', 'u', 'g', 'h'] => some .oncanplaythrough
+  | ['o', 'n', 'c', 'h', 'a', 'n', 'g', 'e'] => some .onchange
+  | ['o', 'n', 'c', 'l', 'i', 'c', 'k'] => some .onclick
+  | ['o', 'n', 'c', 'l', 'o', 's', 'e'] => some .onclose
+  | ['o', 'n', 'c', 'o', 'm', 'm', 'a', 'n', 'd'] => some .oncommand
+  | ['o', 'n', 'c', 'o', 'n', 't', 'e', 'x', 't', 'l', 'o', 's', 't'] => some .oncontextlost
+  | ['o', 'n', 'c', 'o', 'n', 't', 'e', 'x', 't', 'm', 'e', 'n', 'u'] => some .oncontextmenu
+  | ['o', 'n', 'c', 'o', 'n', 't', 'e', 'x', 't', 'r', 'e', 's', 't', 'o', 'r', 'e', 'd'] => some .oncontextrestored
+  | ['o', 'n', 'c', 'o', 'p', 'y'] => some .oncopy
+  | ['o', 'n', 'c', 'u', 'e', 'c', 'h', 'a', 'n', 'g', 'e'] => some .oncuechange
+  | ['o', 'n', 'c', 'u', 't'] => some .oncut
+  | ['o', 'n', 'd', 'b', 'l', 'c', 'l', 'i', 'c', 'k'] => some .ondblclick
+  | ['o', 'n', 'd', 'r', 'a', 'g'] => some .ondrag
+  | ['o', 'n', 'd', 'r', 'a', 'g', 'e', 'n', 'd'] => some .ondragend
+  | ['o', 'n', 'd', 'r', 'a', 'g', 'e', 'n', 't', 'e', 'r'] => some .ondragenter
+  | ['o', 'n', 'd', 'r', 'a', 'g', 'l', 'e', 'a', 'v', 'e'] => some .ondragleave
+  | ['o', 'n', 'd', 'r', 'a', 'g', 'o', 'v', 'e', 'r'] => some .ondragover
+  | ['o', 'n', 'd', 'r', 'a', 'g', 's', 't', 'a', 'r', 't'] => some .ondragstart
+  | ['o', 'n', 'd', 'r', 'o', 'p'] => some .ondrop
+  | ['o', 'n', 'd', 'u', 'r', 'a', 't', 'i', 'o', 'n', 'c', 'h', 'a', 'n', 'g', 'e'] => some .ondurationchange
+  | ['o', 'n', 'e', 'm', 'p', 't', 'i', 'e', 'd'] => some .onemptied
+  | ['o', 'n', 'e', 'n', 'd', 'e', 'd'] => some .onended
+  | ['o', 'n', 'e', 'r', 'r', 'o', 'r'] => some .onerror
+  | ['o', 'n', 'f', 'o', 'c', 'u', 's'] => some .onfocus
+  | ['o', 'n', 'f', 'o', 'r', 'm', 'd', 'a', 't', 'a'] => some .onformdata
+  | ['o', 'n', 'h', 'a', 's', 'h', 'c', 'h', 'a', 'n', 'g', 'e'] => some .onhashchange
+  | ['o', 'n', 'i', 'n', 'p', 'u', 't'] => some .oninput
+  | ['o', 'n', 'i', 'n', 'v', 'a', 'l', 'i', 'd'] => some .oninvalid
+  | ['o', 'n', 'k', 'e', 'y', 'd', 'o', 'w', 'n'] => some .onkeydown
+  | ['o', 'n', 'k', 'e', 'y', 'p', 'r', 'e', 's', 's'] => some .onkeypress
+  | ['o', 'n', 'k', 'e', 'y', 'u', 'p'] => some .onkeyup
+  | ['o', 'n', 'l', 'a', 'n', 'g', 'u', 'a', 'g', 'e', 'c', 'h', 'a', 'n', 'g', 'e'] => some .onlanguagechange
+  | ['o', 'n', 'l', 'o', 'a', 'd'] => some .onload
+  | ['o', 'n', 'l', 'o', 'a', 'd', 'e', 'd', 'd', 'a', 't', 'a'] => some .onloadeddata
+  | ['o', 'n', 'l', 'o', 'a', 'd', 'e', 'd', 'm', 'e', 't', 'a', 'd', 'a', 't', 'a'] => some .onloadedmetadata
+  | ['o', 'n', 'l', 'o', 'a', 'd', 's', 't', 'a', 'r', 't'] => some .onloadstart
+  | ['o', 'n', 'm', 'e', 's', 's', 'a', 'g', 'e'] => some .onmessage
+  | ['o', 'n', 'm', 'e', 's', 's', 'a', 'g', 'e', 'e', 'r', 'r', 'o', 'r'] => some .onmessageerror
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'd', 'o', 'w', 'n'] => some .onmousedown
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'e', 'n', 't', 'e', 'r'] => some .onmouseenter
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'l', 'e', 'a', 'v', 'e'] => some .onmouseleave
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'm', 'o', 'v', 'e'] => some .onmousemove
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'o', 'u', 't'] => some .onmouseout
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'o', 'v', 'e', 'r'] => some .onmouseover
+  | ['o', 'n', 'm', 'o', 'u', 's', 'e', 'u', 'p'] => some .onmouseup
+  | ['o', 'n', 'o', 'f', 'f', 'l', 'i', 'n', 'e'] => some .onoffline
+  | ['o', 'n', 'o', 'n', 'l', 'i', 'n', 'e'] => some .ononline
+  | ['o', 'n', 'p', 'a', 'g', 'e', 'h', 'i', 'd', 'e'] => some .onpagehide
+  | ['o', 'n', 'p', 'a', 'g', 'e', 'r', 'e', 'v', 'e', 'a', 'l'] => some .onpagereveal
+  | ['o', 'n', 'p', 'a', 'g', 'e', 's', 'h', 'o', 'w'] => some .onpageshow
+  | ['o', 'n', 'p', 'a', 'g', 'e', 's', 'w', 'a', 'p'] => some .onpageswap
+  | ['o', 'n', 'p', 'a', 's', 't', 'e'] => some .onpaste
+  | ['o', 'n', 'p', 'a', 'u', 's', 'e'] => some .onpause
+  | ['o', 'n', 'p', 'l', 'a', 'y'] => some .onplay
+  | ['o', 'n', 'p', 'l', 'a', 'y', 'i', 'n', 'g'] => some .onplaying
+  | ['o', 'n', 'p', 'o', 'p', 's', 't', 'a', 't', 'e'] => some .onpopstate
+  | ['o', 'n', 'p', 'r', 'o', 'g', 'r', 'e', 's', 's'] => some .onprogress
+  | ['o', 'n', 'r', 'a', 't', 'e', 'c', 'h', 'a', 'n', 'g', 'e'] => some .onratechange
+  | ['o', 'n', 'r', 'e', 's', 'e', 't'] => some .onreset
+  | ['o', 'n', 'r', 'e', 's', 'i', 'z', 'e'] => some .onresize
+  | ['o', 'n', 'r', 'e', 'j', 'e', 'c', 't', 'i', 'o', 'n', 'h', 'a', 'n', 'd', 'l', 'e', 'd'] => some .onrejectionhandled
+  | ['o', 'n', 's', 'c', 'r', 'o', 'l', 'l'] => some .onscroll
+  | ['o', 'n', 's', 'c', 'r', 'o', 'l', 'l', 'e', 'n', 'd'] => some .onscrollend
+  | ['o', 'n', 's', 'e', 'c', 'u', 'r', 'i', 't', 'y', 'p', 'o', 'l', 'i', 'c', 'y', 'v', 'i', 'o', 'l', 'a', 't', 'i', 'o', 'n'] => some .onsecuritypolicyviolation
+  | ['o', 'n', 's', 'e', 'e', 'k', 'e', 'd'] => some .onseeked
+  | ['o', 'n', 's', 'e', 'e', 'k', 'i', 'n', 'g'] => some .onseeking
+  | ['o', 'n', 's', 'e', 'l', 'e', 'c', 't'] => some .onselect
+  | ['o', 'n', 's', 'l', 'o', 't', 'c', 'h', 'a', 'n', 'g', 'e'] => some .onslotchange
+  | ['o', 'n', 's', 't', 'a', 'l', 'l', 'e', 'd'] => some .onstalled
+  | ['o', 'n', 's', 't', 'o', 'r', 'a', 'g', 'e'] => some .onstorage
+  | ['o', 'n', 's', 'u', 'b', 'm', 'i', 't'] => some .onsubmit
+  | ['o', 'n', 's', 'u', 's', 'p', 'e', 'n', 'd'] => some .onsuspend
+  | ['o', 'n', 't', 'i', 'm', 'e', 'u', 'p', 'd', 'a', 't', 'e'] => some .ontimeupdate
+  | ['o', 'n', 't', 'o', 'g', 'g', 'l', 'e'] => some .ontoggle
+  | ['o', 'n', 'u', 'n', 'h', 'a', 'n', 'd', 'l', 'e', 'd', 'r', 'e', 'j', 'e', 'c', 't', 'i', 'o', 'n'] => some .onunhandledrejection
+  | ['o', 'n', 'u', 'n', 'l', 'o', 'a', 'd'] => some .onunload
+  | ['o', 'n', 'v', 'o', 'l', 'u', 'm', 'e', 'c', 'h', 'a', 'n', 'g', 'e'] => some .onvolumechange
+  | ['o', 'n', 'w', 'a', 'i', 't', 'i', 'n', 'g'] => some .onwaiting
+  | ['o', 'n', 'w', 'h', 'e', 'e', 'l'] => some .onwheel
+  | ['r', 'o', 'l', 'e'] => some .role
   | _ => none
+
+/-- The attribute of a markup name; `none` for any other string. -/
+def Attr.ofName? (s : String) : Option Attr := Attr.ofChars? s.toList
+
+/-- The index rows of an attribute, as one flat match over `Attr`: the same
+rows as `attributeRows.filter (·.attr == a)`, so that a value check reads a
+handful of rows instead of filtering the whole index (performance review §4). -/
+def Attr.indexRows : Attr → List AttrRow
+  | .abbr =>
+    [{ attr := .abbr, markup := "abbr", handler := false, elements := [.th], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Alternative label to use for the header cell when referencing the cell in other contexts", digest := "cd3b72ce99e40cd3a6f67674cc4d6a279508d7e758b0a3d09e251a7312c19d12" }]
+  | .accept =>
+    [{ attr := .accept, markup := "accept", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Hint for expected file type in file upload controls", digest := "c31ee3363c93bfa817f81bc2bba9da0077c3fc6483ec33425e5d634e2ecd69a8" }]
+  | .accept_charset =>
+    [{ attr := .accept_charset, markup := "accept-charset", handler := false, elements := [.form], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Character encodings to use for form submission", digest := "442fc3f3a1fd4503fcd131cb7e535c6c7d27fe9088589254748245560d032968" }]
+  | .accesskey =>
+    [{ attr := .accesskey, markup := "accesskey", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Keyboard shortcut to activate or focus element", digest := "c1097ac3d14ee5414fd9f4f6ffc8b12887d1adb5b9fdf3e87f6c7ae4e9d8ee15" }]
+  | .action =>
+    [{ attr := .action, markup := "action", handler := false, elements := [.form], global := false, kind := .url, keywords := [], allowEmpty := false, description := "URL to use for form submission", digest := "92dc99c99dc315a9404d8fa9d869c6b295abdf50045f26249342f6d6e6b006e5" }]
+  | .allow =>
+    [{ attr := .allow, markup := "allow", handler := false, elements := [.iframe], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Permissions policy to be applied to the iframe's contents", digest := "533173d46a1936d3a2967f77e9b8e83b8ed3f941cb37b3d950bc3758a1f1c39b" }]
+  | .allowfullscreen =>
+    [{ attr := .allowfullscreen, markup := "allowfullscreen", handler := false, elements := [.iframe], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether to allow the iframe's contents to use requestFullscreen()", digest := "0a7299f0981dc5b31b2014fd93d84c7ac2306d41455e3142ac0997d7988dbe94" }]
+  | .alpha =>
+    [{ attr := .alpha, markup := "alpha", handler := false, elements := [.input], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Allow the color's alpha component to be set", digest := "93cf7c7c9c7bbb5fbaec71c9ef4cdb66d0aa6b89cc2918b945163812d30810a5" }]
+  | .alt =>
+    [{ attr := .alt, markup := "alt", handler := false, elements := [.area, .img, .input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Replacement text for use when images are not available", digest := "de30599df6a5ed1b7f9d3ebcf097cddc6c47ffbe4a0a2d71148f01807b8f8dfd" }]
+  | .as =>
+    [{ attr := .as, markup := "as", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Destination for a preload request (for rel=\"preload\" and rel=\"modulepreload\")", digest := "7bb18d4fb6ef8f97ecccc71b8cdb933d568d85cb7fd53796475af06df74e2ea4" }]
+  | .async =>
+    [{ attr := .async, markup := "async", handler := false, elements := [.script], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Execute script when available, without blocking while fetching", digest := "c607962248b759f4583cd6ed25033457c67c35afaa5e469873e7c32a81bb4849" }]
+  | .autocapitalize =>
+    [{ attr := .autocapitalize, markup := "autocapitalize", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["on", "off", "none", "sentences", "words", "characters"], allowEmpty := false, description := "Recommended autocapitalization behavior (for supported input methods)", digest := "b6fc958d088051f039014e77d224e49f2f6837e61fefdcfadd318bfc86211708" }]
+  | .autocomplete =>
+    [{ attr := .autocomplete, markup := "autocomplete", handler := false, elements := [.form], global := false, kind := .keywords false, keywords := ["on", "off"], allowEmpty := false, description := "Default setting for autofill feature for controls in the form", digest := "e358c288dc84dc83f1be5051bdcb2471d69387f8574dbec38bea7c2ab066bacc" },
+     { attr := .autocomplete, markup := "autocomplete", handler := false, elements := [.input, .select, .textarea], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Hint for form autofill feature", digest := "15d858095fc44cd0689b3ed353dae9b1ba34ee7e3cccb22599623f0dfdb3318b" }]
+  | .autocorrect =>
+    [{ attr := .autocorrect, markup := "autocorrect", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["on", "off"], allowEmpty := true, description := "Recommended autocorrection behavior (for supported input methods)", digest := "84c913fbbf8e72abe96b4a45da59429154ca70b7255198e0b7394c4b7e60500e" }]
+  | .autofocus =>
+    [{ attr := .autofocus, markup := "autofocus", handler := false, elements := [], global := true, kind := .boolean, keywords := [], allowEmpty := false, description := "Automatically focus the element when the page is loaded", digest := "d5c61372d15731a696b9700b7db88205791541aae66f10e07c295e246d0a4dbd" }]
+  | .autoplay =>
+    [{ attr := .autoplay, markup := "autoplay", handler := false, elements := [.audio, .video], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Hint that the media resource can be started automatically when the page is loaded", digest := "5bce8c2ffdbf5ebbe4f220ffe96939b16f9cf1ecfd0d136c20dbd4775a662f98" }]
+  | .blocking =>
+    [{ attr := .blocking, markup := "blocking", handler := false, elements := [.link, .script, .style], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Whether the element is potentially render-blocking", digest := "8cab0aa9fd7bd97342f35453dd96530f21ab60807752e217c41414e7d935bb9c" }]
+  | .charset =>
+    [{ attr := .charset, markup := "charset", handler := false, elements := [.«meta»], global := false, kind := .keywords false, keywords := ["utf-8"], allowEmpty := false, description := "Character encoding declaration", digest := "8018d78cf0436d85e8b2659dcce728985261efaabdf5c6427c59e4d978222eb4" }]
+  | .checked =>
+    [{ attr := .checked, markup := "checked", handler := false, elements := [.input], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the control is checked", digest := "68b1309ea2ca7f0748a9754b6065b4c0b593c75d1521a720c4db1f3cf38a5991" }]
+  | .cite =>
+    [{ attr := .cite, markup := "cite", handler := false, elements := [.blockquote, .del, .ins, .q], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Link to the source of the quotation or more information about the edit", digest := "866ef036c16cbdada070577172de0c2e07f34ef16ff36c9717057c8546afa175" }]
+  | .«class» =>
+    [{ attr := .«class», markup := "class", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Classes to which the element belongs", digest := "8911f7265db621b4ae1beaacb52d28acc6632a9add5a85e18123f3fe5c2cdd6a" }]
+  | .closedby =>
+    [{ attr := .closedby, markup := "closedby", handler := false, elements := [.dialog], global := false, kind := .keywords false, keywords := ["any", "closerequest", "none"], allowEmpty := false, description := "Which user actions will close the dialog", digest := "506fa479de2538ff08dd99af38df06645c2cfe11671c4cd85057d37039425280" }]
+  | .color =>
+    [{ attr := .color, markup := "color", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Color to use when customizing a site's icon (for rel=\"mask-icon\")", digest := "5feaed15ce33a3f7e81b194007dd353322be17b4efdfc32c719363f361c590e7" }]
+  | .colorspace =>
+    [{ attr := .colorspace, markup := "colorspace", handler := false, elements := [.input], global := false, kind := .keywords false, keywords := ["limited-srgb", "display-p3"], allowEmpty := false, description := "The color space of the serialized color", digest := "1d00f00f055103ebefc83e0d30956af7628287e96e2cd57a483c4e523b4db270" }]
+  | .cols =>
+    [{ attr := .cols, markup := "cols", handler := false, elements := [.textarea], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Maximum number of characters per line", digest := "cebe0bed3deb5151f0761b65dbd7b568ee3e9bc7368c90d2d89fe8838eb8922b" }]
+  | .colspan =>
+    [{ attr := .colspan, markup := "colspan", handler := false, elements := [.td, .th], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Number of columns that the cell is to span", digest := "741041ad09d1260c12c55f19f4f59c124692b38ec8d24c7bfb5ace74a0891cd3" }]
+  | .command =>
+    [{ attr := .command, markup := "command", handler := false, elements := [.button], global := false, kind := .keywords true, keywords := ["toggle-popover", "show-popover", "hide-popover", "close", "request-close", "show-modal"], allowEmpty := false, description := "Indicates to the targeted element which action to take.", digest := "4a73e5c5c4ebcddb68cd5b77f896000d75541d1866c87f35617d822acb976b93" }]
+  | .commandfor =>
+    [{ attr := .commandfor, markup := "commandfor", handler := false, elements := [.button], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Targets another element to be invoked.", digest := "b2e33f2db88d67120110acc3d1a2e6afa5a1d170e3606b57c63136a5ad11ccfb" }]
+  | .content =>
+    [{ attr := .content, markup := "content", handler := false, elements := [.«meta»], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Value of the element", digest := "a2896189bbbca2a7e63b89550c931afa333647bd2c91e9a958203d63eb853d18" }]
+  | .contenteditable =>
+    [{ attr := .contenteditable, markup := "contenteditable", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["true", "false", "plaintext-only"], allowEmpty := true, description := "Whether the element is editable", digest := "2ae04aef726bb28e349e9a3a9b3e4b601fc265ade908b76d188128ca4b8aa750" }]
+  | .controls =>
+    [{ attr := .controls, markup := "controls", handler := false, elements := [.audio, .video, .img], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Show user agent controls", digest := "8584725f97184c07d3d7b1c7ece1e5b23faa3e4fb72a4acf19d7dfe7dd7dfce5" }]
+  | .coords =>
+    [{ attr := .coords, markup := "coords", handler := false, elements := [.area], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Coordinates for the shape to be created in an image map", digest := "ffa99b318b117b4d13f87253735501eea53f8e887c6c4ae93125efb23679d912" }]
+  | .crossorigin =>
+    [{ attr := .crossorigin, markup := "crossorigin", handler := false, elements := [.audio, .img, .link, .script, .video], global := false, kind := .keywords false, keywords := ["anonymous", "use-credentials"], allowEmpty := true, description := "How the element handles crossorigin requests", digest := "d8d67b04eccd536093bcecb805949b877aca41cffb127d61c39b1e8b2914676b" }]
+  | .«data» =>
+    [{ attr := .«data», markup := "data", handler := false, elements := [.object], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Address of the resource", digest := "12f6b3ca7353dd6e921867e9bc5d82f41cda0a9a29bfe00166731103744410d2" }]
+  | .datetime =>
+    [{ attr := .datetime, markup := "datetime", handler := false, elements := [.del, .ins], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Date and (optionally) time of the change", digest := "3a07e10a96cc403fa3b7af07d01289900a73e386f117d2d7861375df5347ea64" },
+     { attr := .datetime, markup := "datetime", handler := false, elements := [.time], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Machine-readable value", digest := "fcc31e28725d32b93e7e8dd81483f67e97e3f1636aed8f1afa7b7abd6027d419" }]
+  | .decoding =>
+    [{ attr := .decoding, markup := "decoding", handler := false, elements := [.img], global := false, kind := .keywords false, keywords := ["sync", "async", "auto"], allowEmpty := false, description := "Decoding hint to use when processing this image for presentation", digest := "cb9011485ff9d290e74ccd393ae9fa41e16cbb5caffa830c444b4969f2e256c7" }]
+  | .default =>
+    [{ attr := .default, markup := "default", handler := false, elements := [.track], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Enable the track if no other text track is more suitable", digest := "861dfb8157b72740131ae364f8385ba2e831497a4025aba929adc1212db4cb2f" }]
+  | .defer =>
+    [{ attr := .defer, markup := "defer", handler := false, elements := [.script], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Defer script execution", digest := "93a4045b26702240a913163292b6360d4f309c16b2237f55bb2028ec74eaaed9" }]
+  | .dir =>
+    [{ attr := .dir, markup := "dir", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["ltr", "rtl", "auto"], allowEmpty := false, description := "The text directionality of the element", digest := "aa5a085e910c9c23629a32379eaa8e3e3338ee67d7bc71d36a180062ad627b7c" },
+     { attr := .dir, markup := "dir", handler := false, elements := [.bdo], global := false, kind := .keywords false, keywords := ["ltr", "rtl"], allowEmpty := false, description := "The text directionality of the element", digest := "95ee524aa178b0ef24ef621da351317be9d1ce6a65fb47f5bd16980485209d68" }]
+  | .dirname =>
+    [{ attr := .dirname, markup := "dirname", handler := false, elements := [.input, .textarea], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of form control to use for sending the element's directionality in form submission", digest := "f76e81a5a721e9e9d3a84bb11f51b263f7d20afc493234bf8411fc56cc57db32" }]
+  | .disabled =>
+    [{ attr := .disabled, markup := "disabled", handler := false, elements := [.button, .input, .optgroup, .option, .select, .textarea], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the form control is disabled", digest := "292477a45fabcf9d650064a57fc831fab562a0f5278499d3701d5cbc0424db94" },
+     { attr := .disabled, markup := "disabled", handler := false, elements := [.fieldset], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the descendant form controls, except any inside legend, are disabled", digest := "cfb76cf936aa582db398b317d41d2b2fcaf51f812f034f2130db86ecfc88d11c" },
+     { attr := .disabled, markup := "disabled", handler := false, elements := [.link], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the link is disabled", digest := "af97e98a17ec89285780f33dad8e3878573415696f1f202d4129a61997bada90" }]
+  | .download =>
+    [{ attr := .download, markup := "download", handler := false, elements := [.a, .area], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Whether to download the resource instead of navigating to it, and its filename if so", digest := "55fc6e72eed481ee13cddf2ba93b016400b804c74d66506128f9d2d34f0f8a8e" }]
+  | .draggable =>
+    [{ attr := .draggable, markup := "draggable", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["true", "false"], allowEmpty := false, description := "Whether the element is draggable", digest := "3897f6bcef8b5ffc56606b028c3e49d195c36f9a3c58c6637e54898cadea4f8f" }]
+  | .enctype =>
+    [{ attr := .enctype, markup := "enctype", handler := false, elements := [.form], global := false, kind := .keywords false, keywords := ["application/x-www-form-urlencoded", "multipart/form-data", "text/plain"], allowEmpty := false, description := "Entry list encoding type to use for form submission", digest := "5d16da344f11e21c7a9c1374f17f7826ff3623382c0a0270b361a600d3e9b453" }]
+  | .enterkeyhint =>
+    [{ attr := .enterkeyhint, markup := "enterkeyhint", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["enter", "done", "go", "next", "previous", "search", "send"], allowEmpty := false, description := "Hint for selecting an enter key action", digest := "06117371d2dc7e6d100a1061f64ea3b914da1e5c83b7d28fc7ae0a0797fdd0a8" }]
+  | .fetchpriority =>
+    [{ attr := .fetchpriority, markup := "fetchpriority", handler := false, elements := [.img, .link, .script], global := false, kind := .keywords false, keywords := ["auto", "high", "low"], allowEmpty := false, description := "Sets the priority for fetches initiated by the element", digest := "7d5b440b477b6bbf8680093c93035223c148d5c529902cbda9c4b5b4b5baf943" }]
+  | .«for» =>
+    [{ attr := .«for», markup := "for", handler := false, elements := [.label], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Associate the label with form control", digest := "6ec22bd737e7264b172a4c5982a410ed532b9ec9e410ecbe008632b065c41189" },
+     { attr := .«for», markup := "for", handler := false, elements := [.output], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Specifies controls from which the output was calculated", digest := "671e8fa71c12935a0a8982a203b53eb731fbd3cbb2f9325c271c6f060ae90dfa" }]
+  | .form =>
+    [{ attr := .form, markup := "form", handler := false, elements := [.button, .fieldset, .input, .object, .output, .select, .textarea], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Associates the element with a form element", digest := "8c591bd5b9aad1b9726b331239e1f327a9f20dec815b238d406811ea0a9eeb83" }]
+  | .formaction =>
+    [{ attr := .formaction, markup := "formaction", handler := false, elements := [.button, .input], global := false, kind := .url, keywords := [], allowEmpty := false, description := "URL to use for form submission", digest := "67073d295bb9f4656c6558c225ee7749dcde869a558d67ab5d1205f7875ff35e" }]
+  | .formenctype =>
+    [{ attr := .formenctype, markup := "formenctype", handler := false, elements := [.button, .input], global := false, kind := .keywords false, keywords := ["application/x-www-form-urlencoded", "multipart/form-data", "text/plain"], allowEmpty := false, description := "Entry list encoding type to use for form submission", digest := "2c40a4f07b62d51be795227d125626244572150049b0d4975b8af84e70d8fbd3" }]
+  | .formmethod =>
+    [{ attr := .formmethod, markup := "formmethod", handler := false, elements := [.button, .input], global := false, kind := .keywords false, keywords := ["get", "post", "dialog"], allowEmpty := false, description := "Variant to use for form submission", digest := "86ff9ea63bc27bd29438cf32cd80619bf6767178edd475857da1519cf638cb22" }]
+  | .formnovalidate =>
+    [{ attr := .formnovalidate, markup := "formnovalidate", handler := false, elements := [.button, .input], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Bypass form control validation for form submission", digest := "15a40ead7e1443eae9b917cfaf301321e41ef1ca2189a77701ab771b94ae801a" }]
+  | .formtarget =>
+    [{ attr := .formtarget, markup := "formtarget", handler := false, elements := [.button, .input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Navigable for form submission", digest := "7781ba141c99d04bef23201b093ff34d59c81fcaaa0760b82d7d3a97c309f481" }]
+  | .headers =>
+    [{ attr := .headers, markup := "headers", handler := false, elements := [.td, .th], global := false, kind := .text, keywords := [], allowEmpty := false, description := "The header cells for this cell", digest := "e651c870810ac77dacca95cc2e8a4517a4d38b62b9fe231fd9f52e1d21883c3e" }]
+  | .headingoffset =>
+    [{ attr := .headingoffset, markup := "headingoffset", handler := false, elements := [], global := true, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Offsets heading levels for descendants", digest := "ca8f4d9b5ecbd4125f479a9c5d7bf4a22115cb5e6b1ec80918a63a0b48695906" }]
+  | .headingreset =>
+    [{ attr := .headingreset, markup := "headingreset", handler := false, elements := [], global := true, kind := .boolean, keywords := [], allowEmpty := false, description := "Prevents a heading offset computation from traversing beyond the element with the attribute", digest := "261e04e794f0560ffcc9105bc800cb0d475681f939820f87852b3d3fac0d346c" }]
+  | .height =>
+    [{ attr := .height, markup := "height", handler := false, elements := [.canvas, .embed, .iframe, .img, .input, .object, .source, .video], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Vertical dimension", digest := "a73d2bd21aa28407b9c51e59af54478ae01f8e9d0b09c69ca56c9f90e0d0a8d8" }]
+  | .hidden =>
+    [{ attr := .hidden, markup := "hidden", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["until-found", "hidden"], allowEmpty := true, description := "Whether the element is relevant", digest := "5b1a12bbfc78e399b8646983bba67503abf5a38ab9c3c2ee47eb88a2a1304602" }]
+  | .high =>
+    [{ attr := .high, markup := "high", handler := false, elements := [.meter], global := false, kind := .float, keywords := [], allowEmpty := false, description := "Low limit of high range", digest := "29699c35e250c3abf581108a3d2c1963aad745dfd50caad055726c4c1cd7462a" }]
+  | .href =>
+    [{ attr := .href, markup := "href", handler := false, elements := [.a, .area], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Address of the hyperlink", digest := "6d363e02875f23536d1072a44a1bd728e03e48a7eacc67e80af94502db0534d5" },
+     { attr := .href, markup := "href", handler := false, elements := [.link], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Address of the hyperlink", digest := "cd4a060b8fcf3e9c3a808fb0fcc5ac336384777abf9369e27a8fd804a2e0e329" },
+     { attr := .href, markup := "href", handler := false, elements := [.base], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Document base URL", digest := "dd639e5a80214dd7a4cd31891067e0c75c18e35c0ce88c4cc5e0d4f68558cff1" }]
+  | .hreflang =>
+    [{ attr := .hreflang, markup := "hreflang", handler := false, elements := [.a, .link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Language of the linked resource", digest := "77f7b883c7f298e503a55eb07c294deb1d76faaeb727a5fa1161ee4287fefdb5" }]
+  | .http_equiv =>
+    [{ attr := .http_equiv, markup := "http-equiv", handler := false, elements := [.«meta»], global := false, kind := .keywords false, keywords := ["content-type", "default-style", "refresh", "x-ua-compatible", "content-security-policy"], allowEmpty := false, description := "Pragma directive", digest := "f349deaa30b92ba855b9164f25ccf47b1f50539e6daaaca5b23785f95566d209" }]
+  | .id =>
+    [{ attr := .id, markup := "id", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "The element's ID", digest := "ac1b3eecf004cd965083964d9981c1d8b796e4a7c3a5bcccf56ee7f0264cfcb6" }]
+  | .imagesizes =>
+    [{ attr := .imagesizes, markup := "imagesizes", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Image sizes for different page layouts (for rel=\"preload\")", digest := "bfe6066c0cbd766bdbda19bc2f8ede99a0e8ba2d31ab3df1986439191c314395" }]
+  | .imagesrcset =>
+    [{ attr := .imagesrcset, markup := "imagesrcset", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Images to use in different situations, e.g., high-resolution displays, small monitors, etc. (for rel=\"preload\")", digest := "c899880bbcab74ef1aa4ec575986d275d8999ecb5cb4948418c5df2009caf4c9" }]
+  | .inert =>
+    [{ attr := .inert, markup := "inert", handler := false, elements := [], global := true, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the element is inert.", digest := "66bbeb0617885b6a1f7b687534a73acceddc9babc245c58f7d225f8b7008163c" }]
+  | .inputmode =>
+    [{ attr := .inputmode, markup := "inputmode", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["none", "text", "tel", "email", "url", "numeric", "decimal", "search"], allowEmpty := false, description := "Hint for selecting an input modality", digest := "704dc6e1fb2e06384419ba85a5c5342f38a024d7f8066123fa800c43f261f4be" }]
+  | .integrity =>
+    [{ attr := .integrity, markup := "integrity", handler := false, elements := [.link, .script], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Integrity metadata used in Subresource Integrity checks SRI", digest := "240dec54e14f86fb8eb18ee35067a7575e6b4d612de83ca1020a96b230506b9e" }]
+  | .is =>
+    [{ attr := .is, markup := "is", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Creates a customized built-in element", digest := "c26f8b604d37d308b846dda1858689700a0b4f8bb10b90354cdfa3d3c0046f29" }]
+  | .ismap =>
+    [{ attr := .ismap, markup := "ismap", handler := false, elements := [.img], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the image is a server-side image map", digest := "e30baf0535024ffb507c0bd02278493a2b6df03cf0b1d7f14552366cbd60fa33" }]
+  | .itemid =>
+    [{ attr := .itemid, markup := "itemid", handler := false, elements := [], global := true, kind := .url, keywords := [], allowEmpty := false, description := "Global identifier for a microdata item", digest := "05997a2d81552c08fbec36fae4eb31b0f9de966b66324feda80040c6600d06a3" }]
+  | .itemprop =>
+    [{ attr := .itemprop, markup := "itemprop", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Property names of a microdata item", digest := "98ee4d49c2ea600e7098df4b70c54cb98ad95d1d2917129f0b2982bd329cfa74" }]
+  | .itemref =>
+    [{ attr := .itemref, markup := "itemref", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Referenced elements", digest := "da0cad1bbfc098482c7f46dd053926b01025270722210890f4b3ddc5e0caa7b7" }]
+  | .itemscope =>
+    [{ attr := .itemscope, markup := "itemscope", handler := false, elements := [], global := true, kind := .boolean, keywords := [], allowEmpty := false, description := "Introduces a microdata item", digest := "e7f1e0dc128ba45558afad012dc2a8e29ebe6da5287647b012fc0506ba734811" }]
+  | .itemtype =>
+    [{ attr := .itemtype, markup := "itemtype", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Item types of a microdata item", digest := "26906359dc993a7c76fbd3bb5a25a45dffb0655add53288d1e7e88288921c8c1" }]
+  | .kind =>
+    [{ attr := .kind, markup := "kind", handler := false, elements := [.track], global := false, kind := .keywords false, keywords := ["subtitles", "captions", "descriptions", "chapters", "metadata"], allowEmpty := false, description := "The type of text track", digest := "7047081bbe36db3b23635f210d7ba20d30c9495e65d5a9ccaa41d89e3a5a4eb7" }]
+  | .label =>
+    [{ attr := .label, markup := "label", handler := false, elements := [.optgroup, .option, .track], global := false, kind := .text, keywords := [], allowEmpty := false, description := "User-visible label", digest := "34c75c2ebf09ec1b6bf05f37dce1be9b7feb1f0a6d83f047b1ab0f1e1b58eb2d" }]
+  | .lang =>
+    [{ attr := .lang, markup := "lang", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Language of the element", digest := "df3c8da79658fda65e1cc5605b2e16194bde2cb5dcb7942887e363516a5df25d" }]
+  | .list =>
+    [{ attr := .list, markup := "list", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "List of autocomplete options", digest := "7a62b3ca262b35955c6563207a373db520a273eb7f95fb5f986b7306f35e850c" }]
+  | .loading =>
+    [{ attr := .loading, markup := "loading", handler := false, elements := [.iframe, .img, .audio, .video], global := false, kind := .keywords false, keywords := ["lazy", "eager"], allowEmpty := false, description := "Used when determining loading deferral", digest := "652c5588653c22692d16f0e8c0ea0995cf85f30fafc5d7fd34f6778ea1ea89b0" }]
+  | .loop =>
+    [{ attr := .loop, markup := "loop", handler := false, elements := [.audio, .video], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether to loop the media resource", digest := "51afd62a2b1c679de43ef14e2210a7029d19ee87a4560d7ef911864376cac50b" }]
+  | .low =>
+    [{ attr := .low, markup := "low", handler := false, elements := [.meter], global := false, kind := .float, keywords := [], allowEmpty := false, description := "High limit of low range", digest := "65773a565815af0de43a9cba8f01b6d93ddb0c1e0b1739b2e1928c8fd55abca1" }]
+  | .max =>
+    [{ attr := .max, markup := "max", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Maximum value", digest := "74a2157ec0ab5d102e27d13384b0cc0e8b47a8715ab927c7facbc9622767e01e" },
+     { attr := .max, markup := "max", handler := false, elements := [.meter, .progress], global := false, kind := .float, keywords := [], allowEmpty := false, description := "Upper bound of range", digest := "7216d59e447a305b658392767672126aa5fac3cceafd877c219719f2786ba807" }]
+  | .maxlength =>
+    [{ attr := .maxlength, markup := "maxlength", handler := false, elements := [.input, .textarea], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Maximum length of value", digest := "e2d345e39efcbb6436b13c5e8b50e1f4e64a9853405680451b73b89a9c0eb104" }]
+  | .media =>
+    [{ attr := .media, markup := "media", handler := false, elements := [.link, .«meta», .source, .style], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Applicable media", digest := "29c34ee5a2724703bf650a48d237fdec401587035eb4fdb44ff5d0e5a4f05293" }]
+  | .method =>
+    [{ attr := .method, markup := "method", handler := false, elements := [.form], global := false, kind := .keywords false, keywords := ["get", "post", "dialog"], allowEmpty := false, description := "Variant to use for form submission", digest := "8c3414a7c25535ef52f542b24b6e8b87225deb34a62aeb112be337cbe5a5d6ca" }]
+  | .min =>
+    [{ attr := .min, markup := "min", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Minimum value", digest := "8a010eddd8822f36356da33b1b90305014441c588f42560427a87ef5bd0b53d3" },
+     { attr := .min, markup := "min", handler := false, elements := [.meter], global := false, kind := .float, keywords := [], allowEmpty := false, description := "Lower bound of range", digest := "a201e5a8264ff4f2de847e92f813a3ce385239e6a16ad31114253749fe918d7f" }]
+  | .minlength =>
+    [{ attr := .minlength, markup := "minlength", handler := false, elements := [.input, .textarea], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Minimum length of value", digest := "16be6638fef58077ff4c1c646df2aaafd7c303c195aeac2ab2ea130289466f81" }]
+  | .multiple =>
+    [{ attr := .multiple, markup := "multiple", handler := false, elements := [.input, .select], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether to allow multiple values", digest := "ca39224160749180446e32776a24c4c142e88a2c43f6014609aced1dc01306d6" }]
+  | .muted =>
+    [{ attr := .muted, markup := "muted", handler := false, elements := [.audio, .video], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether to mute the media resource by default", digest := "021f77f33b3f65c6fbe388e2d628cc1dadc03292c119e3aaba003d68f2a7744f" }]
+  | .name =>
+    [{ attr := .name, markup := "name", handler := false, elements := [.button, .fieldset, .input, .output, .select, .textarea], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of the element to use for form submission and in the form.elements API form.elements API. -->", digest := "8fdfe437aa885d278e7b0f00f948e0ed27f6fc5444cd15405c1ecd5e66daa21a" },
+     { attr := .name, markup := "name", handler := false, elements := [.details], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of group of mutually-exclusive details elements", digest := "470f2edce2b2e968919ab1b510ed3603fec5cca3f706982f4b0c0d68e4fe026d" },
+     { attr := .name, markup := "name", handler := false, elements := [.form], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of form to use in the document.forms API", digest := "80053ba440466a8be025e7a2289773b428dde92a72f80e3ad68d98c7948679ef" },
+     { attr := .name, markup := "name", handler := false, elements := [.iframe, .object], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of content navigable", digest := "9d1b176df2e2ac7280e5750770a5c72f0df6e70715b3c9e19b71560e3180f932" },
+     { attr := .name, markup := "name", handler := false, elements := [.map], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of image map to reference from the usemap attribute", digest := "21c0b448edfa899176189a512b78de634c2d382bb96a03805d80fa0bf4dc90ac" },
+     { attr := .name, markup := "name", handler := false, elements := [.«meta»], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Metadata name", digest := "d72562f51e0c63625716bba8ad9c42a1e5e4e5cc608ece469518d5e439bee10c" },
+     { attr := .name, markup := "name", handler := false, elements := [.slot], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of shadow tree slot", digest := "f25cdb41a36b430e2165011e99007a6de458eecbe8542a8f56c8e399a1e97432" }]
+  | .nomodule =>
+    [{ attr := .nomodule, markup := "nomodule", handler := false, elements := [.script], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Prevents execution in user agents that support module scripts", digest := "1b3918c244471b074de54cee945d110257a5c09ff22b74c5fbb8242a2112b145" }]
+  | .nonce =>
+    [{ attr := .nonce, markup := "nonce", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Cryptographic nonce used in Content Security Policy checks CSP", digest := "0880e1d8c6b415cec296dfb70ef39ca61318645fa50875a76ee6e398d8af1346" }]
+  | .novalidate =>
+    [{ attr := .novalidate, markup := "novalidate", handler := false, elements := [.form], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Bypass form control validation for form submission", digest := "6d5223ccedc005a42b5534ec06aecdd61196551bfb374330bdc303c75980d362" }]
+  | .«open» =>
+    [{ attr := .«open», markup := "open", handler := false, elements := [.details], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the details are visible", digest := "6b43b958f02c66c2e5742576dfae5545f9b9df7b1db370ef4a4b516f0e3007c9" },
+     { attr := .«open», markup := "open", handler := false, elements := [.dialog], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the dialog box is showing", digest := "94fbaa80d3a5947eb4638810271a156bacff560cd9b180e00a87aa476c1d3d11" }]
+  | .optimum =>
+    [{ attr := .optimum, markup := "optimum", handler := false, elements := [.meter], global := false, kind := .float, keywords := [], allowEmpty := false, description := "Optimum value in gauge", digest := "7c855fbc8292bc3b116da7cc00edb888edfac85ff1bbba103e911435f81f1df8" }]
+  | .pattern =>
+    [{ attr := .pattern, markup := "pattern", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Pattern to be matched by the form control's value", digest := "82d1f547a419ed29d8f17a69f335bfb4c9399e8d9f6712a5e4e7a42ccffc57cb" }]
+  | .ping =>
+    [{ attr := .ping, markup := "ping", handler := false, elements := [.a, .area], global := false, kind := .text, keywords := [], allowEmpty := false, description := "URLs to ping", digest := "c9ac210c8937158afe84df1e7dc0d1085ca4e3d9242fd31a336de8d61e88ce27" }]
+  | .placeholder =>
+    [{ attr := .placeholder, markup := "placeholder", handler := false, elements := [.input, .textarea], global := false, kind := .text, keywords := [], allowEmpty := false, description := "User-visible label to be placed within the form control", digest := "a971e492d5a7919be2a357e8667a35e5a3437bb3e3ccd3985d7d1402cab7f634" }]
+  | .playsinline =>
+    [{ attr := .playsinline, markup := "playsinline", handler := false, elements := [.video], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Encourage the user agent to display video content within the element's playback area", digest := "0eaf4f72c67be0396ee92a1b2df5c2cb7f8ddf29126a7b1cfef90f3804037bfd" }]
+  | .popover =>
+    [{ attr := .popover, markup := "popover", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["auto", "manual", "hint"], allowEmpty := true, description := "Makes the element a popover element", digest := "fe82e6048adcb66aa1669b1e64bf1a2f50fa624d91f0fe54ef814dc448532454" }]
+  | .popovertarget =>
+    [{ attr := .popovertarget, markup := "popovertarget", handler := false, elements := [.button, .input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Targets a popover element to toggle, show, or hide", digest := "d7621a6287c09c77078895f2618549508ed956158abd4a2b003739eb875f8bb0" }]
+  | .popovertargetaction =>
+    [{ attr := .popovertargetaction, markup := "popovertargetaction", handler := false, elements := [.button, .input], global := false, kind := .keywords false, keywords := ["toggle", "show", "hide"], allowEmpty := false, description := "Indicates whether a targeted popover element is to be toggled, shown, or hidden", digest := "39a47c7351c28500c787ce81a1ca65fba19d9ed22ebc5e48d133624229425256" }]
+  | .poster =>
+    [{ attr := .poster, markup := "poster", handler := false, elements := [.video], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Poster frame to show prior to video playback", digest := "0a3ae37f99a9d6e20a30b59781bc72d5d7de367792175741e163e5ade0fc7d92" }]
+  | .preload =>
+    [{ attr := .preload, markup := "preload", handler := false, elements := [.audio, .video], global := false, kind := .keywords false, keywords := ["none", "metadata", "auto"], allowEmpty := true, description := "Hints how much buffering the media resource will likely need", digest := "688f863bf6f0ff8de4383c77b43062956b56703d209ff805970334306508b0d2" }]
+  | .readonly =>
+    [{ attr := .readonly, markup := "readonly", handler := false, elements := [.input, .textarea], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether to allow the value to be edited by the user", digest := "5d0ea25b5507d4f8c0e0e7ec8a928353b82fafde99e82cc62773ca0fc4b7a5cc" },
+     { attr := .readonly, markup := "readonly", handler := false, elements := [], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Affects willValidate, plus any behavior added by the custom element author", digest := "b902b3cf62b4612895c18099aebb6856210878fe1caa9e696cd2e7846e85acb9" }]
+  | .referrerpolicy =>
+    [{ attr := .referrerpolicy, markup := "referrerpolicy", handler := false, elements := [.a, .area, .iframe, .img, .link, .script], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Referrer policy for fetches initiated by the element", digest := "6b132459b15592da018af33385d8fc2fd159c579cd8d6e15ab23cd521e1dd10e" }]
+  | .rel =>
+    [{ attr := .rel, markup := "rel", handler := false, elements := [.a, .area], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Relationship between the location in the document containing the hyperlink and the destination resource", digest := "2323debeaf092a72fafe4cee8add179ea1930d81dd9115ab5563e725cc0e6a2c" },
+     { attr := .rel, markup := "rel", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Relationship between the document containing the hyperlink and the destination resource", digest := "9afab806b350e7fdab868241c0a6be2e144688e868dfdffbd653efc727aa3d3f" }]
+  | .required =>
+    [{ attr := .required, markup := "required", handler := false, elements := [.input, .select, .textarea], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the control is required for form submission", digest := "42f039b0dc0bd2b5bdc9274f487e2056c635f073a7803bd2e0583e4115c4e09c" }]
+  | .reversed =>
+    [{ attr := .reversed, markup := "reversed", handler := false, elements := [.ol], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Number the list backwards", digest := "d6b548030983bfbd045d01afa70911ae4c7db68f3f111fdabd1aeff4dd39c80a" }]
+  | .rows =>
+    [{ attr := .rows, markup := "rows", handler := false, elements := [.textarea], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Number of lines to show", digest := "2f392a2c58dc407d32c9f1be6fb9811ad5ee07bc457c6736b8576319d06fd4cd" }]
+  | .rowspan =>
+    [{ attr := .rowspan, markup := "rowspan", handler := false, elements := [.td, .th], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Number of rows that the cell is to span", digest := "e2813bffcbb0a49dd744e71e87e9f8e5e15c818c83a096ff4d66a541947deecf" }]
+  | .sandbox =>
+    [{ attr := .sandbox, markup := "sandbox", handler := false, elements := [.iframe], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Security rules for nested content", digest := "b3b52b179fe8f423a3328775e9af88c7ceecc4e45cc07eb15152c47ef977606f" }]
+  | .scope =>
+    [{ attr := .scope, markup := "scope", handler := false, elements := [.th], global := false, kind := .keywords false, keywords := ["row", "col", "rowgroup", "colgroup"], allowEmpty := false, description := "Specifies which cells the header cell applies to", digest := "bcf40ae3cfcd4b8d66eb54df4eb4dd65b54d64274953eefe6e3740951418e923" }]
+  | .selected =>
+    [{ attr := .selected, markup := "selected", handler := false, elements := [.option], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Whether the option is selected by default", digest := "007c2fd98c15f1b29f29e2363b3535c3fcafe5ae42aeca44d8199e43a01b4967" }]
+  | .shadowrootclonable =>
+    [{ attr := .shadowrootclonable, markup := "shadowrootclonable", handler := false, elements := [.template], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Sets clonable on a declarative shadow root", digest := "8a657b6c013ec20af56b876cca6e919cc7c16bcfd524b2056b53c29f93eaea3a" }]
+  | .shadowrootcustomelementregistry =>
+    [{ attr := .shadowrootcustomelementregistry, markup := "shadowrootcustomelementregistry", handler := false, elements := [.template], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Enables declarative shadow roots to indicate they will use a custom element registry", digest := "90506a0d24c4f9a59a6619e99cd2516bf62e67679620de5625a6036aa6ae54f3" }]
+  | .shadowrootdelegatesfocus =>
+    [{ attr := .shadowrootdelegatesfocus, markup := "shadowrootdelegatesfocus", handler := false, elements := [.template], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Sets delegates focus on a declarative shadow root", digest := "4775d488c04ad6b80a1c8299175aa32d4d77158c47c02fdf67730771939b0067" }]
+  | .shadowrootmode =>
+    [{ attr := .shadowrootmode, markup := "shadowrootmode", handler := false, elements := [.template], global := false, kind := .keywords false, keywords := ["open", "closed"], allowEmpty := false, description := "Enables streaming declarative shadow roots", digest := "6619fb3efc2618a8d3400ed9dcf13d00e91cd612c6b87c85d9c7af8a19cbd60b" }]
+  | .shadowrootserializable =>
+    [{ attr := .shadowrootserializable, markup := "shadowrootserializable", handler := false, elements := [.template], global := false, kind := .boolean, keywords := [], allowEmpty := false, description := "Sets serializable on a declarative shadow root", digest := "ce0f580bc4d5ae6382075e80e496d5f36673e641cfb2992d56fcdda2bb7ba00e" }]
+  | .shadowrootslotassignment =>
+    [{ attr := .shadowrootslotassignment, markup := "shadowrootslotassignment", handler := false, elements := [.template], global := false, kind := .keywords false, keywords := ["named", "manual"], allowEmpty := false, description := "Sets slot assignment on a declarative shadow root", digest := "4901faf05e1265efafc3eb00c9bc404bb2ae66530b575c118f1a0f6196cf8007" }]
+  | .shape =>
+    [{ attr := .shape, markup := "shape", handler := false, elements := [.area], global := false, kind := .keywords false, keywords := ["circle", "default", "poly", "rect"], allowEmpty := false, description := "The kind of shape to be created in an image map", digest := "31b9a0e5a9352deb08c8ed9e7f9e89157d8dc7a3be1638bd913bae2544701a5a" }]
+  | .size =>
+    [{ attr := .size, markup := "size", handler := false, elements := [.input, .select], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Size of the control", digest := "dd11cbcae9bab661e699467543ad9f24ca0931cb847ed91595e1b125b56bd5f6" }]
+  | .sizes =>
+    [{ attr := .sizes, markup := "sizes", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Sizes of the icons (for rel=\"icon\")", digest := "fa661f255052ad51f68a73c220c8462c4252d5cb78043e1dbfe01e6dd1998b0a" },
+     { attr := .sizes, markup := "sizes", handler := false, elements := [.img, .source], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Image sizes for different page layouts", digest := "255300f16bc6541bb8a34f98f6d2087b02b671255312008aaedd99685391d50c" }]
+  | .slot =>
+    [{ attr := .slot, markup := "slot", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "The element's desired slot", digest := "2bea8b349cc213ba82b2d1fae4f81abbe5824960221d1d166718cf255198e3de" }]
+  | .span =>
+    [{ attr := .span, markup := "span", handler := false, elements := [.col, .colgroup], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Number of columns spanned by the element", digest := "1998a04a356d5c997119a203f321a5f42f170324ff9fbefef3ab0b31543f1c66" }]
+  | .spellcheck =>
+    [{ attr := .spellcheck, markup := "spellcheck", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["true", "false"], allowEmpty := true, description := "Whether the element is to have its spelling and grammar checked", digest := "fc1641ea78e6e4b5437c5204f702121c84c9ed1d58d544a726e7a15bafe8d317" }]
+  | .src =>
+    [{ attr := .src, markup := "src", handler := false, elements := [.audio, .embed, .iframe, .img, .input, .script, .source, .track, .video], global := false, kind := .url, keywords := [], allowEmpty := false, description := "Address of the resource", digest := "f6755cbbc1a0cb78421d255e870379bbc102ea4c00de624436765ca70c0786a2" }]
+  | .srcdoc =>
+    [{ attr := .srcdoc, markup := "srcdoc", handler := false, elements := [.iframe], global := false, kind := .text, keywords := [], allowEmpty := false, description := "A document to render in the iframe", digest := "1f99539ef182fff927d3f664634a5241f58381665475a2e5f925a71d4388f3a5" }]
+  | .srclang =>
+    [{ attr := .srclang, markup := "srclang", handler := false, elements := [.track], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Language of the text track", digest := "39554b0fb639f11ea9d4f427842ef9937ec4a5cfa85033cd3abfce31c33f18f7" }]
+  | .srcset =>
+    [{ attr := .srcset, markup := "srcset", handler := false, elements := [.img, .source], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Images to use in different situations, e.g., high-resolution displays, small monitors, etc.", digest := "7e36e5c1087cc3173ce3d2e56a9b33351aec7f78c5a83250c075608c2ed80871" }]
+  | .start =>
+    [{ attr := .start, markup := "start", handler := false, elements := [.ol], global := false, kind := .integer, keywords := [], allowEmpty := false, description := "Starting value of the list", digest := "44a2a7415c309734689005d52dd78aefc28590017107e89ddd3ac342359fb5aa" }]
+  | .step =>
+    [{ attr := .step, markup := "step", handler := false, elements := [.input], global := false, kind := .float, keywords := [], allowEmpty := false, description := "Granularity to be matched by the form control's value", digest := "41873030e715cab34155481d3c23523d802c697bb8fa48c351810ec43c6e4840" }]
+  | .style =>
+    [{ attr := .style, markup := "style", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Presentational and formatting instructions", digest := "1319aea9870ef7ea10e122d7dff112e1880f5d9afb3fe0ca18ab1cadf5407633" }]
+  | .tabindex =>
+    [{ attr := .tabindex, markup := "tabindex", handler := false, elements := [], global := true, kind := .integer, keywords := [], allowEmpty := false, description := "Whether the element is focusable and sequentially focusable, and the relative order of the element for the purposes of sequential focus navigation", digest := "1e90bebc8f3c45471a061694c5ce35763325bf30a7438b3c01f314e9f4e2e17a" }]
+  | .target =>
+    [{ attr := .target, markup := "target", handler := false, elements := [.a, .area], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Navigable for hyperlink navigation", digest := "da078da06ab69b4823be1ef67c2f530ce753d31b39c1f26d292e0830ac04baa4" },
+     { attr := .target, markup := "target", handler := false, elements := [.base], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Default navigable for hyperlink navigation and form submission", digest := "e8230b337eb25d07244ff245ec9d812ea04fe144cb1e230c855c009c8cf25b8f" },
+     { attr := .target, markup := "target", handler := false, elements := [.form], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Navigable for form submission", digest := "2d1fb89c232ea6b64237732bc63d785b8f6b0744099cb12f1f0c3a2ac1ea5ebc" }]
+  | .title =>
+    [{ attr := .title, markup := "title", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "Advisory information for the element", digest := "84dbad1019a8929c1f8b4da99d3f2d513124c9f6431555bada592c5ea6c9e36e" },
+     { attr := .title, markup := "title", handler := false, elements := [.abbr, .dfn], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Full term or expansion of abbreviation", digest := "ad8f01d9cdb835d2faa6b25eb305cd760122f70fa0eacf2567a81e1108c54baf" },
+     { attr := .title, markup := "title", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Description of pattern (when used with pattern attribute)", digest := "2a4670214f8b38b917adf09e1fb425f5a843413c3166c1c0c229946a11765f92" },
+     { attr := .title, markup := "title", handler := false, elements := [.link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Title of the link", digest := "9998ddd83bdce4f38db92483b107a3039c24d217eefc6cf4c09476f2c367e184" },
+     { attr := .title, markup := "title", handler := false, elements := [.link, .style], global := false, kind := .text, keywords := [], allowEmpty := false, description := "CSS style sheet set name", digest := "673e463212bf794cac2ec200c64d67384de65fedeece9961612433d313fb7e21" }]
+  | .translate =>
+    [{ attr := .translate, markup := "translate", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["yes", "no"], allowEmpty := true, description := "Whether the element is to be translated when the page is localized", digest := "cfc91481ddb0d84c2ebe854898115d9fefb8cf411d6ba3db0e62142bb7beb0af" }]
+  | .«type» =>
+    [{ attr := .«type», markup := "type", handler := false, elements := [.a, .link], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Hint for the type of the referenced resource", digest := "78e799c784f24cc6b457c02c9c0ce5b4898182bc0f403c847e48dbec6499071f" },
+     { attr := .«type», markup := "type", handler := false, elements := [.button], global := false, kind := .keywords false, keywords := ["submit", "reset", "button"], allowEmpty := false, description := "Type of button", digest := "2520f10477ac89800a19ef8136c3eea77fd86909cb96ae97a042863d78bc827c" },
+     { attr := .«type», markup := "type", handler := false, elements := [.embed, .object, .source], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Type of embedded resource", digest := "417b72ff3de26647e123c54d078e9cd39b8c0788808928ac46ed0fd5ef1e366a" },
+     { attr := .«type», markup := "type", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Type of form control", digest := "0def6d88bb4ee415229c772bda51795a26ab6ec04d69e71dcfed60716cedae1a" },
+     { attr := .«type», markup := "type", handler := false, elements := [.ol], global := false, kind := .keywords false, keywords := ["1", "a", "A", "i", "I"], allowEmpty := false, description := "Kind of list marker", digest := "3bc337f8e0e457401ea2c1efc0da51272de3ef7e309a2a84d2d8df1d4311cd0a" },
+     { attr := .«type», markup := "type", handler := false, elements := [.script], global := false, kind := .keywords true, keywords := ["module", "importmap", "speculationrules"], allowEmpty := false, description := "Type of script", digest := "1538c5dad42f318042fb49c5e2e7b411498c1a34447fdccaec0c44adbb82773e" }]
+  | .usemap =>
+    [{ attr := .usemap, markup := "usemap", handler := false, elements := [.img], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Name of image map to use", digest := "c06f11c6a8fe6ed07daf8fbaeda18563107e9185c7d8ca9c985872d3307139cc" }]
+  | .value =>
+    [{ attr := .value, markup := "value", handler := false, elements := [.button, .option], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Value to be used for form submission", digest := "8b323ae16c51d3040526e11626637976f6e3542921d76528e15754dfe82e2483" },
+     { attr := .value, markup := "value", handler := false, elements := [.«data»], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Machine-readable value", digest := "6180563e23a0515104d05bca52e7888d9ac634e1f437044a2969bf6e93555877" },
+     { attr := .value, markup := "value", handler := false, elements := [.input], global := false, kind := .text, keywords := [], allowEmpty := false, description := "Value of the form control", digest := "4e7f48543d4c99d00dbfe0da75fac6626e90f46d9c001bf3254f0ab8742e160b" },
+     { attr := .value, markup := "value", handler := false, elements := [.li], global := false, kind := .integer, keywords := [], allowEmpty := false, description := "Ordinal value of the list item", digest := "8907a93b8db1e911bc8dac48be6014df40497dee07f9b59825a81a88d39e3d5b" },
+     { attr := .value, markup := "value", handler := false, elements := [.meter, .progress], global := false, kind := .float, keywords := [], allowEmpty := false, description := "Current value of the element", digest := "d0455296f4069752b9992e3f7ea383ca495be0d0bb4cf685c85aec262d11259a" }]
+  | .width =>
+    [{ attr := .width, markup := "width", handler := false, elements := [.canvas, .embed, .iframe, .img, .input, .object, .source, .video], global := false, kind := .nonNegInteger, keywords := [], allowEmpty := false, description := "Horizontal dimension", digest := "5ab8d9a0147e1938f5b1e7a4b9fa779760c33db3f52b9b27731fbaa24253a3d9" }]
+  | .wrap =>
+    [{ attr := .wrap, markup := "wrap", handler := false, elements := [.textarea], global := false, kind := .keywords false, keywords := ["soft", "hard"], allowEmpty := false, description := "How the value of the form control is to be wrapped for form submission", digest := "36c34b93b90ddcc3486b71d0e053a2477d783476107ad4450d1bf13822892cfa" }]
+  | .writingsuggestions =>
+    [{ attr := .writingsuggestions, markup := "writingsuggestions", handler := false, elements := [], global := true, kind := .keywords false, keywords := ["true", "false"], allowEmpty := true, description := "Whether the element can offer writing suggestions or not.", digest := "24631212434dac2edff44289af46e7d92b547787ad24616f0380ddece57b97db" }]
+  | .onafterprint =>
+    [{ attr := .onafterprint, markup := "onafterprint", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "afterprint event handler for Window object", digest := "bd936947645b09627dae89198a30beef91a0fb742bf974655345c6b6c0dc15d8" }]
+  | .onauxclick =>
+    [{ attr := .onauxclick, markup := "onauxclick", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "auxclick event handler", digest := "4d429b007766f7fcd64c0ae943bc0ee5f0434a9bd038e3938fce208b5ee890c1" }]
+  | .onbeforeinput =>
+    [{ attr := .onbeforeinput, markup := "onbeforeinput", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "beforeinput event handler", digest := "ebebe39d6364e8db5e05b4c6f906af9fbf5b0cac9823bea645a011d0f3712a9e" }]
+  | .onbeforematch =>
+    [{ attr := .onbeforematch, markup := "onbeforematch", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "beforematch event handler", digest := "87bb5c4c74dd85adb6d6e77e5a62dfb84c3280a8f67f313e6c8c5c8d77e6aaf6" }]
+  | .onbeforeprint =>
+    [{ attr := .onbeforeprint, markup := "onbeforeprint", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "beforeprint event handler for Window object", digest := "56329ac5e8b3030b7323bf80542e2eb072f74e0feb73911ac85ac48eb8afc8f4" }]
+  | .onbeforeunload =>
+    [{ attr := .onbeforeunload, markup := "onbeforeunload", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "beforeunload event handler for Window object", digest := "5c84084cf562a61303cfcc6750ac1fcd092bfbb132774bb872c76143d8b8f6d8" }]
+  | .onbeforetoggle =>
+    [{ attr := .onbeforetoggle, markup := "onbeforetoggle", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "beforetoggle event handler", digest := "08a97dc499c634f79367bcb4c858218293ba52df4138e6cc0d171b1d0a19f491" }]
+  | .onblur =>
+    [{ attr := .onblur, markup := "onblur", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "blur event handler", digest := "d352a29fcab4f901cd714a9751759ea73885bd927537cbeceea11675d9130ae7" }]
+  | .oncancel =>
+    [{ attr := .oncancel, markup := "oncancel", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "cancel event handler", digest := "c329748ca644b5dd5ba346576b33e3c37ca3adc45e640780e6395a0d1770aa3e" }]
+  | .oncanplay =>
+    [{ attr := .oncanplay, markup := "oncanplay", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "canplay event handler", digest := "18a57a0ba4b14b583ea8d120d5e0a2bd0373a5f6ce85fc67dee59f732e8de295" }]
+  | .oncanplaythrough =>
+    [{ attr := .oncanplaythrough, markup := "oncanplaythrough", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "canplaythrough event handler", digest := "96487607ccf60876088ff048ea52e6224fa5df3eda12607c551629f4e4e4e5ee" }]
+  | .onchange =>
+    [{ attr := .onchange, markup := "onchange", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "change event handler", digest := "c9838d73cf5ead16c862f7a62b2484d8af7137b5e37cac7b3d277d5b638c2c39" }]
+  | .onclick =>
+    [{ attr := .onclick, markup := "onclick", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "click event handler", digest := "aa06a8e90deff90304f0fb0c36dac5d73e6fcc0e2f699c1cb4375d26d955cb99" }]
+  | .onclose =>
+    [{ attr := .onclose, markup := "onclose", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "close event handler", digest := "b61f7e46c332ecc8301b7a672006c4ac3502ce839097e87002db8cbd6787cb70" }]
+  | .oncommand =>
+    [{ attr := .oncommand, markup := "oncommand", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "command event handler", digest := "d0673b05572bbf2a438f99d4fabd0344f65dcf22e375477a86fd44a3bb46d7b1" }]
+  | .oncontextlost =>
+    [{ attr := .oncontextlost, markup := "oncontextlost", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "contextlost event handler", digest := "24ae4c17917f3ebb426d9cbe67158c4be9626cf475b7c28d35c4550803dfd928" }]
+  | .oncontextmenu =>
+    [{ attr := .oncontextmenu, markup := "oncontextmenu", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "contextmenu event handler", digest := "cbb02583d5c5d3860c6e719cfa4b2ba9dbe1a4fa95d6b3bdffedd0aae77e13ec" }]
+  | .oncontextrestored =>
+    [{ attr := .oncontextrestored, markup := "oncontextrestored", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "contextrestored event handler", digest := "9d71c7272579079e69af428dcdca21d7bd2d27f3dac2fccfb0aa697bbea27f4e" }]
+  | .oncopy =>
+    [{ attr := .oncopy, markup := "oncopy", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "copy event handler", digest := "8e1a9f3a07e630b7e5c0af732f0e1c140fec70af95959b73081b2011ee2fdbb8" }]
+  | .oncuechange =>
+    [{ attr := .oncuechange, markup := "oncuechange", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "cuechange event handler", digest := "808610db9c80fe733c97a802e3647ccb85d98427ca505ceee6ba48922f46499e" }]
+  | .oncut =>
+    [{ attr := .oncut, markup := "oncut", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "cut event handler", digest := "b373eebe0976c4945ae8d3c087fc24b177ea6780cbec27999255045eae96a860" }]
+  | .ondblclick =>
+    [{ attr := .ondblclick, markup := "ondblclick", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "dblclick event handler", digest := "9f369c23d487d50c82a8c28bac20ae477b3be62dbf52f34ba068cace5449b88e" }]
+  | .ondrag =>
+    [{ attr := .ondrag, markup := "ondrag", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "drag event handler", digest := "c86f021e8bd95c1cda0941e68201fb7ab1a9abeb6b2d49525fdfa9d6b0febb90" }]
+  | .ondragend =>
+    [{ attr := .ondragend, markup := "ondragend", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "dragend event handler", digest := "d9881d5335a28d674801704ea75614822b57ff9ac41202d0fe589ffaa185298f" }]
+  | .ondragenter =>
+    [{ attr := .ondragenter, markup := "ondragenter", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "dragenter event handler", digest := "eddfbfe74851a71f6415969630297654241d585c4c9b65ff39cdc0a6ae4a7e8c" }]
+  | .ondragleave =>
+    [{ attr := .ondragleave, markup := "ondragleave", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "dragleave event handler", digest := "3e0f957e0c14619a90eb2ed792489621425e3035606d0e682d31499bf976049e" }]
+  | .ondragover =>
+    [{ attr := .ondragover, markup := "ondragover", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "dragover event handler", digest := "e8ccac8d0ad7e85ff6f8f5a5e6f484e4aa8cfa3ea982d053127d0ebcbf25056a" }]
+  | .ondragstart =>
+    [{ attr := .ondragstart, markup := "ondragstart", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "dragstart event handler", digest := "172ed43341d44c511884a20f2d5379f40adc5ee6b957049bd58f40ab7e0cc6f5" }]
+  | .ondrop =>
+    [{ attr := .ondrop, markup := "ondrop", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "drop event handler", digest := "c02d8f186b90c810a92bed10325195aa5b4373d57106511a9a75163aca4f4df8" }]
+  | .ondurationchange =>
+    [{ attr := .ondurationchange, markup := "ondurationchange", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "durationchange event handler", digest := "e9dce1c34fe16b6ff3e95f1fa6fbb861f16f27d9be6c0913f81bf755ebefac99" }]
+  | .onemptied =>
+    [{ attr := .onemptied, markup := "onemptied", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "emptied event handler", digest := "d1a36be44883e6854a4a2aba5a6d33db8ef5c9cfc81c42ba53f15cd4c952abd2" }]
+  | .onended =>
+    [{ attr := .onended, markup := "onended", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "ended event handler", digest := "f4e3b82bcebc97c912d26ea76894ddd3b96d044d68539306b19926adcdd9f5ae" }]
+  | .onerror =>
+    [{ attr := .onerror, markup := "onerror", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "error event handler", digest := "9d21004f6bfbc74bb9db59bd5cdd3eae6c5791c5936cc8367170cde3d5b09a00" }]
+  | .onfocus =>
+    [{ attr := .onfocus, markup := "onfocus", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "focus event handler", digest := "21c0388d8046310c069872d62d9a4b67e229df06cd265d0a670f6be4852d4e99" }]
+  | .onformdata =>
+    [{ attr := .onformdata, markup := "onformdata", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "formdata event handler", digest := "941a3c4f60b748407b43f555d653aae6919c94e39c6091f430cd6bd49dd6c51e" }]
+  | .onhashchange =>
+    [{ attr := .onhashchange, markup := "onhashchange", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "hashchange event handler for Window object", digest := "d29c419b0cff2d563689d107bfc7c2cf7a3c6812b99eb3e9e5f180d7fb834de1" }]
+  | .oninput =>
+    [{ attr := .oninput, markup := "oninput", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "input event handler", digest := "6d5d1b3f4f477e90360be926d5f0ea23cdd23fc390ed152f9966cc0222e6e181" }]
+  | .oninvalid =>
+    [{ attr := .oninvalid, markup := "oninvalid", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "invalid event handler", digest := "c6df0ee399d4412f2389ba0b889fbe3d2d0f3760badd1e2f47de4439fa24861a" }]
+  | .onkeydown =>
+    [{ attr := .onkeydown, markup := "onkeydown", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "keydown event handler", digest := "84a3ed889e1533ad45a1dd21bcee7e5f15fdb491acdf7b51056a82d8b03d8279" }]
+  | .onkeypress =>
+    [{ attr := .onkeypress, markup := "onkeypress", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "keypress event handler", digest := "6a4b2079ecb631b312805ce3db0b21aca6a104e07856362ce5c65c78d0c16ae9" }]
+  | .onkeyup =>
+    [{ attr := .onkeyup, markup := "onkeyup", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "keyup event handler", digest := "c70c05f835b109414e0df64ac0286488731956467625a3ef9e03409e26b07597" }]
+  | .onlanguagechange =>
+    [{ attr := .onlanguagechange, markup := "onlanguagechange", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "languagechange event handler for Window object", digest := "961067f061b1adc4e584cc9fe4f4fe0c8624d23b0268705a27317e4986646bd5" }]
+  | .onload =>
+    [{ attr := .onload, markup := "onload", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "load event handler", digest := "b3d0be4f3a27a827d89b319f74c827871e97d5319de77ad123a2ccd01f362264" }]
+  | .onloadeddata =>
+    [{ attr := .onloadeddata, markup := "onloadeddata", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "loadeddata event handler", digest := "3a849f993edbe26e95f27b779b2782202b2fbc4d998fa8bd5685469b3d64cd1c" }]
+  | .onloadedmetadata =>
+    [{ attr := .onloadedmetadata, markup := "onloadedmetadata", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "loadedmetadata event handler", digest := "50147d80b48ecd1a375edbc214af6cc49953f0058ca9506994fca5fe7edf7770" }]
+  | .onloadstart =>
+    [{ attr := .onloadstart, markup := "onloadstart", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "loadstart event handler", digest := "95925a9b4a8c365f3f603d006e74fa6b1e38bea4183689a296f0b3ebf4f3c19a" }]
+  | .onmessage =>
+    [{ attr := .onmessage, markup := "onmessage", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "message event handler for Window object", digest := "3d6fdef28adc3e8b53d01cb7ccd9832f90c7008eaa4b0f23f5bb554e6baf0fc6" }]
+  | .onmessageerror =>
+    [{ attr := .onmessageerror, markup := "onmessageerror", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "messageerror event handler for Window object", digest := "3364919bbda8a0bedfda053b302d776ed48c02c048c9a141a5687980e9065fa0" }]
+  | .onmousedown =>
+    [{ attr := .onmousedown, markup := "onmousedown", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mousedown event handler", digest := "8c3af6117e6ee899aa22a68cf0f5fb902f18367d2c99dc134ff307c61ee2219e" }]
+  | .onmouseenter =>
+    [{ attr := .onmouseenter, markup := "onmouseenter", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mouseenter event handler", digest := "b925a767979b8a7ca063d6d8b489033237f0eccf57ed6d3efb801fb8b15318da" }]
+  | .onmouseleave =>
+    [{ attr := .onmouseleave, markup := "onmouseleave", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mouseleave event handler", digest := "2f9b002679b40ac71c1df042380bf4863e43c3d633178483f20624baebe82348" }]
+  | .onmousemove =>
+    [{ attr := .onmousemove, markup := "onmousemove", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mousemove event handler", digest := "52287b5ecbbbe8352a47d2c5969971e3f574674b7371da9af4d74c7611115057" }]
+  | .onmouseout =>
+    [{ attr := .onmouseout, markup := "onmouseout", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mouseout event handler", digest := "c44afe3d966bd19266e3b766b2338e829bfc25c327fe8b8b6e2d80a6f405bca4" }]
+  | .onmouseover =>
+    [{ attr := .onmouseover, markup := "onmouseover", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mouseover event handler", digest := "cfbb170d3494814f48aaf37447ce8444811a3d9f0eb650e2a020b735c2611f94" }]
+  | .onmouseup =>
+    [{ attr := .onmouseup, markup := "onmouseup", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "mouseup event handler", digest := "9a6ce058ffcb962ff5e6e0a1d7f8cdb2ddc96ddc725c48256df0ad6895bdb564" }]
+  | .onoffline =>
+    [{ attr := .onoffline, markup := "onoffline", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "offline event handler for Window object", digest := "f12ab8079b39073629d0e956db143169ef8593d7037d11fc1c6fdbe0bbcf9dca" }]
+  | .ononline =>
+    [{ attr := .ononline, markup := "ononline", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "online event handler for Window object", digest := "5b8917b989ee18147792120567733ac688eea4edac9ecedf5ba7e9bb1f82eb15" }]
+  | .onpagehide =>
+    [{ attr := .onpagehide, markup := "onpagehide", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "pagehide event handler for Window object", digest := "9abf8e2f5b4da4511436fb5518ff35aed835e4c0c6967314f1467661a4a38f80" }]
+  | .onpagereveal =>
+    [{ attr := .onpagereveal, markup := "onpagereveal", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "pagereveal event handler for Window object", digest := "b0faba1c8c81b9a5d8a2a82be69e37ad976edb1b301d5ec11b7454c2f6cbc819" }]
+  | .onpageshow =>
+    [{ attr := .onpageshow, markup := "onpageshow", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "pageshow event handler for Window object", digest := "174347b49341051b52a3ead1f35823b1a0c806ab9dcf292abcfe81d8b7e2c939" }]
+  | .onpageswap =>
+    [{ attr := .onpageswap, markup := "onpageswap", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "pageswap event handler for Window object", digest := "95e5978128f6bcca65a275091668a91f58707d605f06e6196d929aa0b16486b0" }]
+  | .onpaste =>
+    [{ attr := .onpaste, markup := "onpaste", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "paste event handler", digest := "748286f91578cefee04728e5451f243874a7f643a45a1725235dd60745465991" }]
+  | .onpause =>
+    [{ attr := .onpause, markup := "onpause", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "pause event handler", digest := "e67900a0dbc6970bb04fde79e31dae2d0d3667889543782d38bfbec11ba53794" }]
+  | .onplay =>
+    [{ attr := .onplay, markup := "onplay", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "play event handler", digest := "ba98deca2b5bc3fa1441b816456a06803811f31fabe4dd0e2f1b824b14b573d6" }]
+  | .onplaying =>
+    [{ attr := .onplaying, markup := "onplaying", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "playing event handler", digest := "a5ccbc3152475940aa454e1be2284007f20d4efbf9ed63d948e2de3eb23f159f" }]
+  | .onpopstate =>
+    [{ attr := .onpopstate, markup := "onpopstate", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "popstate event handler for Window object", digest := "cd74c187d266d4a274603d273f5a8a223dbaa51982c77f8f81945cd4459b69a8" }]
+  | .onprogress =>
+    [{ attr := .onprogress, markup := "onprogress", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "progress event handler", digest := "96b920c196e7eb095cc1fe9a18b882b14eb063ae6c78e5162fa04f5418f43a13" }]
+  | .onratechange =>
+    [{ attr := .onratechange, markup := "onratechange", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "ratechange event handler", digest := "10ff5b7e9f961c1e3b90b02b244524d6ccbd422b4c0d21d1468e553eecd83110" }]
+  | .onreset =>
+    [{ attr := .onreset, markup := "onreset", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "reset event handler", digest := "e6c9365ba11caf86c2a25ca744f191c5f4ed490e9736438733a389b9d9ba27a8" }]
+  | .onresize =>
+    [{ attr := .onresize, markup := "onresize", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "resize event handler", digest := "f5468399710b9fd129bd7cfa78099d16e632dde3ac42f053baa8ed9a5faf7f2f" }]
+  | .onrejectionhandled =>
+    [{ attr := .onrejectionhandled, markup := "onrejectionhandled", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "rejectionhandled event handler for Window object", digest := "84b66a6c1780632f59a9a2c4a3ab5c600ef0e17a2a5b91c0ddea6927cbfc772f" }]
+  | .onscroll =>
+    [{ attr := .onscroll, markup := "onscroll", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "scroll event handler", digest := "bfb52bf3b1de7389f385b0e791169ce57c73dd0fb0a95eccd14f968d2ee40b3e" }]
+  | .onscrollend =>
+    [{ attr := .onscrollend, markup := "onscrollend", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "scrollend event handler", digest := "4681f732dae111834cef10a1332c4529c0eb043d754493c5f35ac3f4073d2de7" }]
+  | .onsecuritypolicyviolation =>
+    [{ attr := .onsecuritypolicyviolation, markup := "onsecuritypolicyviolation", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "securitypolicyviolation event handler", digest := "cb910188220d9438cd5a2d1728a0ec5a3ec4aa4b1af59b427fd31491a7e1cc22" }]
+  | .onseeked =>
+    [{ attr := .onseeked, markup := "onseeked", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "seeked event handler", digest := "709eeea6e4357fc9a7dc9d6ecd4e7b539bb44b2f8bc76654b2b3a658095ae5b3" }]
+  | .onseeking =>
+    [{ attr := .onseeking, markup := "onseeking", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "seeking event handler", digest := "cdb01c8359f46d193f7d6e14e3c5134ddabbc696c508b87d731aab9e83e673b2" }]
+  | .onselect =>
+    [{ attr := .onselect, markup := "onselect", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "select event handler", digest := "ce0ca10da0fc004f93c28c3fb3ccb2a69cfe552109de50d95a73a23a2f49f8ee" }]
+  | .onslotchange =>
+    [{ attr := .onslotchange, markup := "onslotchange", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "slotchange event handler", digest := "ff665ca60f52fd2e7e644830bdedb6113756aee30b1faa6d78a2549caf849090" }]
+  | .onstalled =>
+    [{ attr := .onstalled, markup := "onstalled", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "stalled event handler", digest := "0d14dd1cf2173ae73b492475f4e69afeb95239cc2d942f898b0978c349b6cdf3" }]
+  | .onstorage =>
+    [{ attr := .onstorage, markup := "onstorage", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "storage event handler for Window object", digest := "2f58444cc1e007a0b71ef768ff374b222be55a5c618e179e4970d4f15f85bb7e" }]
+  | .onsubmit =>
+    [{ attr := .onsubmit, markup := "onsubmit", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "submit event handler", digest := "669a4986a6d26235b3ed58ab269f5b20f10cb1deea69bf255715b8ec25ca5bab" }]
+  | .onsuspend =>
+    [{ attr := .onsuspend, markup := "onsuspend", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "suspend event handler", digest := "8ed6984c306160a0362653ad8eee31c29a7e68762b4ecd8b6f424c758302d339" }]
+  | .ontimeupdate =>
+    [{ attr := .ontimeupdate, markup := "ontimeupdate", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "timeupdate event handler", digest := "c46b3018f90883fbb016e2ff91878ce8d412fde5a28801f62c07150a603ef3f9" }]
+  | .ontoggle =>
+    [{ attr := .ontoggle, markup := "ontoggle", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "toggle event handler", digest := "fb6ee9dbfec2b789881253ab05277c2b1a0a8279a7a2c6e5fb8f10b9963412fc" }]
+  | .onunhandledrejection =>
+    [{ attr := .onunhandledrejection, markup := "onunhandledrejection", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "unhandledrejection event handler for Window object", digest := "8fb9ecf36ad0597e92c8790981bf16073976ff5fce47453a4d736af7e94556ae" }]
+  | .onunload =>
+    [{ attr := .onunload, markup := "onunload", handler := true, elements := [.body], global := false, kind := .text, keywords := [], allowEmpty := false, description := "unload event handler for Window object", digest := "5e41ebafe07698aee61a178aa2df65e300120f1d79e0449a7efefd0734aaabe4" }]
+  | .onvolumechange =>
+    [{ attr := .onvolumechange, markup := "onvolumechange", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "volumechange event handler", digest := "98395997a8a676a5ea312159b3e1764f5a3c0ab0404d5e60c0152ed2fa5b45d0" }]
+  | .onwaiting =>
+    [{ attr := .onwaiting, markup := "onwaiting", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "waiting event handler", digest := "330a6de2676aac4945d1746744c4e492063ea450d2e4c7fec3d95957b3bf7234" }]
+  | .onwheel =>
+    [{ attr := .onwheel, markup := "onwheel", handler := true, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "wheel event handler", digest := "0ec7404b91b764a85fa9fde61fbc77f856d27dcf8e2972b29c5dad496b8d8743" }]
+  | .data_ =>
+    [{ attr := .data_, markup := "data-", handler := false, elements := [], global := true, kind := .prefix, keywords := [], allowEmpty := false, description := "custom data attribute prefix (`data-*`), on every element", digest := "" }]
+  | .role =>
+    [{ attr := .role, markup := "role", handler := false, elements := [], global := true, kind := .text, keywords := [], allowEmpty := false, description := "ARIA role, defined in ARIA in HTML, on every element", digest := "" }]
+  | .aria_ =>
+    [{ attr := .aria_, markup := "aria-", handler := false, elements := [], global := true, kind := .prefix, keywords := [], allowEmpty := false, description := "ARIA state and property prefix (`aria-*`), on every element", digest := "" }]
 
 end Whatwg.Html.Schema

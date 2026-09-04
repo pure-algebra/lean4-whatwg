@@ -22,6 +22,11 @@ inside `Ctx.child`. A root names its context (`Element .html Ctx.document`).
 
 The proofs are propositions, erased by the compiler; the value that
 remains is the attributes and the raw children.
+
+A note on lists: core's list literal switches to a `let`-based desugaring at
+33 elements, and the combinator surface then costs seconds where 32 children
+cost milliseconds (performance review §2.1). A list of more than 32 children
+is written as chunks joined by `++`; `html!` is not affected.
 -/
 
 namespace Whatwg.Html

@@ -6,8 +6,8 @@ ruling HP-13): "If the element has an href attribute: Interactive content.",
 "If the type attribute is not in the Hidden state: Interactive content.".
 `Condition.holds` decides one over an element's raw attributes; a condition
 this module does not read (a children-based one, "allowed in the body") is
-`always`, the conservative reading. Attribute names and the keyword value
-are compared ASCII case-insensitively, as the standard compares them.
+`always`, the conservative reading. The keyword value is compared ASCII
+case-insensitively, as the standard compares it; attribute names exactly.
 -/
 
 namespace Whatwg.Html.Schema
@@ -27,9 +27,11 @@ namespace Condition
 /-- ASCII lower case, character by character. -/
 def lower (s : String) : List Char := s.toList.map Char.toLower
 
-/-- The value of an attribute by name, case-insensitively. -/
+/-- The value of an attribute by name. Names are compared exactly: every
+producer in this library spells them in lower case, and folding both sides
+cost more kernel time than the condition itself (performance review §4.1). -/
 def lookup (attrs : List (String × String)) (name : String) : Option String :=
-  (attrs.find? fun p => lower p.1 == lower name).map (·.2)
+  (attrs.find? fun p => p.1 == name).map (·.2)
 
 /-- The condition holds of the attributes. -/
 def holds (c : Condition) (attrs : List (String × String)) : Bool :=
