@@ -6,7 +6,8 @@ import Whatwg.Html.Node.Typed
 
 The `admits` tactic: the auto-parameter tactic of every combinator in
 `Whatwg.Html.Node.Combinators`, discharging the two obligations of the typed
-tree, `ctx.admits t = true` and `attrsOk t (rawAttrs attrs) = true`, without
+tree, `ctx.admits t = true`, `attrsOk t (rawAttrs attrs) = true` and
+`seqOk (ctx.child t) t children = true`, without
 asking the elaborator to reduce the obligation itself.
 
 The obligations are closed terms over a finite schema whose functions are
@@ -99,6 +100,25 @@ def reflTrue : Expr :=
 def describe (t : Tag) : String :=
   if t == .pcdata then "text" else "<" ++ t.markupText ++ ">"
 
+/-- The tag a raw-node expression counts as in a sequence: `none` for a
+comment or an unreadable node, `some none`... rather: `some (some t)` for
+a tag, `some none` for a comment, `none` when the node cannot be read. -/
+def rawTag? (e : Expr) : MetaM (Option (Option Tag)) := do
+  let e ← whnf e
+  if e.isAppOfArity ``Whatwg.Html.RawNode.element 3 then
+    let some n ← str? (e.getArg! 0) | return none
+    return some (Tag.ofName? n)
+  if e.isAppOfArity ``Whatwg.Html.RawNode.text 1 || e.isAppOfArity ``Whatwg.Html.RawNode.entity 1 then
+    return some (some .pcdata)
+  if e.isAppOfArity ``Whatwg.Html.RawNode.comment 1 then return some none
+  return none
+
+/-- The tags of a closed child list, comments dropped, as `childTags` computes
+them. -/
+def childTags? (e : Expr) : MetaM (Option (List Tag)) := do
+  let some xs ← list? rawTag? 4096 e | return none
+  return some (xs.filterMap id)
+
 /-- The message for a rejected admission. -/
 def admitMessage (c : Ctx) (t : Tag) : String :=
   describe t ++ " is not admitted here: the context is " ++ c.describe
@@ -117,6 +137,21 @@ syntax (name := admitsTactic) "admits" : tactic
           goal.assign reflTrue
           replaceMainGoal []
           return
+    if lhs.isAppOfArity ``Whatwg.Html.Content.seqOk 3 then
+      if let some t ← tag? (lhs.getArg! 1) then
+        if t.seq?.isNone then
+          goal.assign reflTrue
+          replaceMainGoal []
+          return
+        if let some c ← ctx? (lhs.getArg! 0) then
+          if let some ts ← childTags? (lhs.getArg! 2) then
+            -- rebuild a raw list with only the tags, which is all `seqOk` reads
+            let raws := ts.map fun tg => if tg == .pcdata then Whatwg.Html.RawNode.text "" else
+              Whatwg.Html.RawNode.element tg.markupText [] []
+            if let some problem := Whatwg.Html.Content.seqProblem? c t raws then throwError problem
+            goal.assign reflTrue
+            replaceMainGoal []
+            return
     if lhs.isAppOfArity ``Whatwg.Html.Content.attrsOk 2 then
       if let some t ← tag? (lhs.getArg! 0) then
         if let some attrs ← rawAttrs? (lhs.getArg! 1) then

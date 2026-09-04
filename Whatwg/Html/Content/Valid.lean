@@ -1,5 +1,5 @@
 import Whatwg.Html.Content.Admission
-import Whatwg.Html.Node.Raw
+import Whatwg.Html.Content.Sequence
 
 /-!
 # Whatwg.Html.Content.Valid
@@ -14,7 +14,8 @@ by, and the definition the print theorems apply to.
 An element is valid at a position when its name is an element of the
 standard, the position admits it, its attributes are admitted on it with
 values of the kinds the attribute index gives them and no name repeated,
-and every child is valid at `ctx.child t`. Text and entities are valid where
+its children follow its ordered model when it has one (`seqOk`), and every
+child is valid at `ctx.child t`. Text and entities are valid where
 the base names text; a comment is valid wherever the base is not `nothing`
 (a void element, or an element whose content is nothing, holds no comment
 in the HTML syntax). An element whose name is not the standard's is never
@@ -122,7 +123,7 @@ mutual
 def validIn (ctx : Ctx) : RawNode → Bool
   | .element name attrs children =>
     match Tag.ofName? name with
-    | some t => ctx.admits t && attrsOk t attrs && validAll (ctx.child t) children
+    | some t => ctx.admits t && attrsOk t attrs && seqOk (ctx.child t) t children && validAll (ctx.child t) children
     | none => false
   | .text _ => ctx.admits .pcdata
   | .entity _ => ctx.admits .pcdata
@@ -154,9 +155,10 @@ theorem validIn_entity (ctx : Ctx) (s : String) (h : ctx.admits .pcdata = true) 
 
 theorem validIn_element (ctx : Ctx) (t : Tag) (m : String) (hm : t.markupName = some m)
     (attrs : List (String × String)) (children : List RawNode)
-    (h : ctx.admits t = true) (ha : attrsOk t attrs = true) (hc : validAll (ctx.child t) children = true) :
+    (h : ctx.admits t = true) (ha : attrsOk t attrs = true) (hs : seqOk (ctx.child t) t children = true)
+    (hc : validAll (ctx.child t) children = true) :
     validIn ctx (.element m attrs children) = true := by
-  simp [validIn, ofName?_markupName t m hm, h, ha, hc]
+  simp [validIn, ofName?_markupName t m hm, h, ha, hs, hc]
 
 /-- A void element has no valid children at all. -/
 theorem validAll_void_nil (c : Ctx) (t : Tag) (hv : t.isVoid = true) (children : List RawNode)

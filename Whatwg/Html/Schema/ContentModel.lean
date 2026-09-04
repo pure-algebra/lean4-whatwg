@@ -1,6 +1,7 @@
 import Whatwg.Html.Schema.Tags
 import Whatwg.Html.Schema.Families
 import Whatwg.Html.Schema.Attributes
+import Whatwg.Html.Schema.Sequence
 
 /-!
 # Whatwg.Html.Schema.ContentModel
@@ -387,6 +388,25 @@ def Tag.elementIndex? : Tag → Option Nat
 /-- The element of a tag. -/
 def Tag.element? (t : Tag) : Option Element :=
   t.elementIndex?.bind (elements[·]?)
+
+/-- The ordered model of a tag, when its reading is a sequence: the
+sequence and whether script-supporting elements may be intermixed
+(`Whatwg.Html.Schema.Readings.sequences`). -/
+def Tag.seq? : Tag → Option (Seq × Bool)
+  | .html => some ((.seq (.tag .head) (.tag .body)), false)
+  | .head => some ((.seq (.star (.base [.title])) (.seq (.tag .title) (.star (.base [.title])))), false)
+  | .hgroup => some ((.seq (.star (.tag .p)) (.seq (.alt (.tag .h1) (.alt (.tag .h2) (.alt (.tag .h3) (.alt (.tag .h4) (.alt (.tag .h5) (.tag .h6)))))) (.star (.tag .p)))), true)
+  | .dl => some ((.alt (.star (.seq (.plus (.tag .dt)) (.plus (.tag .dd)))) (.plus (.tag .div))), true)
+  | .figure => some ((.alt (.seq (.tag .figcaption) (.star (.base [.figcaption]))) (.alt (.seq (.star (.base [.figcaption])) (.tag .figcaption)) (.star (.base [.figcaption])))), false)
+  | .picture => some ((.seq (.star (.tag .source)) (.tag .img)), true)
+  | .table => some ((.seq (.opt (.tag .caption)) (.seq (.star (.tag .colgroup)) (.seq (.opt (.tag .thead)) (.seq (.alt (.star (.tag .tbody)) (.plus (.tag .tr))) (.opt (.tag .tfoot)))))), true)
+  | .fieldset => some ((.seq (.opt (.tag .legend)) (.star (.base [.legend]))), false)
+  | .details => some ((.seq (.tag .summary) (.star (.base [.summary]))), false)
+  | .select => some ((.seq (.opt (.tag .button)) (.star (.alt (.tag .option) (.alt (.tag .optgroup) (.alt (.tag .hr) (.tag .noscript)))))), true)
+  | .optgroup => some ((.seq (.opt (.tag .legend)) (.star (.alt (.tag .option) (.alt (.tag .noscript) (.tag .div))))), true)
+  | .audio => some ((.seq (.star (.tag .source)) (.seq (.star (.tag .track)) (.star (.base [.source, .track])))), false)
+  | .video => some ((.seq (.star (.tag .source)) (.seq (.star (.tag .track)) (.star (.base [.source, .track])))), false)
+  | _ => none
 
 /-- The attribute set of a tag, as one flat match; `none` for text. -/
 def Tag.attribs? : Tag → Option AttrSet

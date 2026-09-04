@@ -18,15 +18,15 @@ open Whatwg.Html.Content (Ctx validAll attrsOk)
 
 /-- An element from its raw children and the proofs. -/
 def Element.ofRaw {t : Tag} {ctx : Ctx} (attrs : List (Attr × String)) (children : List RawNode)
-    (ha : attrsOk t (rawAttrs attrs) = true) (hc : validAll (ctx.child t) children = true)
-    (ht : t.markupName.isSome = true) : Element t ctx :=
-  ⟨attrs, children, ha, hc, ht⟩
+    (ha : attrsOk t (rawAttrs attrs) = true) (hs : Content.seqOk (ctx.child t) t children = true)
+    (hc : validAll (ctx.child t) children = true) (ht : t.markupName.isSome = true) : Element t ctx :=
+  ⟨attrs, children, ha, hs, hc, ht⟩
 
 /-- The erasure of `Element.ofRaw` is the raw element it was built from. -/
 theorem Element.ofRaw_toRaw {t : Tag} {ctx : Ctx} (attrs : List (Attr × String)) (children : List RawNode)
-    (ha : attrsOk t (rawAttrs attrs) = true) (hc : validAll (ctx.child t) children = true)
-    (ht : t.markupName.isSome = true) :
-    (Element.ofRaw attrs children ha hc ht).toRaw = .element t.markupText (rawAttrs attrs) children :=
+    (ha : attrsOk t (rawAttrs attrs) = true) (hs : Content.seqOk (ctx.child t) t children = true)
+    (hc : validAll (ctx.child t) children = true) (ht : t.markupName.isSome = true) :
+    (Element.ofRaw attrs children ha hs hc ht).toRaw = .element t.markupText (rawAttrs attrs) children :=
   rfl
 
 end Whatwg.Html

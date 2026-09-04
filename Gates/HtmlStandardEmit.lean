@@ -340,6 +340,12 @@ def build (root : System.FilePath) : IO Schema := do
     let (bs, nm) := addBase bases m.base m.plusTags m.plusCats
     bases := bs
     elements := elements.push { row := r, model := m, transparent := isTransparent r.name, reading, baseName := nm }
+  for q in Whatwg.Html.Schema.Readings.sequences do
+    match rows.find? (·.name == q.name) with
+    | some r =>
+      unless q.digest == r.digest do
+        throw <| IO.userError s!"html standard emit: the sequence reading of `{q.name}` is pinned to digest {q.digest} but the block now has {r.digest}; re-examine the reading"
+    | none => throw <| IO.userError s!"html standard emit: the sequence reading of `{q.name}` names no element"
   for (_, _, k) in Whatwg.Html.Schema.Readings.baseOverrides do
     let (bs, _) := addBase bases k [] []
     bases := bs
@@ -476,6 +482,17 @@ def emitAttributes (s : Schema) : String := Id.run do
   out := out ++ "end Whatwg.Html.Schema\n"
   return out
 
+/-- A reading's sequence as Lean source over `Tag`. -/
+def seqExpr : Whatwg.Html.Schema.Readings.Seq → String
+  | .eps => ".eps"
+  | .tag n => s!"(.tag .{ctorName n})"
+  | .base ex => "(.base [" ++ ", ".intercalate (ex.map fun n => "." ++ ctorName n) ++ "])"
+  | .seq a b => s!"(.seq {seqExpr a} {seqExpr b})"
+  | .alt a b => s!"(.alt {seqExpr a} {seqExpr b})"
+  | .star a => s!"(.star {seqExpr a})"
+  | .opt a => s!"(.opt {seqExpr a})"
+  | .plus a => s!"(.plus {seqExpr a})"
+
 def emitContentModel (s : Schema) : String :=
   let rows := s.elements.map fun e =>
     "   { name := \"" ++ e.row.name ++ "\", tag := ." ++ ctorName e.row.name ++ ", kind := ." ++
@@ -484,7 +501,7 @@ def emitContentModel (s : Schema) : String :=
       ", attribs := ." ++ ctorName (e.row.name ++ "_attrib") ++ ",\n     digest := \"" ++ e.row.digest ++ "\", reading := " ++ e.reading.quote ++ " }"
   header "Whatwg.Html.Schema.ContentModel"
     "One row per element of the standard: its tag, whether it takes children,\nwhether it is transparent, its own base (`Tag.ownBase`; its exclusions are\n`Tag.ownExcl`), its attribute set, the span digest of its definition, and\nthe reading its sentence was given: `sentence` when read mechanically,\n`authored: ...` otherwise."
-    ["Whatwg.Html.Schema.Tags", "Whatwg.Html.Schema.Families", "Whatwg.Html.Schema.Attributes"] ++
+    ["Whatwg.Html.Schema.Tags", "Whatwg.Html.Schema.Families", "Whatwg.Html.Schema.Attributes", "Whatwg.Html.Schema.Sequence"] ++
   "namespace Whatwg.Html.Schema\n\n" ++
   "/-- Whether an element takes children. -/\ninductive ElementKind where\n  | star | nullary\n  deriving DecidableEq, Repr, Inhabited\n\n" ++
   "/-- One element of the standard. -/\nstructure Element where\n  name : String\n  tag : Tag\n  kind : ElementKind\n  transparent : Bool\n  base : Base\n  attribs : AttrSet\n  digest : String\n  reading : String\n  deriving Repr, Inhabited\n\n" ++
@@ -492,6 +509,9 @@ def emitContentModel (s : Schema) : String :=
   "/-- The position in `elements` of a tag; `none` for text. -/\ndef Tag.elementIndex? : Tag → Option Nat\n" ++
   "\n".intercalate (s.elements.zipIdx.map fun (e, i) => s!"  | .{ctorName e.row.name} => some {i}") ++ "\n  | _ => none\n\n" ++
   "/-- The element of a tag. -/\ndef Tag.element? (t : Tag) : Option Element :=\n  t.elementIndex?.bind (elements[·]?)\n\n" ++
+  "/-- The ordered model of a tag, when its reading is a sequence: the\nsequence and whether script-supporting elements may be intermixed\n(`Whatwg.Html.Schema.Readings.sequences`). -/\ndef Tag.seq? : Tag → Option (Seq × Bool)\n" ++
+  "\n".intercalate (Whatwg.Html.Schema.Readings.sequences.map fun q =>
+    s!"  | .{ctorName q.name} => some ({seqExpr q.seq}, {q.interleave})") ++ "\n  | _ => none\n\n" ++
   "/-- The attribute set of a tag, as one flat match; `none` for text. -/\ndef Tag.attribs? : Tag → Option AttrSet\n" ++
   "\n".intercalate (s.elements.map fun e => s!"  | .{ctorName e.row.name} => some .{ctorName (e.row.name ++ "_attrib")}") ++ "\n  | _ => none\n\n" ++
   "end Whatwg.Html.Schema\n"
@@ -506,13 +526,14 @@ def emitCombinators (s : Schema) : String := Id.run do
     let n := ctorName e.row.name
     let tag := "." ++ n
     let nullary := s.voidTags.contains e.row.name || e.model.base == .nothing
-    let attrs := s!"    (attrs : List (Attr × String) := [])\n    (_ha : Content.attrsOk {tag} (rawAttrs attrs) = true := by admits) :\n"
+    let attrs := s!"    (attrs : List (Attr × String) := [])\n    (_ha : Content.attrsOk {tag} (rawAttrs attrs) = true := by admits)"
     let doc := s!"/-- `{e.row.name}`: {e.reading}. -/\n"
     if nullary then
-      out := out ++ doc ++ s!"def {n} " ++ "{ctx : Ctx}\n" ++ attrs ++ s!"    Element {tag} ctx :=\n  Element.ofChildren [] attrs _ha\n\n"
+      out := out ++ doc ++ s!"def {n} " ++ "{ctx : Ctx}\n" ++ attrs ++ s!" :\n    Element {tag} ctx :=\n  Element.ofChildren [] attrs _ha rfl\n\n"
     else
       out := out ++ doc ++ s!"def {n} " ++ "{ctx : Ctx} (children : List (Child (ctx.child " ++ tag ++ ")) := [])\n" ++ attrs ++
-        s!"    Element {tag} ctx :=\n  Element.ofChildren children attrs _ha\n\n"
+        s!"\n    (_hs : Content.seqOk (ctx.child {tag}) {tag} (children.map Child.raw) = true := by admits) :\n" ++
+        s!"    Element {tag} ctx :=\n  Element.ofChildren children attrs _ha _hs\n\n"
   out := out ++ "end Whatwg.Html.E\n\nnamespace Whatwg.Html.A\n\nopen Whatwg.Html.Schema (Attr)\n\n"
   let names := attrNames s.attrs
   for n in names do

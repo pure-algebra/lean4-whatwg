@@ -6,9 +6,9 @@ import Whatwg.Html.Content.Valid
 The typed tree, as a proven-sound front end over the checker of
 `Whatwg.Html.Content.Valid` (ruling HP-13). An `Element t ctx` is an element
 of tag `t` placed in the context `ctx`, carrying its attributes, its
-already-erased children, and two proofs: that its attributes are admitted
-on `t` with conforming values, and that every child is valid at
-`ctx.child t`. A `Child ctx` is a raw node with the proof that it is valid
+already-erased children, and three proofs: that its attributes are admitted
+on `t` with conforming values, that its children follow its ordered model
+when it has one, and that every child is valid at `ctx.child t`. A `Child ctx` is a raw node with the proof that it is valid
 at `ctx`. Placing an element in a child position (`Child.of`) needs only
 the admission of its tag, and yields the validity of its erasure:
 `Element.valid` is the soundness theorem, and it is by construction.
@@ -43,6 +43,7 @@ structure Element (t : Tag) (ctx : Ctx) where
   attrs : List (Attr × String)
   children : List RawNode
   hattrs : attrsOk t (rawAttrs attrs) = true
+  hseq : Content.seqOk (ctx.child t) t children = true
   hchildren : validAll (ctx.child t) children = true
   htag : t.markupName.isSome = true
 
@@ -60,7 +61,7 @@ theorem Element.valid {t : Tag} {ctx : Ctx} (e : Element t ctx) (h : ctx.admits 
     | some m => exact ⟨m, rfl⟩
   have hmt : t.markupText = m := by simp [Schema.Tag.markupText, hm]
   rw [Element.toRaw, hmt]
-  exact Content.validIn_element ctx t m hm _ _ h e.hattrs e.hchildren
+  exact Content.validIn_element ctx t m hm _ _ h e.hattrs e.hseq e.hchildren
 
 /-- Every child of a list of children is valid, so the list is. -/
 theorem validAll_children {ctx : Ctx} : ∀ cs : List (Child ctx), validAll ctx (cs.map Child.raw) = true
@@ -71,8 +72,9 @@ theorem validAll_children {ctx : Ctx} : ∀ cs : List (Child ctx), validAll ctx 
 (`htag`), which every combinator discharges once at its definition. -/
 def Element.ofChildren {t : Tag} {ctx : Ctx} (cs : List (Child (ctx.child t)))
     (attrs : List (Attr × String)) (ha : attrsOk t (rawAttrs attrs) = true)
+    (hs : Content.seqOk (ctx.child t) t (cs.map Child.raw) = true)
     (ht : t.markupName.isSome = true := by decide) : Element t ctx :=
-  ⟨attrs, cs.map Child.raw, ha, validAll_children cs, ht⟩
+  ⟨attrs, cs.map Child.raw, ha, hs, validAll_children cs, ht⟩
 
 /-- Place an element in a child position. -/
 def Child.of {t : Tag} {ctx : Ctx} (e : Element t ctx) (h : ctx.admits t = true := by decide) : Child ctx :=

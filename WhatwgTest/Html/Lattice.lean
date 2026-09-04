@@ -44,6 +44,15 @@ example : (Ctx.child Ctx.metadata .noscript).base = .only_link_style_meta_strict
 -- under `decide`).
 #guard Ctx.describe (Ctx.child Ctx.phrasing .a) == "phrasing, excluding interactive content, a"
 
+/-! ## Sequences -/
+
+example : Seq.accepts Bases.flow (.seq (.tag .head) (.tag .body)) [.head, .body] = true := by decide
+example : Seq.accepts Bases.flow (.seq (.tag .head) (.tag .body)) [.body, .head] = false := by decide
+example : seqOk (Ctx.child Ctx.document .html) .html [.element "head" [] [], .element "body" [] []] = true := by decide +kernel
+example : seqOk (Ctx.child Ctx.flow .table) .table [.element "caption" [] [], .element "tr" [] [], .element "script" [] []] = true := by decide +kernel
+example : seqOk (Ctx.child Ctx.flow .table) .table [.element "tfoot" [] [], .element "tr" [] []] = false := by decide +kernel
+example : seqOk (Ctx.child Ctx.flow .div) .div [.element "p" [] []] = true := by decide
+
 /-! ## The checker -/
 
 example : validIn Ctx.flow (.element "p" [] [.text "x", .element "em" [] [.text "y"]]) = true := by decide +kernel

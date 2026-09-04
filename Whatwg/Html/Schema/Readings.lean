@@ -142,6 +142,68 @@ def readings : List Reading :=
    { name := "map", digest := "ce48cdbf08102b1d3a8a0fef92a8c61dcd574406f27e7755c6180b64830cb165", model := { base := .flow, plusTags := ["area"] }, note := "transparent; area is admitted under a map; own set in flow context" }]
 
 
+/-! ## Sequences: the ordered models -/
+
+/-- A regular expression over child tags. `base except` is one child the
+element's base admits, other than the named tags; text counts as the tag
+`pcdata`. -/
+inductive Seq where
+  | eps
+  | tag (name : String)
+  | base (except : List String)
+  | seq (a b : Seq)
+  | alt (a b : Seq)
+  | star (a : Seq)
+  | opt (a : Seq)
+  | plus (a : Seq)
+  deriving BEq, Repr, Inhabited
+
+/-- An ordered reading of a sentence, pinned to its block digest: the
+sequence the children must follow, and whether the script-supporting
+elements may be intermixed anywhere. -/
+structure Sequence where
+  name : String
+  digest : String
+  seq : Seq
+  interleave : Bool
+  note : String
+  deriving Repr, Inhabited
+
+open _root_.Whatwg.Html.Schema.Readings.Seq in
+/-- The ordered models, read as sequences over the child tags. Where a
+sentence says "optionally intermixed with script-supporting elements", the
+sequence is matched with those elements removed. -/
+def sequences : List Sequence :=
+  [{ name := "html", digest := "d750901ea4cfb34e89bd18c4329ef5ca1a68a631913a4a507035aa1120fa9d70",
+     seq := seq (tag "head") (tag "body"), interleave := false,
+     note := "\"A head element followed by a body element.\"" },
+   { name := "head", digest := "faa39dd2013b03e002218eb818f5e348249adb7d2229a5cab975f20618222a6a",
+     seq := seq (star (base ["title"])) (seq (tag "title") (star (base ["title"]))), interleave := false,
+     note := "metadata content with exactly one title; the at-most-one base bound is not enforced, and the iframe srcdoc case (no title) is not read" },
+   { name := "hgroup", digest := "7aa278b8f2ea0c9db066537a70b1696bf73217f0f5065d509bcca35cb958716d",
+     seq := seq (star (tag "p")) (seq (alt (tag "h1") (alt (tag "h2") (alt (tag "h3") (alt (tag "h4") (alt (tag "h5") (tag "h6")))))) (star (tag "p"))),
+     interleave := true, note := "\"Zero or more p elements, followed by one h1..h6 element, followed by zero or more p elements, optionally intermixed with script-supporting elements.\"" },
+   { name := "dl", digest := "4038905c1cfb9c4fdedabd2fba6820cc7b121efc5d27a249d82ea2bacd85154c", seq := alt (star (seq (plus (tag "dt")) (plus (tag "dd")))) (plus (tag "div")), interleave := true,
+     note := "groups of one or more dt then one or more dd, or one or more div, optionally intermixed with script-supporting elements" },
+   { name := "figure", digest := "623700751d997a7e952558f4c71397c41d4fe50b71c7770cabc01c4b623ddae6", seq := alt (seq (tag "figcaption") (star (base ["figcaption"]))) (alt (seq (star (base ["figcaption"])) (tag "figcaption")) (star (base ["figcaption"]))),
+     interleave := false, note := "\"Either: one figcaption element followed by flow content. Or: flow content followed by one figcaption element. Or: flow content.\"" },
+   { name := "picture", digest := "b2ba70e3ad690bf0dd72fe109abf4e97d3105e0b00b561ad80d6bae8b7ff5022", seq := seq (star (tag "source")) (tag "img"), interleave := true,
+     note := "\"Zero or more source elements, followed by one img element, optionally intermixed with script-supporting elements.\"" },
+   { name := "table", digest := "7281e376185588441f7c35a87b2c817c2c681688caa31a6aaf288c590e50390c", seq := seq (opt (tag "caption")) (seq (star (tag "colgroup")) (seq (opt (tag "thead")) (seq (alt (star (tag "tbody")) (plus (tag "tr"))) (opt (tag "tfoot"))))),
+     interleave := true, note := "\"In this order: optionally a caption element, followed by zero or more colgroup elements, followed optionally by a thead element, followed by either zero or more tbody elements or one or more tr elements, followed optionally by a tfoot element, optionally intermixed with one or more script-supporting elements.\"" },
+   { name := "fieldset", digest := "65e8d175a18f7adb66e20cdfca9d158b73a235f662bb38cf4202e1a6a66be5ac", seq := seq (opt (tag "legend")) (star (base ["legend"])), interleave := false,
+     note := "\"Optionally, a legend element, followed by flow content.\"" },
+   { name := "details", digest := "dae4636d68540e86cc746b5f565213e110a4cfa1299e50a4acdb21c4e853b9a9", seq := seq (tag "summary") (star (base ["summary"])), interleave := false,
+     note := "\"One summary element followed by flow content.\"" },
+   { name := "select", digest := "fe337946a811fc79b1fed2bf90064f2ee72052cd216a46ac180a2c10f64df393", seq := seq (opt (tag "button")) (star (alt (tag "option") (alt (tag "optgroup") (alt (tag "hr") (tag "noscript"))))),
+     interleave := true, note := "zero or one button, then option, optgroup, hr and noscript elements, optionally intermixed with script-supporting elements" },
+   { name := "optgroup", digest := "e3977cee5a08b732a7178474cee97d9941ce99a2c1f83ae5688187ed5a19c738", seq := seq (opt (tag "legend")) (star (alt (tag "option") (alt (tag "noscript") (tag "div")))),
+     interleave := true, note := "zero or one legend, then option, noscript and div elements, optionally intermixed with script-supporting elements" },
+   { name := "audio", digest := "9170b66d7cb774c8a033e021bdbd1edd28383365e6290ae4230273ade3a694ff", seq := seq (star (tag "source")) (seq (star (tag "track")) (star (base ["source", "track"]))), interleave := false,
+     note := "source elements, then track elements, then transparent content; the src-attribute case (no source elements) is the same sequence with none" },
+   { name := "video", digest := "aebbd45003249b39a1f4fd1a5eb1832215cee9ba7b0609c5b96feb6ce4b32858", seq := seq (star (tag "source")) (seq (star (tag "track")) (star (base ["source", "track"]))), interleave := false,
+     note := "as audio" }]
+
 /-- The direct children a sentence admits first and outside any base:
 the parent and the child. -/
 def labelled : List (String × String) :=

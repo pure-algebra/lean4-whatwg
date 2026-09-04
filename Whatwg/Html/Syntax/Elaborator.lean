@@ -278,13 +278,24 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
     let rawAttrsE ← rawAttrsTerm attrs
     let raw := mkApp3 (mkConst ``RawNode.element) (mkStrLit name) rawAttrsE childrenE
     let ha ← proofOf (mkApp2 (mkConst ``Whatwg.Html.Content.attrsOk) tE (mkApp (mkConst ``rawAttrs) attrsE))
+    -- the ordered model, checked on the children's tags as written
+    let kidTags := o.kids.toList.filterMap fun kid =>
+      if kid.isOfKind ``htmlText then some (Whatwg.Html.RawNode.text "")
+      else if kid.isOfKind ``htmlSplice then none
+      else match Tag.ofName? (nameString kid[1]) with
+        | some tg => some (Whatwg.Html.RawNode.element tg.markupText [] [])
+        | none => none
+    if o.kids.all (fun kid => !kid.isOfKind ``htmlSplice) then
+      if let some problem := Whatwg.Html.Content.seqProblem? inner t kidTags then
+        throwErrorAt o.nameStx problem
+    let hs ← proofOf (mkApp3 (mkConst ``Whatwg.Html.Content.seqOk) innerE tE childrenE)
     let ht ← proofOf (mkApp2 (mkConst ``Option.isSome [Level.zero]) (mkConst ``String) (mkApp (mkConst ``Tag.markupName) tE))
     let evidence ← if root then do
         let type := mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool)
           (mkApp2 (mkConst ``Whatwg.Html.Content.validAll) innerE childrenE) (mkConst ``Bool.true)
         pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars hc)))
       else pure hc
-    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ha, evidence, ht])
+    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ha, hs, evidence, ht])
 
 /-- The default context of a root, by the root's categories. -/
 def defaultCtx (t : Tag) : Ctx :=

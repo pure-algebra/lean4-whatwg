@@ -82,6 +82,16 @@ open Whatwg.Html.Content (Ctx)
 #guard_msgs in
 #check_failure (html! <div><title>"x"</title></div> : Element .div Ctx.flow)
 
+/-! ## The ordered models -/
+
+/-- info: the children of <html> do not follow its content model: head body -/
+#guard_msgs in
+#check_failure (html! <html><body></body><head><title>"t"</title></head></html> : Element .html Ctx.document)
+
+/-- info: the children of <details> do not follow its content model: summary (content-except-summary)* -/
+#guard_msgs in
+#check_failure (html! <details><p>"x"</p><summary>"s"</summary></details> : Element .details Ctx.flow)
+
 /-! ## Literal values against the attribute index -/
 
 /-- info: attribute `dir` on <p> takes one of `ltr`, `rtl`, `auto`, not `lefty` -/
