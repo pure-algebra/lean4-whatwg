@@ -7,12 +7,15 @@ import Whatwg.Html.Schema.Standard
 /-!
 # Whatwg.Html.Schema
 
-The schema of the HTML content model (slice H2 of
-`docs/HTML-PACKAGE-PLAN.md`): the element-tag and attribute-tag universes,
-every named content set and attribute set as a constructor-dispatch
-membership function, and one row per element and attribute constructor.
-The four modules below were first transcribed from TyXML 4.6.0 at H2 and
-are authored source since 2026-09-06, when the TyXML pin, its projection and
-the drift gate were retired (ruling HP-10 as amended); the HTML Standard is
-the sole authority. Nothing in them is a proof.
+The generated schema (slice H6.1 of `docs/HTML-PACKAGE-PLAN.md`, ruling
+HP-12): the element-tag universe of the HTML Standard at the pin, its
+categories, every content set as a constructor-dispatch membership
+function with the transparent payload table and the derivation parents,
+one row per element with its reading and span digest, and the standard's
+element definitions as text (`Standard`). `Tags`, `Families` and
+`ContentModel` are written by `lake exe htmlstandard --write` and checked
+for byte drift by `lake exe htmlstandard`; `Attributes` is written from
+TyXML by `lake exe tyxmlschema --write` until H6.1b derives the attribute
+universe from the standard. Nothing in them is a proof. Declaration records
+for their constants inherit from the schema rows (ruling HP-10).
 -/

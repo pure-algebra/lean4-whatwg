@@ -1,4 +1,5 @@
-import Gates.HtmlStandard
+import Gates.HtmlStandardEmit
 
-/-- Entry point only; the audited logic is Gates.HtmlStandard.cli. -/
-def main (args : List String) : IO UInt32 := Gates.HtmlStandard.cli args
+/-- Entry point only; the audited logic is Gates.HtmlStandardEmit.cli, which
+runs the projection check of Gates.HtmlStandard first. -/
+def main (args : List String) : IO UInt32 := Gates.HtmlStandardEmit.cli args

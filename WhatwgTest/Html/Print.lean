@@ -82,13 +82,14 @@ example : isVoidName "p" = false := by decide
 child. Those probes are anonymous `example`s, so the construction is repeated
 here rather than referenced; the import above is what pins the two to the
 same combinators. -/
-def document : Element .html .html_content_fun :=
+def document : Element .html .only_head_body_strict :=
   E.html
-    (E.head (E.title (E.txt "Slice H4"))
-      [E.el (E.«meta» [A.a_charset "utf-8"])])
-    (E.body
+    [E.el (E.head
+      [E.el (E.title [E.txt "Slice H4"]),
+       E.el (E.«meta» [A.a_charset "utf-8"])]),
+     E.el (E.body
       [E.el (E.h1 [E.txt "Content models"]),
-       E.el (E.p [E.txt "A & B", E.el (E.br)])])
+       E.el (E.p [E.txt "A & B", E.el (E.br)])])]
 
 set_option maxRecDepth 4000 in
 /-- Rendered end to end through erasure. The `maxRecDepth` bump is the
@@ -106,7 +107,7 @@ example : document.renderDoc
       ++ "<body><h1>Content models</h1><p>A &amp; B<br /></p></body></html>" := by decide
 
 /-- A child renders through the raw node it carries. -/
-example : (Child.of (set := ContentSet.flow5) (E.p [E.txt "x"])).render = "<p>x</p>" := by decide
+example : (Child.of (set := ContentSet.flow) (E.p [E.txt "x"])).render = "<p>x</p>" := by decide
 
 /-! ## The decoder -/
 

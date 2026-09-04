@@ -62,33 +62,32 @@ theorem Element.toRaw_tagName? {t : Tag} {inner : ContentSet} (e : Element t inn
 theorem Element.toRaw_childNodes {t : Tag} {inner : ContentSet} (e : Element t inner) :
     e.toRaw.childNodes = e.children := rfl
 
-/-- Where the projection gives the tag a markup name, that name is what
-erasure emits: `Tag.markupText`'s variant-name fallback is never observed at
-such a tag. -/
+/-- Where the tag is an element, its markup name is what erasure emits:
+`Tag.markupText`'s fallback is never observed at such a tag. -/
 theorem markupText_eq_markupName (t : Tag) (m : String) (h : t.markupName = some m) :
     t.markupText = m := by
   simp [Tag.markupText, h]
 
 /-- A tag has a markup name exactly when it has an element row, so the
 fallback in `Tag.markupText` is unreachable from every combinator of
-`Whatwg.Html.Node.Combinators`: the five tags that take it (`PCDATA` and the
-four `*_interactive` variants) have no constructor. -/
+`Whatwg.Html.Node.Combinators`: only text takes it, and text has no
+constructor. -/
 theorem markupName_isSome_eq_elementIndex?_isSome (t : Tag) :
     t.markupName.isSome = (Tag.elementIndex? t).isSome :=
-  eq_of_beq <| forall_tag_of_all
+  eq_of_beq <| Content.forall_tag_of_all
     (fun t => (Tag.markupName t).isSome == (Tag.elementIndex? t).isSome) (by decide) t
 
 /-! ## Void tags -/
 
 /-- No typed child can be placed under a void tag, in any context: the child
-set a void parent resolves to is `notag`, which admits nothing. This is the
+set a void parent resolves to is `nothing`, which admits nothing. This is the
 typed-tree form of `Whatwg.Html.Content.resolveChildSet_void`, and it is why
-the fifteen void combinators take no children argument at all. -/
+the thirteen void combinators take no children argument at all. -/
 theorem no_child_under_void {set : ContentSet} {t : Tag} (hv : t.isVoid = true)
     (c : Child (childSet set t)) : False := by
-  have h : childSet set t = ContentSet.notag := by
+  have h : childSet set t = ContentSet.nothing := by
     simp [childSet, Content.resolveChildSet_void t set hv]
-  exact Content.not_admits_notag c.tag (h ▸ c.admitted)
+  exact Content.not_admits_nothing c.tag (h ▸ c.admitted)
 
 /-- An element with no children erases to an element node with no children.
 Every void combinator builds such a value, since none of them takes a

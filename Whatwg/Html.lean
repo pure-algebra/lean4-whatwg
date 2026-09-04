@@ -20,33 +20,39 @@ import Whatwg.Html.Audit.Receipts
 # Whatwg.Html
 
 The HTML content model as a typed document algebra: a finite tag universe,
-named content sets composed by inclusion, a decidable child-admission
-relation, tag-indexed trees whose admission obligations are discharged at
-construction, and a serializer. The schema is ported from OCaml TyXML, whose
-polymorphic-variant row types encode the same content model; the HTML
-Standard is the semantic owner against which every departure of that port is
-recorded.
+content sets closed under the transparent exclusions, a decidable
+child-admission relation, tag-indexed trees whose admission obligations are
+discharged at construction, a markup elaborator, and a serializer. The
+schema is generated from the HTML Standard's own element definitions
+(ruling HP-12 of `docs/HTML-PACKAGE-PLAN.md`); OCaml TyXML, whose
+polymorphic-variant row types encode the same content model, is the
+reference for the shape of the library and a cross-check, and nothing here
+is a theorem about it.
 
 Authority pins (`SPEC-MANIFEST.md`, `docs/PROVENANCE.md`):
 
-- TyXML 4.6.0, `ocsigen/tyxml` commit
-  `d2916535536f2134bad7793a598ba5b7327cae41`: the transcription source from
-  which the `Schema` modules were first generated at H2. The pin, its
-  projection and the drift gate were retired on 2026-09-06; the schema is
-  authored source now, and TyXML is cited only as the origin of its shape.
 - The HTML Standard, `whatwg/html` commit
   `746f2ede8a56bc01204e0f9cc23da33b37c6fbab` ("Review Draft Publication:
   July 2026"), `source` sealed under `vendor/whatwg-html-746f2ede/`: the
-  semantic owner of every content model, and the reference every divergence
-  row cites by span digest.
+  semantic owner and the source of the schema. The projection
+  `generated/html-standard-elements.tsv` and the generated modules under
+  `Whatwg.Html.Schema` are regenerated and checked by `lake exe htmlstandard`;
+  the readings of the standard's prose sentences are authored in
+  `Gates/HtmlStandardEmit.lean`, each pinned to the span digest it reads.
+- TyXML 4.6.0, `ocsigen/tyxml` commit
+  `d2916535536f2134bad7793a598ba5b7327cae41`, sealed under
+  `vendor/tyxml-d2916535/`: the reference. Its projection
+  `generated/tyxml-html-schema.tsv` (`lake exe tyxmlschema`) is a
+  cross-check, and its attribute universe stands in for the standard's
+  until H6.1b.
 
-This root is the breadth scaffold of `docs/HTML-PACKAGE-PLAN.md` with H2 and
-H3 landed: `Whatwg.Html.Schema` holds the generated data (tags, attributes,
-content sets, element rows) behind the projection's drift gate,
+`Whatwg.Html.Schema` holds the generated data (tags, content sets, element
+rows with their readings and digests, and the interim attributes) behind
+the drift gates,
 `Whatwg.Html.Content` holds the lattice, transparent coherence and the
 admission relation, `Whatwg.Html.Node` holds the raw tree, the tag-indexed
 tree, the `admits` tactic that discharges its obligations by compiled
-evaluation and a kernel-checked `Eq.refl`, its 111 element combinators and
+evaluation and a kernel-checked `Eq.refl`, its generated combinators and
 erasure, and H4 adds
 `Whatwg.Html.Print` with the escaper, the serializer, and the decoder that
 inverts the serializer on the sublanguage its own output determines.

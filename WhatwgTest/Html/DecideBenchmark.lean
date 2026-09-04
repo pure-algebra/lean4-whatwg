@@ -5,7 +5,7 @@ import Whatwg.Html.Node.Combinators
 # WhatwgTest.Html.DecideBenchmark
 
 The `decide` cost bound of slice H2 (`docs/HTML-PACKAGE-PLAN.md`, ruling
-HP-6): membership in the largest content set, `flow5`, and in the void set
+HP-6): membership in the largest content set, `flow`, and in the void set
 must be decided by the kernel in a bounded number of heartbeats, because
 every admission obligation of the typed tree (H3) is discharged this way at
 every node of every document. The generated membership functions are
@@ -24,10 +24,10 @@ open Whatwg.Html.Schema
 open Whatwg.Html
 
 set_option maxHeartbeats 20 in
-theorem flow5_div : Sets.flow5 .div = true := by decide
+theorem flow5_div : Sets.flow .div = true := by decide
 
 set_option maxHeartbeats 20 in
-theorem flow5_head_false : Sets.flow5 .head = false := by decide
+theorem flow5_head_false : Sets.flow .head = false := by decide
 
 set_option maxHeartbeats 20 in
 theorem phrasing_span : Sets.phrasing .span = true := by decide
@@ -36,7 +36,7 @@ set_option maxHeartbeats 20 in
 theorem phrasing_div_false : Sets.phrasing .div = false := by decide
 
 set_option maxHeartbeats 20 in
-theorem contains_flow5_p : ContentSet.contains .flow5 .p = true := by decide
+theorem contains_flow5_p : ContentSet.contains .flow .p = true := by decide
 
 set_option maxHeartbeats 20 in
 theorem void_br : Tag.isVoid .br = true := by decide
@@ -50,7 +50,7 @@ theorem common_class : AttrSets.common .«class» = true := by decide
 /-! The same check through the kernel-only route the census ruled for
 kernel checks (`decide +kernel`). -/
 set_option maxHeartbeats 20 in
-theorem flow5_div_kernel : Sets.flow5 .div = true := by decide +kernel
+theorem flow5_div_kernel : Sets.flow .div = true := by decide +kernel
 
 /-! ## Whole-tree cost at H3.3–H3.4, remeasured after H4.1
 
@@ -106,7 +106,7 @@ elaborating two particular trees, not a theorem about the content model. -/
 set_option maxHeartbeats 1200 in
 /-- A tree nested fifteen `div` levels deep, with a `p` and a text run at the
 bottom: seventeen nodes, seventeen admission obligations. -/
-example : Element .div .flow5 :=
+example : Element .div .flow :=
     E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el
     (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el (E.div [E.el
     (E.div [E.el (E.p [E.txt "leaf"])])])])])])])])])])])])])])])]
@@ -114,7 +114,7 @@ example : Element .div .flow5 :=
 set_option maxHeartbeats 1800 in
 /-- A wide tree: one `ul` with thirty `li`, each holding a text run. Sixty-one
 nodes, sixty-one admission obligations. -/
-example : Element .ul .ul_content_fun :=
+example : Element .ul .only_li :=
     E.ul [E.el (E.li [E.txt "item"]), E.el (E.li [E.txt "item"]), E.el (E.li [E.txt "item"]),
     E.el (E.li [E.txt "item"]), E.el (E.li [E.txt "item"]), E.el (E.li [E.txt "item"]), E.el
     (E.li [E.txt "item"]), E.el (E.li [E.txt "item"]), E.el (E.li [E.txt "item"]), E.el (E.li

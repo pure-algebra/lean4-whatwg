@@ -75,19 +75,19 @@ namespace Whatwg.Html.Print
 
 open Whatwg.Html (RawNode)
 open Whatwg.Html.Schema (Tag)
-open Whatwg.Html.Schema (forall_tag_of_all)
+open Whatwg.Html.Content (forall_tag_of_all)
 
 /-! ## The void tag names, read from the schema -/
 
-/-- The markup names TyXML's `emptytags` lists, derived from the schema's
-`Tag.isVoid` and `Tag.markupName` rather than retyped. -/
+/-- The markup names of the standard's void elements, derived from the
+schema's `Tag.isVoid` and `Tag.markupName` rather than retyped. -/
 def isVoidName (s : String) : Bool :=
   Tag.all.any (fun t => t.isVoid && t.markupName == some s)
 
-/-- The fifteen names of `html_f.ml`'s `emptytags`, and nothing else. -/
+/-- The thirteen names of the standard's void-elements list. -/
 theorem isVoidName_eq :
-    ∀ s ∈ ["area", "base", "br", "col", "command", "embed", "hr", "img",
-           "input", "keygen", "link", "meta", "param", "source", "wbr"],
+    ∀ s ∈ ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+           "source", "track", "wbr"],
       isVoidName s = true := by decide
 
 /-- `div` is not a void name. -/

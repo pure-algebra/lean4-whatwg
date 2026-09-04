@@ -8,6 +8,7 @@ import Gates.UrlInventory
 import Gates.UrlCensus
 import Gates.UrlCensusInput
 import Gates.HtmlStandard
+import Gates.HtmlStandardEmit
 import Gates.TrustSelfTest
 
 /-!

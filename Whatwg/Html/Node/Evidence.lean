@@ -14,30 +14,23 @@ proposition, erased by the compiler and checked by the kernel, that every
 raw child is the erasure of an admitted `Child inner` or of a labelled
 element.
 
-`labelledChild` is TyXML's table of labelled child arguments
-(`head ~title`, `figure ?figcaption`, `picture ~img`, `object ?params`,
-`audio`/`video` `?srcs`, `table ?caption ?columns ?thead ?tfoot`,
-`fieldset ?legend`, `details summary`): a child admitted under its parent
-by the combinator's signature rather than by the parent's content set, and
-checked against its own content set. It is data, spelled from
-`Whatwg.Html.Node.Combinators`; a mismatch with those signatures would be
-a defect of this table, and `WhatwgTest/Html/Markup.lean` compares the two
-surfaces on a document that uses it.
+`labelledChild` is the standard's rule for the children a sentence admits
+first and outside any content set: `source` and `track` under `audio` and
+`video`, and `area` under `map` (the standard admits `area` only with a
+`map` ancestor). Such a child is checked against its own content set and
+placed as an element, not as an admitted `Child`; the generated
+combinators take them as labelled lists.
 -/
 
 namespace Whatwg.Html
 
 open Whatwg.Html.Schema (Tag ContentSet Attr AttrSet)
 
-/-- TyXML's labelled child arguments: `labelledChild parent child` says
-`child` is placed under `parent` by the combinator's signature, checked
-against the child's own content set. -/
-def labelledChild : Tag → Tag → Bool
-  | .head, .title | .figure, .figcaption | .picture, .img | .object, .param
-  | .audio, .source | .video, .source
-  | .table, .caption | .table, .colgroup | .table, .thead | .table, .tfoot
-  | .fieldset, .legend | .details, .summary => true
-  | _, _ => false
+/-- The direct children a sentence admits outside any content set
+(`source` and `track` first under `audio` and `video`, `area` under `map`):
+the generated table `Whatwg.Html.Schema.labelledChild`, under the name the
+evidence and the elaborator use. -/
+abbrev labelledChild : Tag → Tag → Bool := Schema.labelledChild
 
 /-- Every raw node of the list is the erasure of an admitted child of the
 context `inner`, or of a labelled element of the parent tag `t`. A
@@ -47,7 +40,7 @@ inductive Erasure (t : Tag) (inner : ContentSet) : List RawNode → Prop
   | nil : Erasure t inner []
   | child (c : Child inner) (rest : List RawNode) (h : Erasure t inner rest) :
       Erasure t inner (c.raw :: rest)
-  | labelled (c : Tag) (hl : labelledChild t c = true) (e : Element c (c.content?.getD .notag))
+  | labelled (c : Tag) (hl : labelledChild t c = true) (e : Element c (c.content?.getD .nothing))
       (rest : List RawNode) (h : Erasure t inner rest) :
       Erasure t inner (e.toRaw :: rest)
 

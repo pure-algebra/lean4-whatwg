@@ -84,11 +84,9 @@ cost per node is not the elaborator's.
 namespace Whatwg.Html.Schema
 
 /-- The markup name of a tag as a total function: `Tag.markupName` where the
-projection has one, and the OCaml variant name otherwise. Only the five tags
-with no element constructor at all (`PCDATA`, `Img_interactive`,
-`Audio_interactive`, `Object_interactive`, `Video_interactive`) take the
-fallback, and none of them is reachable from a combinator, so the fallback is
-a totality device rather than a spelling claim. -/
+tag is an element, and the name `pcdata` for text, which no element position
+ever renders as a tag name, so the fallback is a totality device rather than
+a spelling claim. -/
 def Tag.markupText (t : Tag) : String := t.markupName.getD t.variantName
 
 end Whatwg.Html.Schema
@@ -116,13 +114,12 @@ def Element.toRaw {t : Tag} {inner : ContentSet} (e : Element t inner) : RawNode
 /-- The content set an element of tag `t` placed in the context `set` must
 have checked its children against: the transparent payload the context
 assigns `t` when there is one, else `t`'s own content set, else the empty set
-`notag`. Total, so that it can index a type; `Whatwg.Html.Content`'s
-`resolveChildSet_none` says the fallback is taken exactly for the five tags
-with no element row (`PCDATA` and the four `*_interactive` variants) and for
-`svg`, whose row carries no content set. An `abbrev` so that unification may
+`nothing`. Total, so that it can index a type; `Whatwg.Html.Content`'s
+`resolveChildSet_none` says the fallback is taken only for text, which has
+no element row. An `abbrev` so that unification may
 unfold it at reducible transparency. -/
 abbrev childSet (set : ContentSet) (t : Tag) : ContentSet :=
-  (Content.resolveChildSet t set).getD .notag
+  (Content.resolveChildSet t set).getD .nothing
 
 /-- A child admitted under the content set `set`: its tag, the proof that
 `set` names it, and its erased form. Storing the proof rather than discarding

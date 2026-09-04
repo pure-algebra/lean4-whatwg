@@ -69,7 +69,7 @@ def elementFailures (rows : List Element) : MetaM (List String) := do
       | some (t, c) =>
         if t != e.tag.ctorIdx then
           failures := failures ++ [toString n ++ " returns the wrong tag"]
-        let expected := (e.content.getD .notag).ctorIdx
+        let expected := e.content.ctorIdx
         match c with
         | none =>
           unless e.transparent do

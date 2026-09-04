@@ -32,13 +32,13 @@ open Whatwg.Html.Schema (Tag ContentSet)
 #guard_msgs in
 #check_failure (html! <p><a><a>"x"</a></a></p> : Element .p .phrasing)
 
-/-- info: text is not admitted here: the content set `ul_content_fun` does not name it -/
+/-- info: text is not admitted here: the content set `only_li` does not name it -/
 #guard_msgs in
-#check_failure (html! <ul>"loose"</ul> : Element .ul .ul_content_fun)
+#check_failure (html! <ul>"loose"</ul> : Element .ul .only_li)
 
 /-- info: <br> is a void element and takes no children -/
 #guard_msgs in
-#check_failure (html! <br>"x"</br> : Element .br .notag)
+#check_failure (html! <br>"x"</br> : Element .br .nothing)
 
 /-- info: unknown element <blink> -/
 #guard_msgs in
@@ -54,38 +54,38 @@ open Whatwg.Html.Schema (Tag ContentSet)
 
 /-- info: attribute `href` is not admitted on <div>: the attribute set `div_attrib` does not name it -/
 #guard_msgs in
-#check_failure (html! <div href="/x">"x"</div> : Element .div .flow5)
+#check_failure (html! <div href="/x">"x"</div> : Element .div .flow)
 
 /-- info: attribute `id` is given twice on <div> -/
 #guard_msgs in
-#check_failure (html! <div id="a" id="b">"x"</div> : Element .div .flow5)
+#check_failure (html! <div id="a" id="b">"x"</div> : Element .div .flow)
 
 /-- info: attribute `data-role`: the prefixed constructor `a_user_data` is not representable in `Attr × String` at this pin -/
 #guard_msgs in
-#check_failure (html! <div data-role="x">"x"</div> : Element .div .flow5)
+#check_failure (html! <div data-role="x">"x"</div> : Element .div .flow)
 
 /-- info: <a> is transparent and needs its context: annotate the expected type as `Child set` or `Element .a inner` -/
 #guard_msgs in
 #check_failure (html! <a>"x"</a>)
 
-/-- info: <head> requires a <title> child -/
+/-- info: <p> is not admitted here: the content set `only_li` does not name it -/
 #guard_msgs in
-#check_failure (html! <head><meta charset="utf-8" /></head> : Element .head .metadata_without_title)
+#check_failure (html! <ul><p>"x"</p></ul> : Element .ul .only_li)
 
-/-- info: <figure> takes at most one <figcaption> -/
+/-- info: <video> is transparent and needs its context: annotate the expected type as `Child set` or `Element .video inner` -/
 #guard_msgs in
-#check_failure (html! <figure><figcaption>"a"</figcaption><figcaption>"b"</figcaption></figure> : Element .figure .flow5)
+#check_failure (html! <video controls><source src="/v.webm" /></video>)
 
 /-- info: the expected type names <div> but the root is <p> -/
 #guard_msgs in
-#check_failure (html! <p>"x"</p> : Element .div .flow5)
+#check_failure (html! <p>"x"</p> : Element .div .flow)
 
-/-- info: the content set of <p> is `phrasing`, not `flow5` -/
+/-- info: the content set of <p> is `phrasing`, not `flow` -/
 #guard_msgs in
-#check_failure (html! <p>"x"</p> : Element .p .flow5)
+#check_failure (html! <p>"x"</p> : Element .p .flow)
 
-/-- info: <title> is not admitted here: the content set `flow5` does not name it -/
+/-- info: <title> is not admitted here: the content set `flow` does not name it -/
 #guard_msgs in
-#check_failure (html! <div><title>"x"</title></div> : Element .div .flow5)
+#check_failure (html! <div><title>"x"</title></div> : Element .div .flow)
 
 end WhatwgTest.Html.MarkupBreakers

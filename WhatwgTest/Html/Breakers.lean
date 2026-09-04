@@ -87,28 +87,28 @@ info: E.p [E.el (E.a [E.el (E.a [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Ta
 #check_failure (E.p [E.el (E.a [E.el (E.a [])])] : Element .p .phrasing)
 
 -- Rejected by `Child.text`'s `h` (ruling HP-5): `PCDATA` is a tag like any
--- other and `ul_content_fun` names only `Li`.
+-- other and `only_li` names only `Li`.
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: text is not admitted here: the content set `ul_content_fun` does not name it
+info: text is not admitted here: the content set `only_li` does not name it
 ---
-info: E.ul [E.txt "loose text" ⋯] [] ⋯ : Element Tag.ul ContentSet.ul_content_fun
+info: E.ul [E.txt "loose text" ⋯] [] ⋯ : Element Tag.ul ContentSet.only_li
 -/
 #guard_msgs in
-#check_failure (E.ul [E.txt "loose text"] : Element .ul .ul_content_fun)
+#check_failure (E.ul [E.txt "loose text"] : Element .ul .only_li)
 
--- Rejected by `Child.of`'s `h`: `Title` is metadata, and `flow5` does not
+-- Rejected by `Child.of`'s `h`: `Title` is metadata, and `flow` does not
 -- name it.
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: <title> is not admitted here: the content set `flow5` does not name it
+info: <title> is not admitted here: the content set `flow` does not name it
 ---
-info: E.body [E.el (E.title (E.txt "t" ⋯) [] ⋯) ⋯] [] ⋯ : Element Tag.body ContentSet.flow5
+info: E.body [E.el (E.title [E.txt "t" ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.body ContentSet.flow
 -/
 #guard_msgs in
-#check_failure (E.body [E.el (E.title (E.txt "t"))] : Element .body .flow5)
+#check_failure (E.body [E.el (E.title [E.txt "t"])] : Element .body .flow)
 
 -- Rejected by `E.div`'s `_ha`: `Href` is not a member of `div_attrib`.
 /--
@@ -116,20 +116,20 @@ info: could not synthesize default value for parameter '_ha' using tactics
 ---
 info: attribute `href` is not admitted on this element: the attribute set `div_attrib` does not name it
 ---
-info: E.div [] [A.a_href "/target"] ⋯ : Element Tag.div ContentSet.flow5
+info: E.div [] [A.a_href "/target"] ⋯ : Element Tag.div ContentSet.flow
 -/
 #guard_msgs in
-#check_failure (E.div [] [A.a_href "/target"] : Element .div .flow5)
+#check_failure (E.div [] [A.a_href "/target"] : Element .div .flow)
 
 -- Rejected by the type checker, not by a `decide`: `E.br` is nullary, so its
 -- first explicit argument is `attrs : List (Attr × String)` and a `Child`
 -- does not fit there. There is no children parameter to supply.
 #guard_msgs (drop info) in
-#check_failure (E.br [E.txt "x"] : Element .br .notag)
+#check_failure (E.br [E.txt "x"] : Element .br .nothing)
 
 -- The same for `E.img`, whose two required labelled arguments are followed by
 -- `attrs` and by nothing else.
 #guard_msgs (drop info) in
-#check_failure (E.img "/u" "a" [E.txt "x"] : Element .img .notag)
+#check_failure (E.img "/u" "a" [E.txt "x"] : Element .img .nothing)
 
 end WhatwgTest.Html.Breakers

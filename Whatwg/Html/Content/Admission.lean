@@ -50,7 +50,7 @@ theorem admits_eq_contains (ctx : ContentSet) (child : Tag) :
     admits ctx child = ctx.contains child := rfl
 
 /-- The empty content set admits nothing. -/
-theorem not_admits_notag (child : Tag) : ¬ Admits .notag child := by
-  simp [Admits, admits, ContentSet.contains, Sets.notag]
+theorem not_admits_nothing (child : Tag) : ¬ Admits .nothing child := by
+  simp [Admits, admits, ContentSet.contains, Sets.nothing]
 
 end Whatwg.Html.Content

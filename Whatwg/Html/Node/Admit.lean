@@ -119,7 +119,7 @@ syntax (name := admitsTactic) "admits" : tactic
       if let some t ← tag? (ty.getArg! 1) then
         unless Content.admits set t do
           throwError (describe t ++ " is not admitted here: the content set `"
-            ++ set.tyxmlName ++ "` does not name it")
+            ++ set.name ++ "` does not name it")
         goal.assign reflTrue
         replaceMainGoal []
         return

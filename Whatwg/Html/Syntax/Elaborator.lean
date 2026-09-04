@@ -56,27 +56,17 @@ keeps that across the declarations of a module.
 
 ## The labelled forms
 
-TyXML's `head` takes its `title` as a labelled argument rather than through
-`metadata_without_title`, and likewise `figure ?figcaption`,
-`picture ~img`, `object ?params`, `audio`/`video` `?srcs`,
-`table ?caption ?columns ?thead ?tfoot`, `fieldset ?legend` and
-`details summary`. `html!` admits those children under those parents by the
-same rule the combinators use (`labelledChild` in
-`Whatwg.Html.Node.Evidence`): the child is elaborated against its own
-content set and placed as an element, not as an admitted `Child`, and a
-required one must appear exactly once, an optional one at most once. Their
-position among the siblings is kept as written; the combinators fix it
-(caption first, figcaption on top), which is a recorded simplification.
+The standard admits `source` and `track` first under `audio` and `video`,
+and `area` under `map`, outside any content set. `html!` admits those
+children by the generated table `Whatwg.Html.Schema.labelledChild`: the
+child is elaborated against its own content set and placed as an element,
+not as an admitted `Child`. Their position among the siblings is kept as
+written.
 The required labelled *attributes* of `html_sigs.mli` (`img ~src ~alt`,
 `link ~rel ~href`, `area ~alt`, `bdo ~dir`, `optgroup ~label`,
 `command ~label`) are likewise admitted by name on those elements, outside
 the attribute set, and required. Where one markup name has two rows
-(`table` and `tablex`), the first row is taken unless the expected type at
-the root names the second row's content set, so `<table><tbody>` is
-`tablex` only as a root annotated `Element .table .tablex_content_fun`;
-below the root `childSet` reads a tag's first row, a limitation the
-combinators share (`E.el (E.tablex ...)` does not elaborate either), and an
-H6 item.
+there would be a choice to make; at this pin every name has one row.
 
 ## Cost
 
@@ -153,26 +143,23 @@ def nameString (stx : Syntax) : String :=
   | _ => ""
 
 /-- The arity of a labelled child (`labelledChild`): required, and may
-repeat. -/
-def labelledArity (parent child : Tag) : Bool × Bool :=
-  match parent, child with
-  | .head, .title | .picture, .img | .details, .summary => (true, false)
-  | .object, .param | .audio, .source | .video, .source | .table, .colgroup => (false, true)
-  | _, _ => (false, false)
+repeat. At this pin every labelled child is optional and may repeat. -/
+def labelledArity (_parent _child : Tag) : Bool × Bool := (false, true)
 
-/-- The required labelled attributes of `html_sigs.mli`, by markup name. -/
+/-- The required labelled attributes of TyXML's `html_sigs.mli`, by markup
+name: interim, because the attribute sets are TyXML's until H6.1b and
+these are outside them. -/
 def labelledAttrs : Tag → List (String × Attr)
   | .img => [("src", .src), ("alt", .alt)]
   | .link => [("rel", .rel), ("href", .href)]
   | .area => [("alt", .alt)]
   | .bdo => [("dir", .dir)]
   | .optgroup => [("label", .label)]
-  | .command => [("label", .label)]
   | _ => []
 
-/-- Every element row with a markup name. -/
+/-- The element rows with a name: one at this pin. -/
 def elementRows (markup : String) : List Schema.Element :=
-  elements.filter (·.markup == markup)
+  elements.filter (·.name == markup)
 
 /-- The constructor constant at an index of an enum. -/
 def ctorExpr (induct : Name) (idx : Nat) : MetaM Expr := do
@@ -294,16 +281,9 @@ def openOf (stx : Syntax) : TermElabM (Option Open) := do
     return some { nameStx := stx[1], rows, attrs := stx[2].getArgs, kids := stx[4].getArgs }
   return none
 
-/-- The row of an element: the first with its markup name, or at the root,
-with an expected inner set, the row whose content set is that set. A second
-row (`tablex`) is reachable only at the root, because `childSet` reads a
-tag's first row and `Child.of` checks against it; that is a limitation the
-combinators share (`E.el (E.tablex ...)` does not elaborate either) and an
-H6 item. -/
-def chooseRow (o : Open) (expected? : Option ContentSet) : Schema.Element :=
-  match expected?.bind fun inner => o.rows.find? (·.content == some inner) with
-  | some row => row
-  | none => o.rows.head!
+/-- The row of an element: the first with its name (one at this pin). -/
+def chooseRow (o : Open) (_expected? : Option ContentSet) : Schema.Element :=
+  o.rows.head!
 
 /-- Elaborate an element whose children are checked against `inner`: the
 raw literal of the element and a term of type `Element row.tag inner`. -/
@@ -311,7 +291,7 @@ def elabElement : Nat → Open → Schema.Element → ContentSet → Bool → Te
   | 0, o, _, _, _ => throwErrorAt o.nameStx "html!: the document nests too deeply"
   | fuel + 1, o, row, inner, root => do
     let t := row.tag
-    let name := row.markup
+    let name := row.name
     if t.isVoid && !o.kids.isEmpty then
       throwErrorAt o.nameStx ("<" ++ name ++ "> is a void element and takes no children")
     let innerE ← setExpr inner
@@ -325,7 +305,7 @@ def elabElement : Nat → Open → Schema.Element → ContentSet → Bool → Te
       if kid.isOfKind ``htmlText then
         let some s := kid[0].isStrLit? | throwErrorAt kid "html!: malformed text"
         unless Content.admits inner .pcdata do
-          throwErrorAt kid ("text is not admitted here: the content set `" ++ inner.tyxmlName
+          throwErrorAt kid ("text is not admitted here: the content set `" ++ inner.name
             ++ "` does not name it")
         let child := mkApp3 (mkConst ``Child.text) innerE (mkStrLit s) (← admitsProof inner .pcdata)
         raws := raws.push (mkApp (mkConst ``RawNode.text) (mkStrLit s))
@@ -341,9 +321,9 @@ def elabElement : Nat → Open → Schema.Element → ContentSet → Bool → Te
         if labelledChild t c then
           let (_, many) := labelledArity t c
           if !many && seen.contains c then
-            throwErrorAt k.nameStx ("<" ++ name ++ "> takes at most one <" ++ krow.markup ++ ">")
+            throwErrorAt k.nameStx ("<" ++ name ++ "> takes at most one <" ++ krow.name ++ ">")
           seen := c :: seen
-          let own := c.content?.getD .notag
+          let own := c.content?.getD .nothing
           let (raw, e) ← elabElement fuel k krow own false
           let cE ← tagExpr c
           raws := raws.push raw
@@ -352,7 +332,7 @@ def elabElement : Nat → Open → Schema.Element → ContentSet → Bool → Te
         else
           unless Content.admits inner c do
             throwErrorAt k.nameStx (Admit.describe c ++ " is not admitted here: the content set `"
-              ++ inner.tyxmlName ++ "` does not name it")
+              ++ inner.name ++ "` does not name it")
           let (raw, e) ← elabElement fuel k krow (childSet inner c) false
           let child := mkApp4 (mkConst ``Child.of) innerE (← tagExpr c) e (← admitsProof inner c)
           raws := raws.push raw
@@ -402,7 +382,7 @@ set and a transparent root is an error. -/
         let t := row.tag
         unless Content.admits set t do
           throwErrorAt o.nameStx (Admit.describe t ++ " is not admitted here: the content set `"
-            ++ set.tyxmlName ++ "` does not name it")
+            ++ set.name ++ "` does not name it")
         let (_, elem) ← elabElement fuel o row (childSet set t) true
         return mkApp4 (mkConst ``Child.of) (← setExpr set) (← tagExpr t) elem (← admitsProof set t)
     if e.isAppOfArity ``Element 2 then
@@ -412,18 +392,18 @@ set and a transparent root is an error. -/
           let t := row.tag
           unless t' == t do
             throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <"
-              ++ row.markup ++ ">")
-          let own := row.content.getD .notag
+              ++ row.name ++ ">")
+          let own := row.content
           unless row.transparent || inner == own do
-            throwErrorAt o.nameStx ("the content set of <" ++ row.markup ++ "> is `" ++ own.tyxmlName
-              ++ "`, not `" ++ inner.tyxmlName ++ "`")
+            throwErrorAt o.nameStx ("the content set of <" ++ row.name ++ "> is `" ++ own.name
+              ++ "`, not `" ++ inner.name ++ "`")
           return (← elabElement fuel o row inner true).2
   let row := chooseRow o none
   if row.transparent then
-    throwErrorAt o.nameStx ("<" ++ row.markup
+    throwErrorAt o.nameStx ("<" ++ row.name
       ++ "> is transparent and needs its context: annotate the expected type as `Child set` or `Element ."
       ++ row.name ++ " inner`")
-  return (← elabElement fuel o row (row.content.getD .notag) true).2
+  return (← elabElement fuel o row row.content true).2
 
 end Syntax
 end Whatwg.Html
