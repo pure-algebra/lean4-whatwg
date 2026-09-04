@@ -65,6 +65,9 @@ import WhatwgTest.Html.Builders
 import WhatwgTest.Html.Breakers
 import WhatwgTest.Html.Print
 import WhatwgTest.Html.CombinatorShape
+import WhatwgTest.Html.Markup
+import WhatwgTest.Html.MarkupBreakers
+import WhatwgTest.Html.MarkupBenchmark
 import WhatwgTest.Audit.SpecCoverage
 import WhatwgTest.Audit.Infra.SpecCoverageRows
 import WhatwgTest.Audit.WebIdl.SpecCoverageRows

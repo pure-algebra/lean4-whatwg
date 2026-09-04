@@ -7,6 +7,7 @@ import Whatwg.Html.Node.Raw
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit
+import Whatwg.Html.Node.Evidence
 import Whatwg.Html.Node.Combinators
 import Whatwg.Html.Print.Escape
 import Whatwg.Html.Print.Render
@@ -49,7 +50,9 @@ evaluation and a kernel-checked `Eq.refl`, its 111 element combinators and
 erasure, and H4 adds
 `Whatwg.Html.Print` with the escaper, the serializer, and the decoder that
 inverts the serializer on the sublanguage its own output determines.
-`Whatwg.Html.Syntax`, `Whatwg.Html.Bridge`, `Whatwg.Html.Svg` and
-`Whatwg.Html.Audit` are still a docstring and nothing else. Every semantic
-declaration after this arrives behind a frozen contract packet.
+H5 adds `Whatwg.Html.Syntax`, the `html!` markup elaborator, with
+`Whatwg.Html.Node.Evidence`, the erased evidence it attaches to a raw
+literal. `Whatwg.Html.Bridge`, `Whatwg.Html.Svg` and `Whatwg.Html.Audit`
+are still a docstring and nothing else. Every semantic declaration after
+this arrives behind a frozen contract packet.
 -/
