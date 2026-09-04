@@ -61,10 +61,6 @@ open Whatwg.Html.Content (Ctx)
 #guard_msgs in
 #check_failure (html! <div id="a" id="b">"x"</div> : Element .div Ctx.flow)
 
-/-- info: attribute `data-role`: the prefixed attributes `data-*` and `aria-*` are not representable in `Attr × String` at this pin -/
-#guard_msgs in
-#check_failure (html! <div data-role="x">"x"</div> : Element .div Ctx.flow)
-
 /-- info: <p> is not admitted here: the context is only_li -/
 #guard_msgs in
 #check_failure (html! <ul><p>"x"</p></ul> : Element .ul Ctx.flow)

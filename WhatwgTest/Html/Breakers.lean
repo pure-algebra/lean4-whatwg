@@ -88,10 +88,10 @@ info: could not synthesize default value for parameter '_ha' using tactics
 ---
 info: attribute `dir` on <p> takes one of `ltr`, `rtl`, `auto`, not `lefty`
 ---
-info: E.p [] [A.a_dir "lefty"] ⋯ ⋯ : Element Tag.p Ctx.flow
+info: E.p [] [A.a_dir_str "lefty"] ⋯ ⋯ : Element Tag.p Ctx.flow
 -/
 #guard_msgs in
-#check_failure (E.p [] [A.a_dir "lefty"] : Element .p Ctx.flow)
+#check_failure (E.p [] [A.a_dir_str "lefty"] : Element .p Ctx.flow)
 
 -- Rejected by `_hs`: the children of `html` must be `head` then `body`.
 /--

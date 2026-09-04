@@ -10,12 +10,17 @@ of a thousand heartbeats:
 
 | Route | Fails at | Passes at | Bound set here |
 | --- | --- | --- | --- |
-| noncomputable, memoized (one lemma per distinct obligation) | 109 | 114 | 200 (the default) |
-| noncomputable, unmemoized (a fresh `Eq.refl true` per node) | 106 | 109 | 200 (the default) |
-| computable, memoized | 639 | 642 | 1000 |
-| computable, unmemoized | 634 | 639 | 1000 |
+| noncomputable, memoized (one lemma per distinct obligation) | 131 | 136 | 200 (the default) |
+| noncomputable, unmemoized (a fresh `Eq.refl true` per node) | 131 | 136 | 200 (the default) |
+| computable, memoized | 672 | 675 | 1000 |
+| computable, unmemoized | 672 | 675 | 1000 |
+| noncomputable, every `li` with two attributes (500 attribute obligations) | 229 | 234 | not pinned |
 
-Reading. Elaboration and kernel checking together cost about 0.2 per node,
+Reading (figures after the context-indexed core of H7 and its sequence
+obligations; before them 114 and 642). Elaboration and kernel checking
+together cost about 0.25 per node, and about 0.2 per attribute in the
+kernel's evaluation of `attrsOk`, which matches an attribute name against
+the index by string comparison,
 against about 12 per node through the combinators
 (`WhatwgTest/Html/DecideBenchmark.lean`), so a document of five hundred
 nodes elaborates within the default budget with room to spare. The two

@@ -38,6 +38,11 @@ example : Element .label Ctx.flow :=
 example : Element .details Ctx.flow :=
   html! <details open><summary>"More"</summary><p>"Detail"</p></details>
 
+/-- Custom data and ARIA attributes carry their suffix. -/
+example : Element .div Ctx.flow := html! <div data-role="nav" aria-label="Intro">"x"</div>
+example : (html! <div data-role="nav">"x"</div> : Element .div Ctx.flow).toRaw =
+    .element "div" [("data-role", "nav")] [.text "x"] := rfl
+
 /-- A dashed attribute name. -/
 example : Element .«meta» Ctx.metadata := html! <meta http-equiv="refresh" />
 

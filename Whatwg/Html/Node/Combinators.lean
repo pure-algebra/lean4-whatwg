@@ -5,7 +5,9 @@ import Whatwg.Html.Node.Admit
 # Whatwg.Html.Node.Combinators
 
 One combinator per element of the standard, in source order, the two text
-constructors, `el`, and one helper per attribute of the standard. Every
+constructors, `el`, and one helper per attribute of the standard (typed by
+its keywords where they are identifier-safe, with a `_str` variant for a
+computed value), plus `attr`, `data_` and `aria_`. Every
 combinator has the same shape: it is polymorphic in the context `ctx` it is
 placed in, its children are `Child (ctx.child <tag>)`, then `attrs` with a
 default of `[]`, then the attribute obligation `_ha` discharged by the
@@ -22,6 +24,7 @@ namespace Whatwg.Html.E
 
 open Whatwg.Html.Schema (Tag Attr AttrSet)
 open Whatwg.Html.Content (Ctx)
+open Whatwg.Html (AttrVal)
 
 /-- A text run, admitted where the context's base names text. -/
 def txt {ctx : Ctx} (s : String)
@@ -40,7 +43,7 @@ def el {ctx : Ctx} {t : Tag} (e : Element t ctx)
 
 /-- `html`: authored: "A head element followed by a body element.": the two, order not enforced. -/
 def html {ctx : Ctx} (children : List (Child (ctx.child .html)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .html (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .html) .html (children.map Child.raw) = true := by admits) :
     Element .html ctx :=
@@ -48,7 +51,7 @@ def html {ctx : Ctx} (children : List (Child (ctx.child .html)) := [])
 
 /-- `head`: authored: metadata content; the one-title and at-most-one-base bounds are not enforced. -/
 def head {ctx : Ctx} (children : List (Child (ctx.child .head)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .head (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .head) .head (children.map Child.raw) = true := by admits) :
     Element .head ctx :=
@@ -56,7 +59,7 @@ def head {ctx : Ctx} (children : List (Child (ctx.child .head)) := [])
 
 /-- `title`: sentence. -/
 def title {ctx : Ctx} (children : List (Child (ctx.child .title)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .title (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .title) .title (children.map Child.raw) = true := by admits) :
     Element .title ctx :=
@@ -64,28 +67,28 @@ def title {ctx : Ctx} (children : List (Child (ctx.child .title)) := [])
 
 /-- `base`: sentence. -/
 def base {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .base (rawAttrs attrs) = true := by admits) :
     Element .base ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `link`: sentence. -/
 def link {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .link (rawAttrs attrs) = true := by admits) :
     Element .link ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `meta`: sentence. -/
 def «meta» {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .«meta» (rawAttrs attrs) = true := by admits) :
     Element .«meta» ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `style`: sentence. -/
 def style {ctx : Ctx} (children : List (Child (ctx.child .style)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .style (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .style) .style (children.map Child.raw) = true := by admits) :
     Element .style ctx :=
@@ -93,7 +96,7 @@ def style {ctx : Ctx} (children : List (Child (ctx.child .style)) := [])
 
 /-- `body`: sentence. -/
 def body {ctx : Ctx} (children : List (Child (ctx.child .body)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .body (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .body) .body (children.map Child.raw) = true := by admits) :
     Element .body ctx :=
@@ -101,7 +104,7 @@ def body {ctx : Ctx} (children : List (Child (ctx.child .body)) := [])
 
 /-- `article`: sentence. -/
 def article {ctx : Ctx} (children : List (Child (ctx.child .article)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .article (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .article) .article (children.map Child.raw) = true := by admits) :
     Element .article ctx :=
@@ -109,7 +112,7 @@ def article {ctx : Ctx} (children : List (Child (ctx.child .article)) := [])
 
 /-- `section`: sentence. -/
 def «section» {ctx : Ctx} (children : List (Child (ctx.child .«section»)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .«section» (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .«section») .«section» (children.map Child.raw) = true := by admits) :
     Element .«section» ctx :=
@@ -117,7 +120,7 @@ def «section» {ctx : Ctx} (children : List (Child (ctx.child .«section»)) :=
 
 /-- `nav`: sentence. -/
 def nav {ctx : Ctx} (children : List (Child (ctx.child .nav)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .nav (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .nav) .nav (children.map Child.raw) = true := by admits) :
     Element .nav ctx :=
@@ -125,7 +128,7 @@ def nav {ctx : Ctx} (children : List (Child (ctx.child .nav)) := [])
 
 /-- `aside`: sentence. -/
 def aside {ctx : Ctx} (children : List (Child (ctx.child .aside)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .aside (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .aside) .aside (children.map Child.raw) = true := by admits) :
     Element .aside ctx :=
@@ -133,7 +136,7 @@ def aside {ctx : Ctx} (children : List (Child (ctx.child .aside)) := [])
 
 /-- `h1`: sentence. -/
 def h1 {ctx : Ctx} (children : List (Child (ctx.child .h1)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .h1 (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .h1) .h1 (children.map Child.raw) = true := by admits) :
     Element .h1 ctx :=
@@ -141,7 +144,7 @@ def h1 {ctx : Ctx} (children : List (Child (ctx.child .h1)) := [])
 
 /-- `h2`: sentence. -/
 def h2 {ctx : Ctx} (children : List (Child (ctx.child .h2)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .h2 (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .h2) .h2 (children.map Child.raw) = true := by admits) :
     Element .h2 ctx :=
@@ -149,7 +152,7 @@ def h2 {ctx : Ctx} (children : List (Child (ctx.child .h2)) := [])
 
 /-- `h3`: sentence. -/
 def h3 {ctx : Ctx} (children : List (Child (ctx.child .h3)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .h3 (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .h3) .h3 (children.map Child.raw) = true := by admits) :
     Element .h3 ctx :=
@@ -157,7 +160,7 @@ def h3 {ctx : Ctx} (children : List (Child (ctx.child .h3)) := [])
 
 /-- `h4`: sentence. -/
 def h4 {ctx : Ctx} (children : List (Child (ctx.child .h4)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .h4 (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .h4) .h4 (children.map Child.raw) = true := by admits) :
     Element .h4 ctx :=
@@ -165,7 +168,7 @@ def h4 {ctx : Ctx} (children : List (Child (ctx.child .h4)) := [])
 
 /-- `h5`: sentence. -/
 def h5 {ctx : Ctx} (children : List (Child (ctx.child .h5)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .h5 (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .h5) .h5 (children.map Child.raw) = true := by admits) :
     Element .h5 ctx :=
@@ -173,7 +176,7 @@ def h5 {ctx : Ctx} (children : List (Child (ctx.child .h5)) := [])
 
 /-- `h6`: sentence. -/
 def h6 {ctx : Ctx} (children : List (Child (ctx.child .h6)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .h6 (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .h6) .h6 (children.map Child.raw) = true := by admits) :
     Element .h6 ctx :=
@@ -181,7 +184,7 @@ def h6 {ctx : Ctx} (children : List (Child (ctx.child .h6)) := [])
 
 /-- `hgroup`: authored: "Zero or more p elements, followed by one h1..h6 element, followed by zero or more p elements": membership, order not enforced. -/
 def hgroup {ctx : Ctx} (children : List (Child (ctx.child .hgroup)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .hgroup (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .hgroup) .hgroup (children.map Child.raw) = true := by admits) :
     Element .hgroup ctx :=
@@ -189,7 +192,7 @@ def hgroup {ctx : Ctx} (children : List (Child (ctx.child .hgroup)) := [])
 
 /-- `header`: sentence. -/
 def header {ctx : Ctx} (children : List (Child (ctx.child .header)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .header (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .header) .header (children.map Child.raw) = true := by admits) :
     Element .header ctx :=
@@ -197,7 +200,7 @@ def header {ctx : Ctx} (children : List (Child (ctx.child .header)) := [])
 
 /-- `footer`: sentence. -/
 def footer {ctx : Ctx} (children : List (Child (ctx.child .footer)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .footer (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .footer) .footer (children.map Child.raw) = true := by admits) :
     Element .footer ctx :=
@@ -205,7 +208,7 @@ def footer {ctx : Ctx} (children : List (Child (ctx.child .footer)) := [])
 
 /-- `address`: sentence. -/
 def address {ctx : Ctx} (children : List (Child (ctx.child .address)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .address (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .address) .address (children.map Child.raw) = true := by admits) :
     Element .address ctx :=
@@ -213,7 +216,7 @@ def address {ctx : Ctx} (children : List (Child (ctx.child .address)) := [])
 
 /-- `p`: sentence. -/
 def p {ctx : Ctx} (children : List (Child (ctx.child .p)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .p (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .p) .p (children.map Child.raw) = true := by admits) :
     Element .p ctx :=
@@ -221,14 +224,14 @@ def p {ctx : Ctx} (children : List (Child (ctx.child .p)) := [])
 
 /-- `hr`: sentence. -/
 def hr {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .hr (rawAttrs attrs) = true := by admits) :
     Element .hr ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `pre`: sentence. -/
 def pre {ctx : Ctx} (children : List (Child (ctx.child .pre)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .pre (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .pre) .pre (children.map Child.raw) = true := by admits) :
     Element .pre ctx :=
@@ -236,7 +239,7 @@ def pre {ctx : Ctx} (children : List (Child (ctx.child .pre)) := [])
 
 /-- `blockquote`: sentence. -/
 def blockquote {ctx : Ctx} (children : List (Child (ctx.child .blockquote)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .blockquote (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .blockquote) .blockquote (children.map Child.raw) = true := by admits) :
     Element .blockquote ctx :=
@@ -244,7 +247,7 @@ def blockquote {ctx : Ctx} (children : List (Child (ctx.child .blockquote)) := [
 
 /-- `ol`: sentence. -/
 def ol {ctx : Ctx} (children : List (Child (ctx.child .ol)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .ol (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .ol) .ol (children.map Child.raw) = true := by admits) :
     Element .ol ctx :=
@@ -252,7 +255,7 @@ def ol {ctx : Ctx} (children : List (Child (ctx.child .ol)) := [])
 
 /-- `ul`: sentence. -/
 def ul {ctx : Ctx} (children : List (Child (ctx.child .ul)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .ul (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .ul) .ul (children.map Child.raw) = true := by admits) :
     Element .ul ctx :=
@@ -260,7 +263,7 @@ def ul {ctx : Ctx} (children : List (Child (ctx.child .ul)) := [])
 
 /-- `menu`: sentence. -/
 def menu {ctx : Ctx} (children : List (Child (ctx.child .menu)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .menu (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .menu) .menu (children.map Child.raw) = true := by admits) :
     Element .menu ctx :=
@@ -268,7 +271,7 @@ def menu {ctx : Ctx} (children : List (Child (ctx.child .menu)) := [])
 
 /-- `li`: sentence. -/
 def li {ctx : Ctx} (children : List (Child (ctx.child .li)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .li (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .li) .li (children.map Child.raw) = true := by admits) :
     Element .li ctx :=
@@ -276,7 +279,7 @@ def li {ctx : Ctx} (children : List (Child (ctx.child .li)) := [])
 
 /-- `dl`: authored: dt/dd groups or div wrappers: membership, grouping not enforced. -/
 def dl {ctx : Ctx} (children : List (Child (ctx.child .dl)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .dl (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .dl) .dl (children.map Child.raw) = true := by admits) :
     Element .dl ctx :=
@@ -284,7 +287,7 @@ def dl {ctx : Ctx} (children : List (Child (ctx.child .dl)) := [])
 
 /-- `dt`: sentence. -/
 def dt {ctx : Ctx} (children : List (Child (ctx.child .dt)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .dt (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .dt) .dt (children.map Child.raw) = true := by admits) :
     Element .dt ctx :=
@@ -292,7 +295,7 @@ def dt {ctx : Ctx} (children : List (Child (ctx.child .dt)) := [])
 
 /-- `dd`: sentence. -/
 def dd {ctx : Ctx} (children : List (Child (ctx.child .dd)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .dd (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .dd) .dd (children.map Child.raw) = true := by admits) :
     Element .dd ctx :=
@@ -300,7 +303,7 @@ def dd {ctx : Ctx} (children : List (Child (ctx.child .dd)) := [])
 
 /-- `figure`: authored: flow content with one figcaption first or last: the count and position are not enforced. -/
 def figure {ctx : Ctx} (children : List (Child (ctx.child .figure)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .figure (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .figure) .figure (children.map Child.raw) = true := by admits) :
     Element .figure ctx :=
@@ -308,7 +311,7 @@ def figure {ctx : Ctx} (children : List (Child (ctx.child .figure)) := [])
 
 /-- `figcaption`: sentence. -/
 def figcaption {ctx : Ctx} (children : List (Child (ctx.child .figcaption)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .figcaption (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .figcaption) .figcaption (children.map Child.raw) = true := by admits) :
     Element .figcaption ctx :=
@@ -316,7 +319,7 @@ def figcaption {ctx : Ctx} (children : List (Child (ctx.child .figcaption)) := [
 
 /-- `main`: sentence. -/
 def main {ctx : Ctx} (children : List (Child (ctx.child .main)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .main (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .main) .main (children.map Child.raw) = true := by admits) :
     Element .main ctx :=
@@ -324,7 +327,7 @@ def main {ctx : Ctx} (children : List (Child (ctx.child .main)) := [])
 
 /-- `search`: sentence. -/
 def search {ctx : Ctx} (children : List (Child (ctx.child .search)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .search (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .search) .search (children.map Child.raw) = true := by admits) :
     Element .search ctx :=
@@ -332,7 +335,7 @@ def search {ctx : Ctx} (children : List (Child (ctx.child .search)) := [])
 
 /-- `div`: authored: flow content; the dt/dd case of a div inside dl is not admitted (the stricter side). -/
 def div {ctx : Ctx} (children : List (Child (ctx.child .div)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .div (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .div) .div (children.map Child.raw) = true := by admits) :
     Element .div ctx :=
@@ -340,7 +343,7 @@ def div {ctx : Ctx} (children : List (Child (ctx.child .div)) := [])
 
 /-- `a`: authored: transparent, with no interactive content or a descendants; own set in flow context. -/
 def a {ctx : Ctx} (children : List (Child (ctx.child .a)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .a (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .a) .a (children.map Child.raw) = true := by admits) :
     Element .a ctx :=
@@ -348,7 +351,7 @@ def a {ctx : Ctx} (children : List (Child (ctx.child .a)) := [])
 
 /-- `em`: sentence. -/
 def em {ctx : Ctx} (children : List (Child (ctx.child .em)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .em (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .em) .em (children.map Child.raw) = true := by admits) :
     Element .em ctx :=
@@ -356,7 +359,7 @@ def em {ctx : Ctx} (children : List (Child (ctx.child .em)) := [])
 
 /-- `strong`: sentence. -/
 def strong {ctx : Ctx} (children : List (Child (ctx.child .strong)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .strong (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .strong) .strong (children.map Child.raw) = true := by admits) :
     Element .strong ctx :=
@@ -364,7 +367,7 @@ def strong {ctx : Ctx} (children : List (Child (ctx.child .strong)) := [])
 
 /-- `small`: sentence. -/
 def small {ctx : Ctx} (children : List (Child (ctx.child .small)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .small (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .small) .small (children.map Child.raw) = true := by admits) :
     Element .small ctx :=
@@ -372,7 +375,7 @@ def small {ctx : Ctx} (children : List (Child (ctx.child .small)) := [])
 
 /-- `s`: sentence. -/
 def s {ctx : Ctx} (children : List (Child (ctx.child .s)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .s (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .s) .s (children.map Child.raw) = true := by admits) :
     Element .s ctx :=
@@ -380,7 +383,7 @@ def s {ctx : Ctx} (children : List (Child (ctx.child .s)) := [])
 
 /-- `cite`: sentence. -/
 def cite {ctx : Ctx} (children : List (Child (ctx.child .cite)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .cite (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .cite) .cite (children.map Child.raw) = true := by admits) :
     Element .cite ctx :=
@@ -388,7 +391,7 @@ def cite {ctx : Ctx} (children : List (Child (ctx.child .cite)) := [])
 
 /-- `q`: sentence. -/
 def q {ctx : Ctx} (children : List (Child (ctx.child .q)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .q (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .q) .q (children.map Child.raw) = true := by admits) :
     Element .q ctx :=
@@ -396,7 +399,7 @@ def q {ctx : Ctx} (children : List (Child (ctx.child .q)) := [])
 
 /-- `dfn`: sentence. -/
 def dfn {ctx : Ctx} (children : List (Child (ctx.child .dfn)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .dfn (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .dfn) .dfn (children.map Child.raw) = true := by admits) :
     Element .dfn ctx :=
@@ -404,7 +407,7 @@ def dfn {ctx : Ctx} (children : List (Child (ctx.child .dfn)) := [])
 
 /-- `abbr`: sentence. -/
 def abbr {ctx : Ctx} (children : List (Child (ctx.child .abbr)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .abbr (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .abbr) .abbr (children.map Child.raw) = true := by admits) :
     Element .abbr ctx :=
@@ -412,7 +415,7 @@ def abbr {ctx : Ctx} (children : List (Child (ctx.child .abbr)) := [])
 
 /-- `ruby`: authored: "See prose.": phrasing with rt and rp annotations, order not enforced. -/
 def ruby {ctx : Ctx} (children : List (Child (ctx.child .ruby)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .ruby (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .ruby) .ruby (children.map Child.raw) = true := by admits) :
     Element .ruby ctx :=
@@ -420,7 +423,7 @@ def ruby {ctx : Ctx} (children : List (Child (ctx.child .ruby)) := [])
 
 /-- `rt`: sentence. -/
 def rt {ctx : Ctx} (children : List (Child (ctx.child .rt)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .rt (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .rt) .rt (children.map Child.raw) = true := by admits) :
     Element .rt ctx :=
@@ -428,7 +431,7 @@ def rt {ctx : Ctx} (children : List (Child (ctx.child .rt)) := [])
 
 /-- `rp`: sentence. -/
 def rp {ctx : Ctx} (children : List (Child (ctx.child .rp)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .rp (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .rp) .rp (children.map Child.raw) = true := by admits) :
     Element .rp ctx :=
@@ -436,7 +439,7 @@ def rp {ctx : Ctx} (children : List (Child (ctx.child .rp)) := [])
 
 /-- `data`: sentence. -/
 def «data» {ctx : Ctx} (children : List (Child (ctx.child .«data»)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .«data» (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .«data») .«data» (children.map Child.raw) = true := by admits) :
     Element .«data» ctx :=
@@ -444,7 +447,7 @@ def «data» {ctx : Ctx} (children : List (Child (ctx.child .«data»)) := [])
 
 /-- `time`: authored: phrasing content when datetime is present; the attribute is not seen. -/
 def time {ctx : Ctx} (children : List (Child (ctx.child .time)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .time (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .time) .time (children.map Child.raw) = true := by admits) :
     Element .time ctx :=
@@ -452,7 +455,7 @@ def time {ctx : Ctx} (children : List (Child (ctx.child .time)) := [])
 
 /-- `code`: sentence. -/
 def code {ctx : Ctx} (children : List (Child (ctx.child .code)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .code (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .code) .code (children.map Child.raw) = true := by admits) :
     Element .code ctx :=
@@ -460,7 +463,7 @@ def code {ctx : Ctx} (children : List (Child (ctx.child .code)) := [])
 
 /-- `var`: sentence. -/
 def var {ctx : Ctx} (children : List (Child (ctx.child .var)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .var (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .var) .var (children.map Child.raw) = true := by admits) :
     Element .var ctx :=
@@ -468,7 +471,7 @@ def var {ctx : Ctx} (children : List (Child (ctx.child .var)) := [])
 
 /-- `samp`: sentence. -/
 def samp {ctx : Ctx} (children : List (Child (ctx.child .samp)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .samp (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .samp) .samp (children.map Child.raw) = true := by admits) :
     Element .samp ctx :=
@@ -476,7 +479,7 @@ def samp {ctx : Ctx} (children : List (Child (ctx.child .samp)) := [])
 
 /-- `kbd`: sentence. -/
 def kbd {ctx : Ctx} (children : List (Child (ctx.child .kbd)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .kbd (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .kbd) .kbd (children.map Child.raw) = true := by admits) :
     Element .kbd ctx :=
@@ -484,7 +487,7 @@ def kbd {ctx : Ctx} (children : List (Child (ctx.child .kbd)) := [])
 
 /-- `sub`: sentence. -/
 def sub {ctx : Ctx} (children : List (Child (ctx.child .sub)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .sub (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .sub) .sub (children.map Child.raw) = true := by admits) :
     Element .sub ctx :=
@@ -492,7 +495,7 @@ def sub {ctx : Ctx} (children : List (Child (ctx.child .sub)) := [])
 
 /-- `sup`: sentence. -/
 def sup {ctx : Ctx} (children : List (Child (ctx.child .sup)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .sup (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .sup) .sup (children.map Child.raw) = true := by admits) :
     Element .sup ctx :=
@@ -500,7 +503,7 @@ def sup {ctx : Ctx} (children : List (Child (ctx.child .sup)) := [])
 
 /-- `i`: sentence. -/
 def i {ctx : Ctx} (children : List (Child (ctx.child .i)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .i (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .i) .i (children.map Child.raw) = true := by admits) :
     Element .i ctx :=
@@ -508,7 +511,7 @@ def i {ctx : Ctx} (children : List (Child (ctx.child .i)) := [])
 
 /-- `b`: sentence. -/
 def b {ctx : Ctx} (children : List (Child (ctx.child .b)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .b (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .b) .b (children.map Child.raw) = true := by admits) :
     Element .b ctx :=
@@ -516,7 +519,7 @@ def b {ctx : Ctx} (children : List (Child (ctx.child .b)) := [])
 
 /-- `u`: sentence. -/
 def u {ctx : Ctx} (children : List (Child (ctx.child .u)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .u (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .u) .u (children.map Child.raw) = true := by admits) :
     Element .u ctx :=
@@ -524,7 +527,7 @@ def u {ctx : Ctx} (children : List (Child (ctx.child .u)) := [])
 
 /-- `mark`: sentence. -/
 def mark {ctx : Ctx} (children : List (Child (ctx.child .mark)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .mark (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .mark) .mark (children.map Child.raw) = true := by admits) :
     Element .mark ctx :=
@@ -532,7 +535,7 @@ def mark {ctx : Ctx} (children : List (Child (ctx.child .mark)) := [])
 
 /-- `bdi`: sentence. -/
 def bdi {ctx : Ctx} (children : List (Child (ctx.child .bdi)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .bdi (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .bdi) .bdi (children.map Child.raw) = true := by admits) :
     Element .bdi ctx :=
@@ -540,7 +543,7 @@ def bdi {ctx : Ctx} (children : List (Child (ctx.child .bdi)) := [])
 
 /-- `bdo`: sentence. -/
 def bdo {ctx : Ctx} (children : List (Child (ctx.child .bdo)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .bdo (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .bdo) .bdo (children.map Child.raw) = true := by admits) :
     Element .bdo ctx :=
@@ -548,7 +551,7 @@ def bdo {ctx : Ctx} (children : List (Child (ctx.child .bdo)) := [])
 
 /-- `span`: sentence. -/
 def span {ctx : Ctx} (children : List (Child (ctx.child .span)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .span (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .span) .span (children.map Child.raw) = true := by admits) :
     Element .span ctx :=
@@ -556,21 +559,21 @@ def span {ctx : Ctx} (children : List (Child (ctx.child .span)) := [])
 
 /-- `br`: sentence. -/
 def br {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .br (rawAttrs attrs) = true := by admits) :
     Element .br ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `wbr`: sentence. -/
 def wbr {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .wbr (rawAttrs attrs) = true := by admits) :
     Element .wbr ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `ins`: authored: transparent; own set in flow context. -/
 def ins {ctx : Ctx} (children : List (Child (ctx.child .ins)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .ins (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .ins) .ins (children.map Child.raw) = true := by admits) :
     Element .ins ctx :=
@@ -578,7 +581,7 @@ def ins {ctx : Ctx} (children : List (Child (ctx.child .ins)) := [])
 
 /-- `del`: authored: transparent; own set in flow context. -/
 def del {ctx : Ctx} (children : List (Child (ctx.child .del)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .del (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .del) .del (children.map Child.raw) = true := by admits) :
     Element .del ctx :=
@@ -586,7 +589,7 @@ def del {ctx : Ctx} (children : List (Child (ctx.child .del)) := [])
 
 /-- `picture`: authored: sources then one img: membership, the count and order are not enforced. -/
 def picture {ctx : Ctx} (children : List (Child (ctx.child .picture)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .picture (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .picture) .picture (children.map Child.raw) = true := by admits) :
     Element .picture ctx :=
@@ -594,35 +597,35 @@ def picture {ctx : Ctx} (children : List (Child (ctx.child .picture)) := [])
 
 /-- `source`: sentence. -/
 def source {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .source (rawAttrs attrs) = true := by admits) :
     Element .source ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `img`: sentence. -/
 def img {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .img (rawAttrs attrs) = true := by admits) :
     Element .img ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `iframe`: sentence. -/
 def iframe {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .iframe (rawAttrs attrs) = true := by admits) :
     Element .iframe ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `embed`: sentence. -/
 def embed {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .embed (rawAttrs attrs) = true := by admits) :
     Element .embed ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `object`: authored: transparent; own set in flow context. -/
 def object {ctx : Ctx} (children : List (Child (ctx.child .object)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .object (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .object) .object (children.map Child.raw) = true := by admits) :
     Element .object ctx :=
@@ -630,7 +633,7 @@ def object {ctx : Ctx} (children : List (Child (ctx.child .object)) := [])
 
 /-- `video`: authored: transparent with no media element descendants; source and track are labelled direct children; own set in flow context. -/
 def video {ctx : Ctx} (children : List (Child (ctx.child .video)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .video (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .video) .video (children.map Child.raw) = true := by admits) :
     Element .video ctx :=
@@ -638,7 +641,7 @@ def video {ctx : Ctx} (children : List (Child (ctx.child .video)) := [])
 
 /-- `audio`: authored: as video. -/
 def audio {ctx : Ctx} (children : List (Child (ctx.child .audio)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .audio (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .audio) .audio (children.map Child.raw) = true := by admits) :
     Element .audio ctx :=
@@ -646,14 +649,14 @@ def audio {ctx : Ctx} (children : List (Child (ctx.child .audio)) := [])
 
 /-- `track`: sentence. -/
 def track {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .track (rawAttrs attrs) = true := by admits) :
     Element .track ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `map`: authored: transparent; area is admitted under a map; own set in flow context. -/
 def map {ctx : Ctx} (children : List (Child (ctx.child .map)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .map (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .map) .map (children.map Child.raw) = true := by admits) :
     Element .map ctx :=
@@ -661,14 +664,14 @@ def map {ctx : Ctx} (children : List (Child (ctx.child .map)) := [])
 
 /-- `area`: sentence. -/
 def area {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .area (rawAttrs attrs) = true := by admits) :
     Element .area ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `table`: authored: "In this order: ...": membership, order and the tbody-or-tr choice not enforced. -/
 def table {ctx : Ctx} (children : List (Child (ctx.child .table)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .table (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .table) .table (children.map Child.raw) = true := by admits) :
     Element .table ctx :=
@@ -676,7 +679,7 @@ def table {ctx : Ctx} (children : List (Child (ctx.child .table)) := [])
 
 /-- `caption`: sentence. -/
 def caption {ctx : Ctx} (children : List (Child (ctx.child .caption)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .caption (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .caption) .caption (children.map Child.raw) = true := by admits) :
     Element .caption ctx :=
@@ -684,7 +687,7 @@ def caption {ctx : Ctx} (children : List (Child (ctx.child .caption)) := [])
 
 /-- `colgroup`: authored: col and template when span is absent; the attribute is not seen. -/
 def colgroup {ctx : Ctx} (children : List (Child (ctx.child .colgroup)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .colgroup (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .colgroup) .colgroup (children.map Child.raw) = true := by admits) :
     Element .colgroup ctx :=
@@ -692,14 +695,14 @@ def colgroup {ctx : Ctx} (children : List (Child (ctx.child .colgroup)) := [])
 
 /-- `col`: sentence. -/
 def col {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .col (rawAttrs attrs) = true := by admits) :
     Element .col ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `tbody`: sentence. -/
 def tbody {ctx : Ctx} (children : List (Child (ctx.child .tbody)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .tbody (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .tbody) .tbody (children.map Child.raw) = true := by admits) :
     Element .tbody ctx :=
@@ -707,7 +710,7 @@ def tbody {ctx : Ctx} (children : List (Child (ctx.child .tbody)) := [])
 
 /-- `thead`: sentence. -/
 def thead {ctx : Ctx} (children : List (Child (ctx.child .thead)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .thead (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .thead) .thead (children.map Child.raw) = true := by admits) :
     Element .thead ctx :=
@@ -715,7 +718,7 @@ def thead {ctx : Ctx} (children : List (Child (ctx.child .thead)) := [])
 
 /-- `tfoot`: sentence. -/
 def tfoot {ctx : Ctx} (children : List (Child (ctx.child .tfoot)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .tfoot (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .tfoot) .tfoot (children.map Child.raw) = true := by admits) :
     Element .tfoot ctx :=
@@ -723,7 +726,7 @@ def tfoot {ctx : Ctx} (children : List (Child (ctx.child .tfoot)) := [])
 
 /-- `tr`: sentence. -/
 def tr {ctx : Ctx} (children : List (Child (ctx.child .tr)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .tr (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .tr) .tr (children.map Child.raw) = true := by admits) :
     Element .tr ctx :=
@@ -731,7 +734,7 @@ def tr {ctx : Ctx} (children : List (Child (ctx.child .tr)) := [])
 
 /-- `td`: sentence. -/
 def td {ctx : Ctx} (children : List (Child (ctx.child .td)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .td (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .td) .td (children.map Child.raw) = true := by admits) :
     Element .td ctx :=
@@ -739,7 +742,7 @@ def td {ctx : Ctx} (children : List (Child (ctx.child .td)) := [])
 
 /-- `th`: sentence. -/
 def th {ctx : Ctx} (children : List (Child (ctx.child .th)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .th (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .th) .th (children.map Child.raw) = true := by admits) :
     Element .th ctx :=
@@ -747,7 +750,7 @@ def th {ctx : Ctx} (children : List (Child (ctx.child .th)) := [])
 
 /-- `form`: sentence. -/
 def form {ctx : Ctx} (children : List (Child (ctx.child .form)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .form (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .form) .form (children.map Child.raw) = true := by admits) :
     Element .form ctx :=
@@ -755,7 +758,7 @@ def form {ctx : Ctx} (children : List (Child (ctx.child .form)) := [])
 
 /-- `label`: authored: phrasing with no label descendants; the labelable-descendant rule is not seen. -/
 def label {ctx : Ctx} (children : List (Child (ctx.child .label)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .label (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .label) .label (children.map Child.raw) = true := by admits) :
     Element .label ctx :=
@@ -763,14 +766,14 @@ def label {ctx : Ctx} (children : List (Child (ctx.child .label)) := [])
 
 /-- `input`: sentence. -/
 def input {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .input (rawAttrs attrs) = true := by admits) :
     Element .input ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `button`: authored: phrasing with no interactive content descendant; tabindex is not seen. -/
 def button {ctx : Ctx} (children : List (Child (ctx.child .button)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .button (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .button) .button (children.map Child.raw) = true := by admits) :
     Element .button ctx :=
@@ -778,7 +781,7 @@ def button {ctx : Ctx} (children : List (Child (ctx.child .button)) := [])
 
 /-- `select`: authored: the customizable-select model: membership, the one-button bound not enforced. -/
 def select {ctx : Ctx} (children : List (Child (ctx.child .select)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .select (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .select) .select (children.map Child.raw) = true := by admits) :
     Element .select ctx :=
@@ -786,7 +789,7 @@ def select {ctx : Ctx} (children : List (Child (ctx.child .select)) := [])
 
 /-- `datalist`: authored: "Either: phrasing content. Or: Zero or more option and script-supporting elements.": the union. -/
 def datalist {ctx : Ctx} (children : List (Child (ctx.child .datalist)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .datalist (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .datalist) .datalist (children.map Child.raw) = true := by admits) :
     Element .datalist ctx :=
@@ -794,7 +797,7 @@ def datalist {ctx : Ctx} (children : List (Child (ctx.child .datalist)) := [])
 
 /-- `optgroup`: authored: the customizable-select model: membership. -/
 def optgroup {ctx : Ctx} (children : List (Child (ctx.child .optgroup)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .optgroup (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .optgroup) .optgroup (children.map Child.raw) = true := by admits) :
     Element .optgroup ctx :=
@@ -802,7 +805,7 @@ def optgroup {ctx : Ctx} (children : List (Child (ctx.child .optgroup)) := [])
 
 /-- `option`: authored: text; the label/value cases and the customizable-select div case are not admitted (the stricter side). -/
 def option {ctx : Ctx} (children : List (Child (ctx.child .option)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .option (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .option) .option (children.map Child.raw) = true := by admits) :
     Element .option ctx :=
@@ -810,7 +813,7 @@ def option {ctx : Ctx} (children : List (Child (ctx.child .option)) := [])
 
 /-- `textarea`: sentence. -/
 def textarea {ctx : Ctx} (children : List (Child (ctx.child .textarea)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .textarea (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .textarea) .textarea (children.map Child.raw) = true := by admits) :
     Element .textarea ctx :=
@@ -818,7 +821,7 @@ def textarea {ctx : Ctx} (children : List (Child (ctx.child .textarea)) := [])
 
 /-- `output`: sentence. -/
 def output {ctx : Ctx} (children : List (Child (ctx.child .output)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .output (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .output) .output (children.map Child.raw) = true := by admits) :
     Element .output ctx :=
@@ -826,7 +829,7 @@ def output {ctx : Ctx} (children : List (Child (ctx.child .output)) := [])
 
 /-- `progress`: sentence. -/
 def progress {ctx : Ctx} (children : List (Child (ctx.child .progress)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .progress (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .progress) .progress (children.map Child.raw) = true := by admits) :
     Element .progress ctx :=
@@ -834,7 +837,7 @@ def progress {ctx : Ctx} (children : List (Child (ctx.child .progress)) := [])
 
 /-- `meter`: sentence. -/
 def meter {ctx : Ctx} (children : List (Child (ctx.child .meter)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .meter (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .meter) .meter (children.map Child.raw) = true := by admits) :
     Element .meter ctx :=
@@ -842,7 +845,7 @@ def meter {ctx : Ctx} (children : List (Child (ctx.child .meter)) := [])
 
 /-- `fieldset`: authored: "Optionally, a legend element, followed by flow content.": position not enforced. -/
 def fieldset {ctx : Ctx} (children : List (Child (ctx.child .fieldset)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .fieldset (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .fieldset) .fieldset (children.map Child.raw) = true := by admits) :
     Element .fieldset ctx :=
@@ -850,7 +853,7 @@ def fieldset {ctx : Ctx} (children : List (Child (ctx.child .fieldset)) := [])
 
 /-- `legend`: authored: "Phrasing content, optionally intermixed with heading content." outside an optgroup. -/
 def legend {ctx : Ctx} (children : List (Child (ctx.child .legend)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .legend (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .legend) .legend (children.map Child.raw) = true := by admits) :
     Element .legend ctx :=
@@ -858,14 +861,14 @@ def legend {ctx : Ctx} (children : List (Child (ctx.child .legend)) := [])
 
 /-- `selectedcontent`: sentence. -/
 def selectedcontent {ctx : Ctx}
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .selectedcontent (rawAttrs attrs) = true := by admits) :
     Element .selectedcontent ctx :=
   Element.ofChildren [] attrs _ha rfl
 
 /-- `details`: authored: "One summary element followed by flow content.": the count and position are not enforced. -/
 def details {ctx : Ctx} (children : List (Child (ctx.child .details)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .details (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .details) .details (children.map Child.raw) = true := by admits) :
     Element .details ctx :=
@@ -873,7 +876,7 @@ def details {ctx : Ctx} (children : List (Child (ctx.child .details)) := [])
 
 /-- `summary`: sentence. -/
 def summary {ctx : Ctx} (children : List (Child (ctx.child .summary)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .summary (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .summary) .summary (children.map Child.raw) = true := by admits) :
     Element .summary ctx :=
@@ -881,7 +884,7 @@ def summary {ctx : Ctx} (children : List (Child (ctx.child .summary)) := [])
 
 /-- `dialog`: sentence. -/
 def dialog {ctx : Ctx} (children : List (Child (ctx.child .dialog)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .dialog (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .dialog) .dialog (children.map Child.raw) = true := by admits) :
     Element .dialog ctx :=
@@ -889,7 +892,7 @@ def dialog {ctx : Ctx} (children : List (Child (ctx.child .dialog)) := [])
 
 /-- `script`: authored: script content restrictions are prose; text. -/
 def script {ctx : Ctx} (children : List (Child (ctx.child .script)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .script (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .script) .script (children.map Child.raw) = true := by admits) :
     Element .script ctx :=
@@ -897,7 +900,7 @@ def script {ctx : Ctx} (children : List (Child (ctx.child .script)) := [])
 
 /-- `noscript`: authored: transparent with no noscript descendants outside head; in head, link, style and meta (a payload override); own set in flow context. -/
 def noscript {ctx : Ctx} (children : List (Child (ctx.child .noscript)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .noscript (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .noscript) .noscript (children.map Child.raw) = true := by admits) :
     Element .noscript ctx :=
@@ -905,7 +908,7 @@ def noscript {ctx : Ctx} (children : List (Child (ctx.child .noscript)) := [])
 
 /-- `template`: authored: the DOM children are "Nothing" and the template contents are a fragment the HTML syntax writes inside the element; the authoring reading is flow content. -/
 def template {ctx : Ctx} (children : List (Child (ctx.child .template)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .template (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .template) .template (children.map Child.raw) = true := by admits) :
     Element .template ctx :=
@@ -913,7 +916,7 @@ def template {ctx : Ctx} (children : List (Child (ctx.child .template)) := [])
 
 /-- `slot`: authored: transparent; own set in flow context. -/
 def slot {ctx : Ctx} (children : List (Child (ctx.child .slot)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .slot (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .slot) .slot (children.map Child.raw) = true := by admits) :
     Element .slot ctx :=
@@ -921,7 +924,7 @@ def slot {ctx : Ctx} (children : List (Child (ctx.child .slot)) := [])
 
 /-- `canvas`: authored: transparent, with no interactive content descendants; the exceptions for a, img with usemap, button and some inputs are not seen; own set in flow context. -/
 def canvas {ctx : Ctx} (children : List (Child (ctx.child .canvas)) := [])
-    (attrs : List (Attr × String) := [])
+    (attrs : List AttrVal := [])
     (_ha : Content.attrsOk .canvas (rawAttrs attrs) = true := by admits)
     (_hs : Content.seqOk (ctx.child .canvas) .canvas (children.map Child.raw) = true := by admits) :
     Element .canvas ctx :=
@@ -929,710 +932,1046 @@ def canvas {ctx : Ctx} (children : List (Child (ctx.child .canvas)) := [])
 
 end Whatwg.Html.E
 
+namespace Whatwg.Html.K
+
+/-! Typed keyword values: one enumeration per attribute whose `Value` cell
+is a closed keyword list of identifier-safe words. `toString` is the
+keyword. -/
+
+/-- The keywords of `autocapitalize`. -/
+inductive autocapitalize where
+  | on | off | none | sentences | words | characters
+  deriving DecidableEq, Repr, Inhabited
+
+def autocapitalize.toString : autocapitalize → String
+  | .on => "on"
+  | .off => "off"
+  | .none => "none"
+  | .sentences => "sentences"
+  | .words => "words"
+  | .characters => "characters"
+
+/-- The keywords of `autocorrect`. -/
+inductive autocorrect where
+  | on | off
+  deriving DecidableEq, Repr, Inhabited
+
+def autocorrect.toString : autocorrect → String
+  | .on => "on"
+  | .off => "off"
+
+/-- The keywords of `closedby`. -/
+inductive closedby where
+  | any | closerequest | none
+  deriving DecidableEq, Repr, Inhabited
+
+def closedby.toString : closedby → String
+  | .any => "any"
+  | .closerequest => "closerequest"
+  | .none => "none"
+
+/-- The keywords of `decoding`. -/
+inductive decoding where
+  | sync | async | auto
+  deriving DecidableEq, Repr, Inhabited
+
+def decoding.toString : decoding → String
+  | .sync => "sync"
+  | .async => "async"
+  | .auto => "auto"
+
+/-- The keywords of `dir`. -/
+inductive dir where
+  | ltr | rtl | auto
+  deriving DecidableEq, Repr, Inhabited
+
+def dir.toString : dir → String
+  | .ltr => "ltr"
+  | .rtl => "rtl"
+  | .auto => "auto"
+
+/-- The keywords of `draggable`. -/
+inductive draggable where
+  | «true» | «false»
+  deriving DecidableEq, Repr, Inhabited
+
+def draggable.toString : draggable → String
+  | .«true» => "true"
+  | .«false» => "false"
+
+/-- The keywords of `enterkeyhint`. -/
+inductive enterkeyhint where
+  | enter | done | go | next | previous | search | send
+  deriving DecidableEq, Repr, Inhabited
+
+def enterkeyhint.toString : enterkeyhint → String
+  | .enter => "enter"
+  | .done => "done"
+  | .go => "go"
+  | .next => "next"
+  | .previous => "previous"
+  | .search => "search"
+  | .send => "send"
+
+/-- The keywords of `fetchpriority`. -/
+inductive fetchpriority where
+  | auto | high | low
+  deriving DecidableEq, Repr, Inhabited
+
+def fetchpriority.toString : fetchpriority → String
+  | .auto => "auto"
+  | .high => "high"
+  | .low => "low"
+
+/-- The keywords of `formmethod`. -/
+inductive formmethod where
+  | get | post | dialog
+  deriving DecidableEq, Repr, Inhabited
+
+def formmethod.toString : formmethod → String
+  | .get => "get"
+  | .post => "post"
+  | .dialog => "dialog"
+
+/-- The keywords of `inputmode`. -/
+inductive inputmode where
+  | none | text | tel | email | url | numeric | decimal | search
+  deriving DecidableEq, Repr, Inhabited
+
+def inputmode.toString : inputmode → String
+  | .none => "none"
+  | .text => "text"
+  | .tel => "tel"
+  | .email => "email"
+  | .url => "url"
+  | .numeric => "numeric"
+  | .decimal => "decimal"
+  | .search => "search"
+
+/-- The keywords of `kind`. -/
+inductive kind where
+  | subtitles | captions | descriptions | chapters | metadata
+  deriving DecidableEq, Repr, Inhabited
+
+def kind.toString : kind → String
+  | .subtitles => "subtitles"
+  | .captions => "captions"
+  | .descriptions => "descriptions"
+  | .chapters => "chapters"
+  | .metadata => "metadata"
+
+/-- The keywords of `loading`. -/
+inductive loading where
+  | lazy | eager
+  deriving DecidableEq, Repr, Inhabited
+
+def loading.toString : loading → String
+  | .lazy => "lazy"
+  | .eager => "eager"
+
+/-- The keywords of `method`. -/
+inductive method where
+  | get | post | dialog
+  deriving DecidableEq, Repr, Inhabited
+
+def method.toString : method → String
+  | .get => "get"
+  | .post => "post"
+  | .dialog => "dialog"
+
+/-- The keywords of `popover`. -/
+inductive popover where
+  | auto | manual | hint
+  deriving DecidableEq, Repr, Inhabited
+
+def popover.toString : popover → String
+  | .auto => "auto"
+  | .manual => "manual"
+  | .hint => "hint"
+
+/-- The keywords of `popovertargetaction`. -/
+inductive popovertargetaction where
+  | toggle | «show» | hide
+  deriving DecidableEq, Repr, Inhabited
+
+def popovertargetaction.toString : popovertargetaction → String
+  | .toggle => "toggle"
+  | .«show» => "show"
+  | .hide => "hide"
+
+/-- The keywords of `preload`. -/
+inductive preload where
+  | none | metadata | auto
+  deriving DecidableEq, Repr, Inhabited
+
+def preload.toString : preload → String
+  | .none => "none"
+  | .metadata => "metadata"
+  | .auto => "auto"
+
+/-- The keywords of `scope`. -/
+inductive scope where
+  | row | col | rowgroup | colgroup
+  deriving DecidableEq, Repr, Inhabited
+
+def scope.toString : scope → String
+  | .row => "row"
+  | .col => "col"
+  | .rowgroup => "rowgroup"
+  | .colgroup => "colgroup"
+
+/-- The keywords of `shadowrootmode`. -/
+inductive shadowrootmode where
+  | «open» | closed
+  deriving DecidableEq, Repr, Inhabited
+
+def shadowrootmode.toString : shadowrootmode → String
+  | .«open» => "open"
+  | .closed => "closed"
+
+/-- The keywords of `shadowrootslotassignment`. -/
+inductive shadowrootslotassignment where
+  | named | manual
+  deriving DecidableEq, Repr, Inhabited
+
+def shadowrootslotassignment.toString : shadowrootslotassignment → String
+  | .named => "named"
+  | .manual => "manual"
+
+/-- The keywords of `shape`. -/
+inductive shape where
+  | circle | default | poly | rect
+  deriving DecidableEq, Repr, Inhabited
+
+def shape.toString : shape → String
+  | .circle => "circle"
+  | .default => "default"
+  | .poly => "poly"
+  | .rect => "rect"
+
+/-- The keywords of `spellcheck`. -/
+inductive spellcheck where
+  | «true» | «false»
+  deriving DecidableEq, Repr, Inhabited
+
+def spellcheck.toString : spellcheck → String
+  | .«true» => "true"
+  | .«false» => "false"
+
+/-- The keywords of `translate`. -/
+inductive translate where
+  | yes | no
+  deriving DecidableEq, Repr, Inhabited
+
+def translate.toString : translate → String
+  | .yes => "yes"
+  | .no => "no"
+
+/-- The keywords of `wrap`. -/
+inductive wrap where
+  | soft | hard
+  deriving DecidableEq, Repr, Inhabited
+
+def wrap.toString : wrap → String
+  | .soft => "soft"
+  | .hard => "hard"
+
+/-- The keywords of `writingsuggestions`. -/
+inductive writingsuggestions where
+  | «true» | «false»
+  deriving DecidableEq, Repr, Inhabited
+
+def writingsuggestions.toString : writingsuggestions → String
+  | .«true» => "true"
+  | .«false» => "false"
+
+end Whatwg.Html.K
+
 namespace Whatwg.Html.A
 
 open Whatwg.Html.Schema (Attr)
 
+/-- Any attribute of the index with any value: the escape hatch. -/
+def attr (a : Attr) (value : String) : AttrVal := AttrVal.of a value
+
+/-- A custom data attribute `data-<suffix>`. -/
+def data_ (suffix value : String) : AttrVal := AttrVal.data suffix value
+
+/-- An ARIA attribute `aria-<suffix>`. -/
+def aria_ (suffix value : String) : AttrVal := AttrVal.aria suffix value
+
 /-- `abbr`: Alternative label to use for the header cell when referencing the cell in other contexts. -/
-def a_abbr (value : String) : Attr × String := (.abbr, value)
+def a_abbr (value : String) : AttrVal := AttrVal.of .abbr value
 
 /-- `accept`: Hint for expected file type in file upload controls. -/
-def a_accept (value : String) : Attr × String := (.accept, value)
+def a_accept (value : String) : AttrVal := AttrVal.of .accept value
 
 /-- `accept-charset`: Character encodings to use for form submission. -/
-def a_accept_charset (value : String) : Attr × String := (.accept_charset, value)
+def a_accept_charset (value : String) : AttrVal := AttrVal.of .accept_charset value
 
 /-- `accesskey`: Keyboard shortcut to activate or focus element. -/
-def a_accesskey (value : String) : Attr × String := (.accesskey, value)
+def a_accesskey (value : String) : AttrVal := AttrVal.of .accesskey value
 
 /-- `action`: URL to use for form submission. -/
-def a_action (value : String) : Attr × String := (.action, value)
+def a_action (value : String) : AttrVal := AttrVal.of .action value
 
 /-- `allow`: Permissions policy to be applied to the iframe's contents. -/
-def a_allow (value : String) : Attr × String := (.allow, value)
+def a_allow (value : String) : AttrVal := AttrVal.of .allow value
 
 /-- `allowfullscreen`: Whether to allow the iframe's contents to use requestFullscreen(). A boolean attribute: present, with the empty string as its value. -/
-def a_allowfullscreen : Attr × String := (.allowfullscreen, "")
+def a_allowfullscreen : AttrVal := AttrVal.of .allowfullscreen ""
 
 /-- `alpha`: Allow the color's alpha component to be set. A boolean attribute: present, with the empty string as its value. -/
-def a_alpha : Attr × String := (.alpha, "")
+def a_alpha : AttrVal := AttrVal.of .alpha ""
 
 /-- `alt`: Replacement text for use when images are not available. -/
-def a_alt (value : String) : Attr × String := (.alt, value)
+def a_alt (value : String) : AttrVal := AttrVal.of .alt value
 
 /-- `as`: Destination for a preload request (for rel="preload" and rel="modulepreload"). -/
-def a_as (value : String) : Attr × String := (.as, value)
+def a_as (value : String) : AttrVal := AttrVal.of .as value
 
 /-- `async`: Execute script when available, without blocking while fetching. A boolean attribute: present, with the empty string as its value. -/
-def a_async : Attr × String := (.async, "")
+def a_async : AttrVal := AttrVal.of .async ""
 
-/-- `autocapitalize`: Recommended autocapitalization behavior (for supported input methods). -/
-def a_autocapitalize (value : String) : Attr × String := (.autocapitalize, value)
+/-- `autocapitalize`: Recommended autocapitalization behavior (for supported input methods). Takes one of its keywords. -/
+def a_autocapitalize (value : K.autocapitalize) : AttrVal := AttrVal.of .autocapitalize value.toString
+
+/-- `autocapitalize` with a computed value. -/
+def a_autocapitalize_str (value : String) : AttrVal := AttrVal.of .autocapitalize value
 
 /-- `autocomplete`: Default setting for autofill feature for controls in the form. -/
-def a_autocomplete (value : String) : Attr × String := (.autocomplete, value)
+def a_autocomplete (value : String) : AttrVal := AttrVal.of .autocomplete value
 
-/-- `autocorrect`: Recommended autocorrection behavior (for supported input methods). -/
-def a_autocorrect (value : String) : Attr × String := (.autocorrect, value)
+/-- `autocorrect`: Recommended autocorrection behavior (for supported input methods). Takes one of its keywords. -/
+def a_autocorrect (value : K.autocorrect) : AttrVal := AttrVal.of .autocorrect value.toString
+
+/-- `autocorrect` with a computed value. -/
+def a_autocorrect_str (value : String) : AttrVal := AttrVal.of .autocorrect value
 
 /-- `autofocus`: Automatically focus the element when the page is loaded. A boolean attribute: present, with the empty string as its value. -/
-def a_autofocus : Attr × String := (.autofocus, "")
+def a_autofocus : AttrVal := AttrVal.of .autofocus ""
 
 /-- `autoplay`: Hint that the media resource can be started automatically when the page is loaded. A boolean attribute: present, with the empty string as its value. -/
-def a_autoplay : Attr × String := (.autoplay, "")
+def a_autoplay : AttrVal := AttrVal.of .autoplay ""
 
 /-- `blocking`: Whether the element is potentially render-blocking. -/
-def a_blocking (value : String) : Attr × String := (.blocking, value)
+def a_blocking (value : String) : AttrVal := AttrVal.of .blocking value
 
 /-- `charset`: Character encoding declaration. -/
-def a_charset (value : String) : Attr × String := (.charset, value)
+def a_charset (value : String) : AttrVal := AttrVal.of .charset value
 
 /-- `checked`: Whether the control is checked. A boolean attribute: present, with the empty string as its value. -/
-def a_checked : Attr × String := (.checked, "")
+def a_checked : AttrVal := AttrVal.of .checked ""
 
 /-- `cite`: Link to the source of the quotation or more information about the edit. -/
-def a_cite (value : String) : Attr × String := (.cite, value)
+def a_cite (value : String) : AttrVal := AttrVal.of .cite value
 
 /-- `class`: Classes to which the element belongs. -/
-def a_class (value : String) : Attr × String := (.«class», value)
+def a_class (value : String) : AttrVal := AttrVal.of .«class» value
 
-/-- `closedby`: Which user actions will close the dialog. -/
-def a_closedby (value : String) : Attr × String := (.closedby, value)
+/-- `closedby`: Which user actions will close the dialog. Takes one of its keywords. -/
+def a_closedby (value : K.closedby) : AttrVal := AttrVal.of .closedby value.toString
+
+/-- `closedby` with a computed value. -/
+def a_closedby_str (value : String) : AttrVal := AttrVal.of .closedby value
 
 /-- `color`: Color to use when customizing a site's icon (for rel="mask-icon"). -/
-def a_color (value : String) : Attr × String := (.color, value)
+def a_color (value : String) : AttrVal := AttrVal.of .color value
 
 /-- `colorspace`: The color space of the serialized color. -/
-def a_colorspace (value : String) : Attr × String := (.colorspace, value)
+def a_colorspace (value : String) : AttrVal := AttrVal.of .colorspace value
 
 /-- `cols`: Maximum number of characters per line. -/
-def a_cols (value : String) : Attr × String := (.cols, value)
+def a_cols (value : String) : AttrVal := AttrVal.of .cols value
 
 /-- `colspan`: Number of columns that the cell is to span. -/
-def a_colspan (value : String) : Attr × String := (.colspan, value)
+def a_colspan (value : String) : AttrVal := AttrVal.of .colspan value
 
 /-- `command`: Indicates to the targeted element which action to take.. -/
-def a_command (value : String) : Attr × String := (.command, value)
+def a_command (value : String) : AttrVal := AttrVal.of .command value
 
 /-- `commandfor`: Targets another element to be invoked.. -/
-def a_commandfor (value : String) : Attr × String := (.commandfor, value)
+def a_commandfor (value : String) : AttrVal := AttrVal.of .commandfor value
 
 /-- `content`: Value of the element. -/
-def a_content (value : String) : Attr × String := (.content, value)
+def a_content (value : String) : AttrVal := AttrVal.of .content value
 
 /-- `contenteditable`: Whether the element is editable. -/
-def a_contenteditable (value : String) : Attr × String := (.contenteditable, value)
+def a_contenteditable (value : String) : AttrVal := AttrVal.of .contenteditable value
 
 /-- `controls`: Show user agent controls. A boolean attribute: present, with the empty string as its value. -/
-def a_controls : Attr × String := (.controls, "")
+def a_controls : AttrVal := AttrVal.of .controls ""
 
 /-- `coords`: Coordinates for the shape to be created in an image map. -/
-def a_coords (value : String) : Attr × String := (.coords, value)
+def a_coords (value : String) : AttrVal := AttrVal.of .coords value
 
 /-- `crossorigin`: How the element handles crossorigin requests. -/
-def a_crossorigin (value : String) : Attr × String := (.crossorigin, value)
+def a_crossorigin (value : String) : AttrVal := AttrVal.of .crossorigin value
 
 /-- `data`: Address of the resource. -/
-def a_data (value : String) : Attr × String := (.«data», value)
+def a_data (value : String) : AttrVal := AttrVal.of .«data» value
 
 /-- `datetime`: Date and (optionally) time of the change. -/
-def a_datetime (value : String) : Attr × String := (.datetime, value)
+def a_datetime (value : String) : AttrVal := AttrVal.of .datetime value
 
-/-- `decoding`: Decoding hint to use when processing this image for presentation. -/
-def a_decoding (value : String) : Attr × String := (.decoding, value)
+/-- `decoding`: Decoding hint to use when processing this image for presentation. Takes one of its keywords. -/
+def a_decoding (value : K.decoding) : AttrVal := AttrVal.of .decoding value.toString
+
+/-- `decoding` with a computed value. -/
+def a_decoding_str (value : String) : AttrVal := AttrVal.of .decoding value
 
 /-- `default`: Enable the track if no other text track is more suitable. A boolean attribute: present, with the empty string as its value. -/
-def a_default : Attr × String := (.default, "")
+def a_default : AttrVal := AttrVal.of .default ""
 
 /-- `defer`: Defer script execution. A boolean attribute: present, with the empty string as its value. -/
-def a_defer : Attr × String := (.defer, "")
+def a_defer : AttrVal := AttrVal.of .defer ""
 
-/-- `dir`: The text directionality of the element. -/
-def a_dir (value : String) : Attr × String := (.dir, value)
+/-- `dir`: The text directionality of the element. Takes one of its keywords. -/
+def a_dir (value : K.dir) : AttrVal := AttrVal.of .dir value.toString
+
+/-- `dir` with a computed value. -/
+def a_dir_str (value : String) : AttrVal := AttrVal.of .dir value
 
 /-- `dirname`: Name of form control to use for sending the element's directionality in form submission. -/
-def a_dirname (value : String) : Attr × String := (.dirname, value)
+def a_dirname (value : String) : AttrVal := AttrVal.of .dirname value
 
 /-- `disabled`: Whether the form control is disabled. A boolean attribute: present, with the empty string as its value. -/
-def a_disabled : Attr × String := (.disabled, "")
+def a_disabled : AttrVal := AttrVal.of .disabled ""
 
 /-- `download`: Whether to download the resource instead of navigating to it, and its filename if so. -/
-def a_download (value : String) : Attr × String := (.download, value)
+def a_download (value : String) : AttrVal := AttrVal.of .download value
 
-/-- `draggable`: Whether the element is draggable. -/
-def a_draggable (value : String) : Attr × String := (.draggable, value)
+/-- `draggable`: Whether the element is draggable. Takes one of its keywords. -/
+def a_draggable (value : K.draggable) : AttrVal := AttrVal.of .draggable value.toString
+
+/-- `draggable` with a computed value. -/
+def a_draggable_str (value : String) : AttrVal := AttrVal.of .draggable value
 
 /-- `enctype`: Entry list encoding type to use for form submission. -/
-def a_enctype (value : String) : Attr × String := (.enctype, value)
+def a_enctype (value : String) : AttrVal := AttrVal.of .enctype value
 
-/-- `enterkeyhint`: Hint for selecting an enter key action. -/
-def a_enterkeyhint (value : String) : Attr × String := (.enterkeyhint, value)
+/-- `enterkeyhint`: Hint for selecting an enter key action. Takes one of its keywords. -/
+def a_enterkeyhint (value : K.enterkeyhint) : AttrVal := AttrVal.of .enterkeyhint value.toString
 
-/-- `fetchpriority`: Sets the priority for fetches initiated by the element. -/
-def a_fetchpriority (value : String) : Attr × String := (.fetchpriority, value)
+/-- `enterkeyhint` with a computed value. -/
+def a_enterkeyhint_str (value : String) : AttrVal := AttrVal.of .enterkeyhint value
+
+/-- `fetchpriority`: Sets the priority for fetches initiated by the element. Takes one of its keywords. -/
+def a_fetchpriority (value : K.fetchpriority) : AttrVal := AttrVal.of .fetchpriority value.toString
+
+/-- `fetchpriority` with a computed value. -/
+def a_fetchpriority_str (value : String) : AttrVal := AttrVal.of .fetchpriority value
 
 /-- `for`: Associate the label with form control. -/
-def a_for (value : String) : Attr × String := (.«for», value)
+def a_for (value : String) : AttrVal := AttrVal.of .«for» value
 
 /-- `form`: Associates the element with a form element. -/
-def a_form (value : String) : Attr × String := (.form, value)
+def a_form (value : String) : AttrVal := AttrVal.of .form value
 
 /-- `formaction`: URL to use for form submission. -/
-def a_formaction (value : String) : Attr × String := (.formaction, value)
+def a_formaction (value : String) : AttrVal := AttrVal.of .formaction value
 
 /-- `formenctype`: Entry list encoding type to use for form submission. -/
-def a_formenctype (value : String) : Attr × String := (.formenctype, value)
+def a_formenctype (value : String) : AttrVal := AttrVal.of .formenctype value
 
-/-- `formmethod`: Variant to use for form submission. -/
-def a_formmethod (value : String) : Attr × String := (.formmethod, value)
+/-- `formmethod`: Variant to use for form submission. Takes one of its keywords. -/
+def a_formmethod (value : K.formmethod) : AttrVal := AttrVal.of .formmethod value.toString
+
+/-- `formmethod` with a computed value. -/
+def a_formmethod_str (value : String) : AttrVal := AttrVal.of .formmethod value
 
 /-- `formnovalidate`: Bypass form control validation for form submission. A boolean attribute: present, with the empty string as its value. -/
-def a_formnovalidate : Attr × String := (.formnovalidate, "")
+def a_formnovalidate : AttrVal := AttrVal.of .formnovalidate ""
 
 /-- `formtarget`: Navigable for form submission. -/
-def a_formtarget (value : String) : Attr × String := (.formtarget, value)
+def a_formtarget (value : String) : AttrVal := AttrVal.of .formtarget value
 
 /-- `headers`: The header cells for this cell. -/
-def a_headers (value : String) : Attr × String := (.headers, value)
+def a_headers (value : String) : AttrVal := AttrVal.of .headers value
 
 /-- `headingoffset`: Offsets heading levels for descendants. -/
-def a_headingoffset (value : String) : Attr × String := (.headingoffset, value)
+def a_headingoffset (value : String) : AttrVal := AttrVal.of .headingoffset value
 
 /-- `headingreset`: Prevents a heading offset computation from traversing beyond the element with the attribute. A boolean attribute: present, with the empty string as its value. -/
-def a_headingreset : Attr × String := (.headingreset, "")
+def a_headingreset : AttrVal := AttrVal.of .headingreset ""
 
 /-- `height`: Vertical dimension. -/
-def a_height (value : String) : Attr × String := (.height, value)
+def a_height (value : String) : AttrVal := AttrVal.of .height value
 
 /-- `hidden`: Whether the element is relevant. -/
-def a_hidden (value : String) : Attr × String := (.hidden, value)
+def a_hidden (value : String) : AttrVal := AttrVal.of .hidden value
 
 /-- `high`: Low limit of high range. -/
-def a_high (value : String) : Attr × String := (.high, value)
+def a_high (value : String) : AttrVal := AttrVal.of .high value
 
 /-- `href`: Address of the hyperlink. -/
-def a_href (value : String) : Attr × String := (.href, value)
+def a_href (value : String) : AttrVal := AttrVal.of .href value
 
 /-- `hreflang`: Language of the linked resource. -/
-def a_hreflang (value : String) : Attr × String := (.hreflang, value)
+def a_hreflang (value : String) : AttrVal := AttrVal.of .hreflang value
 
 /-- `http-equiv`: Pragma directive. -/
-def a_http_equiv (value : String) : Attr × String := (.http_equiv, value)
+def a_http_equiv (value : String) : AttrVal := AttrVal.of .http_equiv value
 
 /-- `id`: The element's ID. -/
-def a_id (value : String) : Attr × String := (.id, value)
+def a_id (value : String) : AttrVal := AttrVal.of .id value
 
 /-- `imagesizes`: Image sizes for different page layouts (for rel="preload"). -/
-def a_imagesizes (value : String) : Attr × String := (.imagesizes, value)
+def a_imagesizes (value : String) : AttrVal := AttrVal.of .imagesizes value
 
 /-- `imagesrcset`: Images to use in different situations, e.g., high-resolution displays, small monitors, etc. (for rel="preload"). -/
-def a_imagesrcset (value : String) : Attr × String := (.imagesrcset, value)
+def a_imagesrcset (value : String) : AttrVal := AttrVal.of .imagesrcset value
 
 /-- `inert`: Whether the element is inert.. A boolean attribute: present, with the empty string as its value. -/
-def a_inert : Attr × String := (.inert, "")
+def a_inert : AttrVal := AttrVal.of .inert ""
 
-/-- `inputmode`: Hint for selecting an input modality. -/
-def a_inputmode (value : String) : Attr × String := (.inputmode, value)
+/-- `inputmode`: Hint for selecting an input modality. Takes one of its keywords. -/
+def a_inputmode (value : K.inputmode) : AttrVal := AttrVal.of .inputmode value.toString
+
+/-- `inputmode` with a computed value. -/
+def a_inputmode_str (value : String) : AttrVal := AttrVal.of .inputmode value
 
 /-- `integrity`: Integrity metadata used in Subresource Integrity checks SRI. -/
-def a_integrity (value : String) : Attr × String := (.integrity, value)
+def a_integrity (value : String) : AttrVal := AttrVal.of .integrity value
 
 /-- `is`: Creates a customized built-in element. -/
-def a_is (value : String) : Attr × String := (.is, value)
+def a_is (value : String) : AttrVal := AttrVal.of .is value
 
 /-- `ismap`: Whether the image is a server-side image map. A boolean attribute: present, with the empty string as its value. -/
-def a_ismap : Attr × String := (.ismap, "")
+def a_ismap : AttrVal := AttrVal.of .ismap ""
 
 /-- `itemid`: Global identifier for a microdata item. -/
-def a_itemid (value : String) : Attr × String := (.itemid, value)
+def a_itemid (value : String) : AttrVal := AttrVal.of .itemid value
 
 /-- `itemprop`: Property names of a microdata item. -/
-def a_itemprop (value : String) : Attr × String := (.itemprop, value)
+def a_itemprop (value : String) : AttrVal := AttrVal.of .itemprop value
 
 /-- `itemref`: Referenced elements. -/
-def a_itemref (value : String) : Attr × String := (.itemref, value)
+def a_itemref (value : String) : AttrVal := AttrVal.of .itemref value
 
 /-- `itemscope`: Introduces a microdata item. A boolean attribute: present, with the empty string as its value. -/
-def a_itemscope : Attr × String := (.itemscope, "")
+def a_itemscope : AttrVal := AttrVal.of .itemscope ""
 
 /-- `itemtype`: Item types of a microdata item. -/
-def a_itemtype (value : String) : Attr × String := (.itemtype, value)
+def a_itemtype (value : String) : AttrVal := AttrVal.of .itemtype value
 
-/-- `kind`: The type of text track. -/
-def a_kind (value : String) : Attr × String := (.kind, value)
+/-- `kind`: The type of text track. Takes one of its keywords. -/
+def a_kind (value : K.kind) : AttrVal := AttrVal.of .kind value.toString
+
+/-- `kind` with a computed value. -/
+def a_kind_str (value : String) : AttrVal := AttrVal.of .kind value
 
 /-- `label`: User-visible label. -/
-def a_label (value : String) : Attr × String := (.label, value)
+def a_label (value : String) : AttrVal := AttrVal.of .label value
 
 /-- `lang`: Language of the element. -/
-def a_lang (value : String) : Attr × String := (.lang, value)
+def a_lang (value : String) : AttrVal := AttrVal.of .lang value
 
 /-- `list`: List of autocomplete options. -/
-def a_list (value : String) : Attr × String := (.list, value)
+def a_list (value : String) : AttrVal := AttrVal.of .list value
 
-/-- `loading`: Used when determining loading deferral. -/
-def a_loading (value : String) : Attr × String := (.loading, value)
+/-- `loading`: Used when determining loading deferral. Takes one of its keywords. -/
+def a_loading (value : K.loading) : AttrVal := AttrVal.of .loading value.toString
+
+/-- `loading` with a computed value. -/
+def a_loading_str (value : String) : AttrVal := AttrVal.of .loading value
 
 /-- `loop`: Whether to loop the media resource. A boolean attribute: present, with the empty string as its value. -/
-def a_loop : Attr × String := (.loop, "")
+def a_loop : AttrVal := AttrVal.of .loop ""
 
 /-- `low`: High limit of low range. -/
-def a_low (value : String) : Attr × String := (.low, value)
+def a_low (value : String) : AttrVal := AttrVal.of .low value
 
 /-- `max`: Maximum value. -/
-def a_max (value : String) : Attr × String := (.max, value)
+def a_max (value : String) : AttrVal := AttrVal.of .max value
 
 /-- `maxlength`: Maximum length of value. -/
-def a_maxlength (value : String) : Attr × String := (.maxlength, value)
+def a_maxlength (value : String) : AttrVal := AttrVal.of .maxlength value
 
 /-- `media`: Applicable media. -/
-def a_media (value : String) : Attr × String := (.media, value)
+def a_media (value : String) : AttrVal := AttrVal.of .media value
 
-/-- `method`: Variant to use for form submission. -/
-def a_method (value : String) : Attr × String := (.method, value)
+/-- `method`: Variant to use for form submission. Takes one of its keywords. -/
+def a_method (value : K.method) : AttrVal := AttrVal.of .method value.toString
+
+/-- `method` with a computed value. -/
+def a_method_str (value : String) : AttrVal := AttrVal.of .method value
 
 /-- `min`: Minimum value. -/
-def a_min (value : String) : Attr × String := (.min, value)
+def a_min (value : String) : AttrVal := AttrVal.of .min value
 
 /-- `minlength`: Minimum length of value. -/
-def a_minlength (value : String) : Attr × String := (.minlength, value)
+def a_minlength (value : String) : AttrVal := AttrVal.of .minlength value
 
 /-- `multiple`: Whether to allow multiple values. A boolean attribute: present, with the empty string as its value. -/
-def a_multiple : Attr × String := (.multiple, "")
+def a_multiple : AttrVal := AttrVal.of .multiple ""
 
 /-- `muted`: Whether to mute the media resource by default. A boolean attribute: present, with the empty string as its value. -/
-def a_muted : Attr × String := (.muted, "")
+def a_muted : AttrVal := AttrVal.of .muted ""
 
 /-- `name`: Name of the element to use for form submission and in the form.elements API form.elements API. -->. -/
-def a_name (value : String) : Attr × String := (.name, value)
+def a_name (value : String) : AttrVal := AttrVal.of .name value
 
 /-- `nomodule`: Prevents execution in user agents that support module scripts. A boolean attribute: present, with the empty string as its value. -/
-def a_nomodule : Attr × String := (.nomodule, "")
+def a_nomodule : AttrVal := AttrVal.of .nomodule ""
 
 /-- `nonce`: Cryptographic nonce used in Content Security Policy checks CSP. -/
-def a_nonce (value : String) : Attr × String := (.nonce, value)
+def a_nonce (value : String) : AttrVal := AttrVal.of .nonce value
 
 /-- `novalidate`: Bypass form control validation for form submission. A boolean attribute: present, with the empty string as its value. -/
-def a_novalidate : Attr × String := (.novalidate, "")
+def a_novalidate : AttrVal := AttrVal.of .novalidate ""
 
 /-- `open`: Whether the details are visible. A boolean attribute: present, with the empty string as its value. -/
-def a_open : Attr × String := (.«open», "")
+def a_open : AttrVal := AttrVal.of .«open» ""
 
 /-- `optimum`: Optimum value in gauge. -/
-def a_optimum (value : String) : Attr × String := (.optimum, value)
+def a_optimum (value : String) : AttrVal := AttrVal.of .optimum value
 
 /-- `pattern`: Pattern to be matched by the form control's value. -/
-def a_pattern (value : String) : Attr × String := (.pattern, value)
+def a_pattern (value : String) : AttrVal := AttrVal.of .pattern value
 
 /-- `ping`: URLs to ping. -/
-def a_ping (value : String) : Attr × String := (.ping, value)
+def a_ping (value : String) : AttrVal := AttrVal.of .ping value
 
 /-- `placeholder`: User-visible label to be placed within the form control. -/
-def a_placeholder (value : String) : Attr × String := (.placeholder, value)
+def a_placeholder (value : String) : AttrVal := AttrVal.of .placeholder value
 
 /-- `playsinline`: Encourage the user agent to display video content within the element's playback area. A boolean attribute: present, with the empty string as its value. -/
-def a_playsinline : Attr × String := (.playsinline, "")
+def a_playsinline : AttrVal := AttrVal.of .playsinline ""
 
-/-- `popover`: Makes the element a popover element. -/
-def a_popover (value : String) : Attr × String := (.popover, value)
+/-- `popover`: Makes the element a popover element. Takes one of its keywords. -/
+def a_popover (value : K.popover) : AttrVal := AttrVal.of .popover value.toString
+
+/-- `popover` with a computed value. -/
+def a_popover_str (value : String) : AttrVal := AttrVal.of .popover value
 
 /-- `popovertarget`: Targets a popover element to toggle, show, or hide. -/
-def a_popovertarget (value : String) : Attr × String := (.popovertarget, value)
+def a_popovertarget (value : String) : AttrVal := AttrVal.of .popovertarget value
 
-/-- `popovertargetaction`: Indicates whether a targeted popover element is to be toggled, shown, or hidden. -/
-def a_popovertargetaction (value : String) : Attr × String := (.popovertargetaction, value)
+/-- `popovertargetaction`: Indicates whether a targeted popover element is to be toggled, shown, or hidden. Takes one of its keywords. -/
+def a_popovertargetaction (value : K.popovertargetaction) : AttrVal := AttrVal.of .popovertargetaction value.toString
+
+/-- `popovertargetaction` with a computed value. -/
+def a_popovertargetaction_str (value : String) : AttrVal := AttrVal.of .popovertargetaction value
 
 /-- `poster`: Poster frame to show prior to video playback. -/
-def a_poster (value : String) : Attr × String := (.poster, value)
+def a_poster (value : String) : AttrVal := AttrVal.of .poster value
 
-/-- `preload`: Hints how much buffering the media resource will likely need. -/
-def a_preload (value : String) : Attr × String := (.preload, value)
+/-- `preload`: Hints how much buffering the media resource will likely need. Takes one of its keywords. -/
+def a_preload (value : K.preload) : AttrVal := AttrVal.of .preload value.toString
+
+/-- `preload` with a computed value. -/
+def a_preload_str (value : String) : AttrVal := AttrVal.of .preload value
 
 /-- `readonly`: Whether to allow the value to be edited by the user. A boolean attribute: present, with the empty string as its value. -/
-def a_readonly : Attr × String := (.readonly, "")
+def a_readonly : AttrVal := AttrVal.of .readonly ""
 
 /-- `referrerpolicy`: Referrer policy for fetches initiated by the element. -/
-def a_referrerpolicy (value : String) : Attr × String := (.referrerpolicy, value)
+def a_referrerpolicy (value : String) : AttrVal := AttrVal.of .referrerpolicy value
 
 /-- `rel`: Relationship between the location in the document containing the hyperlink and the destination resource. -/
-def a_rel (value : String) : Attr × String := (.rel, value)
+def a_rel (value : String) : AttrVal := AttrVal.of .rel value
 
 /-- `required`: Whether the control is required for form submission. A boolean attribute: present, with the empty string as its value. -/
-def a_required : Attr × String := (.required, "")
+def a_required : AttrVal := AttrVal.of .required ""
 
 /-- `reversed`: Number the list backwards. A boolean attribute: present, with the empty string as its value. -/
-def a_reversed : Attr × String := (.reversed, "")
+def a_reversed : AttrVal := AttrVal.of .reversed ""
 
 /-- `rows`: Number of lines to show. -/
-def a_rows (value : String) : Attr × String := (.rows, value)
+def a_rows (value : String) : AttrVal := AttrVal.of .rows value
 
 /-- `rowspan`: Number of rows that the cell is to span. -/
-def a_rowspan (value : String) : Attr × String := (.rowspan, value)
+def a_rowspan (value : String) : AttrVal := AttrVal.of .rowspan value
 
 /-- `sandbox`: Security rules for nested content. -/
-def a_sandbox (value : String) : Attr × String := (.sandbox, value)
+def a_sandbox (value : String) : AttrVal := AttrVal.of .sandbox value
 
-/-- `scope`: Specifies which cells the header cell applies to. -/
-def a_scope (value : String) : Attr × String := (.scope, value)
+/-- `scope`: Specifies which cells the header cell applies to. Takes one of its keywords. -/
+def a_scope (value : K.scope) : AttrVal := AttrVal.of .scope value.toString
+
+/-- `scope` with a computed value. -/
+def a_scope_str (value : String) : AttrVal := AttrVal.of .scope value
 
 /-- `selected`: Whether the option is selected by default. A boolean attribute: present, with the empty string as its value. -/
-def a_selected : Attr × String := (.selected, "")
+def a_selected : AttrVal := AttrVal.of .selected ""
 
 /-- `shadowrootclonable`: Sets clonable on a declarative shadow root. A boolean attribute: present, with the empty string as its value. -/
-def a_shadowrootclonable : Attr × String := (.shadowrootclonable, "")
+def a_shadowrootclonable : AttrVal := AttrVal.of .shadowrootclonable ""
 
 /-- `shadowrootcustomelementregistry`: Enables declarative shadow roots to indicate they will use a custom element registry. A boolean attribute: present, with the empty string as its value. -/
-def a_shadowrootcustomelementregistry : Attr × String := (.shadowrootcustomelementregistry, "")
+def a_shadowrootcustomelementregistry : AttrVal := AttrVal.of .shadowrootcustomelementregistry ""
 
 /-- `shadowrootdelegatesfocus`: Sets delegates focus on a declarative shadow root. A boolean attribute: present, with the empty string as its value. -/
-def a_shadowrootdelegatesfocus : Attr × String := (.shadowrootdelegatesfocus, "")
+def a_shadowrootdelegatesfocus : AttrVal := AttrVal.of .shadowrootdelegatesfocus ""
 
-/-- `shadowrootmode`: Enables streaming declarative shadow roots. -/
-def a_shadowrootmode (value : String) : Attr × String := (.shadowrootmode, value)
+/-- `shadowrootmode`: Enables streaming declarative shadow roots. Takes one of its keywords. -/
+def a_shadowrootmode (value : K.shadowrootmode) : AttrVal := AttrVal.of .shadowrootmode value.toString
+
+/-- `shadowrootmode` with a computed value. -/
+def a_shadowrootmode_str (value : String) : AttrVal := AttrVal.of .shadowrootmode value
 
 /-- `shadowrootserializable`: Sets serializable on a declarative shadow root. A boolean attribute: present, with the empty string as its value. -/
-def a_shadowrootserializable : Attr × String := (.shadowrootserializable, "")
+def a_shadowrootserializable : AttrVal := AttrVal.of .shadowrootserializable ""
 
-/-- `shadowrootslotassignment`: Sets slot assignment on a declarative shadow root. -/
-def a_shadowrootslotassignment (value : String) : Attr × String := (.shadowrootslotassignment, value)
+/-- `shadowrootslotassignment`: Sets slot assignment on a declarative shadow root. Takes one of its keywords. -/
+def a_shadowrootslotassignment (value : K.shadowrootslotassignment) : AttrVal := AttrVal.of .shadowrootslotassignment value.toString
 
-/-- `shape`: The kind of shape to be created in an image map. -/
-def a_shape (value : String) : Attr × String := (.shape, value)
+/-- `shadowrootslotassignment` with a computed value. -/
+def a_shadowrootslotassignment_str (value : String) : AttrVal := AttrVal.of .shadowrootslotassignment value
+
+/-- `shape`: The kind of shape to be created in an image map. Takes one of its keywords. -/
+def a_shape (value : K.shape) : AttrVal := AttrVal.of .shape value.toString
+
+/-- `shape` with a computed value. -/
+def a_shape_str (value : String) : AttrVal := AttrVal.of .shape value
 
 /-- `size`: Size of the control. -/
-def a_size (value : String) : Attr × String := (.size, value)
+def a_size (value : String) : AttrVal := AttrVal.of .size value
 
 /-- `sizes`: Sizes of the icons (for rel="icon"). -/
-def a_sizes (value : String) : Attr × String := (.sizes, value)
+def a_sizes (value : String) : AttrVal := AttrVal.of .sizes value
 
 /-- `slot`: The element's desired slot. -/
-def a_slot (value : String) : Attr × String := (.slot, value)
+def a_slot (value : String) : AttrVal := AttrVal.of .slot value
 
 /-- `span`: Number of columns spanned by the element. -/
-def a_span (value : String) : Attr × String := (.span, value)
+def a_span (value : String) : AttrVal := AttrVal.of .span value
 
-/-- `spellcheck`: Whether the element is to have its spelling and grammar checked. -/
-def a_spellcheck (value : String) : Attr × String := (.spellcheck, value)
+/-- `spellcheck`: Whether the element is to have its spelling and grammar checked. Takes one of its keywords. -/
+def a_spellcheck (value : K.spellcheck) : AttrVal := AttrVal.of .spellcheck value.toString
+
+/-- `spellcheck` with a computed value. -/
+def a_spellcheck_str (value : String) : AttrVal := AttrVal.of .spellcheck value
 
 /-- `src`: Address of the resource. -/
-def a_src (value : String) : Attr × String := (.src, value)
+def a_src (value : String) : AttrVal := AttrVal.of .src value
 
 /-- `srcdoc`: A document to render in the iframe. -/
-def a_srcdoc (value : String) : Attr × String := (.srcdoc, value)
+def a_srcdoc (value : String) : AttrVal := AttrVal.of .srcdoc value
 
 /-- `srclang`: Language of the text track. -/
-def a_srclang (value : String) : Attr × String := (.srclang, value)
+def a_srclang (value : String) : AttrVal := AttrVal.of .srclang value
 
 /-- `srcset`: Images to use in different situations, e.g., high-resolution displays, small monitors, etc.. -/
-def a_srcset (value : String) : Attr × String := (.srcset, value)
+def a_srcset (value : String) : AttrVal := AttrVal.of .srcset value
 
 /-- `start`: Starting value of the list. -/
-def a_start (value : String) : Attr × String := (.start, value)
+def a_start (value : String) : AttrVal := AttrVal.of .start value
 
 /-- `step`: Granularity to be matched by the form control's value. -/
-def a_step (value : String) : Attr × String := (.step, value)
+def a_step (value : String) : AttrVal := AttrVal.of .step value
 
 /-- `style`: Presentational and formatting instructions. -/
-def a_style (value : String) : Attr × String := (.style, value)
+def a_style (value : String) : AttrVal := AttrVal.of .style value
 
 /-- `tabindex`: Whether the element is focusable and sequentially focusable, and the relative order of the element for the purposes of sequential focus navigation. -/
-def a_tabindex (value : String) : Attr × String := (.tabindex, value)
+def a_tabindex (value : String) : AttrVal := AttrVal.of .tabindex value
 
 /-- `target`: Navigable for hyperlink navigation. -/
-def a_target (value : String) : Attr × String := (.target, value)
+def a_target (value : String) : AttrVal := AttrVal.of .target value
 
 /-- `title`: Advisory information for the element. -/
-def a_title (value : String) : Attr × String := (.title, value)
+def a_title (value : String) : AttrVal := AttrVal.of .title value
 
-/-- `translate`: Whether the element is to be translated when the page is localized. -/
-def a_translate (value : String) : Attr × String := (.translate, value)
+/-- `translate`: Whether the element is to be translated when the page is localized. Takes one of its keywords. -/
+def a_translate (value : K.translate) : AttrVal := AttrVal.of .translate value.toString
+
+/-- `translate` with a computed value. -/
+def a_translate_str (value : String) : AttrVal := AttrVal.of .translate value
 
 /-- `type`: Hint for the type of the referenced resource. -/
-def a_type (value : String) : Attr × String := (.«type», value)
+def a_type (value : String) : AttrVal := AttrVal.of .«type» value
 
 /-- `usemap`: Name of image map to use. -/
-def a_usemap (value : String) : Attr × String := (.usemap, value)
+def a_usemap (value : String) : AttrVal := AttrVal.of .usemap value
 
 /-- `value`: Value to be used for form submission. -/
-def a_value (value : String) : Attr × String := (.value, value)
+def a_value (value : String) : AttrVal := AttrVal.of .value value
 
 /-- `width`: Horizontal dimension. -/
-def a_width (value : String) : Attr × String := (.width, value)
+def a_width (value : String) : AttrVal := AttrVal.of .width value
 
-/-- `wrap`: How the value of the form control is to be wrapped for form submission. -/
-def a_wrap (value : String) : Attr × String := (.wrap, value)
+/-- `wrap`: How the value of the form control is to be wrapped for form submission. Takes one of its keywords. -/
+def a_wrap (value : K.wrap) : AttrVal := AttrVal.of .wrap value.toString
 
-/-- `writingsuggestions`: Whether the element can offer writing suggestions or not.. -/
-def a_writingsuggestions (value : String) : Attr × String := (.writingsuggestions, value)
+/-- `wrap` with a computed value. -/
+def a_wrap_str (value : String) : AttrVal := AttrVal.of .wrap value
+
+/-- `writingsuggestions`: Whether the element can offer writing suggestions or not.. Takes one of its keywords. -/
+def a_writingsuggestions (value : K.writingsuggestions) : AttrVal := AttrVal.of .writingsuggestions value.toString
+
+/-- `writingsuggestions` with a computed value. -/
+def a_writingsuggestions_str (value : String) : AttrVal := AttrVal.of .writingsuggestions value
 
 /-- `onafterprint`: afterprint event handler for Window object. -/
-def a_onafterprint (value : String) : Attr × String := (.onafterprint, value)
+def a_onafterprint (value : String) : AttrVal := AttrVal.of .onafterprint value
 
 /-- `onauxclick`: auxclick event handler. -/
-def a_onauxclick (value : String) : Attr × String := (.onauxclick, value)
+def a_onauxclick (value : String) : AttrVal := AttrVal.of .onauxclick value
 
 /-- `onbeforeinput`: beforeinput event handler. -/
-def a_onbeforeinput (value : String) : Attr × String := (.onbeforeinput, value)
+def a_onbeforeinput (value : String) : AttrVal := AttrVal.of .onbeforeinput value
 
 /-- `onbeforematch`: beforematch event handler. -/
-def a_onbeforematch (value : String) : Attr × String := (.onbeforematch, value)
+def a_onbeforematch (value : String) : AttrVal := AttrVal.of .onbeforematch value
 
 /-- `onbeforeprint`: beforeprint event handler for Window object. -/
-def a_onbeforeprint (value : String) : Attr × String := (.onbeforeprint, value)
+def a_onbeforeprint (value : String) : AttrVal := AttrVal.of .onbeforeprint value
 
 /-- `onbeforeunload`: beforeunload event handler for Window object. -/
-def a_onbeforeunload (value : String) : Attr × String := (.onbeforeunload, value)
+def a_onbeforeunload (value : String) : AttrVal := AttrVal.of .onbeforeunload value
 
 /-- `onbeforetoggle`: beforetoggle event handler. -/
-def a_onbeforetoggle (value : String) : Attr × String := (.onbeforetoggle, value)
+def a_onbeforetoggle (value : String) : AttrVal := AttrVal.of .onbeforetoggle value
 
 /-- `onblur`: blur event handler. -/
-def a_onblur (value : String) : Attr × String := (.onblur, value)
+def a_onblur (value : String) : AttrVal := AttrVal.of .onblur value
 
 /-- `oncancel`: cancel event handler. -/
-def a_oncancel (value : String) : Attr × String := (.oncancel, value)
+def a_oncancel (value : String) : AttrVal := AttrVal.of .oncancel value
 
 /-- `oncanplay`: canplay event handler. -/
-def a_oncanplay (value : String) : Attr × String := (.oncanplay, value)
+def a_oncanplay (value : String) : AttrVal := AttrVal.of .oncanplay value
 
 /-- `oncanplaythrough`: canplaythrough event handler. -/
-def a_oncanplaythrough (value : String) : Attr × String := (.oncanplaythrough, value)
+def a_oncanplaythrough (value : String) : AttrVal := AttrVal.of .oncanplaythrough value
 
 /-- `onchange`: change event handler. -/
-def a_onchange (value : String) : Attr × String := (.onchange, value)
+def a_onchange (value : String) : AttrVal := AttrVal.of .onchange value
 
 /-- `onclick`: click event handler. -/
-def a_onclick (value : String) : Attr × String := (.onclick, value)
+def a_onclick (value : String) : AttrVal := AttrVal.of .onclick value
 
 /-- `onclose`: close event handler. -/
-def a_onclose (value : String) : Attr × String := (.onclose, value)
+def a_onclose (value : String) : AttrVal := AttrVal.of .onclose value
 
 /-- `oncommand`: command event handler. -/
-def a_oncommand (value : String) : Attr × String := (.oncommand, value)
+def a_oncommand (value : String) : AttrVal := AttrVal.of .oncommand value
 
 /-- `oncontextlost`: contextlost event handler. -/
-def a_oncontextlost (value : String) : Attr × String := (.oncontextlost, value)
+def a_oncontextlost (value : String) : AttrVal := AttrVal.of .oncontextlost value
 
 /-- `oncontextmenu`: contextmenu event handler. -/
-def a_oncontextmenu (value : String) : Attr × String := (.oncontextmenu, value)
+def a_oncontextmenu (value : String) : AttrVal := AttrVal.of .oncontextmenu value
 
 /-- `oncontextrestored`: contextrestored event handler. -/
-def a_oncontextrestored (value : String) : Attr × String := (.oncontextrestored, value)
+def a_oncontextrestored (value : String) : AttrVal := AttrVal.of .oncontextrestored value
 
 /-- `oncopy`: copy event handler. -/
-def a_oncopy (value : String) : Attr × String := (.oncopy, value)
+def a_oncopy (value : String) : AttrVal := AttrVal.of .oncopy value
 
 /-- `oncuechange`: cuechange event handler. -/
-def a_oncuechange (value : String) : Attr × String := (.oncuechange, value)
+def a_oncuechange (value : String) : AttrVal := AttrVal.of .oncuechange value
 
 /-- `oncut`: cut event handler. -/
-def a_oncut (value : String) : Attr × String := (.oncut, value)
+def a_oncut (value : String) : AttrVal := AttrVal.of .oncut value
 
 /-- `ondblclick`: dblclick event handler. -/
-def a_ondblclick (value : String) : Attr × String := (.ondblclick, value)
+def a_ondblclick (value : String) : AttrVal := AttrVal.of .ondblclick value
 
 /-- `ondrag`: drag event handler. -/
-def a_ondrag (value : String) : Attr × String := (.ondrag, value)
+def a_ondrag (value : String) : AttrVal := AttrVal.of .ondrag value
 
 /-- `ondragend`: dragend event handler. -/
-def a_ondragend (value : String) : Attr × String := (.ondragend, value)
+def a_ondragend (value : String) : AttrVal := AttrVal.of .ondragend value
 
 /-- `ondragenter`: dragenter event handler. -/
-def a_ondragenter (value : String) : Attr × String := (.ondragenter, value)
+def a_ondragenter (value : String) : AttrVal := AttrVal.of .ondragenter value
 
 /-- `ondragleave`: dragleave event handler. -/
-def a_ondragleave (value : String) : Attr × String := (.ondragleave, value)
+def a_ondragleave (value : String) : AttrVal := AttrVal.of .ondragleave value
 
 /-- `ondragover`: dragover event handler. -/
-def a_ondragover (value : String) : Attr × String := (.ondragover, value)
+def a_ondragover (value : String) : AttrVal := AttrVal.of .ondragover value
 
 /-- `ondragstart`: dragstart event handler. -/
-def a_ondragstart (value : String) : Attr × String := (.ondragstart, value)
+def a_ondragstart (value : String) : AttrVal := AttrVal.of .ondragstart value
 
 /-- `ondrop`: drop event handler. -/
-def a_ondrop (value : String) : Attr × String := (.ondrop, value)
+def a_ondrop (value : String) : AttrVal := AttrVal.of .ondrop value
 
 /-- `ondurationchange`: durationchange event handler. -/
-def a_ondurationchange (value : String) : Attr × String := (.ondurationchange, value)
+def a_ondurationchange (value : String) : AttrVal := AttrVal.of .ondurationchange value
 
 /-- `onemptied`: emptied event handler. -/
-def a_onemptied (value : String) : Attr × String := (.onemptied, value)
+def a_onemptied (value : String) : AttrVal := AttrVal.of .onemptied value
 
 /-- `onended`: ended event handler. -/
-def a_onended (value : String) : Attr × String := (.onended, value)
+def a_onended (value : String) : AttrVal := AttrVal.of .onended value
 
 /-- `onerror`: error event handler. -/
-def a_onerror (value : String) : Attr × String := (.onerror, value)
+def a_onerror (value : String) : AttrVal := AttrVal.of .onerror value
 
 /-- `onfocus`: focus event handler. -/
-def a_onfocus (value : String) : Attr × String := (.onfocus, value)
+def a_onfocus (value : String) : AttrVal := AttrVal.of .onfocus value
 
 /-- `onformdata`: formdata event handler. -/
-def a_onformdata (value : String) : Attr × String := (.onformdata, value)
+def a_onformdata (value : String) : AttrVal := AttrVal.of .onformdata value
 
 /-- `onhashchange`: hashchange event handler for Window object. -/
-def a_onhashchange (value : String) : Attr × String := (.onhashchange, value)
+def a_onhashchange (value : String) : AttrVal := AttrVal.of .onhashchange value
 
 /-- `oninput`: input event handler. -/
-def a_oninput (value : String) : Attr × String := (.oninput, value)
+def a_oninput (value : String) : AttrVal := AttrVal.of .oninput value
 
 /-- `oninvalid`: invalid event handler. -/
-def a_oninvalid (value : String) : Attr × String := (.oninvalid, value)
+def a_oninvalid (value : String) : AttrVal := AttrVal.of .oninvalid value
 
 /-- `onkeydown`: keydown event handler. -/
-def a_onkeydown (value : String) : Attr × String := (.onkeydown, value)
+def a_onkeydown (value : String) : AttrVal := AttrVal.of .onkeydown value
 
 /-- `onkeypress`: keypress event handler. -/
-def a_onkeypress (value : String) : Attr × String := (.onkeypress, value)
+def a_onkeypress (value : String) : AttrVal := AttrVal.of .onkeypress value
 
 /-- `onkeyup`: keyup event handler. -/
-def a_onkeyup (value : String) : Attr × String := (.onkeyup, value)
+def a_onkeyup (value : String) : AttrVal := AttrVal.of .onkeyup value
 
 /-- `onlanguagechange`: languagechange event handler for Window object. -/
-def a_onlanguagechange (value : String) : Attr × String := (.onlanguagechange, value)
+def a_onlanguagechange (value : String) : AttrVal := AttrVal.of .onlanguagechange value
 
 /-- `onload`: load event handler. -/
-def a_onload (value : String) : Attr × String := (.onload, value)
+def a_onload (value : String) : AttrVal := AttrVal.of .onload value
 
 /-- `onloadeddata`: loadeddata event handler. -/
-def a_onloadeddata (value : String) : Attr × String := (.onloadeddata, value)
+def a_onloadeddata (value : String) : AttrVal := AttrVal.of .onloadeddata value
 
 /-- `onloadedmetadata`: loadedmetadata event handler. -/
-def a_onloadedmetadata (value : String) : Attr × String := (.onloadedmetadata, value)
+def a_onloadedmetadata (value : String) : AttrVal := AttrVal.of .onloadedmetadata value
 
 /-- `onloadstart`: loadstart event handler. -/
-def a_onloadstart (value : String) : Attr × String := (.onloadstart, value)
+def a_onloadstart (value : String) : AttrVal := AttrVal.of .onloadstart value
 
 /-- `onmessage`: message event handler for Window object. -/
-def a_onmessage (value : String) : Attr × String := (.onmessage, value)
+def a_onmessage (value : String) : AttrVal := AttrVal.of .onmessage value
 
 /-- `onmessageerror`: messageerror event handler for Window object. -/
-def a_onmessageerror (value : String) : Attr × String := (.onmessageerror, value)
+def a_onmessageerror (value : String) : AttrVal := AttrVal.of .onmessageerror value
 
 /-- `onmousedown`: mousedown event handler. -/
-def a_onmousedown (value : String) : Attr × String := (.onmousedown, value)
+def a_onmousedown (value : String) : AttrVal := AttrVal.of .onmousedown value
 
 /-- `onmouseenter`: mouseenter event handler. -/
-def a_onmouseenter (value : String) : Attr × String := (.onmouseenter, value)
+def a_onmouseenter (value : String) : AttrVal := AttrVal.of .onmouseenter value
 
 /-- `onmouseleave`: mouseleave event handler. -/
-def a_onmouseleave (value : String) : Attr × String := (.onmouseleave, value)
+def a_onmouseleave (value : String) : AttrVal := AttrVal.of .onmouseleave value
 
 /-- `onmousemove`: mousemove event handler. -/
-def a_onmousemove (value : String) : Attr × String := (.onmousemove, value)
+def a_onmousemove (value : String) : AttrVal := AttrVal.of .onmousemove value
 
 /-- `onmouseout`: mouseout event handler. -/
-def a_onmouseout (value : String) : Attr × String := (.onmouseout, value)
+def a_onmouseout (value : String) : AttrVal := AttrVal.of .onmouseout value
 
 /-- `onmouseover`: mouseover event handler. -/
-def a_onmouseover (value : String) : Attr × String := (.onmouseover, value)
+def a_onmouseover (value : String) : AttrVal := AttrVal.of .onmouseover value
 
 /-- `onmouseup`: mouseup event handler. -/
-def a_onmouseup (value : String) : Attr × String := (.onmouseup, value)
+def a_onmouseup (value : String) : AttrVal := AttrVal.of .onmouseup value
 
 /-- `onoffline`: offline event handler for Window object. -/
-def a_onoffline (value : String) : Attr × String := (.onoffline, value)
+def a_onoffline (value : String) : AttrVal := AttrVal.of .onoffline value
 
 /-- `ononline`: online event handler for Window object. -/
-def a_ononline (value : String) : Attr × String := (.ononline, value)
+def a_ononline (value : String) : AttrVal := AttrVal.of .ononline value
 
 /-- `onpagehide`: pagehide event handler for Window object. -/
-def a_onpagehide (value : String) : Attr × String := (.onpagehide, value)
+def a_onpagehide (value : String) : AttrVal := AttrVal.of .onpagehide value
 
 /-- `onpagereveal`: pagereveal event handler for Window object. -/
-def a_onpagereveal (value : String) : Attr × String := (.onpagereveal, value)
+def a_onpagereveal (value : String) : AttrVal := AttrVal.of .onpagereveal value
 
 /-- `onpageshow`: pageshow event handler for Window object. -/
-def a_onpageshow (value : String) : Attr × String := (.onpageshow, value)
+def a_onpageshow (value : String) : AttrVal := AttrVal.of .onpageshow value
 
 /-- `onpageswap`: pageswap event handler for Window object. -/
-def a_onpageswap (value : String) : Attr × String := (.onpageswap, value)
+def a_onpageswap (value : String) : AttrVal := AttrVal.of .onpageswap value
 
 /-- `onpaste`: paste event handler. -/
-def a_onpaste (value : String) : Attr × String := (.onpaste, value)
+def a_onpaste (value : String) : AttrVal := AttrVal.of .onpaste value
 
 /-- `onpause`: pause event handler. -/
-def a_onpause (value : String) : Attr × String := (.onpause, value)
+def a_onpause (value : String) : AttrVal := AttrVal.of .onpause value
 
 /-- `onplay`: play event handler. -/
-def a_onplay (value : String) : Attr × String := (.onplay, value)
+def a_onplay (value : String) : AttrVal := AttrVal.of .onplay value
 
 /-- `onplaying`: playing event handler. -/
-def a_onplaying (value : String) : Attr × String := (.onplaying, value)
+def a_onplaying (value : String) : AttrVal := AttrVal.of .onplaying value
 
 /-- `onpopstate`: popstate event handler for Window object. -/
-def a_onpopstate (value : String) : Attr × String := (.onpopstate, value)
+def a_onpopstate (value : String) : AttrVal := AttrVal.of .onpopstate value
 
 /-- `onprogress`: progress event handler. -/
-def a_onprogress (value : String) : Attr × String := (.onprogress, value)
+def a_onprogress (value : String) : AttrVal := AttrVal.of .onprogress value
 
 /-- `onratechange`: ratechange event handler. -/
-def a_onratechange (value : String) : Attr × String := (.onratechange, value)
+def a_onratechange (value : String) : AttrVal := AttrVal.of .onratechange value
 
 /-- `onreset`: reset event handler. -/
-def a_onreset (value : String) : Attr × String := (.onreset, value)
+def a_onreset (value : String) : AttrVal := AttrVal.of .onreset value
 
 /-- `onresize`: resize event handler. -/
-def a_onresize (value : String) : Attr × String := (.onresize, value)
+def a_onresize (value : String) : AttrVal := AttrVal.of .onresize value
 
 /-- `onrejectionhandled`: rejectionhandled event handler for Window object. -/
-def a_onrejectionhandled (value : String) : Attr × String := (.onrejectionhandled, value)
+def a_onrejectionhandled (value : String) : AttrVal := AttrVal.of .onrejectionhandled value
 
 /-- `onscroll`: scroll event handler. -/
-def a_onscroll (value : String) : Attr × String := (.onscroll, value)
+def a_onscroll (value : String) : AttrVal := AttrVal.of .onscroll value
 
 /-- `onscrollend`: scrollend event handler. -/
-def a_onscrollend (value : String) : Attr × String := (.onscrollend, value)
+def a_onscrollend (value : String) : AttrVal := AttrVal.of .onscrollend value
 
 /-- `onsecuritypolicyviolation`: securitypolicyviolation event handler. -/
-def a_onsecuritypolicyviolation (value : String) : Attr × String := (.onsecuritypolicyviolation, value)
+def a_onsecuritypolicyviolation (value : String) : AttrVal := AttrVal.of .onsecuritypolicyviolation value
 
 /-- `onseeked`: seeked event handler. -/
-def a_onseeked (value : String) : Attr × String := (.onseeked, value)
+def a_onseeked (value : String) : AttrVal := AttrVal.of .onseeked value
 
 /-- `onseeking`: seeking event handler. -/
-def a_onseeking (value : String) : Attr × String := (.onseeking, value)
+def a_onseeking (value : String) : AttrVal := AttrVal.of .onseeking value
 
 /-- `onselect`: select event handler. -/
-def a_onselect (value : String) : Attr × String := (.onselect, value)
+def a_onselect (value : String) : AttrVal := AttrVal.of .onselect value
 
 /-- `onslotchange`: slotchange event handler. -/
-def a_onslotchange (value : String) : Attr × String := (.onslotchange, value)
+def a_onslotchange (value : String) : AttrVal := AttrVal.of .onslotchange value
 
 /-- `onstalled`: stalled event handler. -/
-def a_onstalled (value : String) : Attr × String := (.onstalled, value)
+def a_onstalled (value : String) : AttrVal := AttrVal.of .onstalled value
 
 /-- `onstorage`: storage event handler for Window object. -/
-def a_onstorage (value : String) : Attr × String := (.onstorage, value)
+def a_onstorage (value : String) : AttrVal := AttrVal.of .onstorage value
 
 /-- `onsubmit`: submit event handler. -/
-def a_onsubmit (value : String) : Attr × String := (.onsubmit, value)
+def a_onsubmit (value : String) : AttrVal := AttrVal.of .onsubmit value
 
 /-- `onsuspend`: suspend event handler. -/
-def a_onsuspend (value : String) : Attr × String := (.onsuspend, value)
+def a_onsuspend (value : String) : AttrVal := AttrVal.of .onsuspend value
 
 /-- `ontimeupdate`: timeupdate event handler. -/
-def a_ontimeupdate (value : String) : Attr × String := (.ontimeupdate, value)
+def a_ontimeupdate (value : String) : AttrVal := AttrVal.of .ontimeupdate value
 
 /-- `ontoggle`: toggle event handler. -/
-def a_ontoggle (value : String) : Attr × String := (.ontoggle, value)
+def a_ontoggle (value : String) : AttrVal := AttrVal.of .ontoggle value
 
 /-- `onunhandledrejection`: unhandledrejection event handler for Window object. -/
-def a_onunhandledrejection (value : String) : Attr × String := (.onunhandledrejection, value)
+def a_onunhandledrejection (value : String) : AttrVal := AttrVal.of .onunhandledrejection value
 
 /-- `onunload`: unload event handler for Window object. -/
-def a_onunload (value : String) : Attr × String := (.onunload, value)
+def a_onunload (value : String) : AttrVal := AttrVal.of .onunload value
 
 /-- `onvolumechange`: volumechange event handler. -/
-def a_onvolumechange (value : String) : Attr × String := (.onvolumechange, value)
+def a_onvolumechange (value : String) : AttrVal := AttrVal.of .onvolumechange value
 
 /-- `onwaiting`: waiting event handler. -/
-def a_onwaiting (value : String) : Attr × String := (.onwaiting, value)
+def a_onwaiting (value : String) : AttrVal := AttrVal.of .onwaiting value
 
 /-- `onwheel`: wheel event handler. -/
-def a_onwheel (value : String) : Attr × String := (.onwheel, value)
+def a_onwheel (value : String) : AttrVal := AttrVal.of .onwheel value
 
 /-- `role`: ARIA role, defined in ARIA in HTML, on every element. -/
-def a_role (value : String) : Attr × String := (.role, value)
+def a_role (value : String) : AttrVal := AttrVal.of .role value
 
 end Whatwg.Html.A

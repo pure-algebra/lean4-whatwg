@@ -28,9 +28,26 @@ namespace Whatwg.Html
 open Whatwg.Html.Schema (Tag Attr AttrSet)
 open Whatwg.Html.Content (Ctx validIn validAll attrsOk)
 
-/-- The raw form of a typed attribute list: markup names and values. -/
-def rawAttrs (attrs : List (Attr × String)) : List (String × String) :=
-  attrs.map fun p => (p.1.markupName, p.2)
+/-- A typed attribute: the attribute, its full markup name (the prefix and
+suffix together for `data-*` and `aria-*`), and its value. -/
+structure AttrVal where
+  attr : Attr
+  name : String
+  value : String
+  deriving Repr, Inhabited
+
+/-- An attribute of the index, by its markup name. -/
+def AttrVal.of (a : Attr) (value : String) : AttrVal := ⟨a, a.markupName, value⟩
+
+/-- A custom data attribute `data-<suffix>`. -/
+def AttrVal.data (suffix value : String) : AttrVal := ⟨.data_, "data-" ++ suffix, value⟩
+
+/-- An ARIA attribute `aria-<suffix>`. -/
+def AttrVal.aria (suffix value : String) : AttrVal := ⟨.aria_, "aria-" ++ suffix, value⟩
+
+/-- The raw form of a typed attribute list: names and values. -/
+def rawAttrs (attrs : List AttrVal) : List (String × String) :=
+  attrs.map fun a => (a.name, a.value)
 
 /-- A raw node valid at a position. -/
 structure Child (ctx : Ctx) where
@@ -40,7 +57,7 @@ structure Child (ctx : Ctx) where
 /-- An element of tag `t` placed in the context `ctx`: its attributes, its
 erased children, and the proofs that make its erasure valid. -/
 structure Element (t : Tag) (ctx : Ctx) where
-  attrs : List (Attr × String)
+  attrs : List AttrVal
   children : List RawNode
   hattrs : attrsOk t (rawAttrs attrs) = true
   hseq : Content.seqOk (ctx.child t) t children = true
@@ -71,7 +88,7 @@ theorem validAll_children {ctx : Ctx} : ∀ cs : List (Child ctx), validAll ctx 
 /-- Build an element from typed children. The tag must be an element
 (`htag`), which every combinator discharges once at its definition. -/
 def Element.ofChildren {t : Tag} {ctx : Ctx} (cs : List (Child (ctx.child t)))
-    (attrs : List (Attr × String)) (ha : attrsOk t (rawAttrs attrs) = true)
+    (attrs : List AttrVal) (ha : attrsOk t (rawAttrs attrs) = true)
     (hs : Content.seqOk (ctx.child t) t (cs.map Child.raw) = true)
     (ht : t.markupName.isSome = true := by decide) : Element t ctx :=
   ⟨attrs, cs.map Child.raw, ha, hs, validAll_children cs, ht⟩

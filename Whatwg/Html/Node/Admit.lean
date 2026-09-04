@@ -70,20 +70,50 @@ def list? {α} (elem : Expr → MetaM (Option α)) : Nat → Expr → MetaM (Opt
       return some (x :: rest)
     return none
 
-/-- A closed context as a value. -/
-def ctx? (e : Expr) : MetaM (Option Ctx) := do
-  let e ← whnf e
-  unless e.isAppOfArity ``Ctx.mk 3 do return none
-  let some b ← base? (e.getArg! 0) | return none
-  let some x ← excl? (e.getArg! 1) | return none
-  let some extra ← list? tag? 64 (e.getArg! 2) | return none
-  return some { base := b, excl := x, extra }
+/-- A closed context as a value. A `Ctx.child c t` application is read
+without reducing it: the parent is read and the compiled `Ctx.child` applied,
+so a context nested `d` deep costs `d` steps, not `d` reductions of fifteen
+fields each. Anything else is reduced to its constructor. -/
+def ctx? : Nat → Expr → MetaM (Option Ctx)
+  | 0, _ => return none
+  | fuel + 1, e => do
+    let e ← instantiateMVars e
+    if e.isAppOfArity ``Ctx.child 2 then
+      let some c ← ctx? fuel (e.getArg! 0) | return none
+      let some t ← tag? (e.getArg! 1) | return none
+      return some (c.child t)
+    let e ← whnf e
+    if e.isAppOfArity ``Ctx.child 2 then
+      let some c ← ctx? fuel (e.getArg! 0) | return none
+      let some t ← tag? (e.getArg! 1) | return none
+      return some (c.child t)
+    unless e.isAppOfArity ``Ctx.mk 3 do return none
+    let some b ← base? (e.getArg! 0) | return none
+    let some x ← excl? (e.getArg! 1) | return none
+    let some extra ← list? tag? 64 (e.getArg! 2) | return none
+    return some { base := b, excl := x, extra }
 
+/-- A closed character: a literal `Char.ofNat n`. -/
+def char? (e : Expr) : MetaM (Option Char) := do
+  let e ← whnf e
+  if e.isAppOfArity ``Char.ofNat 1 then
+    let n ← whnf (e.getArg! 0)
+    match n with
+    | .lit (.natVal v) => return some (Char.ofNat v)
+    | _ => return none
+  return none
+
+/-- A closed string: a literal, or `String.mk` of a closed character list,
+which is what a computed name such as `"data-" ++ suffix` reduces to. -/
 def str? (e : Expr) : MetaM (Option String) := do
   let e ← whnf e
   match e with
   | .lit (.strVal v) => return some v
-  | _ => return none
+  | _ =>
+    if e.isAppOfArity ``String.mk 1 then
+      let some cs ← list? char? 4096 (e.getArg! 0) | return none
+      return some (String.ofList cs)
+    return none
 
 /-- A closed raw attribute list as values. -/
 def rawAttrs? (e : Expr) : MetaM (Option (List (String × String))) :=
@@ -131,7 +161,7 @@ syntax (name := admitsTactic) "admits" : tactic
   if ty.isAppOfArity ``Eq 3 then
     let lhs := ty.getArg! 1
     if lhs.isAppOfArity ``Ctx.admits 2 then
-      if let some c ← ctx? (lhs.getArg! 0) then
+      if let some c ← ctx? 4096 (lhs.getArg! 0) then
         if let some t ← tag? (lhs.getArg! 1) then
           unless c.admits t do throwError admitMessage c t
           goal.assign reflTrue
@@ -143,7 +173,7 @@ syntax (name := admitsTactic) "admits" : tactic
           goal.assign reflTrue
           replaceMainGoal []
           return
-        if let some c ← ctx? (lhs.getArg! 0) then
+        if let some c ← ctx? 4096 (lhs.getArg! 0) then
           if let some ts ← childTags? (lhs.getArg! 2) then
             -- rebuild a raw list with only the tags, which is all `seqOk` reads
             let raws := ts.map fun tg => if tg == .pcdata then Whatwg.Html.RawNode.text "" else

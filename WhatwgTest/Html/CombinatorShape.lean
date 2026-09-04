@@ -11,8 +11,8 @@ for every row of `Whatwg.Html.Schema.elements` the combinator
 `Whatwg.Html.E.<name>` must exist and return `Element tag ctx` with `tag` the
 row's tag and `ctx` a bound variable; and
 for every row of `Whatwg.Html.Schema.attributeCtors` that is not a prefix
-the helper `Whatwg.Html.A.<name>` must exist, take a `String` unless the
-attribute is boolean, and build a pair whose tag is the row's attribute. A schema change that the hand-maintained file
+the helper `Whatwg.Html.A.<name>` must exist and build an `AttrVal.of` of
+the row's attribute. A schema change that the hand-maintained file
 does not follow fails this file with every disagreeing row listed, never a
 truncated list.
 
@@ -65,28 +65,24 @@ def elementFailures (rows : List Element) : MetaM (List String) := do
           failures := failures ++ [toString n ++ " returns the wrong tag"]
   return failures
 
-/-- Every attribute row of `rows` whose helper is missing, has the wrong type,
-or builds the wrong tag. -/
+/-- Every attribute row of `rows` whose helper is missing or does not return
+an `AttrVal` of the row's attribute: the helper's body, under its binders,
+must be `AttrVal.of <attr> _`. -/
 def attributeFailures (rows : List AttrCtor) : MetaM (List String) := do
   let mut failures : List String := []
-  let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``Attr) (mkConst ``String)
-  let valuedT ← mkArrow (mkConst ``String) pairT
   for a in rows do
     if a.isPrefix then continue
     let n := `Whatwg.Html.A ++ Name.mkSimple a.name
-    let expectedT := if a.kind == .boolean then pairT else valuedT
     match (← getEnv).find? n with
     | none => failures := failures ++ ["no helper " ++ toString n ++ " for attribute row " ++ a.name]
     | some info =>
-      unless ← isDefEq info.type expectedT do
-        failures := failures ++ [toString n ++ " does not have the shape its kind fixes"]
+      let ok ← forallTelescope info.type fun _ body => pure (body.isConstOf ``Whatwg.Html.AttrVal)
+      unless ok do failures := failures ++ [toString n ++ " does not return an AttrVal"]
       let some v := info.value? | failures := failures ++ [toString n ++ " has no body"]; continue
       let built ← lambdaTelescope v fun _ body => do
-        match body.getAppArgs with
-        | #[_, _, fst, _] => ctorIdxOf? fst
-        | _ => return none
+        if body.isAppOfArity ``Whatwg.Html.AttrVal.of 2 then ctorIdxOf? (body.getArg! 0) else return none
       if built != some a.tag.ctorIdx then
-        failures := failures ++ [toString n ++ " builds the wrong attribute tag"]
+        failures := failures ++ [toString n ++ " builds the wrong attribute"]
   return failures
 
 run_cmd liftTermElabM do

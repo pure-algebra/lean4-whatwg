@@ -55,10 +55,7 @@ content, `Ctx.metadata` for metadata content, and `Ctx.flow` otherwise.
 
 ## What is not here
 
-Attribute values are `String`; the prefixed attributes `data-*` and
-`aria-*` cannot be represented in `Attr × String` and are rejected with a
-message saying so; comments and entities have no markup form. Each is a
-later slice.
+Attribute values are `String`; comments and entities have no markup form.
 
 The walker recurses on a fuel that starts at 4096 levels of nesting, which
 no well-formed document exhausts; the trust gate forbids `partial`.
@@ -164,9 +161,11 @@ def elabAttrs (t : Tag) (stxs : Array Syntax) : TermElabM (Array AttrOut) := do
       markup := markup ++ "-" ++ nameString part[1]
     if out.any (·.markup == markup) then
       throwErrorAt stx ("attribute `" ++ markup ++ "` is given twice on <" ++ name ++ ">")
-    if Whatwg.Html.Content.isPrefixed markup then
-      throwErrorAt stx ("attribute `" ++ markup ++ "`: the prefixed attributes `data-*` and `aria-*` are not representable in `Attr × String` at this pin")
-    let some a := Attr.ofName? markup | throwErrorAt stx ("unknown attribute `" ++ markup ++ "`")
+    let a ← if Whatwg.Html.Content.hasPrefix "data-" markup then pure Attr.data_
+      else if Whatwg.Html.Content.hasPrefix "aria-" markup then pure Attr.aria_
+      else match Attr.ofName? markup with
+        | some a => pure a
+        | none => throwErrorAt stx ("unknown attribute `" ++ markup ++ "`")
     let opt := stx[2]
     let presence := opt.getNumArgs == 0
     let literal? : Option String := if presence then some "" else opt[1].isStrLit?
@@ -187,17 +186,15 @@ def elabAttrs (t : Tag) (stxs : Array Syntax) : TermElabM (Array AttrOut) := do
   return out
 
 def attrsTerm (attrs : Array AttrOut) : MetaM Expr := do
-  let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``Attr) (mkConst ``String)
-  let pairs ← attrs.toList.mapM fun a => do
-    return mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) (mkConst ``Attr) (mkConst ``String)
-      (← attrExpr a.tag) a.value
-  mkListLit pairT pairs
+  let vals ← attrs.toList.mapM fun a => do
+    return mkApp3 (mkConst ``AttrVal.mk) (← attrExpr a.tag) (mkStrLit a.markup) a.value
+  mkListLit (mkConst ``AttrVal) vals
 
 def rawAttrsTerm (attrs : Array AttrOut) : MetaM Expr := do
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
   let pairs := attrs.toList.map fun a =>
     mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
-      (mkStrLit a.tag.markupName) a.value
+      (mkStrLit a.markup) a.value
   mkListLit pairT pairs
 
 /-! ## The walk -/
@@ -314,7 +311,7 @@ def defaultCtx (t : Tag) : Ctx :=
   let expected := expectedType?.map fun e => e.consumeMData
   if let some e := expected then
     if e.isAppOfArity ``Child 1 then
-      if let some ctx ← Admit.ctx? (e.getArg! 0) then
+      if let some ctx ← Admit.ctx? 4096 (e.getArg! 0) then
         unless ctx.admits t do throwErrorAt o.nameStx (Admit.admitMessage ctx t)
         let ctxE := e.getArg! 0
         let (_, elem) ← elabElement fuel o ctx ctxE true
@@ -323,7 +320,7 @@ def defaultCtx (t : Tag) : Ctx :=
       if let some t' ← Admit.tag? (e.getArg! 0) then
         unless t' == t do
           throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <" ++ t.markupText ++ ">")
-        if let some ctx ← Admit.ctx? (e.getArg! 1) then
+        if let some ctx ← Admit.ctx? 4096 (e.getArg! 1) then
           return (← elabElement fuel o ctx (e.getArg! 1) true).2
   let ctx := defaultCtx t
   return (← elabElement fuel o ctx (← ctxExpr ctx) true).2

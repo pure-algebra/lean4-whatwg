@@ -48,6 +48,13 @@ example : Element .hr Ctx.flow := E.hr
 example : Element .details Ctx.flow := E.details [E.el (E.summary [E.txt "s"])] [A.a_open]
 example : Element .iframe Ctx.flow := E.iframe [A.a_src "/frame"]
 
+/-- A typed keyword helper, its string variant, a custom data attribute and an
+ARIA attribute. -/
+example : Element .p Ctx.flow :=
+  E.p [E.txt "x"] [A.a_dir .rtl, A.a_id "p1", A.data_ "role" "nav", A.aria_ "label" "Intro"]
+example : Element .p Ctx.flow := E.p [E.txt "x"] [A.a_dir_str "auto"]
+example : (E.p (ctx := Ctx.flow) [] [A.data_ "role" "nav"]).toRaw = .element "p" [("data-role", "nav")] [] := rfl
+
 /-! ## Transparency and the descendant exclusions, computed by `Ctx.child` -/
 
 /-- A link in a paragraph: its children are checked with interactive content
