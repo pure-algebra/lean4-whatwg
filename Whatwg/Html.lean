@@ -56,10 +56,10 @@ with their readings and digests) behind the drift gate,
 admission relation and the checker, `Whatwg.Html.Node` holds the raw tree,
 the context-indexed typed tree with its soundness theorem, the `admits`
 tactic that discharges its obligations by compiled evaluation and a
-kernel-checked `Eq.refl`, its generated combinators and erasure, and H4
-adds
-`Whatwg.Html.Print` with the escaper, the serializer, and the decoder that
-inverts the serializer on the sublanguage its own output determines.
+kernel-checked `Eq.refl`, its generated combinators and erasure, and
+`Whatwg.Html.Print` holds the escaper and the serializer on the standard's
+fragment serialization algorithm, and the decoder that inverts the
+serializer on the sublanguage its own output determines.
 H5 adds `Whatwg.Html.Syntax`, the `html!` markup elaborator, with
 `Whatwg.Html.Node.Evidence`, the erased evidence it attaches to a raw
 literal. `Whatwg.Html.Svg` and `Whatwg.Html.Audit` are still a docstring

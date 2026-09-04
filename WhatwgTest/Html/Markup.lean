@@ -125,7 +125,7 @@ example : page.toRaw = pageCombinators.toRaw := rfl
 
 set_option maxRecDepth 8000 in
 example : render page.toRaw =
-    "<html><head><title>Slice H3</title><meta charset=\"utf-8\" /><link rel=\"stylesheet\" href=\"/site.css\" /></head><body><h1>Content models</h1><p>A paragraph of <em>phrasing</em> content.</p></body></html>" := by
+    "<html><head><title>Slice H3</title><meta charset=\"utf-8\"><link rel=\"stylesheet\" href=\"/site.css\"></head><body><h1>Content models</h1><p>A paragraph of <em>phrasing</em> content.</p></body></html>" := by
   decide
 
 set_option maxRecDepth 2000 in

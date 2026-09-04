@@ -4,7 +4,8 @@ import WhatwgTest.Html.Builders
 /-!
 # WhatwgTest.Html.Print
 
-Probes for slice H4: the escaper, the serializer, and the decoder that
+Probes for the printer (slices H4 and H7.2): the escaper, the serializer on
+the standard's fragment serialization algorithm, and the decoder that
 inverts the serializer on the sublanguage `Whatwg.Html.Print.wf` names. Each
 `example` is a closed evaluation, so the file failing to elaborate is the
 gate; the quantified statements live in `Whatwg.Html.Print.Escape` and
@@ -26,56 +27,57 @@ open Whatwg.Html.Content (Ctx)
 
 /-! ## The escaper -/
 
-/-- The four named references of `add_unsafe_char`. -/
-example : escapeString "a<b>c&d\"e" = "a&lt;b&gt;c&amp;d&quot;e" := by decide
+/-- The four references of "escaping a string" outside attribute mode; `"`
+passes through. -/
+example : escapeString "a<b>c&d\"e" = "a&lt;b&gt;c&amp;d\"e" := by decide
 
-/-- A control character becomes a decimal numeric reference. -/
-example : escapeString (String.ofList ['a', Char.ofNat 1, 'b']) = "a&#1;b" := by decide
+/-- U+00A0 becomes `&nbsp;`. -/
+example : escapeString (String.ofList ['a', nbsp, 'b']) = "a&nbsp;b" := by decide
 
-/-- `127` is a control character by TyXML's `is_control`; `9`, `10` and `13`
-are not, and pass through. -/
-example : escapeString (String.ofList [Char.ofNat 127, Char.ofNat 9, Char.ofNat 10])
-    = String.ofList (['&', '#', '1', '2', '7', ';'] ++ [Char.ofNat 9, Char.ofNat 10]) := by decide
+/-- A control character is not escaped. -/
+example : escapeString (String.ofList ['a', Char.ofNat 1, 'b']) = String.ofList ['a', Char.ofNat 1, 'b'] := by
+  decide
 
-/-- `encode_unsafe_char_and_at` additionally escapes `@`. -/
-example : escapeAndAtString "a@b" = "a&#64;b" := by decide
+/-- Attribute mode escapes `"` as well. -/
+example : escapeAttrString "a<b>c&d\"e" = "a&lt;b&gt;c&amp;d&quot;e" := by decide
 
 /-- The escaper's output decodes back, at a point. -/
 example : unescape (escape "a<b&c".toList) = "a<b&c".toList := by decide
+example : unescape (escapeAttr (String.ofList ['"', nbsp]).toList) = ['"', nbsp] := by decide
 
 /-! ## The serializer -/
 
-/-- An element with an attribute and a nested child. -/
 example : render (.element "div" [("class", "card")] [.element "p" [] [.text "Hi & bye"]])
     = "<div class=\"card\"><p>Hi &amp; bye</p></div>" := by decide
 
-/-- A void element closes as `xh_print_closedtag` closes it. -/
-example : render (.element "br" [] []) = "<br />" := by decide
+/-- A void element has no end tag and no solidus. -/
+example : render (.element "br" [] []) = "<br>" := by decide
+example : render (.element "br" [("class", "spacer")] []) = "<br class=\"spacer\">" := by decide
 
-/-- A void element with an attribute. -/
-example : render (.element "br" [("class", "spacer")] []) = "<br class=\"spacer\" />" := by decide
-
-/-- A non-void element with no children gets a closing tag instead. -/
+/-- A non-void element with no children gets a closing tag. -/
 example : render (.element "span" [] []) = "<span></span>" := by decide
 
-/-- An attribute value is escaped and double-quoted. -/
-example : render (.element "input" [("value", "a\"b")] []) = "<input value=\"a&quot;b\" />" := by
-  decide
+/-- An attribute value is escaped in attribute mode and double-quoted. -/
+example : render (.element "input" [("value", "a\"b")] []) = "<input value=\"a&quot;b\">" := by decide
 
-/-- A control character inside a text run. -/
-example : render (.text (String.ofList ['a', Char.ofNat 1, 'b'])) = "a&#1;b" := by decide
+/-- A `"` in text passes through; a `>` is escaped. -/
+example : render (.element "p" [] [.text "say \"x\" > y"]) = "<p>say \"x\" &gt; y</p>" := by decide
 
-/-- An entity reference is written unescaped, as TyXML writes it. -/
+/-- The text of a raw-text element is written literally. -/
+example : render (.element "script" [] [.text "if (a < b && c) {}"])
+    = "<script>if (a < b && c) {}</script>" := by decide
+example : render (.element "style" [] [.text "a > b {}"]) = "<style>a > b {}</style>" := by decide
+
+/-- An entity reference is written as written (an extension of the raw layer,
+not a DOM node). -/
 example : render (.entity "nbsp") = "&nbsp;" := by decide
 
-/-- A comment's text is escaped with the same escaper as a text run. -/
-example : render (.comment "a < b") = "<!--a &lt; b-->" := by decide
+/-- A comment's data is written literally. -/
+example : render (.comment "a < b") = "<!--a < b-->" := by decide
 
-/-- The void names come from the schema, not from a retyped list. -/
 example : isVoidName "img" = true := by decide
-
-/-- And no other name is void. -/
 example : isVoidName "p" = false := by decide
+example : isRawText "script" = true ∧ isRawText "p" = false := by decide
 
 /-! ## A whole document, from the typed builders -/
 
@@ -97,15 +99,16 @@ set_option maxRecDepth 4000 in
 elaborator's stack, not a heartbeat budget: `decide` reduces a 130-byte
 `String` equality here. -/
 example : document.render
-    = "<html><head><title>Slice H4</title><meta charset=\"utf-8\" /></head>"
-      ++ "<body><h1>Content models</h1><p>A &amp; B<br /></p></body></html>" := by decide
+    = "<html><head><title>Slice H4</title><meta charset=\"utf-8\"></head>"
+      ++ "<body><h1>Content models</h1><p>A &amp; B<br></p></body></html>" := by decide
 
 set_option maxRecDepth 4000 in
-/-- With the doctype line `html_f.ml`'s `Info.doctype` composes. -/
+/-- With the document type the algorithm writes for a `DocumentType` named
+`html`, and nothing between it and the tree. -/
 example : document.renderDoc
-    = "<!DOCTYPE html>\n"
-      ++ "<html><head><title>Slice H4</title><meta charset=\"utf-8\" /></head>"
-      ++ "<body><h1>Content models</h1><p>A &amp; B<br /></p></body></html>" := by decide
+    = "<!DOCTYPE html>"
+      ++ "<html><head><title>Slice H4</title><meta charset=\"utf-8\"></head>"
+      ++ "<body><h1>Content models</h1><p>A &amp; B<br></p></body></html>" := by decide
 
 /-- A child renders through the raw node it carries. -/
 example : (Child.of (ctx := Ctx.flow) (E.p [E.txt "x"])).render = "<p>x</p>" := by decide
@@ -128,5 +131,18 @@ example : wf (.element "p" [] [.text "a", .text "b"]) = false := by decide
 
 /-- And so is an empty text run. -/
 example : wf (.text "") = false := by decide
+
+/-- A void element with a child, a raw-text element with two text children
+or a `<` in its text, and a comment containing `>` are outside it too. -/
+example : wf (.element "br" [] [.text "x"]) = false := by decide
+example : wf (.element "script" [] [.text "a", .text "b"]) = false := by decide
+example : wf (.element "script" [] [.text "a </script>"]) = false := by decide
+example : wf (.comment "a > b") = false := by decide
+/-- A raw-text element with one text child decodes back. -/
+example : wf (.element "script" [] [.text "a && b"]) = true := by decide
+example : decodeNode? (weight (RawNode.element "script" [] [.text "a && b"]))
+      (renderChars (RawNode.element "script" [] [.text "a && b"]))
+    = some (RawNode.element "script" [] [.text "a && b"], []) :=
+  decodeNode?_render (node := RawNode.element "script" [] [.text "a && b"]) (by decide)
 
 end WhatwgTest.Html.Print
