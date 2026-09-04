@@ -44,22 +44,20 @@ inductive Erasure (t : Tag) (inner : ContentSet) : List RawNode → Prop
       (rest : List RawNode) (h : Erasure t inner rest) :
       Erasure t inner (e.toRaw :: rest)
 
-/-- An element from its raw children and the evidence for them. `labelled`
-are the attributes TyXML takes as required labelled arguments (`img ~src
-~alt`), which are outside the element's attribute set as the combinators
-also place them; `attrs` are the ones the set must name. The two proofs are
-not stored, for the reason `Typed.lean` gives for the combinators' `_ha`. -/
+/-- An element from its raw children and the evidence for them. The two
+proofs are not stored, for the reason `Typed.lean` gives for the
+combinators' `_ha`. -/
 def Element.ofRaw {t : Tag} {inner : ContentSet} (set : AttrSet)
-    (labelled attrs : List (Attr × String)) (children : List RawNode)
+    (attrs : List (Attr × String)) (children : List RawNode)
     (_ha : AttrsAdmitted set attrs) (_hc : Erasure t inner children) : Element t inner :=
-  ⟨labelled ++ attrs, children⟩
+  ⟨attrs, children⟩
 
 /-- The erasure of `Element.ofRaw` is the raw element it was built from. -/
 theorem Element.ofRaw_toRaw {t : Tag} {inner : ContentSet} (set : AttrSet)
-    (labelled attrs : List (Attr × String)) (children : List RawNode)
+    (attrs : List (Attr × String)) (children : List RawNode)
     (ha : AttrsAdmitted set attrs) (hc : Erasure t inner children) :
-    (Element.ofRaw set labelled attrs children ha hc).toRaw =
-      .element t.markupText ((labelled ++ attrs).map (fun p => (p.1.markupName, p.2))) children :=
+    (Element.ofRaw set attrs children ha hc).toRaw =
+      .element t.markupText (attrs.map (fun p => (p.1.markupName, p.2))) children :=
   rfl
 
 end Whatwg.Html

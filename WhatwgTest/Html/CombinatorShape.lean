@@ -11,9 +11,9 @@ for every row of `Whatwg.Html.Schema.elements` the combinator
 `Whatwg.Html.E.<name>` must exist and return `Element tag inner`, where `tag`
 is the row's tag and `inner` is the row's content set (`notag` where the row
 carries none), or a bound variable exactly when the row is transparent; and
-for every row of `Whatwg.Html.Schema.attributeCtors` the helper
-`Whatwg.Html.A.<name>` must exist, take a `String`, and build a pair whose tag
-is the row's attribute tag. A schema change that the hand-maintained file
+for every row of `Whatwg.Html.Schema.attributeCtors` that is not a prefix
+the helper `Whatwg.Html.A.<name>` must exist, take a `String` unless the
+attribute is boolean, and build a pair whose tag is the row's attribute. A schema change that the hand-maintained file
 does not follow fails this file with every disagreeing row listed, never a
 truncated list.
 
@@ -86,14 +86,16 @@ or builds the wrong tag. -/
 def attributeFailures (rows : List AttrCtor) : MetaM (List String) := do
   let mut failures : List String := []
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``Attr) (mkConst ``String)
-  let expectedT ← mkArrow (mkConst ``String) pairT
+  let valuedT ← mkArrow (mkConst ``String) pairT
   for a in rows do
+    if a.isPrefix then continue
     let n := `Whatwg.Html.A ++ Name.mkSimple a.name
+    let expectedT := if a.kind == .boolean then pairT else valuedT
     match (← getEnv).find? n with
     | none => failures := failures ++ ["no helper " ++ toString n ++ " for attribute row " ++ a.name]
     | some info =>
       unless ← isDefEq info.type expectedT do
-        failures := failures ++ [toString n ++ " is not String → Attr × String"]
+        failures := failures ++ [toString n ++ " does not have the shape its kind fixes"]
       let some v := info.value? | failures := failures ++ [toString n ++ " has no body"]; continue
       let built ← lambdaTelescope v fun _ body => do
         match body.getAppArgs with

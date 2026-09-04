@@ -5,8 +5,7 @@ import Whatwg.Html.Node.Admit
 # Whatwg.Html.Node.Combinators
 
 One combinator per element of the standard, in source order, the two text
-constructors, `el`, and one helper per attribute constructor (TyXML's,
-interim). Every combinator has the same shape: children first, then
+constructors, `el`, and one helper per attribute of the standard. Every combinator has the same shape: children first, then
 `attrs` with a default of `[]`, then the attribute obligation `_ha`
 discharged by the `admits` tactic; a void or childless element has no
 children parameter; a transparent element is polymorphic in its content
@@ -67,11 +66,11 @@ def base
   ⟨attrs, []⟩
 
 /-- `link`: sentence. -/
-def link (rel href : String) 
+def link 
     (attrs : List (Attr × String) := [])
     (_ha : AttrsAdmitted .link_attrib attrs := by admits) :
     Element .link .nothing :=
-  ⟨(Attr.rel, rel) :: (Attr.href, href) :: attrs, []⟩
+  ⟨attrs, []⟩
 
 /-- `meta`: sentence. -/
 def «meta» 
@@ -292,7 +291,8 @@ def main (children : List (Child .flow) := [])
 
 /-- `search`: sentence. -/
 def search (children : List (Child .flow) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .search_attrib attrs := by admits) :
     Element .search .flow :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -333,7 +333,8 @@ def small (children : List (Child .phrasing) := [])
 
 /-- `s`: sentence. -/
 def s (children : List (Child .phrasing) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .s_attrib attrs := by admits) :
     Element .s .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -388,7 +389,8 @@ def rp (children : List (Child .text) := [])
 
 /-- `data`: sentence. -/
 def «data» (children : List (Child .phrasing) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .data_attrib attrs := by admits) :
     Element .«data» .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -471,16 +473,17 @@ def mark (children : List (Child .phrasing) := [])
 
 /-- `bdi`: sentence. -/
 def bdi (children : List (Child .phrasing) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .bdi_attrib attrs := by admits) :
     Element .bdi .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
 /-- `bdo`: sentence. -/
-def bdo (dir : String) (children : List (Child .phrasing) := [])
+def bdo (children : List (Child .phrasing) := [])
     (attrs : List (Attr × String) := [])
     (_ha : AttrsAdmitted .bdo_attrib attrs := by admits) :
     Element .bdo .phrasing :=
-  ⟨(Attr.dir, dir) :: attrs, children.map Child.raw⟩
+  ⟨attrs, children.map Child.raw⟩
 
 /-- `span`: sentence. -/
 def span (children : List (Child .phrasing) := [])
@@ -532,11 +535,11 @@ def source
   ⟨attrs, []⟩
 
 /-- `img`: sentence. -/
-def img (src alt : String) 
+def img 
     (attrs : List (Attr × String) := [])
     (_ha : AttrsAdmitted .img_attrib attrs := by admits) :
     Element .img .nothing :=
-  ⟨(Attr.src, src) :: (Attr.alt, alt) :: attrs, []⟩
+  ⟨attrs, []⟩
 
 /-- `iframe`: sentence. -/
 def iframe 
@@ -554,7 +557,8 @@ def embed
 
 /-- `object`: authored: transparent; own set in flow context. -/
 def object {inner : ContentSet} (children : List (Child inner) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .object_attrib attrs := by admits) :
     Element .object inner :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -578,7 +582,8 @@ def audio {inner : ContentSet} (children : List (Child inner) := [])
 
 /-- `track`: sentence. -/
 def track 
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .track_attrib attrs := by admits) :
     Element .track .nothing :=
   ⟨attrs, []⟩
 
@@ -591,10 +596,11 @@ def map {inner : ContentSet} (children : List (Child inner) := [])
   ⟨attrs, areas.map Element.toRaw ++ children.map Child.raw⟩
 
 /-- `area`: sentence. -/
-def area (alt : String) 
-    (attrs : List (Attr × String) := []) :
+def area 
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .area_attrib attrs := by admits) :
     Element .area .nothing :=
-  ⟨(Attr.alt, alt) :: attrs, []⟩
+  ⟨attrs, []⟩
 
 /-- `table`: authored: "In this order: ...": membership, order and the tbody-or-tr choice not enforced. -/
 def table (children : List (Child .only_caption_colgroup_thead_tbody_tfoot_tr) := [])
@@ -709,11 +715,11 @@ def datalist (children : List (Child .phrasing_with_option) := [])
   ⟨attrs, children.map Child.raw⟩
 
 /-- `optgroup`: authored: the customizable-select model: membership. -/
-def optgroup (label : String) (children : List (Child .only_legend_option_noscript_div) := [])
+def optgroup (children : List (Child .only_legend_option_noscript_div) := [])
     (attrs : List (Attr × String) := [])
     (_ha : AttrsAdmitted .optgroup_attrib attrs := by admits) :
     Element .optgroup .only_legend_option_noscript_div :=
-  ⟨(Attr.label, label) :: attrs, children.map Child.raw⟩
+  ⟨attrs, children.map Child.raw⟩
 
 /-- `option`: authored: text; the label/value cases and the customizable-select div case are not admitted (the stricter side). -/
 def option (children : List (Child .text) := [])
@@ -731,7 +737,8 @@ def textarea (children : List (Child .text) := [])
 
 /-- `output`: sentence. -/
 def output (children : List (Child .phrasing) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .output_attrib attrs := by admits) :
     Element .output .phrasing :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -765,7 +772,8 @@ def legend (children : List (Child .phrasing_with_heading) := [])
 
 /-- `selectedcontent`: sentence. -/
 def selectedcontent 
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .selectedcontent_attrib attrs := by admits) :
     Element .selectedcontent .nothing :=
   ⟨attrs, []⟩
 
@@ -813,7 +821,8 @@ def template (children : List (Child .flow) := [])
 
 /-- `slot`: authored: transparent; own set in flow context. -/
 def slot {inner : ContentSet} (children : List (Child inner) := [])
-    (attrs : List (Attr × String) := []) :
+    (attrs : List (Attr × String) := [])
+    (_ha : AttrsAdmitted .slot_attrib attrs := by admits) :
     Element .slot inner :=
   ⟨attrs, children.map Child.raw⟩
 
@@ -830,652 +839,706 @@ namespace Whatwg.Html.A
 
 open Whatwg.Html.Schema (Attr)
 
-/-- `class` (TyXML `a_class`, interim). -/
-def a_class (value : String) : Attr × String := (.«class», value)
+/-- `abbr`: Alternative label to use for the header cell when referencing the cell in other contexts. -/
+def a_abbr (value : String) : Attr × String := (.abbr, value)
 
-/-- `data-` (TyXML `a_user_data`, interim). -/
-def a_user_data (value : String) : Attr × String := (.user_data, value)
-
-/-- `id` (TyXML `a_id`, interim). -/
-def a_id (value : String) : Attr × String := (.id, value)
-
-/-- `title` (TyXML `a_title`, interim). -/
-def a_title (value : String) : Attr × String := (.title, value)
-
-/-- `xml:lang` (TyXML `a_xml_lang`, interim). -/
-def a_xml_lang (value : String) : Attr × String := (.xml_lang, value)
-
-/-- `lang` (TyXML `a_lang`, interim). -/
-def a_lang (value : String) : Attr × String := (.lang, value)
-
-/-- `onabort` (TyXML `a_onabort`, interim). -/
-def a_onabort (value : String) : Attr × String := (.onAbort, value)
-
-/-- `onafterprint` (TyXML `a_onafterprint`, interim). -/
-def a_onafterprint (value : String) : Attr × String := (.onAfterPrint, value)
-
-/-- `onbeforeprint` (TyXML `a_onbeforeprint`, interim). -/
-def a_onbeforeprint (value : String) : Attr × String := (.onBeforePrint, value)
-
-/-- `onbeforeunload` (TyXML `a_onbeforeunload`, interim). -/
-def a_onbeforeunload (value : String) : Attr × String := (.onBeforeUnload, value)
-
-/-- `onblur` (TyXML `a_onblur`, interim). -/
-def a_onblur (value : String) : Attr × String := (.onBlur, value)
-
-/-- `oncanplay` (TyXML `a_oncanplay`, interim). -/
-def a_oncanplay (value : String) : Attr × String := (.onCanPlay, value)
-
-/-- `oncanplaythrough` (TyXML `a_oncanplaythrough`, interim). -/
-def a_oncanplaythrough (value : String) : Attr × String := (.onCanPlayThrough, value)
-
-/-- `onchange` (TyXML `a_onchange`, interim). -/
-def a_onchange (value : String) : Attr × String := (.onChange, value)
-
-/-- `onclose` (TyXML `a_onclose`, interim). -/
-def a_onclose (value : String) : Attr × String := (.onClose, value)
-
-/-- `ondurationchange` (TyXML `a_ondurationchange`, interim). -/
-def a_ondurationchange (value : String) : Attr × String := (.onDurationChange, value)
-
-/-- `onemptied` (TyXML `a_onemptied`, interim). -/
-def a_onemptied (value : String) : Attr × String := (.onEmptied, value)
-
-/-- `onended` (TyXML `a_onended`, interim). -/
-def a_onended (value : String) : Attr × String := (.onEnded, value)
-
-/-- `onerror` (TyXML `a_onerror`, interim). -/
-def a_onerror (value : String) : Attr × String := (.onError, value)
-
-/-- `onfocus` (TyXML `a_onfocus`, interim). -/
-def a_onfocus (value : String) : Attr × String := (.onFocus, value)
-
-/-- `onformchange` (TyXML `a_onformchange`, interim). -/
-def a_onformchange (value : String) : Attr × String := (.onFormChange, value)
-
-/-- `onforminput` (TyXML `a_onforminput`, interim). -/
-def a_onforminput (value : String) : Attr × String := (.onFormInput, value)
-
-/-- `onhashchange` (TyXML `a_onhashchange`, interim). -/
-def a_onhashchange (value : String) : Attr × String := (.onHashChange, value)
-
-/-- `oninput` (TyXML `a_oninput`, interim). -/
-def a_oninput (value : String) : Attr × String := (.onInput, value)
-
-/-- `oninvalid` (TyXML `a_oninvalid`, interim). -/
-def a_oninvalid (value : String) : Attr × String := (.onInvalid, value)
-
-/-- `onmousewheel` (TyXML `a_onmousewheel`, interim). -/
-def a_onmousewheel (value : String) : Attr × String := (.onMouseWheel, value)
-
-/-- `onoffline` (TyXML `a_onoffline`, interim). -/
-def a_onoffline (value : String) : Attr × String := (.onOffLine, value)
-
-/-- `ononline` (TyXML `a_ononline`, interim). -/
-def a_ononline (value : String) : Attr × String := (.onOnLine, value)
-
-/-- `onpause` (TyXML `a_onpause`, interim). -/
-def a_onpause (value : String) : Attr × String := (.onPause, value)
-
-/-- `onplay` (TyXML `a_onplay`, interim). -/
-def a_onplay (value : String) : Attr × String := (.onPlay, value)
-
-/-- `onplaying` (TyXML `a_onplaying`, interim). -/
-def a_onplaying (value : String) : Attr × String := (.onPlaying, value)
-
-/-- `onpagehide` (TyXML `a_onpagehide`, interim). -/
-def a_onpagehide (value : String) : Attr × String := (.onPageHide, value)
-
-/-- `onpageshow` (TyXML `a_onpageshow`, interim). -/
-def a_onpageshow (value : String) : Attr × String := (.onPageShow, value)
-
-/-- `onpopstate` (TyXML `a_onpopstate`, interim). -/
-def a_onpopstate (value : String) : Attr × String := (.onPopState, value)
-
-/-- `onprogress` (TyXML `a_onprogress`, interim). -/
-def a_onprogress (value : String) : Attr × String := (.onProgress, value)
-
-/-- `onratechange` (TyXML `a_onratechange`, interim). -/
-def a_onratechange (value : String) : Attr × String := (.onRateChange, value)
-
-/-- `onreadystatechange` (TyXML `a_onreadystatechange`, interim). -/
-def a_onreadystatechange (value : String) : Attr × String := (.onReadyStateChange, value)
-
-/-- `onredo` (TyXML `a_onredo`, interim). -/
-def a_onredo (value : String) : Attr × String := (.onRedo, value)
-
-/-- `onresize` (TyXML `a_onresize`, interim). -/
-def a_onresize (value : String) : Attr × String := (.onResize, value)
-
-/-- `onscroll` (TyXML `a_onscroll`, interim). -/
-def a_onscroll (value : String) : Attr × String := (.onScroll, value)
-
-/-- `onseeked` (TyXML `a_onseeked`, interim). -/
-def a_onseeked (value : String) : Attr × String := (.onSeeked, value)
-
-/-- `onseeking` (TyXML `a_onseeking`, interim). -/
-def a_onseeking (value : String) : Attr × String := (.onSeeking, value)
-
-/-- `onselect` (TyXML `a_onselect`, interim). -/
-def a_onselect (value : String) : Attr × String := (.onSelect, value)
-
-/-- `onshow` (TyXML `a_onshow`, interim). -/
-def a_onshow (value : String) : Attr × String := (.onShow, value)
-
-/-- `onstalled` (TyXML `a_onstalled`, interim). -/
-def a_onstalled (value : String) : Attr × String := (.onStalled, value)
-
-/-- `onstorage` (TyXML `a_onstorage`, interim). -/
-def a_onstorage (value : String) : Attr × String := (.onStorage, value)
-
-/-- `onsubmit` (TyXML `a_onsubmit`, interim). -/
-def a_onsubmit (value : String) : Attr × String := (.onSubmit, value)
-
-/-- `onsuspend` (TyXML `a_onsuspend`, interim). -/
-def a_onsuspend (value : String) : Attr × String := (.onSuspend, value)
-
-/-- `ontimeupdate` (TyXML `a_ontimeupdate`, interim). -/
-def a_ontimeupdate (value : String) : Attr × String := (.onTimeUpdate, value)
-
-/-- `onundo` (TyXML `a_onundo`, interim). -/
-def a_onundo (value : String) : Attr × String := (.onUndo, value)
-
-/-- `onunload` (TyXML `a_onunload`, interim). -/
-def a_onunload (value : String) : Attr × String := (.onUnload, value)
-
-/-- `onvolumechange` (TyXML `a_onvolumechange`, interim). -/
-def a_onvolumechange (value : String) : Attr × String := (.onVolumeChange, value)
-
-/-- `onwaiting` (TyXML `a_onwaiting`, interim). -/
-def a_onwaiting (value : String) : Attr × String := (.onWaiting, value)
-
-/-- `onload` (TyXML `a_onload`, interim). -/
-def a_onload (value : String) : Attr × String := (.onLoad, value)
-
-/-- `onloadeddata` (TyXML `a_onloadeddata`, interim). -/
-def a_onloadeddata (value : String) : Attr × String := (.onLoadedData, value)
-
-/-- `onloadedmetadata` (TyXML `a_onloadedmetadata`, interim). -/
-def a_onloadedmetadata (value : String) : Attr × String := (.onLoadedMetaData, value)
-
-/-- `onloadstart` (TyXML `a_onloadstart`, interim). -/
-def a_onloadstart (value : String) : Attr × String := (.onLoadStart, value)
-
-/-- `onmessage` (TyXML `a_onmessage`, interim). -/
-def a_onmessage (value : String) : Attr × String := (.onMessage, value)
-
-/-- `onclick` (TyXML `a_onclick`, interim). -/
-def a_onclick (value : String) : Attr × String := (.onClick, value)
-
-/-- `oncontextmenu` (TyXML `a_oncontextmenu`, interim). -/
-def a_oncontextmenu (value : String) : Attr × String := (.onContextMenu, value)
-
-/-- `ondblclick` (TyXML `a_ondblclick`, interim). -/
-def a_ondblclick (value : String) : Attr × String := (.onDblClick, value)
-
-/-- `ondrag` (TyXML `a_ondrag`, interim). -/
-def a_ondrag (value : String) : Attr × String := (.onDrag, value)
-
-/-- `ondragend` (TyXML `a_ondragend`, interim). -/
-def a_ondragend (value : String) : Attr × String := (.onDragEnd, value)
-
-/-- `ondragenter` (TyXML `a_ondragenter`, interim). -/
-def a_ondragenter (value : String) : Attr × String := (.onDragEnter, value)
-
-/-- `ondragleave` (TyXML `a_ondragleave`, interim). -/
-def a_ondragleave (value : String) : Attr × String := (.onDragLeave, value)
-
-/-- `ondragover` (TyXML `a_ondragover`, interim). -/
-def a_ondragover (value : String) : Attr × String := (.onDragOver, value)
-
-/-- `ondragstart` (TyXML `a_ondragstart`, interim). -/
-def a_ondragstart (value : String) : Attr × String := (.onDragStart, value)
-
-/-- `ondrop` (TyXML `a_ondrop`, interim). -/
-def a_ondrop (value : String) : Attr × String := (.onDrop, value)
-
-/-- `onmousedown` (TyXML `a_onmousedown`, interim). -/
-def a_onmousedown (value : String) : Attr × String := (.onMouseDown, value)
-
-/-- `onmouseup` (TyXML `a_onmouseup`, interim). -/
-def a_onmouseup (value : String) : Attr × String := (.onMouseUp, value)
-
-/-- `onmouseover` (TyXML `a_onmouseover`, interim). -/
-def a_onmouseover (value : String) : Attr × String := (.onMouseOver, value)
-
-/-- `onmousemove` (TyXML `a_onmousemove`, interim). -/
-def a_onmousemove (value : String) : Attr × String := (.onMouseMove, value)
-
-/-- `onmouseout` (TyXML `a_onmouseout`, interim). -/
-def a_onmouseout (value : String) : Attr × String := (.onMouseOut, value)
-
-/-- `ontouchstart` (TyXML `a_ontouchstart`, interim). -/
-def a_ontouchstart (value : String) : Attr × String := (.onTouchStart, value)
-
-/-- `ontouchend` (TyXML `a_ontouchend`, interim). -/
-def a_ontouchend (value : String) : Attr × String := (.onTouchEnd, value)
-
-/-- `ontouchmove` (TyXML `a_ontouchmove`, interim). -/
-def a_ontouchmove (value : String) : Attr × String := (.onTouchMove, value)
-
-/-- `ontouchcancel` (TyXML `a_ontouchcancel`, interim). -/
-def a_ontouchcancel (value : String) : Attr × String := (.onTouchCancel, value)
-
-/-- `onkeypress` (TyXML `a_onkeypress`, interim). -/
-def a_onkeypress (value : String) : Attr × String := (.onKeyPress, value)
-
-/-- `onkeydown` (TyXML `a_onkeydown`, interim). -/
-def a_onkeydown (value : String) : Attr × String := (.onKeyDown, value)
-
-/-- `onkeyup` (TyXML `a_onkeyup`, interim). -/
-def a_onkeyup (value : String) : Attr × String := (.onKeyUp, value)
-
-/-- `allowfullscreen` (TyXML `a_allowfullscreen`, interim). -/
-def a_allowfullscreen (value : String) : Attr × String := (.allowfullscreen, value)
-
-/-- `allowpaymentrequest` (TyXML `a_allowpaymentrequest`, interim). -/
-def a_allowpaymentrequest (value : String) : Attr × String := (.allowpaymentrequest, value)
-
-/-- `autocomplete` (TyXML `a_autocomplete`, interim). -/
-def a_autocomplete (value : String) : Attr × String := (.autocomplete, value)
-
-/-- `async` (TyXML `a_async`, interim). -/
-def a_async (value : String) : Attr × String := (.async, value)
-
-/-- `autofocus` (TyXML `a_autofocus`, interim). -/
-def a_autofocus (value : String) : Attr × String := (.autofocus, value)
-
-/-- `autoplay` (TyXML `a_autoplay`, interim). -/
-def a_autoplay (value : String) : Attr × String := (.autoplay, value)
-
-/-- `muted` (TyXML `a_muted`, interim). -/
-def a_muted (value : String) : Attr × String := (.muted, value)
-
-/-- `crossorigin` (TyXML `a_crossorigin`, interim). -/
-def a_crossorigin (value : String) : Attr × String := (.crossorigin, value)
-
-/-- `integrity` (TyXML `a_integrity`, interim). -/
-def a_integrity (value : String) : Attr × String := (.integrity, value)
-
-/-- `mediagroup` (TyXML `a_mediagroup`, interim). -/
-def a_mediagroup (value : String) : Attr × String := (.mediagroup, value)
-
-/-- `challenge` (TyXML `a_challenge`, interim). -/
-def a_challenge (value : String) : Attr × String := (.challenge, value)
-
-/-- `contenteditable` (TyXML `a_contenteditable`, interim). -/
-def a_contenteditable (value : String) : Attr × String := (.contenteditable, value)
-
-/-- `contextmenu` (TyXML `a_contextmenu`, interim). -/
-def a_contextmenu (value : String) : Attr × String := (.contextmenu, value)
-
-/-- `controls` (TyXML `a_controls`, interim). -/
-def a_controls (value : String) : Attr × String := (.controls, value)
-
-/-- `dir` (TyXML `a_dir`, interim). -/
-def a_dir (value : String) : Attr × String := (.dir, value)
-
-/-- `draggable` (TyXML `a_draggable`, interim). -/
-def a_draggable (value : String) : Attr × String := (.draggable, value)
-
-/-- `form` (TyXML `a_form`, interim). -/
-def a_form (value : String) : Attr × String := (.form, value)
-
-/-- `formaction` (TyXML `a_formaction`, interim). -/
-def a_formaction (value : String) : Attr × String := (.formaction, value)
-
-/-- `formenctype` (TyXML `a_formenctype`, interim). -/
-def a_formenctype (value : String) : Attr × String := (.formenctype, value)
-
-/-- `formnovalidate` (TyXML `a_formnovalidate`, interim). -/
-def a_formnovalidate (value : String) : Attr × String := (.formnovalidate, value)
-
-/-- `formtarget` (TyXML `a_formtarget`, interim). -/
-def a_formtarget (value : String) : Attr × String := (.formtarget, value)
-
-/-- `hidden` (TyXML `a_hidden`, interim). -/
-def a_hidden (value : String) : Attr × String := (.hidden, value)
-
-/-- `high` (TyXML `a_high`, interim). -/
-def a_high (value : String) : Attr × String := (.high, value)
-
-/-- `icon` (TyXML `a_icon`, interim). -/
-def a_icon (value : String) : Attr × String := (.icon, value)
-
-/-- `ismap` (TyXML `a_ismap`, interim). -/
-def a_ismap (value : String) : Attr × String := (.ismap, value)
-
-/-- `keytype` (TyXML `a_keytype`, interim). -/
-def a_keytype (value : String) : Attr × String := (.keytype, value)
-
-/-- `list` (TyXML `a_list`, interim). -/
-def a_list (value : String) : Attr × String := (.list, value)
-
-/-- `loop` (TyXML `a_loop`, interim). -/
-def a_loop (value : String) : Attr × String := (.loop, value)
-
-/-- `low` (TyXML `a_low`, interim). -/
-def a_low (value : String) : Attr × String := (.high, value)
-
-/-- `max` (TyXML `a_max`, interim). -/
-def a_max (value : String) : Attr × String := (.max, value)
-
-/-- `max` (TyXML `a_input_max`, interim). -/
-def a_input_max (value : String) : Attr × String := (.input_Max, value)
-
-/-- `min` (TyXML `a_min`, interim). -/
-def a_min (value : String) : Attr × String := (.min, value)
-
-/-- `min` (TyXML `a_input_min`, interim). -/
-def a_input_min (value : String) : Attr × String := (.input_Min, value)
-
-/-- `inputmode` (TyXML `a_inputmode`, interim). -/
-def a_inputmode (value : String) : Attr × String := (.inputmode, value)
-
-/-- `novalidate` (TyXML `a_novalidate`, interim). -/
-def a_novalidate (value : String) : Attr × String := (.novalidate, value)
-
-/-- `open` (TyXML `a_open`, interim). -/
-def a_open (value : String) : Attr × String := (.«open», value)
-
-/-- `optimum` (TyXML `a_optimum`, interim). -/
-def a_optimum (value : String) : Attr × String := (.optimum, value)
-
-/-- `pattern` (TyXML `a_pattern`, interim). -/
-def a_pattern (value : String) : Attr × String := (.pattern, value)
-
-/-- `placeholder` (TyXML `a_placeholder`, interim). -/
-def a_placeholder (value : String) : Attr × String := (.placeholder, value)
-
-/-- `poster` (TyXML `a_poster`, interim). -/
-def a_poster (value : String) : Attr × String := (.poster, value)
-
-/-- `preload` (TyXML `a_preload`, interim). -/
-def a_preload (value : String) : Attr × String := (.preload, value)
-
-/-- `pubdate` (TyXML `a_pubdate`, interim). -/
-def a_pubdate (value : String) : Attr × String := (.pubdate, value)
-
-/-- `radiogroup` (TyXML `a_radiogroup`, interim). -/
-def a_radiogroup (value : String) : Attr × String := (.radiogroup, value)
-
-/-- `referrerpolicy` (TyXML `a_referrerpolicy`, interim). -/
-def a_referrerpolicy (value : String) : Attr × String := (.referrerpolicy, value)
-
-/-- `required` (TyXML `a_required`, interim). -/
-def a_required (value : String) : Attr × String := (.required, value)
-
-/-- `reserved` (TyXML `a_reversed`, interim). -/
-def a_reversed (value : String) : Attr × String := (.reversed, value)
-
-/-- `sandbox` (TyXML `a_sandbox`, interim). -/
-def a_sandbox (value : String) : Attr × String := (.sandbox, value)
-
-/-- `spellcheck` (TyXML `a_spellcheck`, interim). -/
-def a_spellcheck (value : String) : Attr × String := (.spellcheck, value)
-
-/-- `scoped` (TyXML `a_scoped`, interim). -/
-def a_scoped (value : String) : Attr × String := (.«scoped», value)
-
-/-- `seamless` (TyXML `a_seamless`, interim). -/
-def a_seamless (value : String) : Attr × String := (.seamless, value)
-
-/-- `sizes` (TyXML `a_sizes`, interim). -/
-def a_sizes (value : String) : Attr × String := (.sizes, value)
-
-/-- `span` (TyXML `a_span`, interim). -/
-def a_span (value : String) : Attr × String := (.span, value)
-
-/-- `xml:lang` (TyXML `a_srclang`, interim). -/
-def a_srclang (value : String) : Attr × String := (.xml_lang, value)
-
-/-- `srcset` (TyXML `a_srcset`, interim). -/
-def a_srcset (value : String) : Attr × String := (.srcset, value)
-
-/-- `sizes` (TyXML `a_img_sizes`, interim). -/
-def a_img_sizes (value : String) : Attr × String := (.img_sizes, value)
-
-/-- `start` (TyXML `a_start`, interim). -/
-def a_start (value : String) : Attr × String := (.start, value)
-
-/-- `step` (TyXML `a_step`, interim). -/
-def a_step (value : String) : Attr × String := (.step, value)
-
-/-- `translate` (TyXML `a_translate`, interim). -/
-def a_translate (value : String) : Attr × String := (.translate, value)
-
-/-- `wrap` (TyXML `a_wrap`, interim). -/
-def a_wrap (value : String) : Attr × String := (.wrap, value)
-
-/-- `version` (TyXML `a_version`, interim). -/
-def a_version (value : String) : Attr × String := (.version, value)
-
-/-- `xmlns` (TyXML `a_xmlns`, interim). -/
-def a_xmlns (value : String) : Attr × String := (.xmlns, value)
-
-/-- `manifest` (TyXML `a_manifest`, interim). -/
-def a_manifest (value : String) : Attr × String := (.manifest, value)
-
-/-- `cite` (TyXML `a_cite`, interim). -/
-def a_cite (value : String) : Attr × String := (.cite, value)
-
-/-- `xml:space` (TyXML `a_xml_space`, interim). -/
-def a_xml_space (value : String) : Attr × String := (.xml_space, value)
-
-/-- `accesskey` (TyXML `a_accesskey`, interim). -/
-def a_accesskey (value : String) : Attr × String := (.accesskey, value)
-
-/-- `charset` (TyXML `a_charset`, interim). -/
-def a_charset (value : String) : Attr × String := (.charset, value)
-
-/-- `accept-charset` (TyXML `a_accept_charset`, interim). -/
-def a_accept_charset (value : String) : Attr × String := (.accept_charset, value)
-
-/-- `accept` (TyXML `a_accept`, interim). -/
+/-- `accept`: Hint for expected file type in file upload controls. -/
 def a_accept (value : String) : Attr × String := (.accept, value)
 
-/-- `href` (TyXML `a_href`, interim). -/
-def a_href (value : String) : Attr × String := (.href, value)
+/-- `accept-charset`: Character encodings to use for form submission. -/
+def a_accept_charset (value : String) : Attr × String := (.accept_charset, value)
 
-/-- `hreflang` (TyXML `a_hreflang`, interim). -/
-def a_hreflang (value : String) : Attr × String := (.hreflang, value)
+/-- `accesskey`: Keyboard shortcut to activate or focus element. -/
+def a_accesskey (value : String) : Attr × String := (.accesskey, value)
 
-/-- `download` (TyXML `a_download`, interim). -/
-def a_download (value : String) : Attr × String := (.download, value)
-
-/-- `rel` (TyXML `a_rel`, interim). -/
-def a_rel (value : String) : Attr × String := (.rel, value)
-
-/-- `tabindex` (TyXML `a_tabindex`, interim). -/
-def a_tabindex (value : String) : Attr × String := (.tabindex, value)
-
-/-- `type` (TyXML `a_mime_type`, interim). -/
-def a_mime_type (value : String) : Attr × String := (.mime_type, value)
-
-/-- `datetime` (TyXML `a_datetime`, interim). -/
-def a_datetime (value : String) : Attr × String := (.datetime, value)
-
-/-- `action` (TyXML `a_action`, interim). -/
+/-- `action`: URL to use for form submission. -/
 def a_action (value : String) : Attr × String := (.action, value)
 
-/-- `checked` (TyXML `a_checked`, interim). -/
-def a_checked (value : String) : Attr × String := (.checked, value)
+/-- `allow`: Permissions policy to be applied to the iframe's contents. -/
+def a_allow (value : String) : Attr × String := (.allow, value)
 
-/-- `cols` (TyXML `a_cols`, interim). -/
-def a_cols (value : String) : Attr × String := (.cols, value)
+/-- `allowfullscreen`: Whether to allow the iframe's contents to use requestFullscreen(). A boolean attribute: present, with the empty string as its value. -/
+def a_allowfullscreen : Attr × String := (.allowfullscreen, "")
 
-/-- `enctype` (TyXML `a_enctype`, interim). -/
-def a_enctype (value : String) : Attr × String := (.enctype, value)
+/-- `alpha`: Allow the color's alpha component to be set. A boolean attribute: present, with the empty string as its value. -/
+def a_alpha : Attr × String := (.alpha, "")
 
-/-- `for` (TyXML `a_label_for`, interim). -/
-def a_label_for (value : String) : Attr × String := (.label_for, value)
-
-/-- `for` (TyXML `a_for`, interim). -/
-def a_for (value : String) : Attr × String := (.label_for, value)
-
-/-- `for` (TyXML `a_output_for`, interim). -/
-def a_output_for (value : String) : Attr × String := (.output_for, value)
-
-/-- `for` (TyXML `a_for_list`, interim). -/
-def a_for_list (value : String) : Attr × String := (.output_for, value)
-
-/-- `maxlength` (TyXML `a_maxlength`, interim). -/
-def a_maxlength (value : String) : Attr × String := (.maxlength, value)
-
-/-- `minlength` (TyXML `a_minlength`, interim). -/
-def a_minlength (value : String) : Attr × String := (.minlength, value)
-
-/-- `method` (TyXML `a_method`, interim). -/
-def a_method (value : String) : Attr × String := (.method, value)
-
-/-- `formmethod` (TyXML `a_formmethod`, interim). -/
-def a_formmethod (value : String) : Attr × String := (.formmethod, value)
-
-/-- `multiple` (TyXML `a_multiple`, interim). -/
-def a_multiple (value : String) : Attr × String := (.multiple, value)
-
-/-- `name` (TyXML `a_name`, interim). -/
-def a_name (value : String) : Attr × String := (.name, value)
-
-/-- `rows` (TyXML `a_rows`, interim). -/
-def a_rows (value : String) : Attr × String := (.rows, value)
-
-/-- `selected` (TyXML `a_selected`, interim). -/
-def a_selected (value : String) : Attr × String := (.selected, value)
-
-/-- `size` (TyXML `a_size`, interim). -/
-def a_size (value : String) : Attr × String := (.size, value)
-
-/-- `src` (TyXML `a_src`, interim). -/
-def a_src (value : String) : Attr × String := (.src, value)
-
-/-- `type` (TyXML `a_input_type`, interim). -/
-def a_input_type (value : String) : Attr × String := (.input_Type, value)
-
-/-- `value` (TyXML `a_text_value`, interim). -/
-def a_text_value (value : String) : Attr × String := (.text_Value, value)
-
-/-- `value` (TyXML `a_int_value`, interim). -/
-def a_int_value (value : String) : Attr × String := (.int_Value, value)
-
-/-- `value` (TyXML `a_value`, interim). -/
-def a_value (value : String) : Attr × String := (.value, value)
-
-/-- `value` (TyXML `a_float_value`, interim). -/
-def a_float_value (value : String) : Attr × String := (.float_Value, value)
-
-/-- `disabled` (TyXML `a_disabled`, interim). -/
-def a_disabled (value : String) : Attr × String := (.disabled, value)
-
-/-- `readonly` (TyXML `a_readonly`, interim). -/
-def a_readonly (value : String) : Attr × String := (.readOnly, value)
-
-/-- `type` (TyXML `a_button_type`, interim). -/
-def a_button_type (value : String) : Attr × String := (.button_Type, value)
-
-/-- `type` (TyXML `a_script_type`, interim). -/
-def a_script_type (value : String) : Attr × String := (.script_type, value)
-
-/-- `type` (TyXML `a_command_type`, interim). -/
-def a_command_type (value : String) : Attr × String := (.command_Type, value)
-
-/-- `type` (TyXML `a_menu_type`, interim). -/
-def a_menu_type (value : String) : Attr × String := (.menu_Type, value)
-
-/-- `label` (TyXML `a_label`, interim). -/
-def a_label (value : String) : Attr × String := (.label, value)
-
-/-- `align` (TyXML `a_align`, interim). -/
-def a_align (value : String) : Attr × String := (.align, value)
-
-/-- `axis` (TyXML `a_axis`, interim). -/
-def a_axis (value : String) : Attr × String := (.axis, value)
-
-/-- `colspan` (TyXML `a_colspan`, interim). -/
-def a_colspan (value : String) : Attr × String := (.colspan, value)
-
-/-- `headers` (TyXML `a_headers`, interim). -/
-def a_headers (value : String) : Attr × String := (.headers, value)
-
-/-- `rowspan` (TyXML `a_rowspan`, interim). -/
-def a_rowspan (value : String) : Attr × String := (.rowspan, value)
-
-/-- `scope` (TyXML `a_scope`, interim). -/
-def a_scope (value : String) : Attr × String := (.scope, value)
-
-/-- `summary` (TyXML `a_summary`, interim). -/
-def a_summary (value : String) : Attr × String := (.summary, value)
-
-/-- `border` (TyXML `a_border`, interim). -/
-def a_border (value : String) : Attr × String := (.border, value)
-
-/-- `rules` (TyXML `a_rules`, interim). -/
-def a_rules (value : String) : Attr × String := (.rules, value)
-
-/-- `char` (TyXML `a_char`, interim). -/
-def a_char (value : String) : Attr × String := (.char, value)
-
-/-- `alt` (TyXML `a_alt`, interim). -/
+/-- `alt`: Replacement text for use when images are not available. -/
 def a_alt (value : String) : Attr × String := (.alt, value)
 
-/-- `height` (TyXML `a_height`, interim). -/
-def a_height (value : String) : Attr × String := (.height, value)
+/-- `as`: Destination for a preload request (for rel="preload" and rel="modulepreload"). -/
+def a_as (value : String) : Attr × String := (.as, value)
 
-/-- `width` (TyXML `a_width`, interim). -/
-def a_width (value : String) : Attr × String := (.width, value)
+/-- `async`: Execute script when available, without blocking while fetching. A boolean attribute: present, with the empty string as its value. -/
+def a_async : Attr × String := (.async, "")
 
-/-- `shape` (TyXML `a_shape`, interim). -/
-def a_shape (value : String) : Attr × String := (.shape, value)
+/-- `autocapitalize`: Recommended autocapitalization behavior (for supported input methods). -/
+def a_autocapitalize (value : String) : Attr × String := (.autocapitalize, value)
 
-/-- `coords` (TyXML `a_coords`, interim). -/
-def a_coords (value : String) : Attr × String := (.coords, value)
+/-- `autocomplete`: Default setting for autofill feature for controls in the form. -/
+def a_autocomplete (value : String) : Attr × String := (.autocomplete, value)
 
-/-- `usemap` (TyXML `a_usemap`, interim). -/
-def a_usemap (value : String) : Attr × String := (.usemap, value)
+/-- `autocorrect`: Recommended autocorrection behavior (for supported input methods). -/
+def a_autocorrect (value : String) : Attr × String := (.autocorrect, value)
 
-/-- `data` (TyXML `a_data`, interim). -/
-def a_data (value : String) : Attr × String := (.«data», value)
+/-- `autofocus`: Automatically focus the element when the page is loaded. A boolean attribute: present, with the empty string as its value. -/
+def a_autofocus : Attr × String := (.autofocus, "")
 
-/-- `codetype` (TyXML `a_codetype`, interim). -/
-def a_codetype (value : String) : Attr × String := (.codetype, value)
+/-- `autoplay`: Hint that the media resource can be started automatically when the page is loaded. A boolean attribute: present, with the empty string as its value. -/
+def a_autoplay : Attr × String := (.autoplay, "")
 
-/-- `frameborder` (TyXML `a_frameborder`, interim). -/
-def a_frameborder (value : String) : Attr × String := (.frameborder, value)
+/-- `blocking`: Whether the element is potentially render-blocking. -/
+def a_blocking (value : String) : Attr × String := (.blocking, value)
 
-/-- `marginheight` (TyXML `a_marginheight`, interim). -/
-def a_marginheight (value : String) : Attr × String := (.marginheight, value)
+/-- `charset`: Character encoding declaration. -/
+def a_charset (value : String) : Attr × String := (.charset, value)
 
-/-- `marginwidth` (TyXML `a_marginwidth`, interim). -/
-def a_marginwidth (value : String) : Attr × String := (.marginwidth, value)
+/-- `checked`: Whether the control is checked. A boolean attribute: present, with the empty string as its value. -/
+def a_checked : Attr × String := (.checked, "")
 
-/-- `scrolling` (TyXML `a_scrolling`, interim). -/
-def a_scrolling (value : String) : Attr × String := (.scrolling, value)
+/-- `cite`: Link to the source of the quotation or more information about the edit. -/
+def a_cite (value : String) : Attr × String := (.cite, value)
 
-/-- `target` (TyXML `a_target`, interim). -/
-def a_target (value : String) : Attr × String := (.target, value)
+/-- `class`: Classes to which the element belongs. -/
+def a_class (value : String) : Attr × String := (.«class», value)
 
-/-- `content` (TyXML `a_content`, interim). -/
+/-- `closedby`: Which user actions will close the dialog. -/
+def a_closedby (value : String) : Attr × String := (.closedby, value)
+
+/-- `color`: Color to use when customizing a site's icon (for rel="mask-icon"). -/
+def a_color (value : String) : Attr × String := (.color, value)
+
+/-- `colorspace`: The color space of the serialized color. -/
+def a_colorspace (value : String) : Attr × String := (.colorspace, value)
+
+/-- `cols`: Maximum number of characters per line. -/
+def a_cols (value : String) : Attr × String := (.cols, value)
+
+/-- `colspan`: Number of columns that the cell is to span. -/
+def a_colspan (value : String) : Attr × String := (.colspan, value)
+
+/-- `command`: Indicates to the targeted element which action to take.. -/
+def a_command (value : String) : Attr × String := (.command, value)
+
+/-- `commandfor`: Targets another element to be invoked.. -/
+def a_commandfor (value : String) : Attr × String := (.commandfor, value)
+
+/-- `content`: Value of the element. -/
 def a_content (value : String) : Attr × String := (.content, value)
 
-/-- `http-equiv` (TyXML `a_http_equiv`, interim). -/
+/-- `contenteditable`: Whether the element is editable. -/
+def a_contenteditable (value : String) : Attr × String := (.contenteditable, value)
+
+/-- `controls`: Show user agent controls. A boolean attribute: present, with the empty string as its value. -/
+def a_controls : Attr × String := (.controls, "")
+
+/-- `coords`: Coordinates for the shape to be created in an image map. -/
+def a_coords (value : String) : Attr × String := (.coords, value)
+
+/-- `crossorigin`: How the element handles crossorigin requests. -/
+def a_crossorigin (value : String) : Attr × String := (.crossorigin, value)
+
+/-- `data`: Address of the resource. -/
+def a_data (value : String) : Attr × String := (.«data», value)
+
+/-- `datetime`: Date and (optionally) time of the change. -/
+def a_datetime (value : String) : Attr × String := (.datetime, value)
+
+/-- `decoding`: Decoding hint to use when processing this image for presentation. -/
+def a_decoding (value : String) : Attr × String := (.decoding, value)
+
+/-- `default`: Enable the track if no other text track is more suitable. A boolean attribute: present, with the empty string as its value. -/
+def a_default : Attr × String := (.default, "")
+
+/-- `defer`: Defer script execution. A boolean attribute: present, with the empty string as its value. -/
+def a_defer : Attr × String := (.defer, "")
+
+/-- `dir`: The text directionality of the element. -/
+def a_dir (value : String) : Attr × String := (.dir, value)
+
+/-- `dirname`: Name of form control to use for sending the element's directionality in form submission. -/
+def a_dirname (value : String) : Attr × String := (.dirname, value)
+
+/-- `disabled`: Whether the form control is disabled. A boolean attribute: present, with the empty string as its value. -/
+def a_disabled : Attr × String := (.disabled, "")
+
+/-- `download`: Whether to download the resource instead of navigating to it, and its filename if so. -/
+def a_download (value : String) : Attr × String := (.download, value)
+
+/-- `draggable`: Whether the element is draggable. -/
+def a_draggable (value : String) : Attr × String := (.draggable, value)
+
+/-- `enctype`: Entry list encoding type to use for form submission. -/
+def a_enctype (value : String) : Attr × String := (.enctype, value)
+
+/-- `enterkeyhint`: Hint for selecting an enter key action. -/
+def a_enterkeyhint (value : String) : Attr × String := (.enterkeyhint, value)
+
+/-- `fetchpriority`: Sets the priority for fetches initiated by the element. -/
+def a_fetchpriority (value : String) : Attr × String := (.fetchpriority, value)
+
+/-- `for`: Associate the label with form control. -/
+def a_for (value : String) : Attr × String := (.«for», value)
+
+/-- `form`: Associates the element with a form element. -/
+def a_form (value : String) : Attr × String := (.form, value)
+
+/-- `formaction`: URL to use for form submission. -/
+def a_formaction (value : String) : Attr × String := (.formaction, value)
+
+/-- `formenctype`: Entry list encoding type to use for form submission. -/
+def a_formenctype (value : String) : Attr × String := (.formenctype, value)
+
+/-- `formmethod`: Variant to use for form submission. -/
+def a_formmethod (value : String) : Attr × String := (.formmethod, value)
+
+/-- `formnovalidate`: Bypass form control validation for form submission. A boolean attribute: present, with the empty string as its value. -/
+def a_formnovalidate : Attr × String := (.formnovalidate, "")
+
+/-- `formtarget`: Navigable for form submission. -/
+def a_formtarget (value : String) : Attr × String := (.formtarget, value)
+
+/-- `headers`: The header cells for this cell. -/
+def a_headers (value : String) : Attr × String := (.headers, value)
+
+/-- `headingoffset`: Offsets heading levels for descendants. -/
+def a_headingoffset (value : String) : Attr × String := (.headingoffset, value)
+
+/-- `headingreset`: Prevents a heading offset computation from traversing beyond the element with the attribute. A boolean attribute: present, with the empty string as its value. -/
+def a_headingreset : Attr × String := (.headingreset, "")
+
+/-- `height`: Vertical dimension. -/
+def a_height (value : String) : Attr × String := (.height, value)
+
+/-- `hidden`: Whether the element is relevant. -/
+def a_hidden (value : String) : Attr × String := (.hidden, value)
+
+/-- `high`: Low limit of high range. -/
+def a_high (value : String) : Attr × String := (.high, value)
+
+/-- `href`: Address of the hyperlink. -/
+def a_href (value : String) : Attr × String := (.href, value)
+
+/-- `hreflang`: Language of the linked resource. -/
+def a_hreflang (value : String) : Attr × String := (.hreflang, value)
+
+/-- `http-equiv`: Pragma directive. -/
 def a_http_equiv (value : String) : Attr × String := (.http_equiv, value)
 
-/-- `defer` (TyXML `a_defer`, interim). -/
-def a_defer (value : String) : Attr × String := (.defer, value)
+/-- `id`: The element's ID. -/
+def a_id (value : String) : Attr × String := (.id, value)
 
-/-- `media` (TyXML `a_media`, interim). -/
+/-- `imagesizes`: Image sizes for different page layouts (for rel="preload"). -/
+def a_imagesizes (value : String) : Attr × String := (.imagesizes, value)
+
+/-- `imagesrcset`: Images to use in different situations, e.g., high-resolution displays, small monitors, etc. (for rel="preload"). -/
+def a_imagesrcset (value : String) : Attr × String := (.imagesrcset, value)
+
+/-- `inert`: Whether the element is inert.. A boolean attribute: present, with the empty string as its value. -/
+def a_inert : Attr × String := (.inert, "")
+
+/-- `inputmode`: Hint for selecting an input modality. -/
+def a_inputmode (value : String) : Attr × String := (.inputmode, value)
+
+/-- `integrity`: Integrity metadata used in Subresource Integrity checks SRI. -/
+def a_integrity (value : String) : Attr × String := (.integrity, value)
+
+/-- `is`: Creates a customized built-in element. -/
+def a_is (value : String) : Attr × String := (.is, value)
+
+/-- `ismap`: Whether the image is a server-side image map. A boolean attribute: present, with the empty string as its value. -/
+def a_ismap : Attr × String := (.ismap, "")
+
+/-- `itemid`: Global identifier for a microdata item. -/
+def a_itemid (value : String) : Attr × String := (.itemid, value)
+
+/-- `itemprop`: Property names of a microdata item. -/
+def a_itemprop (value : String) : Attr × String := (.itemprop, value)
+
+/-- `itemref`: Referenced elements. -/
+def a_itemref (value : String) : Attr × String := (.itemref, value)
+
+/-- `itemscope`: Introduces a microdata item. A boolean attribute: present, with the empty string as its value. -/
+def a_itemscope : Attr × String := (.itemscope, "")
+
+/-- `itemtype`: Item types of a microdata item. -/
+def a_itemtype (value : String) : Attr × String := (.itemtype, value)
+
+/-- `kind`: The type of text track. -/
+def a_kind (value : String) : Attr × String := (.kind, value)
+
+/-- `label`: User-visible label. -/
+def a_label (value : String) : Attr × String := (.label, value)
+
+/-- `lang`: Language of the element. -/
+def a_lang (value : String) : Attr × String := (.lang, value)
+
+/-- `list`: List of autocomplete options. -/
+def a_list (value : String) : Attr × String := (.list, value)
+
+/-- `loading`: Used when determining loading deferral. -/
+def a_loading (value : String) : Attr × String := (.loading, value)
+
+/-- `loop`: Whether to loop the media resource. A boolean attribute: present, with the empty string as its value. -/
+def a_loop : Attr × String := (.loop, "")
+
+/-- `low`: High limit of low range. -/
+def a_low (value : String) : Attr × String := (.low, value)
+
+/-- `max`: Maximum value. -/
+def a_max (value : String) : Attr × String := (.max, value)
+
+/-- `maxlength`: Maximum length of value. -/
+def a_maxlength (value : String) : Attr × String := (.maxlength, value)
+
+/-- `media`: Applicable media. -/
 def a_media (value : String) : Attr × String := (.media, value)
 
-/-- `style` (TyXML `a_style`, interim). -/
-def a_style (value : String) : Attr × String := (.style_Attr, value)
+/-- `method`: Variant to use for form submission. -/
+def a_method (value : String) : Attr × String := (.method, value)
 
-/-- `property` (TyXML `a_property`, interim). -/
-def a_property (value : String) : Attr × String := (.property, value)
+/-- `min`: Minimum value. -/
+def a_min (value : String) : Attr × String := (.min, value)
 
-/-- `role` (TyXML `a_role`, interim). -/
+/-- `minlength`: Minimum length of value. -/
+def a_minlength (value : String) : Attr × String := (.minlength, value)
+
+/-- `multiple`: Whether to allow multiple values. A boolean attribute: present, with the empty string as its value. -/
+def a_multiple : Attr × String := (.multiple, "")
+
+/-- `muted`: Whether to mute the media resource by default. A boolean attribute: present, with the empty string as its value. -/
+def a_muted : Attr × String := (.muted, "")
+
+/-- `name`: Name of the element to use for form submission and in the form.elements API form.elements API. -->. -/
+def a_name (value : String) : Attr × String := (.name, value)
+
+/-- `nomodule`: Prevents execution in user agents that support module scripts. A boolean attribute: present, with the empty string as its value. -/
+def a_nomodule : Attr × String := (.nomodule, "")
+
+/-- `nonce`: Cryptographic nonce used in Content Security Policy checks CSP. -/
+def a_nonce (value : String) : Attr × String := (.nonce, value)
+
+/-- `novalidate`: Bypass form control validation for form submission. A boolean attribute: present, with the empty string as its value. -/
+def a_novalidate : Attr × String := (.novalidate, "")
+
+/-- `open`: Whether the details are visible. A boolean attribute: present, with the empty string as its value. -/
+def a_open : Attr × String := (.«open», "")
+
+/-- `optimum`: Optimum value in gauge. -/
+def a_optimum (value : String) : Attr × String := (.optimum, value)
+
+/-- `pattern`: Pattern to be matched by the form control's value. -/
+def a_pattern (value : String) : Attr × String := (.pattern, value)
+
+/-- `ping`: URLs to ping. -/
+def a_ping (value : String) : Attr × String := (.ping, value)
+
+/-- `placeholder`: User-visible label to be placed within the form control. -/
+def a_placeholder (value : String) : Attr × String := (.placeholder, value)
+
+/-- `playsinline`: Encourage the user agent to display video content within the element's playback area. A boolean attribute: present, with the empty string as its value. -/
+def a_playsinline : Attr × String := (.playsinline, "")
+
+/-- `popover`: Makes the element a popover element. -/
+def a_popover (value : String) : Attr × String := (.popover, value)
+
+/-- `popovertarget`: Targets a popover element to toggle, show, or hide. -/
+def a_popovertarget (value : String) : Attr × String := (.popovertarget, value)
+
+/-- `popovertargetaction`: Indicates whether a targeted popover element is to be toggled, shown, or hidden. -/
+def a_popovertargetaction (value : String) : Attr × String := (.popovertargetaction, value)
+
+/-- `poster`: Poster frame to show prior to video playback. -/
+def a_poster (value : String) : Attr × String := (.poster, value)
+
+/-- `preload`: Hints how much buffering the media resource will likely need. -/
+def a_preload (value : String) : Attr × String := (.preload, value)
+
+/-- `readonly`: Whether to allow the value to be edited by the user. A boolean attribute: present, with the empty string as its value. -/
+def a_readonly : Attr × String := (.readonly, "")
+
+/-- `referrerpolicy`: Referrer policy for fetches initiated by the element. -/
+def a_referrerpolicy (value : String) : Attr × String := (.referrerpolicy, value)
+
+/-- `rel`: Relationship between the location in the document containing the hyperlink and the destination resource. -/
+def a_rel (value : String) : Attr × String := (.rel, value)
+
+/-- `required`: Whether the control is required for form submission. A boolean attribute: present, with the empty string as its value. -/
+def a_required : Attr × String := (.required, "")
+
+/-- `reversed`: Number the list backwards. A boolean attribute: present, with the empty string as its value. -/
+def a_reversed : Attr × String := (.reversed, "")
+
+/-- `rows`: Number of lines to show. -/
+def a_rows (value : String) : Attr × String := (.rows, value)
+
+/-- `rowspan`: Number of rows that the cell is to span. -/
+def a_rowspan (value : String) : Attr × String := (.rowspan, value)
+
+/-- `sandbox`: Security rules for nested content. -/
+def a_sandbox (value : String) : Attr × String := (.sandbox, value)
+
+/-- `scope`: Specifies which cells the header cell applies to. -/
+def a_scope (value : String) : Attr × String := (.scope, value)
+
+/-- `selected`: Whether the option is selected by default. A boolean attribute: present, with the empty string as its value. -/
+def a_selected : Attr × String := (.selected, "")
+
+/-- `shadowrootclonable`: Sets clonable on a declarative shadow root. A boolean attribute: present, with the empty string as its value. -/
+def a_shadowrootclonable : Attr × String := (.shadowrootclonable, "")
+
+/-- `shadowrootcustomelementregistry`: Enables declarative shadow roots to indicate they will use a custom element registry. A boolean attribute: present, with the empty string as its value. -/
+def a_shadowrootcustomelementregistry : Attr × String := (.shadowrootcustomelementregistry, "")
+
+/-- `shadowrootdelegatesfocus`: Sets delegates focus on a declarative shadow root. A boolean attribute: present, with the empty string as its value. -/
+def a_shadowrootdelegatesfocus : Attr × String := (.shadowrootdelegatesfocus, "")
+
+/-- `shadowrootmode`: Enables streaming declarative shadow roots. -/
+def a_shadowrootmode (value : String) : Attr × String := (.shadowrootmode, value)
+
+/-- `shadowrootserializable`: Sets serializable on a declarative shadow root. A boolean attribute: present, with the empty string as its value. -/
+def a_shadowrootserializable : Attr × String := (.shadowrootserializable, "")
+
+/-- `shadowrootslotassignment`: Sets slot assignment on a declarative shadow root. -/
+def a_shadowrootslotassignment (value : String) : Attr × String := (.shadowrootslotassignment, value)
+
+/-- `shape`: The kind of shape to be created in an image map. -/
+def a_shape (value : String) : Attr × String := (.shape, value)
+
+/-- `size`: Size of the control. -/
+def a_size (value : String) : Attr × String := (.size, value)
+
+/-- `sizes`: Sizes of the icons (for rel="icon"). -/
+def a_sizes (value : String) : Attr × String := (.sizes, value)
+
+/-- `slot`: The element's desired slot. -/
+def a_slot (value : String) : Attr × String := (.slot, value)
+
+/-- `span`: Number of columns spanned by the element. -/
+def a_span (value : String) : Attr × String := (.span, value)
+
+/-- `spellcheck`: Whether the element is to have its spelling and grammar checked. -/
+def a_spellcheck (value : String) : Attr × String := (.spellcheck, value)
+
+/-- `src`: Address of the resource. -/
+def a_src (value : String) : Attr × String := (.src, value)
+
+/-- `srcdoc`: A document to render in the iframe. -/
+def a_srcdoc (value : String) : Attr × String := (.srcdoc, value)
+
+/-- `srclang`: Language of the text track. -/
+def a_srclang (value : String) : Attr × String := (.srclang, value)
+
+/-- `srcset`: Images to use in different situations, e.g., high-resolution displays, small monitors, etc.. -/
+def a_srcset (value : String) : Attr × String := (.srcset, value)
+
+/-- `start`: Starting value of the list. -/
+def a_start (value : String) : Attr × String := (.start, value)
+
+/-- `step`: Granularity to be matched by the form control's value. -/
+def a_step (value : String) : Attr × String := (.step, value)
+
+/-- `style`: Presentational and formatting instructions. -/
+def a_style (value : String) : Attr × String := (.style, value)
+
+/-- `tabindex`: Whether the element is focusable and sequentially focusable, and the relative order of the element for the purposes of sequential focus navigation. -/
+def a_tabindex (value : String) : Attr × String := (.tabindex, value)
+
+/-- `target`: Navigable for hyperlink navigation. -/
+def a_target (value : String) : Attr × String := (.target, value)
+
+/-- `title`: Advisory information for the element. -/
+def a_title (value : String) : Attr × String := (.title, value)
+
+/-- `translate`: Whether the element is to be translated when the page is localized. -/
+def a_translate (value : String) : Attr × String := (.translate, value)
+
+/-- `type`: Hint for the type of the referenced resource. -/
+def a_type (value : String) : Attr × String := (.«type», value)
+
+/-- `usemap`: Name of image map to use. -/
+def a_usemap (value : String) : Attr × String := (.usemap, value)
+
+/-- `value`: Value to be used for form submission. -/
+def a_value (value : String) : Attr × String := (.value, value)
+
+/-- `width`: Horizontal dimension. -/
+def a_width (value : String) : Attr × String := (.width, value)
+
+/-- `wrap`: How the value of the form control is to be wrapped for form submission. -/
+def a_wrap (value : String) : Attr × String := (.wrap, value)
+
+/-- `writingsuggestions`: Whether the element can offer writing suggestions or not.. -/
+def a_writingsuggestions (value : String) : Attr × String := (.writingsuggestions, value)
+
+/-- `onafterprint`: afterprint event handler for Window object. -/
+def a_onafterprint (value : String) : Attr × String := (.onafterprint, value)
+
+/-- `onauxclick`: auxclick event handler. -/
+def a_onauxclick (value : String) : Attr × String := (.onauxclick, value)
+
+/-- `onbeforeinput`: beforeinput event handler. -/
+def a_onbeforeinput (value : String) : Attr × String := (.onbeforeinput, value)
+
+/-- `onbeforematch`: beforematch event handler. -/
+def a_onbeforematch (value : String) : Attr × String := (.onbeforematch, value)
+
+/-- `onbeforeprint`: beforeprint event handler for Window object. -/
+def a_onbeforeprint (value : String) : Attr × String := (.onbeforeprint, value)
+
+/-- `onbeforeunload`: beforeunload event handler for Window object. -/
+def a_onbeforeunload (value : String) : Attr × String := (.onbeforeunload, value)
+
+/-- `onbeforetoggle`: beforetoggle event handler. -/
+def a_onbeforetoggle (value : String) : Attr × String := (.onbeforetoggle, value)
+
+/-- `onblur`: blur event handler. -/
+def a_onblur (value : String) : Attr × String := (.onblur, value)
+
+/-- `oncancel`: cancel event handler. -/
+def a_oncancel (value : String) : Attr × String := (.oncancel, value)
+
+/-- `oncanplay`: canplay event handler. -/
+def a_oncanplay (value : String) : Attr × String := (.oncanplay, value)
+
+/-- `oncanplaythrough`: canplaythrough event handler. -/
+def a_oncanplaythrough (value : String) : Attr × String := (.oncanplaythrough, value)
+
+/-- `onchange`: change event handler. -/
+def a_onchange (value : String) : Attr × String := (.onchange, value)
+
+/-- `onclick`: click event handler. -/
+def a_onclick (value : String) : Attr × String := (.onclick, value)
+
+/-- `onclose`: close event handler. -/
+def a_onclose (value : String) : Attr × String := (.onclose, value)
+
+/-- `oncommand`: command event handler. -/
+def a_oncommand (value : String) : Attr × String := (.oncommand, value)
+
+/-- `oncontextlost`: contextlost event handler. -/
+def a_oncontextlost (value : String) : Attr × String := (.oncontextlost, value)
+
+/-- `oncontextmenu`: contextmenu event handler. -/
+def a_oncontextmenu (value : String) : Attr × String := (.oncontextmenu, value)
+
+/-- `oncontextrestored`: contextrestored event handler. -/
+def a_oncontextrestored (value : String) : Attr × String := (.oncontextrestored, value)
+
+/-- `oncopy`: copy event handler. -/
+def a_oncopy (value : String) : Attr × String := (.oncopy, value)
+
+/-- `oncuechange`: cuechange event handler. -/
+def a_oncuechange (value : String) : Attr × String := (.oncuechange, value)
+
+/-- `oncut`: cut event handler. -/
+def a_oncut (value : String) : Attr × String := (.oncut, value)
+
+/-- `ondblclick`: dblclick event handler. -/
+def a_ondblclick (value : String) : Attr × String := (.ondblclick, value)
+
+/-- `ondrag`: drag event handler. -/
+def a_ondrag (value : String) : Attr × String := (.ondrag, value)
+
+/-- `ondragend`: dragend event handler. -/
+def a_ondragend (value : String) : Attr × String := (.ondragend, value)
+
+/-- `ondragenter`: dragenter event handler. -/
+def a_ondragenter (value : String) : Attr × String := (.ondragenter, value)
+
+/-- `ondragleave`: dragleave event handler. -/
+def a_ondragleave (value : String) : Attr × String := (.ondragleave, value)
+
+/-- `ondragover`: dragover event handler. -/
+def a_ondragover (value : String) : Attr × String := (.ondragover, value)
+
+/-- `ondragstart`: dragstart event handler. -/
+def a_ondragstart (value : String) : Attr × String := (.ondragstart, value)
+
+/-- `ondrop`: drop event handler. -/
+def a_ondrop (value : String) : Attr × String := (.ondrop, value)
+
+/-- `ondurationchange`: durationchange event handler. -/
+def a_ondurationchange (value : String) : Attr × String := (.ondurationchange, value)
+
+/-- `onemptied`: emptied event handler. -/
+def a_onemptied (value : String) : Attr × String := (.onemptied, value)
+
+/-- `onended`: ended event handler. -/
+def a_onended (value : String) : Attr × String := (.onended, value)
+
+/-- `onerror`: error event handler. -/
+def a_onerror (value : String) : Attr × String := (.onerror, value)
+
+/-- `onfocus`: focus event handler. -/
+def a_onfocus (value : String) : Attr × String := (.onfocus, value)
+
+/-- `onformdata`: formdata event handler. -/
+def a_onformdata (value : String) : Attr × String := (.onformdata, value)
+
+/-- `onhashchange`: hashchange event handler for Window object. -/
+def a_onhashchange (value : String) : Attr × String := (.onhashchange, value)
+
+/-- `oninput`: input event handler. -/
+def a_oninput (value : String) : Attr × String := (.oninput, value)
+
+/-- `oninvalid`: invalid event handler. -/
+def a_oninvalid (value : String) : Attr × String := (.oninvalid, value)
+
+/-- `onkeydown`: keydown event handler. -/
+def a_onkeydown (value : String) : Attr × String := (.onkeydown, value)
+
+/-- `onkeypress`: keypress event handler. -/
+def a_onkeypress (value : String) : Attr × String := (.onkeypress, value)
+
+/-- `onkeyup`: keyup event handler. -/
+def a_onkeyup (value : String) : Attr × String := (.onkeyup, value)
+
+/-- `onlanguagechange`: languagechange event handler for Window object. -/
+def a_onlanguagechange (value : String) : Attr × String := (.onlanguagechange, value)
+
+/-- `onload`: load event handler. -/
+def a_onload (value : String) : Attr × String := (.onload, value)
+
+/-- `onloadeddata`: loadeddata event handler. -/
+def a_onloadeddata (value : String) : Attr × String := (.onloadeddata, value)
+
+/-- `onloadedmetadata`: loadedmetadata event handler. -/
+def a_onloadedmetadata (value : String) : Attr × String := (.onloadedmetadata, value)
+
+/-- `onloadstart`: loadstart event handler. -/
+def a_onloadstart (value : String) : Attr × String := (.onloadstart, value)
+
+/-- `onmessage`: message event handler for Window object. -/
+def a_onmessage (value : String) : Attr × String := (.onmessage, value)
+
+/-- `onmessageerror`: messageerror event handler for Window object. -/
+def a_onmessageerror (value : String) : Attr × String := (.onmessageerror, value)
+
+/-- `onmousedown`: mousedown event handler. -/
+def a_onmousedown (value : String) : Attr × String := (.onmousedown, value)
+
+/-- `onmouseenter`: mouseenter event handler. -/
+def a_onmouseenter (value : String) : Attr × String := (.onmouseenter, value)
+
+/-- `onmouseleave`: mouseleave event handler. -/
+def a_onmouseleave (value : String) : Attr × String := (.onmouseleave, value)
+
+/-- `onmousemove`: mousemove event handler. -/
+def a_onmousemove (value : String) : Attr × String := (.onmousemove, value)
+
+/-- `onmouseout`: mouseout event handler. -/
+def a_onmouseout (value : String) : Attr × String := (.onmouseout, value)
+
+/-- `onmouseover`: mouseover event handler. -/
+def a_onmouseover (value : String) : Attr × String := (.onmouseover, value)
+
+/-- `onmouseup`: mouseup event handler. -/
+def a_onmouseup (value : String) : Attr × String := (.onmouseup, value)
+
+/-- `onoffline`: offline event handler for Window object. -/
+def a_onoffline (value : String) : Attr × String := (.onoffline, value)
+
+/-- `ononline`: online event handler for Window object. -/
+def a_ononline (value : String) : Attr × String := (.ononline, value)
+
+/-- `onpagehide`: pagehide event handler for Window object. -/
+def a_onpagehide (value : String) : Attr × String := (.onpagehide, value)
+
+/-- `onpagereveal`: pagereveal event handler for Window object. -/
+def a_onpagereveal (value : String) : Attr × String := (.onpagereveal, value)
+
+/-- `onpageshow`: pageshow event handler for Window object. -/
+def a_onpageshow (value : String) : Attr × String := (.onpageshow, value)
+
+/-- `onpageswap`: pageswap event handler for Window object. -/
+def a_onpageswap (value : String) : Attr × String := (.onpageswap, value)
+
+/-- `onpaste`: paste event handler. -/
+def a_onpaste (value : String) : Attr × String := (.onpaste, value)
+
+/-- `onpause`: pause event handler. -/
+def a_onpause (value : String) : Attr × String := (.onpause, value)
+
+/-- `onplay`: play event handler. -/
+def a_onplay (value : String) : Attr × String := (.onplay, value)
+
+/-- `onplaying`: playing event handler. -/
+def a_onplaying (value : String) : Attr × String := (.onplaying, value)
+
+/-- `onpopstate`: popstate event handler for Window object. -/
+def a_onpopstate (value : String) : Attr × String := (.onpopstate, value)
+
+/-- `onprogress`: progress event handler. -/
+def a_onprogress (value : String) : Attr × String := (.onprogress, value)
+
+/-- `onratechange`: ratechange event handler. -/
+def a_onratechange (value : String) : Attr × String := (.onratechange, value)
+
+/-- `onreset`: reset event handler. -/
+def a_onreset (value : String) : Attr × String := (.onreset, value)
+
+/-- `onresize`: resize event handler. -/
+def a_onresize (value : String) : Attr × String := (.onresize, value)
+
+/-- `onrejectionhandled`: rejectionhandled event handler for Window object. -/
+def a_onrejectionhandled (value : String) : Attr × String := (.onrejectionhandled, value)
+
+/-- `onscroll`: scroll event handler. -/
+def a_onscroll (value : String) : Attr × String := (.onscroll, value)
+
+/-- `onscrollend`: scrollend event handler. -/
+def a_onscrollend (value : String) : Attr × String := (.onscrollend, value)
+
+/-- `onsecuritypolicyviolation`: securitypolicyviolation event handler. -/
+def a_onsecuritypolicyviolation (value : String) : Attr × String := (.onsecuritypolicyviolation, value)
+
+/-- `onseeked`: seeked event handler. -/
+def a_onseeked (value : String) : Attr × String := (.onseeked, value)
+
+/-- `onseeking`: seeking event handler. -/
+def a_onseeking (value : String) : Attr × String := (.onseeking, value)
+
+/-- `onselect`: select event handler. -/
+def a_onselect (value : String) : Attr × String := (.onselect, value)
+
+/-- `onslotchange`: slotchange event handler. -/
+def a_onslotchange (value : String) : Attr × String := (.onslotchange, value)
+
+/-- `onstalled`: stalled event handler. -/
+def a_onstalled (value : String) : Attr × String := (.onstalled, value)
+
+/-- `onstorage`: storage event handler for Window object. -/
+def a_onstorage (value : String) : Attr × String := (.onstorage, value)
+
+/-- `onsubmit`: submit event handler. -/
+def a_onsubmit (value : String) : Attr × String := (.onsubmit, value)
+
+/-- `onsuspend`: suspend event handler. -/
+def a_onsuspend (value : String) : Attr × String := (.onsuspend, value)
+
+/-- `ontimeupdate`: timeupdate event handler. -/
+def a_ontimeupdate (value : String) : Attr × String := (.ontimeupdate, value)
+
+/-- `ontoggle`: toggle event handler. -/
+def a_ontoggle (value : String) : Attr × String := (.ontoggle, value)
+
+/-- `onunhandledrejection`: unhandledrejection event handler for Window object. -/
+def a_onunhandledrejection (value : String) : Attr × String := (.onunhandledrejection, value)
+
+/-- `onunload`: unload event handler for Window object. -/
+def a_onunload (value : String) : Attr × String := (.onunload, value)
+
+/-- `onvolumechange`: volumechange event handler. -/
+def a_onvolumechange (value : String) : Attr × String := (.onvolumechange, value)
+
+/-- `onwaiting`: waiting event handler. -/
+def a_onwaiting (value : String) : Attr × String := (.onwaiting, value)
+
+/-- `onwheel`: wheel event handler. -/
+def a_onwheel (value : String) : Attr × String := (.onwheel, value)
+
+/-- `role`: ARIA role, defined in ARIA in HTML, on every element. -/
 def a_role (value : String) : Attr × String := (.role, value)
-
-/-- `aria-` (TyXML `a_aria`, interim). -/
-def a_aria (value : String) : Attr × String := (.aria, value)
 
 end Whatwg.Html.A

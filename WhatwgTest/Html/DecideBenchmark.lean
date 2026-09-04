@@ -45,7 +45,7 @@ set_option maxHeartbeats 20 in
 theorem void_div_false : Tag.isVoid .div = false := by decide
 
 set_option maxHeartbeats 20 in
-theorem common_class : AttrSets.common .«class» = true := by decide
+theorem div_class : AttrSets.div_attrib .«class» = true := by decide
 
 /-! The same check through the kernel-only route the census ruled for
 kernel checks (`decide +kernel`). -/

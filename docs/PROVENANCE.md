@@ -51,12 +51,18 @@ the gate refuses to deviate from): one row per element name of every
 `<dl class="element">` block, with the block's line, the SHA-256 of the
 bytes between its open tag and its `</dl>` as the span digest, and the
 `Categories`, `Contexts`, `Content model` and `Content attributes` entries
-as the standard's words with markup removed, and from those rows the
-schema modules `Whatwg/Html/Schema/{Tags,Families,ContentModel}.lean` and
-`Whatwg/Html/Node/Combinators.lean` (`Gates/HtmlStandardEmit.lean`, whose
-authored readings of the standard's prose sentences are each pinned to the
-digest of the block they read). `lake exe htmlstandard` fails on any byte
-of drift in any output. Cross-check at the pin: a Python
+as the standard's words with markup removed; likewise
+`generated/html-standard-attributes.tsv`, one row per row of the standard's
+attribute index (`attributes-1`) and event-handler index
+(`ix-event-handlers`) with the row's span digest; and from those rows the
+schema modules `Whatwg/Html/Schema/{Tags,Families,Attributes,ContentModel}.lean`
+and `Whatwg/Html/Node/Combinators.lean` (`Gates/HtmlStandardEmit.lean`,
+whose authored readings of the standard's prose sentences are each pinned
+to the digest of the block they read, and whose reading of each `Value`
+cell as a kind is by the cell's leading words and quoted items). `lake exe
+htmlstandard` fails on any byte of drift in any output. Cross-check at the
+pin: a Python regular-expression pass found the same 179 attribute and 89
+handler rows. Cross-check at the pin: a Python
 regular-expression pass over the same file found the same 107 blocks and
 the same 113 element names (`menu`'s block is spelled `<dl class=element>`).
 

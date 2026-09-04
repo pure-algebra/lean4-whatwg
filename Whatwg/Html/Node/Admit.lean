@@ -128,7 +128,7 @@ syntax (name := admitsTactic) "admits" : tactic
       if let some attrs ← attrList? 256 (ty.getArg! 1) then
         if let some a := attrs.find? (fun a => !set.contains a) then
           throwError ("attribute `" ++ a.markupName ++ "` is not admitted on this element: "
-            ++ "the attribute set `" ++ set.tyxmlName ++ "` does not name it")
+            ++ "the attribute set `" ++ set.name ++ "` does not name it")
         goal.assign reflTrue
         replaceMainGoal []
         return

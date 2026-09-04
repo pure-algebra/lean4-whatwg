@@ -60,7 +60,7 @@ open Whatwg.Html.Schema (Tag ContentSet)
 #guard_msgs in
 #check_failure (html! <div id="a" id="b">"x"</div> : Element .div .flow)
 
-/-- info: attribute `data-role`: the prefixed constructor `a_user_data` is not representable in `Attr × String` at this pin -/
+/-- info: attribute `data-role`: the prefixed attributes `data-*` are not representable in `Attr × String` at this pin -/
 #guard_msgs in
 #check_failure (html! <div data-role="x">"x"</div> : Element .div .flow)
 
@@ -87,5 +87,27 @@ open Whatwg.Html.Schema (Tag ContentSet)
 /-- info: <title> is not admitted here: the content set `flow` does not name it -/
 #guard_msgs in
 #check_failure (html! <div><title>"x"</title></div> : Element .div .flow)
+
+/-! ## Literal values against the attribute index -/
+
+/-- info: attribute `dir` on <p> takes one of `ltr`, `rtl`, `auto`, not `lefty` -/
+#guard_msgs in
+#check_failure (html! <p dir="lefty">"x"</p> : Element .p .phrasing)
+
+/-- info: attribute `hidden` on <p> takes one of `until-found`, `hidden`, or the empty string, not `yes` -/
+#guard_msgs in
+#check_failure (html! <p hidden="yes">"x"</p> : Element .p .phrasing)
+
+/-- info: attribute `open` is a boolean attribute: write it bare, or with the empty string or its own name as its value -/
+#guard_msgs in
+#check_failure (html! <details open="yes"><summary>"s"</summary></details> : Element .details .flow_with_summary)
+
+/-- info: attribute `colspan` takes a valid non-negative integer, not `two` -/
+#guard_msgs in
+#check_failure (html! <td colspan="two">"x"</td> : Element .td .flow)
+
+/-- info: attribute `colspan` takes a value -/
+#guard_msgs in
+#check_failure (html! <td colspan>"x"</td> : Element .td .flow)
 
 end WhatwgTest.Html.MarkupBreakers

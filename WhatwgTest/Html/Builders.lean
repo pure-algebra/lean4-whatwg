@@ -35,19 +35,19 @@ example : Element .html .only_head_body_strict :=
     [E.el (E.head
       [E.el (E.title [E.txt "Slice H6"]),
        E.el (E.«meta» [A.a_charset "utf-8"]),
-       E.el (E.link "stylesheet" "/site.css")]),
+       E.el (E.link [A.a_rel "stylesheet", A.a_href "/site.css"])]),
      E.el (E.body
       [E.el (E.h1 [E.txt "Content models"]),
        E.el (E.p [E.txt "A paragraph of ", E.el (E.em [E.txt "phrasing"]), E.txt " content."])])]
 
-/-! ## Void and childless elements -/
+/-! ## Void and childless elements, and the attribute helpers -/
 
-/-- `img` carries the two required attributes as leading arguments (interim,
-until the attribute universe is the standard's). -/
-example : Element .img .nothing := E.img "/logo.png" "The logo"
+example : Element .img .nothing := E.img [A.a_src "/logo.png", A.a_alt "The logo"]
 example : Element .br .nothing := E.br [A.a_class "spacer"]
-example : Element .input .nothing := E.input [A.a_input_type "text", A.a_name "q"]
+example : Element .input .nothing := E.input [A.a_type "text", A.a_name "q"]
 example : Element .hr .nothing := E.hr
+/-- A boolean attribute helper takes no value. -/
+example : Element .details .flow_with_summary := E.details [E.el (E.summary [E.txt "s"])] [A.a_open]
 /-- `iframe` is not void but takes nothing. -/
 example : Element .iframe .nothing := E.iframe [A.a_src "/frame"]
 
@@ -81,17 +81,17 @@ example : Element .table .only_caption_colgroup_thead_tbody_tfoot_tr :=
 
 /-- `source` and `track` are labelled direct children of `video`. -/
 example : Element .video .flow_without_media :=
-  E.video [E.txt "fallback"] [E.source [A.a_src "/v.webm"]] [] [A.a_controls "controls"]
+  E.video [E.txt "fallback"] [E.source [A.a_src "/v.webm"]] [] [A.a_controls]
 
 /-- `area` is a labelled direct child of `map`. -/
 example : Element .map .flow :=
-  E.map [E.el (E.p [E.txt "x"])] [E.area "A" [A.a_href "/a"]] [A.a_name "m"]
+  E.map [E.el (E.p [E.txt "x"])] [E.area [A.a_alt "A", A.a_href "/a"]] [A.a_name "m"]
 
 /-! ## The standard's own rules -/
 
 /-- `figure` admits its `figcaption` through its own set. -/
 example : Element .figure .flow_with_figcaption :=
-  E.figure [E.el (E.img "/a.png" "A"), E.el (E.figcaption [E.txt "Caption"])]
+  E.figure [E.el (E.img [A.a_src "/a.png", A.a_alt "A"]), E.el (E.figcaption [E.txt "Caption"])]
 
 /-- A `summary` may hold a heading. -/
 example : Element .summary .phrasing_with_heading := E.summary [E.el (E.h2 [E.txt "More"])]
@@ -109,6 +109,6 @@ example (c : Child .flow_without_interactive_noscript) : Child .flow_without_int
 
 example : (E.p [E.txt "x"]).toRaw = .element "p" [] [.text "x"] := rfl
 example : (E.br [A.a_class "spacer"]).toRaw = .element "br" [("class", "spacer")] [] := rfl
-example : (E.img "/a.png" "A").toRaw = .element "img" [("src", "/a.png"), ("alt", "A")] [] := rfl
+example : (E.img [A.a_src "/a.png", A.a_alt "A"]).toRaw = .element "img" [("src", "/a.png"), ("alt", "A")] [] := rfl
 
 end WhatwgTest.Html.Builders

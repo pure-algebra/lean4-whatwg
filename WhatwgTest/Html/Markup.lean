@@ -40,6 +40,9 @@ example : Element .details .flow_with_summary :=
 /-- A dashed attribute name. -/
 example : Element .«meta» .nothing := html! <meta http-equiv="refresh" />
 
+/-- A keyword attribute with a valid keyword, and a bare boolean one. -/
+example : Element .p .phrasing := html! <p dir="rtl" hidden>"x"</p>
+
 /-- The keyword element names. -/
 example : Element .«section» .flow := html! <section><h2>"Title"</h2></section>
 
@@ -102,7 +105,7 @@ def pageCombinators : Element .html .only_head_body_strict :=
     [E.el (E.head
       [E.el (E.title [E.txt "Slice H3"]),
        E.el (E.«meta» [A.a_charset "utf-8"]),
-       E.el (E.link "stylesheet" "/site.css")]),
+       E.el (E.link [A.a_rel "stylesheet", A.a_href "/site.css"])]),
      E.el (E.body
       [E.el (E.h1 [E.txt "Content models"]),
        E.el (E.p [E.txt "A paragraph of ", E.el (E.em [E.txt "phrasing"]), E.txt " content."])])]
@@ -116,9 +119,8 @@ example : render page.toRaw =
   decide
 
 set_option maxRecDepth 2000 in
-/-- A presence attribute prints as its own name, as TyXML prints
-`a_hidden ()`. -/
-example : render (html! <p hidden>"x"</p> : Element .p .phrasing).toRaw = "<p hidden=\"hidden\">x</p>" := by
+/-- A bare attribute is the empty string. -/
+example : render (html! <p hidden>"x"</p> : Element .p .phrasing).toRaw = "<p hidden=\"\">x</p>" := by
   decide
 
 end WhatwgTest.Html.Markup

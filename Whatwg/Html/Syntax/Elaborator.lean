@@ -62,11 +62,8 @@ children by the generated table `Whatwg.Html.Schema.labelledChild`: the
 child is elaborated against its own content set and placed as an element,
 not as an admitted `Child`. Their position among the siblings is kept as
 written.
-The required labelled *attributes* of `html_sigs.mli` (`img ~src ~alt`,
-`link ~rel ~href`, `area ~alt`, `bdo ~dir`, `optgroup ~label`,
-`command ~label`) are likewise admitted by name on those elements, outside
-the attribute set, and required. Where one markup name has two rows
-there would be a choice to make; at this pin every name has one row.
+Where one markup name had two rows there would be a choice to make; at
+this pin every name has one row.
 
 ## Cost
 
@@ -81,11 +78,13 @@ reasoned about, does not.
 
 ## What is not here
 
-Attribute values are `String`, as in the combinators; the prefixed
-constructors `data-*` and `aria-*` cannot be represented in
-`Attr × String` and are rejected with a message saying so; `xml:lang` and
-`xml:space` cannot be spelled; comments and entities have no markup form.
-Each is an H6 row or a later slice.
+Attribute values are `String`, as in the combinators, and a literal value
+is checked against the kind the standard's attribute index gives it (a
+boolean attribute is written bare, a keyword attribute takes one of its
+keywords, an integer attribute digits); a spliced value is not checked.
+The prefixed attributes `data-*` and `aria-*` cannot be represented in
+`Attr × String` and are rejected with a message saying so; comments and
+entities have no markup form. Each is a later slice.
 
 The walker recurses on a fuel that starts at the number of syntax nodes,
 which no well-formed document exhausts; the trust gate forbids `partial`.
@@ -146,17 +145,6 @@ def nameString (stx : Syntax) : String :=
 repeat. At this pin every labelled child is optional and may repeat. -/
 def labelledArity (_parent _child : Tag) : Bool × Bool := (false, true)
 
-/-- The required labelled attributes of TyXML's `html_sigs.mli`, by markup
-name: interim, because the attribute sets are TyXML's until H6.1b and
-these are outside them. -/
-def labelledAttrs : Tag → List (String × Attr)
-  | .img => [("src", .src), ("alt", .alt)]
-  | .link => [("rel", .rel), ("href", .href)]
-  | .area => [("alt", .alt)]
-  | .bdo => [("dir", .dir)]
-  | .optgroup => [("label", .label)]
-  | _ => []
-
 /-- The element rows with a name: one at this pin. -/
 def elementRows (markup : String) : List Schema.Element :=
   elements.filter (·.name == markup)
@@ -196,46 +184,74 @@ structure AttrOut where
   markup : String
   value : Expr
 
+/-- The index rows of an attribute that apply to an element: the rows
+naming it, else the global rows. -/
+def rowsFor (a : Attr) (t : Tag) : List AttrRow :=
+  let named := attributeRows.filter fun r => r.attr == a && r.elements.contains t
+  if named.isEmpty then attributeRows.filter fun r => r.attr == a && r.global else named
+
+/-- Digits only, at least one. -/
+def isDigits (s : String) : Bool := !s.isEmpty && s.all Char.isDigit
+
+/-- Check a literal value against the kind its index row gives it; `none`
+when it conforms, else the message. A spliced value is not checked. -/
+def valueProblem (a : Attr) (t : Tag) (markup value : String) (presence : Bool) : Option String :=
+  match rowsFor a t with
+  | [] => none
+  | row :: _ =>
+    match row.kind with
+    | .boolean =>
+      if presence || value.isEmpty || value == markup then none
+      else some ("attribute `" ++ markup ++ "` is a boolean attribute: write it bare, or with the empty string or its own name as its value")
+    | .keywords false =>
+      if row.keywords.contains value || (row.allowEmpty && value.isEmpty) then none
+      else some ("attribute `" ++ markup ++ "` on <" ++ t.markupText ++ "> takes one of "
+        ++ ", ".intercalate (row.keywords.map fun k => "`" ++ k ++ "`")
+        ++ (if row.allowEmpty then ", or the empty string" else "") ++ ", not `" ++ value ++ "`")
+    | .integer =>
+      if presence then some ("attribute `" ++ markup ++ "` takes a value")
+      else if isDigits value || (value.startsWith "-" && isDigits (String.ofList (value.toList.drop 1))) then none
+      else some ("attribute `" ++ markup ++ "` takes a valid integer, not `" ++ value ++ "`")
+    | .nonNegInteger =>
+      if presence then some ("attribute `" ++ markup ++ "` takes a value")
+      else if isDigits value then none
+      else some ("attribute `" ++ markup ++ "` takes a valid non-negative integer, not `" ++ value ++ "`")
+    | .float => if presence then some ("attribute `" ++ markup ++ "` takes a value") else none
+    | _ => none
+
 /-- Elaborate the attributes of an element against its attribute set,
-blaming one token at a time: the labelled ones of `labelledAttrs`, which
-must all be present, and the ones the set must name. -/
-def elabAttrs (t : Tag) (elementName : String) (set? : Option AttrSet) (stxs : Array Syntax) :
-    TermElabM (Array AttrOut × Array AttrOut) := do
+blaming one token at a time, and check every literal value against the
+kind its index row gives it. -/
+def elabAttrs (t : Tag) (elementName : String) (set : AttrSet) (stxs : Array Syntax) :
+    TermElabM (Array AttrOut) := do
   let mut out : Array AttrOut := #[]
-  let mut lab : Array AttrOut := #[]
   for stx in stxs do
     let mut markup := nameString stx[1 - 1]
     for part in stx[1].getArgs do
       markup := markup ++ "-" ++ nameString part[1]
-    if out.any (·.markup == markup) || lab.any (·.markup == markup) then
+    if out.any (·.markup == markup) then
       throwErrorAt stx ("attribute `" ++ markup ++ "` is given twice on <" ++ elementName ++ ">")
+    if let some pre := attributeCtors.find? (fun c => c.isPrefix && markup.startsWith c.markup) then
+      throwErrorAt stx ("attribute `" ++ markup ++ "`: the prefixed attributes `" ++ pre.markup
+        ++ "*` are not representable in `Attr × String` at this pin")
+    let some row := attributeCtors.find? (fun c => !c.isPrefix && c.markup == markup)
+      | throwErrorAt stx ("unknown attribute `" ++ markup ++ "`")
+    unless set.contains row.tag do
+      throwErrorAt stx ("attribute `" ++ markup ++ "` is not admitted on <" ++ elementName
+        ++ ">: the attribute set `" ++ set.name ++ "` does not name it")
     let opt := stx[2]
-    let valueOf : TermElabM Expr := if opt.getNumArgs == 0 then pure (mkStrLit markup) else
+    let presence := opt.getNumArgs == 0
+    let literal? : Option String := if presence then some "" else opt[1].isStrLit?
+    if let some v := literal? then
+      if let some problem := valueProblem row.tag t markup v presence then
+        throwErrorAt stx problem
+    let value ← if presence then pure (mkStrLit "") else
       let v := opt[1]
       match v.isStrLit? with
       | some s => pure (mkStrLit s)
       | none => elabClosed v[1] (mkConst ``String)
-    if let some (_, tag) := (labelledAttrs t).find? (·.1 == markup) then
-      lab := lab.push { tag, markup, value := ← valueOf }
-      continue
-    if let some pre := attributeCtors.find? (fun c => c.isPrefix && markup.startsWith c.markup) then
-      throwErrorAt stx ("attribute `" ++ markup ++ "`: the prefixed constructor `" ++ pre.name
-        ++ "` is not representable in `Attr × String` at this pin")
-    let rows := attributeCtors.filter (fun c => !c.isPrefix && c.markup == markup)
-    if rows.isEmpty then
-      throwErrorAt stx ("unknown attribute `" ++ markup ++ "`")
-    let row ← match set? with
-      | none => pure rows.head!
-      | some set =>
-        match rows.find? (fun c => set.contains c.tag) with
-        | some row => pure row
-        | none => throwErrorAt stx ("attribute `" ++ markup ++ "` is not admitted on <" ++ elementName
-            ++ ">: the attribute set `" ++ set.tyxmlName ++ "` does not name it")
-    out := out.push { tag := row.tag, markup, value := ← valueOf }
-  for (markup, _) in labelledAttrs t do
-    unless lab.any (·.markup == markup) do
-      throwErrorAt (stxs.getD 0 Syntax.missing) ("<" ++ elementName ++ "> requires the attribute `" ++ markup ++ "`")
-  return (lab, out)
+    out := out.push { tag := row.tag, markup, value }
+  return out
 
 /-! ## The walk -/
 
@@ -348,23 +364,19 @@ def elabElement : Nat → Open → Schema.Element → ContentSet → Bool → Te
       h := steps[j]! rest h
       rest := mkApp3 (mkConst ``List.cons [Level.zero]) rawT raws[j]! rest
     let childrenE := rest
-    let (lab, attrs) ← elabAttrs t name row.attribs o.attrs
-    let labE ← attrsTerm lab
+    let attrs ← elabAttrs t name row.attribs o.attrs
     let attrsE ← attrsTerm attrs
-    let rawAttrsE ← rawAttrsTerm (lab ++ attrs)
+    let rawAttrsE ← rawAttrsTerm attrs
     let raw := mkApp3 (mkConst ``RawNode.element) (mkStrLit name) rawAttrsE childrenE
-    match row.attribs with
-    | none => return (raw, mkApp4 (mkConst ``Element.mk) tE innerE (← attrsTerm (lab ++ attrs)) childrenE)
-    | some set =>
-      let setE ← attrSetExpr set
-      let proof ← proofOf (mkApp2 (mkConst ``AttrsAdmitted) setE attrsE)
-      -- at the root the evidence becomes one lemma, so that the compiled term
-      -- holds a constant where the proof tree was (see the module docstring)
-      let evidence ← if root then do
-          let type := mkApp3 (mkConst ``Erasure) tE innerE childrenE
-          pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars h)))
-        else pure h
-      return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, innerE, setE, labE, attrsE, childrenE, proof, evidence])
+    let setE ← attrSetExpr row.attribs
+    let proof ← proofOf (mkApp2 (mkConst ``AttrsAdmitted) setE attrsE)
+    -- at the root the evidence becomes one lemma, so that the compiled term
+    -- holds a constant where the proof tree was (see the module docstring)
+    let evidence ← if root then do
+        let type := mkApp3 (mkConst ``Erasure) tE innerE childrenE
+        pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars h)))
+      else pure h
+    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, innerE, setE, attrsE, childrenE, proof, evidence])
 
 /-- The root: its context comes from the expected type, `Child set` or
 `Element t inner`; without one a non-transparent root takes its own content

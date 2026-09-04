@@ -100,6 +100,6 @@ theorem Element.toRaw_childNodes_nil {t : Tag} {inner : ContentSet} (e : Element
 child list, by evaluation. -/
 theorem void_combinators_children_nil :
     (E.br).children = [] ∧ (E.hr).children = [] ∧ (E.input).children = []
-      ∧ (E.img "u" "a").children = [] := ⟨rfl, rfl, rfl, rfl⟩
+      ∧ (E.img [A.a_src "u", A.a_alt "a"]).children = [] := ⟨rfl, rfl, rfl, rfl⟩
 
 end Whatwg.Html

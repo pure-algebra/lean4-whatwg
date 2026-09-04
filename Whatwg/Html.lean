@@ -35,7 +35,8 @@ Authority pins (`SPEC-MANIFEST.md`, `docs/PROVENANCE.md`):
   `746f2ede8a56bc01204e0f9cc23da33b37c6fbab` ("Review Draft Publication:
   July 2026"), `source` sealed under `vendor/whatwg-html-746f2ede/`: the
   semantic owner and the source of the schema. The projection
-  `generated/html-standard-elements.tsv` and the generated modules under
+  `generated/html-standard-elements.tsv`, the attribute projection
+  `generated/html-standard-attributes.tsv` and the generated modules under
   `Whatwg.Html.Schema` are regenerated and checked by `lake exe htmlstandard`;
   the readings of the standard's prose sentences are authored in
   `Gates/HtmlStandardEmit.lean`, each pinned to the span digest it reads.
@@ -43,12 +44,11 @@ Authority pins (`SPEC-MANIFEST.md`, `docs/PROVENANCE.md`):
   `d2916535536f2134bad7793a598ba5b7327cae41`, sealed under
   `vendor/tyxml-d2916535/`: the reference. Its projection
   `generated/tyxml-html-schema.tsv` (`lake exe tyxmlschema`) is a
-  cross-check, and its attribute universe stands in for the standard's
-  until H6.1b.
+  cross-check; nothing under `Whatwg/` reads it.
 
-`Whatwg.Html.Schema` holds the generated data (tags, content sets, element
-rows with their readings and digests, and the interim attributes) behind
-the drift gates,
+`Whatwg.Html.Schema` holds the generated data (tags, content sets, the
+attribute universe with its value kinds and per-element sets, element rows
+with their readings and digests) behind the drift gate,
 `Whatwg.Html.Content` holds the lattice, transparent coherence and the
 admission relation, `Whatwg.Html.Node` holds the raw tree, the tag-indexed
 tree, the `admits` tactic that discharges its obligations by compiled

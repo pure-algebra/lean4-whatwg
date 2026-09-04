@@ -1,5 +1,4 @@
 import Gates.HtmlStandard
-import Gates.TyxmlSchemaEmit
 
 /-!
 # Gates.HtmlStandardEmit
@@ -56,19 +55,100 @@ same members being one set, computed here; that closure is what TyXML's
 `_without_` families spelled by hand, and it is complete by construction.
 `ContentSet.parent?` records the set each derived set came from.
 
-## Interim: attributes
+## Attributes
 
-Until H6.1b derives the attribute universe from the standard, the element
-rows name TyXML's attribute set of the same element (`div_attrib`, or the
-inline set of `html_sigs.mli`) where one exists, through
-`Gates.TyxmlSchemaEmit`, and none for the elements TyXML lacks. That is
-the only remaining use of TyXML's projection in the generated schema.
+The attribute universe is the standard's attribute index and event-handler
+index, two tables the standard maintains at its end: one `Attr` per
+distinct name (dashes as underscores), plus the custom data and ARIA
+prefixes and `role`, which the standard defines outside the index. Each
+index row's `Value` cell is read as a kind (`kindOf`): a boolean
+attribute, a keyword list with or without the empty string and with or
+without an open clause, an integer, a non-negative integer, a
+floating-point number, a URL, or text; the reading is by the cell's
+leading words and its quoted items, and anything else is text. Each
+element's attribute set is every global row, every row naming the element
+in its `Element(s)` cell, and the extras. The combinators get one helper
+per attribute, valueless for a boolean attribute; `html!` validates a
+literal value against its row's kind.
 -/
 
 namespace Gates.HtmlStandardEmit
 
 open Gates.Common Gates.HtmlStandard
-open Gates.TyxmlSchemaEmit (ctorName emitBoolSet emitEnum emitAll emitStringFn)
+
+/-! ## Lean spelling -/
+
+def leanKeywords : List String :=
+  ["class", "section", "open", "for", "in", "at", "if", "then", "else", "do", "let", "fun",
+   "match", "with", "end", "structure", "abbrev", "def", "theorem", "where", "namespace",
+   "variable", "import", "instance", "example", "axiom", "by", "have", "show", "from", "mutual",
+   "deriving", "private", "protected", "partial", "unsafe", "noncomputable", "inductive",
+   "opaque", "macro", "syntax", "attribute", "local", "scoped", "universe", "calc", "suffices",
+   "obtain", "exists", "forall", "hiding", "renaming", "using", "extends", "return", "break",
+   "continue", "unless", "set_option", "omit", "include", "export", "nomatch", "nofun", "rec",
+   "notation", "infix", "prefix", "postfix", "elab", "true", "false", "sorry", "admit", "try",
+   "catch", "finally", "throw", "pure", "unfold", "generalizing", "type", "data", "this",
+   "meta", "nonrec", "init", "run_cmd", "run_elab", "run_meta"]
+
+/-- The Lean constructor name of a markup name: dashes to underscores,
+guillemets when the result is a Lean keyword. -/
+def ctorName (name : String) : String :=
+  let base := name.replace "-" "_"
+  if leanKeywords.contains base then "«" ++ base ++ "»" else base
+
+/-- A set-membership function: constructor dispatch, eight members per line. -/
+def emitBoolSet (fn : String) (doc : String) (domain : String) (members : List String) (domainCtors : List String) : String :=
+  let members := domainCtors.filter members.contains
+  if members.isEmpty then
+    s!"/-- {doc} -/\ndef {fn} : {domain} → Bool := fun _ => false\n\n"
+  else if members.length == domainCtors.length then
+    s!"/-- {doc} -/\ndef {fn} : {domain} → Bool := fun _ => true\n\n"
+  else
+    let chunks := Id.run do
+      let mut lines : List String := []
+      let mut cur : List String := []
+      for m in members do
+        cur := cur ++ ["." ++ ctorName m]
+        if cur.length == 8 then
+          lines := lines ++ [String.intercalate " | " cur]
+          cur := []
+      if !cur.isEmpty then lines := lines ++ [String.intercalate " | " cur]
+      lines
+    let alts := String.intercalate "\n  | " chunks
+    s!"/-- {doc} -/\ndef {fn} : {domain} → Bool\n  | {alts} => true\n  | _ => false\n\n"
+
+def emitEnum (name : String) (doc : String) (ctors : List String) : String :=
+  let lines := Id.run do
+    let mut out : List String := []
+    let mut cur : List String := []
+    for c in ctors do
+      cur := cur ++ [ctorName c]
+      if cur.length == 8 then
+        out := out ++ ["  | " ++ String.intercalate " | " cur]
+        cur := []
+    if !cur.isEmpty then out := out ++ ["  | " ++ String.intercalate " | " cur]
+    out
+  s!"/-- {doc} -/\ninductive {name} where\n{String.intercalate "\n" lines}\n  deriving DecidableEq, Repr, Inhabited\n\n"
+
+def emitStringFn (fn : String) (doc : String) (domain : String) (rows : List (String × String)) : String :=
+  let alts := rows.map fun (c, s) => s!"  | .{ctorName c} => \"{s}\""
+  s!"/-- {doc} -/\ndef {fn} : {domain} → String\n{String.intercalate "\n" alts}\n\n"
+
+def emitAll (fn : String) (doc : String) (domain : String) (ctors : List String) : String :=
+  let items := ctors.map fun c => "." ++ ctorName c
+  let lines := Id.run do
+    let mut out : List String := []
+    let mut cur : List String := []
+    for i in items do
+      cur := cur ++ [i]
+      if cur.length == 8 then
+        out := out ++ ["   " ++ String.intercalate ", " cur ++ ","]
+        cur := []
+    if !cur.isEmpty then out := out ++ ["   " ++ String.intercalate ", " cur]
+    out
+  let body := String.intercalate "\n" lines
+  let body := if body.endsWith "," then dropLastChars body 1 else body
+  s!"/-- {doc} -/\ndef {fn} : List {domain} :=\n  [{dropChars body 3}]\n\n"
 
 /-! ## Categories -/
 
@@ -256,17 +336,92 @@ def labelled : List (String × String × Bool) :=
   [("audio", "source", true), ("audio", "track", true), ("video", "source", true), ("video", "track", true),
    ("map", "area", true)]
 
-/-- Interim, until H6.1b: the attributes TyXML takes as required labelled
-arguments, outside its attribute sets, so the generated combinators take
-them as leading `String` parameters (`img src alt`) as TyXML's do. -/
-def labelledAttrs : List (String × List (String × String)) :=
-  [("img", [("src", "src"), ("alt", "alt")]), ("link", [("rel", "rel"), ("href", "href")]),
-   ("area", [("alt", "alt")]), ("bdo", [("dir", "dir")]), ("optgroup", [("label", "label")])]
-
 /-- Payload overrides: a transparent element whose payload in one context
 is not the context minus its exclusions. -/
 def payloadOverrides : List (String × String × Model) :=
   [("metadata", "noscript", { base := .only ["link", "style", "meta"] false })]
+
+/-! ## Attributes, from the two index tables -/
+
+/-- The kind of an attribute's value, read from the `Value` cell. -/
+inductive Kind where
+  | boolean | keywords (isOpen : Bool) | integer | nonNegInteger | float | url | text | prefix
+  deriving BEq, Repr, Inhabited
+
+def Kind.render : Kind → String
+  | .boolean => ".boolean" | .keywords o => s!".keywords {o}" | .integer => ".integer"
+  | .nonNegInteger => ".nonNegInteger" | .float => ".float" | .url => ".url" | .text => ".text"
+  | .prefix => ".prefix"
+
+/-- The reading of a `Value` cell: the kind, the keywords when it is a
+keyword list, and whether the empty string is admitted. -/
+def kindOf (value : String) : Kind × List String × Bool :=
+  if value.startsWith "Boolean attribute" then (.boolean, [], false)
+  else if value.startsWith "\"" then
+    let items := (value.splitOn ";").map collapse |>.filter (· != "")
+    let quoted := items.filterMap fun i =>
+      if i.startsWith "\"" && i.endsWith "\"" && i.length ≥ 2 then some (dropLastChars (dropChars i 1) 1) else none
+    let allowEmpty := items.any (· == "the empty string")
+    let open_ := items.any fun i => !(i.startsWith "\"") && i != "the empty string"
+    (.keywords open_, quoted, allowEmpty)
+  else if value.startsWith "Valid non-negative integer" then (.nonNegInteger, [], false)
+  else if value.startsWith "Valid integer" then (.integer, [], false)
+  else if value.startsWith "Valid floating-point number" then (.float, [], false)
+  else if value.startsWith "Valid URL" || value.startsWith "Valid non-empty URL" then (.url, [], false)
+  else (.text, [], false)
+
+/-- The elements an `Element(s)` cell names, and whether it says every
+HTML element. Parentheticals are dropped (`source (in picture)`), the
+list is split on `;` and spaces, and only tokens that are element names
+count (`form-associated custom elements` names none). -/
+def elementsOf (tags : List String) (cell : String) : List String × Bool :=
+  let global := (cell.splitOn "HTML elements").length > 1
+  let noParen := String.join ((cell.splitOn "(").map fun piece =>
+    match piece.splitOn ")" with | [] => "" | [x] => x | _ :: rest => ")".intercalate rest)
+  let tokens := (noParen.replace ";" " ").splitOn " " |>.map collapse |>.filter (· != "")
+  (tokens.filter tags.contains |>.eraseDups, global)
+
+/-- Attributes the standard defines outside its index, admitted on every
+element: the custom data attributes, and the ARIA `role` and `aria-*`
+attributes that `ARIA in HTML` defines. -/
+def extraAttrs : List (String × Kind × String) :=
+  [("data-", .prefix, "custom data attribute prefix (`data-*`), on every element"),
+   ("role", .text, "ARIA role, defined in ARIA in HTML, on every element"),
+   ("aria-", .prefix, "ARIA state and property prefix (`aria-*`), on every element")]
+
+structure AttrOut where
+  markup : String
+  handler : Bool
+  elements : List String
+  global : Bool
+  kind : Kind
+  keywords : List String
+  allowEmpty : Bool
+  description : String
+  digest : String
+  deriving Repr, Inhabited
+
+def attrOuts (tags : List String) (rows : List AttrRow) : List AttrOut :=
+  rows.map fun r =>
+    let (els, global) := elementsOf tags r.elements
+    let (kind, kws, allowEmpty) := kindOf r.value
+    { markup := r.name, handler := r.handler, elements := els, global, kind, keywords := kws, allowEmpty,
+      description := r.description, digest := r.digest }
+
+/-- The distinct attribute names, in table order, then the extras. -/
+def attrNames (outs : List AttrOut) : List String :=
+  (outs.map (·.markup)).eraseDups ++ extraAttrs.map (·.1)
+
+/-- The helper name of an attribute: `a_` and the markup name with dashes
+as underscores (`a_accept_charset`, `a_data` for the prefix). -/
+def helperName (markup : String) : String :=
+  "a_" ++ (if markup.endsWith "-" then dropLastChars markup 1 else markup).replace "-" "_"
+
+/-- The attribute set of an element: every global row, every row naming
+it, and the extras. -/
+def attrSetOf (outs : List AttrOut) (element : String) : List String :=
+  ((outs.filter fun o => o.global || o.elements.contains element).map (·.markup)).eraseDups ++
+    extraAttrs.map (·.1)
 
 /-! ## The schema -/
 
@@ -285,6 +440,7 @@ structure ElementOut where
 
 structure Schema where
   rows : List Row
+  attrs : List AttrOut
   tags : List String
   voidTags : List String
   voidDigest : String
@@ -363,6 +519,8 @@ def voidList (text : String) : Except String (List String × String) := do
 def build (root : System.FilePath) : IO Schema := do
   let text ← readSource root
   let rows := rowsOf text
+  let g ← Gates.HtmlStandard.generate root
+  let attrs := attrOuts (rows.map (·.name)) g.attrs
   let lift {α} : Except String α → IO α
     | .ok v => pure v
     | .error e => throw <| IO.userError e
@@ -376,7 +534,7 @@ def build (root : System.FilePath) : IO Schema := do
     elements.toList.map fun e => (e.model.name, e.model)
   let tags := rows.map (·.name) ++ [textTag]
   let (sets, payloads) := closure rows tags seeds 10000
-  return { rows, tags := rows.map (·.name) ++ [textTag], voidTags, voidDigest,
+  return { rows, attrs, tags := rows.map (·.name) ++ [textTag], voidTags, voidDigest,
            elements := elements.toList, sets, payloads }
 
 /-! ## Emission -/
@@ -444,24 +602,62 @@ def emitFamilies (s : Schema) : String := Id.run do
   out := out ++ "end Whatwg.Html.Schema\n"
   return out
 
-/-- TyXML's attribute set for an element name, interim. -/
-def attribOf (ty : Gates.TyxmlSchemaEmit.Schema) (name : String) : Option String :=
-  if ty.attrSets.contains (name ++ "_attrib") then some (name ++ "_attrib")
-  else (ty.inlineAttrSets.find? (·.1 == name)).map (·.1)
+def emitAttributes (s : Schema) : String := Id.run do
+  let names := attrNames s.attrs
+  let mut out := header "Whatwg.Html.Schema.Attributes"
+    "The attribute universe of the HTML Standard at the pin: every attribute\nof its attribute index and event-handler index, the custom data and ARIA\nprefixes, the reading of each index row's `Value` cell as a kind, one\nattribute set per element from the `Element(s)` cells, and one helper row\nper attribute for the combinators."
+    ["Whatwg.Html.Schema.Tags"]
+  out := out ++ "namespace Whatwg.Html.Schema\n\n"
+  out := out ++ emitEnum "Attr" "An attribute of the standard, by markup name (dashes as underscores); the two prefixes end in `_`." names
+  out := out ++ emitAll "Attr.all" "Every attribute, in index order, then the extras." "Attr" names
+  out := out ++ emitStringFn "Attr.markupName" "The markup name of the attribute (the prefix itself for `data_` and `aria_`)." "Attr" (names.map fun n => (n, n))
+  out := out ++ "/-- The kind of an attribute's value, read from the index's `Value` cell:\na boolean attribute; a keyword list (`open` when the cell also admits\nvalues the list does not spell); an integer; a non-negative integer; a\nfloating-point number; a URL; text; or a prefix. -/\ninductive AttrValueKind where\n  | boolean | keywords (isOpen : Bool) | integer | nonNegInteger | float | url | text | prefix\n  deriving DecidableEq, Repr, Inhabited\n\n"
+  out := out ++ "/-- One row of the attribute index: the attribute, the elements it applies\nto (`global` when the cell says every HTML element), the value kind, the\nkeywords and whether the empty string is admitted, the description, and\nthe span digest of the row. -/\nstructure AttrRow where\n  attr : Attr\n  markup : String\n  handler : Bool\n  elements : List Tag\n  global : Bool\n  kind : AttrValueKind\n  keywords : List String\n  allowEmpty : Bool\n  description : String\n  digest : String\n  deriving Repr, Inhabited\n\n"
+  let rowText (o : AttrOut) : String :=
+    "   { attr := ." ++ ctorName o.markup ++ ", markup := " ++ o.markup.quote ++ ", handler := " ++ toString o.handler ++
+    ", elements := [" ++ ", ".intercalate (o.elements.map fun e => "." ++ ctorName e) ++ "], global := " ++ toString o.global ++
+    ",\n     kind := " ++ o.kind.render ++ ", keywords := [" ++ ", ".intercalate (o.keywords.map String.quote) ++ "], allowEmpty := " ++ toString o.allowEmpty ++
+    ",\n     description := " ++ o.description.quote ++ ",\n     digest := " ++ o.digest.quote ++ " }"
+  let extraRows := extraAttrs.map fun (m, k, d) =>
+    "   { attr := ." ++ ctorName m ++ ", markup := " ++ m.quote ++ ", handler := false, elements := [], global := true,\n     kind := " ++ k.render ++ ", keywords := [], allowEmpty := false,\n     description := " ++ d.quote ++ ",\n     digest := \"\" }"
+  out := out ++ "/-- Every row of the two indexes, then the extras (whose digest is empty:\nthey are not index rows). -/\ndef attributeRows : List AttrRow :=\n  [" ++
+    dropChars (",\n".intercalate (s.attrs.map rowText ++ extraRows)) 3 ++ "]\n\n"
+  out := out ++ "/-- One helper per attribute for `Whatwg.Html.A`: the helper's name, the\nattribute, and the kind that fixes the helper's shape (a boolean attribute\ntakes no value; a prefix has no helper). -/\nstructure AttrCtor where\n  name : String\n  markup : String\n  isPrefix : Bool\n  tag : Attr\n  kind : AttrValueKind\n  deriving Repr, Inhabited\n\n"
+  let kindFor (n : String) : Kind :=
+    match extraAttrs.find? (fun (e : String × Kind × String) => e.1 == n) with
+    | some (_, k, _) => k
+    | none => match s.attrs.find? (·.markup == n) with
+      | some o => if s.attrs.all (fun p => p.markup != n || p.kind == .boolean) then o.kind else
+          (if o.kind == .boolean then .text else o.kind)
+      | none => .text
+  out := out ++ "/-- Every helper, in `Attr.all` order. -/\ndef attributeCtors : List AttrCtor :=\n  [" ++
+    dropChars (",\n".intercalate (names.map fun n =>
+      "   { name := " ++ (helperName n).quote ++ ", markup := " ++ n.quote ++ ", isPrefix := " ++ toString (n.endsWith "-") ++
+      ", tag := ." ++ ctorName n ++ ", kind := " ++ (kindFor n).render ++ " }")) 3 ++ "]\n\n"
+  let setNames := s.rows.map fun r => r.name ++ "_attrib"
+  out := out ++ emitEnum "AttrSet" "The attribute set of an element, by element name." setNames
+  out := out ++ emitAll "AttrSet.all" "Every attribute set, in source order." "AttrSet" setNames
+  out := out ++ emitStringFn "AttrSet.name" "The set's name." "AttrSet" (setNames.map fun n => (n, n))
+  for r in s.rows do
+    let members := attrSetOf s.attrs r.name
+    out := out ++ emitBoolSet s!"AttrSets.{r.name}_attrib" s!"The attributes of `{r.name}`: {members.length} of {names.length}." "Attr" members names
+  out := out ++ "/-- Membership, dispatching to the set's own function. -/\ndef AttrSet.contains : AttrSet → Attr → Bool\n" ++
+    "\n".intercalate (setNames.map fun n => s!"  | .{ctorName n}, a => AttrSets.{n} a") ++ "\n\n"
+  out := out ++ "end Whatwg.Html.Schema\n"
+  return out
 
-def emitContentModel (s : Schema) (ty : Gates.TyxmlSchemaEmit.Schema) : String :=
+def emitContentModel (s : Schema) : String :=
   let rows := s.elements.map fun e =>
-    let attribs := match attribOf ty e.row.name with | some a => s!"some .{ctorName a}" | none => "none"
     "   { name := \"" ++ e.row.name ++ "\", tag := ." ++ ctorName e.row.name ++ ", kind := ." ++
       (if s.voidTags.contains e.row.name || e.model.base == .nothing then "nullary" else "star") ++
       ", transparent := " ++ toString e.transparent ++ ", content := ." ++ ctorName (setName s e.model) ++
-      ", attribs := " ++ attribs ++ ",\n     digest := \"" ++ e.row.digest ++ "\", reading := " ++ e.reading.quote ++ " }"
+      ", attribs := ." ++ ctorName (e.row.name ++ "_attrib") ++ ",\n     digest := \"" ++ e.row.digest ++ "\", reading := " ++ e.reading.quote ++ " }"
   header "Whatwg.Html.Schema.ContentModel"
-    "One row per element of the standard: its tag, whether it takes children,\nwhether it is transparent, its content set (a transparent element's own\nset is its payload in flow context), its attribute set (TyXML's, interim,\nsee `Gates/HtmlStandardEmit.lean`), the span digest of its definition, and\nthe reading its sentence was given: `sentence` when read mechanically,\n`authored: ...` otherwise."
+    "One row per element of the standard: its tag, whether it takes children,\nwhether it is transparent, its content set (a transparent element's own\nset is its payload in flow context), its attribute set, the span digest of\nits definition, and the reading its sentence was given: `sentence` when\nread mechanically, `authored: ...` otherwise."
     ["Whatwg.Html.Schema.Tags", "Whatwg.Html.Schema.Families", "Whatwg.Html.Schema.Attributes"] ++
   "namespace Whatwg.Html.Schema\n\n" ++
   "/-- Whether an element takes children. -/\ninductive ElementKind where\n  | star | nullary\n  deriving DecidableEq, Repr, Inhabited\n\n" ++
-  "/-- One element of the standard. -/\nstructure Element where\n  name : String\n  tag : Tag\n  kind : ElementKind\n  transparent : Bool\n  content : ContentSet\n  attribs : Option AttrSet\n  digest : String\n  reading : String\n  deriving Repr, Inhabited\n\n" ++
+  "/-- One element of the standard. -/\nstructure Element where\n  name : String\n  tag : Tag\n  kind : ElementKind\n  transparent : Bool\n  content : ContentSet\n  attribs : AttrSet\n  digest : String\n  reading : String\n  deriving Repr, Inhabited\n\n" ++
   "/-- Every element, in source order. -/\ndef elements : List Element :=\n  [" ++ dropChars (",\n".intercalate rows) 3 ++ "]\n\n" ++
   "/-- The position in `elements` of a tag; `none` for text. -/\ndef Tag.elementIndex? : Tag → Option Nat\n" ++
   "\n".intercalate (s.elements.zipIdx.map fun (e, i) => s!"  | .{ctorName e.row.name} => some {i}") ++ "\n  | _ => none\n\n" ++
@@ -472,8 +668,8 @@ def emitContentModel (s : Schema) (ty : Gates.TyxmlSchemaEmit.Schema) : String :
   "\n".intercalate (s.elements.map fun e => s!"  | .{ctorName e.row.name} => some .{ctorName (setName s e.model)}") ++ "\n  | _ => none\n\n" ++
   "end Whatwg.Html.Schema\n"
 
-def emitCombinators (s : Schema) (ty : Gates.TyxmlSchemaEmit.Schema) : String := Id.run do
-  let mut out := "import Whatwg.Html.Node.Typed\nimport Whatwg.Html.Node.Admit\n\n/-!\n# Whatwg.Html.Node.Combinators\n\nOne combinator per element of the standard, in source order, the two text\nconstructors, `el`, and one helper per attribute constructor (TyXML's,\ninterim). Every combinator has the same shape: children first, then\n`attrs` with a default of `[]`, then the attribute obligation `_ha`\ndischarged by the `admits` tactic; a void or childless element has no\nchildren parameter; a transparent element is polymorphic in its content\nset, which `Child.of` assigns from the position it is placed in (ruling\nHP-4). The names live in `Whatwg.Html.E` and `Whatwg.Html.A` because a\ndozen are single letters. `audio`, `video` and `map` take their labelled\ndirect children (`sources`, `tracks`, `areas`) as lists placed first.\n\n" ++
+def emitCombinators (s : Schema) : String := Id.run do
+  let mut out := "import Whatwg.Html.Node.Typed\nimport Whatwg.Html.Node.Admit\n\n/-!\n# Whatwg.Html.Node.Combinators\n\nOne combinator per element of the standard, in source order, the two text\nconstructors, `el`, and one helper per attribute of the standard. Every combinator has the same shape: children first, then\n`attrs` with a default of `[]`, then the attribute obligation `_ha`\ndischarged by the `admits` tactic; a void or childless element has no\nchildren parameter; a transparent element is polymorphic in its content\nset, which `Child.of` assigns from the position it is placed in (ruling\nHP-4). The names live in `Whatwg.Html.E` and `Whatwg.Html.A` because a\ndozen are single letters. `audio`, `video` and `map` take their labelled\ndirect children (`sources`, `tracks`, `areas`) as lists placed first.\n\n" ++
     "GENERATED by `lake exe htmlstandard --write` (see `Gates/HtmlStandardEmit.lean`).\nDO NOT EDIT: `lake exe htmlstandard` fails on any byte of drift.\n-/\n\nnamespace Whatwg.Html.E\n\nopen Whatwg.Html.Schema (Tag ContentSet Attr AttrSet)\n\n" ++
     "/-- A text run, admitted where the content set names text. -/\ndef txt {set : ContentSet} (s : String)\n    (h : Content.Admits set .pcdata := by admits) : Child set :=\n  Child.text s h\n\n" ++
     "/-- A named entity reference, admitted where text is. -/\ndef entity {set : ContentSet} (name : String)\n    (h : Content.Admits set .pcdata := by admits) : Child set :=\n  Child.entity name h\n\n" ++
@@ -483,18 +679,14 @@ def emitCombinators (s : Schema) (ty : Gates.TyxmlSchemaEmit.Schema) : String :=
     let tag := "." ++ n
     let content := "." ++ ctorName (setName s e.model)
     let nullary := s.voidTags.contains e.row.name || e.model.base == .nothing
-    let attrs := match attribOf ty e.row.name with
-      | some a => s!"    (attrs : List (Attr × String) := [])\n    (_ha : AttrsAdmitted .{ctorName a} attrs := by admits) :\n"
-      | none => "    (attrs : List (Attr × String) := []) :\n"
+    let attrs := s!"    (attrs : List (Attr × String) := [])\n    (_ha : AttrsAdmitted .{ctorName (e.row.name ++ "_attrib")} attrs := by admits) :\n"
     let doc := s!"/-- `{e.row.name}`: {e.reading}. -/\n"
     let labs := (labelled.filter fun (p, _, _) => p == e.row.name).map (·.2.1)
     let labParams := String.join (labs.map fun c =>
       s!"    ({c}s : List (Element .{ctorName c} .nothing) := [])\n")
     let labRaw := String.join (labs.map fun c => s!"{c}s.map Element.toRaw ++ ")
-    let las := ((labelledAttrs.find? fun (p, _) => p == e.row.name).map (·.2)).getD []
-    let laParams := if las.isEmpty then "" else
-      "(" ++ " ".intercalate (las.map (·.1)) ++ " : String) "
-    let laAttrs := String.join (las.map fun (p, a) => s!"(Attr.{ctorName a}, {p}) :: ")
+    let laParams := ""
+    let laAttrs := ""
     if nullary then
       out := out ++ doc ++ s!"def {n} {laParams}\n" ++ attrs ++ s!"    Element {tag} {content} :=\n  ⟨{laAttrs}attrs, []⟩\n\n"
     else if e.transparent then
@@ -504,35 +696,45 @@ def emitCombinators (s : Schema) (ty : Gates.TyxmlSchemaEmit.Schema) : String :=
       out := out ++ doc ++ s!"def {n} {laParams}(children : List (Child {content}) := [])\n" ++ labParams ++ attrs ++
         s!"    Element {tag} {content} :=\n  ⟨{laAttrs}attrs, {labRaw}children.map Child.raw⟩\n\n"
   out := out ++ "end Whatwg.Html.E\n\nnamespace Whatwg.Html.A\n\nopen Whatwg.Html.Schema (Attr)\n\n"
-  for a in ty.attributes do
-    out := out ++ s!"/-- `{a.markup}` (TyXML `{a.name}`, interim). -/\ndef {a.name} (value : String) : Attr × String := (.{ctorName a.tag}, value)\n\n"
+  let names := attrNames s.attrs
+  for n in names do
+    if n.endsWith "-" then continue
+    let boolean : Bool := match extraAttrs.find? (fun (e : String × Kind × String) => e.1 == n) with
+      | some _ => false
+      | none => s.attrs.all fun p => p.markup != n || p.kind == .boolean
+    let desc : String := match s.attrs.find? (·.markup == n) with
+      | some o => o.description
+      | none => match extraAttrs.find? (fun (e : String × Kind × String) => e.1 == n) with
+        | some (_, _, d) => d
+        | none => ""
+    if boolean then
+      out := out ++ s!"/-- `{n}`: {desc}. A boolean attribute: present, with the empty string as its value. -/\ndef {helperName n} : Attr × String := (.{ctorName n}, \"\")\n\n"
+    else
+      out := out ++ s!"/-- `{n}`: {desc}. -/\ndef {helperName n} (value : String) : Attr × String := (.{ctorName n}, value)\n\n"
   out := out ++ "end Whatwg.Html.A\n"
   return out
 
 def modulePaths : List String :=
-  ["Whatwg/Html/Schema/Tags.lean", "Whatwg/Html/Schema/Families.lean",
+  ["Whatwg/Html/Schema/Tags.lean", "Whatwg/Html/Schema/Families.lean", "Whatwg/Html/Schema/Attributes.lean",
    "Whatwg/Html/Schema/ContentModel.lean", "Whatwg/Html/Node/Combinators.lean"]
 
 structure Emitted where
   schema : Schema
   files : List (String × String)
 
-def emitAll (root : System.FilePath) : IO Emitted := do
+def emitModules (root : System.FilePath) : IO Emitted := do
   let s ← build root
-  let env ← Gates.TyxmlSchemaEmit.loadEnv root
-  let ty ← match Gates.TyxmlSchemaEmit.extract env with
-    | .ok v => pure v
-    | .error e => throw <| IO.userError s!"html standard emit: tyxml attributes: {e}"
-  return { schema := s, files := modulePaths.zip [emitTags s, emitFamilies s, emitContentModel s ty, emitCombinators s ty] }
+  return { schema := s, files := modulePaths.zip [emitTags s, emitFamilies s, emitAttributes s, emitContentModel s, emitCombinators s] }
 
 def summarize (s : Schema) : String :=
   let authored := (s.elements.filter fun e => e.reading.startsWith "authored").length
   s!"html standard emit: {s.rows.length} elements ({s.rows.length - authored} read from their sentence, {authored} authored readings), " ++
-  s!"{s.sets.length} content sets, {s.payloads.length} payload rows, {s.voidTags.length} void tags\n"
+  s!"{s.sets.length} content sets, {s.payloads.length} payload rows, {s.voidTags.length} void tags, " ++
+  s!"{(attrNames s.attrs).length} attributes from {s.attrs.length} index rows, {s.rows.length} attribute sets\n"
 
 /-- Write the modules; called by `Gates.HtmlStandard` after the projection. -/
 def write (root : System.FilePath) : IO UInt32 := do
-  let e ← emitAll root
+  let e ← emitModules root
   for (path, text) in e.files do
     IO.FS.writeFile (root / path) text
     IO.println s!"WROTE {path}"
@@ -541,7 +743,7 @@ def write (root : System.FilePath) : IO UInt32 := do
 
 /-- Check every module for drift. -/
 def check (root : System.FilePath) : IO (List String) := do
-  let e ← emitAll root
+  let e ← emitModules root
   let mut failures : List String := []
   for (path, fresh) in e.files do
     let p := root / path
@@ -562,7 +764,7 @@ def check (root : System.FilePath) : IO (List String) := do
   return failures
 
 def usage : String :=
-  "usage: lake exe htmlstandard          check the projection, its data module and the four generated modules against a regeneration\n" ++
+  "usage: lake exe htmlstandard          check the two projections, the data module and the five generated modules against a regeneration\n" ++
   "       lake exe htmlstandard --write  regenerate all of them from the sealed HTML Standard source"
 
 /-- Command-line entry, invoked by `bin/HtmlStandard.lean`: the projection
@@ -575,7 +777,7 @@ def cli (args : List String) : IO UInt32 := do
     if rc != 0 then return rc
     let failures ← check root
     if failures.isEmpty then
-      IO.println "PASS html standard emit: the four generated schema modules are byte-identical to a fresh emission"
+      IO.println "PASS html standard emit: the five generated schema modules are byte-identical to a fresh emission"
       return 0
     for f in failures do IO.eprintln f
     IO.eprintln "FAIL html standard emit"
