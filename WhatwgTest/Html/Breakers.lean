@@ -3,26 +3,14 @@ import Whatwg.Html.Node.Combinators
 /-!
 # WhatwgTest.Html.Breakers
 
-Negative probes for slice H3.3–H3.4: constructions that must be REJECTED at
+Negative probes for the combinators: constructions that must be REJECTED at
 elaboration. `#check_failure` succeeds only when the term fails to elaborate,
 and the `#guard_msgs` docstring above each one pins the exact diagnostic, so
-a probe that started failing for a different reason — a renamed combinator, a
-syntax slip, an argument in the wrong position — would fail this file rather
-than pass it silently. Each rejection below is the auto-parameter `h` of
-`E.el`/`E.txt` (child admission, `Whatwg.Html.Content.Admits`) or the
-auto-parameter `_ha` of a combinator (attribute admission,
-`Whatwg.Html.AttrsAdmitted`), both discharged by the `admits` tactic of
-`Whatwg.Html.Node.Admit`, whose pinned message names the rejected element
-(or text, or attribute) and the set that excludes it, with a transparent
-payload already resolved: the third and fourth probes report
-`phrasing_without_interactive`, the payload a link carries in a paragraph,
-rather than `childSet ContentSet.phrasing Tag.a`.
-
-The last two probes are rejected by the type checker rather than by a
-`decide`: a nullary combinator has no children parameter at all, so a list of
-children lands on its `attrs` argument and mismatches. Their diagnostics
-mention the elaborator's recovery term and are not pinned; `(drop info)`
-keeps the assertion at "this does not elaborate".
+a probe that started failing for a different reason would fail this file
+rather than pass it silently. Each rejection is the auto-parameter `h` of
+`E.el`/`E.txt` (admission) or `_ha` of a combinator (attributes), discharged
+by the `admits` tactic of `Whatwg.Html.Node.Admit`, whose message names the
+rejected element and describes the context.
 
 The repository's elaboration-time axiom gate in `WhatwgTest.lean` audits every
 declaration compiled here, so no per-file axiom report is written.
@@ -31,105 +19,83 @@ declaration compiled here, so no per-file axiom report is written.
 namespace WhatwgTest.Html.Breakers
 
 open Whatwg.Html
-open Whatwg.Html.Schema (Tag ContentSet Attr)
+open Whatwg.Html.Schema (Tag Attr)
+open Whatwg.Html.Content (Ctx)
 
--- Rejected by `Child.of`'s `h`: a `button` is not a member of
--- `phrasing_without_interactive`, which is `button`'s own content set.
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: <button> is not admitted here: the content set `phrasing_without_interactive` does not name it
+info: <div> is not admitted here: the context is phrasing
 ---
-info: E.p [E.el (E.button [E.el (E.button [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
+info: E.p [E.el (E.div [] [] ⋯) ⋯] [] ⋯ : Element Tag.p Ctx.flow
 -/
 #guard_msgs in
-#check_failure (E.p [E.el (E.button [E.el (E.button [])])] : Element .p .phrasing)
+#check_failure (E.p [E.el (E.div [])] : Element .p Ctx.flow)
 
--- Rejected by `Child.of`'s `h`: `Div` is not a member of `phrasing`, which
--- is `p`'s own content set.
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: <div> is not admitted here: the content set `phrasing` does not name it
+info: <button> is not admitted here: the context is phrasing, excluding interactive content
 ---
-info: E.p [E.el (E.div [] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
+info: E.p [E.el (E.button [E.el (E.button [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p Ctx.flow
 -/
 #guard_msgs in
-#check_failure (E.p [E.el (E.div [])] : Element .p .phrasing)
+#check_failure (E.p [E.el (E.button [E.el (E.button [])])] : Element .p Ctx.flow)
 
--- The transparent case, and the point of ruling HP-4. Rejected by the inner
--- `Child.of`'s `h`: unification assigned the link's content parameter
--- `childSet ContentSet.phrasing Tag.a`, which reduces to
--- `phrasing_without_interactive`, and that set does not name `Div`. The same
--- `E.a [E.el (E.div [])]` term is accepted under `div`, where the payload is
--- `flow5_without_interactive` (`WhatwgTest/Html/Builders.lean`).
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: <div> is not admitted here: the content set `phrasing_without_interactive` does not name it
+info: <div> is not admitted here: the context is phrasing, excluding interactive content, a
 ---
-info: E.p [E.el (E.a [E.el (E.div [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
+info: E.p [E.el (E.a [E.el (E.div [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p Ctx.flow
 -/
 #guard_msgs in
-#check_failure (E.p [E.el (E.a [E.el (E.div [])])] : Element .p .phrasing)
+#check_failure (E.p [E.el (E.a [E.el (E.div [])])] : Element .p Ctx.flow)
 
--- Rejected by the inner `Child.of`'s `h`: no payload of a transparent link
--- names `A`, so a link never nests inside a link. TyXML's
--- `html_types.mli` comment at line 438 makes the same promise.
+-- A descendant exclusion holds through a non-transparent element.
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: <a> is not admitted here: the content set `phrasing_without_interactive` does not name it
+info: <dfn> is not admitted here: the context is phrasing, excluding dfn
 ---
-info: E.p [E.el (E.a [E.el (E.a [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.p ContentSet.phrasing
+info: E.dfn [E.el (E.span [E.el (E.dfn [] [] ⋯) ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.dfn Ctx.phrasing
 -/
 #guard_msgs in
-#check_failure (E.p [E.el (E.a [E.el (E.a [])])] : Element .p .phrasing)
+#check_failure (E.dfn [E.el (E.span [E.el (E.dfn [])])] : Element .dfn Ctx.phrasing)
 
--- Rejected by `Child.text`'s `h` (ruling HP-5): `PCDATA` is a tag like any
--- other and `only_li` names only `Li`.
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: text is not admitted here: the content set `only_li` does not name it
+info: text is not admitted here: the context is only_li
 ---
-info: E.ul [E.txt "loose text" ⋯] [] ⋯ : Element Tag.ul ContentSet.only_li
+info: E.ul [E.txt "loose text" ⋯] [] ⋯ : Element Tag.ul Ctx.flow
 -/
 #guard_msgs in
-#check_failure (E.ul [E.txt "loose text"] : Element .ul .only_li)
+#check_failure (E.ul [E.txt "loose text"] : Element .ul Ctx.flow)
 
--- Rejected by `Child.of`'s `h`: `Title` is metadata, and `flow` does not
--- name it.
-/--
-info: could not synthesize default value for parameter 'h' using tactics
----
-info: <title> is not admitted here: the content set `flow` does not name it
----
-info: E.body [E.el (E.title [E.txt "t" ⋯] [] ⋯) ⋯] [] ⋯ : Element Tag.body ContentSet.flow
--/
-#guard_msgs in
-#check_failure (E.body [E.el (E.title [E.txt "t"])] : Element .body .flow)
-
--- Rejected by `E.div`'s `_ha`: `Href` is not a member of `div_attrib`.
 /--
 info: could not synthesize default value for parameter '_ha' using tactics
 ---
-info: attribute `href` is not admitted on this element: the attribute set `div_attrib` does not name it
+info: attribute `href` is not admitted on <div>: the attribute set `div_attrib` does not name it
 ---
-info: E.div [] [A.a_href "/target"] ⋯ : Element Tag.div ContentSet.flow
+info: E.div [] [A.a_href "/target"] ⋯ : Element Tag.div Ctx.flow
 -/
 #guard_msgs in
-#check_failure (E.div [] [A.a_href "/target"] : Element .div .flow)
+#check_failure (E.div [] [A.a_href "/target"] : Element .div Ctx.flow)
 
--- Rejected by the type checker, not by a `decide`: `E.br` is nullary, so its
--- first explicit argument is `attrs : List (Attr × String)` and a `Child`
--- does not fit there. There is no children parameter to supply.
-#guard_msgs (drop info) in
-#check_failure (E.br [E.txt "x"] : Element .br .nothing)
+/--
+info: could not synthesize default value for parameter '_ha' using tactics
+---
+info: attribute `dir` on <p> takes one of `ltr`, `rtl`, `auto`, not `lefty`
+---
+info: E.p [] [A.a_dir "lefty"] ⋯ : Element Tag.p Ctx.flow
+-/
+#guard_msgs in
+#check_failure (E.p [] [A.a_dir "lefty"] : Element .p Ctx.flow)
 
--- The same for `E.img`, whose two required labelled arguments are followed by
--- `attrs` and by nothing else.
+-- `E.br` has no children parameter, so a list of children lands on `attrs`
+-- and mismatches; the diagnostic mentions the recovery term and is not pinned.
 #guard_msgs (drop info) in
-#check_failure (E.img "/u" "a" [E.txt "x"] : Element .img .nothing)
+#check_failure (E.br [E.txt "x"] : Element .br Ctx.phrasing)
 
 end WhatwgTest.Html.Breakers

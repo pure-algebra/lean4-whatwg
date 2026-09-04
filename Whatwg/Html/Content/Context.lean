@@ -1,0 +1,135 @@
+import Whatwg.Html.Content.Lattice
+
+/-!
+# Whatwg.Html.Content.Context
+
+A context is a position in a document (ruling HP-13): the base its children
+are drawn from, the descendant exclusions inherited from every ancestor,
+and the labelled direct children its parent admits besides. `Ctx.admits`
+decides whether a tag may stand at the position; `Ctx.child` computes the
+context of an element's children: its own base (its context's, if it is
+transparent, or the base override), its context's exclusions with its own
+added, and its labelled children. This is transparent coherence and the
+descendant restrictions in one definition: exclusions only accumulate
+(`child_excl_le`), and a transparent element's children are checked
+against its context's base with more excluded, never less.
+-/
+
+namespace Whatwg.Html.Content
+
+open Whatwg.Html.Schema
+
+/-- A position in a document. -/
+structure Ctx where
+  base : Base
+  excl : Exclusions := {}
+  extra : List Tag := []
+  deriving DecidableEq, Repr, Inhabited
+
+namespace Ctx
+
+/-- Flow context, with nothing excluded. -/
+def flow : Ctx := { base := .flow }
+/-- Phrasing context. -/
+def phrasing : Ctx := { base := .phrasing }
+/-- Metadata context, the content of `head`. -/
+def metadata : Ctx := { base := .metadata }
+/-- The document root: `html` alone. -/
+def document : Ctx := { base := .document }
+
+/-- What each flag excludes, at a tag, in the field order of
+`Exclusions.flags`. -/
+def hits (t : Tag) : List Bool :=
+  [Cats.interactive t, Cats.media t, Cats.heading t, Cats.sectioning t, t == .noscript, t == .dfn,
+   t == .meter, t == .progress, t == .label, t == .form, t == .table, t == .header, t == .footer,
+   t == .address, t == .a]
+
+/-- The exclusions exclude the tag: some set flag hits it. -/
+def excluded (x : Exclusions) (t : Tag) : Bool :=
+  (x.flags.zip (hits t)).any fun p => p.1 && p.2
+
+/-- The tag may stand at the position: the base or the labelled extras name
+it, and no inherited exclusion excludes it. -/
+def admits (c : Ctx) (t : Tag) : Bool :=
+  (c.base.contains t || c.extra.contains t) && !excluded c.excl t
+
+/-- The context of an element's children. -/
+def child (c : Ctx) (t : Tag) : Ctx :=
+  { base := if t.isTransparent then (Base.override c.base t).getD c.base else t.ownBase
+    excl := c.excl.union t.ownExcl
+    extra := t.labelled }
+
+/-- The context in prose, for messages. -/
+def describe (c : Ctx) : String :=
+  c.base.name ++ (match c.excl.names with
+    | [] => ""
+    | ns => ", excluding " ++ ", ".intercalate ns)
+
+end Ctx
+
+/-! ## Lemmas -/
+
+/-- Over lists of flags: if every flag of `xs` is a flag of `ys`, a hit
+through `xs` is a hit through `ys`. -/
+theorem any_hit_mono : ∀ (xs ys hs : List Bool), xs.length = ys.length →
+    ((xs.zip ys).all fun p => !p.1 || p.2) = true →
+    ((xs.zip hs).any fun p => p.1 && p.2) = true →
+    ((ys.zip hs).any fun p => p.1 && p.2) = true
+  | [], _, _, _, _, hx => by simp at hx
+  | _ :: _, [], _, hlen, _, _ => by simp at hlen
+  | _ :: _, _ :: _, [], _, _, hx => by simp at hx
+  | x :: xs, y :: ys, h :: hs, hlen, hle, hx => by
+    simp only [List.zip_cons_cons, List.all_cons, List.any_cons, Bool.and_eq_true, Bool.or_eq_true] at hle hx ⊢
+    rcases hx with hx | hx
+    · left
+      cases x <;> cases y <;> cases h <;> simp_all
+    · right
+      exact any_hit_mono xs ys hs (by simpa using hlen) hle.2 hx
+
+theorem all_le_zipWith_or : ∀ (xs ys : List Bool),
+    ((xs.zip (List.zipWith (· || ·) xs ys)).all fun p => !p.1 || p.2) = true
+  | [], _ => rfl
+  | _ :: _, [] => rfl
+  | x :: xs, y :: ys => by
+    simp only [List.zipWith_cons_cons, List.zip_cons_cons, List.all_cons, Bool.and_eq_true]
+    exact ⟨by cases x <;> cases y <;> rfl, all_le_zipWith_or xs ys⟩
+
+theorem Exclusions.le_union_left (x y : Exclusions) : x.le (x.union y) = true := by
+  simp only [Exclusions.le, Exclusions.flags_union]
+  exact all_le_zipWith_or x.flags y.flags
+
+/-- Exclusions only accumulate down the tree. -/
+theorem child_excl_le (c : Ctx) (t : Tag) : c.excl.le (c.child t).excl = true :=
+  Exclusions.le_union_left _ _
+
+/-- Larger exclusions exclude more. -/
+theorem excluded_mono {x y : Exclusions} (h : x.le y = true) (t : Tag)
+    (hx : Ctx.excluded x t = true) : Ctx.excluded y t = true :=
+  any_hit_mono x.flags y.flags (Ctx.hits t) rfl h hx
+
+/-- Admission is antitone in the exclusions, for one base and extras. -/
+theorem admits_antitone {x y : Exclusions} (h : x.le y = true) (b : Base) (e : List Tag) (t : Tag)
+    (hy : Ctx.admits ⟨b, y, e⟩ t = true) : Ctx.admits ⟨b, x, e⟩ t = true := by
+  simp only [Ctx.admits, Bool.and_eq_true, Bool.not_eq_true'] at hy ⊢
+  refine ⟨hy.1, ?_⟩
+  cases hxt : Ctx.excluded x t with
+  | false => rfl
+  | true =>
+    have := excluded_mono h t hxt
+    rw [hy.2] at this
+    exact absurd this (by decide)
+
+/-- A void element's children context admits nothing. -/
+theorem void_child_admits_none (c : Ctx) (t : Tag) (hv : t.isVoid = true) (child : Tag) :
+    (c.child t).admits child = false := by
+  simp only [Ctx.admits, Ctx.child, void_not_transparent t hv, void_ownBase_nothing t hv,
+    void_labelled_nil t hv, Bool.false_eq_true, ↓reduceIte, List.contains, List.elem_nil]
+  simp [Base.contains, nothing_empty]
+
+/-- A transparent element's children are checked against its context's base
+(or the override). -/
+theorem child_base_transparent (c : Ctx) (t : Tag) (h : t.isTransparent = true) :
+    (c.child t).base = (Base.override c.base t).getD c.base := by
+  simp [Ctx.child, h]
+
+end Whatwg.Html.Content

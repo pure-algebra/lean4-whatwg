@@ -24,84 +24,55 @@ element or attribute name is expected.
 ## What the elaborator does
 
 The document is walked once at the meta level. The context of every
-position is a `ContentSet` value, resolved through the same compiled
-`childSet` the typed tree's index unfolds to, and every admission is decided
-by the compiled `Content.admits`, so the diagnostic at a rejected token can
-name the element and the resolved set (`<div>` under a link in a paragraph
-reports `phrasing_without_interactive`). The term produced is
-`Element.ofRaw` at every element: the raw children as a plain literal, and
-the evidence for them, `Erasure t inner children` of
-`Whatwg.Html.Node.Evidence`, as a proposition built from `Child.of` and
-`Child.text` with their admission proofs. The kernel checks the evidence
-against the literal; the compiler erases it and compiles the literal. No
-`elabApp`, no unification and no tactic runs per node, which is where the
-combinators spend their budget (`WhatwgTest/Html/DecideBenchmark.lean`),
-and no typed call is left for the compiler to inline, which is where a
-combinator-built document spends the rest.
+position is a `Whatwg.Html.Content.Ctx` value, computed by the same
+compiled `Ctx.child` the checker uses, and every admission is decided by
+the compiled `Ctx.admits`, so the diagnostic at a rejected token names the
+element and describes the context (`<div>` under a link in a paragraph
+reports "phrasing, excluding interactive content, a"). Attribute values
+that are literals are checked against the attribute index's kinds by the
+compiled `attrProblem?`. The term produced is `Element.ofRaw` at every
+element: the raw children as a plain literal and the proof that they are
+valid at `Ctx.child`, assembled from `Content.validAll_cons` and
+`Element.valid` node by node, so the kernel checks each node once against
+the literal and the compiler erases every proof. No `elabApp`, no
+unification and no tactic runs per node.
 
 ## Memoization
 
-Every proof is `Eq.refl true`, which the kernel checks by evaluating the
-obligation. With `whatwg.html.memo` (the default) each distinct admission
-`Content.Admits set t` and each distinct attribute obligation is minted once
-per module as an auxiliary lemma through `Lean.Meta.mkAuxLemma`, which caches
-by type, so the kernel's work is bounded by the number of distinct
-obligations a document uses, at most the size of the schema, and not by the
-document. With the option off, every node carries a fresh `Eq.refl true`.
-The benchmark measures both and finds them within a few thousand
-heartbeats of each other on five hundred nodes, because the kernel's own
-`whnf` cache already makes a repeated obligation, and a repeated
-`childSet set t` resolution, free within one declaration; the lemma route
-keeps that across the declarations of a module.
+Every leaf obligation is `Eq.refl true`, which the kernel checks by
+evaluating the obligation. With `whatwg.html.memo` (the default) each
+distinct admission and attribute obligation is minted once per module as
+an auxiliary lemma through `Lean.Meta.mkAuxLemma`, and the root's validity
+proof is one lemma, so that the compiled term holds a constant where the
+proof tree was.
 
-## The labelled forms
+## The root's context
 
-The standard admits `source` and `track` first under `audio` and `video`,
-and `area` under `map`, outside any content set. `html!` admits those
-children by the generated table `Whatwg.Html.Schema.labelledChild`: the
-child is elaborated against its own content set and placed as an element,
-not as an admitted `Child`. Their position among the siblings is kept as
-written.
-Where one markup name had two rows there would be a choice to make; at
-this pin every name has one row.
-
-## Cost
-
-Elaboration and kernel checking cost about two hundred heartbeats per node
-(`WhatwgTest/Html/MarkupBenchmark.lean`: 501 nodes at 114 thousand, under
-the default budget of 200 thousand), sixty times less than the combinators.
-A *computable* document additionally pays Lean's compiler for the raw
-literal, about a thousand heartbeats per constructor application, so a
-`def` of more than roughly a hundred and fifty nodes needs
-`set_option maxHeartbeats`; a `noncomputable def`, or a document only
-reasoned about, does not.
+The root takes its context from the expected type, `Child ctx` or
+`Element t ctx`, read through `whnf`; without one it takes `Ctx.document`
+for `html`, `Ctx.flow` for flow content, `Ctx.phrasing` for phrasing
+content, `Ctx.metadata` for metadata content, and `Ctx.flow` otherwise.
 
 ## What is not here
 
-Attribute values are `String`, as in the combinators, and a literal value
-is checked against the kind the standard's attribute index gives it (a
-boolean attribute is written bare, a keyword attribute takes one of its
-keywords, an integer attribute digits); a spliced value is not checked.
-The prefixed attributes `data-*` and `aria-*` cannot be represented in
-`Attr × String` and are rejected with a message saying so; comments and
-entities have no markup form. Each is a later slice.
+Attribute values are `String`; the prefixed attributes `data-*` and
+`aria-*` cannot be represented in `Attr × String` and are rejected with a
+message saying so; comments and entities have no markup form. Each is a
+later slice.
 
-The walker recurses on a fuel that starts at the number of syntax nodes,
-which no well-formed document exhausts; the trust gate forbids `partial`.
+The walker recurses on a fuel that starts at 4096 levels of nesting, which
+no well-formed document exhausts; the trust gate forbids `partial`.
 -/
 
-namespace Whatwg.Html
-
-open Whatwg.Html.Schema (Tag ContentSet Attr AttrSet)
-
-namespace Syntax
+namespace Whatwg.Html.Syntax
 
 open Lean Elab Term Meta
 open Whatwg.Html.Schema
+open Whatwg.Html.Content (Ctx)
 
 register_option whatwg.html.memo : Bool := {
   defValue := true
-  descr := "html!: mint one auxiliary lemma per distinct admission obligation and reuse it (true), or a fresh Eq.refl per node (false)"
+  descr := "html!: mint one auxiliary lemma per distinct obligation and reuse it (true), or a fresh Eq.refl per node (false)"
 }
 
 /-! ## Syntax -/
@@ -132,7 +103,7 @@ syntax (name := htmlSplice) "{" term "}" : htmlNode
 /-- The markup term. -/
 syntax (name := htmlTerm) "html!" htmlNode : term
 
-/-! ## Schema lookups, at the meta level -/
+/-! ## Expressions of schema values -/
 
 /-- The string a name node spells. -/
 def nameString (stx : Syntax) : String :=
@@ -141,121 +112,80 @@ def nameString (stx : Syntax) : String :=
   | .atom _ v => v
   | _ => ""
 
-/-- The arity of a labelled child (`labelledChild`): required, and may
-repeat. At this pin every labelled child is optional and may repeat. -/
-def labelledArity (_parent _child : Tag) : Bool × Bool := (false, true)
-
-/-- The element rows with a name: one at this pin. -/
-def elementRows (markup : String) : List Schema.Element :=
-  elements.filter (·.name == markup)
-
-/-- The constructor constant at an index of an enum. -/
 def ctorExpr (induct : Name) (idx : Nat) : MetaM Expr := do
   let info ← getConstInfoInduct induct
   return mkConst info.ctors[idx]!
 
 def tagExpr (t : Tag) : MetaM Expr := ctorExpr ``Tag t.ctorIdx
-def setExpr (s : ContentSet) : MetaM Expr := ctorExpr ``ContentSet s.ctorIdx
+def baseExpr (b : Base) : MetaM Expr := ctorExpr ``Base b.ctorIdx
 def attrExpr (a : Attr) : MetaM Expr := ctorExpr ``Attr a.ctorIdx
-def attrSetExpr (s : AttrSet) : MetaM Expr := ctorExpr ``AttrSet s.ctorIdx
+def boolExpr (b : Bool) : Expr := mkConst (if b then ``Bool.true else ``Bool.false)
 
-/-- Elaborate a spliced term against a type and settle it, so that it can
-enter a lemma: no pending instance or postponed problem may remain. -/
+def exclExpr (x : Exclusions) : Expr :=
+  mkAppN (mkConst ``Exclusions.mk) (x.flags.toArray.map boolExpr)
+
+/-- A context as a structure literal. -/
+def ctxExpr (c : Ctx) : MetaM Expr := do
+  let extra ← mkListLit (mkConst ``Tag) (← c.extra.mapM tagExpr)
+  return mkApp3 (mkConst ``Ctx.mk) (← baseExpr c.base) (exclExpr c.excl) extra
+
+/-- Elaborate a spliced term against a type and settle it. -/
 def elabClosed (stx : Syntax) (type : Expr) : TermElabM Expr := do
   let e ← elabTermEnsuringType stx type
   synthesizeSyntheticMVarsNoPostponing
   instantiateMVars e
 
-/-- A proof of a closed obligation, as the module docstring describes:
-`Eq.refl true`, minted once per distinct type when memoizing. -/
-def proofOf (type : Expr) : TermElabM Expr := do
+/-- A proof of a closed obligation `lhs = true`: `Eq.refl true`, minted
+once per distinct type when memoizing. -/
+def proofOf (lhs : Expr) : TermElabM Expr := do
+  let type := mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool) lhs (mkConst ``Bool.true)
   if whatwg.html.memo.get (← getOptions) then
-    return mkConst (← mkAuxLemma [] type Admit.reflTrue)
+    return Lean.mkConst (← mkAuxLemma [] type Admit.reflTrue)
   return Admit.reflTrue
 
-def admitsProof (set : ContentSet) (t : Tag) : TermElabM Expr := do
-  proofOf (mkApp2 (mkConst ``Content.Admits) (← setExpr set) (← tagExpr t))
+def admitsProof (ctxE : Expr) (t : Tag) : TermElabM Expr := do
+  proofOf (mkApp2 (mkConst ``Ctx.admits) ctxE (← tagExpr t))
 
 /-! ## Attributes -/
 
-/-- One elaborated attribute: its row and its value term. -/
 structure AttrOut where
   tag : Attr
   markup : String
   value : Expr
 
-/-- The index rows of an attribute that apply to an element: the rows
-naming it, else the global rows. -/
-def rowsFor (a : Attr) (t : Tag) : List AttrRow :=
-  let named := attributeRows.filter fun r => r.attr == a && r.elements.contains t
-  if named.isEmpty then attributeRows.filter fun r => r.attr == a && r.global else named
-
-/-- Digits only, at least one. -/
-def isDigits (s : String) : Bool := !s.isEmpty && s.all Char.isDigit
-
-/-- Check a literal value against the kind its index row gives it; `none`
-when it conforms, else the message. A spliced value is not checked. -/
-def valueProblem (a : Attr) (t : Tag) (markup value : String) (presence : Bool) : Option String :=
-  match rowsFor a t with
-  | [] => none
-  | row :: _ =>
-    match row.kind with
-    | .boolean =>
-      if presence || value.isEmpty || value == markup then none
-      else some ("attribute `" ++ markup ++ "` is a boolean attribute: write it bare, or with the empty string or its own name as its value")
-    | .keywords false =>
-      if row.keywords.contains value || (row.allowEmpty && value.isEmpty) then none
-      else some ("attribute `" ++ markup ++ "` on <" ++ t.markupText ++ "> takes one of "
-        ++ ", ".intercalate (row.keywords.map fun k => "`" ++ k ++ "`")
-        ++ (if row.allowEmpty then ", or the empty string" else "") ++ ", not `" ++ value ++ "`")
-    | .integer =>
-      if presence then some ("attribute `" ++ markup ++ "` takes a value")
-      else if isDigits value || (value.startsWith "-" && isDigits (String.ofList (value.toList.drop 1))) then none
-      else some ("attribute `" ++ markup ++ "` takes a valid integer, not `" ++ value ++ "`")
-    | .nonNegInteger =>
-      if presence then some ("attribute `" ++ markup ++ "` takes a value")
-      else if isDigits value then none
-      else some ("attribute `" ++ markup ++ "` takes a valid non-negative integer, not `" ++ value ++ "`")
-    | .float => if presence then some ("attribute `" ++ markup ++ "` takes a value") else none
-    | _ => none
-
-/-- Elaborate the attributes of an element against its attribute set,
-blaming one token at a time, and check every literal value against the
-kind its index row gives it. -/
-def elabAttrs (t : Tag) (elementName : String) (set : AttrSet) (stxs : Array Syntax) :
-    TermElabM (Array AttrOut) := do
+/-- Elaborate the attributes of an element, blaming one token at a time, and
+check every literal value against the index. -/
+def elabAttrs (t : Tag) (stxs : Array Syntax) : TermElabM (Array AttrOut) := do
   let mut out : Array AttrOut := #[]
+  let name := t.markupText
   for stx in stxs do
     let mut markup := nameString stx[1 - 1]
     for part in stx[1].getArgs do
       markup := markup ++ "-" ++ nameString part[1]
     if out.any (·.markup == markup) then
-      throwErrorAt stx ("attribute `" ++ markup ++ "` is given twice on <" ++ elementName ++ ">")
-    if let some pre := attributeCtors.find? (fun c => c.isPrefix && markup.startsWith c.markup) then
-      throwErrorAt stx ("attribute `" ++ markup ++ "`: the prefixed attributes `" ++ pre.markup
-        ++ "*` are not representable in `Attr × String` at this pin")
-    let some row := attributeCtors.find? (fun c => !c.isPrefix && c.markup == markup)
-      | throwErrorAt stx ("unknown attribute `" ++ markup ++ "`")
-    unless set.contains row.tag do
-      throwErrorAt stx ("attribute `" ++ markup ++ "` is not admitted on <" ++ elementName
-        ++ ">: the attribute set `" ++ set.name ++ "` does not name it")
+      throwErrorAt stx ("attribute `" ++ markup ++ "` is given twice on <" ++ name ++ ">")
+    if Whatwg.Html.Content.isPrefixed markup then
+      throwErrorAt stx ("attribute `" ++ markup ++ "`: the prefixed attributes `data-*` and `aria-*` are not representable in `Attr × String` at this pin")
+    let some a := Attr.ofName? markup | throwErrorAt stx ("unknown attribute `" ++ markup ++ "`")
     let opt := stx[2]
     let presence := opt.getNumArgs == 0
     let literal? : Option String := if presence then some "" else opt[1].isStrLit?
-    if let some v := literal? then
-      if let some problem := valueProblem row.tag t markup v presence then
-        throwErrorAt stx problem
+    match literal? with
+    | some v =>
+      if let some problem := Whatwg.Html.Content.attrProblem? t markup v then throwErrorAt stx problem
+    | none =>
+      if let some problem := Whatwg.Html.Content.attrProblem? t markup "" then
+        -- a spliced value: only the admission of the name is checked
+        if problem.startsWith ("attribute `" ++ markup ++ "` is not admitted") || problem.startsWith "unknown" then
+          throwErrorAt stx problem
     let value ← if presence then pure (mkStrLit "") else
       let v := opt[1]
       match v.isStrLit? with
       | some s => pure (mkStrLit s)
       | none => elabClosed v[1] (mkConst ``String)
-    out := out.push { tag := row.tag, markup, value }
+    out := out.push { tag := a, markup, value }
   return out
 
-/-! ## The walk -/
-
-/-- The term of an attribute list, typed. -/
 def attrsTerm (attrs : Array AttrOut) : MetaM Expr := do
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``Attr) (mkConst ``String)
   let pairs ← attrs.toList.mapM fun a => do
@@ -263,8 +193,6 @@ def attrsTerm (attrs : Array AttrOut) : MetaM Expr := do
       (← attrExpr a.tag) a.value
   mkListLit pairT pairs
 
-/-- The term of an attribute list, raw: markup names, as `Element.toRaw`
-spells them. -/
 def rawAttrsTerm (attrs : Array AttrOut) : MetaM Expr := do
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
   let pairs := attrs.toList.map fun a =>
@@ -272,150 +200,121 @@ def rawAttrsTerm (attrs : Array AttrOut) : MetaM Expr := do
       (mkStrLit a.tag.markupName) a.value
   mkListLit pairT pairs
 
-/-- The pieces of an element node: its name token, its row, attributes,
-children, and whether it was self-closing. -/
+/-! ## The walk -/
+
 structure Open where
   nameStx : Syntax
-  rows : List Schema.Element
+  tag : Tag
   attrs : Array Syntax
   kids : Array Syntax
 
-/-- Read an element node, checking its closing tag. -/
 def openOf (stx : Syntax) : TermElabM (Option Open) := do
   if stx.isOfKind ``htmlVoid then
     let name := nameString stx[1]
-    let rows := elementRows name
-    if rows.isEmpty then throwErrorAt stx[1] ("unknown element <" ++ name ++ ">")
-    return some { nameStx := stx[1], rows, attrs := stx[2].getArgs, kids := #[] }
+    let some tag := Tag.ofName? name | throwErrorAt stx[1] ("unknown element <" ++ name ++ ">")
+    return some { nameStx := stx[1], tag, attrs := stx[2].getArgs, kids := #[] }
   if stx.isOfKind ``htmlElem then
     let name := nameString stx[1]
-    let rows := elementRows name
-    if rows.isEmpty then throwErrorAt stx[1] ("unknown element <" ++ name ++ ">")
+    let some tag := Tag.ofName? name | throwErrorAt stx[1] ("unknown element <" ++ name ++ ">")
     let closing := nameString stx[6]
     unless closing == name do
       throwErrorAt stx[6] ("closing tag </" ++ closing ++ "> does not match <" ++ name ++ ">")
-    return some { nameStx := stx[1], rows, attrs := stx[2].getArgs, kids := stx[4].getArgs }
+    return some { nameStx := stx[1], tag, attrs := stx[2].getArgs, kids := stx[4].getArgs }
   return none
 
-/-- The row of an element: the first with its name (one at this pin). -/
-def chooseRow (o : Open) (_expected? : Option ContentSet) : Schema.Element :=
-  o.rows.head!
-
-/-- Elaborate an element whose children are checked against `inner`: the
-raw literal of the element and a term of type `Element row.tag inner`. -/
-def elabElement : Nat → Open → Schema.Element → ContentSet → Bool → TermElabM (Expr × Expr)
+/-- Elaborate an element placed in the context `ctx` (as a value and as the
+expression `ctxE`): the raw literal and a term of type `Element tag ctx`. -/
+def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × Expr)
   | 0, o, _, _, _ => throwErrorAt o.nameStx "html!: the document nests too deeply"
-  | fuel + 1, o, row, inner, root => do
-    let t := row.tag
-    let name := row.name
+  | fuel + 1, o, ctx, ctxE, root => do
+    let t := o.tag
+    let name := t.markupText
     if t.isVoid && !o.kids.isEmpty then
       throwErrorAt o.nameStx ("<" ++ name ++ "> is a void element and takes no children")
-    let innerE ← setExpr inner
     let tE ← tagExpr t
+    let inner := ctx.child t
+    let innerE := mkApp2 (mkConst ``Ctx.child) ctxE tE
     let rawT := Lean.mkConst ``RawNode
-    -- children, front to back; the evidence is assembled back to front
     let mut raws : Array Expr := #[]
-    let mut steps : Array (Expr → Expr → Expr) := #[]
-    let mut seen : List Tag := []
+    let mut steps : Array (Expr → Expr → Expr → Expr) := #[]
     for kid in o.kids do
       if kid.isOfKind ``htmlText then
         let some s := kid[0].isStrLit? | throwErrorAt kid "html!: malformed text"
-        unless Content.admits inner .pcdata do
-          throwErrorAt kid ("text is not admitted here: the content set `" ++ inner.name
-            ++ "` does not name it")
-        let child := mkApp3 (mkConst ``Child.text) innerE (mkStrLit s) (← admitsProof inner .pcdata)
-        raws := raws.push (mkApp (mkConst ``RawNode.text) (mkStrLit s))
-        steps := steps.push fun rest h => mkAppN (mkConst ``Erasure.child) #[tE, innerE, child, rest, h]
+        unless inner.admits .pcdata do
+          throwErrorAt kid ("text is not admitted here: the context is " ++ inner.describe)
+        let h ← admitsProof innerE .pcdata
+        let raw := mkApp (mkConst ``RawNode.text) (mkStrLit s)
+        raws := raws.push raw
+        steps := steps.push fun n rest hrest =>
+          mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
+            mkApp3 (mkConst ``Whatwg.Html.Content.validIn_text) innerE (mkStrLit s) h, hrest]
       else if kid.isOfKind ``htmlSplice then
         let child ← elabClosed kid[1] (mkApp (mkConst ``Child) innerE)
         raws := raws.push (mkApp2 (mkConst ``Child.raw) innerE child)
-        steps := steps.push fun rest h => mkAppN (mkConst ``Erasure.child) #[tE, innerE, child, rest, h]
+        steps := steps.push fun n rest hrest =>
+          mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
+            mkApp2 (mkConst ``Child.valid) innerE child, hrest]
       else
         let some k ← openOf kid | throwErrorAt kid "html!: unsupported node"
-        let krow := chooseRow k none
-        let c := krow.tag
-        if labelledChild t c then
-          let (_, many) := labelledArity t c
-          if !many && seen.contains c then
-            throwErrorAt k.nameStx ("<" ++ name ++ "> takes at most one <" ++ krow.name ++ ">")
-          seen := c :: seen
-          let own := c.content?.getD .nothing
-          let (raw, e) ← elabElement fuel k krow own false
-          let cE ← tagExpr c
-          raws := raws.push raw
-          steps := steps.push fun rest h =>
-            mkAppN (mkConst ``Erasure.labelled) #[tE, innerE, cE, Admit.reflTrue, e, rest, h]
-        else
-          unless Content.admits inner c do
-            throwErrorAt k.nameStx (Admit.describe c ++ " is not admitted here: the content set `"
-              ++ inner.name ++ "` does not name it")
-          let (raw, e) ← elabElement fuel k krow (childSet inner c) false
-          let child := mkApp4 (mkConst ``Child.of) innerE (← tagExpr c) e (← admitsProof inner c)
-          raws := raws.push raw
-          steps := steps.push fun rest h => mkAppN (mkConst ``Erasure.child) #[tE, innerE, child, rest, h]
-    for c in Tag.all do
-      if labelledChild t c && (labelledArity t c).1 && !seen.contains c then
-        throwErrorAt o.nameStx ("<" ++ name ++ "> requires a <" ++ c.markupText ++ "> child")
-    -- the evidence, back to front, each step indexed by the literal tail it extends
+        let c := k.tag
+        unless inner.admits c do
+          throwErrorAt k.nameStx (Admit.admitMessage inner c)
+        let (raw, e) ← elabElement fuel k inner innerE false
+        let h ← admitsProof innerE c
+        raws := raws.push raw
+        let cE ← tagExpr c
+        steps := steps.push fun n rest hrest =>
+          mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
+            mkAppN (mkConst ``Element.valid) #[cE, innerE, e, h], hrest]
     let mut rest ← mkListLit rawT []
-    let mut h := mkApp2 (mkConst ``Erasure.nil) tE innerE
+    let mut hc := mkApp (mkConst ``Whatwg.Html.Content.validAll_nil) innerE
     for i in [0:steps.size] do
       let j := steps.size - 1 - i
-      h := steps[j]! rest h
+      hc := steps[j]! raws[j]! rest hc
       rest := mkApp3 (mkConst ``List.cons [Level.zero]) rawT raws[j]! rest
     let childrenE := rest
-    let attrs ← elabAttrs t name row.attribs o.attrs
+    let attrs ← elabAttrs t o.attrs
     let attrsE ← attrsTerm attrs
     let rawAttrsE ← rawAttrsTerm attrs
     let raw := mkApp3 (mkConst ``RawNode.element) (mkStrLit name) rawAttrsE childrenE
-    let setE ← attrSetExpr row.attribs
-    let proof ← proofOf (mkApp2 (mkConst ``AttrsAdmitted) setE attrsE)
-    -- at the root the evidence becomes one lemma, so that the compiled term
-    -- holds a constant where the proof tree was (see the module docstring)
+    let ha ← proofOf (mkApp2 (mkConst ``Whatwg.Html.Content.attrsOk) tE (mkApp (mkConst ``rawAttrs) attrsE))
+    let ht ← proofOf (mkApp2 (mkConst ``Option.isSome [Level.zero]) (mkConst ``String) (mkApp (mkConst ``Tag.markupName) tE))
     let evidence ← if root then do
-        let type := mkApp3 (mkConst ``Erasure) tE innerE childrenE
-        pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars h)))
-      else pure h
-    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, innerE, setE, attrsE, childrenE, proof, evidence])
+        let type := mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool)
+          (mkApp2 (mkConst ``Whatwg.Html.Content.validAll) innerE childrenE) (mkConst ``Bool.true)
+        pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars hc)))
+      else pure hc
+    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ha, evidence, ht])
 
-/-- The root: its context comes from the expected type, `Child set` or
-`Element t inner`; without one a non-transparent root takes its own content
-set and a transparent root is an error. -/
+/-- The default context of a root, by the root's categories. -/
+def defaultCtx (t : Tag) : Ctx :=
+  if t == .html then Ctx.document
+  else if Cats.flow t then Ctx.flow
+  else if Cats.phrasing t then Ctx.phrasing
+  else if Cats.metadata t then Ctx.metadata
+  else Ctx.flow
+
 @[term_elab htmlTerm] def elabHtml : TermElab := fun stx expectedType? => do
   let node := stx[1]
   let some o ← openOf node | throwErrorAt node "html!: the root must be an element"
   let fuel := 4096
+  let t := o.tag
   let expectedType? ← tryPostponeIfHasMVars? expectedType?
   let expected := expectedType?.map fun e => e.consumeMData
   if let some e := expected then
     if e.isAppOfArity ``Child 1 then
-      if let some set ← Admit.contentSet? 32 (e.getArg! 0) then
-        let row := chooseRow o none
-        let t := row.tag
-        unless Content.admits set t do
-          throwErrorAt o.nameStx (Admit.describe t ++ " is not admitted here: the content set `"
-            ++ set.name ++ "` does not name it")
-        let (_, elem) ← elabElement fuel o row (childSet set t) true
-        return mkApp4 (mkConst ``Child.of) (← setExpr set) (← tagExpr t) elem (← admitsProof set t)
+      if let some ctx ← Admit.ctx? (e.getArg! 0) then
+        unless ctx.admits t do throwErrorAt o.nameStx (Admit.admitMessage ctx t)
+        let ctxE := e.getArg! 0
+        let (_, elem) ← elabElement fuel o ctx ctxE true
+        return mkApp4 (mkConst ``Child.of) (← tagExpr t) ctxE elem (← admitsProof ctxE t)
     if e.isAppOfArity ``Element 2 then
       if let some t' ← Admit.tag? (e.getArg! 0) then
-        if let some inner ← Admit.contentSet? 32 (e.getArg! 1) then
-          let row := chooseRow o (some inner)
-          let t := row.tag
-          unless t' == t do
-            throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <"
-              ++ row.name ++ ">")
-          let own := row.content
-          unless row.transparent || inner == own do
-            throwErrorAt o.nameStx ("the content set of <" ++ row.name ++ "> is `" ++ own.name
-              ++ "`, not `" ++ inner.name ++ "`")
-          return (← elabElement fuel o row inner true).2
-  let row := chooseRow o none
-  if row.transparent then
-    throwErrorAt o.nameStx ("<" ++ row.name
-      ++ "> is transparent and needs its context: annotate the expected type as `Child set` or `Element ."
-      ++ row.name ++ " inner`")
-  return (← elabElement fuel o row row.content true).2
+        unless t' == t do
+          throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <" ++ t.markupText ++ ">")
+        if let some ctx ← Admit.ctx? (e.getArg! 1) then
+          return (← elabElement fuel o ctx (e.getArg! 1) true).2
+  let ctx := defaultCtx t
+  return (← elabElement fuel o ctx (← ctxExpr ctx) true).2
 
-end Syntax
-end Whatwg.Html
+end Whatwg.Html.Syntax

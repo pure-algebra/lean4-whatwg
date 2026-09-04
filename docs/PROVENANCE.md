@@ -57,9 +57,10 @@ attribute index (`attributes-1`) and event-handler index
 (`ix-event-handlers`) with the row's span digest; and from those rows the
 schema modules `Whatwg/Html/Schema/{Tags,Families,Attributes,ContentModel}.lean`
 and `Whatwg/Html/Node/Combinators.lean` (`Gates/HtmlStandardEmit.lean`,
-whose authored readings of the standard's prose sentences are each pinned
-to the digest of the block they read, and whose reading of each `Value`
-cell as a kind is by the cell's leading words and quoted items). `lake exe
+reading the authored `Whatwg/Html/Schema/Readings.lean`, whose readings of
+the standard's prose sentences are each pinned to the digest of the block
+they read, and reading each `Value` cell as a kind by the cell's leading
+words and quoted items). `lake exe
 htmlstandard` fails on any byte of drift in any output. Cross-check at the
 pin: a Python regular-expression pass found the same 179 attribute and 89
 handler rows. Cross-check at the pin: a Python

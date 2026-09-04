@@ -8,9 +8,8 @@ The drift check for `Whatwg/Html/Node/Combinators.lean`, which is produced
 from the schema rows by hand and not by the emitter, so `lake exe tyxmlschema`
 says nothing about it. This file inspects the compiled environment instead:
 for every row of `Whatwg.Html.Schema.elements` the combinator
-`Whatwg.Html.E.<name>` must exist and return `Element tag inner`, where `tag`
-is the row's tag and `inner` is the row's content set (`notag` where the row
-carries none), or a bound variable exactly when the row is transparent; and
+`Whatwg.Html.E.<name>` must exist and return `Element tag ctx` with `tag` the
+row's tag and `ctx` a bound variable; and
 for every row of `Whatwg.Html.Schema.attributeCtors` that is not a prefix
 the helper `Whatwg.Html.A.<name>` must exist, take a `String` unless the
 attribute is boolean, and build a pair whose tag is the row's attribute. A schema change that the hand-maintained file
@@ -39,24 +38,19 @@ def ctorIdxOf? (e : Expr) : MetaM (Option Nat) := do
   | some (.ctorInfo c) => return some c.cidx
   | _ => return none
 
-/-- The result row of a combinator's type: the tag's constructor index, and
-either the content set's constructor index or `none` when the set is a bound
-variable of the type. `none` altogether when the type does not end in
-`Element _ _`. -/
-def resultRow? (type : Expr) : MetaM (Option (Nat × Option Nat)) :=
+/-- The result of a combinator's type: the tag's constructor index, when the
+type ends in `Element <tag> <ctx>` with the context a bound variable. -/
+def resultTag? (type : Expr) : MetaM (Option Nat) :=
   forallTelescope type fun _ body => do
     unless body.getAppFn.isConstOf ``Whatwg.Html.Element do return none
     match body.getAppArgs with
-    | #[tagE, innerE] =>
-      let some t ← ctorIdxOf? tagE | return none
-      if innerE.isFVar then return some (t, none)
-      let some c ← ctorIdxOf? innerE | return none
-      return some (t, some c)
+    | #[tagE, ctxE] =>
+      unless ctxE.isFVar do return none
+      ctorIdxOf? tagE
     | _ => return none
 
 /-- Every element row of `rows` whose combinator is missing or returns the
-wrong row. Takes the rows as a parameter so that a planted wrong row can be
-shown to fail. -/
+wrong tag, or is not polymorphic in its context. -/
 def elementFailures (rows : List Element) : MetaM (List String) := do
   let mut failures : List String := []
   for e in rows do
@@ -64,21 +58,11 @@ def elementFailures (rows : List Element) : MetaM (List String) := do
     match (← getEnv).find? n with
     | none => failures := failures ++ ["no combinator " ++ toString n ++ " for element row " ++ e.name]
     | some info =>
-      match ← resultRow? info.type with
-      | none => failures := failures ++ [toString n ++ " does not return an Element"]
-      | some (t, c) =>
+      match ← resultTag? info.type with
+      | none => failures := failures ++ [toString n ++ " does not return an Element polymorphic in its context"]
+      | some t =>
         if t != e.tag.ctorIdx then
           failures := failures ++ [toString n ++ " returns the wrong tag"]
-        let expected := e.content.ctorIdx
-        match c with
-        | none =>
-          unless e.transparent do
-            failures := failures ++ [toString n ++ " is polymorphic in its content set but its row is not transparent"]
-        | some c =>
-          if e.transparent then
-            failures := failures ++ [toString n ++ " fixes its content set but its row is transparent"]
-          else if c != expected then
-            failures := failures ++ [toString n ++ " returns the wrong content set"]
   return failures
 
 /-- Every attribute row of `rows` whose helper is missing, has the wrong type,

@@ -1,12 +1,12 @@
-import Whatwg.Html.Content.Transparent
+import Whatwg.Html.Content.Valid
 
 /-!
 # WhatwgTest.Html.Lattice
 
-Probes of the lattice and transparency theorems over the schema generated
-from the standard (slice H6.1): the quantified statements are in
-`Whatwg.Html.Content.Lattice` and `Whatwg.Html.Content.Transparent`; the
-points below are what they say at named sets and tags. Finite probes.
+Probes of the categories, bases, contexts and the checker (slice H7): the
+quantified statements are in `Whatwg.Html.Content.{Lattice,Context,Valid}`;
+the points below are what they say at named tags and positions. Finite
+probes.
 
 The repository's elaboration-time axiom gate in `WhatwgTest.lean` audits every
 declaration compiled here, so no per-file axiom report is written.
@@ -16,39 +16,44 @@ namespace WhatwgTest.Html.Lattice
 
 open Whatwg.Html.Schema
 open Whatwg.Html.Content
+open Whatwg.Html (RawNode)
 
-/-! ## Derived sets are inside their parents -/
+/-! ## Categories and bases -/
 
-example : ContentSet.parent? .flow_without_interactive_noscript = some .flow_without_interactive := by decide
-example : SubsetOf Sets.flow_without_interactive_noscript Sets.flow_without_interactive :=
-  parent_subset .flow_without_interactive_noscript .flow_without_interactive (by decide)
-example : ContentSet.parent? .flow = none := by decide
-
-/-! ## Categories -/
-
-example : Sets.flow .div = true ∧ Sets.phrasing .div = false := by decide
-example : Sets.phrasing .em = true ∧ Sets.flow .em = true := by decide
+example : Bases.flow .div = true ∧ Bases.phrasing .div = false := by decide
+example : Bases.phrasing .em = true ∧ Bases.flow .em = true := by decide
 example : Cats.interactive .button = true ∧ Cats.interactive .a = true := by decide
-example : Sets.flow_without_interactive .button = false := by decide
-example : Sets.flow .style = false ∧ Sets.metadata .style = true := by decide
-example : Sets.only_li .script = true ∧ Sets.only_li .p = false := by decide
-example : Sets.phrasing_without_dfn .embed = true := by decide
-example : Sets.nothing .pcdata = false ∧ Sets.text .pcdata = true := by decide
+example : Bases.flow .style = false ∧ Bases.metadata .style = true := by decide
+example : Bases.only_li .script = true ∧ Bases.only_li .p = false := by decide
+example : Bases.nothing .pcdata = false ∧ Bases.text .pcdata = true := by decide
+example : Tag.ownExcl .a = { interactive := true, a := true } := by decide
+example : Tag.ownExcl .header = { header := true, footer := true } := by decide
+example : Tag.isTransparent .a = true ∧ Tag.isTransparent .div = false := by decide
 
-/-! ## Transparency -/
+/-! ## Contexts -/
 
-example : ContentSet.transparentPayload .flow .a = some .flow_without_interactive := by decide
-example : ContentSet.transparentPayload .phrasing .a = some .phrasing_without_interactive := by decide
-example : ContentSet.transparentPayload .flow .video = some .flow_without_media := by decide
-example : ContentSet.transparentPayload .flow .div = none := by decide
-example : ContentSet.transparentPayload .metadata .noscript = some .only_link_style_meta_strict := by decide
-example : isTransparentTag .a = true ∧ isTransparentTag .div = false := by decide
+example : Ctx.admits Ctx.flow .div = true := by decide
+example : Ctx.admits Ctx.phrasing .div = false := by decide
+example : Ctx.admits (Ctx.child Ctx.flow .a) .button = false := by decide
+example : Ctx.admits (Ctx.child Ctx.flow .a) .div = true := by decide
+example : Ctx.admits (Ctx.child (Ctx.child Ctx.phrasing .dfn) .span) .dfn = false := by decide
+example : Ctx.admits (Ctx.child Ctx.flow .video) .source = true := by decide
+example : Ctx.admits (Ctx.child Ctx.flow .br) .pcdata = false := by decide
+example : (Ctx.child Ctx.metadata .noscript).base = .only_link_style_meta_strict := by decide
+-- The prose of a context, by evaluation (`String.intercalate` does not reduce
+-- under `decide`).
+#guard Ctx.describe (Ctx.child Ctx.phrasing .a) == "phrasing, excluding interactive content, a"
 
-/-! ## The resolver -/
+/-! ## The checker -/
 
-example : resolveChildSet .div .flow = some .flow := by decide
-example : resolveChildSet .a .phrasing = some .phrasing_without_interactive := by decide
-example : resolveChildSet .br .flow = some .nothing := by decide
-example : resolveChildSet .pcdata .flow = none := by decide
+example : validIn Ctx.flow (.element "p" [] [.text "x", .element "em" [] [.text "y"]]) = true := by decide +kernel
+example : validIn Ctx.flow (.element "p" [] [.element "div" [] []]) = false := by decide +kernel
+example : validIn Ctx.phrasing (.element "dfn" [] [.element "span" [] [.element "dfn" [] []]]) = false := by decide +kernel
+example : validIn Ctx.flow (.element "div" [("class", "x"), ("data-role", "y")] []) = true := by decide +kernel
+example : validIn Ctx.flow (.element "div" [("href", "x")] []) = false := by decide +kernel
+example : validIn Ctx.flow (.element "div" [("id", "a"), ("id", "b")] []) = false := by decide +kernel
+example : validIn Ctx.flow (.element "blink" [] []) = false := by decide +kernel
+example : validIn Ctx.flow (.element "br" [] [.comment "x"]) = false := by decide +kernel
+example : validIn Ctx.document (.element "html" [] [.element "head" [] [.element "title" [] [.text "t"]], .element "body" [] []]) = true := by decide +kernel
 
 end WhatwgTest.Html.Lattice

@@ -882,24 +882,24 @@ end Whatwg.Html.Print
 namespace Whatwg.Html
 
 /-- Serialize a typed element, through erasure. -/
-def Element.render {t : Schema.Tag} {inner : Schema.ContentSet} (e : Element t inner) : String :=
+def Element.render {t : Schema.Tag} {ctx : Content.Ctx} (e : Element t ctx) : String :=
   Print.render e.toRaw
 
 /-- Serialize a typed element as a whole document, with TyXML's doctype
 line. -/
-def Element.renderDoc {t : Schema.Tag} {inner : Schema.ContentSet} (e : Element t inner) : String :=
+def Element.renderDoc {t : Schema.Tag} {ctx : Content.Ctx} (e : Element t ctx) : String :=
   Print.renderDoc e.toRaw
 
 /-- Serialize an admitted child, through the raw node it carries. -/
-def Child.render {set : Schema.ContentSet} (c : Child set) : String := Print.render c.raw
+def Child.render {ctx : Content.Ctx} (c : Child ctx) : String := Print.render c.raw
 
 /-- Serializing a typed element is serializing its erasure; every theorem of
 `Whatwg.Html.Print` applies to it through this equation. -/
-theorem Element.render_eq {t : Schema.Tag} {inner : Schema.ContentSet} (e : Element t inner) :
+theorem Element.render_eq {t : Schema.Tag} {ctx : Content.Ctx} (e : Element t ctx) :
     e.render = Print.render e.toRaw := rfl
 
 /-- The same for a child. -/
-theorem Child.render_eq {set : Schema.ContentSet} (c : Child set) :
+theorem Child.render_eq {ctx : Content.Ctx} (c : Child ctx) :
     c.render = Print.render c.raw := rfl
 
 end Whatwg.Html

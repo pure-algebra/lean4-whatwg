@@ -21,7 +21,8 @@ namespace WhatwgTest.Html.Print
 
 open Whatwg.Html
 open Whatwg.Html.Print
-open Whatwg.Html.Schema (Tag ContentSet Attr)
+open Whatwg.Html.Schema (Tag Attr)
+open Whatwg.Html.Content (Ctx)
 
 /-! ## The escaper -/
 
@@ -82,7 +83,7 @@ example : isVoidName "p" = false := by decide
 child. Those probes are anonymous `example`s, so the construction is repeated
 here rather than referenced; the import above is what pins the two to the
 same combinators. -/
-def document : Element .html .only_head_body_strict :=
+def document : Element .html Ctx.document :=
   E.html
     [E.el (E.head
       [E.el (E.title [E.txt "Slice H4"]),
@@ -107,7 +108,7 @@ example : document.renderDoc
       ++ "<body><h1>Content models</h1><p>A &amp; B<br /></p></body></html>" := by decide
 
 /-- A child renders through the raw node it carries. -/
-example : (Child.of (set := ContentSet.flow) (E.p [E.txt "x"])).render = "<p>x</p>" := by decide
+example : (Child.of (ctx := Ctx.flow) (E.p [E.txt "x"])).render = "<p>x</p>" := by decide
 
 /-! ## The decoder -/
 
