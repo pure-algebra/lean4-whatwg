@@ -51,7 +51,7 @@ inductive Attr where
   | onscrollend | onsecuritypolicyviolation | onseeked | onseeking | onselect | onslotchange | onstalled | onstorage
   | onsubmit | onsuspend | ontimeupdate | ontoggle | onunhandledrejection | onunload | onvolumechange | onwaiting
   | onwheel | data_ | role | aria_
-  deriving DecidableEq, Repr, Inhabited
+  deriving DecidableEq, Repr, Inhabited, Hashable
 
 /-- Every attribute, in index order, then the extras. -/
 def Attr.all : List Attr :=
@@ -1705,7 +1705,7 @@ inductive AttrSet where
   | optgroup_attrib | option_attrib | textarea_attrib | output_attrib | progress_attrib | meter_attrib | fieldset_attrib | legend_attrib
   | selectedcontent_attrib | details_attrib | summary_attrib | dialog_attrib | script_attrib | noscript_attrib | template_attrib | slot_attrib
   | canvas_attrib
-  deriving DecidableEq, Repr, Inhabited
+  deriving DecidableEq, Repr, Inhabited, Hashable
 
 /-- Every attribute set, in source order. -/
 def AttrSet.all : List AttrSet :=

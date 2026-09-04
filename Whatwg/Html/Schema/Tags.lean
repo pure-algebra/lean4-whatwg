@@ -31,7 +31,7 @@ inductive Tag where
   | optgroup | option | textarea | output | progress | meter | fieldset | legend
   | selectedcontent | details | summary | dialog | script | noscript | template | slot
   | canvas | pcdata
-  deriving DecidableEq, Repr, Inhabited
+  deriving DecidableEq, Repr, Inhabited, Hashable
 
 /-- Every tag, in source order. -/
 def Tag.all : List Tag :=

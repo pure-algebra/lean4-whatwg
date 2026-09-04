@@ -30,7 +30,7 @@ structure Exclusions where
   footer : Bool := false
   address : Bool := false
   a : Bool := false
-  deriving DecidableEq, Repr, Inhabited
+  deriving DecidableEq, Repr, Inhabited, Hashable
 
 namespace Exclusions
 

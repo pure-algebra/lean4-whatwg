@@ -89,10 +89,10 @@ theorem validAll_children {ctx : Ctx} : ∀ cs : List (Child ctx), validAll ctx 
 /-- Build an element from typed children. The tag must be an element
 (`htag`), which every combinator discharges once at its definition. -/
 def Element.ofChildren {t : Tag} {ctx : Ctx} (cs : List (Child (ctx.child t)))
-    (attrs : List AttrVal) (ha : attrsOk t (rawAttrs attrs) = true)
-    (hs : Content.seqOk (ctx.child t) t (cs.map Child.raw) = true)
+    (attrs : List AttrVal) (ho : Content.elementOk ctx t (rawAttrs attrs) (cs.map Child.raw) = true)
     (ht : t.markupName.isSome = true := by decide) : Element t ctx :=
-  ⟨attrs, cs.map Child.raw, ha, hs, validAll_children cs, ht⟩
+  ⟨attrs, cs.map Child.raw, ((Content.elementOk_iff _ _ _ _).mp ho).1,
+    ((Content.elementOk_iff _ _ _ _).mp ho).2, validAll_children cs, ht⟩
 
 /-- Place an element in a child position. -/
 def Child.of {t : Tag} {ctx : Ctx} (e : Element t ctx)

@@ -24,7 +24,7 @@ structure Ctx where
   base : Base
   excl : Exclusions := {}
   extra : List Tag := []
-  deriving DecidableEq, Repr, Inhabited
+  deriving DecidableEq, Repr, Inhabited, Hashable
 
 namespace Ctx
 
@@ -44,9 +44,28 @@ def hits (t : Tag) : List Bool :=
    t == .meter, t == .progress, t == .label, t == .form, t == .table, t == .header, t == .footer,
    t == .address, t == .a]
 
-/-- The exclusions exclude the tag: some set flag hits it. -/
-def excluded (x : Exclusions) (t : Tag) : Bool :=
+/-- The exclusions exclude the tag: some set flag hits it. This is the
+specification, over the flag lists the lemmas reason in; `excludedFast`
+below is the same test as a short-circuiting boolean, which the kernel
+evaluates in a fifth of the time (performance review §3), and is what the
+admission functions use. -/
+def excludedSpec (x : Exclusions) (t : Tag) : Bool :=
   (x.flags.zip (hits t)).any fun p => p.1 && p.2
+
+/-- `excludedSpec` as a short-circuiting boolean. -/
+def excluded (x : Exclusions) (t : Tag) : Bool :=
+  (x.interactive && Cats.interactive t) || (x.media && Cats.media t) ||
+  (x.heading && Cats.heading t) || (x.sectioning && Cats.sectioning t) ||
+  (x.noscript && t == .noscript) || (x.dfn && t == .dfn) || (x.meter && t == .meter) ||
+  (x.progress && t == .progress) || (x.label && t == .label) || (x.form && t == .form) ||
+  (x.table && t == .table) || (x.header && t == .header) || (x.footer && t == .footer) ||
+  (x.address && t == .address) || (x.a && t == .a)
+
+theorem excluded_eq_spec (x : Exclusions) (t : Tag) : excluded x t = excludedSpec x t := by
+  cases x
+  simp only [excluded, excludedSpec, Exclusions.flags, hits, List.zip_cons_cons, List.zip_nil_right,
+    List.any_cons, List.any_nil, Bool.or_false]
+  simp only [Bool.or_assoc]
 
 /-- The tag may stand at the position: the base or the labelled extras name
 it, and no inherited exclusion excludes it. This is the attribute-free
@@ -76,8 +95,23 @@ def baseContainsWith (b : Base) (t : Tag) (attrs : List (String × String)) : Bo
 def hitsWith (t : Tag) (attrs : List (String × String)) : List Bool :=
   interactiveWith t attrs :: (hits t).tail
 
-def excludedWith (x : Exclusions) (t : Tag) (attrs : List (String × String)) : Bool :=
+def excludedWithSpec (x : Exclusions) (t : Tag) (attrs : List (String × String)) : Bool :=
   (x.flags.zip (hitsWith t attrs)).any fun p => p.1 && p.2
+
+def excludedWith (x : Exclusions) (t : Tag) (attrs : List (String × String)) : Bool :=
+  (x.interactive && interactiveWith t attrs) || (x.media && Cats.media t) ||
+  (x.heading && Cats.heading t) || (x.sectioning && Cats.sectioning t) ||
+  (x.noscript && t == .noscript) || (x.dfn && t == .dfn) || (x.meter && t == .meter) ||
+  (x.progress && t == .progress) || (x.label && t == .label) || (x.form && t == .form) ||
+  (x.table && t == .table) || (x.header && t == .header) || (x.footer && t == .footer) ||
+  (x.address && t == .address) || (x.a && t == .a)
+
+theorem excludedWith_eq_spec (x : Exclusions) (t : Tag) (attrs : List (String × String)) :
+    excludedWith x t attrs = excludedWithSpec x t attrs := by
+  cases x
+  simp only [excludedWith, excludedWithSpec, Exclusions.flags, hitsWith, hits, List.tail_cons,
+    List.zip_cons_cons, List.zip_nil_right, List.any_cons, List.any_nil, Bool.or_false]
+  simp only [Bool.or_assoc]
 
 /-- The tag with these attributes may stand at the position. -/
 def admitsWith (c : Ctx) (t : Tag) (attrs : List (String × String)) : Bool :=
@@ -134,8 +168,9 @@ theorem child_excl_le (c : Ctx) (t : Tag) : c.excl.le (c.child t).excl = true :=
 
 /-- Larger exclusions exclude more. -/
 theorem excluded_mono {x y : Exclusions} (h : x.le y = true) (t : Tag)
-    (hx : Ctx.excluded x t = true) : Ctx.excluded y t = true :=
-  any_hit_mono x.flags y.flags (Ctx.hits t) rfl h hx
+    (hx : Ctx.excluded x t = true) : Ctx.excluded y t = true := by
+  rw [Ctx.excluded_eq_spec] at hx ⊢
+  exact any_hit_mono x.flags y.flags (Ctx.hits t) rfl h hx
 
 /-- Admission is antitone in the exclusions, for one base and extras. -/
 theorem admits_antitone {x y : Exclusions} (h : x.le y = true) (b : Base) (e : List Tag) (t : Tag)

@@ -14,12 +14,11 @@ a few delta and iota steps. `maxHeartbeats` is the gate.
 
 The two probes below build a typed tree through the combinators and
 measure the per-node bill: one admission per child, decided by the
-`admits` tactic (compiled evaluation and a kernel-checked `Eq.refl`), one
-attribute obligation and one sequence obligation per element. Measured by
-bisection on this pin, in thousands of heartbeats: deep 314/317, wide
-475/478 (before the context-indexed core of H7: 256/259 and 434/437; the
-difference is the sequence obligation and the kernel's checks of the
-context chains). The tactic reads a nested context by folding the compiled
+`admits` tactic (compiled evaluation and a kernel-checked `Eq.refl`) and one
+combined obligation per element (attributes and ordered model). Measured by
+bisection on this pin, in thousands of heartbeats: deep 325/328, wide
+448/453 (H7.3, before the obligations were merged: 350/355 and 486/489;
+before the context-indexed core of H7: 256/259 and 434/437). The tactic reads a nested context by folding the compiled
 `Ctx.child` over the chain rather than reducing it, which is what keeps a
 deep tree linear. Bounds carry a margin. Finite probes.
 -/

@@ -128,7 +128,7 @@ inductive Base where
   | flow | phrasing | metadata | text | nothing | document | only_head_body_strict | only_p_h1_h2_h3_h4_h5_h6
   | only_li | only_dt_dd_div | flow_with_figcaption | phrasing_with_rp_rt | only_source_img | only_caption_colgroup_thead_tbody_tfoot_tr | only_col_template_strict | only_tr
   | only_td_th | only_button_option_optgroup_hr_noscript | phrasing_with_option | only_legend_option_noscript_div | flow_with_legend | phrasing_with_heading | flow_with_summary | only_link_style_meta_strict
-  deriving DecidableEq, Repr, Inhabited
+  deriving DecidableEq, Repr, Inhabited, Hashable
 
 /-- Every base. -/
 def Base.all : List Base :=

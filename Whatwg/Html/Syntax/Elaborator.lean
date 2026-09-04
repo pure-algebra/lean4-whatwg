@@ -1,4 +1,5 @@
 import Lean
+import Std.Data.HashMap
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
 
@@ -40,11 +41,13 @@ unification and no tactic runs per node.
 ## Memoization
 
 Every leaf obligation is `Eq.refl true`, which the kernel checks by
-evaluating the obligation. With `whatwg.html.memo` (the default) each
-distinct admission and attribute obligation is minted once per module as
-an auxiliary lemma through `Lean.Meta.mkAuxLemma`, and the root's validity
-proof is one lemma, so that the compiled term holds a constant where the
-proof tree was.
+evaluating the obligation. The root's validity proof is one auxiliary lemma,
+so that the compiled term holds a constant where the proof tree was. The
+option `whatwg.html.memo` additionally mints one lemma per distinct leaf
+obligation; it is off by default, because the kernel's own cache already
+shares identical obligations within a declaration once the children's
+contexts are emitted as reduced literals, and the lemma route costs more
+kernel time and never shares across declarations (performance review §7).
 
 ## The root's context
 
@@ -68,7 +71,7 @@ open Whatwg.Html.Schema
 open Whatwg.Html.Content (Ctx)
 
 register_option whatwg.html.memo : Bool := {
-  defValue := true
+  defValue := false
   descr := "html!: mint one auxiliary lemma per distinct obligation and reuse it (true), or a fresh Eq.refl per node (false)"
 }
 
@@ -125,6 +128,20 @@ def exclExpr (x : Exclusions) : Expr :=
 def ctxExpr (c : Ctx) : MetaM Expr := do
   let extra ← mkListLit (mkConst ``Tag) (← c.extra.mapM tagExpr)
   return mkApp3 (mkConst ``Ctx.mk) (← baseExpr c.base) (exclExpr c.excl) extra
+
+/-- The literals of the contexts a document has met, so that each distinct
+context is built once and every obligation at that context shares the one
+expression (a literal is some twenty nodes; a document meets few distinct
+contexts). -/
+abbrev CtxCache := IO.Ref (Std.HashMap Ctx Expr)
+
+def ctxExprCached (cache : CtxCache) (c : Ctx) : MetaM Expr := do
+  match (← cache.get).get? c with
+  | some e => return e
+  | none =>
+    let e ← ctxExpr c
+    cache.modify (·.insert c e)
+    return e
 
 /-- Elaborate a spliced term against a type and settle it. -/
 def elabClosed (stx : Syntax) (type : Expr) : TermElabM Expr := do
@@ -231,7 +248,7 @@ def rawAttrValues (attrs : Array AttrOut) : List (String × String) :=
 
 /-- Elaborate an element placed in the context `ctx` (as a value and as the
 expression `ctxE`): the raw literal and a term of type `Element tag ctx`. -/
-def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × Expr × Array AttrOut)
+def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × Expr × Array AttrOut)
   | 0, o, _, _, _ => throwErrorAt o.nameStx "html!: the document nests too deeply"
   | fuel + 1, o, ctx, ctxE, root => do
     let t := o.tag
@@ -242,7 +259,9 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
     let attrs ← elabAttrs t o.attrs
     let attrsE ← attrsTerm attrs
     let inner := ctx.child t
-    let innerE := mkApp2 (mkConst ``Ctx.child) ctxE tE
+    -- the children's context as a reduced literal, not a `Ctx.child` chain:
+    -- identical positions then share one obligation type (performance review §3)
+    let innerE ← ctxExprCached cache inner
     let rawT := Lean.mkConst ``RawNode
     let mut raws : Array Expr := #[]
     let mut steps : Array (Expr → Expr → Expr → Expr) := #[]
@@ -266,7 +285,7 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
       else
         let some k ← openOf kid | throwErrorAt kid "html!: unsupported node"
         let c := k.tag
-        let (raw, e, kattrs) ← elabElement fuel k inner innerE false
+        let (raw, e, kattrs) ← elabElement cache fuel k inner innerE false
         unless inner.admitsWith c (rawAttrValues kattrs) do
           throwErrorAt k.nameStx (Admit.admitMessage inner c)
         let h ← admitsWithProof innerE c (← attrsTerm kattrs)
@@ -284,7 +303,7 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
     let childrenE := rest
     let rawAttrsE ← rawAttrsTerm attrs
     let raw := mkApp3 (mkConst ``RawNode.element) (mkStrLit name) rawAttrsE childrenE
-    let ha ← proofOf (mkApp2 (mkConst ``Whatwg.Html.Content.attrsOk) tE (mkApp (mkConst ``rawAttrs) attrsE))
+
     -- the ordered model, checked on the children's tags as written
     let kidTags := o.kids.toList.filterMap fun kid =>
       if kid.isOfKind ``htmlText then some (Whatwg.Html.RawNode.text "")
@@ -295,14 +314,14 @@ def elabElement : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × 
     if o.kids.all (fun kid => !kid.isOfKind ``htmlSplice) then
       if let some problem := Whatwg.Html.Content.seqProblem? inner t kidTags then
         throwErrorAt o.nameStx problem
-    let hs ← proofOf (mkApp3 (mkConst ``Whatwg.Html.Content.seqOk) innerE tE childrenE)
+    let ho ← proofOf (mkApp4 (mkConst ``Whatwg.Html.Content.elementOk) ctxE tE (mkApp (mkConst ``rawAttrs) attrsE) childrenE)
     let ht ← proofOf (mkApp2 (mkConst ``Option.isSome [Level.zero]) (mkConst ``String) (mkApp (mkConst ``Tag.markupName) tE))
     let evidence ← if root then do
         let type := mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool)
           (mkApp2 (mkConst ``Whatwg.Html.Content.validAll) innerE childrenE) (mkConst ``Bool.true)
         pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars hc)))
       else pure hc
-    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ha, hs, evidence, ht], attrs)
+    return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ho, evidence, ht], attrs)
 
 /-- The default context of a root, by the root's categories. -/
 def defaultCtx (t : Tag) : Ctx :=
@@ -317,13 +336,14 @@ def defaultCtx (t : Tag) : Ctx :=
   let some o ← openOf node | throwErrorAt node "html!: the root must be an element"
   let fuel := 4096
   let t := o.tag
+  let cache : CtxCache ← IO.mkRef {}
   let expectedType? ← tryPostponeIfHasMVars? expectedType?
   let expected := expectedType?.map fun e => e.consumeMData
   if let some e := expected then
     if e.isAppOfArity ``Child 1 then
       if let some ctx ← Admit.ctx? 4096 (e.getArg! 0) then
         let ctxE := e.getArg! 0
-        let (_, elem, rattrs) ← elabElement fuel o ctx ctxE true
+        let (_, elem, rattrs) ← elabElement cache fuel o ctx ctxE true
         unless ctx.admitsWith t (rawAttrValues rattrs) do throwErrorAt o.nameStx (Admit.admitMessage ctx t)
         return mkApp4 (mkConst ``Child.of) (← tagExpr t) ctxE elem (← admitsWithProof ctxE t (← attrsTerm rattrs))
     if e.isAppOfArity ``Element 2 then
@@ -331,8 +351,8 @@ def defaultCtx (t : Tag) : Ctx :=
         unless t' == t do
           throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <" ++ t.markupText ++ ">")
         if let some ctx ← Admit.ctx? 4096 (e.getArg! 1) then
-          return (← elabElement fuel o ctx (e.getArg! 1) true).2.1
+          return (← elabElement cache fuel o ctx (e.getArg! 1) true).2.1
   let ctx := defaultCtx t
-  return (← elabElement fuel o ctx (← ctxExpr ctx) true).2.1
+  return (← elabElement cache fuel o ctx (← ctxExprCached cache ctx) true).2.1
 
 end Whatwg.Html.Syntax

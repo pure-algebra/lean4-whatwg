@@ -10,8 +10,9 @@ its keywords where they are identifier-safe, with a `_str` variant for a
 computed value), plus `attr`, `data_` and `aria_`. Every
 combinator has the same shape: it is polymorphic in the context `ctx` it is
 placed in, its children are `Child (ctx.child <tag>)`, then `attrs` with a
-default of `[]`, then the attribute obligation `_ha` discharged by the
-`admits` tactic; a void or childless element has no children parameter. A
+default of `[]`, then one obligation `_ho` (attributes and ordered model)
+discharged by the `admits` tactic; a void or childless element has no
+children parameter. A
 root names its context: `E.html : Element .html Ctx.document`. The names
 live in `Whatwg.Html.E` and `Whatwg.Html.A` because a dozen are single
 letters.
@@ -44,891 +45,793 @@ def el {ctx : Ctx} {t : Tag} (e : Element t ctx)
 /-- `html`: authored: "A head element followed by a body element.": the two, order not enforced. -/
 def html {ctx : Ctx} (children : List (Child (ctx.child .html)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .html (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .html) .html (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .html (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .html ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `head`: authored: metadata content; the one-title and at-most-one-base bounds are not enforced. -/
 def head {ctx : Ctx} (children : List (Child (ctx.child .head)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .head (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .head) .head (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .head (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .head ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `title`: sentence. -/
 def title {ctx : Ctx} (children : List (Child (ctx.child .title)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .title (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .title) .title (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .title (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .title ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `base`: sentence. -/
 def base {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .base (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .base (rawAttrs attrs) [] = true := by admits) :
     Element .base ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `link`: sentence. -/
 def link {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .link (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .link (rawAttrs attrs) [] = true := by admits) :
     Element .link ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `meta`: sentence. -/
 def «meta» {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .«meta» (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .«meta» (rawAttrs attrs) [] = true := by admits) :
     Element .«meta» ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `style`: sentence. -/
 def style {ctx : Ctx} (children : List (Child (ctx.child .style)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .style (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .style) .style (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .style (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .style ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `body`: sentence. -/
 def body {ctx : Ctx} (children : List (Child (ctx.child .body)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .body (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .body) .body (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .body (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .body ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `article`: sentence. -/
 def article {ctx : Ctx} (children : List (Child (ctx.child .article)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .article (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .article) .article (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .article (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .article ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `section`: sentence. -/
 def «section» {ctx : Ctx} (children : List (Child (ctx.child .«section»)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .«section» (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .«section») .«section» (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .«section» (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .«section» ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `nav`: sentence. -/
 def nav {ctx : Ctx} (children : List (Child (ctx.child .nav)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .nav (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .nav) .nav (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .nav (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .nav ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `aside`: sentence. -/
 def aside {ctx : Ctx} (children : List (Child (ctx.child .aside)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .aside (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .aside) .aside (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .aside (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .aside ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `h1`: sentence. -/
 def h1 {ctx : Ctx} (children : List (Child (ctx.child .h1)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .h1 (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .h1) .h1 (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .h1 (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .h1 ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `h2`: sentence. -/
 def h2 {ctx : Ctx} (children : List (Child (ctx.child .h2)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .h2 (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .h2) .h2 (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .h2 (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .h2 ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `h3`: sentence. -/
 def h3 {ctx : Ctx} (children : List (Child (ctx.child .h3)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .h3 (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .h3) .h3 (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .h3 (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .h3 ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `h4`: sentence. -/
 def h4 {ctx : Ctx} (children : List (Child (ctx.child .h4)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .h4 (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .h4) .h4 (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .h4 (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .h4 ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `h5`: sentence. -/
 def h5 {ctx : Ctx} (children : List (Child (ctx.child .h5)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .h5 (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .h5) .h5 (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .h5 (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .h5 ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `h6`: sentence. -/
 def h6 {ctx : Ctx} (children : List (Child (ctx.child .h6)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .h6 (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .h6) .h6 (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .h6 (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .h6 ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `hgroup`: authored: "Zero or more p elements, followed by one h1..h6 element, followed by zero or more p elements": membership, order not enforced. -/
 def hgroup {ctx : Ctx} (children : List (Child (ctx.child .hgroup)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .hgroup (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .hgroup) .hgroup (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .hgroup (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .hgroup ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `header`: sentence. -/
 def header {ctx : Ctx} (children : List (Child (ctx.child .header)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .header (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .header) .header (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .header (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .header ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `footer`: sentence. -/
 def footer {ctx : Ctx} (children : List (Child (ctx.child .footer)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .footer (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .footer) .footer (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .footer (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .footer ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `address`: sentence. -/
 def address {ctx : Ctx} (children : List (Child (ctx.child .address)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .address (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .address) .address (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .address (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .address ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `p`: sentence. -/
 def p {ctx : Ctx} (children : List (Child (ctx.child .p)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .p (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .p) .p (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .p (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .p ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `hr`: sentence. -/
 def hr {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .hr (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .hr (rawAttrs attrs) [] = true := by admits) :
     Element .hr ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `pre`: sentence. -/
 def pre {ctx : Ctx} (children : List (Child (ctx.child .pre)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .pre (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .pre) .pre (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .pre (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .pre ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `blockquote`: sentence. -/
 def blockquote {ctx : Ctx} (children : List (Child (ctx.child .blockquote)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .blockquote (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .blockquote) .blockquote (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .blockquote (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .blockquote ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `ol`: sentence. -/
 def ol {ctx : Ctx} (children : List (Child (ctx.child .ol)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .ol (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .ol) .ol (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .ol (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .ol ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `ul`: sentence. -/
 def ul {ctx : Ctx} (children : List (Child (ctx.child .ul)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .ul (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .ul) .ul (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .ul (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .ul ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `menu`: sentence. -/
 def menu {ctx : Ctx} (children : List (Child (ctx.child .menu)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .menu (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .menu) .menu (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .menu (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .menu ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `li`: sentence. -/
 def li {ctx : Ctx} (children : List (Child (ctx.child .li)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .li (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .li) .li (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .li (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .li ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `dl`: authored: dt/dd groups or div wrappers: membership, grouping not enforced. -/
 def dl {ctx : Ctx} (children : List (Child (ctx.child .dl)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .dl (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .dl) .dl (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .dl (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .dl ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `dt`: sentence. -/
 def dt {ctx : Ctx} (children : List (Child (ctx.child .dt)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .dt (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .dt) .dt (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .dt (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .dt ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `dd`: sentence. -/
 def dd {ctx : Ctx} (children : List (Child (ctx.child .dd)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .dd (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .dd) .dd (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .dd (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .dd ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `figure`: authored: flow content with one figcaption first or last: the count and position are not enforced. -/
 def figure {ctx : Ctx} (children : List (Child (ctx.child .figure)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .figure (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .figure) .figure (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .figure (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .figure ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `figcaption`: sentence. -/
 def figcaption {ctx : Ctx} (children : List (Child (ctx.child .figcaption)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .figcaption (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .figcaption) .figcaption (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .figcaption (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .figcaption ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `main`: sentence. -/
 def main {ctx : Ctx} (children : List (Child (ctx.child .main)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .main (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .main) .main (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .main (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .main ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `search`: sentence. -/
 def search {ctx : Ctx} (children : List (Child (ctx.child .search)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .search (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .search) .search (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .search (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .search ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `div`: authored: flow content; the dt/dd case of a div inside dl is not admitted (the stricter side). -/
 def div {ctx : Ctx} (children : List (Child (ctx.child .div)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .div (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .div) .div (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .div (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .div ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `a`: authored: transparent, with no interactive content or a descendants; own set in flow context. -/
 def a {ctx : Ctx} (children : List (Child (ctx.child .a)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .a (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .a) .a (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .a (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .a ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `em`: sentence. -/
 def em {ctx : Ctx} (children : List (Child (ctx.child .em)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .em (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .em) .em (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .em (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .em ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `strong`: sentence. -/
 def strong {ctx : Ctx} (children : List (Child (ctx.child .strong)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .strong (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .strong) .strong (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .strong (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .strong ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `small`: sentence. -/
 def small {ctx : Ctx} (children : List (Child (ctx.child .small)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .small (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .small) .small (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .small (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .small ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `s`: sentence. -/
 def s {ctx : Ctx} (children : List (Child (ctx.child .s)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .s (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .s) .s (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .s (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .s ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `cite`: sentence. -/
 def cite {ctx : Ctx} (children : List (Child (ctx.child .cite)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .cite (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .cite) .cite (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .cite (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .cite ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `q`: sentence. -/
 def q {ctx : Ctx} (children : List (Child (ctx.child .q)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .q (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .q) .q (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .q (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .q ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `dfn`: sentence. -/
 def dfn {ctx : Ctx} (children : List (Child (ctx.child .dfn)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .dfn (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .dfn) .dfn (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .dfn (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .dfn ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `abbr`: sentence. -/
 def abbr {ctx : Ctx} (children : List (Child (ctx.child .abbr)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .abbr (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .abbr) .abbr (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .abbr (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .abbr ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `ruby`: authored: "See prose.": phrasing with rt and rp annotations, order not enforced. -/
 def ruby {ctx : Ctx} (children : List (Child (ctx.child .ruby)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .ruby (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .ruby) .ruby (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .ruby (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .ruby ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `rt`: sentence. -/
 def rt {ctx : Ctx} (children : List (Child (ctx.child .rt)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .rt (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .rt) .rt (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .rt (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .rt ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `rp`: sentence. -/
 def rp {ctx : Ctx} (children : List (Child (ctx.child .rp)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .rp (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .rp) .rp (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .rp (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .rp ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `data`: sentence. -/
 def «data» {ctx : Ctx} (children : List (Child (ctx.child .«data»)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .«data» (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .«data») .«data» (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .«data» (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .«data» ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `time`: authored: phrasing content when datetime is present; the attribute is not seen. -/
 def time {ctx : Ctx} (children : List (Child (ctx.child .time)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .time (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .time) .time (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .time (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .time ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `code`: sentence. -/
 def code {ctx : Ctx} (children : List (Child (ctx.child .code)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .code (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .code) .code (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .code (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .code ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `var`: sentence. -/
 def var {ctx : Ctx} (children : List (Child (ctx.child .var)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .var (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .var) .var (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .var (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .var ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `samp`: sentence. -/
 def samp {ctx : Ctx} (children : List (Child (ctx.child .samp)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .samp (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .samp) .samp (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .samp (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .samp ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `kbd`: sentence. -/
 def kbd {ctx : Ctx} (children : List (Child (ctx.child .kbd)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .kbd (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .kbd) .kbd (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .kbd (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .kbd ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `sub`: sentence. -/
 def sub {ctx : Ctx} (children : List (Child (ctx.child .sub)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .sub (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .sub) .sub (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .sub (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .sub ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `sup`: sentence. -/
 def sup {ctx : Ctx} (children : List (Child (ctx.child .sup)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .sup (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .sup) .sup (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .sup (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .sup ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `i`: sentence. -/
 def i {ctx : Ctx} (children : List (Child (ctx.child .i)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .i (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .i) .i (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .i (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .i ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `b`: sentence. -/
 def b {ctx : Ctx} (children : List (Child (ctx.child .b)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .b (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .b) .b (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .b (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .b ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `u`: sentence. -/
 def u {ctx : Ctx} (children : List (Child (ctx.child .u)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .u (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .u) .u (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .u (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .u ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `mark`: sentence. -/
 def mark {ctx : Ctx} (children : List (Child (ctx.child .mark)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .mark (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .mark) .mark (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .mark (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .mark ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `bdi`: sentence. -/
 def bdi {ctx : Ctx} (children : List (Child (ctx.child .bdi)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .bdi (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .bdi) .bdi (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .bdi (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .bdi ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `bdo`: sentence. -/
 def bdo {ctx : Ctx} (children : List (Child (ctx.child .bdo)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .bdo (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .bdo) .bdo (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .bdo (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .bdo ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `span`: sentence. -/
 def span {ctx : Ctx} (children : List (Child (ctx.child .span)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .span (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .span) .span (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .span (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .span ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `br`: sentence. -/
 def br {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .br (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .br (rawAttrs attrs) [] = true := by admits) :
     Element .br ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `wbr`: sentence. -/
 def wbr {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .wbr (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .wbr (rawAttrs attrs) [] = true := by admits) :
     Element .wbr ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `ins`: authored: transparent; own set in flow context. -/
 def ins {ctx : Ctx} (children : List (Child (ctx.child .ins)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .ins (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .ins) .ins (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .ins (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .ins ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `del`: authored: transparent; own set in flow context. -/
 def del {ctx : Ctx} (children : List (Child (ctx.child .del)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .del (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .del) .del (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .del (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .del ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `picture`: authored: sources then one img: membership, the count and order are not enforced. -/
 def picture {ctx : Ctx} (children : List (Child (ctx.child .picture)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .picture (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .picture) .picture (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .picture (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .picture ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `source`: sentence. -/
 def source {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .source (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .source (rawAttrs attrs) [] = true := by admits) :
     Element .source ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `img`: sentence. -/
 def img {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .img (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .img (rawAttrs attrs) [] = true := by admits) :
     Element .img ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `iframe`: sentence. -/
 def iframe {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .iframe (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .iframe (rawAttrs attrs) [] = true := by admits) :
     Element .iframe ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `embed`: sentence. -/
 def embed {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .embed (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .embed (rawAttrs attrs) [] = true := by admits) :
     Element .embed ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `object`: authored: transparent; own set in flow context. -/
 def object {ctx : Ctx} (children : List (Child (ctx.child .object)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .object (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .object) .object (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .object (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .object ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `video`: authored: transparent with no media element descendants; source and track are labelled direct children; own set in flow context. -/
 def video {ctx : Ctx} (children : List (Child (ctx.child .video)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .video (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .video) .video (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .video (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .video ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `audio`: authored: as video. -/
 def audio {ctx : Ctx} (children : List (Child (ctx.child .audio)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .audio (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .audio) .audio (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .audio (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .audio ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `track`: sentence. -/
 def track {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .track (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .track (rawAttrs attrs) [] = true := by admits) :
     Element .track ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `map`: authored: transparent; area is admitted under a map; own set in flow context. -/
 def map {ctx : Ctx} (children : List (Child (ctx.child .map)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .map (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .map) .map (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .map (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .map ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `area`: sentence. -/
 def area {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .area (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .area (rawAttrs attrs) [] = true := by admits) :
     Element .area ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `table`: authored: "In this order: ...": membership, order and the tbody-or-tr choice not enforced. -/
 def table {ctx : Ctx} (children : List (Child (ctx.child .table)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .table (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .table) .table (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .table (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .table ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `caption`: sentence. -/
 def caption {ctx : Ctx} (children : List (Child (ctx.child .caption)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .caption (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .caption) .caption (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .caption (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .caption ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `colgroup`: authored: col and template when span is absent; the attribute is not seen. -/
 def colgroup {ctx : Ctx} (children : List (Child (ctx.child .colgroup)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .colgroup (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .colgroup) .colgroup (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .colgroup (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .colgroup ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `col`: sentence. -/
 def col {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .col (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .col (rawAttrs attrs) [] = true := by admits) :
     Element .col ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `tbody`: sentence. -/
 def tbody {ctx : Ctx} (children : List (Child (ctx.child .tbody)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .tbody (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .tbody) .tbody (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .tbody (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .tbody ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `thead`: sentence. -/
 def thead {ctx : Ctx} (children : List (Child (ctx.child .thead)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .thead (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .thead) .thead (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .thead (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .thead ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `tfoot`: sentence. -/
 def tfoot {ctx : Ctx} (children : List (Child (ctx.child .tfoot)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .tfoot (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .tfoot) .tfoot (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .tfoot (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .tfoot ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `tr`: sentence. -/
 def tr {ctx : Ctx} (children : List (Child (ctx.child .tr)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .tr (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .tr) .tr (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .tr (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .tr ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `td`: sentence. -/
 def td {ctx : Ctx} (children : List (Child (ctx.child .td)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .td (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .td) .td (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .td (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .td ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `th`: sentence. -/
 def th {ctx : Ctx} (children : List (Child (ctx.child .th)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .th (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .th) .th (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .th (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .th ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `form`: sentence. -/
 def form {ctx : Ctx} (children : List (Child (ctx.child .form)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .form (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .form) .form (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .form (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .form ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `label`: authored: phrasing with no label descendants; the labelable-descendant rule is not seen. -/
 def label {ctx : Ctx} (children : List (Child (ctx.child .label)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .label (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .label) .label (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .label (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .label ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `input`: sentence. -/
 def input {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .input (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .input (rawAttrs attrs) [] = true := by admits) :
     Element .input ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `button`: authored: phrasing with no interactive content descendant; tabindex is not seen. -/
 def button {ctx : Ctx} (children : List (Child (ctx.child .button)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .button (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .button) .button (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .button (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .button ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `select`: authored: the customizable-select model: membership, the one-button bound not enforced. -/
 def select {ctx : Ctx} (children : List (Child (ctx.child .select)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .select (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .select) .select (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .select (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .select ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `datalist`: authored: "Either: phrasing content. Or: Zero or more option and script-supporting elements.": the union. -/
 def datalist {ctx : Ctx} (children : List (Child (ctx.child .datalist)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .datalist (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .datalist) .datalist (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .datalist (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .datalist ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `optgroup`: authored: the customizable-select model: membership. -/
 def optgroup {ctx : Ctx} (children : List (Child (ctx.child .optgroup)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .optgroup (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .optgroup) .optgroup (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .optgroup (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .optgroup ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `option`: authored: text; the label/value cases and the customizable-select div case are not admitted (the stricter side). -/
 def option {ctx : Ctx} (children : List (Child (ctx.child .option)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .option (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .option) .option (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .option (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .option ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `textarea`: sentence. -/
 def textarea {ctx : Ctx} (children : List (Child (ctx.child .textarea)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .textarea (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .textarea) .textarea (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .textarea (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .textarea ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `output`: sentence. -/
 def output {ctx : Ctx} (children : List (Child (ctx.child .output)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .output (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .output) .output (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .output (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .output ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `progress`: sentence. -/
 def progress {ctx : Ctx} (children : List (Child (ctx.child .progress)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .progress (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .progress) .progress (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .progress (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .progress ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `meter`: sentence. -/
 def meter {ctx : Ctx} (children : List (Child (ctx.child .meter)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .meter (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .meter) .meter (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .meter (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .meter ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `fieldset`: authored: "Optionally, a legend element, followed by flow content.": position not enforced. -/
 def fieldset {ctx : Ctx} (children : List (Child (ctx.child .fieldset)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .fieldset (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .fieldset) .fieldset (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .fieldset (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .fieldset ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `legend`: authored: "Phrasing content, optionally intermixed with heading content." outside an optgroup. -/
 def legend {ctx : Ctx} (children : List (Child (ctx.child .legend)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .legend (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .legend) .legend (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .legend (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .legend ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `selectedcontent`: sentence. -/
 def selectedcontent {ctx : Ctx}
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .selectedcontent (rawAttrs attrs) = true := by admits) :
+    (_ho : Content.elementOk ctx .selectedcontent (rawAttrs attrs) [] = true := by admits) :
     Element .selectedcontent ctx :=
-  Element.ofChildren [] attrs _ha rfl
+  Element.ofChildren [] attrs _ho
 
 /-- `details`: authored: "One summary element followed by flow content.": the count and position are not enforced. -/
 def details {ctx : Ctx} (children : List (Child (ctx.child .details)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .details (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .details) .details (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .details (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .details ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `summary`: sentence. -/
 def summary {ctx : Ctx} (children : List (Child (ctx.child .summary)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .summary (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .summary) .summary (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .summary (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .summary ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `dialog`: sentence. -/
 def dialog {ctx : Ctx} (children : List (Child (ctx.child .dialog)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .dialog (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .dialog) .dialog (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .dialog (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .dialog ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `script`: authored: script content restrictions are prose; text. -/
 def script {ctx : Ctx} (children : List (Child (ctx.child .script)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .script (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .script) .script (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .script (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .script ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `noscript`: authored: transparent with no noscript descendants outside head; in head, link, style and meta (a payload override); own set in flow context. -/
 def noscript {ctx : Ctx} (children : List (Child (ctx.child .noscript)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .noscript (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .noscript) .noscript (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .noscript (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .noscript ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `template`: authored: the DOM children are "Nothing" and the template contents are a fragment the HTML syntax writes inside the element; the authoring reading is flow content. -/
 def template {ctx : Ctx} (children : List (Child (ctx.child .template)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .template (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .template) .template (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .template (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .template ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `slot`: authored: transparent; own set in flow context. -/
 def slot {ctx : Ctx} (children : List (Child (ctx.child .slot)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .slot (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .slot) .slot (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .slot (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .slot ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 /-- `canvas`: authored: transparent, with no interactive content descendants; the exceptions for a, img with usemap, button and some inputs are not seen; own set in flow context. -/
 def canvas {ctx : Ctx} (children : List (Child (ctx.child .canvas)) := [])
     (attrs : List AttrVal := [])
-    (_ha : Content.attrsOk .canvas (rawAttrs attrs) = true := by admits)
-    (_hs : Content.seqOk (ctx.child .canvas) .canvas (children.map Child.raw) = true := by admits) :
+    (_ho : Content.elementOk ctx .canvas (rawAttrs attrs) (children.map Child.raw) = true := by admits) :
     Element .canvas ctx :=
-  Element.ofChildren children attrs _ha _hs
+  Element.ofChildren children attrs _ho
 
 end Whatwg.Html.E
 

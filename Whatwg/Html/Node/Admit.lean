@@ -175,6 +175,26 @@ syntax (name := admitsTactic) "admits" : tactic
             goal.assign reflTrue
             replaceMainGoal []
             return
+    if lhs.isAppOfArity ``Whatwg.Html.Content.elementOk 4 then
+      if let some t ← tag? (lhs.getArg! 1) then
+        if let some attrs ← rawAttrs? (lhs.getArg! 2) then
+          for (n, v) in attrs do
+            if let some problem := Whatwg.Html.Content.attrProblem? t n v then throwError problem
+          let names := attrs.map (·.1)
+          if names.eraseDups.length != names.length then
+            throwError ("an attribute is given twice on " ++ describe t)
+          if t.seq?.isNone then
+            goal.assign reflTrue
+            replaceMainGoal []
+            return
+          if let some c ← ctx? 4096 (lhs.getArg! 0) then
+            if let some ts ← childTags? (lhs.getArg! 3) then
+              let raws := ts.map fun tg => if tg == .pcdata then Whatwg.Html.RawNode.text "" else
+                Whatwg.Html.RawNode.element tg.markupText [] []
+              if let some problem := Whatwg.Html.Content.seqProblem? (c.child t) t raws then throwError problem
+              goal.assign reflTrue
+              replaceMainGoal []
+              return
     if lhs.isAppOfArity ``Whatwg.Html.Content.seqOk 3 then
       if let some t ← tag? (lhs.getArg! 1) then
         if t.seq?.isNone then

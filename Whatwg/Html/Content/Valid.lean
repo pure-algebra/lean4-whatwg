@@ -136,6 +136,16 @@ def validAll (ctx : Ctx) : List RawNode → Bool
   | n :: ns => validIn ctx n && validAll ctx ns
 end
 
+/-- The two obligations of an element at once: its attributes and its ordered
+model. One auto-parameter per combinator instead of two (performance review
+§6). -/
+def elementOk (c : Ctx) (t : Tag) (attrs : List (String × String)) (children : List RawNode) : Bool :=
+  attrsOk t attrs && seqOk (c.child t) t children
+
+theorem elementOk_iff (c : Ctx) (t : Tag) (attrs : List (String × String)) (children : List RawNode) :
+    elementOk c t attrs children = true ↔ attrsOk t attrs = true ∧ seqOk (c.child t) t children = true := by
+  simp [elementOk]
+
 /-- The raw trees valid at a position. -/
 def Doc (ctx : Ctx) : Type := { n : RawNode // validIn ctx n = true }
 

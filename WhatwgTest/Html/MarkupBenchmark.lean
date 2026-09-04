@@ -10,11 +10,11 @@ of a thousand heartbeats:
 
 | Route | Fails at | Passes at | Bound set here |
 | --- | --- | --- | --- |
-| noncomputable, memoized (one lemma per distinct obligation) | 131 | 136 | 200 (the default) |
-| noncomputable, unmemoized (a fresh `Eq.refl true` per node) | 131 | 136 | 200 (the default) |
-| computable, memoized | 672 | 675 | 1000 |
-| computable, unmemoized | 672 | 675 | 1000 |
-| noncomputable, every `li` with two attributes (500 attribute obligations) | 229 | 234 | not pinned |
+| noncomputable, unmemoized (the default: a fresh `Eq.refl true` per node) | 117 | 120 | 200 (the default) |
+| noncomputable, memoized (one lemma per distinct obligation) | 142 | 147 | 200 (the default) |
+| computable, unmemoized | not re-measured | | 1000 |
+| computable, memoized | not re-measured | | 1000 |
+| noncomputable, every `li` with two attributes (500 attribute obligations) | 212 | 215 | not pinned |
 
 Reading (figures after the context-indexed core of H7 and its sequence
 obligations; before them 114 and 642). Elaboration and kernel checking
