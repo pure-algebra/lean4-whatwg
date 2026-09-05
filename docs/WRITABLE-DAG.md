@@ -418,3 +418,32 @@ The two requested composed lifecycle regressions will land as a separately
 reviewed theorem-only addendum before those production theorems are built.
 They remain obligations of this same graph. No whole-P5 or coverage claim is
 made by freezing or implementing only the base packet.
+
+## Composed addendum freeze ledger
+
+The separate theorem-only addendum is described in the contract's composed
+lifecycle section. Base commit `68fc922e4efde615fc9aecb2f3433afa99514a02`
+and its 162/108 frozen files are unchanged.
+Stable names in the following addendum table are relative to `Whatwg.Streams`.
+
+| Stable name | Intended module | Role, ownership and source anchors | Assurance |
+| --- | --- | --- | --- |
+| `Writable.lifecycle_write_close` | `Writable/Step.lean` | quantified fixed-initial two-part Reaches derivation under the exact local ordered view; WRITE, BACKPRESSURE, CLOSE, PROCESSWRITE, PROCESSCLOSE, CLOSEOK | this graph's construction, semantics and laws edges |
+| `Writable.lifecycle_abort_rejection` | `Writable/Step.lean` | quantified fixed-initial in-flight/queued/abort/rejection derivation with distinct reasons; WRITE, ABORT, STARTERROR, WRITEFAIL, FINISHERROR, ABORTSTEPS, REJECTCLOSED | this graph's construction, semantics and laws edges |
+
+These are derived laws of the existing writable calculus, disposition
+`owned`. They introduce no carrier, program interpreter or host runtime,
+and no new specification pin. The existing 35-anchor map remains their
+authority. Independent review checked the explicit operational sequences
+and exact observations; the contract records the two intended-red commands.
+The coordinator owns their two known-red declarations and integration.
+
+| Artifact | SHA-256 at addendum freeze |
+| --- | --- |
+| `WhatwgTest/Streams/Writable/LifecycleContract.lean` | `8ad3e4ffe65ad20bc3a57d5224d75c1f0067f78e1c1a6b741f77515dda6f2e54` |
+| `WhatwgTest/Streams/Writable/LifecycleAxiomReport.lean` | `a19447a2677a6d5eff873c6049b3f6c1e9004b04ac8915f08348bed88f220f8b` |
+
+The addendum commit is the immutable identity of these two statements.
+No required-open graph edge is closed merely by their freeze. Full initial
+projection, reachable assertions, global promise/supply/scheduler embeddings
+and the DB-04 mask mappings remain open even once the two proofs are built.

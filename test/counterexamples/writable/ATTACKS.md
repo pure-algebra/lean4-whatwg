@@ -70,3 +70,13 @@ The initial witness attempt exposed alias-qualified constructors and an
 unavailable decidable equality on a test result; the draft was repaired and
 the command above rerun successfully. The final sentinel witness compares
 the returned total-size projection. No failed elaboration is proof evidence.
+
+The separate `LifecycleContract.lean` addendum supplements the snapshot
+fixtures with two quantified fixed-trace obligations. `lifecycle_write_close`
+connects retained ready identities, pending backpressure and final close
+ordering. `lifecycle_abort_rejection` connects in-flight write rejection,
+queued-write failure, abort completion and the earlier stored error. These
+are production theorem obligations with explicit Reaches sequences; their
+own intended-red commands and scope are in the contract addendum. They do
+not turn the 16 finite fixtures into whole-program executions or remove any
+stage law, counterexample row, or remaining global embedding obligation.

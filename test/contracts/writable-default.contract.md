@@ -259,3 +259,62 @@ The builder may begin only after the reviewed packet is committed and those
 red entries are declared. They are removed when the implemented battery is
 green. Full build, exhaustive axiom gate and repository gates are later
 integration receipts; no open graph edge is closed by this packet's freeze.
+
+## Composed lifecycle addendum (frozen separately)
+
+Base packet: `68fc922e4efde615fc9aecb2f3433afa99514a02`. This addendum
+adds only `Writable.lifecycle_write_close` and
+`Writable.lifecycle_abort_rejection` theorem obligations. It changes none
+of the 162 interface signatures or 108 stage/view laws in that base.
+
+`WhatwgTest/Streams/Writable/LifecycleContract.lean` freezes two explicit
+`Reaches` derivations, with `none` labels for deterministic administrative
+ticks and typed consumer/foreign decisions at their allowed frontiers.
+Both start from the same fixed post-start attached-writer snapshot: HWM one,
+P3 size algorithm `.one`, named foreign write/close/abort algorithms
+0/1/2, and initial promise/error cursors zero.
+
+* `lifecycle_write_close` quantifies the chunk and both data/reason types.
+  It reaches a pending-write state with backpressure, retains fulfilled old
+  ready ID 0 and pending current ready ID 3, then admits close, fulfills the
+  write and sink close, and asserts the exact local ordered view. Close
+  fulfills ready before the write answer; final close/closed settlements
+  follow the write, and old/current ready identities remain accessible.
+* `lifecycle_abort_rejection` quantifies both chunks and two distinct shared
+  exception reasons. It reaches an in-flight first write, queued second
+  write and pending abort, then accepts the first write's rejection and
+  a fulfilled sink-abort return. The current write retains its incoming
+  rejection reason, while ready, queued write and closed use the earlier
+  abort reason; the abort promise fulfills between queued-write and closed
+  rejection in the exact ordered view.
+
+These are quantified facts about two fixed trace shapes under named local
+sink-input/ordered views. They do not range over arbitrary programs or prove
+the still-open DB-04 mask/global scheduler/shared supply embeddings. The
+independent reviewer manually checked every tick/frontier, promise ID and
+ordered event against the frozen 108 stage equations and found no correction.
+
+The exclusive narrow command window used the same pinned toolchain and main
+artifact basis `5121268d3c148678bfbe501b245881631524f2e5`:
+`leanprover/lean4:v4.33.1` from the unchanged `lean-toolchain`.
+
+```powershell
+$env:LEAN_NUM_THREADS='1'
+$env:LEAN_PATH='C:\Users\kokok\Dev\lean4-WHATWG-streams\.lake\build\lib\lean'
+lean -M2048 -DmaxErrors=10000 WhatwgTest/Streams/Writable/LifecycleContract.lean
+lean -M2048 -DmaxErrors=10000 WhatwgTest/Streams/Writable/LifecycleAxiomReport.lean
+```
+
+Both exited 1 as intended red. Contract: 50 diagnostics, with 30 missing
+production names and 20 unknown-type consequences (18 constructor and two
+tuple notations). Report: two missing production theorem names. No parser,
+import, type-mismatch or instance-synthesis diagnostic appeared. Logs were
+`$env:TEMP/whatwg-p5a-LifecycleContract.log` and
+`$env:TEMP/whatwg-p5a-LifecycleAxiomReport.log`.
+Only documentation comments changed after that check.
+
+The coordinator declares
+`WhatwgTest.Streams.Writable.LifecycleContract` and
+`WhatwgTest.Streams.Writable.LifecycleAxiomReport` as known red before
+building these production theorems. Their proof receipts, full build and
+gates are implementation work; this breaker has not changed production.
