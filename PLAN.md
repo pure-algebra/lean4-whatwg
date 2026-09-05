@@ -95,16 +95,34 @@ when their implementation is not imported.
 
 ## Current phase
 
-**Current integration work, 2026-09-05 (base `c1c7caa`):** P3 remains the
-last landed Streams semantic packet; P4 default-readable is in independent
-breaker preparation. The package now also contains HTML H1–H4 and the Infra
-text implementations introduced by `c610a5e`. Their former empty/uncommitted
-descriptions below are historical, not the current checkout state.
+**Current phase, 2026-09-05:** P3 is landed. P4a's default-readable
+representative is implemented against the independently frozen packet
+`f4394d81d59739dd1410c6cc16df17ee147d6e1f`: 204 exact ascriptions, 94 theorem
+obligations, and 17 retained finite witnesses pass. `docs/READABLE-DAG.md`
+owns its landing receipt and remaining assurance edges. This is one attached
+default reader after successful start, with staged size and pull callbacks,
+local M1/M2 observations, and finite external-step composition. Full P4 is
+still open: lifecycle, cancellation, global scheduling, reachable-state and
+freshness invariants, full-state/host embeddings, and the clause-level
+coverage join remain required work.
+
+The next breadth packet is P5a: one fixed attached writer's write, close,
+backpressure, and intervening erroring/abort behavior, including synchronous
+size/sink/signal reentrancy. Its breaker is drafting exact signatures and
+adversarial equations in the separate `codex/writable-breaker` worktree.
+It is not frozen and no writable implementation is admitted yet. Complete
+its independent red battery and review before implementing it. Freeze the
+other breadth representatives before deepening readable or writable beyond
+their representative scope; P6–P12 remain open.
+
+The package also contains HTML H1–H4 and the Infra text implementations
+introduced by `c610a5e`. Earlier empty/uncommitted descriptions below are
+historical. The following integration receipt landed at `319e744`.
 
 The Infra merge broke the existing Streams coverage caller and introduced
-unelaborated codec and ordering definitions. The integration slice repairs
-those failures without widening their public signatures, imports the Infra
-modules into the audited root, and connects the definition census to CI.
+unelaborated codec and ordering definitions. The integration slice repaired
+those failures without widening their public signatures, imported the Infra
+modules into the audited root, and connected the definition census to CI.
 Infra's generated row list has no claimed theorem witnesses; its semantic
 proof packets and assurance records remain open. The hash configuration is
 restored to the exact `0168306` pin already carried by the manifest and

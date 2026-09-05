@@ -25,5 +25,4 @@
 # P4a default-readable representative, frozen 2026-09-05.
 # Packet: test/contracts/readable-default.contract.md.
 # Root/audit integration is the coordinator's separate landing change.
-WhatwgTest.Streams.Readable.DefaultContract
-WhatwgTest.Streams.Readable.DefaultAxiomReport
+# Both modules became green with the P4a implementation; no entries remain.

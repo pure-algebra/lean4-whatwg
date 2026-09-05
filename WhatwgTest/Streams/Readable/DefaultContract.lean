@@ -308,7 +308,7 @@ set_option autoImplicit false
     Whatwg.Streams.Readable.Size),
     Whatwg.Streams.Readable.initial (α := α) (ε := ε) algorithms hwm =
       { status := .readable, queue := Whatwg.Streams.Data.Queue.empty
-        Whatwg.Streams.Readable.sizes, highWaterMark := hwm,
+          Whatwg.Streams.Readable.sizes, highWaterMark := hwm,
         started := true, closeRequested := false, pulling := false, pullAgain := false,
         algorithms := some algorithms, readRequests := [], nextRead := 0, nextEnqueue := 0,
           nextError := 0,

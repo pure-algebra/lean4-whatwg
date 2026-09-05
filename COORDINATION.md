@@ -4,16 +4,18 @@ Agents editing this worktree at the same time cannot message each other.
 This file is the channel. Read it before you write, and update your claims
 when you take or release a file.
 
-Last updated: 2026-09-05. W0–W5 and HTML H0–H4 are committed. Codex holds
-the integration build in this checkout; the readable breaker uses its own
-worktree and coordinates narrow verification to avoid memory contention.
+Last updated: 2026-09-05. W0–W5, HTML H0–H4, and the Infra integration repair
+at `319e744` are committed. The P4a breaker is frozen at `f4394d8`; its
+implementation and verified receipt accompany this update. The writable
+breaker uses a separate worktree and coordinates narrow verification windows.
 
 ## Who is active
 
 | Agent | Working on |
 | --- | --- |
-| Codex integration builder | repairs, gates, and landing evidence on `codex/streams-reification` |
-| Codex readable breaker | first P4 packet in the separate `codex/readable-breaker` worktree |
+| Codex integration coordinator | P4a landing verified; coordinating the next breadth packet on `codex/streams-reification` |
+| Codex writable breaker | first P5 packet in the separate `codex/writable-breaker` worktree |
+| Codex independent reviewer | P4a implementation and records accepted; reviewing P5a staged equations |
 
 ## Current claims
 
@@ -22,10 +24,8 @@ row is unclaimed.
 
 | File or tree | Claimed by | State |
 | --- | --- | --- |
-| `Whatwg/Infra/**`, `Whatwg/Infra.lean`, `Gates/Census.lean`, `WhatwgTest/Audit/SpecCoverage.lean`, `WhatwgTest/Audit/Infra/**`, `WhatwgTest/Infra/**`, `WhatwgTest.lean`, `census/infra/**`, the Infra census projections, `lake-manifest.json`, `.github/workflows/ci.yml`, `docs/INFRA-PROOF-PLAN.md`, `docs/SPEC-COVERAGE.md`, `PLAN.md` | Codex integration builder, 2026-09-05 | Reproduce and repair the c1c7caa integration failures on `codex/streams-reification`; owns Lake builds in this checkout. Existing frozen Streams statements remain unchanged. |
-| `lakefile.toml` | Codex integration builder, 2026-09-05 | Align the unavailable hash revision with the verified pin already used by the lockfile and provenance. |
-| `WhatwgTest/Streams/Counterexamples/Infra/Split.lean`, `test/counterexamples/infra/ATTACKS.md`, the `WS-INFRA-CE-001` register row | Codex integration builder, 2026-09-05 | Retain the independently reviewed refutation of the pre-existing trailing-comma example; the algorithm is unchanged. |
-| `test/contracts/readable-default.contract.md`, `WhatwgTest/Streams/Readable/**`, `docs/READABLE-DAG.md`, new `WS-READ-CE-*` counterexample rows, `WhatwgTest/Streams/Counterexamples/Readable/**`, `test/counterexamples/readable/ATTACKS.md` | Codex P4 breaker, 2026-09-05 | Separate worktree; freeze the first default-readable lifecycle packet and red battery before any implementation. |
+| future `test/contracts/writable-default.contract.md`, `docs/WRITABLE-DAG.md`, `WhatwgTest/Streams/Writable/**`, `WhatwgTest/Streams/Counterexamples/Writable/**`, writable attack and `WS-WRITE-CE-*` rows | Codex writable breaker, 2026-09-05 | Drafts the P5 breadth representative in its own worktree while main implements the frozen P4a packet. No production writes or concurrent Lake builds. |
+| `test/contracts/readable-default.contract.md`, `WhatwgTest/Streams/Readable/**`, declaration/statement rows in `docs/READABLE-DAG.md`, `WhatwgTest/Streams/Counterexamples/Readable/**`, `test/counterexamples/readable/ATTACKS.md` | Codex P4 breaker (landed) | Frozen at `f4394d8`; retained ownership of statements and witnesses. Both batteries are green. Coordinator landing receipts and attack statuses are recorded separately. |
 | `test/contracts/queue-with-sizes.contract.md` | P3 breaker (landed) | frozen 2026-09-02; the builder may not edit it |
 | `WhatwgTest/Streams/Data/QueueContract.lean`, `WhatwgTest/Streams/Data/QueueAxiomReport.lean` | P3 breaker (landed) | frozen and RED; declared in `test/fixtures/trust-gate/known-red.txt`; the builder may repair elaboration only, never a statement |
 | `WhatwgTest/Streams/Counterexamples/Data/Queue.lean`, `test/counterexamples/data/ATTACKS.md`, the `WS-DATA-*` rows of `test/counterexamples/REGISTER.md` | P3 breaker (landed) | green; breaker-owned, retained after the repair |
@@ -42,6 +42,16 @@ The former HTML claim released at its committed landings `b163f53`,
 plan's executed ledger. The P3 breaker rows above remain frozen ownership
 records; their old RED label is superseded by `docs/DATA-DAG.md`'s Landing
 receipt and the empty `known-red.txt` set.
+
+The Infra integration, hash-pin repair, and `WS-INFRA-CE-001` claims released
+at `319e744`, after the narrow proofs, full build, axiom receipt, executable
+gates, and independent review passed.
+
+The P4a implementation, host fixture, and coordinator receipt claims release
+with the accompanying implementation commit. The narrow 63-job and full
+260-job builds, R-11 audit, executable gates, and independent source/record
+reviews passed. `docs/READABLE-DAG.md` owns the exact commands and the open
+global/reachability/coverage obligations; full P4 remains open.
 
 ## Collision record
 

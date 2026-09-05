@@ -3,6 +3,9 @@ import WhatwgTest.Streams.Counterexamples.Data.Queue
 import WhatwgTest.Streams.Counterexamples.Infra.Split
 import WhatwgTest.Streams.Data.QueueContract
 import WhatwgTest.Streams.Data.QueueAxiomReport
+import WhatwgTest.Streams.Counterexamples.Readable.Default
+import WhatwgTest.Streams.Readable.DefaultContract
+import WhatwgTest.Streams.Readable.DefaultAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders
