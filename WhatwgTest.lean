@@ -6,6 +6,15 @@ import WhatwgTest.Streams.Data.QueueAxiomReport
 import WhatwgTest.Streams.Counterexamples.Readable.Default
 import WhatwgTest.Streams.Readable.DefaultContract
 import WhatwgTest.Streams.Readable.DefaultAxiomReport
+import WhatwgTest.Streams.Counterexamples.Writable.Default
+import WhatwgTest.Streams.Writable.DefaultContract
+import WhatwgTest.Streams.Writable.DefaultLaws
+import WhatwgTest.Streams.Writable.DefaultAxiomReport
+import WhatwgTest.Streams.Writable.LifecycleContract
+import WhatwgTest.Streams.Writable.LifecycleAxiomReport
+import WhatwgTest.Streams.Writable.InFlightExactContract
+import WhatwgTest.Streams.Writable.InFlightExactAxiomReport
+import WhatwgTest.Streams.Counterexamples.Writable.InFlightPrecedence
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

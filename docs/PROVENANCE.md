@@ -4,14 +4,15 @@ Every pin this repository relies on, with its digest, how it was fetched, the
 cross-check performed, and its license. `SPEC-MANIFEST.md` owns what each pin
 is for; this file owns that the bytes are what they are claimed to be.
 
-Digest cross-check protocol: every digest is computed by `lake exe vendorseal`
+Sealed-source digest cross-check protocol: each sealed-file digest is computed by `lake exe vendorseal`
 through the required `hash` package (`Hash.Sha256.sha256`, proved against
 FIPS 180-4 in lean4-hash) and independently by PowerShell `Get-FileHash
 -Algorithm SHA256`; both spellings must agree. At P0 the first computation was
 the in-tree `lake exe sha256`, executable evidence until the lane's proof
 graph closed; at the swap to the package (step 6 of
 `docs/HASH-PACKAGE-PLAN.md`) `generated/vendor-manifest.tsv` regenerated
-byte-identically, so every digest below is unchanged.
+byte-identically, so the sealed-source digests below are unchanged. The separate
+Lake dependency section states its local object-check protocol explicitly.
 
 ## Vendored, sealed
 
@@ -83,6 +84,39 @@ pinned npm dependencies outside `vendor/` (P8).
 
 FIPS 180-4 was a digest-only row until S1.0. Ruling R-8 vendored it; it is now
 sealed, and its row is in "Vendored, sealed" above with the same digest.
+
+## Lake dependency objects (cross-checked 2026-09-05)
+
+These are Lake-managed Git dependencies, outside the `vendor/` seal.
+`SPEC-MANIFEST.md` owns their current roles and pins. The configured URLs are
+`https://github.com/pure-algebra/lean4-hash`, `lean4-effects`, and
+`lean4-typescript` under the same owner. Local clones use matching SSH remotes.
+The original fetch dates were not recorded. The reproducible fetch route is
+`lake update` with the exact `[[require]]` revisions in `lakefile.toml`; this
+audit did not refetch or change them.
+
+| Package | Commit / locally verified tag | Committed tree | License at this commit |
+| --- | --- | --- | --- |
+| `hash` | `0168306b7068b97758e3f2d4307eeb97aa31a104`; no local tag | `9613a78e01ec449bd2977c492a55efcfdf0e24cd` | Apache-2.0; `LICENSE` blob `d645695673349e3947e8e5ae42332d0ac3164cd7`, 11358 bytes, SHA-256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30` |
+| `effects` | `c28833b3c14431ba2886a0fb66bcc688c86c2589`; `v0.5.0` | `4725df0d6563e8a8b74137d23c2711be8608a5bb` | MIT; `LICENSE` blob `1e7fe3f72d2c0baf370f7375bca9802594a9a6ef`, 1069 bytes, SHA-256 `c51d370d20b9c1b2906d5583a1e9c519eaaf5d2033010eecfc7788e399d8eecf` |
+| `typescript` | `fcbc05a40e52f9bbe8a8e3ee0f4a746ebd4e9554`; `v0.2.0` | `0be6d0a2b2a5f5ba50932140ecb745a533d95e4a` | MIT; same committed `LICENSE` blob and digest as the effects row |
+
+For each `.lake/packages/<name>`, `git rev-parse HEAD` and
+`git rev-parse HEAD^{tree}` match these rows; `HEAD` agrees with both
+`lakefile.toml` and `lake-manifest.json`. `git rev-parse <tag>^{commit}` checks
+the two tags. `git ls-tree HEAD LICENSE lean-toolchain lake-manifest.json`
+and `git cat-file blob HEAD:LICENSE` identify the committed bytes; the
+license SHA-256 values above were computed over those raw object bytes with
+the system implementation. All three committed toolchain blobs are
+`a8afa7d1b02d96f0671eba854a8dc4b416beb473`, 25 bytes, naming Lean 4.33.1 and
+matching this repository's toolchain SHA-256. All three Git statuses are
+clean and their package manifests list no transitive packages.
+
+This is a local object/lockfile cross-check, with no network revalidation or
+second SHA-256 implementation claimed. Package checkout attributes can
+convert text to CRLF even with a clean Git status; therefore these rows
+identify committed Git objects and do not claim that package working files
+are sealed or byte-identical to those objects.
 
 ## Toolchain and hosts
 

@@ -106,14 +106,26 @@ still open: lifecycle, cancellation, global scheduling, reachable-state and
 freshness invariants, full-state/host embeddings, and the clause-level
 coverage join remain required work.
 
-The next breadth packet is P5a: one fixed attached writer's write, close,
-backpressure, and intervening erroring/abort behavior, including synchronous
-size/sink/signal reentrancy. Its breaker is drafting exact signatures and
-adversarial equations in the separate `codex/writable-breaker` worktree.
-It is not frozen and no writable implementation is admitted yet. Complete
-its independent red battery and review before implementing it. Freeze the
-other breadth representatives before deepening readable or writable beyond
-their representative scope; P6–P12 remain open.
+P5a's fixed attached writer representative is implemented against base
+`68fc922` (integrated as `5669062`), lifecycle addendum `b4f8642` (`47a86da`),
+and exact in-flight addendum `15d198c` (`5f7cebe`). Its 162 interface entries,
+109 local laws, two composed lifecycle proofs, and retained finite witnesses
+pass the 72-job narrow build; the default build passes 275 jobs. All 111
+named theorem receipts and the exhaustive root audit pass under R-11.
+`docs/WRITABLE-DAG.md` owns the exact landing commands and scope. Full P5
+remains open for setup/start, writer acquisition/release, reachable-state and
+freshness invariants, global scheduling and promise embeddings, DB-04 mask
+relations, and the clause-level coverage join.
+
+The next implementation slice is P6a transform/backpressure coupling. Its
+independently reviewed breaker packet is frozen in the separate
+`codex/transform-breaker` worktree at `03547f1feb938d65898c47b4061faeb3f4bd9edf`:
+112 interface entries, 118 theorem/receipt obligations, fourteen finite
+witnesses, and three composed runs through the actual P4/P5 states. It is
+ready for integration after the accompanying P5a implementation lands;
+production transform modules remain stubs. Freeze the other breadth
+representatives before deepening readable or writable beyond their
+representative scope; P6–P12 remain open.
 
 The package also contains HTML H1–H4 and the Infra text implementations
 introduced by `c610a5e`. Earlier empty/uncommitted descriptions below are

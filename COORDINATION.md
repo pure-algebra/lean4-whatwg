@@ -5,17 +5,17 @@ This file is the channel. Read it before you write, and update your claims
 when you take or release a file.
 
 Last updated: 2026-09-05. W0–W5, HTML H0–H4, and the Infra integration repair
-at `319e744` are committed. The P4a breaker is frozen at `f4394d8`; its
-implementation and verified receipt accompany this update. The writable
-breaker uses a separate worktree and coordinates narrow verification windows.
+at `319e744` are committed. P4a landed at `5121268`; the P5a implementation
+and verified receipt accompany this update. The P6a breaker is independently
+frozen at `03547f1` in its separate worktree, ready for coordinator integration.
 
 ## Who is active
 
 | Agent | Working on |
 | --- | --- |
-| Codex integration coordinator | P4a landing verified; coordinating the next breadth packet on `codex/streams-reification` |
-| Codex writable breaker | first P5 packet in the separate `codex/writable-breaker` worktree |
-| Codex independent reviewer | P4a implementation and records accepted; reviewing P5a staged equations |
+| Codex integration coordinator | P5a landing verified; preparing P6a integration on `codex/streams-reification` |
+| Codex transform breaker | P6a packet frozen at `03547f1` in `codex/transform-breaker`; verification window released |
+| Codex independent reviewer | P5a source and landing records accepted; P6a breaker review accepted |
 
 ## Current claims
 
@@ -24,7 +24,8 @@ row is unclaimed.
 
 | File or tree | Claimed by | State |
 | --- | --- | --- |
-| future `test/contracts/writable-default.contract.md`, `docs/WRITABLE-DAG.md`, `WhatwgTest/Streams/Writable/**`, `WhatwgTest/Streams/Counterexamples/Writable/**`, writable attack and `WS-WRITE-CE-*` rows | Codex writable breaker, 2026-09-05 | Drafts the P5 breadth representative in its own worktree while main implements the frozen P4a packet. No production writes or concurrent Lake builds. |
+| `test/contracts/transform-backpressure.contract.md`, `docs/TRANSFORM-DAG.md`, `WhatwgTest/Streams/Transform/**`, `WhatwgTest/Streams/Counterexamples/Transform/**`, transform attack and `WS-TRANS-CE-*` rows | Codex transform breaker (frozen) | P6a packet at `03547f1`, based on `5121268`; statements and witnesses remain breaker-owned. No production edits; final direct checks are terminal. |
+| `test/contracts/writable-default.contract.md`, declaration/statement rows in `docs/WRITABLE-DAG.md`, `WhatwgTest/Streams/Writable/**`, `WhatwgTest/Streams/Counterexamples/Writable/**`, `test/counterexamples/writable/ATTACKS.md` | Codex writable breaker (landed) | Frozen base/lifecycle/exact packets integrated as `5669062`, `47a86da`, `5f7cebe`; statements and witnesses remain breaker-owned. All seven batteries and both witness modules are green. |
 | `test/contracts/readable-default.contract.md`, `WhatwgTest/Streams/Readable/**`, declaration/statement rows in `docs/READABLE-DAG.md`, `WhatwgTest/Streams/Counterexamples/Readable/**`, `test/counterexamples/readable/ATTACKS.md` | Codex P4 breaker (landed) | Frozen at `f4394d8`; retained ownership of statements and witnesses. Both batteries are green. Coordinator landing receipts and attack statuses are recorded separately. |
 | `test/contracts/queue-with-sizes.contract.md` | P3 breaker (landed) | frozen 2026-09-02; the builder may not edit it |
 | `WhatwgTest/Streams/Data/QueueContract.lean`, `WhatwgTest/Streams/Data/QueueAxiomReport.lean` | P3 breaker (landed) | frozen and RED; declared in `test/fixtures/trust-gate/known-red.txt`; the builder may repair elaboration only, never a statement |
@@ -52,6 +53,13 @@ with the accompanying implementation commit. The narrow 63-job and full
 260-job builds, R-11 audit, executable gates, and independent source/record
 reviews passed. `docs/READABLE-DAG.md` owns the exact commands and the open
 global/reachability/coverage obligations; full P4 remains open.
+
+The P5a implementation, host fixture, dependency-record cleanup, and coordinator
+receipt claims release with the accompanying implementation commit. All nine
+narrow modules (72 jobs), the full 275-job build, 111 theorem receipts, root
+audit, executable gates, and independent source/record reviews pass.
+`docs/WRITABLE-DAG.md` owns exact scope and commands. Full P5 remains open;
+the P6a packet is ready for the next builder claim.
 
 ## Collision record
 

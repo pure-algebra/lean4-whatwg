@@ -26,3 +26,7 @@
 # Packet: test/contracts/readable-default.contract.md.
 # Root/audit integration is the coordinator's separate landing change.
 # Both modules became green with the P4a implementation; no entries remain.
+
+# P5a base packet: 68fc922, integrated as 5669062 on 2026-09-05.
+# Lifecycle and exact in-flight addenda integrated as 47a86da and 5f7cebe.
+# All seven interface/law/receipt modules are green; no entries remain.

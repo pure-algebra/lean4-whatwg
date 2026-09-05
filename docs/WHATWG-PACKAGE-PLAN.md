@@ -71,3 +71,19 @@ regenerations are the proof.
 | W3b | this commit | `vendor/nist-fips-180-4`, `vendor/nist-cavp-sha256`, `vendor/nist-cavp-sha224` removed; `generated/vendor-manifest.tsv` regenerated with only their rows gone; `lake exe vendorseal` and `lake exe census` PASS; PROVENANCE and SPEC-MANIFEST rows point to lean4-hash |
 | W4 | this commit | `[[require]] effects` at `5611c3a` (tag `v0.1.0`); manifest has exactly two packages; probe recorded in `PLAN.md` (exact pin, Apache-2.0 at the tag, zero transitive packages, same toolchain, `lake build effects/Effects` green); own build, trust self-test, vendor seal green |
 | W5 | this commit | `vendor/whatwg-infra-3f984adc/{infra.bs,LICENSE}` at `whatwg/infra` `3f984adc` sealed; `vendorseal` digests equal an independent `shasum -a 256`; `Whatwg/Infra.lean` declaration-free and reached from `Whatwg.lean`; SPEC-MANIFEST, PROVENANCE, ARCHITECTURE, SPEC-COVERAGE scope notes; build, gates, and the parity receipt unchanged (no declarations added) |
+
+## 5. Dependency changes after W5
+
+The W3/W4 package counts and effects `v0.1.0` receipt above describe those
+historical landings. Commit `e16c61319464506aaca1aa926e2514c26d99323f` selected
+the current TypeScript target revision; `ab0733520b32a36bf4a98ffdb142a90aeef9953d`
+selected the current effects revision. The current pins and their roles
+are owned by `SPEC-MANIFEST.md`, with object and license evidence in
+`docs/PROVENANCE.md`'s Lake dependency section.
+
+Commit `d3666e9e598030ec8ee860826ca904a04dafa902` changed the effects version
+comment to `v0.6.0` while writing that tag's commit into the hash revision.
+Commit `319e744` restored the hash pin. The 2026-09-05 local object audit
+confirmed that the actual effects revision still names `v0.5.0`; the
+coordinator corrected the comment and current records without upgrading a
+dependency or changing `lake-manifest.json`.

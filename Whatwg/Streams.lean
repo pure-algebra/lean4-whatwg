@@ -22,6 +22,9 @@ import Whatwg.Streams.Readable.Byte.PullInto
 import Whatwg.Streams.Writable.Stream
 import Whatwg.Streams.Writable.DefaultController
 import Whatwg.Streams.Writable.DefaultWriter
+import Whatwg.Streams.Writable.Step
+import Whatwg.Streams.Writable.Laws
+import Whatwg.Streams.Writable.Lifecycle
 import Whatwg.Streams.Writable.Backpressure
 import Whatwg.Streams.Transform.Stream
 import Whatwg.Streams.Transform.DefaultController
@@ -63,9 +66,9 @@ Production root of the WHATWG Streams reification library. Every library
 module is imported from here; a module not reachable from this root is not
 part of the production build and is rejected by the module-closure gate.
 
-The imports above are the P2 breadth scaffold: one module per area and named
-sub-area of the planned source tree in `docs/ARCHITECTURE.md`, in that
-table's order. Every one of them is a module docstring and nothing else.
-P2 declares no semantic object anywhere in this tree; a declaration arrives
-only behind a frozen contract packet and its counterexample register.
+The imports retain the P2 breadth scaffold, with implemented modules added
+behind their frozen contracts and counterexample packets. P3, P4a, and P5a
+now contain declarations; later categories remain declaration-free stubs
+until their own packets admit implementation. `PLAN.md` owns phase status
+and the category proof graphs own the remaining assurance obligations.
 -/
