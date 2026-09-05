@@ -344,3 +344,57 @@ queued readable output remains available for later delivery. The immutable
 packet head is supplied in the freeze handoff. All required graph edges
 and every production counterexample repair
 remain open; this is a breaker packet, not a P6 implementation receipt.
+
+## Additive elaboration repair, 2026-09-05
+
+After the production types became available, two expressions in the frozen
+law battery needed explicit type arguments. `WhatwgTest/AGENTS.md` permits
+elaboration repairs without changing the attacked statement, witness, or
+acceptance condition. The coordinator requested these two disambiguations:
+
+- `returnTransform_frame`: annotate the existing match result with
+  `let u : Transform.State α β ε :=`, fixing the expected type of the existing
+  `.reaction` and `.transformReturned` constructors.
+- `visible_readable_query`: give `Transform.Event.readable` the existing
+  quantified `(β := β)` argument, fixing its otherwise unconstrained output
+  parameter. The original proposition-only check warned that `β` was unused.
+
+The file `WhatwgTest/Streams/Transform/BackpressureLaws.lean` has SHA-256:
+
+```text
+before 463B4B843F0E859098CCE28F63EF805EFE3FC8FC3519F835FDB0D5F9159F690F
+after  D939DE85318FC675E3685708DC5061FDC2E437C34DE01272D3D0FEBFC4E3BF4C
+```
+
+The preimage is the battery at frozen breaker commit
+`03547f1feb938d65898c47b4061faeb3f4bd9edf`. Apart from the line wrap needed for
+the second annotation, these are the only battery edits. No proposition
+branch, premise, conclusion, theorem name, witness, or proof body changed.
+
+The two proposition bodies were extracted verbatim into each local scratch
+file, replacing only `#check (@Transform.<name> :` with `#check (`. Both
+scratch files import `Whatwg.Streams`, disable automatic implicit parameters,
+and open `Whatwg.Streams`. Thus a missing theorem name cannot hide expression
+elaboration errors. The checks used main's last successfully compiled
+production artifacts while main was at `5d95212e5b3953ec58616b7a0c7493627fa7fcfe`
+with P6 implementation work uncommitted:
+
+```powershell
+$env:LEAN_NUM_THREADS = '1'
+$env:LEAN_PATH = 'C:/Users/kokok/Dev/lean4-WHATWG-streams/.lake/build/lib/lean'
+lean -M2048 -DmaxErrors=10000 .lake/transform-elaboration-original.lean
+lean -M2048 -DmaxErrors=10000 .lake/transform-elaboration-annotated.lean
+```
+
+The original check exited 1 with exactly the two expected dotted-constructor
+errors and the unused-`β` warning. The annotated check exited 0 with no
+diagnostics. Logs are `.lake/transform-elaboration-original.log` and
+`.lake/transform-elaboration-annotated.log`. These checks introduce no
+declarations, proof assumptions, or axiom receipts. They check proposition
+elaboration only; the complete theorem battery, default build, and gates
+remain coordinator integration checks. The exclusive direct Lean window
+was released after both commands terminated.
+
+Independent review accepted the two annotations and this additive ledger as
+an elaboration-only repair. The 118 law/receipt-name join is unchanged with
+no duplicate names; the 100-column check and `git diff --check` pass.

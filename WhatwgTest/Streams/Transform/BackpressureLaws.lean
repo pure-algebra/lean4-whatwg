@@ -307,7 +307,7 @@ open Whatwg.Streams
    Transform.returnTransform s ret =
      (do
        let (t, result) := Transform.freshInternal { s with control := tail }
-       let u := match ret with
+       let u : Transform.State α β ε := match ret with
          | .pending => { t with pendingTransforms := t.pendingTransforms ++ [(request, result)] }
          | .settled a => { t with jobs := t.jobs ++ [.reaction (.transform result) a] }
        let v := { u with trace := u.trace ++ [.transformReturned request result] }
@@ -680,7 +680,8 @@ open Whatwg.Streams
 
 #check (@Transform.visible_readable_query :
   ∀ {α β ε : Type} (ids : List Nat) (x : Option Readable.Size),
-   Transform.visibleEvent ids (Transform.Event.readable (α := α) (ε := ε) (.desiredSizeRead x)) =
+   Transform.visibleEvent ids
+     (Transform.Event.readable (α := α) (β := β) (ε := ε) (.desiredSizeRead x)) =
      some (.readableDesiredSize x))
 
 #check (@Transform.visible_internal_settlement :
