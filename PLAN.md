@@ -144,15 +144,17 @@ request to finalize; canonical release, pipe-promise settlement, progress,
 full lifecycle, global M1/M2 and the clause-level coverage join remain open.
 `docs/PIPING-DAG.md` owns the landing receipt and remaining graph obligations.
 
-The next implementation representative is P8a configuration ordering after
-its independent breaker freeze. Its separate `codex/configuration-breaker`
-worktree has reviewed, explicitly unfrozen and unverified drafts for one
-actual writable root, observer registrations and a global FIFO of job
-references. The selected pinned reentrant-write WPT case does not replace
-the mandatory general identity, FIFO, effect-order, replay and progress
-obligations or the independent source-prefix certificate. Freeze the remaining
-breadth representatives before deepening readable or writable beyond their
-representative scope. Full P4–P12 remain open.
+**Operator hold, 2026-09-05:** further semantics formalization is deferred
+until there are more consumers. The current action is final review and
+submission of the existing work for approval, without extending its scope.
+P8a configuration ordering is not admitted for implementation. Its separate
+`codex/configuration-breaker` worktree retains explicitly unfrozen and
+unverified drafts for one actual writable root, observer registrations and
+a global FIFO of job references; that draft is excluded from the submission.
+Resumption requires a consumer-driven scope decision and the independent
+breaker freeze. The identity, FIFO, effect-order, replay, progress and
+independent source-prefix obligations remain open. The breadth-before-depth
+rule still applies on resumption. Full P4–P12 remain open.
 
 The package also contains HTML H1–H4 and the Infra text implementations
 introduced by `c610a5e`. Earlier empty/uncommitted descriptions below are

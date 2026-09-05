@@ -6,18 +6,19 @@ when you take or release a file.
 
 Last updated: 2026-09-05. W0–W5, HTML H0–H4, and the Infra integration repair
 at `319e744` are committed. P4a landed at `5121268` and P5a at `e4d053a`.
-P6a landed at `afb57f8`; the P7a implementation and verified receipt accompany
-this update. The separate configuration breaker is preparing the P8a packet.
+P6a landed at `afb57f8`; P7a and its verified receipt landed at `6bb79d2`.
+The operator stopped further semantics formalization until more consumers
+exist. The separate P8a draft is held outside the approval submission.
 
 ## Who is active
 
 | Agent | Working on |
 | --- | --- |
-| Codex integration coordinator | P7a verified landing on `codex/streams-reification`; coordinating the P8a breadth packet |
+| Codex integration coordinator | Final review accepted; submitting `codex/streams-reification` for approval; P8a held under the operator's deferral |
 | Codex transform breaker | P6a packet and two elaboration annotations frozen at `c420aa9` in `codex/transform-breaker`; verification window released |
 | Codex piping breaker | P7a packet frozen at `2f43183`, integrated as `ea03725`; retained ownership of exact statements and witnesses |
-| Codex independent reviewer | P7a general/composed proofs and final landing records accepted; P8a draft review continues |
-| Codex configuration breaker | Preparing the unfrozen P8a ordering ascriptions, independent source certificate and adversarial battery; no production or Lean work |
+| Codex independent reviewers | Separate Standards and Spec reviews of `c1c7caa` through `6bb79d2` returned no actionable findings within the submitted representative scope |
+| Codex configuration breaker | Stopped by the operator; preserve the separate unfrozen and unverified draft without further work |
 
 ## Current claims
 
@@ -26,7 +27,7 @@ row is unclaimed.
 
 | File or tree | Claimed by | State |
 | --- | --- | --- |
-| future P8 configuration contract and `docs/CONFIGURATION-DAG.md` design proposal | Codex configuration breaker, 2026-09-05 | Read-only investigation and independently authored proposal in a separate worktree; selects one pinned WPT promise-ordering representative, canonical component/supply seam and exact observation obligations. No production edits or Lean runs before coordinated admission. |
+| future P8 configuration contract and `docs/CONFIGURATION-DAG.md` design proposal | Codex configuration breaker (held), 2026-09-05 | Preserved in the separate `codex/configuration-breaker` worktree at checkpoint `6c44e08` plus uncommitted drafts. No further preparation, freeze, verification or integration while the operator's semantics deferral applies. Excluded from this submission. |
 | `test/contracts/piping-shutdown.contract.md`, declaration/source rows in `docs/PIPING-DAG.md`, piping batteries/witnesses and attack descriptions | Codex piping breaker (landed) | Frozen at `2f43183`, integrated as `ea03725`; statements and witnesses remain breaker-owned. All five P7 battery/witness modules are green; coordinator repair/status receipts remain separate. |
 | `test/contracts/transform-backpressure.contract.md`, declaration/anchor rows in `docs/TRANSFORM-DAG.md`, `WhatwgTest/Streams/Transform/**`, `WhatwgTest/Streams/Counterexamples/Transform/**`, transform attacks and attacked-statement/witness cells of `WS-TRANS-CE-*` | Codex transform breaker (landed) | P6a packet at `03547f1`, based on `5121268`, with two elaboration annotations at `c420aa9`; statements and witnesses remain breaker-owned. All four P6 batteries/witness modules are green. |
 | `test/contracts/writable-default.contract.md`, declaration/statement rows in `docs/WRITABLE-DAG.md`, `WhatwgTest/Streams/Writable/**`, `WhatwgTest/Streams/Counterexamples/Writable/**`, `test/counterexamples/writable/ATTACKS.md` | Codex writable breaker (landed) | Frozen base/lifecycle/exact packets integrated as `5669062`, `47a86da`, `5f7cebe`; statements and witnesses remain breaker-owned. All seven batteries and both witness modules are green. |
@@ -80,6 +81,18 @@ source/proof/landing reviews pass. `docs/PIPING-DAG.md` owns the exact
 fragment judgment, commands and open edges. The two composed runs end at
 the request to finalize; full P7, progress, global M1/M2 and host embeddings
 remain open. The separate P8a packet remains unfrozen and unverified.
+
+The final review/status claim releases with the accompanying operator-hold
+commit. Standards and Spec reviewers independently inspected the full branch
+against main at `c1c7caa9b68ba4ff72ac379f4aedcc84385e5f28`; neither found an
+actionable issue within the submitted representatives. The coordinator
+rechecked the 298-job build, 149-module/11780-declaration root audit, vendor
+seal, citations, TyXML drift, Streams census/coverage and Infra census. All
+three existing harness scripts pass on Node v22.23.2, Windows x64, as finite
+host observations only. No new semantic declarations, WPT execution or
+host-to-Lean comparison were added during final review. Only this coordination
+record and the plan's operator hold changed after `6bb79d2`. The submission
+requests approval; it does not authorize a merge or resume the P8a draft.
 
 ## Collision record
 
