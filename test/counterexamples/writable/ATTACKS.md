@@ -80,3 +80,29 @@ are production theorem obligations with explicit Reaches sequences; their
 own intended-red commands and scope are in the contract addendum. They do
 not turn the 16 finite fixtures into whole-program executions or remove any
 stage law, counterexample row, or remaining global embedding obligation.
+
+## WS-WRITE-CE-017 — equality/Boolean-OR precedence
+
+`WhatwgTest/Streams/Counterexamples/Writable/InFlightPrecedence.lean` imports
+only Init. `weakLaw_parse` confirms that `answer = writeFlag || closeFlag`
+as a proposition elaborates to `(decide (answer = writeFlag) || closeFlag) = true`.
+`ce017_ignored_close_passes_weak` checks all Boolean flag pairs: returning only
+writeFlag satisfies that weaker predicate, but fails the parenthesized exact
+equation at writeFlag false and closeFlag true. This is a finite logical
+counterexample to the old acceptance condition, not a claim that production
+has this defect. The inspected production definition already returns the
+full disjunction. The added quantified repair is `hasInFlight_exact`.
+
+On the coordinator-granted exclusive window, under the pinned Lean4.33.1:
+
+```powershell
+$env:LEAN_NUM_THREADS='1'
+$env:LEAN_PATH='C:\Users\kokok\Dev\lean4-WHATWG-streams\.lake\build\lib\lean'
+lean -M2048 -DmaxErrors=10000 WhatwgTest/Streams/Counterexamples/Writable/InFlightPrecedence.lean
+```
+
+Final result: exit 0; both the parse theorem and CE017 are axiom-free.
+Initial draft attempts needed explicit unfolding of test-local Prop wrappers
+before finite Boolean case proofs; their failed elaborations are not evidence.
+The final statements are unchanged by that proof repair. No host probe or
+full-stream reachability claim is involved.

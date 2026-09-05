@@ -318,3 +318,48 @@ The coordinator declares
 `WhatwgTest.Streams.Writable.LifecycleAxiomReport` as known red before
 building these production theorems. Their proof receipts, full build and
 gates are implementation work; this breaker has not changed production.
+
+## Exact in-flight equation addendum (frozen separately)
+
+The builder's elaboration of the frozen `hasInFlight_eq` exposed a precedence
+weakness in that acceptance condition. In the pinned Lean4.33.1
+`Init/Notation.lean`, equality has precedence 50 and Boolean OR has precedence
+30. `Init/Coe.lean` coerces decidable propositions to Bool using `decide`
+and Bool to Prop using equality to true. Consequently the unparenthesized
+old statement denotes `(decide (hasInFlight s = writeFlag) || closeFlag) = true`.
+It imposes no restriction on the answer when closeFlag is true.
+
+The original frozen ascription and production definition remain unchanged.
+`WhatwgTest/Streams/Writable/InFlightExactContract.lean` adds only
+`Whatwg.Streams.Writable.hasInFlight_exact`, whose full Boolean RHS is
+parenthesized. It is the required exact slot equation for the INFLIGHT
+algorithm; the earlier weaker predicate remains valid but cannot stand in
+for this exact receipt. No new runtime operation or carrier is introduced.
+Independent review confirmed both the pinned Lean parsing/coercions and the
+Streams algorithm's test of the write/close in-flight slots.
+
+`WS-WRITE-CE-017` retains an Init-only parse theorem and finite counterexample.
+They both passed without axioms. The exact ascription and its separate axiom
+report were checked sequentially:
+
+```powershell
+$env:LEAN_NUM_THREADS='1'
+$env:LEAN_PATH='C:\Users\kokok\Dev\lean4-WHATWG-streams\.lake\build\lib\lean'
+lean -M2048 -DmaxErrors=10000 WhatwgTest/Streams/Writable/InFlightExactContract.lean
+lean -M2048 -DmaxErrors=10000 WhatwgTest/Streams/Writable/InFlightExactAxiomReport.lean
+```
+
+Each exited 1 with exactly one unknown `hasInFlight_exact` diagnostic;
+all existing State/field expressions elaborated. There were no cascading
+type, parser or import errors. The inherited compile artifacts came from the
+coordinator's P5 implementation at main base
+`47a86da602f5964e7cdaf24d43a99dbb70f1e59e` plus its uncommitted writable
+source snapshot, which had passed the 162 interface checks. This is compile
+infrastructure, not a clean-commit/full-build claim. The inspected
+`Writable/Backpressure.lean` source SHA-256 was
+`d2982d85b5c8683d72e20bdce5fcdacb120ad13ee07432aedb58ce946c853918`.
+
+The coordinator owns the two new known-red declarations and root integration:
+`WhatwgTest.Streams.Writable.InFlightExactContract` and
+`WhatwgTest.Streams.Writable.InFlightExactAxiomReport`.
+The breaker has changed no existing frozen Lean file or production source.

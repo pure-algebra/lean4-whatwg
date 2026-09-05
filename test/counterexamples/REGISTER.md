@@ -58,6 +58,8 @@ attack. Statuses are defined in `README.md` beside this file.
 | `WS-WRITE-CE-015` | `SEEDED` | Invoking/queued operations reject settlement answers. | `WhatwgTest/Streams/Counterexamples/Writable/Default.lean`, `ce015_answer_admission`; finite fixture; scope/command in `test/counterexamples/writable/ATTACKS.md` | freeze `acceptAnswer_other` in P5a; production repair pending |
 | `WS-WRITE-CE-016` | `SEEDED` | Reaction jobs wait behind live callback markers. | `WhatwgTest/Streams/Counterexamples/Writable/Default.lean`, `ce016_jobs_wait_for_callback`; finite fixture; scope/command in `test/counterexamples/writable/ATTACKS.md` | freeze `externalFrontier_eq; tick_foreign_marker` in P5a; production repair pending |
 
+| `WS-WRITE-CE-017` | `SEEDED` | Unparenthesized equality before Boolean OR accepts an in-flight predicate that ignores close. | `WhatwgTest/Streams/Counterexamples/Writable/InFlightPrecedence.lean`, `weakLaw_parse` and `ce017_ignored_close_passes_weak`; Init-only, axiom-free parse/finite witness; receipt in `test/counterexamples/writable/ATTACKS.md` | add `hasInFlight_exact` with parenthesized whole RHS; retain the earlier weaker law unchanged; production definition already correct, new proof receipt pending |
+
 Every row's evidence command is `lake build WhatwgTest`, which
 elaborated the witnesses here until the SHA-256 lane moved to lean4-hash at
 step 6 of `docs/HASH-PACKAGE-PLAN.md`; the rows, their kernel-checked

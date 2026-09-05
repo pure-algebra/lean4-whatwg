@@ -447,3 +447,35 @@ The addendum commit is the immutable identity of these two statements.
 No required-open graph edge is closed merely by their freeze. Full initial
 projection, reachable assertions, global promise/supply/scheduler embeddings
 and the DB-04 mask mappings remain open even once the two proofs are built.
+
+## Exact in-flight equation freeze ledger
+
+This additive correction leaves every earlier frozen Lean file intact. It
+adds one quantified exact slot equation and retains `WS-WRITE-CE-017` as
+the independent precedence counterexample. The same graph remains the
+assurance owner.
+
+| Stable name, relative to Whatwg.Streams | Intended module | Role / disposition / anchor | Required edge |
+| --- | --- | --- | --- |
+| `Writable.hasInFlight_exact` | `Writable/Laws.lean`, semantic owner `Writable/Backpressure.lean` | derived exact slot equation, `owned`; INFLIGHT, span `81d632b43a6f0d5bb686e32fcae3fef4ba95f5ed573730eca5b77e955e4da5e9` | construction and laws; supports local sink-input/ordered views |
+
+The old `hasInFlight_eq` is retained as its actual weaker coerced predicate;
+the new equation is the required exact receipt for the algorithm's complete
+Boolean result. There is no new type/disposition or replacement of the
+correct production operation. The existing global reachability, scheduler,
+shared-supply and DB-04 embedding obligations remain open.
+
+Independent review read the pinned Lean notation/coercion definitions and
+the pinned Streams INFLIGHT algorithm, and confirmed the parenthesized exact
+ascription. The contract and attack document record the one-name intended-red
+checks and both axiom-free witness receipts.
+
+| Artifact | SHA-256 at exact-equation freeze |
+| --- | --- |
+| `WhatwgTest/Streams/Writable/InFlightExactContract.lean` | `1062abbd71f34f4efff5802c333cc1c9d00874822921845c128e639f77fd9ee6` |
+| `WhatwgTest/Streams/Writable/InFlightExactAxiomReport.lean` | `b3d02246ec505cceef4c5406c5861eb80da7a201bffe73e92cd7331ea73bf4eb` |
+| `WhatwgTest/Streams/Counterexamples/Writable/InFlightPrecedence.lean` | `3f51d0eafcf0e6220704a55f7398231b9899e1bfb108488b63448fd50f4011fd` |
+
+The commit carrying this record is the addendum identity. Known-red entries,
+production proof, root integration and gate receipts remain coordinator
+work. Freezing the correction closes no required-open graph edge.
