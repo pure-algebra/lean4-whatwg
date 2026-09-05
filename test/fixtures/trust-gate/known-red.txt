@@ -21,3 +21,9 @@
 # WhatwgTest.Streams.Data.QueueAxiomReport were red here while the names they
 # ascribe did not exist. The P3 builder seat landed that surface and removed
 # the two entries; no entry remains.
+
+# P4a default-readable representative, frozen 2026-09-05.
+# Packet: test/contracts/readable-default.contract.md.
+# Root/audit integration is the coordinator's separate landing change.
+WhatwgTest.Streams.Readable.DefaultContract
+WhatwgTest.Streams.Readable.DefaultAxiomReport
