@@ -1,0 +1,50 @@
+import Whatwg.Streams
+
+/-! P7a breaker theorem receipts; freeze state and results: owning contract. -/
+
+#print axioms Whatwg.Streams.Piping.deliveredReads_eq
+#print axioms Whatwg.Streams.Piping.markWrite_eq
+#print axioms Whatwg.Streams.Piping.writesSettled_iff
+#print axioms Whatwg.Streams.Piping.bodyDecision_iff
+#print axioms Whatwg.Streams.Piping.readInventory_iff
+#print axioms Whatwg.Streams.Piping.initialSnapshot_iff
+#print axioms Whatwg.Streams.Piping.recordAllowed_iff
+#print axioms Whatwg.Streams.Piping.observationChain_nil_iff
+#print axioms Whatwg.Streams.Piping.observationChain_cons_iff
+#print axioms Whatwg.Streams.Piping.forwardShutdownSpec_iff
+#print axioms Whatwg.Streams.Piping.snapshot_eq
+#print axioms Whatwg.Streams.Piping.initial_eq
+#print axioms Whatwg.Streams.Piping.observeShutdown_eq
+#print axioms Whatwg.Streams.Piping.emit_eq
+#print axioms Whatwg.Streams.Piping.drainGuard_eq
+#print axioms Whatwg.Streams.Piping.drainGuard_true_iff
+#print axioms Whatwg.Streams.Piping.nextUnwritten_nil
+#print axioms Whatwg.Streams.Piping.nextUnwritten_cons
+#print axioms Whatwg.Streams.Piping.allWrittenSettled_eq
+#print axioms Whatwg.Streams.Piping.allWrittenSettled_iff
+#print axioms Whatwg.Streams.Piping.lookupReturn_eq
+#print axioms Whatwg.Streams.Piping.foreignDecision_eq
+#print axioms Whatwg.Streams.Piping.foreignDecision_iff
+#print axioms Whatwg.Streams.Piping.enterForwardShutdown_eq
+#print axioms Whatwg.Streams.Piping.enterForwardShutdown_first_wins
+#print axioms Whatwg.Streams.Piping.invokeWrite_eq
+#print axioms Whatwg.Streams.Piping.captureWrite_eq
+#print axioms Whatwg.Streams.Piping.invokeAbort_eq
+#print axioms Whatwg.Streams.Piping.captureAbort_eq
+#print axioms Whatwg.Streams.Piping.requestFinalize_eq
+#print axioms Whatwg.Streams.Piping.stepWritable_eq
+#print axioms Whatwg.Streams.Piping.externalFrontier_eq
+#print axioms Whatwg.Streams.Piping.decide_eq
+#print axioms Whatwg.Streams.Piping.tick_eq
+#print axioms Whatwg.Streams.Piping.step_iff
+#print axioms Whatwg.Streams.Piping.reaches_nil_iff
+#print axioms Whatwg.Streams.Piping.reaches_cons_iff
+#print axioms Whatwg.Streams.Piping.reaches_append_iff
+#print axioms Whatwg.Streams.Piping.admitted_iff
+#print axioms Whatwg.Streams.Piping.forwardShutdown_realizes
+#print axioms Whatwg.Streams.Piping.reaches_no_new_read
+#print axioms Whatwg.Streams.Piping.reaches_selection_stable
+#print axioms Whatwg.Streams.Piping.ready_frontier
+#print axioms Whatwg.Streams.Piping.preventAbort_write_rejection_no_override
+#print axioms Whatwg.Streams.Piping.lifecycle_two_writes_abort_rejection
+#print axioms Whatwg.Streams.Piping.lifecycle_write_rejection_retains_source
