@@ -19,6 +19,11 @@ import WhatwgTest.Streams.Counterexamples.Transform.Backpressure
 import WhatwgTest.Streams.Transform.BackpressureContract
 import WhatwgTest.Streams.Transform.BackpressureLaws
 import WhatwgTest.Streams.Transform.BackpressureAxiomReport
+import WhatwgTest.Streams.Counterexamples.Piping.Shutdown
+import WhatwgTest.Streams.Piping.ShutdownContract
+import WhatwgTest.Streams.Piping.ShutdownLaws
+import WhatwgTest.Streams.Piping.ShutdownRuns
+import WhatwgTest.Streams.Piping.ShutdownAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

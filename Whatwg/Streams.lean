@@ -35,6 +35,9 @@ import Whatwg.Streams.Transform.Laws
 import Whatwg.Streams.Transform.Runs
 import Whatwg.Streams.Piping.Requirements
 import Whatwg.Streams.Piping.PipeTo
+import Whatwg.Streams.Piping.Step
+import Whatwg.Streams.Piping.Laws
+import Whatwg.Streams.Piping.Runs
 import Whatwg.Streams.Piping.PipeThrough
 import Whatwg.Streams.Boundary.UnderlyingSource
 import Whatwg.Streams.Boundary.UnderlyingSink
@@ -71,8 +74,8 @@ module is imported from here; a module not reachable from this root is not
 part of the production build and is rejected by the module-closure gate.
 
 The imports retain the P2 breadth scaffold, with implemented modules added
-behind their frozen contracts and counterexample packets. P3, P4a, P5a, and P6a
-now contain declarations; later categories remain declaration-free stubs
+behind their frozen contracts and counterexample packets. P3, P4a, P5a, P6a,
+and P7a now contain declarations; later categories remain declaration-free stubs
 until their own packets admit implementation. `PLAN.md` owns phase status
 and the category proof graphs own the remaining assurance obligations.
 -/

@@ -34,3 +34,7 @@
 # P6a transform/backpressure packet: 03547f1, integrated as 5d95212.
 # All 112 interface entries, 118 laws/receipts and retained witnesses are green.
 # The normal 71-job narrow build passes; no entries remain.
+
+# P7a forward-error shutdown packet: 2f43183, integrated as ea03725.
+# All sixteen witnesses, 98 interface entries, 44 laws and two runs are green.
+# All 46 named axiom receipts compile; no entries remain.

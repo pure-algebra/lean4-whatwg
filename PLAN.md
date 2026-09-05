@@ -130,14 +130,29 @@ output sizing, flush/cancel/close/abort, reachable-state and shared-identity
 invariants, global scheduling, full-state/host and DB-04 embeddings, and the
 clause-level coverage join.
 
-The next implementation slice is P7a forward-error shutdown, once its
-independent breaker packet freezes. The separate `codex/piping-breaker`
-worktree is preparing the requirements predicate and a canonical P4/P5
-candidate for draining already-read chunks and optional destination abort.
-Its endpoint is a request to finalize, not lock release or pipe-promise
-settlement; the full P7 realizability theorem remains open. Freeze the
-remaining breadth representatives before deepening readable or writable
-beyond their representative scope. Full P4–P12 remain open.
+P7a forward-error shutdown is implemented against independent packet
+`2f4318337b839de1cce5d12e5c1f31e594dc6222`, integrated as `ea03725` after
+P6a `afb57f8`. All 98 interface entries, 44 requirements/stage laws, two
+composed runs, 46 production receipts and sixteen retained finite witnesses
+pass the 75-job narrow build. The known-red set is empty. The quantified
+`forwardShutdown_realizes` proves `ForwardShutdownSpec` under
+`observeShutdown` for every admitted finite candidate run, using independently
+established read inventory, returned-promise references and phase invariants.
+The two composed proofs establish actual P4 enqueue/read prefixes and P5
+write/drain/abort paths with exact reason precedence. The endpoint is a
+request to finalize; canonical release, pipe-promise settlement, progress,
+full lifecycle, global M1/M2 and the clause-level coverage join remain open.
+`docs/PIPING-DAG.md` owns the landing receipt and remaining graph obligations.
+
+The next implementation representative is P8a configuration ordering after
+its independent breaker freeze. Its separate `codex/configuration-breaker`
+worktree has reviewed, explicitly unfrozen and unverified drafts for one
+actual writable root, observer registrations and a global FIFO of job
+references. The selected pinned reentrant-write WPT case does not replace
+the mandatory general identity, FIFO, effect-order, replay and progress
+obligations or the independent source-prefix certificate. Freeze the remaining
+breadth representatives before deepening readable or writable beyond their
+representative scope. Full P4–P12 remain open.
 
 The package also contains HTML H1–H4 and the Infra text implementations
 introduced by `c610a5e`. Earlier empty/uncommitted descriptions below are
