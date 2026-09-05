@@ -117,15 +117,27 @@ remains open for setup/start, writer acquisition/release, reachable-state and
 freshness invariants, global scheduling and promise embeddings, DB-04 mask
 relations, and the clause-level coverage join.
 
-The next implementation slice is P6a transform/backpressure coupling. Its
-independently reviewed breaker packet is frozen in the separate
-`codex/transform-breaker` worktree at `03547f1feb938d65898c47b4061faeb3f4bd9edf`:
-112 interface entries, 118 theorem/receipt obligations, fourteen finite
-witnesses, and three composed runs through the actual P4/P5 states. It is
-ready for integration after the accompanying P5a implementation lands;
-production transform modules remain stubs. Freeze the other breadth
-representatives before deepening readable or writable beyond their
-representative scope; P6–P12 remain open.
+P6a transform/backpressure coupling is implemented against the independent
+`03547f1feb938d65898c47b4061faeb3f4bd9edf` packet, integrated as `5d95212`
+after P5a `e4d053a`; the two elaboration annotations are recorded at
+`e668767`. All 112 interface entries, 115 local laws, three composed runs
+through actual P4/P5 states, and fourteen retained witnesses pass the
+71-job narrow build. The default build passes 287 jobs; all 118 theorem
+receipts and the exhaustive root audit pass under R-11. The known-red set
+is empty. `docs/TRANSFORM-DAG.md` owns the landing commands, four finite Node
+observations and scope. Full P6 remains open for setup/start, arbitrary
+output sizing, flush/cancel/close/abort, reachable-state and shared-identity
+invariants, global scheduling, full-state/host and DB-04 embeddings, and the
+clause-level coverage join.
+
+The next implementation slice is P7a forward-error shutdown, once its
+independent breaker packet freezes. The separate `codex/piping-breaker`
+worktree is preparing the requirements predicate and a canonical P4/P5
+candidate for draining already-read chunks and optional destination abort.
+Its endpoint is a request to finalize, not lock release or pipe-promise
+settlement; the full P7 realizability theorem remains open. Freeze the
+remaining breadth representatives before deepening readable or writable
+beyond their representative scope. Full P4–P12 remain open.
 
 The package also contains HTML H1–H4 and the Infra text implementations
 introduced by `c610a5e`. Earlier empty/uncommitted descriptions below are

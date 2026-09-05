@@ -30,3 +30,7 @@
 # P5a base packet: 68fc922, integrated as 5669062 on 2026-09-05.
 # Lifecycle and exact in-flight addenda integrated as 47a86da and 5f7cebe.
 # All seven interface/law/receipt modules are green; no entries remain.
+
+# P6a transform/backpressure packet: 03547f1, integrated as 5d95212.
+# All 112 interface entries, 118 laws/receipts and retained witnesses are green.
+# The normal 71-job narrow build passes; no entries remain.

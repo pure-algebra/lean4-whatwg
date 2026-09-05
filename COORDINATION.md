@@ -5,17 +5,19 @@ This file is the channel. Read it before you write, and update your claims
 when you take or release a file.
 
 Last updated: 2026-09-05. W0–W5, HTML H0–H4, and the Infra integration repair
-at `319e744` are committed. P4a landed at `5121268`; the P5a implementation
-and verified receipt accompany this update. The P6a breaker is independently
-frozen at `03547f1` in its separate worktree, ready for coordinator integration.
+at `319e744` are committed. P4a landed at `5121268` and P5a at `e4d053a`.
+The P6a implementation and verified receipt accompany this update. The
+separate piping breaker is preparing the next requirements/realizer packet.
 
 ## Who is active
 
 | Agent | Working on |
 | --- | --- |
-| Codex integration coordinator | P5a landing verified; preparing P6a integration on `codex/streams-reification` |
-| Codex transform breaker | P6a packet frozen at `03547f1` in `codex/transform-breaker`; verification window released |
-| Codex independent reviewer | P5a source and landing records accepted; P6a breaker review accepted |
+| Codex integration coordinator | P6a implemented and verified on `codex/streams-reification`; coordinating P7 and P8 breadth packets |
+| Codex transform breaker | P6a packet and two elaboration annotations frozen at `c420aa9` in `codex/transform-breaker`; verification window released |
+| Codex piping breaker | Draft P7a forward-error shutdown packet in `codex/piping-breaker`; no production admission before independent freeze |
+| Codex independent reviewer | P6a source/proof/host scope and final landing records accepted; reviewing the separate P7a packet |
+| Codex configuration breaker | Preparing a separate P8 promise-ordering and canonical configuration design proposal; no production or Lean work |
 
 ## Current claims
 
@@ -24,7 +26,9 @@ row is unclaimed.
 
 | File or tree | Claimed by | State |
 | --- | --- | --- |
-| `test/contracts/transform-backpressure.contract.md`, `docs/TRANSFORM-DAG.md`, `WhatwgTest/Streams/Transform/**`, `WhatwgTest/Streams/Counterexamples/Transform/**`, transform attack and `WS-TRANS-CE-*` rows | Codex transform breaker (frozen) | P6a packet at `03547f1`, based on `5121268`; statements and witnesses remain breaker-owned. No production edits; final direct checks are terminal. |
+| future P8 configuration contract and `docs/CONFIGURATION-DAG.md` design proposal | Codex configuration breaker, 2026-09-05 | Read-only investigation and independently authored proposal in a separate worktree; selects one pinned WPT promise-ordering representative, canonical component/supply seam and exact observation obligations. No production edits or Lean runs before coordinated admission. |
+| future piping contract, `docs/PIPING-DAG.md`, piping batteries/witnesses, attack descriptions and `WS-PIPE-CE-*` rows | Codex piping breaker, 2026-09-05 | Proposes the P7 requirement/realizer representative in a separate `codex/piping-breaker` worktree from `5d95212`; no production edits or uncoordinated Lean runs. |
+| `test/contracts/transform-backpressure.contract.md`, declaration/anchor rows in `docs/TRANSFORM-DAG.md`, `WhatwgTest/Streams/Transform/**`, `WhatwgTest/Streams/Counterexamples/Transform/**`, transform attacks and attacked-statement/witness cells of `WS-TRANS-CE-*` | Codex transform breaker (landed) | P6a packet at `03547f1`, based on `5121268`, with two elaboration annotations at `c420aa9`; statements and witnesses remain breaker-owned. All four P6 batteries/witness modules are green. |
 | `test/contracts/writable-default.contract.md`, declaration/statement rows in `docs/WRITABLE-DAG.md`, `WhatwgTest/Streams/Writable/**`, `WhatwgTest/Streams/Counterexamples/Writable/**`, `test/counterexamples/writable/ATTACKS.md` | Codex writable breaker (landed) | Frozen base/lifecycle/exact packets integrated as `5669062`, `47a86da`, `5f7cebe`; statements and witnesses remain breaker-owned. All seven batteries and both witness modules are green. |
 | `test/contracts/readable-default.contract.md`, `WhatwgTest/Streams/Readable/**`, declaration/statement rows in `docs/READABLE-DAG.md`, `WhatwgTest/Streams/Counterexamples/Readable/**`, `test/counterexamples/readable/ATTACKS.md` | Codex P4 breaker (landed) | Frozen at `f4394d8`; retained ownership of statements and witnesses. Both batteries are green. Coordinator landing receipts and attack statuses are recorded separately. |
 | `test/contracts/queue-with-sizes.contract.md` | P3 breaker (landed) | frozen 2026-09-02; the builder may not edit it |
@@ -58,8 +62,15 @@ The P5a implementation, host fixture, dependency-record cleanup, and coordinator
 receipt claims release with the accompanying implementation commit. All nine
 narrow modules (72 jobs), the full 275-job build, 111 theorem receipts, root
 audit, executable gates, and independent source/record reviews pass.
-`docs/WRITABLE-DAG.md` owns exact scope and commands. Full P5 remains open;
-the P6a packet is ready for the next builder claim.
+`docs/WRITABLE-DAG.md` owns exact scope and commands. Full P5 remains open.
+
+The P6a implementation, host fixture, counterexample repair cells and
+coordinator receipt claims release with the accompanying implementation
+commit. All four narrow modules (71 jobs), the full 287-job build, 118
+theorem receipts, root audit, executable gates and independent source/proof
+review pass. `docs/TRANSFORM-DAG.md` owns exact commands and the remaining
+graph obligations. Full P6 remains open; the P7a breaker packet is still
+being prepared in its separate worktree.
 
 ## Collision record
 

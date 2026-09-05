@@ -15,6 +15,10 @@ import WhatwgTest.Streams.Writable.LifecycleAxiomReport
 import WhatwgTest.Streams.Writable.InFlightExactContract
 import WhatwgTest.Streams.Writable.InFlightExactAxiomReport
 import WhatwgTest.Streams.Counterexamples.Writable.InFlightPrecedence
+import WhatwgTest.Streams.Counterexamples.Transform.Backpressure
+import WhatwgTest.Streams.Transform.BackpressureContract
+import WhatwgTest.Streams.Transform.BackpressureLaws
+import WhatwgTest.Streams.Transform.BackpressureAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

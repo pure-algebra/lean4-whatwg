@@ -1,6 +1,6 @@
 # Transform proof graph (`TRANSFORM-PG-BACKPRESSURE`, P6a)
 
-Status: frozen breaker packet, 2026-09-05. Contract:
+Status: P6a implementation and local-law receipt, 2026-09-05. Full P6 remains open. Contract:
 `test/contracts/transform-backpressure.contract.md`.
 
 This file owns the declaration roles, existing-type dispositions, source
@@ -80,12 +80,12 @@ retain their existing declaration records.
 | identity | required-open | exact signatures and constructor census; generated public declaration joins |
 | construction | required-open | post-start/count-profile constructor, fresh internal IDs, subscription uniqueness, valid native ports, reachable-state invariants |
 | semantics | required-open | return/answer/reaction distinction, one ordered cross-component reaction queue, native ports hidden from foreign decisions, finite relational composition; global adoption-job embedding later |
-| laws | required-open | all frozen stage equations and exact old/new identity, erroring recheck, enqueue backpressure, termination laws |
+| laws | required-closed | all 115 frozen local equations and three composed statements pass; see the P6a landing receipt; global/reachable-state obligations stay on their open edges |
 | representation | required-open | P3/P4/P5 reuse and named cell adapter preserving prior cells/IDs; no stored function or third runtime |
-| counterexamples | required-open | retained WS-TRANS finite execution mutants and production repair laws; no snapshot promoted to full execution |
+| counterexamples | required-closed | fourteen retained WS-TRANS finite mutants and linked production repair laws pass; the register records exact local scope, without promoting a snapshot to full execution |
 | bridges | required-open | exact P4 pull-frame and P5 write-frame realization laws; full profile, arithmetic and host correspondences later |
 | targets | not-applicable | this representative generates no target code; P11 owns lowering |
-| trust | required-open | intended-red verification, theorem receipts, full root audit/gates and independent review after implementation |
+| trust | required-closed | all 118 theorem receipts, exhaustive root audit, narrow/full builds, executable gates and independent implementation/proof review pass; see the landing receipt |
 | coverage | required-open | clause map and test-side numerator witnesses; this packet adds no coverage claim |
 
 ## Residual clause map
@@ -127,3 +127,165 @@ clarifies that termination preserves queued output for later delivery while
 writable erroring occurs immediately after the readable close operation.
 Final-byte verification and immutable packet handoff are recorded in the
 contract ledger; implementation and all required graph edges remain open.
+
+## Coordinator integration and module allocation (2026-09-05)
+
+The frozen packet `03547f1feb938d65898c47b4061faeb3f4bd9edf` is integrated as
+`5d95212` after P5a implementation `e4d053a52f6fc374e8657934df81d0ecc059b945`.
+The coordinator declares the three known-red modules and imports the green
+finite-witness module into the audited test root. Statements and witnesses
+remain unchanged.
+
+`Stream.lean` owns the frozen first-order records, component trace adapters,
+subscription-ID projection, and count-profile initializer. `Backpressure.lean`
+owns the shared-table allocation/settlement/subscription operations.
+`DefaultController.lean` owns the actual component adapters and transformer
+continuations. `Step.lean` owns the dispatcher, internal job scheduling, and
+finite transition judgments. `Observation.lean` owns the frozen consumer
+projections. `Laws.lean` and `Runs.lean` will hold the frozen equations and
+three composed proofs. Placement does not change a stable name or semantic
+owner. All required assurance edges remain open during implementation.
+
+## P6a landing receipt, 2026-09-05
+
+### Base, packet and file fence
+
+The implementation base is `e66876721f55f35ef09f1114a24487f57e794097`.
+The head is the commit carrying this receipt; its exact hash is supplied in
+the coordinator handoff. P5a landed at
+`e4d053a52f6fc374e8657934df81d0ecc059b945`. The independent P6a freeze
+`03547f1feb938d65898c47b4061faeb3f4bd9edf` was integrated as `5d95212`.
+Breaker repair `c420aa9d5fd0433489efa3d60723ce469ea5002d`, integrated as
+`e668767`, adds only the two explicit type annotations recorded in the
+contract's additive elaboration ledger. No frozen proposition branch,
+premise, observation or witness changed.
+
+The production fence is the seven modules `Stream.lean`, `Backpressure.lean`,
+`DefaultController.lean`, `Step.lean`, `Observation.lean`, `Laws.lean` and
+`Runs.lean` under `Whatwg/Streams/Transform/`. The first five implement only
+the surface frozen in the declaration-role table. `Laws.lean` exports the
+115 frozen local theorem names; `Runs.lean` exports the three frozen
+composed names. The production and test roots reach every new module and
+all four P6 test modules.
+
+The other changed files are `Whatwg/Streams.lean`, `WhatwgTest.lean`,
+`harness/transform/backpressure.mjs`, `test/fixtures/trust-gate/known-red.txt`,
+the P6 status/repair cells in `test/counterexamples/REGISTER.md`, this graph,
+`PLAN.md` and `COORDINATION.md`. No dependency, vendor or generated file
+changes in this implementation slice.
+
+All six frozen files were compared with the separate breaker worktree at
+`c420aa9`; only that worktree's coordination file was dirty. The contract,
+interface battery, law battery, axiom battery, finite witness module and
+attack descriptions match byte-for-byte. In particular, the repaired law
+battery retains SHA-256
+`D939DE85318FC675E3685708DC5061FDC2E437C34DE01272D3D0FEBFC4E3BF4C`.
+
+### Implementation and observation boundary
+
+The count-output state embeds actual P4 readable and P5 writable states.
+P5 owns the promise table and allocations; subscriptions retain the exact
+old/new identity across backpressure changes. Native pull and write ports
+execute the canonical component continuations. Foreign transformer returns
+and eventual answers are separate decisions; coupled jobs execute in the
+frozen local FIFO order and cannot run inside the suspended transform body.
+Saved writable depths stage reentrant work without accepting an undershoot.
+
+The three `Transform.Reaches` proofs construct actual `Step` derivations:
+
+- `coupled_write_read_enqueue`: a blocked write, read demand, delivered
+  output, successful transform return, exact write/ready settlement and
+  old/new backpressure identities.
+- `coupled_error_during_transform`: controller error during an active body,
+  rejection of the component outcomes/queries with the exact reason, and
+  successful return of the already-active write after algorithms clear.
+- `coupled_positive_readable_capacity`: canonical successful-start native
+  pull permits a write and queued output before any read.
+
+These proofs quantify input/output values, the foreign reason where used,
+and the promise seed, but fix the count profile and three finite tape shapes.
+They use `Reaches.nil`/`Reaches.cons` and ordinary `simp`/`rfl`, without a
+fuel-bound interpreter as the judgment. They are composed local regressions,
+not arbitrary-run invariants. The output and ordered observations derive
+from actual component events; their DB-04 M1/M2 embedding is still open.
+The pending backpressure cell at the error-run endpoint is retained exactly;
+it is not silently converted into a settled or completed global execution.
+
+### Verification
+
+The exclusive main verification window used the pinned Lean 4.33.1
+toolchain and the following commands:
+
+```powershell
+$env:LEAN_NUM_THREADS = '1'
+lake --log-level=warning build WhatwgTest.Streams.Transform.BackpressureContract WhatwgTest.Streams.Transform.BackpressureLaws WhatwgTest.Streams.Transform.BackpressureAxiomReport WhatwgTest.Streams.Counterexamples.Transform.Backpressure
+lake --log-level=warning build
+lake env lean C:/Users/kokok/Dev/lean4-WHATWG-streams/WhatwgTest/Streams/Transform/BackpressureAxiomReport.lean
+lake env lean C:/Users/kokok/Dev/lean4-WHATWG-streams/WhatwgTest.lean
+.lake/build/bin/vendorseal.exe
+.lake/build/bin/citations.exe
+.lake/build/bin/tyxmlschema.exe
+.lake/build/bin/census.exe
+.lake/build/bin/census.exe --report
+.lake/build/bin/census.exe --standard infra
+node harness/transform/backpressure.mjs
+git diff --check
+```
+
+The normal narrow build passes 71 jobs, including all 112 interface
+ascriptions, all 118 theorem signatures/receipts and the fourteen retained
+finite witnesses. The full build passes 287 jobs. The 118 named theorem
+receipts comprise eight axiom-free proofs, 33 at `[propext]`, 73 at
+`[propext, Quot.sound]`, and four at `[propext, Classical.choice, Quot.sound]`.
+The last group is `freshInternal_new` and the three composed run proofs.
+All are within R-11. The exhaustive root audit checks 141 modules and 10596
+declarations, including 1595 in the Gates tooling tree. The known-red set
+is empty again.
+
+The vendor seal checks 206 files in five pinned trees; the citation gate,
+TyXML schema/emission drift checks, and Streams/Infra census gates pass.
+At base `e66876721f55f35ef09f1114a24487f57e794097` with this implementation
+working tree, the report prints:
+
+```text
+WHATWG Streams (b9ba9f49) coverage: denominator 410; owned-with-green 12/410;
+green 12, partial 6, absent 392; census 450 rows, 40 excluded
+partial: op.blqs-size op.byte-length-queuing-strategy-size-function op.count-queuing-strategy-size-function op.cqs-size op.is-non-negative-number slot.queue-total-size
+```
+
+The Node fixture passes four finite observations under `node:stream/web`,
+Node `v22.23.2`, Windows x64: read demand unblocks transform but does not
+fulfill a write while the transform result is pending; an active transform
+can return successfully after controller error; positive readable capacity
+permits output before the first read; and zero/multiple outputs plus
+termination retain queued chunks in order. The fixture records its exact
+pins, tapes, observer assumptions and limits. It executes neither WPT nor
+the reference implementation and compares no host run against a Lean run.
+Its counterexample links name only the exercised behavioral projections.
+
+### Independent review and remaining obligations
+
+Independent review checked the core operations against their frozen
+statements and source anchors, canonical component reuse, return/answer/job
+staging, retained identities, saved-depth control and observation filtering.
+The subsequent proof review checked the exact 118-name join, all three
+composed derivations, claim scope and the host fixture. Source-anchor
+corrections and a host counterexample-label correction were applied without
+changing a theorem statement or proof boundary.
+
+Only laws, counterexamples and trust close here. Identity remains open for
+generated public-declaration snapshot joins. Construction remains open for
+valid ports, fresh/shared allocation, unique subscriptions, retained callback
+identity, trace-prefix validity and inductive reachable-state invariants.
+Raw states can violate these conditions; the local equations do not assert
+that every such state is a valid stream. Semantics, representation and
+bridges remain open for full-state embeddings, global ECMAScript job order,
+promise adoption/registration, numeric boundaries and host relations.
+
+Full setup/start, arbitrary output-size callbacks, flush, cancel and the
+complete close/abort lifecycle remain owned/open. No absent intrinsic
+algorithm becomes a foreign body or a refusal. Coverage remains open for
+the clause map and test-side numerator witnesses. The next P7a breadth
+packet is a separate requirements/realizer shutdown fragment; it cannot
+claim full pipe finalization before the missing canonical release and
+cancellation operations exist.
