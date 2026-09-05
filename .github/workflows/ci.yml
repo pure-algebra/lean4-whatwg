@@ -37,5 +37,7 @@ jobs:
         run: lake exe census
       - name: Specification coverage block from the Lean emit
         run: lake exe census --report
+      - name: Infra definition census and generated row drift
+        run: lake exe census --standard infra
       - name: Test root and the elaboration-time axiom gate
         run: lake --wfail build WhatwgTest

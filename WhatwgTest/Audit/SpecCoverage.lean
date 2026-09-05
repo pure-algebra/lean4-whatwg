@@ -656,7 +656,7 @@ def parseCensus (text : String) : Except String (Array String × Nat) := Id.run 
   match Gates.Common.lines text with
   | [] => return .error "the census projection is empty"
   | header :: dataLines =>
-    let expectedHeader := censusHeader dataLines.length
+    let expectedHeader := censusHeader Gates.Census.streams dataLines.length
     if header != expectedHeader then
       return .error "the census projection header does not record its own row count and generator identity"
     let mut ids : Array String := #[]

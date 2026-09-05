@@ -1340,16 +1340,24 @@ def renderCensus (std : Standard) (bs : ByteArray) (rows : Array Row) : Except S
 
 def renderRowsModule (std : Standard) (entries : Array CoverageRow) (denominator : Nat) :
     String := Id.run do
+  let assuranceDescription :=
+    if std.key == "streams" then
+      "This is the frozen row list of the specification-coverage numerator:\n" ++
+      "one entry per census row, carrying the row id, the joined disposition, the\n" ++
+      "coverage state, and the witness list. `WhatwgTest/Audit/SpecCoverage.lean`\n" ++
+      "owns the checks over it and `docs/SPEC-COVERAGE.md` owns the rules.\n"
+    else
+      "This is an all-absent census scaffold, not a checked coverage numerator.\n" ++
+      "One entry per census row carries its id and joined disposition, with no\n" ++
+      "theorem witnesses. The census command checks projection drift; the Streams\n" ++
+      "numerator does not validate this module. `docs/SPEC-COVERAGE.md` owns the rules.\n"
   let mut out :=
     "/-\nGENERATED FILE. Do not edit.\n\n" ++
     s!"Written by `{std.regenerateCommand}` (`Gates.Census`) from the pinned\n" ++
     s!"`{std.inputRelativePath}` (SHA-256 `{std.inputDigest}`), the census projection\n" ++
     s!"`{std.censusRelativePath}`, and the authored disposition inputs under `{std.authoredDir}/`.\n" ++
     "Format version " ++ formatVersion ++ s!". `{std.regenerateCommand.replace " --write" ""}` fails on any byte of drift.\n\n" ++
-    "This is the frozen row list of the specification-coverage numerator:\n" ++
-    "one entry per census row, carrying the row id, the joined disposition, the\n" ++
-    "coverage state, and the witness list. `WhatwgTest/Audit/SpecCoverage.lean`\n" ++
-    "owns the checks over it and `docs/SPEC-COVERAGE.md` owns the rules.\n-/\n\n" ++
+    assuranceDescription ++ "-/\n\n" ++
     "import Gates\n\n" ++
     s!"namespace {std.rowsNamespace}\n\n" ++
     "open Gates.Census\n\n" ++

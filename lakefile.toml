@@ -73,7 +73,7 @@ root = "bin.Census"
 [[require]]
 name = "hash"
 git = "https://github.com/pure-algebra/lean4-hash"
-rev = "2447edd76649f035e989914ac899831d66e7dad2"
+rev = "0168306b7068b97758e3f2d4307eeb97aa31a104"
 
 # The generic effect algebra every standard here builds against (RS-D1 as
 # ruled in lean4-effect4 docs/EFFECTS-SPLIT-PLAN.md, EP-9), now with signature

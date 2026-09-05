@@ -1,6 +1,24 @@
 # The Infra Standard as proof obligations
 
-Status: **DRAFT, 2026-09-03.** An analysis of `vendor/whatwg-infra-3f984adc/infra.bs`
+Status: **DRAFT proof plan, 2026-09-03; integration repair in progress 2026-09-05.**
+Commit `c610a5e` added the text implementations and definition scanner before
+the planned proof packets. The integration repair imports those existing
+modules through `Whatwg.Infra`, fixes elaboration without changing public
+signatures, and adds the missing `census/infra/types.tsv` plus the two generated
+projections. `lake exe census --standard infra` checks the pinned bytes and
+projection drift; it does not supply a theorem numerator. Every generated
+Infra row remains `absent`. The packet order and proposed theorem obligations
+below remain unfinished; compilation is not closure of `INFRA-PG-TEXT`.
+
+The authored census dispositions classify the four realm-bound JavaScript
+JSON entry points as `foreignBoundary`, and all four list/map sorting
+definitions as `requirement`. This supersedes this draft's suggested
+`hostOnly` classification of the intrinsic calls: their wrappers still owe
+stepwise laws under named boundary profiles. The two non-exported `from` and
+`to` parameters of `list/slice` are local algorithm binders, not global
+definition rows; the non-exported JSON conversion algorithm remains a row.
+
+The original analysis follows. An analysis of `vendor/whatwg-infra-3f984adc/infra.bs`
 at the W5 pin, written before any Infra census, contract, or declaration
 exists. Every `INFRA-R*` item is a proposed ruling and every theorem shape is
 a proposal; nothing here is proved and nothing here is a Model Claim. The
@@ -284,7 +302,9 @@ transcribes as a function returning the collected prefix and the new
 position; the obligations are that the result is the longest prefix from
 the position satisfying the condition (agreement with `List.takeWhile` on
 the dropped list), that the new position is the old plus the result's
-length, and that the position never passes the end. Substrings: result
+length, and that the position never passes the end provided it starts at or
+before the end. An initially out-of-bounds position stays unchanged; the
+unconditional bound proposed in the original draft is superseded. Substrings: result
 length equals the requested length, `substring s 0 s.length = s`, the
 positions-between-units reading (substring 0 to 0 of the empty string is
 the empty string), and the spec's own 👽 example as a witness that the code
@@ -302,13 +322,20 @@ family:
   adjacent whitespace and every whitespace is SPACE), and it is the identity
   on inputs already in normal form;
 - strictly split then concatenate with the delimiter is the identity, and
-  the converse holds exactly when no item contains the delimiter, with the
-  failing case (`["a,b"]`) as a witness;
+  the proposed converse needs at least a nonempty token list with no item
+  containing the delimiter, with `["a,b"]` and `[]` as failing cases. The
+  precise delimiter domain remains open: concatenating UTF-16 units can
+  form a surrogate pair, so these premises alone are not yet a sufficient
+  contract for arbitrary code-point delimiters. The nonempty premise
+  supersedes the original draft: strictly splitting an empty concatenation
+  produces one empty token, not an empty token list;
 - split on ASCII whitespace yields nonempty tokens containing no whitespace
   and is invariant under strip-and-collapse of the input; split on commas
-  keeps empty tokens (`",,"` gives three empty strings) and strips each
+  keeps leading and internal empty tokens (`",,"` gives two empty strings),
+  does not synthesize an empty token after a final comma, and strips each
   token, which is the lenient-versus-strict contrast the text's note draws
-  and a witness pins.
+  and a witness pins. `WS-INFRA-CE-001` refutes this draft's former
+  three-empty-token expectation; three tokens is the strictly-split result.
 
 ### 4.6 Codecs
 

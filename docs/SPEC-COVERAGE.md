@@ -1,6 +1,9 @@
 # Specification coverage
 
-> Scope: the Streams Standard. `Whatwg.Infra` is pinned (W5 of `docs/WHATWG-PACKAGE-PLAN.md`) but has no census yet; its coverage gets its own denominator when its P1 lands.
+> Scope: the report below is Streams-specific. Infra has a definition census
+> and an all-absent generated row list, checked by `lake exe census --standard
+> infra`; it has no authored theorem numerator or coverage report yet. The two
+> standards never share a denominator.
 
 This document owns the definition, vocabulary, and reporting format of the
 specification coverage metric. Numbers live in generated and emitted facts,
@@ -29,7 +32,8 @@ generator refuses any other bytes.
 **Row kinds** (`kind` column, fixed): `op` (an abstract operation or
 algorithm block), `slot` (an internal slot), `idl` (an IDL attribute,
 method, or constructor), `requirement` (a stated requirement, as in piping),
-`rule` (a cross-cutting rule the text states in prose). A row id is
+`rule` (a cross-cutting rule the text states in prose), `type` (a carrier
+definition in a definition-keyed standard such as Infra). A row id is
 `<kind>.<kebab-name>` and is stable for the life of the census.
 
 **Disposition** is the `SPEC-MANIFEST.md` vocabulary and answers who owns the

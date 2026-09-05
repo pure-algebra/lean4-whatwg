@@ -1,5 +1,6 @@
 import Gates
 import WhatwgTest.Streams.Counterexamples.Data.Queue
+import WhatwgTest.Streams.Counterexamples.Infra.Split
 import WhatwgTest.Streams.Data.QueueContract
 import WhatwgTest.Streams.Data.QueueAxiomReport
 import WhatwgTest.Html.DecideBenchmark
@@ -8,6 +9,7 @@ import WhatwgTest.Html.Builders
 import WhatwgTest.Html.Breakers
 import WhatwgTest.Html.Print
 import WhatwgTest.Audit.SpecCoverage
+import WhatwgTest.Audit.Infra.SpecCoverageRows
 import WhatwgTest.Audit.AxiomGate
 
 /-!

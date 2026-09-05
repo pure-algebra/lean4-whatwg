@@ -95,6 +95,33 @@ when their implementation is not imported.
 
 ## Current phase
 
+**Current integration work, 2026-09-05 (base `c1c7caa`):** P3 remains the
+last landed Streams semantic packet; P4 default-readable is in independent
+breaker preparation. The package now also contains HTML H1–H4 and the Infra
+text implementations introduced by `c610a5e`. Their former empty/uncommitted
+descriptions below are historical, not the current checkout state.
+
+The Infra merge broke the existing Streams coverage caller and introduced
+unelaborated codec and ordering definitions. The integration slice repairs
+those failures without widening their public signatures, imports the Infra
+modules into the audited root, and connects the definition census to CI.
+Infra's generated row list has no claimed theorem witnesses; its semantic
+proof packets and assurance records remain open. The hash configuration is
+restored to the exact `0168306` pin already carried by the manifest and
+provenance after the configured `2447edd` revision could not be fetched.
+The full reification still requires P4–P12 and the breadth contracts listed
+above; neither this integration slice nor the HTML work closes those phases.
+
+Integration verification, 2026-09-05: `lake --log-level=warning build`
+passed all 247 jobs. The root's axiom gate checked 113 modules and 6540
+declarations under R-11; the six `WS-INFRA-CE-001` finite probes reach only
+`propext`, `Quot.sound`, and `Classical.choice`. The built vendor seal,
+citations, TyXML schema, Streams census/report, and Infra census executables
+all passed. An independent read-only review checked the source corrections,
+dispositions, generated assurance wording, and residual proof scope. Infra's
+text graph and full Streams P4–P12 remain open; these integration receipts
+do not add a semantic coverage witness.
+
 P0 is complete. The package is an independent Lean 4.33.1 package with no
 dependencies. The six routers exist. The specification source, its reference
 implementation, and the WPT `streams/` directory are vendored at exact
