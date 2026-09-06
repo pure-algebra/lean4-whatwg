@@ -1,0 +1,23 @@
+# Authored explanatory regions. These reasons do not waive linked semantic obligations.
+# byte-start	byte-end	reason
+828	2326	Editorial goals and list structure explain the standard's interoperability and API scope. The concrete parser/serializer/API idempotence goal has its own requirement.parser-serializer-api-idempotence row inside this region.
+2328	2440	Editorial statement that the goals may evolve; it defines no current algorithm or requirement beyond the pinned goals.
+15727	16152	Two finite examples of type.parser-pointer, op.parser-current-code-point and op.parser-remaining-input, including the invalid negative-pointer access. Retain as future contract witnesses, not additional canonical operations.
+25459	27305	Finite percent-encoding and decoding examples for the preceding operations, including malformed escapes and legacy encoder cases. These are source evidence for those contracts, not independently named operations or executed host results.
+29292	30976	Finite host parse/serialize examples distinguish opaque and non-opaque profiles. Retain as witnesses for op.host-parser, op.host-serializer and rule.host-operation-contracts; they do not replace those algorithms or general laws.
+35602	36871	Finite public-suffix and registrable-domain examples for op.host-public-suffix and op.host-registrable-domain. Their Public Suffix List dependency and the security advice remain separate obligations.
+42184	42394	The class=XXX editorial issue proposes a future formulation of op.valid-domain. It does not replace the pinned definition or grant that proposed change semantic authority.
+44169	44342	Informative RFC 5952 rationale for the existing IPv6 writing predicates and effective piece length, including the already retained no-leading-zero rule. It adds no independent parser rejection rule.
+44618	44741	Note distinguishing the context-sensitive opaque-host writing predicate from op.valid-host-string. Retain that context distinction in their contract and dependency records.
+63360	63761	The class=XXX certificate-comparison discussion identifies an external use requiring different equivalence and DNS constraints, and asks for future design input. It does not change op.host-equality; its trailing-dot distinction remains a boundary witness.
+64880	67566	Finite URL parse/serialize examples and their serialized base/output notation. Retain as contract witnesses for op.url-parser, op.url-serializer and rule.url-operation-contracts, with validation errors distinct from failure.
+74568	74691	Explanatory purpose of the existing type.base-url-role for relative inputs. The actual base-dependent parser and grammar clauses have their own source rows.
+75617	75835	Three finite examples of op.starts-with-windows-drive-letter. They remain witnesses for that predicate, including the c:a rejection.
+83704	84154	Finite HTML document example contrasting Windows-1252 and UTF-8 query encoding. It witnesses rule.url-query-legacy-encoding and its external Encoding/HTML boundary, rather than defining a second query algorithm.
+130534	131114	Historical design criticism and interoperability rationale for the form format. The ordered tuple format, parsing, serialization and encoding constraints have their own rows.
+138761	139927	URL constructor and base-stringification examples. Retain as witnesses for op.api-url-constructor, the URL IDL conversions and op.api-url-href-getter-and-to-json; examples do not establish a host result.
+150665	150957	Finite URLSearchParams construction and stringification example for op.api-url-search-params-constructor and op.api-url-search-params-stringification.
+157673	158395	Finite URLSearchParams sort/copy examples and cache-hit motivation. Stable sort and mutation are owned by op.api-url-search-params-sort, its constructor and update rules.
+159585	159692	Immutable-data rationale for requirement.external-api-url-exposure; the exposure and USVString advice remain in that source row.
+160022	160155	HTML naming examples illustrating requirement.external-api-url-naming, not new URL operations or declarations.
+160213	162680	Acknowledgments, contributors and authorship metadata. No URL algorithm, declaration, conformance requirement or proof obligation is stated here.

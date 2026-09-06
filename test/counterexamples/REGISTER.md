@@ -6,6 +6,7 @@ attack. Statuses are defined in `README.md` beside this file.
 
 | ID | Status | Attacked statement | Witness / evidence | Forced repair |
 | --- | --- | --- | --- | --- |
+| `URL-CEN-CE-001` | `CLOSED` | A census explanation reason must contain a character outside the five ASCII whitespace characters | `WhatwgTest/Url/Counterexamples/Census.lean`, frozen at `cb4cee5`; packet `test/counterexamples/url/CENSUS.md`; FF-only and mixed whitespace-only reasons both failed against the initial join | explicit five-character ASCII whitespace predicate; both frozen refusals and the original census battery pass; default build, actual axiom receipt and repository gates pass; independent review confirms the repair |
 | `URL-INV-CE-001` | `CLOSED` | URL inventory preserves the full normalized `for` owner | `WhatwgTest/Url/Counterexamples/Inventory.lean`; packet `test/counterexamples/url/INVENTORY.md`; finite tooling output observation | removed uncontracted first-comma truncation from `definitionLabel` |
 | `URL-INV-CE-002` | `CLOSED` | ASCII form feed is whitespace in class tokens and visible labels | same retained battery and packet; finite class/paragraph inputs | normalize all five ASCII whitespace characters consistently |
 | `URL-INV-CE-003` | `CLOSED` | `xmp` content is raw text, including literal IDL generics and apparent tags | same retained battery and packet; finite raw-generic and fake-definition inputs | tokenize raw `xmp` content without treating its interior as source markup |
@@ -33,6 +34,16 @@ elaborated the witnesses here until the SHA-256 lane moved to lean4-hash at
 step 6 of `docs/HASH-PACKAGE-PLAN.md`; the rows, their kernel-checked
 witnesses, and the attack shapes now live in that repository under the same
 IDs, and `test/counterexamples/sha/ATTACKS.md` here is a pointer.
+
+The `URL-CEN-CE-001` row closes a finite source-tooling regression. The
+separate breaker observed both assertions fail before the repair. The
+original census battery and both retained refusal probes pass unchanged,
+and the default build checks 130 modules and 6896 declarations. The actual
+`Gates.UrlCensus.assign` axiom receipt is
+`[propext, Classical.choice, Quot.sound]`; there is no general theorem or
+URL execution claim in these probes. All repository gates pass and the
+independent reviewer confirms the whitespace repair. The source census and
+coverage graph remain open.
 
 The `URL-INV-CE-*` rows are finite source-tooling regressions frozen by a
 separate breaker in `4e4e880`, `6db5ec2`, and `a60add5`. All ten assertions

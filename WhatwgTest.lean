@@ -1,6 +1,8 @@
 import Gates
 import WhatwgTest.Url.InventoryContract
 import WhatwgTest.Url.Counterexamples.Inventory
+import WhatwgTest.Url.CensusContract
+import WhatwgTest.Url.Counterexamples.Census
 import WhatwgTest.Infra.Counterexamples.CommaSplit
 import WhatwgTest.Streams.Counterexamples.Data.Queue
 import WhatwgTest.Streams.Data.QueueContract

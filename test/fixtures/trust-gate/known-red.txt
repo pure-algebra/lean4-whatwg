@@ -36,4 +36,4 @@
 
 # U2b independent review witness URL-CEN-CE-001.
 # Attack record: test/counterexamples/url/CENSUS.md.
-WhatwgTest.Url.Counterexamples.Census
+# Green after justification repair; the two frozen refusal assertions remain in the test root.

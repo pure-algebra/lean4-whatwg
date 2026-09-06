@@ -1,7 +1,8 @@
 # URL reification plan
 
-Status: U0/U1 setup verified, U2 source inventory implemented and reviewed,
-semantic census still open, 2026-09-05, on `codex/url-reification`
+Status: U0/U1 setup and U2a inventory verified; U2b strict join tested and
+source-span inputs reviewed; semantic census still open, 2026-09-05,
+on `codex/url-reification`
 from `main` at `c1c7caa`. The requested end state is the WHATWG URL Standard
 reified in Lean 4 with specification-level algorithms and laws, strong proof
 assurance, and idiomatic native Lean APIs. A pin or compiling scaffold alone
@@ -52,6 +53,20 @@ existing Infra owners, with measurements when representation choices affect
 kernel reduction or compiled execution. A convenient carrier, finite probe,
 or automation tactic is not evidence of semantic fidelity. No `sorry`, new
 axiom, `native_decide`, or `bv_decide` closes an obligation.
+
+The user's 2026-09-05 objective additionally minimizes `Classical.choice`
+in proofs as far as practical. Constructive definitions and proofs are the
+default for this lane. Each semantic declaration's receipt must inspect its
+actual transitive axioms, including dependencies in its statement; absence
+of a written `classical` command is insufficient. Prefer the canonical
+Infra byte/code-point/string carriers, explicit decidable predicates and
+structural induction. Before retaining a dependency on choice, identify its
+exact path and try a constructive proof or an existing constructive API.
+Keep any remaining dependency and the reason it remains in that declaration's
+assurance record. Tooling and host-facing text adapters have separate receipts
+so their dependencies cannot be mistaken for a requirement of URL semantics.
+The repository's standard-base ceiling still rejects forbidden axioms; its
+permission for `Classical.choice` is not this lane's proof-quality target.
 
 ## Dependency questions to close at U2
 
@@ -161,6 +176,72 @@ semantic spans, especially parser states, shared bodies, tables and lists.
 The remaining representative semantic contracts and U3–U10 work remain open.
 Independent re-review confirmed all five fixes and the unchanged frozen
 assertions; it found no additional actionable defect in the repairs.
+
+### U2b assignment and authored-source receipt
+
+Base: U2a builder `79c23294e0d4a4354f8376d9c83551635546af44`.
+The separate breaker committed the assignment packet at
+`6fe8b5c14db96f2d51a3004954af76947bdbc7bc` and retained the review regression
+at `cb4cee5a820ad484cae3b3c8dcf3ed63c40eb87e` before its repair. The builder
+landing contains `Gates/UrlCensus.lean`, its interface record, the authored
+`census/url/` inputs, source-review notes, test/root integration, registry
+closure and this handoff. No frozen packet or assertion is changed.
+
+`SourceRow` adapts the existing census row and disposition carriers.
+`Explanation` records a justified region and `Assignment` is a derived
+inventory view. Their single owner and frozen declarations are in
+`docs/URL-CENSUS-INTERFACE.md`. `assign` scans the source itself, validates
+unique anchors, IDs, origins, interval parents and dependency identities,
+and accounts for every candidate without an implicit exclusion. The
+original battery has 67 finite assertions. Independent review discovered
+form-feed-only explanations were accepted; the breaker retained two failing
+refusals before the explicit five-character ASCII whitespace repair.
+
+The authored span and explanation files now retain algorithm bodies,
+parser states, IDL statements, fields and initial values, validation-error
+table conditions, grammar lists, prose laws, rendering requirements and
+specific explanations of examples. Independent review checked the fixed-pin
+origin/interval forest and candidate assignments and confirmed the final
+data corrections. These files are not yet read by a repository gate.
+They do not supply dispositions, dependency pins or canonical declaration
+records. No URL denominator, semantic implementation, or semantic theorem
+is admitted by this checkpoint.
+
+| Command | Result |
+| --- | --- |
+| `lake build WhatwgTest.Url.CensusContract WhatwgTest.Url.Counterexamples.Census` | PASS; all 67 original assertions and both regression refusals unchanged |
+| `lake build` | PASS, 269 jobs; common gate checks 130 modules and 6896 declarations, including 1898 tooling declarations |
+| `lake exe vendorseal`, `lake exe citations`, `lake exe tyxmlschema`, `lake exe census`, `lake exe urlinventory` | PASS; existing projections remain unchanged |
+| `#print axioms Gates.UrlCensus.SourceRow`, `.Explanation`, `.Assignment` | no axioms |
+| `#print axioms Gates.UrlCensus.assign` | `[propext, Classical.choice, Quot.sound]` |
+
+The remaining graph edges are recorded in `docs/URL-CENSUS-DAG.md`; none is
+closed merely by these finite probes. The next source-tooling packet must
+read and validate the authored inputs, generate anchors/digests, and join
+reviewed dispositions, dependency identities, declaration records and
+coverage witnesses. Representative semantic contracts across all major URL
+areas remain required before implementation develops one area deeply.
+
+### Constructive dependency baseline
+
+In response to the added choice-minimization objective, actual axiom
+inspection at U2b found no axioms on the existing Infra `Byte`,
+`ByteSequence`, `CodePoint`, `CodePoint.ext`, `CodePoint.ofUnit`,
+`ScalarValue`, `JsString`, `JsString.unitsOfCodePoint`,
+`JsString.ofCodePoints`, or `JsString.identical`. `JsString.pairValue`,
+`codePoints`, `isScalarValueString` and `convert` reach only
+`[propext, Quot.sound]`. These are viable canonical proof inputs without
+`Classical.choice`; no duplicate carrier is needed for that purpose.
+
+`JsString.ofLiteral` does reach choice. A dependency-path inspection traced
+it through `String.toList`, `String.Internal.toArray`, the UTF-8 decoding
+proofs and `Classical.propDecidable`. The U2b tooling join has a separate path
+through the inventory's IDL scanner and Lean's string-pattern search proofs.
+These are actual remaining dependencies, not removed by this checkpoint.
+The existing scalar/`Char` bridge also has choice-bearing helper proofs;
+constructive replacement of those proof terms is a useful next dependency
+repair for native Lean ergonomics. Its statements and runtime carriers must
+remain fixed and its own breaker/axiom receipts precede any trust claim.
 
 The initial `lake build` was run before the URL scaffold existed. It exposed
 pre-existing failures in `Whatwg/Infra/Text/Order.lean` (length/bounds proof
