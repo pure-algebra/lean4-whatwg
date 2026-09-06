@@ -26,6 +26,6 @@
 # Packet: test/contracts/url-inventory.contract.md.
 # Green after scanner implementation; frozen battery remains imported by WhatwgTest.
 
-# U2a independent review witnesses URL-INV-CE-001 through URL-INV-CE-003.
+# U2a independent review witnesses URL-INV-CE-001 through URL-INV-CE-004.
 # Attack record: test/counterexamples/url/INVENTORY.md.
 WhatwgTest.Url.Counterexamples.Inventory

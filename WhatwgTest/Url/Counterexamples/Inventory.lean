@@ -2,7 +2,7 @@ import Gates.UrlInventory
 
 /-!
 Independent URL inventory review regressions, frozen before repair.
-Stable witnesses: `URL-INV-CE-001`, `URL-INV-CE-002`, and `URL-INV-CE-003`.
+Stable witnesses: `URL-INV-CE-001` through `URL-INV-CE-004`.
 Attack record: `test/counterexamples/url/INVENTORY.md`.
 
 These are finite executable tooling probes, not URL semantic theorems or arbitrary-source laws.
@@ -53,5 +53,13 @@ private def uppercaseCloseIdlSource :=
   (.idl, "interface Example {", "", "interface Example {"),
   (.idl, rawIdlMember, "", rawIdlMember)]
 #guard views "<xmp><dfn id=fake>fake</dfn></xmp>" == some #[]
+
+-- URL-INV-CE-004: the supported top-level form is an ordinary named interface.
+#guard match scan "<pre class=idl>\ninterface {\n};\n</pre>".toUTF8 with
+  | .error _ => true
+  | .ok _ => false
+#guard match scan "<pre class=idl>\ninterface mixin M {\n};\n</pre>".toUTF8 with
+  | .error _ => true
+  | .ok _ => false
 
 end WhatwgTest.Url.Counterexamples.Inventory

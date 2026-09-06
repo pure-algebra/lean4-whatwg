@@ -53,6 +53,18 @@ apply raw-text handling through the matching `xmp` close. It must retain the
 normal markup treatment of `pre`. This interpretation of the existing
 `xmp` support is recorded in the interface by the coordinator before repair.
 
+## URL-INV-CE-004 — interface prefix admits unsupported headers
+
+The supported IDL top-level form is an ordinary named interface, with
+optional named inheritance as recorded in the interface contract. The
+fixtures `interface {` and `interface mixin M {`, each inside a closed
+`pre class=idl` block and followed by `};`, must return an error.
+
+The reviewed scanner accepts both because it checks only the `interface `
+prefix and the final opening brace. The repair must validate the declared
+header form without broadening the packet into a full Web IDL validator.
+These two negative probes add no new requirement on delimited member bodies.
+
 ## Verification and retention
 
 Narrow red/green command:
@@ -61,10 +73,13 @@ Narrow red/green command:
 lake build WhatwgTest.Url.Counterexamples.Inventory
 ```
 
-All six expected outputs are frozen `#guard` assertions. Their private
-projection checks each row's byte bounds and compares kind, label, section,
+All eight expected outputs are frozen `#guard` assertions. The six positive
+expectations use a private projection; the two header refusals match
+`Except.error` directly. The private projection checks each row's byte
+bounds and compares kind, label, section,
 and exact source bytes. No expected label calls the production normalizer.
-The initial red run is recorded in the breaker handoff; it must report
+The initial and follow-up red runs are recorded in the breaker handoffs;
+they must report
 failed assertions against the existing scanner, rather than missing imports
 or malformed Lean syntax. The coordinator records the result and later
 repair status centrally.
