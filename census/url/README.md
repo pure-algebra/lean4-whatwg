@@ -18,14 +18,28 @@ for explanatory source regions. Notes that state a law, constraint or
 audience-specific requirement retain a source row. Explanations of examples
 name their related source rows so the examples remain available as witnesses.
 
-These offsets and origin choices are authored decisions; their span digests
-and unique anchors belong in the later Lean-generated census. The files are
-not yet inputs to a repository gate. Dispositions, dependencies and
-canonical-owner records must be joined separately before cutover. Missing
+`dispositions.tsv` classifies the nearest source section and row kind;
+`overrides.tsv` records any justified row-specific exception. Every rule
+must be used, and each row must resolve without an inferred default.
+`dependencies.tsv` gives exactly one explicit dependency list per row;
+`externals.tsv` names the external identities used by those lists.
+`docs/URL-DEPENDENCIES.md` defines their meanings and open obligations.
+
+These offsets and origin choices are authored decisions. `lake exe urlcensus`
+reads all six files, checks the pinned source and strict joins, and compares
+`generated/url-census.tsv` and `generated/url-source-assignments.tsv` against
+a fresh Lean regeneration. `lake exe urlcensus --write` writes both outputs.
+The census contains each span and unique in-span prefix anchor's digest;
+both outputs hash the exact bytes of all six authored inputs. The format
+and reader are frozen in `docs/URL-CENSUS-INPUT-INTERFACE.md`.
+
+Canonical-owner records, external semantic assurance, declaration snapshots
+and the numerator/report still require their separate joins. Missing
 source assignments are errors under `docs/URL-CENSUS-INTERFACE.md`, not
 implicit exclusions. `docs/URL-SOURCE-REVIEW.md` retains the source-reading
 obligations and review evidence. An interval assignment is not evidence that
-the rows have correct semantic dispositions or that their laws hold.
+the rows' laws hold. Independent review of the dispositions and dependency
+meanings remains distinct from the mechanical identity checks.
 
 Host and hostname parser cases share one clause span and have two origins.
 The basic parser is their parent, as it is for the other state clauses.

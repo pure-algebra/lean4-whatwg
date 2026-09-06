@@ -5,6 +5,7 @@ import Gates.Citations
 import Gates.Census
 import Gates.UrlInventory
 import Gates.UrlCensus
+import Gates.UrlCensusInput
 import Gates.TyxmlSchema
 import Gates.TyxmlSchemaEmit
 import Gates.TrustSelfTest

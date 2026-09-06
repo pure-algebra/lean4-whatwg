@@ -150,3 +150,24 @@ candidate and no unused explanatory region. These are bounded source-data
 checks, not a repository gate, proof, disposition admission or denominator.
 The strict Lean join currently has its own finite fixture battery; a later
 packet must read the authored files and join all classification metadata.
+
+## U2c metadata review receipt
+
+The independent reader reviewed the disposition rules and the dependency
+list for every authored span against the same raw pin. It found no wrong
+disposition or invented external pin. The 29 IDL rows retain their binding
+dependencies, URL wrappers stay locally owned, and external semantics remain
+open under `docs/URL-DEPENDENCIES.md`.
+
+The review identified and then confirmed three repairs: explicit Infra
+surrogate/noncharacter dependencies for URL code points; code-point,
+code-point-length and EOF dependencies for the parser pointer; and the
+retained UTF-8 advisory dependency for byte percent-decoding. The latter is
+not a decoder invocation by its byte loop. All external identities are used;
+broad operation families still need exact declaration mappings.
+
+U2c's Lean reader now validates these authored inputs and generates both
+the census and candidate-assignment projections. An independent Python
+`hashlib`/raw-byte pass agrees with every generated span, minimal unique
+anchor, assignment and input digest. Neither the review nor these source
+projections establish a URL execution theorem or a coverage numerator.

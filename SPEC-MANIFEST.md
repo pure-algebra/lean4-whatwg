@@ -5,7 +5,9 @@ section-by-section dispositions of the WHATWG Streams Standard for this
 repository, and, since slice W5 of `docs/WHATWG-PACKAGE-PLAN.md`, the
 authority pins of the Infra, HTML, and URL Standards. The original disposition
 tables and coverage report are Streams-scoped; the URL bootstrap survey below
-is separate and has no census denominator yet. `docs/PROVENANCE.md` owns the fetch record and cross-check of
+is separate. Its reviewed source census is projected by `lake exe urlcensus`;
+the declaration/numerator join and URL coverage denominator remain unadmitted.
+`docs/PROVENANCE.md` owns the fetch record and cross-check of
 every digest quoted here; `generated/vendor-manifest.tsv` owns the per-file
 digests of the vendored bytes.
 
@@ -17,7 +19,7 @@ authored input.
 
 | Authority | Exact pin | Role |
 | --- | --- | --- |
-| WHATWG URL Standard source | `whatwg/url` commit `55d6699373ba68a16ec182f34222a74ed8bc3dac`, 2026-08-18, "Review Draft Publication: August 2026"; `url.bs` SHA-256 `a5aa827f544f9077912dc1553cfd9025b6afa4e996460074b5f67d83e0f3c805`, 162,680 bytes; CC-BY 4.0 with BSD-3-Clause for source-code portions | semantic owner for `Whatwg.Url`; bootstrap U0/U1 of `docs/URL-PACKAGE-PLAN.md`; URL section survey below, no URL census or semantic declarations yet |
+| WHATWG URL Standard source | `whatwg/url` commit `55d6699373ba68a16ec182f34222a74ed8bc3dac`, 2026-08-18, "Review Draft Publication: August 2026"; `url.bs` SHA-256 `a5aa827f544f9077912dc1553cfd9025b6afa4e996460074b5f67d83e0f3c805`, 162,680 bytes; CC-BY 4.0 with BSD-3-Clause for source-code portions | semantic owner for `Whatwg.Url`; URL section survey below and U2c source census in `docs/URL-PACKAGE-PLAN.md`; no semantic declarations or admitted coverage denominator yet |
 | Web Platform Tests `url/` | existing `web-platform-tests/wpt` commit `480fdfcd85d043c23875665f464c35c0043dff52`; 49 files, retained with the existing root `LICENSE.md` | URL host test corpus; fetched only, no host run or theorem evidence |
 | WHATWG Streams Standard source | `whatwg/streams` commit `b9ba9f49d95b4280be0dc2372377a006c3a91c18`, 2026-08-18, "Review Draft Publication: August 2026"; `index.bs` SHA-256 `24360b4f8446e6c80e185c5021fcca9b67a7e0bb62490a00109080ebc04c6440`, 417,076 bytes | **semantic owner** |
 | WHATWG Infra Standard source | `whatwg/infra` commit `3f984adcd24a6d5c53cc26b3e737701808003f3e`, 2026-07-17, "Review Draft Publication: July 2026"; `infra.bs` SHA-256 `7c38e6e25ef21f536142cfc6d94954c41bc9889cd0b6fd67ab34571215acd8eb`; CC-BY 4.0 | semantic authority for `Whatwg.Infra`, the value universe (Stratum V); pinned at W5, no dispositions yet |

@@ -44,8 +44,8 @@
 
 # U2c authored census input and projection, frozen 2026-09-05 by the independent breaker.
 # Packet: test/contracts/url-census-input.contract.md.
-WhatwgTest.Url.CensusInputContract
+# Green after reader implementation; all frozen assertions remain imported by WhatwgTest.
 
 # U2c independent review witness URL-INP-CE-001.
 # Attack record: test/counterexamples/url/CENSUS-INPUT.md.
-WhatwgTest.Url.Counterexamples.CensusInput
+# Green after preserving field CR bytes across the shared-parser handoff; all five probes retained.

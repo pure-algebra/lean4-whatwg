@@ -1,8 +1,9 @@
 # URL census assurance graph (`URL-PG-CENSUS`)
 
 Status: open, 2026-09-05. This document owns the graph for the URL census
-cutover. `docs/URL-INVENTORY-INTERFACE.md` owns the U2a tooling declaration
-records; `docs/URL-PACKAGE-PLAN.md` owns phases. No URL denominator or
+cutover. The URL inventory, census and census-input interface documents own
+their respective tooling declaration records; `docs/URL-PACKAGE-PLAN.md`
+owns phases. No URL denominator or
 coverage state is established by this graph or by source candidate counts.
 
 The authority is the pinned `url.bs` in `SPEC-MANIFEST.md`, with fetch and
@@ -23,19 +24,19 @@ their separately frozen obligations are fulfilled.
 
 | Edge | State | Evidence and remaining obligation |
 | --- | --- | --- |
-| identity | `required-open` | Source pin and lexical spans are checked by `lake exe urlinventory`. U2b has reviewed authored source identities/spans and a strict origin/owner join; the fixed-pin data reader, generated anchors/digests and exactly-one disposition/declaration joins remain open. |
-| construction | `required-open` | U2a has executable source inventories. U2b adapts the canonical `Gates.Census.Row` through `Gates.UrlCensus.SourceRow`, with frozen finite assignment probes. Authored dispositions and generated assurance joins remain to be implemented under their own packet. |
-| semantics | `required-open` | Independent review accounts for every current source candidate through a containing row, a specific explanation or a heading. Modal requirements, law prose and shared bodies are retained. The authored files are not yet read by a Lean data gate; semantic dispositions, dependencies and declaration correspondence remain unadmitted. |
-| laws | `required-open` | U2a checks partition and deterministic regeneration. U2b's frozen finite battery exercises row/explanation/dependency rejection and complete candidate assignment; it is not a theorem for arbitrary input. No unused disposition input and numerator/denominator agreement still require their own checks. |
+| identity | `required-open` | `urlinventory` checks the pin and lexical spans. U2c's `urlcensus` reads the six authored inputs and checks unique in-span anchors, raw source/input/span digests, origin/owner joins and exactly-one disposition resolution. Canonical declaration/assurance identity joins remain open. |
+| construction | `required-open` | U2b adapts the canonical `Gates.Census.Row` through `SourceRow`. U2c's `Inputs` is only a raw authored-file view; the two source projections are Lean-generated and checked for byte drift. Generated declaration and assurance joins remain open. |
+| semantics | `required-open` | Independent review accounts for every candidate through a containing row, specific explanation or heading; it reviews each authored disposition and dependency list. Modal requirements, law prose and shared bodies are retained. Dependencies name obligations, not implementations. Declaration correspondence and semantic assurance remain open. |
+| laws | `required-open` | U2a/U2b/U2c retain frozen finite scanner, join, syntax, priority, anchor and exact-projection probes. U2c rejects unresolved rows and unused dispositions, overrides and dependency inputs. These are finite tooling receipts, not general parser laws; numerator/denominator agreement remains open. |
 | representation | `required-open` | Candidate keys are pin-local ordinals. U2b's interval forest retains parser states, shared host/hostname bodies, tables/lists and initial values. Canonical-owner relationships to Infra and other standards still require per-declaration records and checked joins. |
-| counterexamples | `required-open` | Original inventory and census acceptance packets are frozen. `URL-INV-CE-*` and the independently retained `URL-CEN-CE-001` are closed finite regressions. Fixed-pin data-reader, disposition and coverage-join attacks remain to be frozen. |
+| counterexamples | `required-open` | Inventory, assignment and U2c authored-input packets are frozen; retained regression identities and current closure states are owned by the central register. Coverage/declaration-join attacks still require their own packet. |
 | bridges | `not-applicable` | No host, third-party implementation, or cross-language equivalence is claimed by source census tooling. Those bridges belong to their URL semantic families. |
 | targets | `not-applicable` | The TSV is an inventory projection, not executable URL target code. No TypeScript lowering is introduced. |
-| trust | `required-open` | U2a and U2b scanner/join/test declarations enter the common module and standard-base axiom audit; actual receipts are in the URL plan. Remaining data-reader and assurance modules must enter it before cutover. Choice minimization is a separate proof-quality objective and does not silently remove tooling dependencies from the receipt. |
-| coverage | `required-open` | No URL coverage denominator exists. All intended rows need reviewed dispositions and a checked numerator join before any URL report can be emitted under `docs/SPEC-COVERAGE.md`. |
+| trust | `required-open` | Scanner, assignment and U2c reader/test declarations enter the common module and standard-base axiom audit; actual receipts are in the URL plan. Future assurance modules must enter it before cutover. Choice minimization does not silently remove tooling dependencies from the receipt. |
+| coverage | `required-open` | No admitted URL coverage denominator or report exists. Authored source classifications now have a checked projection; the declaration/numerator join and its gate remain required under `docs/SPEC-COVERAGE.md`. |
 
 This graph cannot close from a passing finite input, fixed-pin candidate
-count, or reproducible TSV alone. U2b's exact interface is owned by
-`docs/URL-CENSUS-INTERFACE.md`. Its next packet must freeze the fixed-pin
-data reader, the disposition/dependency/canonical-owner inputs and their
-generated joins. No URL coverage report is admitted at this checkpoint.
+count, or reproducible TSV alone. U2b and U2c's exact interfaces are owned by
+`docs/URL-CENSUS-INTERFACE.md` and `docs/URL-CENSUS-INPUT-INTERFACE.md`.
+The next packet must freeze the canonical-owner/declaration/assurance
+inputs and their generated joins. No URL coverage report is admitted here.
