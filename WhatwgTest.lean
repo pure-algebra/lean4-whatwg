@@ -4,6 +4,7 @@ import WhatwgTest.Url.Counterexamples.Inventory
 import WhatwgTest.Url.CensusContract
 import WhatwgTest.Url.Counterexamples.Census
 import WhatwgTest.Infra.Counterexamples.CommaSplit
+import WhatwgTest.Infra.ScalarConstructiveContract
 import WhatwgTest.Streams.Counterexamples.Data.Queue
 import WhatwgTest.Streams.Data.QueueContract
 import WhatwgTest.Streams.Data.QueueAxiomReport

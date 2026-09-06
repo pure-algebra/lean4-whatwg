@@ -40,4 +40,4 @@
 
 # Infra scalar/Char constructive dependency witness INFRA-SCALAR-CE-001.
 # Packet: test/contracts/infra-scalar-constructive.contract.md.
-WhatwgTest.Infra.ScalarConstructiveContract
+# Green after constructive proof repair; the exact signatures and axiom ceiling remain in the test root.

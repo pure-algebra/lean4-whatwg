@@ -238,10 +238,16 @@ it through `String.toList`, `String.Internal.toArray`, the UTF-8 decoding
 proofs and `Classical.propDecidable`. The U2b tooling join has a separate path
 through the inventory's IDL scanner and Lean's string-pattern search proofs.
 These are actual remaining dependencies, not removed by this checkpoint.
-The existing scalar/`Char` bridge also has choice-bearing helper proofs;
-constructive replacement of those proof terms is a useful next dependency
-repair for native Lean ergonomics. Its statements and runtime carriers must
-remain fixed and its own breaker/axiom receipts precede any trust claim.
+The scalar/`Char` bridge initially had choice-bearing helper proofs.
+The subsequent repair in `docs/INFRA-SCALAR-ASSURANCE.md` retains all nine
+existing signatures and conversion definitions and changes only two helper
+proof bodies. Independent breaker `9cf3216` first observed six transitive
+choice dependencies; the unchanged battery now checks all nine declarations
+against `[propext, Quot.sound]`. `ScalarValue.isValidChar` and `toChar` have
+no axioms. Both general inverse theorems meet the constructive ceiling.
+The default build and all repository gates pass; independent proof review
+found no defect. Local identity/coverage joins, string-adapter dependencies
+and the full URL reification remain open.
 
 The initial `lake build` was run before the URL scaffold existed. It exposed
 pre-existing failures in `Whatwg/Infra/Text/Order.lean` (length/bounds proof
