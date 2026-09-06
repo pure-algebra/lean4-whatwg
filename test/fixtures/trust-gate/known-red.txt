@@ -29,3 +29,7 @@
 # U2a independent review witnesses URL-INV-CE-001 through URL-INV-CE-005.
 # Attack record: test/counterexamples/url/INVENTORY.md.
 # Green after scanner repairs; the ten frozen assertions remain in the test root.
+
+# U2b source-to-census assignment, frozen 2026-09-05 by the independent breaker.
+# Packet: test/contracts/url-census.contract.md.
+WhatwgTest.Url.CensusContract
