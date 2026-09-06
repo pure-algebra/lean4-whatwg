@@ -145,38 +145,38 @@ example of section `strings` is "the concatenation of set using U+0020
 SPACE". -/
 
 example : collect CodePoint.isAsciiDigit (codePoints (ofLiteral "12ab")) 0 =
-    (codePoints (ofLiteral "12"), 2) := by decide
+    (codePoints (ofLiteral "12"), 2) := by decide +kernel
 
-example : collect CodePoint.isAsciiDigit (codePoints (ofLiteral "12ab")) 2 = ([], 2) := by decide
+example : collect CodePoint.isAsciiDigit (codePoints (ofLiteral "12ab")) 2 = ([], 2) := by decide +kernel
 
-example : collect CodePoint.isAsciiDigit (codePoints (ofLiteral "12ab")) 7 = ([], 7) := by decide
+example : collect CodePoint.isAsciiDigit (codePoints (ofLiteral "12ab")) 7 = ([], 7) := by decide +kernel
 
-example : skipAsciiWhitespace (codePoints (ofLiteral " \t x")) 0 = 3 := by decide
+example : skipAsciiWhitespace (codePoints (ofLiteral " \t x")) 0 = 3 := by decide +kernel
 
 example : strictlySplit (ofLiteral "a,,b") comma = [ofLiteral "a", ofLiteral "", ofLiteral "b"] := by
-  decide
+  decide +kernel
 
-example : strictlySplit (ofLiteral "") comma = [ofLiteral ""] := by decide
+example : strictlySplit (ofLiteral "") comma = [ofLiteral ""] := by decide +kernel
 
 example : strictlySplit (ofLiteral "a, b,") comma = [ofLiteral "a", ofLiteral " b", ofLiteral ""] := by
-  decide
+  decide +kernel
 
 example : splitOnAsciiWhitespace (ofLiteral "  a \t b\n ") = [ofLiteral "a", ofLiteral "b"] := by
-  decide
+  decide +kernel
 
-example : splitOnAsciiWhitespace (ofLiteral " \t ") = [] := by decide
+example : splitOnAsciiWhitespace (ofLiteral " \t ") = [] := by decide +kernel
 
 example : splitOnCommas (ofLiteral " a , ,b,") =
-    [ofLiteral "a", ofLiteral "", ofLiteral "b", ofLiteral ""] := by decide
+    [ofLiteral "a", ofLiteral "", ofLiteral "b"] := by decide +kernel
 
-example : splitOnCommas (ofLiteral "") = [] := by decide
+example : splitOnCommas (ofLiteral "") = [] := by decide +kernel
 
 example : concatenate [ofLiteral "a", ofLiteral "b", ofLiteral "c"] (some (ofLiteral " ")) =
-    ofLiteral "a b c" := by decide
+    ofLiteral "a b c" := by decide +kernel
 
-example : concatenate [ofLiteral "a", ofLiteral "b"] = ofLiteral "ab" := by decide
+example : concatenate [ofLiteral "a", ofLiteral "b"] = ofLiteral "ab" := by decide +kernel
 
-example : concatenate [] (some (ofLiteral " ")) = ofLiteral "" := by decide
+example : concatenate [] (some (ofLiteral " ")) = ofLiteral "" := by decide +kernel
 
 end JsString
 

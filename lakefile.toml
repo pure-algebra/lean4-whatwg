@@ -5,7 +5,7 @@ keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
 defaultTargets = ["Whatwg", "Gates", "WhatwgTest",
-                  "vendorseal", "citations", "census", "tyxmlschema"]
+                  "vendorseal", "citations", "census", "tyxmlschema", "urlinventory"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -44,6 +44,11 @@ srcDir = "bin"
 root = "Citations"
 
 [[lean_exe]]
+name = "urlinventory"
+srcDir = "bin"
+root = "UrlInventory"
+
+[[lean_exe]]
 name = "trustselftest"
 srcDir = "bin"
 root = "TrustSelfTest"
@@ -73,7 +78,7 @@ root = "bin.Census"
 [[require]]
 name = "hash"
 git = "https://github.com/pure-algebra/lean4-hash"
-rev = "2447edd76649f035e989914ac899831d66e7dad2"
+rev = "0168306b7068b97758e3f2d4307eeb97aa31a104"
 
 # The generic effect algebra every standard here builds against (RS-D1 as
 # ruled in lean4-effect4 docs/EFFECTS-SPLIT-PLAN.md, EP-9), now with signature

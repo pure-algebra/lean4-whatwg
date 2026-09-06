@@ -1,4 +1,7 @@
 import Gates
+import WhatwgTest.Url.InventoryContract
+import WhatwgTest.Url.Counterexamples.Inventory
+import WhatwgTest.Infra.Counterexamples.CommaSplit
 import WhatwgTest.Streams.Counterexamples.Data.Queue
 import WhatwgTest.Streams.Data.QueueContract
 import WhatwgTest.Streams.Data.QueueAxiomReport

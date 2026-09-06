@@ -38,7 +38,7 @@ def codeUnitPrefixLoop (potentialPrefix input : JsString) (i : Nat) : Bool :=
     if potentialPrefixCodeUnit ≠ inputCodeUnit then false
     else codeUnitPrefixLoop potentialPrefix input (i + 1)
 termination_by potentialPrefix.length - i
-decreasing_by simp only [JsString.length] at *; omega
+decreasing_by exact Nat.sub_lt_sub_left (Nat.lt_of_not_le hp) (Nat.lt_succ_self i)
 
 /-- A string `potentialPrefix` "is a code unit prefix of a string `input` if
 the following steps return true", section `strings`: "Let `i` be 0", then
@@ -72,12 +72,13 @@ def codeUnitSuffixLoop (potentialSuffix input : JsString) (i : Nat) (hi : 1 ≤ 
     let potentialSuffixIndex := potentialSuffix.length - i
     let inputIndex := input.length - i
     let potentialSuffixCodeUnit :=
-      potentialSuffix[potentialSuffixIndex]'(by simp only [JsString.length] at *; omega)
-    let inputCodeUnit := input[inputIndex]'(by simp only [JsString.length] at *; omega)
+      potentialSuffix[potentialSuffixIndex]'(Nat.sub_lt_self hi (Nat.le_of_not_lt hs))
+    let inputCodeUnit := input[inputIndex]'(Nat.sub_lt_self hi (Nat.le_of_not_lt hn))
     if potentialSuffixCodeUnit ≠ inputCodeUnit then false
     else codeUnitSuffixLoop potentialSuffix input (i + 1) (Nat.le_succ_of_le hi)
 termination_by potentialSuffix.length + 1 - i
-decreasing_by simp only [JsString.length] at *; omega
+decreasing_by
+  exact Nat.sub_lt_sub_left (Nat.lt_succ_of_le (Nat.le_of_not_lt hs)) (Nat.lt_succ_self i)
 
 /-- A string `potentialSuffix` "is a code unit suffix of a string `input` if
 the following steps return true", section `strings`: "Let `i` be 1", then
@@ -106,7 +107,7 @@ def firstDifferingIndex (a b : JsString) (n : Nat) :
     some ⟨n, Nat.lt_of_not_le ha, Nat.lt_of_not_le hb⟩
   else firstDifferingIndex a b (n + 1)
 termination_by a.length - n
-decreasing_by simp only [JsString.length] at *; omega
+decreasing_by exact Nat.sub_lt_sub_left (Nat.lt_of_not_le ha) (Nat.lt_succ_self n)
 
 /-- A string `a` "is code unit less than a string `b` if the following steps
 return true", section `strings`: "If `b` is a code unit prefix of `a`, then
@@ -128,11 +129,11 @@ def isCodeUnitLessThan (a b : JsString) : Bool :=
 tilde is composed of a single code unit 0xFF5E, while the smiley is composed
 of two code units 0xD83D and 0XDE00, so the smiley is code unit less than
 the tilde". -/
-example : isCodeUnitLessThan [0xD83D, 0xDE00] [0xFF5E] = true := by decide
+example : isCodeUnitLessThan [0xD83D, 0xDE00] [0xFF5E] = true := by decide +kernel
 
 /-- The converse of the same example: the tilde is not code unit less than
 the smiley. -/
-example : isCodeUnitLessThan [0xFF5E] [0xD83D, 0xDE00] = false := by decide
+example : isCodeUnitLessThan [0xFF5E] [0xD83D, 0xDE00] = false := by decide +kernel
 
 end JsString
 

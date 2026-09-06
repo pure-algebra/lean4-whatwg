@@ -16,11 +16,13 @@ jobs:
       # The production libraries and gate executables; the test root with its
       # elaboration-time axiom gate is built by the default targets below.
       - name: Build production libraries and gate executables
-        run: lake --wfail build Whatwg Gates vendorseal citations census tyxmlschema
+        run: lake --wfail build Whatwg Gates vendorseal citations census tyxmlschema urlinventory
       - name: Vendor seal in both directions
         run: lake exe vendorseal
       - name: Internal-citation gate
         run: lake exe citations
+      - name: URL source inventory projection drift
+        run: lake exe urlinventory
       # The TyXML schema projection (slice H1 of docs/HTML-PACKAGE-PLAN.md):
       # generated/tyxml-html-schema.tsv against a fresh regeneration from the
       # sealed vendor/tyxml-d2916535 sources, whose digests the gate refuses

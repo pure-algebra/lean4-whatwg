@@ -2,6 +2,11 @@
 
 > Scope: the Streams Standard. `Whatwg.Infra` is pinned (W5 of `docs/WHATWG-PACKAGE-PLAN.md`) but has no census yet; its coverage gets its own denominator when its P1 lands.
 
+> URL bootstrap: `Whatwg.Url` has its own pinned source and declaration-free
+> scaffold (`docs/URL-PACKAGE-PLAN.md`). URL has no census, numerator, or
+> coverage report yet and contributes no rows to the Streams report. U2
+> establishes its separate denominator and checked reporting path.
+
 This document owns the definition, vocabulary, and reporting format of the
 specification coverage metric. Numbers live in generated and emitted facts,
 never here. Read this before quoting, changing, or extending coverage.

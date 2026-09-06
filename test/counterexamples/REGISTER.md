@@ -6,6 +6,12 @@ attack. Statuses are defined in `README.md` beside this file.
 
 | ID | Status | Attacked statement | Witness / evidence | Forced repair |
 | --- | --- | --- | --- | --- |
+| `URL-INV-CE-001` | `CLOSED` | URL inventory preserves the full normalized `for` owner | `WhatwgTest/Url/Counterexamples/Inventory.lean`; packet `test/counterexamples/url/INVENTORY.md`; finite tooling output observation | removed uncontracted first-comma truncation from `definitionLabel` |
+| `URL-INV-CE-002` | `CLOSED` | ASCII form feed is whitespace in class tokens and visible labels | same retained battery and packet; finite class/paragraph inputs | normalize all five ASCII whitespace characters consistently |
+| `URL-INV-CE-003` | `CLOSED` | `xmp` content is raw text, including literal IDL generics and apparent tags | same retained battery and packet; finite raw-generic and fake-definition inputs | tokenize raw `xmp` content without treating its interior as source markup |
+| `URL-INV-CE-004` | `CLOSED` | IDL headers are ordinary named interfaces; missing names and unsupported mixins are rejected | same retained battery and packet; finite malformed/unsupported header inputs | recognize the contracted header shape rather than an `interface ` prefix alone |
+| `URL-INV-CE-005` | `CLOSED` | Paragraph lexical spans stop at ordinary block tags such as section and form | same retained battery and packet; finite paragraph-boundary inputs | use the explicit block-boundary vocabulary in the interface record |
+| `INFRA-TEXT-CE-001` | `CLOSED` | `JsString.splitOnCommas (ofLiteral " a , ,b,") = [ofLiteral "a", ofLiteral "", ofLiteral "b", ofLiteral ""]`, the source example at base `c1c7caa` | `WhatwgTest/Infra/Counterexamples/CommaSplit.lean`: `ce001_correct_result`, `ce001_original_result_false`, `ce001_empty_input`; packet, passing narrow/full builds and standard-base axiom receipts in `test/counterexamples/infra/COMMA-SPLIT.md`; full ordered token-list observation, finite kernel probes with no host assumptions | correct the unfrozen source example to three tokens; retain its original proposition under negation; preserve the algorithm and the distinct `strictlySplit` behavior; closed after coordinator compilation and the common axiom audit |
 | `WS-SHA-CE-001` | `MOVED` | `Sha256.Spec.H0` is FIPS 180-4 §5.3.3 and not §5.3.2 | moved to lean4-hash `0168306` (`test/counterexamples/sha256/` there, same ID) with the SHA-256 lane; was: `WhatwgTest/Streams/Counterexamples/Sha/Mutants.lean`, `ce001_sha224IV` with its control `ce001_control`; `Sha256.Bridge.sha256_ne_sha224_iv` on the constants | none: the shipped `H0` is §5.3.3, and the witness pins that the choice is load-bearing |
 | `WS-SHA-CE-002` | `MOVED` | `Sha256.Impl.padBytes` appends the 64-bit big-endian length of FIPS 180-4 §5.1.1 | moved to lean4-hash `0168306` (`test/counterexamples/sha256/` there, same ID) with the SHA-256 lane; was: same file, `ce002_noLengthField` on W2, with `ce002_padBytes_eq_on_empty` proving why W1 cannot discriminate | none to the implementation; the contract's claim that W1 catches this mutant is corrected in `test/counterexamples/sha/ATTACKS.md` |
 | `WS-SHA-CE-003` | `MOVED` | `Sha256.Impl.wordOfBytes` reads four bytes big-endian per FIPS 180-4 §3.1 | moved to lean4-hash `0168306` (`test/counterexamples/sha256/` there, same ID) with the SHA-256 lane; was: same file, `ce003_littleEndianWords` on W2 | none: the shipped reading is big-endian |
@@ -27,6 +33,17 @@ elaborated the witnesses here until the SHA-256 lane moved to lean4-hash at
 step 6 of `docs/HASH-PACKAGE-PLAN.md`; the rows, their kernel-checked
 witnesses, and the attack shapes now live in that repository under the same
 IDs, and `test/counterexamples/sha/ATTACKS.md` here is a pointer.
+
+The `URL-INV-CE-*` rows are finite source-tooling regressions frozen by a
+separate breaker in `4e4e880`, `6db5ec2`, and `a60add5`. All ten assertions
+failed against the initial scanner, then passed after implementation repairs.
+`lake build WhatwgTest.Url.Counterexamples.Inventory` and the default
+`lake build` pass, with the retained module imported by `WhatwgTest.lean`.
+The common axiom gate checks 127 modules and 6774 declarations. The production
+`scan` receipt is `[propext, Classical.choice, Quot.sound]`; the assertions
+are executable `#guard` probes, not general theorems. All repository gates
+and the URL projection drift gate pass. These rows close lexical regressions
+only; the census graph in `docs/URL-CENSUS-DAG.md` remains open.
 
 The `WS-DATA-*` rows were minted by the P3 queue-with-sizes breaker, 2026-09-02,
 and are the first rows outside the `SHA` area. Their evidence command is

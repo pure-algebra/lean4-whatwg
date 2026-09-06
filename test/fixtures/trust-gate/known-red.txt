@@ -28,4 +28,4 @@
 
 # U2a independent review witnesses URL-INV-CE-001 through URL-INV-CE-005.
 # Attack record: test/counterexamples/url/INVENTORY.md.
-WhatwgTest.Url.Counterexamples.Inventory
+# Green after scanner repairs; the ten frozen assertions remain in the test root.
