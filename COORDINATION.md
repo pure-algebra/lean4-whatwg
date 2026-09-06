@@ -20,6 +20,7 @@ row is unclaimed.
 
 | File or tree | Claimed by | State |
 | --- | --- | --- |
+| `test/contracts/infra-integer-constructive.contract.md`, `WhatwgTest/Infra/IntegerConstructiveContract.lean`, own `WhatwgTest.Infra.IntegerConstructiveContract` entry in `test/fixtures/trust-gate/known-red.txt` | Codex (Infra integer independent breaker, 2026-09-05) | freezes nine existing integer range signatures and actual constructive axiom ceiling for `INFRA-INTEGER-CE-001` before proof-only repair; exclusive one narrow Lake run, then returns stopped slot to root; no implementation or root-integration edits |
 | `Whatwg/Url.lean`, `Whatwg/Url/**`, `Gates/Census.lean`, future URL census tooling and `census/url/**`, `generated/url-census.tsv`, `WhatwgTest/Audit/Url/**`, `docs/URL-PACKAGE-PLAN.md` | Codex (URL reification coordinator, Windows, 2026-09-05) | isolated `dbbf` worktree, branch `codex/url-reification`, base `c1c7caa`; U0/U1 and U2a–U2c verified; canonical-owner/declaration/assurance joins and representative contracts next; owns Lake runs here; full reification goal active |
 | `test/contracts/queue-with-sizes.contract.md` | P3 breaker (landed) | frozen 2026-09-02; the builder may not edit it |
 | `WhatwgTest/Streams/Data/QueueContract.lean`, `WhatwgTest/Streams/Data/QueueAxiomReport.lean` | P3 breaker (landed) | frozen and RED; declared in `test/fixtures/trust-gate/known-red.txt`; the builder may repair elaboration only, never a statement |

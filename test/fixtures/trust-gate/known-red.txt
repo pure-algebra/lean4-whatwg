@@ -49,3 +49,7 @@
 # U2c independent review witness URL-INP-CE-001.
 # Attack record: test/counterexamples/url/CENSUS-INPUT.md.
 # Green after preserving field CR bytes across the shared-parser handoff; all five probes retained.
+
+# Infra integer constructive dependency witness INFRA-INTEGER-CE-001.
+# Packet: test/contracts/infra-integer-constructive.contract.md.
+WhatwgTest.Infra.IntegerConstructiveContract
