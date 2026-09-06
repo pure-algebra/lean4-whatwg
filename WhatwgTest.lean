@@ -7,6 +7,7 @@ import WhatwgTest.Url.Counterexamples.Census
 import WhatwgTest.Url.Counterexamples.CensusInput
 import WhatwgTest.Infra.Counterexamples.CommaSplit
 import WhatwgTest.Infra.ScalarConstructiveContract
+import WhatwgTest.Infra.IntegerConstructiveContract
 import WhatwgTest.Streams.Counterexamples.Data.Queue
 import WhatwgTest.Streams.Data.QueueContract
 import WhatwgTest.Streams.Data.QueueAxiomReport

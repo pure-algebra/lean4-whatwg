@@ -9,6 +9,12 @@ reified in Lean 4 with specification-level algorithms and laws, strong proof
 assurance, and idiomatic native Lean APIs. A pin or compiling scaffold alone
 does not meet that objective.
 
+User stop, 2026-09-05: URL implementation was paused to prioritize removing
+`Classical.choice`; the user then requested wrapping up after the nine
+integer proof repairs. `docs/CHOICE-REMOVAL.md` records the verified repair
+and remaining dependencies. No core rebuild was started. Resume only on a
+new user instruction; the full reification objective remains unfinished.
+
 ## Authority and ownership
 
 `SPEC-MANIFEST.md` owns the URL source pin and section dispositions.

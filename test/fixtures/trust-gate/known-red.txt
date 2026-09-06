@@ -52,4 +52,4 @@
 
 # Infra integer constructive dependency witness INFRA-INTEGER-CE-001.
 # Packet: test/contracts/infra-integer-constructive.contract.md.
-WhatwgTest.Infra.IntegerConstructiveContract
+# Green after direct numeric bound proofs; all nine alias/signature/axiom checks retained.
