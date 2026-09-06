@@ -32,4 +32,8 @@
 
 # U2b source-to-census assignment, frozen 2026-09-05 by the independent breaker.
 # Packet: test/contracts/url-census.contract.md.
-WhatwgTest.Url.CensusContract
+# Green after join implementation; all frozen assertions remain imported by WhatwgTest.
+
+# U2b independent review witness URL-CEN-CE-001.
+# Attack record: test/counterexamples/url/CENSUS.md.
+WhatwgTest.Url.Counterexamples.Census
