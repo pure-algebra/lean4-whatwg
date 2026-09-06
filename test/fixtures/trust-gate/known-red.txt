@@ -41,3 +41,7 @@
 # Infra scalar/Char constructive dependency witness INFRA-SCALAR-CE-001.
 # Packet: test/contracts/infra-scalar-constructive.contract.md.
 # Green after constructive proof repair; the exact signatures and axiom ceiling remain in the test root.
+
+# U2c authored census input and projection, frozen 2026-09-05 by the independent breaker.
+# Packet: test/contracts/url-census-input.contract.md.
+WhatwgTest.Url.CensusInputContract

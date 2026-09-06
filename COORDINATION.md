@@ -20,6 +20,7 @@ row is unclaimed.
 
 | File or tree | Claimed by | State |
 | --- | --- | --- |
+| `test/contracts/url-census-input.contract.md`, `WhatwgTest/Url/CensusInputContract.lean`, `test/fixtures/trust-gate/known-red.txt` | Codex (URL U2c independent breaker, 2026-09-05) | freezes strict input joins, in-span anchors and exact projections before implementation; exclusive one missing-module red build of `WhatwgTest.Url.CensusInputContract`, then returns Lake to root |
 | `Whatwg/Url.lean`, `Whatwg/Url/**`, `Gates/Census.lean`, future URL census tooling and `census/url/**`, `generated/url-census.tsv`, `WhatwgTest/Audit/Url/**`, `docs/URL-PACKAGE-PLAN.md` | Codex (URL reification coordinator, Windows, 2026-09-05) | isolated `dbbf` worktree, branch `codex/url-reification`, base `c1c7caa`; U0/U1 and U2a verified, U2 semantic census next; owns Lake runs here; full reification goal active |
 | `test/contracts/queue-with-sizes.contract.md` | P3 breaker (landed) | frozen 2026-09-02; the builder may not edit it |
 | `WhatwgTest/Streams/Data/QueueContract.lean`, `WhatwgTest/Streams/Data/QueueAxiomReport.lean` | P3 breaker (landed) | frozen and RED; declared in `test/fixtures/trust-gate/known-red.txt`; the builder may repair elaboration only, never a statement |
