@@ -37,3 +37,7 @@
 # U2b independent review witness URL-CEN-CE-001.
 # Attack record: test/counterexamples/url/CENSUS.md.
 # Green after justification repair; the two frozen refusal assertions remain in the test root.
+
+# Infra scalar/Char constructive dependency witness INFRA-SCALAR-CE-001.
+# Packet: test/contracts/infra-scalar-constructive.contract.md.
+WhatwgTest.Infra.ScalarConstructiveContract
