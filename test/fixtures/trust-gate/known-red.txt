@@ -21,3 +21,7 @@
 # WhatwgTest.Streams.Data.QueueAxiomReport were red here while the names they
 # ascribe did not exist. The P3 builder seat landed that surface and removed
 # the two entries; no entry remains.
+
+# U2a URL source inventory, frozen 2026-09-05 by the independent breaker.
+# Packet: test/contracts/url-inventory.contract.md.
+WhatwgTest.Url.InventoryContract
