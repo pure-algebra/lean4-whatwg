@@ -24,4 +24,8 @@
 
 # U2a URL source inventory, frozen 2026-09-05 by the independent breaker.
 # Packet: test/contracts/url-inventory.contract.md.
-WhatwgTest.Url.InventoryContract
+# Green after scanner implementation; frozen battery remains imported by WhatwgTest.
+
+# U2a independent review witnesses URL-INV-CE-001 through URL-INV-CE-003.
+# Attack record: test/counterexamples/url/INVENTORY.md.
+WhatwgTest.Url.Counterexamples.Inventory
