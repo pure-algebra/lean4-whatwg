@@ -2,7 +2,7 @@ import Gates.UrlInventory
 
 /-!
 Independent URL inventory review regressions, frozen before repair.
-Stable witnesses: `URL-INV-CE-001` through `URL-INV-CE-004`.
+Stable witnesses: `URL-INV-CE-001` through `URL-INV-CE-005`.
 Attack record: `test/counterexamples/url/INVENTORY.md`.
 
 These are finite executable tooling probes, not URL semantic theorems or arbitrary-source laws.
@@ -61,5 +61,13 @@ private def uppercaseCloseIdlSource :=
 #guard match scan "<pre class=idl>\ninterface mixin M {\n};\n</pre>".toUTF8 with
   | .error _ => true
   | .ok _ => false
+
+-- URL-INV-CE-005: ordinary block containers terminate the preceding optional paragraph.
+#guard views "<p>a<section>b</section><p>c" == some #[
+  (.prose, "a", "", "<p>a"),
+  (.prose, "c", "", "<p>c")]
+#guard views "<p>a<form>b</form><p>c" == some #[
+  (.prose, "a", "", "<p>a"),
+  (.prose, "c", "", "<p>c")]
 
 end WhatwgTest.Url.Counterexamples.Inventory

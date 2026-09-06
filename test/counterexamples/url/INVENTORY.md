@@ -65,6 +65,18 @@ prefix and the final opening brace. The repair must validate the declared
 header form without broadening the packet into a full Web IDL validator.
 These two negative probes add no new requirement on delimited member bodies.
 
+## URL-INV-CE-005 — ordinary block tags do not terminate paragraphs
+
+The fixtures `<p>a<section>b</section><p>c` and
+`<p>a<form>b</form><p>c` must each emit precisely two prose candidates:
+`<p>a` with label `a` and `<p>c` with label `c`. The text in the intervening
+`section` or `form` does not acquire an inventory candidate of its own.
+
+The reviewed scanner omits `section` and `form` from its paragraph boundary
+set and consequently swallows the intervening container into the first
+paragraph. The repair must follow the explicit block-name set in the
+interface, retaining the exact paragraph spans fixed by these probes.
+
 ## Verification and retention
 
 Narrow red/green command:
@@ -73,7 +85,7 @@ Narrow red/green command:
 lake build WhatwgTest.Url.Counterexamples.Inventory
 ```
 
-All eight expected outputs are frozen `#guard` assertions. The six positive
+All ten expected outputs are frozen `#guard` assertions. The eight positive
 expectations use a private projection; the two header refusals match
 `Except.error` directly. The private projection checks each row's byte
 bounds and compares kind, label, section,
