@@ -50,9 +50,7 @@ def shouldCallPull (s : State α ε) : Bool :=
 def continuePull (s : State α ε) : PullContinuation α → State α ε
   | .done => s
   | .settleRead id chunk =>
-      { s with
-        readPromises := s.readPromises.map fun p =>
-          if p.1 = id then (p.1, .fulfilled (.chunk chunk)) else p
+      { settleReadCell s id (.ok (.chunk chunk)) with
         trace := s.trace ++ [.settled (.read id (.ok (.chunk chunk)))] }
   | .returnEnqueue call =>
       { s with trace := s.trace ++ [.enqueueReturned call (.ok ())] }
@@ -76,10 +74,8 @@ def callPullIfNeeded (s : State α ε) : State α ε := callPullIfNeededWith s .
 def streamClose (s : State α ε) : State α ε :=
   match s.status with
   | .readable =>
-      { s with
+      { settleReadCells s s.readRequests (.ok .done) with
         status := .closed, readRequests := [], closedPromise := .fulfilled (),
-        readPromises := s.readPromises.map fun p =>
-          if p.1 ∈ s.readRequests then (p.1, .fulfilled .done) else p
         trace := s.trace ++ [.settled (.closed (.ok ()))] ++
           s.readRequests.map (fun id => .settled (.read id (.ok .done))) }
   | _ => s
@@ -95,11 +91,9 @@ def close (s : State α ε) : State α ε :=
 def error (s : State α ε) (e : Boundary.Exception ε) : State α ε :=
   match s.status with
   | .readable =>
-      { s with
+      { settleReadCells s s.readRequests (.error e) with
         status := .errored e, queue := Data.resetQueue sizes s.queue,
         algorithms := none, readRequests := [], closedPromise := .rejected e,
-        readPromises := s.readPromises.map fun p =>
-          if p.1 ∈ s.readRequests then (p.1, .rejected e) else p
         trace := s.trace ++ [.settled (.closed (.error e))] ++
           s.readRequests.map (fun id => .settled (.read id (.error e))) }
   | _ => s
@@ -155,10 +149,8 @@ def beginEnqueue (s : State α ε) (chunk : α) : State α ε :=
     match s.readRequests with
     | id :: rest =>
         callPullIfNeededWith
-          { s with
+          { settleReadCell s id (.ok (.chunk chunk)) with
             readRequests := rest, nextEnqueue := s.nextEnqueue + 1,
-            readPromises := s.readPromises.map fun p =>
-              if p.1 = id then (p.1, .fulfilled (.chunk chunk)) else p
             trace := s.trace ++ [.settled (.read id (.ok (.chunk chunk)))] }
           (.returnEnqueue s.nextEnqueue)
     | [] =>

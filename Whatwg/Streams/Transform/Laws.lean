@@ -1,5 +1,11 @@
 import Whatwg.Streams.Transform.Step
 import Whatwg.Streams.Transform.Observation
+-- Q4 (`test/contracts/configuration-ordering.contract.md` §5.2): the row 15
+-- table bridge is stated over `Whatwg.Streams.Writable.settle_bridge`, which
+-- slice Q3 landed in `Whatwg/Streams/Writable/Laws.lean`. Additive; the module
+-- declares no instance and no global `simp` lemma, and `Piping/Laws.lean`
+-- already imports it, so no dependency edge is new to `Whatwg/Streams/**`.
+import Whatwg.Streams.Writable.Laws
 
 /-!
 # Frozen transform stage and view laws
@@ -1224,5 +1230,229 @@ theorem subscribe_reactions_bridge {α β ε : Type} (s : State α β ε) (sub :
   intro h
   rw [subscribe_pending s sub h]
   simp [reactions, List.foldl_append]
+
+
+/-! ## Q4: the three `generalize` bridges slice Q3 deferred
+
+Rows 14, 15 and 16 of §4.4 of `test/contracts/promise-first-packet.contract.md`,
+landed by `test/contracts/configuration-ordering.contract.md` §5.1–§5.3. Each
+row was deferred with a stated reason; these are the halves that generalize,
+with the stream-specific halves left where they are. -/
+
+/-- Row 14 (`E-32`, generalize, Q4): the queueing half of `notify`, made
+explicit. The component dispatch into `Readable.acceptPullAnswer` and
+`Writable.acceptAnswer` stays in Streams; this is only the tag each branch
+appends. `Jobs.ReactionJob` is not the carrier: `Transform.Job` carries three
+component tags of which only one is a reaction, and `Jobs.Queue` is
+payload-polymorphic (decision 4) precisely so its client supplies the payload.
+Anchors: `op.newpromisereactionjob` (2702885..2705591) then
+`hook.hostenqueuepromisejob` (633447..635836). -/
+def notifyJob {α ε : Type} (sub : Subscription α) (answer : Readable.PullAnswer ε) :
+    Job α ε :=
+  match sub with
+  | .readable promise => .readable promise
+  | .writable _ request => .writable request
+  | .reaction _ reaction => .reaction reaction answer
+
+/-- Admitting an eventual answer never touches the shared promise table: the
+writable branch only records the answer as a sink job. Mask M1. -/
+private theorem acceptAnswer_promiseTable {α ε : Type} (s : Writable.State α ε)
+    (kind : Writable.SinkKind) (id : Nat) (a : Writable.SinkAnswer ε)
+    (w : Writable.State α ε) :
+    Writable.acceptAnswer s kind id a = some w →
+      Writable.promiseTable w = Writable.promiseTable s := by
+  intro h
+  unfold Writable.acceptAnswer at h
+  by_cases hp : Writable.operationPhase s kind id = some .awaiting
+  · rw [if_pos hp] at h
+    injection h with h
+    subst h
+    cases kind <;> rfl
+  · rw [if_neg hp] at h
+    exact absurd h (by simp)
+
+/-- The whole effect of one `notify` on the three slots the Q4 bridges read:
+one job at the tail, the shared table untouched, the subscription list
+untouched. Mask M2 for the first component, M1 for the others. -/
+private theorem notify_effect {α β ε : Type} (s : State α β ε) (sub : Subscription α)
+    (answer : Readable.PullAnswer ε) (t : State α β ε) :
+    notify s sub answer = some t →
+      t.jobs = s.jobs ++ [notifyJob sub answer] ∧
+        Writable.promiseTable t.writable = Writable.promiseTable s.writable ∧
+        t.subscriptions = s.subscriptions := by
+  intro h
+  cases sub with
+  | readable promise =>
+      cases hr : Readable.acceptPullAnswer s.readable answer with
+      | none =>
+          rw [notify, hr] at h
+          exact absurd h (by simp)
+      | some r =>
+          rw [notify_readable s promise answer r hr] at h
+          injection h with h
+          subst h
+          exact ⟨rfl, rfl, rfl⟩
+  | writable promise request =>
+      cases hw : Writable.acceptAnswer s.writable .write request
+          (Writable.sinkAnswerFromShared answer) with
+      | none =>
+          rw [notify, hw] at h
+          exact absurd h (by simp)
+      | some w =>
+          rw [notify_writable s promise request answer w hw] at h
+          injection h with h
+          subst h
+          exact ⟨rfl, acceptAnswer_promiseTable _ _ _ _ _ hw, rfl⟩
+  | reaction promise reaction =>
+      rw [notify_reaction s promise reaction answer] at h
+      injection h with h
+      subst h
+      exact ⟨rfl, rfl, rfl⟩
+
+/-- Row 14 (`E-32`, generalize, Q4): the queue half of `notify` is exactly the
+landed tail append. Mask M2: the statement observes the job entering the
+queue. -/
+theorem notify_jobQueue_bridge {α β ε : Type} (s : State α β ε) (sub : Subscription α)
+    (answer : Readable.PullAnswer ε) (t : State α β ε) :
+    notify s sub answer = some t →
+      jobQueue t =
+        Whatwg.Ecma262.Jobs.Queue.enqueue (jobQueue s) (notifyJob sub answer) := by
+  intro h
+  simp only [jobQueue, Whatwg.Ecma262.Jobs.Queue.enqueue, (notify_effect s sub answer t h).1]
+
+/-- The same three facts, carried through the whole notification fold. -/
+private theorem foldlM_notify_effect {α β ε : Type} (answer : Readable.PullAnswer ε)
+    (subs : List (Subscription α)) :
+    ∀ (u v : State α β ε),
+      subs.foldlM (fun x sub => notify x sub answer) u = some v →
+        v.jobs = u.jobs ++ subs.map (fun sub => notifyJob sub answer) ∧
+          Writable.promiseTable v.writable = Writable.promiseTable u.writable ∧
+          v.subscriptions = u.subscriptions := by
+  induction subs with
+  | nil =>
+      intro u v h
+      have huv : u = v := by simpa using h
+      subst huv
+      exact ⟨by simp, rfl, rfl⟩
+  | cons sub rest ih =>
+      intro u v h
+      rw [List.foldlM_cons] at h
+      cases hn : notify u sub answer with
+      | none => rw [hn] at h; exact absurd h (by simp)
+      | some w =>
+          rw [hn] at h
+          obtain ⟨h1, h2, h3⟩ := ih w v h
+          obtain ⟨g1, g2, g3⟩ := notify_effect u sub answer w hn
+          refine ⟨?_, ?_, ?_⟩
+          · rw [h1, g1]
+            simp
+          · rw [h2, g2]
+          · rw [h3, g3]
+
+/-- Row 15 (`E-33`, generalize, Q4): the table half of `Transform.settle` is the
+landed guarded settle, and the notification fold does not touch the table.
+Anchors: `op.fulfillpromise` (2695419..2696230), `op.rejectpromise`
+(2699323..2700252). Mask M1. -/
+theorem settle_table_bridge {α β ε : Type} (s : State α β ε) (id : Nat)
+    (answer : Readable.PullAnswer ε) (t : State α β ε) :
+    lookupPromise s id = some .pending → settle s id answer = some t →
+      Writable.promiseTable t.writable =
+        Whatwg.Ecma262.Promise.Table.settle (Writable.promiseTable s.writable) id
+          (match answer with
+            | .fulfilled => Except.ok ()
+            | .rejected e => Except.error e) := by
+  intro hp hs
+  rw [settle_pending s id answer hp] at hs
+  rw [(foldlM_notify_effect answer _ _ t hs).2.1]
+  exact Writable.settle_bridge s.writable id _
+
+/-- Row 15 (`E-33`, generalize, Q4): the reaction half is **not** an equality of
+reaction lists — `triggerReactions` advances a triggered registration's phase
+and keeps it, while `Transform.settle` deletes it. This is the honest general
+statement: the notification jobs enter the landed queue in registration order.
+Anchor: `op.triggerpromisereactions` (2700260..2701212). Mask M2. -/
+theorem settle_jobQueue_order {α β ε : Type} (s : State α β ε) (id : Nat)
+    (answer : Readable.PullAnswer ε) (t : State α β ε) :
+    lookupPromise s id = some .pending → settle s id answer = some t →
+      jobQueue t =
+        Whatwg.Ecma262.Jobs.Queue.enqueueAll (jobQueue s)
+          ((s.subscriptions.filter (fun sub => subscriptionPromise sub == id)).map
+            (fun sub => notifyJob sub answer)) := by
+  intro hp hs
+  rw [settle_pending s id answer hp] at hs
+  simp only [jobQueue, Whatwg.Ecma262.Jobs.Queue.enqueueAll,
+    (foldlM_notify_effect answer _ _ t hs).1, withWritable]
+
+/-- Row 15 (`E-33`, generalize, Q4): the once-only half, the instance of
+`triggerReactions_once` at this state — no subscription on the settled identity
+is left waiting. Mask M1. -/
+theorem settle_waiting_once {α β ε : Type} (s : State α β ε) (id : Nat)
+    (answer : Readable.PullAnswer ε) (t : State α β ε) :
+    lookupPromise s id = some .pending → settle s id answer = some t →
+      Whatwg.Ecma262.Promise.Reactions.waitingOn (reactions t) id .fulfill = [] := by
+  intro hp hs
+  rw [settle_pending s id answer hp] at hs
+  have hsub : t.subscriptions =
+      s.subscriptions.filter (fun sub => subscriptionPromise sub != id) :=
+    (foldlM_notify_effect answer _ _ t hs).2.2
+  have hprom := reactions_promises t
+  simp only [Whatwg.Ecma262.Promise.Reactions.registered] at hprom
+  apply List.filter_eq_nil_iff.mpr
+  intro r hr
+  have hmem : Whatwg.Ecma262.Promise.Reaction.promise r ∈
+      (reactions t).fulfill.map Whatwg.Ecma262.Promise.Reaction.promise :=
+    List.mem_map_of_mem hr
+  rw [hprom, hsub] at hmem
+  simp only [List.mem_map, List.mem_filter, bne_iff_ne, ne_eq] at hmem
+  obtain ⟨sub, ⟨_, hne⟩, heq⟩ := hmem
+  simp only [Bool.not_eq_true, Bool.and_eq_false_iff, beq_eq_false_iff_ne, ne_eq]
+  left
+  rw [← heq]
+  exact hne
+
+/-- Row 16 (`E-51`, generalize, Q4): the `.writable` branch runs exactly when
+the landed `Jobs.Queue.dequeue` over Q3's `Writable.jobQueue` offers the
+matching head. The tick half is the already-landed
+`Writable.tick_dequeue_bridge`. Anchors: `hook.hostenqueuepromisejob`
+(633447..635836) with `requirement.hostenqueuepromisejob.3` (634739..634841).
+Mask M2. -/
+theorem runJob_writable_dequeue {α β ε : Type} (s : State α β ε) (request : Nat)
+    (first : Writable.SinkJob α ε) (rest : List (Writable.SinkJob α ε)) :
+    s.writable.control = [] →
+    Whatwg.Ecma262.Jobs.Queue.dequeue (Writable.jobQueue s.writable) =
+        some (first, Whatwg.Ecma262.Jobs.Queue.mk rest) →
+    first.kind = Writable.SinkKind.write → first.request = request →
+      runJob s (.writable request) =
+        (Writable.tick s.writable).map (withWritable s) := by
+  intro hc hd hk hr
+  have hjobs : s.writable.jobs = first :: rest := by
+    cases hj : s.writable.jobs with
+    | nil =>
+        rw [Writable.jobQueue, hj] at hd
+        exact absurd hd (by simp [Whatwg.Ecma262.Jobs.Queue.dequeue])
+    | cons a b =>
+        rw [Writable.jobQueue, hj] at hd
+        simp only [Whatwg.Ecma262.Jobs.Queue.dequeue, Option.some.injEq, Prod.mk.injEq,
+          Whatwg.Ecma262.Jobs.Queue.mk.injEq] at hd
+        rw [hd.1, hd.2]
+  exact runJob_writable s request first rest hc hjobs hk hr
+
+/-- Row 16 (`E-51`, generalize, Q4): and it is blocked when the landed queue
+offers no head at all. Mask M1, under the run condition
+`requirement.jobs.1` (625769..626250). -/
+theorem runJob_writable_blocked {α β ε : Type} (s : State α β ε) (request : Nat) :
+    Whatwg.Ecma262.Jobs.Queue.dequeue (Writable.jobQueue s.writable) = none →
+      runJob s (.writable request) = none := by
+  intro hd
+  have hjobs : s.writable.jobs = [] := by
+    cases hj : s.writable.jobs with
+    | nil => rfl
+    | cons a b =>
+        rw [Writable.jobQueue, hj] at hd
+        exact absurd hd (by simp [Whatwg.Ecma262.Jobs.Queue.dequeue])
+  refine runJob_writable_requires_matching s request (Or.inr ?_)
+  intro job tail hjt
+  rw [hjobs] at hjt
+  exact absurd hjt (by simp)
 
 end Whatwg.Streams.Transform
