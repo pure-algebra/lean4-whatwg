@@ -5,6 +5,10 @@ import WhatwgTest.Url.CensusContract
 import WhatwgTest.Url.CensusInputContract
 import WhatwgTest.Url.Counterexamples.Census
 import WhatwgTest.Url.Counterexamples.CensusInput
+import WhatwgTest.Url.PercentEncodingContract
+import WhatwgTest.Url.PercentEncodingLaws
+import WhatwgTest.Url.PercentEncodingAxiomReport
+import WhatwgTest.Url.Counterexamples.PercentEncoding
 import WhatwgTest.Infra.Counterexamples.CommaSplit
 import WhatwgTest.Infra.ScalarConstructiveContract
 import WhatwgTest.Infra.IntegerConstructiveContract

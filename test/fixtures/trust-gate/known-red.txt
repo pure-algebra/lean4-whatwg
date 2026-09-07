@@ -154,3 +154,29 @@
 # WhatwgTest.Ecma262.PromiseAxiomReport all print inside the R-11 ceiling:
 # 59 empty, 41 [propext], 20 [propext, Quot.sound], 5
 # [propext, Classical.choice, Quot.sound]. No entry remains.
+
+# U3 URL percent-encoding packet, frozen RED 2026-09-07 by the URL U3 breaker
+# seat on branch url/u3-breaker, based on 7345c96.
+# Packet: test/contracts/url-percent-encoding.contract.md.
+# Graph: docs/URL-PERCENT-ENCODING-DAG.md (URL-PG-PERCENT).
+# Attacks: test/counterexamples/url/PERCENT-ENCODING.md (URL-PE-CE-001..014).
+# Implementation fence: Whatwg/Url/PercentEncoding.lean and
+# Whatwg/Url/Boundary.lean, both declaration-free stubs today, plus the
+# Whatwg/Url.lean root only if a module split is needed. Nothing under
+# Whatwg/Infra/ is in the fence: every carrier is reused from its Infra owner.
+#
+# Three entries. Each module below is red only because the names it ascribes do
+# not exist yet: the measured diagnostics are 563 in total, 468 unknown
+# identifiers in the two ascription modules and 95 unknown constants in the
+# receipt module, over 155 distinct names, every one of them under
+# Whatwg.Url.PercentEncoding or Whatwg.Url.Boundary. There is no parse, import,
+# type-mismatch or instance-synthesis failure.
+#
+# WhatwgTest.Url.Counterexamples.PercentEncoding is NOT declared here: its
+# fifteen finite mutant witnesses import only Std and are green from the freeze.
+#
+# The builder removes an entry the moment its battery is green. Turning a
+# battery green by weakening an ascription is a refusal, not a landing.
+WhatwgTest.Url.PercentEncodingContract
+WhatwgTest.Url.PercentEncodingLaws
+WhatwgTest.Url.PercentEncodingAxiomReport
