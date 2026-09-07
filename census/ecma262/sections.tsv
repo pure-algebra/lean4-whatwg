@@ -1,0 +1,20 @@
+# The frozen clause scope of the ECMA-262 census: one root clause id per line.
+#
+# Ruling R-P1 makes the section scope authored data rather than code, so that a
+# scope change is a data review. Each id must occur exactly once as an
+# `<emu-clause id=...>` in vendor/ecma262-0248456c/spec.html; every census row
+# must lie inside one of the windows; a listed root that governs no row, and a
+# row outside every window, both fail generation.
+#
+# Section 2 of test/contracts/ecma262-census.contract.md freezes the two
+# windows, and both are checked by their own primary rows, `clause.jobs` and
+# `clause.promise-objects`:
+#
+#   sec-jobs              624525..636548   12023 bytes
+#   sec-promise-objects  2686444..2746707  60263 bytes
+#
+# Together: 49 sectioning elements, 72,286 bytes, 2.43 % of the pinned file.
+# `sec-host-promise-rejection-tracker` is NOT a third root; it sits inside
+# `sec-promise-abstract-operations` and the second window already covers it.
+sec-jobs
+sec-promise-objects

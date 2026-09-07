@@ -1,0 +1,13 @@
+# Cross-cutting rule rows: authored input to the ECMA-262 census.
+#
+# Two or three tab-separated fields: <kebab name> <start locator>
+# [<end locator>]. The optional third field is ruling R-P4's, added for the six
+# Web IDL derived-interface bullets so their spans are disjoint.
+#
+# Present and entry-free at this pin, as section 8 of
+# test/contracts/ecma262-census.contract.md requires: this standard emits zero
+# `rule` rows. The nine requirement bullets of ruling R-P3 need no authored
+# anchor, because the scanner finds them structurally — a `<ul>` whose
+# immediately preceding `<p>` says the implementation must conform to the
+# stated requirements — and their positional ids are guarded by the span
+# digest. The generator invents no rule row.

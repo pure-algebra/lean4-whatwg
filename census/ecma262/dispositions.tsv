@@ -1,0 +1,125 @@
+# Clause dispositions: authored input to the ECMA-262 census.
+#
+# Three tab-separated fields: <clause id> <kind or *> <disposition>. The
+# section key is a clause id, resolved by the innermost enclosing clause of the
+# row's span, with a kind-specific line preferred to the clause's wildcard
+# line. Duplicate (clause, kind) fails; an unknown kind or disposition fails;
+# an entry no row uses fails; a row no entry reaches fails.
+#
+# Every line below is keyed on the row's OWN innermost enclosing clause, so the
+# join needs no outward walk and gives the same answer if it does one. That
+# costs fifty-two lines instead of a dozen and buys a table a reviewer can read
+# against the ECMA-262 section table of SPEC-MANIFEST.md row by row.
+#
+# Seeded from that table as amended by ruling R-P5, whose one change to the
+# survey's proposal is that HostEnqueuePromiseJob and its ordering bullet are
+# `requirement`, realized by the FIFO queue in `Whatwg.Ecma262.Jobs` under
+# DB-03, the same specification/realizer pattern as ReadableStreamPipeTo.
+# HostEnqueueTimeoutJob and HostEnqueueGenericJob stay `foreignBoundary`, and
+# the five promise instance slots are `owned` here while the Streams census
+# keeps the same named slots `foreignBoundary`: the two censuses answer two
+# ownership questions about two libraries.
+#
+# These are proposals until the coordinator ratifies them; nothing here is
+# coverage. Section 6 of test/contracts/ecma262-census.contract.md freezes the
+# totals they must produce: owned 44, foreignBoundary 13, hostOnly 10,
+# requirement 7, evidenceOnly 3, denominator 74 of 77 rows.
+
+# --- 9.5 Jobs and Host Operations to Enqueue Jobs ---------------------------
+# The clause's own text is the four host job-scheduling requirements; DB-03's
+# FIFO queue is their realizer. The three terms it defines are split: `job` is
+# the carrier, the other two are defined over the execution context stack.
+sec-jobs	*	requirement
+sec-jobs	term	foreignBoundary
+# The JobCallback Record exists only to carry a host-defined value across a job
+# boundary. Its [[Callback]] field is owned; see overrides.tsv.
+sec-jobcallback-records	record	foreignBoundary
+sec-jobcallback-records	field	foreignBoundary
+# Two hooks whose whole purpose is attaching host state and re-entering user
+# code, with the one requirement bullet each states.
+sec-hostmakejobcallback	*	foreignBoundary
+sec-hostcalljobcallback	*	foreignBoundary
+# No in-scope algorithm calls this hook; it is out of the promise lane.
+sec-hostenqueuegenericjob	hook	foreignBoundary
+# R-P5: the hook is a specification realized by the FIFO queue. Its realm and
+# active-script bullets are host bookkeeping the model never observes; the
+# ordering bullet is the DB-03 sentence and is overridden below.
+sec-hostenqueuepromisejob	hook	requirement
+sec-hostenqueuepromisejob	requirement	foreignBoundary
+# Wall-clock scheduling; "at least _milliseconds_ milliseconds" is not FIFO
+# state and nothing in the promise lane calls it.
+sec-hostenqueuetimeoutjob	hook	foreignBoundary
+
+# --- 27.2 Promise Objects ---------------------------------------------------
+# The fulfilled/rejected/pending/settled/resolved vocabulary and two bare
+# headings. R-P5 adopts the survey's `evidenceOnly`, which keeps all three out
+# of the denominator.
+sec-promise-objects	clause	evidenceOnly
+sec-promise-abstract-operations	clause	evidenceOnly
+sec-promise-jobs	clause	evidenceOnly
+
+# DB-11 puts both records and every field in `Whatwg.Ecma262`.
+sec-promisecapability-records	*	owned
+sec-promisereaction-records	*	owned
+# A shorthand whose explicit six-step expansion is the theorem.
+sec-ifabruptrejectpromise	op	owned
+# First-order state transitions over the promise slots.
+sec-createresolvingfunctions	op	owned
+sec-fulfillpromise	op	owned
+sec-newpromisecapability	op	owned
+sec-ispromise	op	owned
+sec-rejectpromise	op	owned
+sec-triggerpromisereactions	op	owned
+# Pure host bookkeeping; the default returns ~unused~ and the text states no
+# observable effect.
+sec-host-promise-rejection-tracker	hook	foreignBoundary
+# The two job constructors. The thenable `then` call of the second is a
+# boundary step inside an owned row, not a boundary row.
+sec-newpromisereactionjob	op	owned
+sec-newpromiseresolvethenablejob	op	owned
+
+# Global-object plumbing: %Promise% as the initial value of the global
+# property, [[Prototype]], and `extends`. The `%Promise%` term it defines is an
+# intrinsic identity the host's realm supplies.
+sec-promise-constructor	*	hostOnly
+# Where a promise is created and CreateResolvingFunctions is called; the
+# NewTarget and OrdinaryCreateFromConstructor steps are left to the host object
+# model as dependency rows.
+sec-promise-executor	builtin	owned
+sec-properties-of-the-promise-constructor	clause	hostOnly
+
+# The combinators and their Perform* operations: the whole combinator
+# semantics, with the iterator protocol entering as an external.
+sec-promise.all	builtin	owned
+sec-getpromiseresolve	op	owned
+sec-performpromiseall	op	owned
+sec-promise.allsettled	builtin	owned
+sec-performpromiseallsettled	op	owned
+sec-promise.any	builtin	owned
+sec-performpromiseany	op	owned
+sec-promise.race	builtin	owned
+sec-performpromiserace	op	owned
+sec-promise.reject	builtin	owned
+sec-promise.resolve	builtin	owned
+sec-promise-resolve	op	owned
+sec-promise.try	builtin	owned
+sec-promise.withResolvers	builtin	owned
+# Property descriptors, and a species accessor whose only purpose is subclass
+# dispatch enforced by the host object model.
+sec-promise.prototype	property	hostOnly
+sec-get-promise-%symbol.species%	builtin	hostOnly
+
+# The prototype object: four bullets about [[Prototype]] and slot absence, plus
+# the two intrinsic-identity terms it defines.
+sec-properties-of-the-promise-prototype-object	*	hostOnly
+sec-promise.prototype.catch	builtin	owned
+sec-promise.prototype.constructor	property	hostOnly
+# `finally` depends on SpeciesConstructor, which is out of scope and enters as
+# a dependency row, not as a different disposition.
+sec-promise.prototype.finally	builtin	owned
+sec-promise.prototype.then	builtin	owned
+sec-performpromisethen	op	owned
+sec-promise.prototype-%symbol.tostringtag%	property	hostOnly
+
+# The internal-slot table is the promise carrier itself (R-P5, DB-11).
+sec-properties-of-promise-instances	*	owned
