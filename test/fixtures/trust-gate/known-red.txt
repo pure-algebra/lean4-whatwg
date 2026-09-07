@@ -113,11 +113,12 @@
 # landing.
 #
 # The builder removes an entry the moment its battery is green.
-WhatwgTest.Ecma262.JobsContract
-WhatwgTest.Ecma262.JobsLaws
-WhatwgTest.Ecma262.PromiseContract
-WhatwgTest.Ecma262.PromiseLaws
-WhatwgTest.WebIdl.PromiseContract
-WhatwgTest.WebIdl.ExceptionsContract
-WhatwgTest.Streams.PromiseBridge
-WhatwgTest.Ecma262.PromiseAxiomReport
+#
+# The Q3 builder seat landed the packet on branch promise/q3-builder in seven
+# moves (types, tables, queue, reactions, wait-for-all, Boundary.Exception last
+# per R-P14, then the roots and the record). All eight modules are green and
+# their eight entries are removed, so the trust gate's all-green control is
+# restored. The 125 named axiom receipts of
+# WhatwgTest.Ecma262.PromiseAxiomReport all print inside the R-11 ceiling:
+# 59 empty, 41 [propext], 20 [propext, Quot.sound], 5
+# [propext, Classical.choice, Quot.sound]. No entry remains.
