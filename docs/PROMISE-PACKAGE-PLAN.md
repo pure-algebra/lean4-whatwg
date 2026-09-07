@@ -83,7 +83,7 @@ P4–P7 promise tables keep their current owners and proofs until Q4.
 | Q0 | the two pins, the two declaration-free roots, DB-11 | coordinator (landed) | `652d29e`, `5e7a4e6` on `main`; six vendored files blob-verified; vendor manifest regenerated; `docs/PROVENANCE.md`, `SPEC-MANIFEST.md`, `docs/ARCHITECTURE.md`, `docs/REIFICATION-STRATEGY.md`, `PLAN.md` record the pins and the ruling |
 | Q1 | census tooling: the `Standard` profile refactor (R-P1), `Gates/Ecmarkup.lean`, the `webidl` and `ecma262` standards, two frozen breaker contracts and batteries, two CI steps | breaker, then two builders in their own worktrees (R-P7) | the Streams and Infra projections and rows modules byte-identical across the refactor; `lake exe census --standard webidl` and `--standard ecma262` PASS; both batteries green; `known-red.txt` empty again |
 | Q2 | dispositions, dependency and external rows, the two coverage blocks | the two builders, then coordinator | every row resolves to exactly one disposition and every authored entry reaches a row, both directions; `dependencies.tsv` and `externals.tsv` complete and fully used; two all-`absent` coverage blocks emitted by Lean, quoted verbatim |
-| Q3 | the first semantic packet: six Web IDL promise operations and the ES2026 surface they bottom out in | breaker, then builder, then independent review | frozen contract with exact ascriptions; declarations in the four modules; the FIFO realizer theorem under a named mask; census rows leave `absent`; axiom receipts inside R-11 |
+| Q3 | the first semantic packet, extraction-seeded (R-P12): first the inventory's move-and-generalize set — 6 moves and 28 generalizations out of `Whatwg.Streams` — landed with unchanged Streams proofs; then the gap set `G-01`–`G-11` that the six Web IDL promise operations and the ES2026 surface beneath them still require | extraction inventory seat (landed), then coordinator decisions, then breaker, then builder, then independent review | `docs/PROMISE-EXTRACTION-INVENTORY.md` landed before the freeze and every frozen ascription cites an `E-` row or a `G-` gap with its reuse mode; every existing Streams battery green with no P4–P7 statement, definition body or `attribute [local simp]` set changed; the root audit's declaration count moved by exactly the enumerated new abbrevs and bridging lemmas; declarations in the four modules; the FIFO realizer theorem under a named mask; census rows leave `absent`; axiom receipts inside R-11 |
 | Q4 | the DB-11 restatement: P8a's obligations against the new owners, and the Streams promise tables as views | configuration breaker (unfrozen), then builder, then coordinator | conversion receipts relating `Readable.PromiseState`, `Writable.UnitPromise` and the `promises` slots to `Whatwg.Ecma262`; the three Streams `foreignBoundary` promise rows re-dispositioned as references; Streams coverage block re-emitted |
 
 Q1 and Q2 are one breaker packet and two builder landings; they are separated
@@ -316,12 +316,60 @@ library, so no coverage state can be anything else. `docs/PROMISE-DAG.md` is
 opened here with its ten edges, all `required-open` except those the packet
 declares `not-applicable` with a reason.
 
-## Q3 — the first packet
+## The extraction inventory
 
-**Scope.** The Web IDL operations that carry the Streams load, and the ES2026
-operations they bottom out in. Invocation counts are the Web IDL survey's,
-recomputed over all 2,188 whitespace-normalised `[=…=]` autolinks of the
-pinned Streams source.
+Ruling R-P12 requires that the four modules be seeded by extraction from what
+`Whatwg.Streams` already proves, never by fresh design, and that an extraction
+inventory exist before the Q3 breaker freezes anything.
+`docs/PROMISE-EXTRACTION-INVENTORY.md` is that inventory, authored 2026-09-06.
+It owns, and this file does not restate: the 74 inventoried Streams
+declarations with their ES2026 or Web IDL reading, target module, reuse mode
+(6 move, 28 generalize, 40 keep), dependent-theorem counts and per-row risk;
+the eleven-row gap table `G-01` through `G-11`; the six-level move ordering
+with its definitional-equality argument; the P8a reuse classification of the
+158 draft ascriptions; and twelve open decisions for the coordinator. Q3 and
+Q4 below cite it by row id. A Q3 ascription that duplicates an inventoried
+declaration without naming its row and reuse mode is a defect under R-P12.
+
+## Q3 — the first packet, extraction-seeded
+
+**Shape.** Q3 has two deliverables in order, and nothing else. The first is
+the inventory's move-and-generalize set, landed with every existing Streams
+proof unchanged. The second is the gap set: what the six Web IDL operations
+and the ES2026 surface beneath them still require once the first deliverable
+has been subtracted. Both are frozen in one breaker contract whose every
+ascription cites either an inventory row id or a gap id.
+
+**Deliverable 1 — the move and generalize set.** The 6 `move` rows (`E-01`
+through `E-06`: `Readable.PromiseState`, `Readable.PullAnswer`,
+`Readable.PullReturn` and the three `Writable` abbrevs over them) relocate to
+`Whatwg.Ecma262.Promise`, and Streams keeps an `abbrev` at each old name. The
+28 `generalize` rows land as a general declaration plus a bridging lemma, with
+the Streams definition and its theorem statements untouched: the tables and
+their operations (`E-13` through `E-23`), the reaction and registration
+cluster (`E-29` through `E-33`, `E-37`, `E-38`), the three job queues and
+their FIFO stages (`E-44` through `E-46`, `E-48` through `E-53`), the
+settled predicate (`E-55`, `E-56`), and the exception universe (`E-59`).
+The inventory's level order L0 through L6 fixes what precedes what; its
+condition 3 fixes why no function named in an `attribute [local simp]` set is
+a `move`.
+
+**Deliverable 2 — the gap set.** Only what `G-01` through `G-11` name: the
+split reaction lists, the handled bit's missing consumer, the capability
+record and resolving functions, `IsPromise`, thenable adoption, the
+`wait for all` operation as distinct from its settled predicate, the
+realm-independent job queue, the run condition as a stated requirement, the
+Web IDL exception universe beyond two kinds, the Completion carrier, and
+`PerformPromiseThen` as a whole operation with a result capability. A frozen
+ascription that is neither a deliverable-1 row nor a deliverable-2 gap does
+not belong in this packet.
+
+**The operations the two deliverables are measured against.** The Web IDL
+operations that carry the Streams load, and the ES2026 operations they bottom
+out in. Invocation counts are the Web IDL survey's, recomputed over all 2,188
+whitespace-normalised `[=…=]` autolinks of the pinned Streams source. This
+table is the target; deliverable 1 says how much of it Streams already has,
+and deliverable 2 is the remainder.
 
 | Web IDL operation | Row (id as the current naming ladder derives it) | Streams invocations |
 | --- | --- | ---: |
@@ -362,6 +410,18 @@ PromiseCapability and PromiseReaction records with their eight fields, the
 five promise instance slots, and the FIFO job queue as the realizer of
 `HostEnqueuePromiseJob`.
 
+Which half of that surface is extraction and which is gap is settled row by
+row in the inventory, not here, and the split is uneven. Streams already has
+`FulfillPromise`/`RejectPromise` in guarded form (`E-20`), `TriggerPromiseReactions`
+as a fold over a reaction list (`E-33`), `PerformPromiseThen` steps 8 to 10
+twice over (`E-31`, `E-37`), the five instance slots as first-order state
+(`E-01`, `E-13`, `E-15`, `E-29`) and three FIFO job queues (`E-45`, `E-48`,
+`E-52`). It has no PromiseCapability record, no resolving functions, no
+`IsPromise` and no result capability at all (`G-03`, `G-04`, `G-11`), and it
+splits no reaction list (`G-01`). `NewPromiseCapability` is therefore a gap
+where `FulfillPromise` is an extraction, and the packet must not present them
+as one uniform surface.
+
 **The realizer theorem.** Under R-P5, `hook.host-enqueue-promise-job` and the
 ordering bullet it carries are `requirement`, not `foreignBoundary`. The
 bullet is the sentence at span 634739..634841 of the pinned `spec.html`, digest
@@ -374,6 +434,19 @@ runs satisfy it. The theorem names its mask; the settlement order this lane
 observes is M2 by DB-04, and any equational sub-law that observes no order
 records that instead, per row.
 
+The realizer half of that pair is extraction, and the specification half is
+gap. Streams already has three deterministic FIFO queues with proved
+dequeue-in-order laws — `Writable.tick_job_fifo` and `tick_no_job` (`E-45`,
+`E-46`), `Readable.runPullJob_suspended`/`_empty`/`_cons` (`E-48`, `E-49`),
+`Transform.tick_job_fifo` and `tick_no_job` (`E-52`, `E-53`) — each guarded by
+its own spelling of "the execution context stack is empty" (`frames = []`,
+`control = []`, and the transform's three-way guard). What does not exist is
+the requirement itself: `G-08` records that the run condition appears only as
+a hypothesis of a branch equation and never as a named specification over
+runs, and `G-07` records that there is no single realm-independent queue for
+one to be stated over. The builder therefore extracts the realizer from three
+places and authors the specification once.
+
 **Two boundaries the packet must declare before its first step.** Every one of
 the 390 in-scope ES2026 steps is written in the completion discipline, with 53
 `? ` and 9 `! ` prefixes that are early returns a Lean model reproduces
@@ -384,17 +457,25 @@ functions, per the representation rules. Both sit inside R-P6's named ES2026
 core boundary; see the open decisions below for what that phrase leaves
 unsettled.
 
-**Seats.** A breaker in its own worktree freezes
-`test/contracts/promise-core.contract.md` and a red battery under
-`WhatwgTest/Ecma262/` and `WhatwgTest/WebIdl/`; then a builder; then
-independent review; then the coordinator lands with all gates.
+**Seats.** The extraction inventory seat lands
+`docs/PROMISE-EXTRACTION-INVENTORY.md` first; R-P12 makes it a precondition of
+the freeze, not a parallel task. The coordinator then answers the inventory's
+twelve open decisions, because five of them (the state's type parameters, the
+reason parameter, the identity type, the job payload parameter, and move
+versus generalize for the eleven functions named in `attribute [local simp]`
+sets) fix signatures the contract cannot ascribe without them. Then a breaker
+in its own worktree freezes `test/contracts/promise-core.contract.md` and a
+red battery under `WhatwgTest/Ecma262/` and `WhatwgTest/WebIdl/`; then a
+builder; then independent review; then the coordinator lands with all gates.
 
 **File fence.**
 
 | Tree | Owner |
 | --- | --- |
+| `docs/PROMISE-EXTRACTION-INVENTORY.md` | extraction inventory seat, landed before the freeze; read-only for the breaker and the builder, and amended only by the coordinator recording decision answers |
 | `test/contracts/promise-core.contract.md`, `WhatwgTest/Ecma262/**`, `WhatwgTest/WebIdl/**`, the `WP-*` rows of `test/counterexamples/REGISTER.md`, `test/counterexamples/promise/ATTACKS.md`, `test/fixtures/trust-gate/known-red.txt` | breaker, frozen |
 | `Whatwg/Ecma262/{Promise,Jobs}.lean`, `Whatwg/WebIdl/{Promise,Exceptions}.lean` | builder |
+| the `abbrev`s and bridging lemmas the move and generalize rows add inside `Whatwg/Streams/**` | builder, additive only; no existing Streams definition body and no existing Streams theorem statement may change |
 | `docs/PROMISE-DAG.md` declaration and statement rows | breaker; the coordinator answers ruling requests there |
 | `census/webidl/**`, `census/ecma262/**` coverage-bearing overrides | builder, with coordinator review |
 | `WhatwgTest/Audit/WebIdl/SpecCoverage.lean`, `WhatwgTest/Audit/Ecma262/SpecCoverage.lean` | authored numerators, added here |
@@ -405,33 +486,56 @@ independent review; then the coordinator lands with all gates.
 | --- | --- |
 | `lake build WhatwgTest.Ecma262.PromiseContract WhatwgTest.WebIdl.PromiseContract` | introduced by the Q3 breaker packet |
 | `lake build Whatwg.Ecma262 Whatwg.WebIdl` | exists today (the roots exist; the target is empty until Q3) |
+| `lake build Whatwg.Streams` and the P4–P7 batteries under `WhatwgTest/Streams/**` | exist today; they decide that the move and generalize set changed no Streams proof |
+| `lake --wfail build WhatwgTest` root audit line | exists today; its declaration count decides that only the new abbrevs and bridging lemmas were added |
 | `lake exe census --standard webidl`, `lake exe census --standard ecma262` | introduced by Q1 |
 | `lake build`, `lake --wfail build WhatwgTest`, `lake exe vendorseal`, `lake exe citations` | exist today |
 
 **Acceptance.**
 
 1. Every frozen ascription elaborates and every frozen theorem is proved with
-   no edit to a frozen statement.
-2. Axiom receipts for every exported theorem are inside the R-11 ceiling
+   no edit to a frozen statement, and every frozen ascription cites either an
+   inventory row id (`E-01` … `E-74`) or a gap id (`G-01` … `G-11`). An
+   ascription that cites neither, or that restates an inventoried declaration
+   without naming its reuse mode, is a defect under R-P12 and the packet does
+   not freeze.
+2. Deliverable 1 landed with unchanged Streams proofs: every existing
+   battery under `WhatwgTest/Streams/**` is green, no P4–P7 theorem statement
+   changed, no Streams definition body changed, no `attribute [local simp]`
+   set in `Readable/Reentrancy.lean`, `Writable/Lifecycle.lean`,
+   `Transform/Runs.lean` or `Piping/Runs.lean` changed, and the root audit's
+   declaration count differs from its pre-packet value by exactly the number
+   of new abbrevs and bridging lemmas, enumerated in the landing record.
+3. Deliverable 2 is bounded by the gap table: every declaration in the four
+   modules that is not the target of a move or generalize row names the gap it
+   closes, and no gap row is closed silently.
+4. Axiom receipts for every exported theorem are inside the R-11 ceiling
    (`propext`, `Quot.sound`, `Classical.choice`); `sorryAx`,
    `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` and the
    `native_decide` auxiliaries appear nowhere.
-3. Each new exported declaration has one declaration record with its
+5. Each new exported declaration has one declaration record with its
    specification anchor, that anchor's span digest, its disposition and its
    duplicate-prevention relationship, and the generated declaration snapshot
-   joins each to exactly one record.
-4. The realizer theorem is stated and proved under its named mask, and its row
+   joins each to exactly one record. A declaration that realizes a move or
+   generalize row names that row as its duplicate-prevention relationship.
+6. The realizer theorem is stated and proved under its named mask, and its row
    leaves `absent`.
-5. Both coverage blocks are re-emitted and pasted verbatim; rows that stayed
+7. Both coverage blocks are re-emitted and pasted verbatim; rows that stayed
    `absent` are still `absent`, and no row is `green` with a step left to a
    boundary row.
-6. `known-red.txt` is empty; independent review checks model intent, proof
-   trust, spec fidelity and claim scope.
+8. `known-red.txt` is empty; independent review checks model intent, proof
+   trust, spec fidelity and claim scope, and checks the inventory join in both
+   directions: every frozen ascription reaches a row or gap, and every move and
+   generalize row reaches a frozen ascription or is explicitly deferred with a
+   reason.
 
 **Open after Q3.** The four combinators and their iterator boundary, the
-`then`/`catch`/`finally` built-ins beyond what `react` needs, `wait for all`
-and its microtask dependency, the `DOMException` name universe, the thenable
-job, and everything P8 owns above this layer.
+`then`/`catch`/`finally` built-ins beyond what `react` needs (`G-11`'s
+remainder), `wait for all` and its microtask dependency (`G-06`), the
+`DOMException` name universe (`G-09`'s remainder), the thenable job (`G-05`),
+and everything P8 owns above this layer. Which gap rows Q3 closes and which it
+defers is recorded in the landing record against the gap ids, so a deferral is
+visible rather than silent.
 
 ## Q4 — the DB-11 restatement
 
@@ -445,12 +549,41 @@ unfrozen. The identity, FIFO, effect-order, replay, progress and independent
 source-prefix obligations named in `PLAN.md` remain open and are carried over
 unchanged in content.
 
+**The restatement is a re-homing, not a rewrite.** The inventory's P8a reuse
+table classifies all 158 ascriptions the draft carries on disk (104 in
+`OrderingContract.lean`, 54 in `OrderingLaws.lean`; that worktree's
+`docs/CONFIGURATION-DAG.md` still records the earlier 102 and 44). Eight are
+already general and change only their namespace: `Job` with its three
+accessors, `enqueueJob`, `queuedJobs` and the two `_eq` laws over them.
+Thirty-two need renaming only, their statements unchanged up to an abstracted
+payload parameter: `PromiseRef`, `ObserverPhase`, `Registration` and `Active`
+with their constructors and accessors, `lookup`, `lookupRegistration`,
+`setRegistrationPhase`, `register` (Web IDL `react`), `notifySettled`
+(`TriggerPromiseReactions`) with their five `_eq` laws, and the two FIFO-suffix
+laws `step_active_jobs_eq` and `episodePrefix_jobs_eq`, the second being the
+`active_episode_fifo_suffix` obligation R-P12 names. The remaining 118 are
+Streams-specific adapters that stay in `Whatwg.Streams.Semantics` in content
+as well as in file: `Config`, `Decision`, `Startup`, `JobKind`, `Event`,
+`liftWritable`, `takeSinkHead`, `tick`, `decide`, the run judgments, the live
+M2 view, the successful-control grammar, and the 45 laws over them. Q4 works
+from that table; it does not re-derive the classification and it does not
+reopen a draft ascription the table leaves alone. If Q3 lands inventory rows
+`E-29` through `E-33`, `E-37` and `E-38`, the draft's registration cluster
+becomes a use of the shared layer rather than a second design, and most of the
+restatement cost DB-11 accepts is paid inside Q3.
+
 **What becomes a view.** `Readable.PromiseState`, `Writable.UnitPromise` and
 the `promises` slots keep their P4–P7 owners and proofs until this slice, and
 then become views onto the shared layer with conversion receipts, not a second
 owner. Each conversion is a named theorem in the P4–P7 declaration records'
 duplicate-prevention relationship, changing those records from `canonical` to
-`view` with the shared owner named.
+`view` with the shared owner named. The conversions are not new work: the
+inventory's rows `E-07` through `E-12` record that
+`Writable.unitPromiseToShared`, `unitPromiseFromShared`,
+`sinkAnswerToShared`, `sinkAnswerFromShared`, `sinkReturnToShared` and
+`sinkReturnFromShared`, with their eighteen `_eq` and roundtrip receipts, are
+already exactly those conversion theorems and survive Q3's moves by
+definitional equality.
 
 **The one existing denominator this lane touches.** R-P5 says the promise
 instance slots are `owned` in the ES2026 census while the Streams census keeps
@@ -469,7 +602,9 @@ executables. All exist today except the two introduced by Q1.
 **Acceptance.** Conversion receipts for all three Streams promise tables; no
 P4–P7 theorem statement changed; the Streams coverage block re-emitted and
 quoted verbatim; the P8a packet frozen by its own breaker against the new
-owners; `COORDINATION.md` records the release of the configuration-breaker
+owners, with every restated ascription joined to its class in the inventory's
+P8a reuse table and every one of the 118 adapter ascriptions carried over
+unchanged; `COORDINATION.md` records the release of the configuration-breaker
 hold.
 
 **Open after Q4.** P8 itself: the configuration, the mask projections, the
