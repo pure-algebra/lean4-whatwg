@@ -1304,8 +1304,9 @@ structure RuleInput where
   locator : String
   /-- Ruling R-P4: the optional third field. With `none` the span runs from the
   locator to the next blank line, exactly as it does at P1; with `some`, to the
-  first occurrence of the end locator at or after the start locator, trailing
-  ASCII whitespace trimmed. -/
+  end locator's one occurrence in the pinned bytes, which must lie strictly
+  after the start locator, trailing ASCII whitespace trimmed (review debt D7,
+  2026-09-07: uniqueness and the strict order were unchecked before). -/
   endLocator : Option String
   deriving Inhabited
 
@@ -1330,12 +1331,27 @@ def parseRules (text : String) (path : String := rulesRelativePath) :
       return .error s!"{path} line {lineNumber}: expected two or three tab-separated fields"
   return .ok out
 
+/-- Review debt D7 (2026-09-07): the occurrence caps here are the true counts,
+not a count clipped to the smallest number that decides the test.
+
+Both locators are required to occur **exactly once** in the pinned bytes, and
+both counts are taken with a cap of `bs.size + 1`, which no locator can reach,
+so a refusal names how many occurrences there really are instead of saying
+"2 times" for a string that occurs eleven. The end locator's one occurrence
+must also lie strictly after the start locator's, which `findFrom` alone did
+not decide: it took the first occurrence *at or after* the start, so an end
+locator that also matched at the start byte produced an empty span, and one
+that occurred earlier in the file was silently ignored rather than refused.
+Both changes are byte-neutral at every pin: all nine Web IDL end locators
+occur exactly once and after their start, and no other standard authors a
+rule row. -/
 def scanRules (bs : ByteArray) (inputs : Array RuleInput) : Except String (Array Row) := Id.run do
   let blank := "\n\n".toUTF8
+  let uncapped := bs.size + 1
   let mut out : Array Row := #[]
   for input in inputs do
     let pat := input.locator.toUTF8
-    let hits := occurrences bs pat 2
+    let hits := occurrences bs pat uncapped
     if hits.size != 1 then
       return .error s!"census: rule {input.name} locator occurs {hits.size} times, expected exactly one"
     let start := hits.getD 0 0
@@ -1346,8 +1362,14 @@ def scanRules (bs : ByteArray) (inputs : Array RuleInput) : Except String (Array
         | some n => n
         | none => bs.size
     | some endText =>
-      let some hit := findFrom bs endText.toUTF8 start
-        | return .error s!"census: rule {input.name} end locator does not occur at or after its start locator"
+      let endHits := occurrences bs endText.toUTF8 uncapped
+      if endHits.size != 1 then
+        return .error
+          s!"census: rule {input.name} end locator occurs {endHits.size} times, expected exactly one"
+      let hit := endHits.getD 0 0
+      if !Nat.blt start hit then
+        return .error
+          s!"census: rule {input.name} end locator occurs at byte {hit}, which is not after its start locator at byte {start}"
       stop := trimSpanEnd bs start hit
     out := out.push { kind := .rule, id := "rule." ++ kebab input.name,
                       anchorB := start, anchorE := start, spanB := start, spanE := stop }
@@ -1944,6 +1966,21 @@ def finishBuild (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs)
       duplicates := duplicates.push (sorted.getD i default).id
   unless duplicates.isEmpty do
     .error s!"census: duplicate row id(s): {duplicates.toList}"
+  -- Every row spans at least one byte (review debt D7, 2026-09-07). The
+  -- ecmarkup scanner refuses a degenerate span at its source; the Bikeshed
+  -- scanners did not, and neither did this tail, so an authored `rule` whose
+  -- end locator sat on its start locator, or any scanner that emitted a
+  -- zero-length span, would have been anchored, digested and rendered as the
+  -- empty string with no refusal. The check is here rather than in one
+  -- scanner because it is the property every row of every profile must have.
+  -- It is byte-neutral at all four pins: the shortest landed span is eight
+  -- bytes.
+  let mut degenerate : Array String := #[]
+  for row in sorted do
+    unless Nat.blt row.spanB row.spanE do
+      degenerate := degenerate.push s!"{row.id} at byte {row.spanB}"
+  unless degenerate.isEmpty do
+    .error s!"census: {degenerate.size} row(s) carry an empty span: {degenerate.toList}"
   -- Anchors.
   let mut anchored : Array Row := #[]
   for row in sorted do

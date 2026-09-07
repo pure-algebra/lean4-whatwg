@@ -29,11 +29,23 @@ namespace Gates.Citations
 open Gates.Common
 
 /-- Authored documents that may not be cited by line number. Basenames are
-matched as well as full paths. -/
+matched as well as full paths.
+
+`docs/PROMISE-PACKAGE-PLAN.md` joined the set at slice Q2 (review debt D11,
+2026-09-07). The rationale above is that a name plus a line number silently
+retargets whenever a section above it grows or shrinks, and that file is the
+worst case for it in this repository: the Q1 slice alone gained three receipt
+subsections in the middle of the document, one of them through a merge that
+kept both sides, and Q2, Q3 and Q4 each append more. It is a lane plan rather
+than an authority router, which is the only argument against and a weak one:
+the gate is a lexical scan whose cost is one string in this list, and the plan
+is cited by the breakers, the builders and the reviewer alike. Whether the
+other three package plans and the DAG documents join as a class is the
+coordinator's call and is not decided here. -/
 def protectedDocuments : List String :=
   ["AGENTS.md", "PLAN.md", "SPEC-MANIFEST.md", "COORDINATION.md",
    "docs/ARCHITECTURE.md", "docs/AGENT-ROUTING.md", "docs/DESIGN-BASIS.md",
-   "docs/SPEC-COVERAGE.md", "docs/PROVENANCE.md"]
+   "docs/SPEC-COVERAGE.md", "docs/PROVENANCE.md", "docs/PROMISE-PACKAGE-PLAN.md"]
 
 /-- Every spelling a citation might use for a protected document. -/
 def protectedSpellings : List String :=
