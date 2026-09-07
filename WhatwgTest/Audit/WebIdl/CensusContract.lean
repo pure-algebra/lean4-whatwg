@@ -323,22 +323,39 @@ private def rowsRelativePath : String := "WhatwgTest/Audit/WebIdl/SpecCoverageRo
 
 private def regenerateCommand : String := "lake exe census --standard webidl --write"
 
-private def expectedRowTotal : Nat := 121
+-- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
+-- 121 -> 124. Debt D3 adds the two `rule` rows for DOMException's
+-- serialization and deserialization steps, and debt D5 adds
+-- `rule.promise-to-js`.
+private def expectedRowTotal : Nat := 124
 
-private def expectedDenominator : Nat := 112
+-- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
+-- 112 -> 116. The three new rows are all inside the denominator, and debt D4
+-- moves `op.an-exception-was-thrown` into it.
+private def expectedDenominator : Nat := 116
 
+-- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
+-- `rows=121` -> `rows=124`, from the same three rows.
 private def expectedHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/whatwg-webidl-a652053f/index.bs " ++
   "input-sha256=3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83 " ++
-  "rows=121 regenerate=lake exe census --standard webidl --write"
+  "rows=124 regenerate=lake exe census --standard webidl --write"
 
+-- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
+-- `rule` 6 -> 9. Every other kind is unchanged.
 private def expectedKindCounts : List (String × Nat) :=
-  [("idl", 37), ("op", 39), ("requirement", 0), ("rule", 6), ("slot", 0), ("type", 39),
+  [("idl", 37), ("op", 39), ("requirement", 0), ("rule", 9), ("slot", 0), ("type", 39),
    ("builtin", 0), ("hook", 0), ("property", 0), ("record", 0), ("field", 0),
    ("term", 0), ("clause", 0)]
 
+-- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
+-- `owned` 59 -> 61 (the two D3 step rows, under a new `idl-DOMException rule
+-- owned` line), `hostOnly` 47 -> 49 (`rule.promise-to-js` from D5 and
+-- `op.an-exception-was-thrown` from D4), `evidenceOnly` 9 -> 8 (the same D4
+-- row leaving). `requirement`, `foreignBoundary`, `refused` and `targetOnly`
+-- are unchanged.
 private def expectedDispositionCounts : List (String × Nat) :=
-  [("owned", 59), ("hostOnly", 47), ("evidenceOnly", 9), ("requirement", 6),
+  [("owned", 61), ("hostOnly", 49), ("evidenceOnly", 8), ("requirement", 6),
    ("foreignBoundary", 0), ("refused", 0), ("targetOnly", 0)]
 
 /-! ## 4. The projection gate -/

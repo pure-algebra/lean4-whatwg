@@ -352,7 +352,10 @@ private def regenerateCommand : String := "lake exe census --standard ecma262 --
 
 private def expectedRowTotal : Nat := 77
 
-private def expectedDenominator : Nat := 74
+-- Q2 amendment, `test/contracts/ecma262-census-q2.contract.md`, 2026-09-07:
+-- 74 -> 75. Debt D4 moves `clause.promise-objects` from `evidenceOnly` to
+-- `owned`, so it enters the denominator; the row total does not move.
+private def expectedDenominator : Nat := 75
 
 private def expectedHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/ecma262-0248456c/spec.html " ++
@@ -363,9 +366,14 @@ private def expectedKindCounts : List (String × Nat) :=
   [("builtin", 13), ("clause", 8), ("field", 8), ("hook", 6), ("op", 16),
    ("property", 3), ("record", 3), ("requirement", 9), ("slot", 5), ("term", 6)]
 
+-- Q2 amendment, `test/contracts/ecma262-census-q2.contract.md`, 2026-09-07:
+-- `owned` 44 -> 45 and `evidenceOnly` 3 -> 2, the one row debt D4 moves. The
+-- other four counts are unchanged, and the two sibling clauses
+-- `clause.promise-abstract-operations` and `clause.promise-jobs` stay
+-- `evidenceOnly`.
 private def expectedDispositionCounts : List (String × Nat) :=
-  [("owned", 44), ("foreignBoundary", 13), ("hostOnly", 10), ("requirement", 7),
-   ("evidenceOnly", 3), ("refused", 0), ("targetOnly", 0)]
+  [("owned", 45), ("foreignBoundary", 13), ("hostOnly", 10), ("requirement", 7),
+   ("evidenceOnly", 2), ("refused", 0), ("targetOnly", 0)]
 
 /-! ## 4. The projection gate -/
 
