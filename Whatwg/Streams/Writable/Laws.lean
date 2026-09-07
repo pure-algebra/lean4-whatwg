@@ -769,7 +769,13 @@ theorem attachSink_settled_jobs {α ε : Type} (s : State α ε) (op : SinkOpera
     simp [attachSink, jobQueue, setOperationPhase, clearAlgorithms, operationKind,
       operationRequest, Whatwg.Ecma262.Jobs.Queue.enqueue]
 
-/-- `E-37`: a callback that returned pending queues no reaction yet. Mask M2. -/
+/-- `E-37`: a callback that returned pending queues no reaction yet. Mask
+**M1**, relabelled from M2 by the Q3b fidelity addendum
+(`test/contracts/promise-first-packet-q3b.contract.md` §4.1, acceptance
+condition 5, WS-PROM-CE-037). The statement is unchanged: it has `jobQueue s`
+on both sides, with no `Queue.enqueue` and no `Queue.dequeue`, so it observes a
+queue *shape* and no order at all, and §7 of the base packet never listed it
+among the M2 bridging lemmas. -/
 theorem attachSink_pending_jobs {α ε : Type} (s : State α ε) (op : SinkOperation α ε) :
     jobQueue (attachSink s op .pending) = jobQueue s := by
   cases op <;> simp [attachSink, jobQueue, setOperationPhase, clearAlgorithms]
@@ -1606,5 +1612,56 @@ theorem handled_bridge {α ε : Type} (s : State α ε) (id : Nat) :
             simp [hq]
         | false => exact ih
   exact key s.promises
+
+/-- The Q3b fidelity addendum's one additive bridging lemma
+(`test/contracts/promise-first-packet-q3b.contract.md` §7.1, finding F6,
+WS-PROM-CE-030 and WS-PROM-CE-031). `E-71` (`Writable.settlementTrace`, keep):
+its content does not change. It is already a list of settled identities with
+their outcomes in settlement order, which is exactly
+`Whatwg.Ecma262.Promise.SettlementTrace Unit (Boundary.Exception ε)`, so the
+general first-rejection-to-settle reads off the writable settlement order
+without a second projection and without a second table.
+
+`E-63` (`Readable.settlementTrace`, keep) is the readable counterpart and its
+bridge is **deferred with a stated reason**: the readable settlement alphabet's
+`closed` entry carries no promise identity, so the general trace's `Nat` key is
+not total over it, and supplying one would change `Readable.Settlement`, a
+`keep` row.
+
+Mask M2: the statement observes the order in which settlements happen. -/
+theorem settlementTrace_bridge {α ε : Type} (s : State α ε) (ids : List Nat)
+    (r : Boundary.Exception ε) :
+    Whatwg.Ecma262.Promise.SettlementTrace.firstRejection (settlementTrace s) ids = some r →
+      ∃ id : Nat, List.contains ids id = true ∧
+        (id, Except.error r) ∈ settlementTrace s := by
+  have key : ∀ (l : List (Nat × Except (Boundary.Exception ε) Unit)),
+      Whatwg.Ecma262.Promise.SettlementTrace.firstRejection l ids = some r →
+        ∃ id : Nat, List.contains ids id = true ∧ (id, Except.error r) ∈ l := by
+    intro l
+    induction l with
+    | nil => intro h; exact absurd h (by simp [Whatwg.Ecma262.Promise.SettlementTrace.firstRejection])
+    | cons e rest ih =>
+        intro h
+        simp only [Whatwg.Ecma262.Promise.SettlementTrace.firstRejection,
+          List.findSome?_cons] at h
+        by_cases hc : List.contains ids e.1 = true
+        · rw [if_pos hc] at h
+          cases he : e.2 with
+          | error r' =>
+              rw [he] at h
+              simp only [Option.some.injEq] at h
+              refine ⟨e.1, hc, ?_⟩
+              rw [← h, ← he]
+              exact List.mem_cons_self ..
+          | ok u =>
+              rw [he] at h
+              obtain ⟨id, hid, hmem⟩ :=
+                ih (by simpa [Whatwg.Ecma262.Promise.SettlementTrace.firstRejection] using h)
+              exact ⟨id, hid, List.mem_cons_of_mem e hmem⟩
+        · rw [if_neg hc] at h
+          obtain ⟨id, hid, hmem⟩ :=
+            ih (by simpa [Whatwg.Ecma262.Promise.SettlementTrace.firstRejection] using h)
+          exact ⟨id, hid, List.mem_cons_of_mem e hmem⟩
+  exact key (settlementTrace s)
 
 end Whatwg.Streams.Writable

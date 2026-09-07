@@ -177,3 +177,89 @@ No row of the clause map above is claimed whole-row green: every "residual
 before whole-row green" column entry is still residual, and each is recorded
 against its gap id in the module docstrings of the four implementation modules
 and in the two updated roots.
+
+## Q3b addendum, 2026-09-07, branch `promise/q3b-breaker`
+
+Appended by the Q3b addendum breaker seat, based on `f700230`. Contract:
+`test/contracts/promise-first-packet-q3b.contract.md`. Attacks: the sixteen new
+rows `WS-PROM-CE-023`..`WS-PROM-CE-038` of
+`test/counterexamples/promise/ATTACKS.md`.
+
+**Every landed row above is unchanged.** The authority-anchor table, the
+declaration and existing-type records, the ten-edge table, the clause map and
+the "Q3 landing" section keep their text. This section adds nothing to the
+graph's inventory: it states which edges the addendum **closes on landing**,
+and which it reopens or leaves as R-P20 left them. Nothing here closes an edge
+at freeze; the addendum is RED and its five batteries are declared in
+`test/fixtures/trust-gate/known-red.txt` together with the four base batteries
+that carry an amended ascription.
+
+The addendum answers the six fidelity findings **F1–F6** of ruling R-P20 and
+the minors that ruling lists. It adds one alias to the anchor table's reading —
+`CAPFIELD`, `field.promisereaction-records.Capability`, 2691475..2691802,
+digest `67b47fd1bc6773cb099432f10db3b5b427d445cd1a10077db3ec90ec381d6a77` — and
+one more, `JOBS4`, `requirement.jobs.4`, 626486..626589, digest
+`22934fdf600a46d75443c562c8de0fdd4f441e8f67c4816d25ac4ec03aca194b`; both are
+carried by the addendum's §2 rather than inserted above.
+
+| Edge | Status at this freeze | What the addendum closes on landing, or leaves open |
+| --- | --- | --- |
+| identity | **required-open**, unchanged | Untouched. The addendum adds 17 signature ascriptions and one `inferInstance` re-check, and the edge still waits on the item R-P20 left open: this repository has no generated declaration snapshot, so no artifact joins each public declaration to exactly one record. The addendum does not supply one |
+| construction | **required-open**, unchanged | Untouched by F1–F6. `E-22`'s operation-level generalization is still Q4, and reachable-state and cross-owner freshness invariants stay open, exactly as the column already says |
+| semantics | **required-open**, reopened by R-P20 — **the addendum closes the reopening** | R-P20 reopened this edge because `requirement.jobs.3` (COMPLETE, 626357..626479) is in its close-on set and had no declaration and no discharge-by-typing statement. **F5 closes that item on landing**: `Jobs.startJob` is the missing producer of `Active.job` (`startJob_active`), `Jobs.RunToCompletion` is the DB-05 specification half, `Jobs.run_to_completion` is the realizer theorem, and `Jobs.run_to_completion_nonvacuous` refuses a vacuous discharge. `Jobs.startJob_run_agree` keeps the threading conservative, so `run_fifo`, `run_split` and both Streams `tick_job_fifo` corollaries stand unchanged, and `Jobs.run_one_job_per_step` states the typing half beside it. F1, F2 and F3 also touch this edge's close-on set — THEN, REACT and TRIGGER — and repair what the landed branches say about them: step 12 becomes unconditional (`performPromiseThen_handled`, `react_handled`), the settled branches append to no list (`Reactions.mint_no_waiting` and the amended branch laws), and the two settling callers clear both lists (`Reactions.clear_waiting`, `Table.settleAndTrigger_cleared`). The edge's own explicit deferrals stand: the global configuration, the M2 mask projection and the bounded runner are P8 and stay open, so the edge does not become whole-row green |
+| laws | **closed**, and the addendum re-opens nothing | The 125 receipts stand. The seventeen amended statements keep their names, so `WhatwgTest/Ecma262/PromiseAxiomReport.lean` is neither short nor long, and the addendum's own 57 obligations have their own report, `WhatwgTest/Ecma262/PromiseFidelityAxiomReport.lean`. The edge closes again on landing with 182 named receipts across the two reports |
+| representation | **closed**, and the addendum keeps it closed | `Reaction` gains `[[Capability]]` (CAPFIELD), which strengthens rather than weakens the column's "reactions and jobs are first-order descriptors, never stored bodies": the capability is a triple of `Nat` identities, and F4's `runReactionJob` takes the handler's completion as a **decision** (DB-02) rather than running a stored body. `E-50`'s constraint holds: `Reaction` stays `Repr`-only, and the `inferInstance : Repr (Reaction Nat)` re-check is the receipt |
+| counterexamples | **required-open**, unchanged | The addendum adds sixteen rows, `WS-PROM-CE-023`..`WS-PROM-CE-038`, each linked to the statement that must reject it. Nine of them attack the landed Q3 implementation as built. `test/counterexamples/REGISTER.md` stays the coordinator's and is untouched by this seat, so the edge stays open on the same item as before |
+| bridges | **closed**, and the addendum adds one | `Whatwg.Streams.Writable.settlementTrace_bridge` (mask M2) is the thirtieth bridging lemma, relating `E-71`'s writable settlement order to `Whatwg.Ecma262.Promise.SettlementTrace` with no change to `Writable.settlementTrace`'s content. `E-63`'s readable counterpart is **deferred with a stated reason**: the readable settlement alphabet's `closed` entry carries no promise identity, and supplying one would change `Readable.Settlement`, a `keep` row. The preservation half of `WhatwgTest/Streams/PromiseBridge.lean` stays green throughout; the one amended bridging ascription is `subscribe_reactions_bridge` |
+| targets | not-applicable, unchanged | Q3b lands no lowering and no generated code |
+| trust | **closed**, and the addendum extends it | 57 further named receipts inside the R-11 ceiling on landing. `sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` and the `native_decide` auxiliaries appear nowhere, and no `sorry`, `partial` or `unsafe` survives the source trust gate |
+| coverage | **required-open**, unchanged | Both numerator modules exist and stay all-`absent`. Every anchor the addendum cites — CAPFIELD, JOBS4, THEN, FULFILL, REJECT, TRIGGER, REACTJOB, RESOLVING, COMPLETE, WAITALL, REACT, NEWP, RESOLVE, REJECTOP — is cited as an anchor for a declaration and never as a witness, so no row moves to `partial` or `green`. Acceptance condition 9 of the addendum requires the three census gates to confirm it |
+
+**Which edges the addendum closes on landing.** One: the reopening of
+`semantics`, through F5's realization of COMPLETE. It also delivers repairs
+inside `semantics`' close-on set for THEN, REACT, TRIGGER, FULFILL and REJECT,
+and one further bridge inside `bridges`, but neither edge becomes whole-row
+green: `semantics` keeps its P8 deferrals and `bridges` keeps `E-63`'s deferred
+readable bridge. `laws`, `representation`, `bridges` and `trust` stay closed
+and reclose with more evidence; `identity`, `construction`, `counterexamples`
+and `coverage` stay `required-open` on exactly the items R-P20 left them on;
+`targets` stays `not-applicable`.
+
+**The mask table.** §7 of the base packet is amended by §4.1 of the addendum,
+not edited: `Jobs.run_cons` joins the M2 list, `WebIdl.Promise.waitForAll_success`
+and `waitForAll_failure` leave it, `Writable.attachSink_pending_jobs`'s tree
+docstring is corrected to M1, and the addendum's eleven new M2 theorems join.
+No frozen statement changes for a mask correction.
+
+## Q3b landing
+
+Q3b builder seat, 2026-09-07, branch `promise/q3b-builder` at `85a2d96`, based
+on the frozen addendum `38a806a` merged with `origin/main` (R-P21, R-P22).
+Receipt: the "Q3b landing receipt" of `docs/PROMISE-PACKAGE-PLAN.md`, which
+carries every command and its result line. **Every landed row above this
+section is unchanged**, the "Q3b addendum" table included: this section records
+what the landing did to the edges it said it would.
+
+| Edge | Status before | Status at the landing | Evidence, with theorem names |
+| --- | --- | --- | --- |
+| semantics | **required-open**, reopened by R-P20 | **the reopening is closed**; the edge stays `required-open` on its own P8 deferrals | COMPLETE is realized. `Jobs.startJob_active` is the producer `Active.job` lacked, `Jobs.RunToCompletion` with `Jobs.RunToCompletion_iff` is the DB-05 specification half, `Jobs.run_to_completion` is the realizer, and `Jobs.run_to_completion_nonvacuous` refuses the vacuous discharge because the activation `startJob` produces is one in which `RunCondition` fails. `Jobs.startJob_checkpoint`, `startJob_queue` and `startJob_blocked` bound the operation and `Jobs.completeJob_job`, `completeJob_other` bound the return. `Jobs.startJob_run_agree` keeps the threading conservative: `Jobs.run_fifo`, `Jobs.run_split`, `Jobs.hostEnqueuePromiseJob_order`, `Writable.tick_job_fifo`, `Transform.tick_job_fifo` and the three `runPullJob_*` receipts keep their statements **and** their proofs, byte-identical. `Jobs.run_one_job_per_step` states the typing half beside it. Inside the same close-on set, THEN and REACT are repaired by `Promise.performPromiseThen_handled` and `WebIdl.Promise.react_handled` (step 12 unconditional), by `Promise.Reactions.mint_no_waiting` with the amended `performPromiseThen_fulfilled`/`_rejected` and `react_fulfilled`/`react_rejected` (the settled branches append to no list), and TRIGGER, FULFILL and REJECT by `Promise.Reactions.clear_waiting`, `clear_other_promise` and `Table.settleAndTrigger_cleared` (both lists cleared). The global configuration, the M2 mask projection and the bounded runner are P8 and stay open, so the row is not whole-row green |
+| laws | closed | **closed, with more evidence** | 182 named receipts across the two reports, all inside R-11. The addendum's 57 print 15 empty, 34 `[propext]`, 6 `[propext, Quot.sound]`, 2 `[propext, Classical.choice, Quot.sound]`; the base packet's 125 are still exactly 125 names with the Q3 landing's distribution, 59 empty, 41 `[propext]`, 20 `[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]` |
+| representation | closed | **closed, and strengthened** | `Reaction` carries CAPFIELD as `Reaction.capability` and stays `Repr`-only; the `inferInstance : Repr (Reaction Nat)` re-check is green, which is the `E-50` receipt. `Promise.reactionHandlerResult_handler` returns the handler's completion unexamined, so DB-02 holds: no body is stored and none is run. `Capability` gains `deriving Repr`, forced and additive, recorded as builder note B3 |
+| bridges | closed | **closed, and one bridge added** | `Whatwg.Streams.Writable.settlementTrace_bridge` (mask M2) is the thirtieth bridging lemma. `Writable.settlementTrace`'s content is unchanged and no projection was needed. `E-63`'s readable counterpart stays deferred with its stated reason. The preservation half of `WhatwgTest/Streams/PromiseBridge.lean` is green and 25 of the 26 `WhatwgTest/Streams/**` batteries are byte-identical to `f700230` |
+| trust | closed | **closed, and extended** | The 57 further receipts above, `lake exe trustselftest` PASS in both directions, and `known-red.txt` empty of entries again |
+| counterexamples | required-open | **required-open**, unchanged | The sixteen rows `WS-PROM-CE-023`..`WS-PROM-CE-038` each have the statement named for them landed and green. `test/counterexamples/REGISTER.md` is still the coordinator's and untouched, so the edge stays open on the same item |
+| identity, construction, coverage | required-open | **required-open**, unchanged | No generated declaration snapshot exists; `E-22`'s operation-level generalization is still Q4; both censuses stay all-`absent`, which the three `lake exe census` PASS lines confirm |
+| targets | not-applicable | **not-applicable**, unchanged | Q3b lands no lowering and no generated code |
+
+**Edges closed at this landing: one** — the reopening of `semantics`, through
+F5's realization of COMPLETE, whose theorem is `Jobs.run_to_completion` with
+`Jobs.run_to_completion_nonvacuous` beside it. **Edges reopened: none.**
+
+**The declaration delta.** 196 → 201 modules, exactly as the addendum's §10
+predicts, and 12973 → 13079 declarations. §10's expected 13047 counts the
+generated projection `Reaction.capability` and no other generated constant;
+the 33 further ones Lean mints — a `Repr` instance, three matchers, twelve
+private match splitters and sixteen equation lemmas — are enumerated in builder
+note B2 of the addendum, together with the one matcher that disappears because
+`WebIdl.Promise.react` now pattern-matches on nothing. Every **authored** name
+is §10's list, name for name: 1 type, 15 functions and predicates, 57 theorems.
