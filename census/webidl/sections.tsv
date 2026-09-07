@@ -1,0 +1,17 @@
+# The frozen section scope of the Web IDL census: authored input, one
+# line-opening heading id per line, case-exact.
+#
+# Ruling R-P1 gives the Bikeshed profile a sectionScope switch and
+# docs/PROMISE-PACKAGE-PLAN.md resolves it against this file rather than
+# against a list in Lean, so widening the scope is a data review. Widening it
+# is a contract change: test/contracts/webidl-census.contract.md section 2
+# freezes these five ids, their spans and their digests.
+#
+# A listed id that is not a line-opening heading with that exact id fails
+# generation; a listed section that governs no row fails generation; and a row
+# that lands outside every listed section fails generation.
+idl-exceptions
+idl-promise
+js-promise
+js-exceptions
+idl-DOMException

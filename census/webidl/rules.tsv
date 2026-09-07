@@ -1,0 +1,21 @@
+# Cross-cutting rule rows: authored input to the Web IDL census.
+#
+# Two or three tab-separated fields: <kebab name> <start locator>
+# [<end locator>]. The start locator must occur exactly once in the pinned
+# index.bs. With two fields the span runs to the next blank line; with three
+# (ruling R-P4) it runs to the first occurrence of the end locator at or after
+# the start locator, with trailing ASCII whitespace trimmed.
+#
+# The six idl-DOMException-derived-interfaces bullets need the third field:
+# they sit in one blank-line-delimited paragraph and would otherwise receive
+# six nested spans all ending at the same offset. Each bullet's end locator is
+# the opening text of the next bullet, and the last bullet's is the note that
+# follows the list. Their disposition is requirement
+# (census/webidl/dispositions.tsv); their kind is rule, which is what
+# Gates.Census.scanRules emits.
+domexception-derived-identifier	*   The [=identifier=] of the [=interface=] must end with	*   The [=interface=] must have a [=constructor operation=] which sets
+domexception-derived-constructor-name	*   The [=interface=] must have a [=constructor operation=] which sets	*   Their [=constructor operation=] must take as its first parameter
+domexception-derived-constructor-message	*   Their [=constructor operation=] must take as its first parameter	*   Their [=constructor operation=] should take as its second parameter
+domexception-derived-constructor-options	*   Their [=constructor operation=] should take as its second parameter	*   They should have [=read only=] [=attributes=], whose names
+domexception-derived-attributes	*   They should have [=read only=] [=attributes=], whose names	*   They should be [=serializable objects=], whose [=serialization steps=] and
+domexception-derived-serializable	*   They should be [=serializable objects=], whose [=serialization steps=] and	<p class=note>These requirements mean

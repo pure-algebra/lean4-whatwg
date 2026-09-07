@@ -81,6 +81,11 @@
 # only because the names it ascribes do not exist yet; the Web IDL and ECMA-262
 # projection gates additionally refuse because no standard is registered under
 # their key. The builder removes an entry the moment its battery is green.
-WhatwgTest.Audit.CensusProfileIdentity
-WhatwgTest.Audit.WebIdl.CensusContract
+#
+# The Web IDL builder landed the R-P1 profile refactor, the R-P2 kinds, the
+# R-P4 end locator, the webidl standard and census/webidl/** on 2026-09-06, so
+# WhatwgTest.Audit.CensusProfileIdentity and
+# WhatwgTest.Audit.WebIdl.CensusContract are green and their two entries are
+# removed. WhatwgTest.Audit.Ecma262.CensusContract stays red: it ascribes
+# Gates.Ecmarkup and the ecma262 standard, which are the ES2026 builder's.
 WhatwgTest.Audit.Ecma262.CensusContract
