@@ -40,6 +40,12 @@ import WhatwgTest.Html.Breakers
 import WhatwgTest.Html.Print
 import WhatwgTest.Audit.SpecCoverage
 import WhatwgTest.Audit.Infra.SpecCoverageRows
+import WhatwgTest.Audit.WebIdl.SpecCoverageRows
+import WhatwgTest.Audit.Ecma262.SpecCoverageRows
+import WhatwgTest.Audit.CensusProfileIdentity
+import WhatwgTest.Audit.WebIdl.CensusContract
+import WhatwgTest.Audit.Ecma262.EcmarkupScanner
+import WhatwgTest.Audit.Ecma262.CensusContract
 import WhatwgTest.Audit.AxiomGate
 
 /-!

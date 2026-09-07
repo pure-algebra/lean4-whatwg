@@ -1,0 +1,107 @@
+# Authored external identities for the ECMA-262 census, in the URL lane's
+# format: one identity per line, every one namespaced `ext.`. A duplicate
+# fails; an identity no dependency uses fails; a dependency naming an identity
+# absent here fails.
+#
+# These are dependency names with a pin and no obligation to model. They are
+# not unconstrained executable callbacks, and declaring one grants no coverage
+# state to any row that names it.
+#
+# The namespaces are the escape treatments of rulings R-P6, R-P9 and R-P11.
+# Section 5 of docs/research/2026-09-06-ecma262-promise-census-survey.md is the
+# survey these are read from, group by group.
+
+# --- The named ES2026 core boundary (R-P6 group A, B, C and H) --------------
+# R-P9: recording an escaping reference here fixes only where it is written
+# down, never a disposition. The completion discipline is reproduced by the
+# model as an `Except`-shaped result and no in-scope row is `foreignBoundary`
+# for a completion reason.
+#
+# Completion Records: sec-completion-record-specification-type,
+# sec-normalcompletion, sec-throwcompletion, sec-completion-ao, and the `?` and
+# `!` shorthands (53 and 9 occurrences in scope).
+ext.ecma262.core.completion-record
+# Abstract Closures and function creation: sec-abstract-closure and
+# sec-createbuiltinfunction, which carries the SetFunctionName and
+# SetFunctionLength bookkeeping. Thirteen closures are created in scope and
+# eleven are wrapped; the closures stay owned as first-order descriptors and
+# only the object allocation and the name/length bookkeeping are host plumbing.
+ext.ecma262.core.abstract-closure
+ext.ecma262.core.createbuiltinfunction
+# The object model. These reach arbitrary user code, which is the decision-kind
+# treatment AGENTS.md already mandates for a foreign boundary; their answers
+# enter the tape as a returned value, a synchronous throw, or a promise
+# settlement, with no modelled body.
+ext.ecma262.core.call
+ext.ecma262.core.construct
+ext.ecma262.core.get
+ext.ecma262.core.invoke
+ext.ecma262.core.iscallable
+ext.ecma262.core.isconstructor
+ext.ecma262.core.createdatapropertyorthrow
+ext.ecma262.core.definepropertyorthrow
+ext.ecma262.core.ordinaryobjectcreate
+ext.ecma262.core.ordinarycreatefromconstructor
+ext.ecma262.core.samevalue
+ext.ecma262.core.speciesconstructor
+ext.ecma262.core.getfunctionrealm
+ext.ecma262.core.createarrayfromlist
+# The List and Record specification types (sec-list-and-record-specification-type).
+ext.ecma262.core.list-and-record
+
+# --- The iterator tape (R-P11, survey group D) ------------------------------
+# Used only by the four combinators, four call sites each. The combinators
+# consume a sequence of iterator answers — next value, done, throw — that is
+# structurally identical to a Streams foreign-boundary answer tape, which is
+# what keeps the combinator rows owned without inheriting all of clause 27.1.
+ext.ecma262.iterator.iterator-record
+ext.ecma262.iterator.getiterator
+ext.ecma262.iterator.iteratorstepvalue
+ext.ecma262.iterator.iteratorclose
+
+# --- Intrinsics and well-known symbols (R-P11, survey group F) --------------
+# An opaque enumeration of intrinsic names with an identity relation and no
+# behaviour. %Promise% and %Promise.prototype% also carry `term` rows in scope,
+# because the source `<dfn>`s them there.
+ext.ecma262.intrinsic.promise
+ext.ecma262.intrinsic.promise-prototype
+ext.ecma262.intrinsic.object-prototype
+ext.ecma262.intrinsic.function-prototype
+ext.ecma262.intrinsic.symbol-species
+ext.ecma262.intrinsic.symbol-tostringtag
+
+# --- Error objects (R-P11, survey group G) ----------------------------------
+# Nine in-scope steps throw a TypeError and two create an AggregateError. The
+# model carries a throw completion tagged with an error kind and a reason
+# value; it never constructs an Error object.
+ext.ecma262.error.typeerror
+ext.ecma262.error.aggregateerror
+
+# --- The conventions record (R-P11, survey group H) -------------------------
+# The nine `~enum~` spellings observed in scope, the `<< ... >>` List literal
+# notation (44 pairs, U+00AB and U+00BB), and annex D's host layering points,
+# recorded so a later reader can see the host hooks were enumerated and checked
+# against the six in-scope `hook` rows.
+ext.ecma262.conventions.enum-spellings
+ext.ecma262.conventions.list-notation
+ext.ecma262.conventions.host-layering-points
+
+# --- Agents, realms and execution contexts (R-P6 externals, survey group E) -
+# DB-03 makes the queue state; it does not make the realm and active-script
+# bookkeeping state. Nothing in mask M1 or M2 observes a realm, and every
+# in-scope algorithm carries [[Realm]] opaquely through a job.
+ext.ecma262.host.realm-record
+ext.ecma262.host.agent
+ext.ecma262.host.execution-context-stack
+ext.ecma262.host.getactivescriptormodule
+ext.ecma262.host.script-record
+ext.ecma262.host.module-record
+
+# --- In-family hooks named but not called (R-P11, survey group I) -----------
+# Found and deliberately excluded rather than missed. The first is named in the
+# sec-jobs prose but defined outside scope and called by no in-scope algorithm;
+# the second is an out-of-scope consumer of PromiseCapability Record, which
+# matters because a future Atomics.waitAsync lane would enter this library from
+# above.
+ext.ecma262.out-of-lane.hostenqueuefinalizationregistrycleanupjob
+ext.ecma262.out-of-lane.enqueueresolveinagentjob

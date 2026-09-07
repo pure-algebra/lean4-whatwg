@@ -1,0 +1,13 @@
+# Per-row disposition exceptions: authored input to the Web IDL census.
+#
+# Three tab-separated fields: <row id> <disposition> <reason>. An override
+# whose row id matches no row fails generation, so an entry cannot outlive
+# its reason.
+#
+# Empty at Q1. Every one of the 121 rows is described by its own section's
+# line in census/webidl/dispositions.tsv, and the two rows the survey singled
+# out for ratification are section-wide rulings rather than exceptions:
+# "mark a promise as handled" is owned with the rest of
+# js-promise-manipulation although the pinned Streams source invokes it zero
+# times (ruling R-P4), and idl-DOMException-derived-predefineds is hostOnly
+# for the whole section rather than evidenceOnly for the worked instance.

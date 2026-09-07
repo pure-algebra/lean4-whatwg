@@ -1,0 +1,64 @@
+# Section dispositions: authored input to the Web IDL census.
+#
+# Three tab-separated fields: <section id> <kind or *> <disposition>, resolved
+# exactly as census/dispositions.tsv is for Streams, except that the heading
+# ancestry runs from the innermost <h5> outward to the <h2>. Section ids are
+# heading ids of vendor/whatwg-webidl-a652053f/index.bs and are case-exact.
+#
+# Seeded from the "Web IDL section dispositions" table of SPEC-MANIFEST.md as
+# amended by rulings R-P4 and R-P10, and frozen row for row by section 5 of
+# test/contracts/webidl-census.contract.md. Both directions are checked: an
+# entry no row uses fails generation, and a row no entry reaches fails
+# generation.
+
+# The first-order exception universe Whatwg.WebIdl.Exceptions is reserved for:
+# "exception", "simple exception", the five simple exception types, and the
+# specification-level "create" and "throw".
+idl-exceptions	*	owned
+
+# The 32 base DOMException error names, one owned data row per name under
+# ruling R-P10, plus the names table that introduces them. The 22 legacy const
+# members are idl rows of idl-DOMException, not rows of this section.
+idl-DOMException-error-names	*	owned
+
+# Six must/should constraints on deriving an interface, stated with no
+# algorithm and realized by QuotaExceededError. They enter as authored rule
+# rows (census/webidl/rules.tsv) and carry disposition requirement.
+idl-DOMException-derived-interfaces	*	requirement
+
+# QuotaExceededError, the one predefined derived interface. Ruling R-P4 and
+# the plan seat's flagged item: hostOnly, not evidenceOnly. No Streams
+# algorithm reaches the name at this pin.
+idl-DOMException-derived-predefineds	*	hostOnly
+
+# Ruling R-P4 overrides the survey's recommendation of owned: the promise type
+# is a type-system entry and the binding layer is hostOnly.
+idl-promise	*	hostOnly
+
+# The js-promise lead is the JavaScript-value-to-Promise<T> conversion, which
+# is binding-layer.
+js-promise	*	hostOnly
+
+# The eleven promise operations DB-11 places in Whatwg.WebIdl. The pinned
+# Streams source invokes them 197 times.
+js-promise-manipulation	*	owned
+
+# Seven worked examples inside <div class="example"> containers, plus the
+# Environment ready promise they define for illustration.
+js-promise-examples	*	evidenceOnly
+
+# Which host object represents each exception kind: binding, not semantics.
+js-exception-objects	*	hostOnly
+
+# The four algorithms that give "create" and "throw" their meaning.
+js-creating-throwing-exceptions	*	owned
+
+# One propagation sentence; the propagation rule itself is ECMA-262's.
+js-handling-exceptions	*	evidenceOnly
+
+# The DOMException interface. Its associated name and message are first-order
+# content Whatwg.WebIdl.Exceptions carries; its IDL surface and the interface
+# type itself are the host's.
+idl-DOMException	op	owned
+idl-DOMException	idl	hostOnly
+idl-DOMException	type	hostOnly

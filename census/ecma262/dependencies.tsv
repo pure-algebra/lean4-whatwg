@@ -1,0 +1,119 @@
+# Authored source dependencies for the ECMA-262 census, in the URL lane's
+# format: one line per row id, then a tab, then a comma-separated list of the
+# identities that row consumes, or a bare `-` for none. Identity checks do not
+# discharge semantic proof edges.
+#
+# Every row of the census appears exactly once. Every target is either another
+# row of this census or an `ext.` identity declared in externals.tsv; a
+# duplicate or self dependency fails generation.
+#
+# Scope of a line. For a primary (clause) row the dependencies are read from
+# the clause's OWN text — its span minus the spans of its clause children —
+# because clause rows nest and the generator does not subtract child spans, so
+# reading the whole span would make `clause.promise-objects` depend on
+# everything under it. For a `field`, `slot`, `requirement` or `term` row the
+# whole span is read. Operation names are matched on identifier boundaries, so
+# `PromiseResolve` is not read out of `NewPromiseResolveThenableJob` and
+# `PerformPromiseAll` is not read out of `PerformPromiseAllSettled`.
+#
+# The four escape treatments are rulings R-P6, R-P9 and R-P11, and the
+# namespaces of externals.tsv carry them:
+#
+#   ext.ecma262.core.*         the named ES2026 core boundary: Completion
+#                              Records, Abstract Closures and function
+#                              creation, the object-model operations, and the
+#                              List and Record specification types. R-P9: this
+#                              fixes only WHERE an escaping reference is
+#                              recorded, never a disposition. No in-scope row
+#                              is `foreignBoundary` for a completion reason;
+#                              the completion discipline is reproduced by the
+#                              model as an `Except`-shaped result.
+#   ext.ecma262.iterator.*     R-P11: the iterator tape the four combinators
+#                              consume.
+#   ext.ecma262.intrinsic.*    R-P11: the well-known intrinsics and symbols.
+#   ext.ecma262.error.*        R-P11: TypeError and AggregateError.
+#   ext.ecma262.conventions.*  R-P11: the conventions record — the enum
+#                              spellings, the list notation, and annex D.
+#   ext.ecma262.host.*         R-P6 externals: agents, realms, execution
+#                              contexts, and Script and Module Records.
+#   ext.ecma262.out-of-lane.*  R-P11: the two in-family hooks that were found
+#                              and deliberately excluded.
+#
+# row-id	comma-separated-dependencies-or--
+builtin.get-promise-%symbol.species%	ext.ecma262.intrinsic.symbol-species
+builtin.promise-executor	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.iscallable,ext.ecma262.core.ordinarycreatefromconstructor,ext.ecma262.error.typeerror,ext.ecma262.intrinsic.promise-prototype,op.createresolvingfunctions,slot.PromiseFulfillReactions,slot.PromiseIsHandled,slot.PromiseRejectReactions,slot.PromiseResult,slot.PromiseState
+builtin.promise.all	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.completion-record,ext.ecma262.iterator.getiterator,ext.ecma262.iterator.iteratorclose,op.getpromiseresolve,op.ifabruptrejectpromise,op.newpromisecapability,op.performpromiseall
+builtin.promise.allsettled	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.completion-record,ext.ecma262.iterator.getiterator,ext.ecma262.iterator.iteratorclose,op.getpromiseresolve,op.ifabruptrejectpromise,op.newpromisecapability,op.performpromiseallsettled
+builtin.promise.any	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.completion-record,ext.ecma262.error.aggregateerror,ext.ecma262.iterator.getiterator,ext.ecma262.iterator.iteratorclose,op.getpromiseresolve,op.ifabruptrejectpromise,op.newpromisecapability,op.performpromiseany
+builtin.promise.prototype.catch	ext.ecma262.conventions.list-notation,ext.ecma262.core.completion-record,ext.ecma262.core.invoke
+builtin.promise.prototype.finally	ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.createbuiltinfunction,ext.ecma262.core.invoke,ext.ecma262.core.iscallable,ext.ecma262.core.isconstructor,ext.ecma262.core.speciesconstructor,ext.ecma262.error.typeerror,ext.ecma262.intrinsic.promise,op.promise-resolve
+builtin.promise.prototype.then	ext.ecma262.core.completion-record,ext.ecma262.core.speciesconstructor,ext.ecma262.error.typeerror,ext.ecma262.intrinsic.promise,op.ispromise,op.newpromisecapability,op.performpromisethen
+builtin.promise.race	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.completion-record,ext.ecma262.iterator.getiterator,ext.ecma262.iterator.iteratorclose,op.getpromiseresolve,op.ifabruptrejectpromise,op.newpromisecapability,op.performpromiserace
+builtin.promise.reject	ext.ecma262.conventions.list-notation,ext.ecma262.core.call,ext.ecma262.core.completion-record,op.newpromisecapability
+builtin.promise.resolve	ext.ecma262.core.completion-record,ext.ecma262.error.typeerror,op.promise-resolve
+builtin.promise.try	ext.ecma262.conventions.list-notation,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.error.typeerror,op.newpromisecapability
+builtin.promise.withResolvers	ext.ecma262.core.completion-record,ext.ecma262.core.createdatapropertyorthrow,ext.ecma262.core.ordinaryobjectcreate,ext.ecma262.intrinsic.object-prototype,op.newpromisecapability
+clause.jobs	ext.ecma262.conventions.host-layering-points,ext.ecma262.core.abstract-closure,ext.ecma262.core.invoke,ext.ecma262.host.execution-context-stack,ext.ecma262.host.getactivescriptormodule,ext.ecma262.host.module-record,ext.ecma262.host.realm-record,ext.ecma262.host.script-record,ext.ecma262.out-of-lane.hostenqueuefinalizationregistrycleanupjob,hook.hostenqueuegenericjob,hook.hostenqueuepromisejob,hook.hostenqueuetimeoutjob
+clause.promise-abstract-operations	-
+clause.promise-constructor	ext.ecma262.intrinsic.promise
+clause.promise-jobs	-
+clause.promise-objects	-
+clause.properties-of-promise-instances	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.list-and-record,ext.ecma262.intrinsic.promise-prototype,record.promisereaction-records,slot.PromiseFulfillReactions,slot.PromiseIsHandled,slot.PromiseRejectReactions,slot.PromiseResult,slot.PromiseState
+clause.properties-of-the-promise-constructor	ext.ecma262.intrinsic.function-prototype
+clause.properties-of-the-promise-prototype-object	ext.ecma262.intrinsic.object-prototype,ext.ecma262.intrinsic.promise-prototype,slot.PromiseState
+field.jobcallback-records.Callback	-
+field.jobcallback-records.HostDefined	ext.ecma262.conventions.enum-spellings
+field.promisecapability-records.Promise	-
+field.promisecapability-records.Reject	-
+field.promisecapability-records.Resolve	-
+field.promisereaction-records.Capability	record.promisecapability-records
+field.promisereaction-records.Handler	ext.ecma262.conventions.enum-spellings,record.jobcallback-records
+field.promisereaction-records.Type	ext.ecma262.conventions.enum-spellings
+hook.host-promise-rejection-tracker	ext.ecma262.conventions.enum-spellings
+hook.hostcalljobcallback	ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.iscallable,ext.ecma262.core.list-and-record,record.jobcallback-records
+hook.hostenqueuegenericjob	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.abstract-closure,ext.ecma262.host.agent,ext.ecma262.host.realm-record
+hook.hostenqueuepromisejob	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.abstract-closure,ext.ecma262.core.getfunctionrealm,ext.ecma262.host.getactivescriptormodule,ext.ecma262.host.realm-record,op.newpromisereactionjob,op.newpromiseresolvethenablejob
+hook.hostenqueuetimeoutjob	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.abstract-closure,ext.ecma262.host.agent,ext.ecma262.host.realm-record
+hook.hostmakejobcallback	ext.ecma262.conventions.enum-spellings,record.jobcallback-records
+op.createresolvingfunctions	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.completion-record,ext.ecma262.core.createbuiltinfunction,ext.ecma262.core.get,ext.ecma262.core.iscallable,ext.ecma262.core.samevalue,ext.ecma262.error.typeerror,hook.hostenqueuepromisejob,hook.hostmakejobcallback,op.fulfillpromise,op.newpromiseresolvethenablejob,op.rejectpromise
+op.fulfillpromise	ext.ecma262.conventions.enum-spellings,op.triggerpromisereactions,slot.PromiseFulfillReactions,slot.PromiseRejectReactions,slot.PromiseResult,slot.PromiseState
+op.getpromiseresolve	ext.ecma262.core.completion-record,ext.ecma262.core.get,ext.ecma262.core.iscallable,ext.ecma262.error.typeerror
+op.ifabruptrejectpromise	ext.ecma262.conventions.list-notation,ext.ecma262.core.call,ext.ecma262.core.completion-record,record.promisecapability-records
+op.ispromise	slot.PromiseState
+op.newpromisecapability	ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.completion-record,ext.ecma262.core.construct,ext.ecma262.core.createbuiltinfunction,ext.ecma262.core.iscallable,ext.ecma262.core.isconstructor,ext.ecma262.error.typeerror,record.promisecapability-records
+op.newpromisereactionjob	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.getfunctionrealm,ext.ecma262.host.realm-record,hook.hostcalljobcallback,record.promisecapability-records,record.promisereaction-records
+op.newpromiseresolvethenablejob	ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.getfunctionrealm,ext.ecma262.host.realm-record,hook.hostcalljobcallback,op.createresolvingfunctions,record.jobcallback-records
+op.performpromiseall	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.createarrayfromlist,ext.ecma262.core.createbuiltinfunction,ext.ecma262.core.invoke,ext.ecma262.iterator.iterator-record,ext.ecma262.iterator.iteratorstepvalue,record.promisecapability-records
+op.performpromiseallsettled	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.createarrayfromlist,ext.ecma262.core.createbuiltinfunction,ext.ecma262.core.createdatapropertyorthrow,ext.ecma262.core.invoke,ext.ecma262.core.ordinaryobjectcreate,ext.ecma262.intrinsic.object-prototype,ext.ecma262.iterator.iterator-record,ext.ecma262.iterator.iteratorstepvalue,record.promisecapability-records
+op.performpromiseany	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.abstract-closure,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.createarrayfromlist,ext.ecma262.core.createbuiltinfunction,ext.ecma262.core.definepropertyorthrow,ext.ecma262.core.invoke,ext.ecma262.error.aggregateerror,ext.ecma262.iterator.iterator-record,ext.ecma262.iterator.iteratorstepvalue,record.promisecapability-records
+op.performpromiserace	ext.ecma262.conventions.enum-spellings,ext.ecma262.conventions.list-notation,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.invoke,ext.ecma262.iterator.iterator-record,ext.ecma262.iterator.iteratorstepvalue,record.promisecapability-records
+op.performpromisethen	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.iscallable,hook.host-promise-rejection-tracker,hook.hostenqueuepromisejob,hook.hostmakejobcallback,op.ispromise,op.newpromisereactionjob,record.promisecapability-records,record.promisereaction-records,slot.PromiseFulfillReactions,slot.PromiseIsHandled,slot.PromiseRejectReactions,slot.PromiseResult,slot.PromiseState
+op.promise-resolve	ext.ecma262.conventions.list-notation,ext.ecma262.core.call,ext.ecma262.core.completion-record,ext.ecma262.core.get,ext.ecma262.core.samevalue,op.ispromise,op.newpromisecapability
+op.rejectpromise	ext.ecma262.conventions.enum-spellings,hook.host-promise-rejection-tracker,op.triggerpromisereactions,slot.PromiseFulfillReactions,slot.PromiseIsHandled,slot.PromiseRejectReactions,slot.PromiseResult,slot.PromiseState
+op.triggerpromisereactions	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.list-and-record,hook.hostenqueuepromisejob,op.newpromisereactionjob,record.promisereaction-records
+property.promise.prototype	-
+property.promise.prototype-%symbol.tostringtag%	ext.ecma262.intrinsic.symbol-tostringtag
+property.promise.prototype.constructor	ext.ecma262.intrinsic.promise
+record.jobcallback-records	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.abstract-closure,hook.hostcalljobcallback,hook.hostmakejobcallback
+record.promisecapability-records	ext.ecma262.out-of-lane.enqueueresolveinagentjob,op.newpromisecapability
+record.promisereaction-records	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.abstract-closure,op.newpromisereactionjob,op.performpromisethen,record.jobcallback-records,record.promisecapability-records
+requirement.hostcalljobcallback.1	ext.ecma262.core.call
+requirement.hostenqueuepromisejob.1	-
+requirement.hostenqueuepromisejob.2	ext.ecma262.host.getactivescriptormodule,hook.hostenqueuepromisejob
+requirement.hostenqueuepromisejob.3	hook.hostenqueuepromisejob
+requirement.hostmakejobcallback.1	record.jobcallback-records
+requirement.jobs.1	ext.ecma262.core.abstract-closure,ext.ecma262.core.invoke,ext.ecma262.host.execution-context-stack
+requirement.jobs.2	-
+requirement.jobs.3	-
+requirement.jobs.4	ext.ecma262.core.abstract-closure
+slot.PromiseFulfillReactions	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.list-and-record,record.promisereaction-records
+slot.PromiseIsHandled	-
+slot.PromiseRejectReactions	ext.ecma262.conventions.enum-spellings,ext.ecma262.core.list-and-record,record.promisereaction-records
+slot.PromiseResult	ext.ecma262.conventions.enum-spellings,slot.PromiseState
+slot.PromiseState	ext.ecma262.conventions.enum-spellings
+term.%Promise%	ext.ecma262.intrinsic.promise
+term.%Promise.prototype%	ext.ecma262.intrinsic.promise-prototype
+term.Promise~20~prototype~20~object	-
+term.job	-
+term.job-activescriptormodule	-
+term.job-preparedtoevaluatecode	-

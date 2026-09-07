@@ -1,0 +1,76 @@
+# External identities the Web IDL census's dependency lines name (ruling
+# R-P6). One `ext.`-namespaced identity per line; a duplicate fails, and an
+# identity no dependency uses fails.
+#
+# These are dependency names with open semantic obligations, not modelled
+# declarations and not unconstrained callbacks. Four groups:
+#
+# ext.ecma262.*  the Whatwg.Ecma262 boundary, which is the exact P8 surface:
+#                five abstract operations, three intrinsics, the completion
+#                shorthands, and the promise and realm internal slots the
+#                operations read. Ruling R-P4 emits no slot rows for this
+#                standard, so [[Promise]], [[Resolve]], [[Reject]] and
+#                [[PromiseIsHandled]] are recorded here instead.
+# ext.webidl.*   sections of the same pinned index.bs that lie outside
+#                census/webidl/sections.tsv. Each identity names its target
+#                heading id, and each is hostOnly at the boundary: promoting
+#                them to census rows would open the whole 695 KB file.
+# ext.html.*     realm, task and structured-serialization machinery. The HTML
+#                pin exists in SPEC-MANIFEST.md but has no census, so these
+#                cannot become cross-census dependency rows yet.
+#                ext.html.queue-a-microtask is the one that carries an
+#                ordering obligation: it is a step of "wait for all".
+# ext.dom.*      DOM vocabulary, reached only by the descriptive prose of the
+#                error-names table.
+#
+# Three ECMA-262 escapes the packet's section 7 names are absent here, and
+# that is not an omission: {{%Error.prototype%}}, [=PromiseCapability=] and
+# [=ECMAScript/error objects=] occur only in js-DOMException-specialness,
+# which produces no census row, so no dependency line can reach them. They
+# enter the record when a row of that section exists.
+ext.dom.document
+ext.dom.element
+ext.dom.node
+ext.dom.node-tree
+ext.ecma262.abrupt-completions
+ext.ecma262.assert-completion-shorthand
+ext.ecma262.call
+ext.ecma262.construct
+ext.ecma262.createbuiltinfunction
+ext.ecma262.newpromisecapability
+ext.ecma262.performpromisethen
+ext.ecma262.promise-all
+ext.ecma262.promise-intrinsic
+ext.ecma262.promise-prototype-then-intrinsic
+ext.ecma262.propagate-completion-shorthand
+ext.ecma262.slot-intrinsics
+ext.ecma262.slot-promise
+ext.ecma262.slot-promiseishandled
+ext.ecma262.slot-realm
+ext.ecma262.slot-reject
+ext.ecma262.slot-resolve
+ext.html.current-realm
+ext.html.deserialization-steps
+ext.html.fetch
+ext.html.in-parallel
+ext.html.queue-a-microtask
+ext.html.queue-a-task
+ext.html.realm
+ext.html.relevant-realm
+ext.html.serializable-objects
+ext.html.serialization-steps
+ext.html.serialized-record
+ext.html.task-source
+ext.html.unhandledrejection
+ext.webidl.idl-any
+ext.webidl.idl-attributes
+ext.webidl.idl-constructors
+ext.webidl.idl-dictionaries
+ext.webidl.idl-DOMString
+ext.webidl.idl-interfaces
+ext.webidl.idl-members
+ext.webidl.idl-names
+ext.webidl.idl-operations
+ext.webidl.idl-undefined
+ext.webidl.js-platform-objects
+ext.webidl.js-type-mapping

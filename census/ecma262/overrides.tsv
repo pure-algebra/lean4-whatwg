@@ -1,0 +1,12 @@
+# Per-row disposition overrides: authored input to the ECMA-262 census.
+#
+# Three tab-separated fields: <row id> <disposition> <reason>. An override
+# beats the clause disposition. Duplicate row id fails; an empty field fails;
+# an override no row uses fails.
+#
+# Three rows, and only three: each is a row whose clause-level disposition is
+# right for its siblings and wrong for it. Every other row is resolved by
+# dispositions.tsv.
+field.jobcallback-records.Callback	owned	A plain function-object handle; the record is a foreign boundary only because of its sibling [[HostDefined]], which is the field reserved for use by hosts.
+requirement.hostenqueuepromisejob.3	requirement	Jobs must run in the same order as the HostEnqueuePromiseJob invocations that scheduled them: the exact sentence DB-03 rests on, realized by the FIFO queue in Whatwg.Ecma262.Jobs under ruling R-P5, while the sibling realm and active-script bullets stay host bookkeeping.
+term.job	owned	The Job carrier itself, an Abstract Closure with no parameters; the two sibling terms of sec-jobs are defined over the execution context stack and are never modelled.

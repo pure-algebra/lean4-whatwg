@@ -70,3 +70,24 @@
 # Infra integer constructive dependency witness INFRA-INTEGER-CE-001.
 # Packet: test/contracts/infra-integer-constructive.contract.md.
 # Green after direct numeric bound proofs; all nine alias/signature/axiom checks retained.
+
+# Promise census packet, frozen 2026-09-06 by the promise census breaker seat.
+# Packets: test/contracts/census-profile-identity.contract.md,
+# test/contracts/webidl-census.contract.md, test/contracts/ecma262-census.contract.md.
+# Implementation fence: Gates/Census.lean (the R-P1 source profile, the R-P2
+# kinds, the R-P4 rules.tsv end locator, the webidl and ecma262 standards),
+# Gates/Ecmarkup.lean, census/webidl/**, census/ecma262/**, and the four
+# generated projections those two standards write. Each module below is red
+# only because the names it ascribes do not exist yet; the Web IDL and ECMA-262
+# projection gates additionally refuse because no standard is registered under
+# their key. The builder removes an entry the moment its battery is green.
+#
+# The Web IDL builder landed the R-P1 profile refactor, the R-P2 kinds, the
+# R-P4 end locator, the webidl standard and census/webidl/** on 2026-09-06, so
+# WhatwgTest.Audit.CensusProfileIdentity and
+# WhatwgTest.Audit.WebIdl.CensusContract are green and their two entries are
+# removed. WhatwgTest.Audit.Ecma262.CensusContract stayed red until the ES2026
+# builder landed Gates/Ecmarkup.lean, the ecmarkup dispatch arm of
+# Gates.Census.build and the ecma262 standard on 2026-09-07; that battery is
+# green and its entry is removed. No entry remains, so the trust gate's
+# all-green control is restored.

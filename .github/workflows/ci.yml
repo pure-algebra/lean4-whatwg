@@ -37,5 +37,15 @@ jobs:
         run: lake exe census --report
       - name: Infra definition census and generated row drift
         run: lake exe census --standard infra
+      # The Web IDL promise and exception census (slice Q1 of
+      # docs/PROMISE-PACKAGE-PLAN.md). No --report step: the standard has no
+      # coverage numerator, and the executable refuses a report without one,
+      # exactly as --standard infra does.
+      - name: Web IDL promise and exception census and generated row drift
+        run: lake exe census --standard webidl
+      # The ECMA-262 promise and job census, read through the ecmarkup profile
+      # of Gates/Ecmarkup.lean. No --report step, for the same reason.
+      - name: ECMA-262 census
+        run: lake exe census --standard ecma262
       - name: Test root and the elaboration-time axiom gate
         run: lake --wfail build WhatwgTest

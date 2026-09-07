@@ -1,0 +1,144 @@
+# Escaping references of the Web IDL census: authored input (ruling R-P6).
+#
+# Two tab-separated fields: <row id> <comma-separated identities, or ->, in
+# the format census/url/dependencies.tsv established. Exactly one line per
+# census row; every identity must resolve to a row of this census, to a row of
+# generated/infra-census.tsv (the first cross-census join in this repository),
+# or to an identity declared in census/webidl/externals.tsv. A duplicate line,
+# a self dependency, an unknown row and an undeclared identity each fail
+# generation, and an entry in externals.tsv that no line here uses fails too.
+#
+# Each line was derived from the [=…=], [$…$], {{…}} and [[…]] references
+# inside that row's own byte span in the pinned index.bs, with whitespace
+# normalised inside an autolink (Bikeshed wraps them across lines) and the
+# display-text form split on "|". Recording a dependency is not a proof edge:
+# it says the row's text reaches that identity, nothing about its meaning.
+#
+# Two references found in scope are deliberately not recorded. The Bikeshed
+# bibliography citations [[DOM]] and [[INDEXEDDB]] are not internal slots, the
+# same distinction Gates/Census.lean draws for [[FETCH]] in the Streams
+# source. And {{WritableStreamDefaultWriter/closed}}, in the note beside "mark
+# a promise as handled", is a back-reference into Streams that survey section 5
+# group G rules out of the record: recording it would invert the layering
+# DB-11 fixes.
+idl.dom-exception	-
+idl.domexception-abort-err	-
+idl.domexception-code	-
+idl.domexception-constructor	-
+idl.domexception-data-clone-err	-
+idl.domexception-domstring-size-err	-
+idl.domexception-hierarchy-request-err	-
+idl.domexception-index-size-err	-
+idl.domexception-inuse-attribute-err	-
+idl.domexception-invalid-access-err	-
+idl.domexception-invalid-character-err	-
+idl.domexception-invalid-modification-err	-
+idl.domexception-invalid-node-type-err	-
+idl.domexception-invalid-state-err	-
+idl.domexception-message	-
+idl.domexception-name	-
+idl.domexception-namespace-err	-
+idl.domexception-network-err	-
+idl.domexception-no-data-allowed-err	-
+idl.domexception-no-modification-allowed-err	-
+idl.domexception-not-found-err	-
+idl.domexception-not-supported-err	-
+idl.domexception-quota-exceeded-err	-
+idl.domexception-security-err	-
+idl.domexception-syntax-err	-
+idl.domexception-timeout-err	-
+idl.domexception-type-mismatch-err	-
+idl.domexception-url-mismatch-err	-
+idl.domexception-validation-err	-
+idl.domexception-wrong-document-err	-
+idl.quota-exceeded-error	-
+idl.quota-exceeded-error-options	-
+idl.quotaexceedederror-constructor	-
+idl.quotaexceedederror-quota	-
+idl.quotaexceedederror-requested	-
+idl.quotaexceedederroroptions-quota	-
+idl.quotaexceedederroroptions-requested	-
+op.a-new-promise	ext.ecma262.newpromisecapability,ext.ecma262.promise-intrinsic,ext.ecma262.propagate-completion-shorthand,ext.ecma262.slot-intrinsics,ext.html.realm
+op.a-promise-rejected-with	ext.ecma262.assert-completion-shorthand,ext.ecma262.call,ext.ecma262.newpromisecapability,ext.ecma262.promise-intrinsic,ext.ecma262.propagate-completion-shorthand,ext.ecma262.slot-intrinsics,ext.ecma262.slot-reject,ext.html.realm
+op.a-promise-resolved-with	ext.ecma262.assert-completion-shorthand,ext.ecma262.call,ext.ecma262.newpromisecapability,ext.ecma262.promise-intrinsic,ext.ecma262.propagate-completion-shorthand,ext.ecma262.slot-intrinsics,ext.ecma262.slot-resolve,ext.html.realm,ext.webidl.js-type-mapping
+op.add-bookmark	ext.html.in-parallel,ext.html.queue-a-task,ext.html.task-source,op.a-new-promise,op.a-promise-rejected-with,op.reject,op.resolve,type.aborterror,type.idl-dom-exception,type.notsupportederror,type.securityerror
+op.add-delay	ext.html.in-parallel,ext.html.queue-a-task,ext.html.relevant-realm,ext.html.task-source,ext.webidl.idl-members,op.a-new-promise,op.dfn-perform-steps-once-promise-is-settled,op.reject,op.resolve
+op.an-exception-was-thrown	ext.ecma262.abrupt-completions
+op.batch-request	ext.html.fetch,op.list-append,op.list-iterate,op.waiting-for-all-promise
+op.delay	ext.html.in-parallel,ext.html.queue-a-task,ext.html.relevant-realm,ext.html.task-source,ext.webidl.idl-members,op.a-new-promise,op.resolve
+op.dfn-create-exception	op.dfn-simple-exception,op.dom-exception-name,type.idl-dom-exception
+op.dfn-error-names-table	op.dom-exception-name,type.idl-dom-exception
+op.dfn-exception	ext.webidl.idl-interfaces,type.idl-dom-exception
+op.dfn-perform-steps-once-promise-is-settled	ext.ecma262.createbuiltinfunction,ext.ecma262.newpromisecapability,ext.ecma262.performpromisethen,ext.ecma262.promise-intrinsic,ext.ecma262.promise-prototype-then-intrinsic,ext.ecma262.propagate-completion-shorthand,ext.ecma262.slot-intrinsics,ext.ecma262.slot-promise,ext.ecma262.slot-realm,ext.webidl.idl-any,ext.webidl.idl-undefined,ext.webidl.js-type-mapping,op.a-promise-rejected-with,type.idl-promise
+op.dfn-promise-type	-
+op.dfn-simple-exception	-
+op.dfn-throw	op.dfn-create-exception,op.dfn-simple-exception,op.dom-exception-name,type.idl-dom-exception
+op.dom-exception-message	type.idl-dom-exception,type.string
+op.dom-exception-name	type.idl-dom-exception,type.string
+op.environment-create	ext.html.in-parallel,ext.html.queue-a-task,ext.html.realm,ext.html.task-source,ext.webidl.js-platform-objects,op.a-new-promise,op.environment-ready-promise,op.reject,op.resolve,type.idl-dom-exception,type.networkerror
+op.environment-ready	ext.webidl.idl-members,op.environment-ready-promise
+op.environment-ready-promise	-
+op.js-exception-objects	-
+op.js-to-promise	ext.ecma262.call,ext.ecma262.newpromisecapability,ext.ecma262.promise-intrinsic,ext.ecma262.propagate-completion-shorthand,ext.ecma262.slot-resolve,ext.webidl.js-type-mapping
+op.mark-a-promise-as-handled	ext.ecma262.slot-promise,ext.ecma262.slot-promiseishandled,ext.html.unhandledrejection
+op.quota-exceeded-error-deserialization-steps	ext.html.deserialization-steps,ext.html.serialized-record,op.quota-exceeded-error-quota,op.quota-exceeded-error-requested,type.idl-dom-exception
+op.quota-exceeded-error-quota	idl.quota-exceeded-error
+op.quota-exceeded-error-requested	idl.quota-exceeded-error
+op.quota-exceeded-error-serialization-steps	ext.html.serialization-steps,ext.html.serialized-record,op.quota-exceeded-error-quota,op.quota-exceeded-error-requested,type.idl-dom-exception
+op.quotaexceedederror-quota-exceeded-error-message-options	ext.webidl.idl-members,idl.quotaexceedederroroptions-quota,idl.quotaexceedederroroptions-requested,op.dom-exception-message,op.dom-exception-name,op.quota-exceeded-error-quota,op.quota-exceeded-error-requested,type.range-error
+op.reject	ext.ecma262.assert-completion-shorthand,ext.ecma262.call,ext.ecma262.slot-reject
+op.resolve	ext.ecma262.assert-completion-shorthand,ext.ecma262.call,ext.ecma262.slot-resolve,ext.webidl.idl-undefined,ext.webidl.js-type-mapping
+op.throw-an-exception	op.dfn-create-exception,op.dfn-exception,op.dfn-throw
+op.to-create-a-dom-exception	ext.html.current-realm,ext.webidl.js-platform-objects,op.dfn-create-exception,op.dom-exception-message,op.dom-exception-name,op.implementation-defined,type.idl-dom-exception
+op.to-create-a-dom-exception-derived-interface	ext.html.current-realm,ext.webidl.idl-interfaces,ext.webidl.idl-names,ext.webidl.js-platform-objects,op.dfn-create-exception,op.dom-exception-message,op.dom-exception-name,op.implementation-defined,type.idl-dom-exception
+op.to-create-a-simple-exception	ext.ecma262.assert-completion-shorthand,ext.ecma262.construct,ext.ecma262.slot-intrinsics,ext.html.current-realm,op.dfn-create-exception,op.dfn-simple-exception,op.implementation-defined
+op.upon-fulfillment	op.dfn-perform-steps-once-promise-is-settled
+op.upon-rejection	op.dfn-perform-steps-once-promise-is-settled
+op.validated-delay	ext.html.in-parallel,ext.html.queue-a-task,ext.html.relevant-realm,ext.html.task-source,ext.webidl.idl-members,op.a-new-promise,op.a-promise-rejected-with,op.resolve,type.range-error,type.type-error
+op.wait-for-all	ext.ecma262.createbuiltinfunction,ext.ecma262.performpromisethen,ext.html.queue-a-microtask,ext.webidl.idl-any,op.list-iterate,op.list-size,type.list
+op.waiting-for-all-promise	ext.ecma262.promise-all,ext.html.realm,op.a-new-promise,op.reject,op.resolve,op.wait-for-all,type.list
+rule.domexception-derived-attributes	ext.webidl.idl-attributes
+rule.domexception-derived-constructor-message	ext.webidl.idl-constructors,ext.webidl.idl-DOMString,ext.webidl.idl-operations,op.dom-exception-message
+rule.domexception-derived-constructor-name	ext.webidl.idl-constructors,ext.webidl.idl-interfaces,ext.webidl.idl-names,op.dom-exception-name
+rule.domexception-derived-constructor-options	ext.webidl.idl-constructors,ext.webidl.idl-dictionaries
+rule.domexception-derived-identifier	ext.webidl.idl-interfaces,ext.webidl.idl-names
+rule.domexception-derived-serializable	ext.html.deserialization-steps,ext.html.serializable-objects,ext.html.serialization-steps
+type.aborterror	-
+type.constrainterror	-
+type.datacloneerror	-
+type.dataerror	-
+type.encodingerror	-
+type.eval-error	-
+type.hierarchyrequesterror	ext.dom.node-tree
+type.idl-dom-exception	-
+type.idl-promise	-
+type.indexsizeerror	type.range-error
+type.inuseattributeerror	ext.dom.element
+type.invalidaccesserror	type.idl-dom-exception,type.notallowederror,type.notsupportederror,type.type-error
+type.invalidcharactererror	-
+type.invalidmodificationerror	-
+type.invalidnodetypeerror	ext.dom.node
+type.invalidstateerror	-
+type.namespaceerror	-
+type.networkerror	-
+type.nomodificationallowederror	-
+type.notallowederror	-
+type.notfounderror	-
+type.notreadableerror	-
+type.notsupportederror	-
+type.operationerror	-
+type.optouterror	-
+type.range-error	-
+type.readonlyerror	-
+type.reference-error	-
+type.securityerror	-
+type.syntaxerror	-
+type.timeouterror	-
+type.transactioninactiveerror	-
+type.type-error	-
+type.typemismatcherror	type.type-error
+type.unknownerror	-
+type.uri-error	-
+type.urlmismatcherror	-
+type.versionerror	-
+type.wrongdocumenterror	ext.dom.document

@@ -1,5 +1,6 @@
 import Gates.Common
 import Gates.Sha256
+import Gates.Ecmarkup
 
 /-!
 # Gates.Census
@@ -280,7 +281,11 @@ def splitRow (line : String) : Except String (Array String) := Id.run do
 
 /-! ## Vocabulary -/
 
-/-- The fixed row kinds of `docs/SPEC-COVERAGE.md`. -/
+/-- The fixed row kinds of `docs/SPEC-COVERAGE.md`.
+
+The first six are the original vocabulary; ruling R-P2 appends seven more for
+the ECMA-262 census, after them and in that order, so that the sort key
+`kind.name ++ "|" ++ id` of every existing Streams or Infra row is unchanged. -/
 inductive Kind
   | idl
   | op
@@ -290,6 +295,20 @@ inductive Kind
   /-- A carrier definition of a definition-keyed standard ("a byte sequence
   is a sequence of bytes"); every other definition there is an `op`. -/
   | type
+  /-- An `<emu-clause type="built-in function">`. -/
+  | builtin
+  /-- An `<emu-clause type="host-defined abstract operation">`. -/
+  | hook
+  /-- A clause whose whole content is a property descriptor or initial value. -/
+  | property
+  /-- A clause defining a specification record type and its field table. -/
+  | record
+  /-- One `<tr>` of a record's field table. -/
+  | field
+  /-- A `<dfn>` that names neither a record nor an operation. -/
+  | term
+  /-- A structural clause with no operation, record or property of its own. -/
+  | clause
   deriving BEq, DecidableEq, Inhabited
 
 def Kind.name : Kind → String
@@ -299,6 +318,13 @@ def Kind.name : Kind → String
   | .rule => "rule"
   | .slot => "slot"
   | .type => "type"
+  | .builtin => "builtin"
+  | .hook => "hook"
+  | .property => "property"
+  | .record => "record"
+  | .field => "field"
+  | .term => "term"
+  | .clause => "clause"
 
 def Kind.ofString? : String → Option Kind
   | "idl" => some .idl
@@ -307,9 +333,18 @@ def Kind.ofString? : String → Option Kind
   | "rule" => some .rule
   | "slot" => some .slot
   | "type" => some .type
+  | "builtin" => some .builtin
+  | "hook" => some .hook
+  | "property" => some .property
+  | "record" => some .record
+  | "field" => some .field
+  | "term" => some .term
+  | "clause" => some .clause
   | _ => none
 
-def Kind.all : List Kind := [.idl, .op, .requirement, .rule, .slot, .type]
+def Kind.all : List Kind :=
+  [.idl, .op, .requirement, .rule, .slot, .type,
+   .builtin, .hook, .property, .record, .field, .term, .clause]
 
 /-- The disposition vocabulary owned by `SPEC-MANIFEST.md`. -/
 inductive Disposition
@@ -400,6 +435,39 @@ that text states 178 definitions against 18 algorithm blocks at its pin. The
 constants after the two records keep their P1 names and denote the Streams
 census, so the Streams numerator reads it unchanged. -/
 
+/-- The per-scanner switches of the Bikeshed source profile (ruling R-P1).
+
+- `algorithmRows` emit one `op` row per `<div>` carrying an `algorithm`
+  attribute anywhere in its tag.
+- `definitionRows` emit one row per Bikeshed definition, `<dfn>` or
+  heading-borne.
+- `idlRows` emit one `idl` row per statement of an IDL block.
+- `slotRows` emit one `slot` row per qualified `[[Name]]`.
+- `requirementMarker` the algorithm-block locator `scanRequirements` keys on;
+  `none` emits no requirement rows at all.
+- `sectionScope` restrict rows to the heading ids authored in
+  `<authoredDir>/sections.tsv`; `false` is the whole document.
+- `headingLevels` the inclusive heading-level range `scanHeadings` admits.
+- `idlOpeners` the (opening tag, closing tag) pairs of an IDL block. -/
+structure Bikeshed where
+  algorithmRows : Bool
+  definitionRows : Bool
+  idlRows : Bool
+  slotRows : Bool
+  requirementMarker : Option String
+  sectionScope : Bool
+  headingLevels : Nat × Nat
+  idlOpeners : Array (String × String)
+  deriving Inhabited
+
+/-- The source shape a standard is written in. `bikeshed` carries the switches
+above; `ecmarkup` is served by `Gates/Ecmarkup.lean`, which the ES2026 builder
+lands. -/
+inductive Profile
+  | bikeshed (switches : Bikeshed)
+  | ecmarkup
+  deriving Inhabited
+
 structure Standard where
   /-- The `--standard` key on the command line. -/
   key : String
@@ -413,12 +481,26 @@ structure Standard where
   rowsRelativePath : String
   rowsNamespace : String
   /-- The directory of the authored inputs `dispositions.tsv`,
-  `overrides.tsv`, `rules.tsv` and, for a definition-keyed standard,
-  `types.tsv`. -/
+  `overrides.tsv`, `rules.tsv`, and, where the standard uses them,
+  `types.tsv`, `sections.tsv`, `dependencies.tsv` and `externals.tsv`. -/
   authoredDir : String
-  /-- Rows come from `<dfn>` definitions rather than from algorithm blocks,
-  slot tables, IDL and requirement lists. -/
-  definitionKeyed : Bool
+  /-- The source profile (ruling R-P1), in the field position
+  `definitionKeyed : Bool` occupied at P1. -/
+  profile : Profile
+  /-- Ruling R-P8: name an algorithm-block row from the block's `algorithm`
+  attribute before consulting its first `<dfn>`. Off for Streams and Infra,
+  which the identity packet freezes byte for byte. -/
+  algorithmNameFirst : Bool
+  /-- The standard carries an authored `types.tsv` naming its carrier
+  definitions. Infra does; a standard that reads the Bikeshed dfn type from
+  the source does not. -/
+  authoredTypeNames : Bool
+  /-- The standard carries authored `dependencies.tsv` and `externals.tsv`
+  (ruling R-P6), validated in both directions. -/
+  authoredDependencies : Bool
+  /-- Generated censuses of other standards whose row ids a dependency line
+  may name. This is the cross-census join of ruling R-P6. -/
+  crossCensusPaths : List String
   deriving Inhabited
 
 def streams : Standard :=
@@ -428,7 +510,14 @@ def streams : Standard :=
     censusRelativePath := "generated/spec-algorithm-census.tsv",
     rowsRelativePath := "WhatwgTest/Audit/SpecCoverageRows.lean",
     rowsNamespace := "WhatwgTest.Audit.SpecCoverageRows",
-    authoredDir := "census", definitionKeyed := false }
+    authoredDir := "census",
+    profile := .bikeshed
+      { algorithmRows := true, definitionRows := false, idlRows := true, slotRows := true,
+        requirementMarker := some "<div algorithm=\"ReadableStreamPipeTo\">",
+        sectionScope := false, headingLevels := (2, 4),
+        idlOpeners := #[("<xmp class=\"idl\">", "</xmp>")] },
+    algorithmNameFirst := false, authoredTypeNames := false,
+    authoredDependencies := false, crossCensusPaths := [] }
 
 def infra : Standard :=
   { key := "infra", label := "WHATWG Infra (3f984adc)",
@@ -437,9 +526,54 @@ def infra : Standard :=
     censusRelativePath := "generated/infra-census.tsv",
     rowsRelativePath := "WhatwgTest/Audit/Infra/SpecCoverageRows.lean",
     rowsNamespace := "WhatwgTest.Audit.Infra.SpecCoverageRows",
-    authoredDir := "census/infra", definitionKeyed := true }
+    authoredDir := "census/infra",
+    profile := .bikeshed
+      { algorithmRows := false, definitionRows := true, idlRows := false, slotRows := false,
+        requirementMarker := none,
+        sectionScope := false, headingLevels := (2, 4),
+        idlOpeners := #[] },
+    algorithmNameFirst := false, authoredTypeNames := true,
+    authoredDependencies := false, crossCensusPaths := [] }
 
-def standards : List Standard := [streams, infra]
+/-- The promise lane's Web IDL census (`docs/PROMISE-PACKAGE-PLAN.md`, slice
+Q1; packet `test/contracts/webidl-census.contract.md`). Five sections of the
+pinned `index.bs`, algorithm blocks, Bikeshed definitions and two IDL blocks;
+no `slot` rows and no `scanRequirements` marker (ruling R-P4). -/
+def webidl : Standard :=
+  { key := "webidl", label := "WHATWG Web IDL (a652053f)",
+    inputRelativePath := "vendor/whatwg-webidl-a652053f/index.bs",
+    inputDigest := "3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83",
+    censusRelativePath := "generated/webidl-census.tsv",
+    rowsRelativePath := "WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean",
+    rowsNamespace := "WhatwgTest.Audit.WebIdl.SpecCoverageRows",
+    authoredDir := "census/webidl",
+    profile := .bikeshed
+      { algorithmRows := true, definitionRows := true, idlRows := true, slotRows := false,
+        requirementMarker := none,
+        sectionScope := true, headingLevels := (2, 5),
+        idlOpeners := #[("<pre class=\"idl\">", "</pre>"), ("<pre class=idl>", "</pre>")] },
+    algorithmNameFirst := true, authoredTypeNames := false,
+    authoredDependencies := true, crossCensusPaths := ["generated/infra-census.tsv"] }
+
+/-- The promise lane's ECMA-262 census (`docs/PROMISE-PACKAGE-PLAN.md`, slice
+Q1; packet `test/contracts/ecma262-census.contract.md`). Two root clauses of
+the pinned `spec.html`, read through `Gates.Ecmarkup` rather than through the
+Bikeshed scanners: `<emu-clause>` primary rows, `<emu-table>` body rows,
+requirement bullets and `<dfn>` terms. No `types.tsv`, no cross-census join,
+and `algorithmNameFirst` is inert here because no Bikeshed scanner runs. -/
+def ecma262 : Standard :=
+  { key := "ecma262", label := "ECMAScript ES2026 (0248456c)",
+    inputRelativePath := "vendor/ecma262-0248456c/spec.html",
+    inputDigest := "ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0",
+    censusRelativePath := "generated/ecma262-census.tsv",
+    rowsRelativePath := "WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean",
+    rowsNamespace := "WhatwgTest.Audit.Ecma262.SpecCoverageRows",
+    authoredDir := "census/ecma262",
+    profile := .ecmarkup,
+    algorithmNameFirst := false, authoredTypeNames := false,
+    authoredDependencies := true, crossCensusPaths := [] }
+
+def standards : List Standard := [streams, infra, webidl, ecma262]
 
 def Standard.ofKey? (key : String) : Option Standard := standards.find? (·.key == key)
 
@@ -450,6 +584,12 @@ def Standard.overridesRelativePath (s : Standard) : String := s.authoredDir ++ "
 def Standard.rulesRelativePath (s : Standard) : String := s.authoredDir ++ "/rules.tsv"
 
 def Standard.typesRelativePath (s : Standard) : String := s.authoredDir ++ "/types.tsv"
+
+def Standard.sectionsRelativePath (s : Standard) : String := s.authoredDir ++ "/sections.tsv"
+
+def Standard.dependenciesRelativePath (s : Standard) : String := s.authoredDir ++ "/dependencies.tsv"
+
+def Standard.externalsRelativePath (s : Standard) : String := s.authoredDir ++ "/externals.tsv"
 
 def Standard.regenerateCommand (s : Standard) : String :=
   if s.key == "streams" then "lake exe census --write"
@@ -513,16 +653,20 @@ def hasBareAttr (bs : ByteArray) (tagB tagE : Nat) (name : String) : Bool := Id.
       if isSpaceByte after || after == 0x3e then return true
   return false
 
-/-- Every `<h2>`, `<h3>` and `<h4>` that opens a line and carries an `id`
-attribute, in document order. -/
-def scanHeadings (bs : ByteArray) : Except String (Array Heading) := Id.run do
+/-- Every heading inside the profile's inclusive level range that opens a line
+and carries an `id` attribute, in document order. The default range `(2, 4)` is
+the P1 behaviour; ruling R-P1 makes it a profile field so that a standard
+writing definitions under an `<h5>` can be walked. -/
+def scanHeadings (bs : ByteArray) (levels : Nat × Nat := (2, 4)) :
+    Except String (Array Heading) := Id.run do
+  let (lo, hi) := levels
   let openTag := "<h".toUTF8
   let gt := ">".toUTF8
   let mut out : Array Heading := #[]
   for i in occurrences bs openTag 4096 do
     if i != 0 && byteAt bs (i - 1) != 0x0a then continue
     let d := byteNat bs (i + 2)
-    if d < 0x32 || d > 0x34 then continue
+    if d < 0x30 + lo || d > 0x30 + hi then continue
     if !isSpaceByte (byteAt bs (i + 3)) then continue
     let some tagE := findFrom bs gt i
       | return .error s!"census: unterminated heading tag at byte {i}"
@@ -531,21 +675,83 @@ def scanHeadings (bs : ByteArray) : Except String (Array Heading) := Id.run do
     | some name => out := out.push { level := d - 0x30, id := name, off := i }
   return .ok out
 
-/-- The innermost enclosing `<h4>`, `<h3>` and `<h2>` ids at `off`, empty
-where there is none. -/
-def sectionPath (hs : Array Heading) (off : Nat) : String × String × String := Id.run do
-  let mut h2 := ""
-  let mut h3 := ""
-  let mut h4 := ""
+/-- The heading ancestry at `off`, innermost first, with every level of the
+profile's range that has no enclosing heading spelled as the empty string.
+`sectionPath` is the P1 three-level face of the same walk. -/
+def sectionAncestry (hs : Array Heading) (levels : Nat × Nat) (off : Nat) :
+    Array String := Id.run do
+  let (lo, hi) := levels
+  if hi < lo then return #[]
+  let depth := hi - lo + 1
+  let mut current : Array String := #[]
+  for _ in [0:depth] do
+    current := current.push ""
   for h in hs do
     if h.off > off then break
-    if h.level == 2 then
-      h2 := h.id; h3 := ""; h4 := ""
-    else if h.level == 3 then
-      h3 := h.id; h4 := ""
-    else
-      h4 := h.id
-  return (h4, h3, h2)
+    if h.level < lo || h.level > hi then continue
+    let idx := h.level - lo
+    current := current.set! idx h.id
+    -- every deeper level is closed by a shallower heading
+    for j in [idx + 1 : depth] do
+      current := current.set! j ""
+  return current.reverse
+
+/-- The innermost enclosing `<h4>`, `<h3>` and `<h2>` ids at `off`, empty
+where there is none. -/
+def sectionPath (hs : Array Heading) (off : Nat) : String × String × String :=
+  let a := sectionAncestry hs (2, 4) off
+  (a.getD 0 "", a.getD 1 "", a.getD 2 "")
+
+/-- One section of a `sections.tsv` scope: its heading id and the half-open
+byte interval it governs, which runs from its heading tag to the next
+line-opening heading of the same or a higher level. -/
+structure Section where
+  id : String
+  b : Nat
+  e : Nat
+  deriving Inhabited
+
+/-- `none` is whole-document scope, which is what Streams and Infra have. -/
+def inScope? (scope : Option (Array Section)) (off : Nat) : Bool :=
+  match scope with
+  | none => true
+  | some sections => sections.any (fun s => Nat.ble s.b off && !Nat.ble s.e off)
+
+/-- The authored `sections.tsv`: one heading id per line. -/
+def parseSections (text : String) (path : String) : Except String (Array String) := Id.run do
+  let mut out : Array String := #[]
+  let mut lineNumber := 0
+  for line in Gates.Common.lines text do
+    lineNumber := lineNumber + 1
+    let trimmed := Gates.Common.trimmed line
+    if trimmed.isEmpty || trimmed.startsWith "#" then continue
+    if trimmed != line then
+      return .error s!"{path} line {lineNumber}: a section id carries surrounding whitespace"
+    if out.contains trimmed then
+      return .error s!"{path} line {lineNumber}: duplicate section id {trimmed}"
+    out := out.push trimmed
+  return .ok out
+
+/-- Resolve each authored scope id against the heading index. A listed id that
+is not a line-opening heading with that exact `id`, or that occurs more than
+once, fails generation. -/
+def sectionExtents (bs : ByteArray) (hs : Array Heading) (ids : Array String) (path : String) :
+    Except String (Array Section) := Id.run do
+  let mut out : Array Section := #[]
+  for id in ids do
+    let hits := hs.filter (fun h => h.id == id)
+    if hits.size == 0 then
+      return .error s!"{path}: no line-opening heading in the pinned bytes carries id {id}"
+    if hits.size != 1 then
+      return .error s!"{path}: heading id {id} occurs {hits.size} times"
+    let h := hits.getD 0 default
+    let mut stop := bs.size
+    for k in hs do
+      if k.off > h.off && Nat.ble k.level h.level then
+        stop := k.off
+        break
+    out := out.push { id := id, b := h.off, e := stop }
+  return .ok out
 
 /-! ## Attributes -/
 
@@ -642,27 +848,53 @@ private def firstIndexAfter (xs : Array Nat) (bound : Nat) : Nat := Id.run do
     i := i + 1
   return i
 
-def scanOps (bs : ByteArray) : Except String (Array Row) := Id.run do
-  let algOpen := "<div algorithm".toUTF8
-  let divOpen := "<div".toUTF8
-  let divClose := "</div>".toUTF8
+/-- Whether the `<div>` tag `[tagB, tagE)` carries an `algorithm` attribute
+anywhere in the tag, valued or bare. Ruling R-P1 replaces the byte prefix
+`<div algorithm` with this test: the Streams source has 248 such tags under
+either rule and the Infra source 18, so the change is byte-neutral for both,
+while the Web IDL source gains the 45 blocks that write `id=` first. -/
+def hasAlgorithmAttr (bs : ByteArray) (tagB tagE : Nat) : Bool :=
+  (attrValue? bs tagB (tagE + 1) "algorithm").isSome || hasBareAttr bs tagB (tagE + 1) "algorithm"
+
+/-- Every algorithm block as `(opener, end)`, in document order. -/
+def algorithmBlocks (bs : ByteArray) : Except String (Array (Nat × Nat)) := Id.run do
+  let gt := ">".toUTF8
+  let opens := occurrences bs "<div".toUTF8 4096
+  let closes := occurrences bs "</div>".toUTF8 4096
+  let mut out : Array (Nat × Nat) := #[]
+  for i in opens do
+    let some tagE := findFrom bs gt i
+      | return .error s!"census: unterminated <div tag at byte {i}"
+    if !hasAlgorithmAttr bs i tagE then continue
+    let oi := firstIndexAfter opens i
+    let ci := firstIndexAfter closes i
+    let some e := matchCloseAux opens closes 6 oi ci 0 (opens.size + closes.size + 1)
+      | return .error s!"census: unbalanced algorithm block at byte {i}"
+    out := out.push (i, e)
+  return .ok out
+
+/-- One `op` row per algorithm block in scope. `nameFirst` is ruling R-P8: read
+the block's `algorithm` attribute before its first `<dfn>`. The opener's `id`
+still wins over both. -/
+def scanOps (bs : ByteArray) (blocks : Array (Nat × Nat)) (nameFirst : Bool)
+    (scope : Option (Array Section)) : Except String (Array Row) := Id.run do
   let gt := ">".toUTF8
   let dfnOpen := "<dfn".toUTF8
   let dfnClose := "</dfn>".toUTF8
-  let opens := occurrences bs divOpen 4096
-  let closes := occurrences bs divClose 4096
   let mut out : Array Row := #[]
-  for i in occurrences bs algOpen 4096 do
+  for (i, blockEnd) in blocks do
+    if !inScope? scope i then continue
     let some tagE := findFrom bs gt i
       | return .error s!"census: unterminated <div algorithm at byte {i}"
-    let oi := firstIndexAfter opens i
-    let ci := firstIndexAfter closes i
-    let some blockEnd := matchCloseAux opens closes 6 oi ci 0 (opens.size + closes.size + 1)
-      | return .error s!"census: unbalanced algorithm block at byte {i}"
     let mut name : Option String := none
     match attrText? bs i (tagE + 1) "id" with
     | some divId => name := some (kebab divId)
-    | none =>
+    | none => pure ()
+    if name.isNone && nameFirst then
+      match attrText? bs i (tagE + 1) "algorithm" with
+      | some alg => name := some (kebab alg)
+      | none => pure ()
+    if name.isNone then
       match findFrom bs dfnOpen (tagE + 1) with
       | some d =>
         if d < blockEnd then
@@ -844,13 +1076,33 @@ private def stripExtendedAttribute (text : String) : String :=
     | [] => text
   else text
 
-def scanIdl (bs : ByteArray) : Except String (Array Row × Nat) := Id.run do
-  let xmpOpen := "<xmp class=\"idl\">".toUTF8
-  let xmpClose := "</xmp>".toUTF8
+/-- The offset of a trailing `//` comment inside `[b, e)`, or `e` where there
+is none. The `//` must open the line or follow whitespace, so a `//` inside a
+string literal is not mistaken for a comment. The Streams source writes no
+comment inside an IDL block, so stripping is byte-neutral there; the Web IDL
+`DOMException` header line ends in one and never terminates without it. -/
+private def commentStart (bs : ByteArray) (b e : Nat) : Nat := Id.run do
+  let mut i := b
+  for _ in [b:e] do
+    if i + 1 >= e then break
+    if byteAt bs i == 0x2f && byteAt bs (i + 1) == 0x2f &&
+        (i == b || isSpaceByte (byteAt bs (i - 1))) then
+      return i
+    i := i + 1
+  return e
+
+def scanIdl (bs : ByteArray) (openers : Array (String × String))
+    (scope : Option (Array Section)) : Except String (Array Row × Nat) := Id.run do
+  let mut blockStarts : Array (Nat × String) := #[]
+  for (openText, closeText) in openers do
+    for b in occurrences bs openText.toUTF8 256 do
+      blockStarts := blockStarts.push (b, closeText)
+  let ordered := blockStarts.qsort (fun a b => a.1 < b.1)
   let mut out : Array Row := #[]
   let mut skipped : Nat := 0
-  for blockStart in occurrences bs xmpOpen 256 do
-    let some blockEnd := findFrom bs xmpClose blockStart
+  for (blockStart, closeText) in ordered do
+    if !inScope? scope blockStart then continue
+    let some blockEnd := findFrom bs closeText.toUTF8 blockStart
       | return .error s!"census: unterminated IDL block at byte {blockStart}"
     let mut cursor := lineEnd bs blockStart + 1
     let mut owner : String := ""
@@ -860,8 +1112,9 @@ def scanIdl (bs : ByteArray) : Except String (Array Row × Nat) := Id.run do
     let mut accE : Nat := 0
     for _ in [0:4096] do
       if cursor >= blockEnd then break
-      let le := lineEnd bs cursor
-      let tb := trimSpanStart bs cursor le
+      let le0 := lineEnd bs cursor
+      let tb := trimSpanStart bs cursor le0
+      let le := commentStart bs tb le0
       let te := trimSpanEnd bs tb le
       if tb < te then
         let some piece := sliceString? bs tb te
@@ -872,7 +1125,7 @@ def scanIdl (bs : ByteArray) : Except String (Array Row × Nat) := Id.run do
         else
           acc := acc ++ " " ++ piece
         accE := te
-      cursor := le + 1
+      cursor := le0 + 1
       if acc.isEmpty then continue
       if !(acc.endsWith ";" || acc.endsWith "{") then continue
       let statement := acc
@@ -892,6 +1145,11 @@ def scanIdl (bs : ByteArray) : Except String (Array Row × Nat) := Id.run do
                               anchorB := accB, anchorE := accB, spanB := accB, spanE := accE }
           | ["dictionary", name, "{"] =>
             owner := name; ownerIsDictionary := true
+            out := out.push { kind := .idl, id := "idl." ++ kebab name,
+                              anchorB := accB, anchorE := accB, spanB := accB, spanE := accE }
+          -- An interface that inherits: `interface QuotaExceededError : DOMException {`.
+          | ["interface", name, ":", _base, "{"] =>
+            owner := name; ownerIsDictionary := false
             out := out.push { kind := .idl, id := "idl." ++ kebab name,
                               anchorB := accB, anchorE := accB, spanB := accB, spanE := accE }
           | _ => return .error s!"census: unrecognised IDL header at byte {accB}: {statement}"
@@ -936,6 +1194,10 @@ def scanIdl (bs : ByteArray) : Except String (Array Row × Nat) := Id.run do
           if body.startsWith "constructor(" || body.startsWith "constructor (" then "constructor"
           else if body.startsWith "attribute " || body.startsWith "readonly attribute " then
             trailingIdent body
+          -- `const unsigned short INDEX_SIZE_ERR = 1;` declares INDEX_SIZE_ERR,
+          -- not the initialiser.
+          else if body.startsWith "const " then
+            trailingIdent ((body.splitOn " = ").headD body)
           else if ownerIsDictionary then
             trailingIdent ((body.splitOn " = ").headD body)
           else
@@ -970,12 +1232,15 @@ structure ListLine where
   isBullet : Bool
   deriving Inhabited
 
-def scanRequirements (bs : ByteArray) (opRows : Array Row) : Except String (Array Row) := Id.run do
-  let marker := "<div algorithm=\"ReadableStreamPipeTo\">".toUTF8
+/-- Ruling R-P1: the marker is the profile's `requirementMarker`, and a profile
+that supplies none never calls this scanner. -/
+def scanRequirements (bs : ByteArray) (markerText : String) (opRows : Array Row) :
+    Except String (Array Row) := Id.run do
+  let marker := markerText.toUTF8
   let some blockStart := findFrom bs marker 0
-    | return .error "census: the ReadableStreamPipeTo algorithm block was not found"
+    | return .error s!"census: the requirement-marker block {markerText} was not found"
   let some pipeRow := opRows.find? (fun r => r.spanB == blockStart)
-    | return .error "census: the ReadableStreamPipeTo block is not an algorithm row"
+    | return .error s!"census: the block at {markerText} is not an algorithm row"
   let blockEnd := pipeRow.spanE
   -- Collect every list-item line in the block.
   let mut items : Array ListLine := #[]
@@ -1033,6 +1298,11 @@ file is empty at P1. -/
 structure RuleInput where
   name : String
   locator : String
+  /-- Ruling R-P4: the optional third field. With `none` the span runs from the
+  locator to the next blank line, exactly as it does at P1; with `some`, to the
+  first occurrence of the end locator at or after the start locator, trailing
+  ASCII whitespace trimmed. -/
+  endLocator : Option String
   deriving Inhabited
 
 def parseRules (text : String) (path : String := rulesRelativePath) :
@@ -1047,8 +1317,13 @@ def parseRules (text : String) (path : String := rulesRelativePath) :
     | [name, locator] =>
       if name.isEmpty || locator.isEmpty then
         return .error s!"{path} line {lineNumber}: empty field"
-      out := out.push { name := name, locator := locator }
-    | _ => return .error s!"{path} line {lineNumber}: expected two tab-separated fields"
+      out := out.push { name := name, locator := locator, endLocator := none }
+    | [name, locator, endLocator] =>
+      if name.isEmpty || locator.isEmpty || endLocator.isEmpty then
+        return .error s!"{path} line {lineNumber}: empty field"
+      out := out.push { name := name, locator := locator, endLocator := some endLocator }
+    | _ =>
+      return .error s!"{path} line {lineNumber}: expected two or three tab-separated fields"
   return .ok out
 
 def scanRules (bs : ByteArray) (inputs : Array RuleInput) : Except String (Array Row) := Id.run do
@@ -1060,9 +1335,16 @@ def scanRules (bs : ByteArray) (inputs : Array RuleInput) : Except String (Array
     if hits.size != 1 then
       return .error s!"census: rule {input.name} locator occurs {hits.size} times, expected exactly one"
     let start := hits.getD 0 0
-    let stop := match findFrom bs blank start with
-      | some n => n
-      | none => bs.size
+    let mut stop := 0
+    match input.endLocator with
+    | none =>
+      stop := match findFrom bs blank start with
+        | some n => n
+        | none => bs.size
+    | some endText =>
+      let some hit := findFrom bs endText.toUTF8 start
+        | return .error s!"census: rule {input.name} end locator does not occur at or after its start locator"
+      stop := trimSpanEnd bs start hit
     out := out.push { kind := .rule, id := "rule." ++ kebab input.name,
                       anchorB := start, anchorE := start, spanB := start, spanE := stop }
   return .ok out
@@ -1110,19 +1392,6 @@ def endsWithColon (bs : ByteArray) (b e : Nat) : Bool := Id.run do
   if i ≥ b + 4 && matchesAt bs "</p>".toUTF8 (i - 4) then i := i - 4
   return i > b && byteAt bs (i - 1) == 0x3a
 
-/-- Every algorithm block as `(opener, end)`, in document order. -/
-def algorithmBlocks (bs : ByteArray) : Except String (Array (Nat × Nat)) := Id.run do
-  let opens := occurrences bs "<div".toUTF8 4096
-  let closes := occurrences bs "</div>".toUTF8 4096
-  let mut out : Array (Nat × Nat) := #[]
-  for i in occurrences bs "<div algorithm".toUTF8 4096 do
-    let oi := firstIndexAfter opens i
-    let ci := firstIndexAfter closes i
-    let some e := matchCloseAux opens closes 6 oi ci 0 (opens.size + closes.size + 1)
-      | return .error s!"census: unbalanced algorithm block at byte {i}"
-    out := out.push (i, e)
-  return .ok out
-
 /-- The authored `types.tsv`: one kebab-cased row name per line. -/
 def parseTypes (text : String) (path : String) : Except String (Array String) := Id.run do
   let mut out : Array String := #[]
@@ -1136,28 +1405,106 @@ def parseTypes (text : String) (path : String) : Except String (Array String) :=
     out := out.push trimmed
   return .ok out
 
-def scanDefinitions (bs : ByteArray) (typeNames : Array String) (typesPath : String) :
+/-- Bikeshed writes a definition's type as a bare attribute on the `<dfn>` tag,
+and a heading that is itself a definition carries the same marker. -/
+def dfnTypeMarkers : Array String :=
+  #["const", "attribute", "constructor", "exception", "interface", "dictionary",
+    "enum", "typedef", "dfn"]
+
+/-- The Bikeshed dfn type on the tag `[tagB, tagE)`, empty where none. The
+Infra source carries none of these markers on any `<dfn>` and neither the
+Streams nor the Infra source carries one on any heading, so reading the type
+is byte-neutral for both. -/
+def dfnTypeOf (bs : ByteArray) (tagB tagE : Nat) : String := Id.run do
+  for marker in dfnTypeMarkers do
+    if hasBareAttr bs tagB tagE marker then return marker
+  return ""
+
+/-- The dfn types that fold into an IDL-block statement row rather than
+carrying a definition row of their own. -/
+def foldedDfnTypes : Array String := #["const", "attribute", "constructor"]
+
+/-- The dfn types that name a carrier rather than an operation. -/
+def carrierDfnTypes : Array String :=
+  #["exception", "interface", "dictionary", "enum", "typedef"]
+
+private def lineStartAux (bs : ByteArray) (i : Nat) : Nat → Nat
+  | 0 => 0
+  | fuel + 1 =>
+    if i == 0 then 0
+    else if byteAt bs (i - 1) == 0x0a then i
+    else lineStartAux bs (i - 1) fuel
+
+/-- The first byte of the line containing `i`. -/
+def lineStart (bs : ByteArray) (i : Nat) : Nat := lineStartAux bs i (i + 1)
+
+private def chunkStartAux (bs : ByteArray) (i : Nat) : Nat → Nat
+  | 0 => 0
+  | fuel + 1 =>
+    if i < 2 then 0
+    else if byteAt bs (i - 1) == 0x0a && byteAt bs (i - 2) == 0x0a then i
+    else chunkStartAux bs (i - 1) fuel
+
+/-- The first byte of the blank-line-delimited chunk containing `i`. -/
+def chunkStart (bs : ByteArray) (i : Nat) : Nat := chunkStartAux bs i (i + 1)
+
+/-- Whether the line `[ls, le)` opens a Bikeshed markdown list item: its first
+non-space bytes are `*`, `-` or `1.` followed by a space. -/
+def isListItemLine (bs : ByteArray) (ls le : Nat) : Bool := Id.run do
+  let t := trimSpanStart bs ls le
+  if !Nat.blt t le then return false
+  let c := byteAt bs t
+  if (c == 0x2a || c == 0x2d) && byteAt bs (t + 1) == 0x20 then return true
+  if c == 0x31 && byteAt bs (t + 1) == 0x2e && byteAt bs (t + 2) == 0x20 then return true
+  return false
+
+/-- The innermost enclosing `<tr>` … `</tr>` of `d`, when there is one. A row
+element never nests, so the candidate is rejected when another `<tr` opener
+lies inside it: the pinned Web IDL source leaves 32 `<tr>` unclosed outside
+the census scope, and this is what keeps them from swallowing later
+definitions. The Infra source has no `<tr>` at all. -/
+def enclosingTableRow (trOpens trCloses : Array Nat) (d : Nat) : Option (Nat × Nat) := Id.run do
+  let ti := firstIndexAfter trOpens d
+  if ti == 0 then return none
+  let tb := trOpens.getD (ti - 1) 0
+  let ci := firstIndexAfter trCloses tb
+  match trCloses[ci]? with
+  | none => return none
+  | some cv =>
+    let te := cv + 5
+    if !Nat.blt d te then return none
+    if trOpens.any (fun o => Nat.blt tb o && Nat.blt o te) then return none
+    return some (tb, te)
+
+def scanDefinitions (bs : ByteArray) (typeNames : Array String) (typesPath : String)
+    (blocks : Array (Nat × Nat)) (skipInBlocks : Bool) (scope : Option (Array Section)) :
     Except String (Array Row) := Id.run do
   let gt := ">".toUTF8
   let dfnClose := "</dfn>".toUTF8
   let blank := "\n\n".toUTF8
-  let blocks ← match algorithmBlocks bs with
-    | .error message => return .error message
-    | .ok blocks => pure blocks
   let paragraphOpens :=
     (occurrences bs "<p>".toUTF8 4096 ++ occurrences bs "<p ".toUTF8 4096 ++
       occurrences bs "<dt>".toUTF8 4096 ++ occurrences bs "<li>".toUTF8 4096).qsort (· < ·)
   let olOpens := occurrences bs "<ol".toUTF8 4096
   let olCloses := occurrences bs "</ol>".toUTF8 4096
+  let trOpens := occurrences bs "<tr".toUTF8 4096
+  let trCloses := occurrences bs "</tr>".toUTF8 4096
   let mut out : Array Row := #[]
   let mut usedTypes : Array Nat := #[]
   for d in occurrences bs "<dfn".toUTF8 4096 do
+    if !inScope? scope d then continue
     let some tagE := findFrom bs gt d
       | return .error s!"census: unterminated <dfn at byte {d}"
     if hasBareAttr bs d (tagE + 1) "ignore" then continue
     let forAttr := attrValue? bs d (tagE + 1) "for"
     if let some f := forAttr then
       if f.any (· == '/') then continue
+    let dfnType := dfnTypeOf bs d (tagE + 1)
+    if foldedDfnTypes.contains dfnType then continue
+    let enclosingBlock := blocks.find? (fun (i, e) => i < d && d < e)
+    -- Where algorithm rows are emitted, a definition inside a block is that
+    -- block's own row and is not restated.
+    if skipInBlocks && enclosingBlock.isSome then continue
     let owner := match forAttr with
       | some f => kebab (normalizeWhitespace ((f.splitOn ",").headD f)) ++ "-"
       | none => ""
@@ -1177,36 +1524,67 @@ def scanDefinitions (bs : ByteArray) (typeNames : Array String) (typesPath : Str
         name := owner ++ kebab (normalizeWhitespace (stripTags text))
     if name.isEmpty then
       return .error s!"census: definition at byte {d} derived an empty name"
-    -- Span.
+    -- Span, first match wins.
     let mut spanB := 0
     let mut spanE := 0
-    match blocks.find? (fun (i, e) => i < d && d < e) with
+    match enclosingBlock with
     | some (i, e) =>
       spanB := i
       spanE := e
     | none =>
-      let some pb := lastBefore paragraphOpens d
-        | return .error s!"census: definition at byte {d} has no enclosing paragraph"
-      spanB := pb
-      let e0 := (findFrom bs blank d).getD bs.size
-      spanE := e0
-      if endsWithColon bs pb e0 then
-        let oi := firstIndexAfter olOpens (e0 - 1)
-        match olOpens[oi]? with
-        | none => return .error s!"census: definition at byte {d} announces steps but no list follows"
-        | some olStart =>
-          let ci := firstIndexAfter olCloses olStart
-          let some olEnd :=
-              matchCloseAux olOpens olCloses 5 (oi + 1) ci 0 (olOpens.size + olCloses.size + 1)
-            | return .error s!"census: unbalanced list after the definition at byte {d}"
-          spanE := olEnd
+      match enclosingTableRow trOpens trCloses d with
+      | some (tb, te) =>
+        spanB := tb
+        spanE := te
+      | none =>
+        let ls := lineStart bs d
+        let le := lineEnd bs d
+        if isListItemLine bs ls le then
+          spanB := ls
+          spanE := trimSpanEnd bs ls le
+        else
+          let some pb := lastBefore paragraphOpens d
+            | return .error s!"census: definition at byte {d} has no enclosing paragraph"
+          let cs := chunkStart bs d
+          spanB := if Nat.ble cs pb then pb else cs
+          let e0 := (findFrom bs blank d).getD bs.size
+          spanE := e0
+          if endsWithColon bs spanB e0 then
+            -- 4a: a Bikeshed markdown list immediately after the chunk.
+            let mut k := e0
+            for _ in [e0:bs.size] do
+              if Nat.blt k bs.size && isSpaceByte (byteAt bs k) then k := k + 1 else break
+            let firstLine := lineStart bs k
+            if Nat.blt e0 k && isListItemLine bs firstLine (lineEnd bs firstLine) then
+              let mut cur := firstLine
+              for _ in [0:4096] do
+                let cle := lineEnd bs cur
+                if !isListItemLine bs cur cle then break
+                spanE := trimSpanEnd bs cur cle
+                if !Nat.blt cle bs.size then break
+                cur := cle + 1
+            else
+              -- 4b: the matching `</ol>` of the next `<ol` opener.
+              let oi := firstIndexAfter olOpens (e0 - 1)
+              match olOpens[oi]? with
+              | none =>
+                return .error s!"census: definition at byte {d} announces steps but no list follows"
+              | some olStart =>
+                let ci := firstIndexAfter olCloses olStart
+                let some olEnd :=
+                    matchCloseAux olOpens olCloses 5 (oi + 1) ci 0 (olOpens.size + olCloses.size + 1)
+                  | return .error s!"census: unbalanced list after the definition at byte {d}"
+                spanE := olEnd
     -- Kind.
     let mut kind := Kind.op
-    match typeNames.findIdx? (· == name) with
-    | some ti =>
+    if carrierDfnTypes.contains dfnType then
       kind := .type
-      usedTypes := usedTypes.push ti
-    | none => pure ()
+    else
+      match typeNames.findIdx? (· == name) with
+      | some ti =>
+        kind := .type
+        usedTypes := usedTypes.push ti
+      | none => pure ()
     out := out.push { kind := kind, id := kind.name ++ "." ++ name,
                       anchorB := spanB, anchorE := spanB, spanB := spanB, spanE := spanE }
   let mut unused : Array String := #[]
@@ -1215,6 +1593,32 @@ def scanDefinitions (bs : ByteArray) (typeNames : Array String) (typesPath : Str
       unused := unused.push (typeNames.getD i "")
   unless unused.isEmpty do
     return .error s!"census: {typesPath} names {unused.size} type(s) that match no definition: {unused.toList}"
+  return .ok out
+
+/-- Ruling R-P4: Bikeshed lets a heading be a definition, written as a bare dfn
+type on the heading tag (`<h4 id="idl-promise" … interface …>`). No heading of
+the Streams or Infra source carries one, so this scanner is byte-neutral for
+both. The span is the heading element. -/
+def scanHeadingDefinitions (bs : ByteArray) (hs : Array Heading)
+    (scope : Option (Array Section)) : Except String (Array Row) := Id.run do
+  let gt := ">".toUTF8
+  let mut out : Array Row := #[]
+  for h in hs do
+    if !inScope? scope h.off then continue
+    let some tagE := findFrom bs gt h.off
+      | return .error s!"census: unterminated heading tag at byte {h.off}"
+    let marker := dfnTypeOf bs h.off (tagE + 1)
+    if marker.isEmpty || foldedDfnTypes.contains marker then continue
+    let closeTag := s!"</h{h.level}>".toUTF8
+    let some closeAt := findFrom bs closeTag tagE
+      | return .error s!"census: unterminated heading element at byte {h.off}"
+    let kind : Kind := if carrierDfnTypes.contains marker then .type else .op
+    let name := kebab h.id
+    if name.isEmpty then
+      return .error s!"census: heading definition at byte {h.off} derived an empty name"
+    out := out.push { kind := kind, id := kind.name ++ "." ++ name,
+                      anchorB := h.off, anchorE := h.off,
+                      spanB := h.off, spanE := closeAt + closeTag.size }
   return .ok out
 
 /-! ## The disposition join
@@ -1295,22 +1699,125 @@ def parseOverrides (text : String) (path : String := overridesRelativePath) :
       return .error s!"{path} line {lineNumber}: expected three tab-separated fields"
   return .ok out
 
-def resolveDisposition (rules : Array DispositionRule) (overrides : Array OverrideRule)
-    (path : String × String × String) (row : Row) : Option (Disposition × JoinSource) :=
+/-- The disposition join over a heading ancestry given innermost first. -/
+def resolveDispositionAncestry (rules : Array DispositionRule) (overrides : Array OverrideRule)
+    (ancestry : Array String) (row : Row) : Option (Disposition × JoinSource) :=
   match overrides.findIdx? (fun o => o.rowId == row.id) with
   | some i => some ((overrides.getD i default).disposition, .fromOverride i)
-  | none =>
-    let atSection (sectionId : String) : Option (Disposition × JoinSource) :=
-      if sectionId.isEmpty then none
-      else
-        match rules.findIdx? (fun d => d.sectionId == sectionId && d.kind == some row.kind) with
-        | some i => some ((rules.getD i default).disposition, .fromSection i)
-        | none =>
-          match rules.findIdx? (fun d => d.sectionId == sectionId && d.kind == none) with
-          | some i => some ((rules.getD i default).disposition, .fromSection i)
-          | none => none
-    let (h4, h3, h2) := path
-    (atSection h4).orElse fun _ => (atSection h3).orElse fun _ => atSection h2
+  | none => Id.run do
+    let mut found : Option (Disposition × JoinSource) := none
+    for sectionId in ancestry do
+      if sectionId.isEmpty then continue
+      match rules.findIdx? (fun d => d.sectionId == sectionId && d.kind == some row.kind) with
+      | some i =>
+        found := some ((rules.getD i default).disposition, .fromSection i)
+        break
+      | none =>
+        match rules.findIdx? (fun d => d.sectionId == sectionId && d.kind == none) with
+        | some i =>
+          found := some ((rules.getD i default).disposition, .fromSection i)
+          break
+        | none => pure ()
+    return found
+
+def resolveDisposition (rules : Array DispositionRule) (overrides : Array OverrideRule)
+    (path : String × String × String) (row : Row) : Option (Disposition × JoinSource) :=
+  let (h4, h3, h2) := path
+  resolveDispositionAncestry rules overrides #[h4, h3, h2] row
+
+/-! ## Escaping references
+
+Ruling R-P6 gives each promise-lane census a `dependencies.tsv` and an
+`externals.tsv` in the format the URL lane established: one line per row,
+`<row id>` TAB `<comma-separated identities or `-`>`, and one `ext.` identity
+per line. Both directions are checked: every row carries exactly one
+dependency list, every named row exists, every identity resolves to a row of
+this census, to a row of a named cross-census projection, or to a declared
+external, and every declared external is used. -/
+
+def parseExternals (text : String) (path : String) : Except String (Array String) := Id.run do
+  let mut out : Array String := #[]
+  let mut lineNumber := 0
+  for line in Gates.Common.lines text do
+    lineNumber := lineNumber + 1
+    let trimmed := Gates.Common.trimmed line
+    if trimmed.isEmpty || trimmed.startsWith "#" then continue
+    unless trimmed.startsWith "ext." do
+      return .error s!"{path} line {lineNumber}: external identity {trimmed} is not namespaced ext."
+    if out.contains trimmed then
+      return .error s!"{path} line {lineNumber}: duplicate external identity {trimmed}"
+    out := out.push trimmed
+  return .ok out
+
+def parseDependencies (text : String) (path : String) :
+    Except String (Array (String × Array String)) := Id.run do
+  let mut out : Array (String × Array String) := #[]
+  let mut lineNumber := 0
+  for line in Gates.Common.lines text do
+    lineNumber := lineNumber + 1
+    let trimmed := Gates.Common.trimmed line
+    if trimmed.isEmpty || trimmed.startsWith "#" then continue
+    match line.splitOn "\t" with
+    | [rowId, listText] =>
+      if rowId.isEmpty || listText.isEmpty then
+        return .error s!"{path} line {lineNumber}: empty field"
+      if out.any (fun entry => entry.1 == rowId) then
+        return .error s!"{path} line {lineNumber}: duplicate dependency list for {rowId}"
+      let mut identities : Array String := #[]
+      if listText != "-" then
+        for piece in listText.splitOn "," do
+          if piece.isEmpty then
+            return .error s!"{path} line {lineNumber}: empty dependency identity"
+          if piece == rowId then
+            return .error s!"{path} line {lineNumber}: {rowId} depends on itself"
+          if identities.contains piece then
+            return .error s!"{path} line {lineNumber}: duplicate dependency {piece}"
+          identities := identities.push piece
+      out := out.push (rowId, identities)
+    | _ => return .error s!"{path} line {lineNumber}: expected two tab-separated fields"
+  return .ok out
+
+/-- The row ids of a generated census projection, for the cross-census join. -/
+def censusRowIds (text : String) : Array String := Id.run do
+  let mut out : Array String := #[]
+  for line in Gates.Common.lines text do
+    if line.isEmpty || line.startsWith "#" then continue
+    match splitRow line with
+    | .error _ => pure ()
+    | .ok fields => out := out.push (fields.getD 1 "")
+  return out
+
+def checkDependencies (rows : Array Row) (deps : Array (String × Array String))
+    (externals : Array String) (crossCensusIds : Array String)
+    (depPath extPath : String) : Except String Unit := Id.run do
+  let rowIds := rows.map (·.id)
+  let mut missing : Array String := #[]
+  for row in rows do
+    unless deps.any (fun entry => entry.1 == row.id) do
+      missing := missing.push row.id
+  unless missing.isEmpty do
+    return .error s!"{depPath}: {missing.size} row(s) carry no dependency list: {missing.toList}"
+  let mut usedExternals : Array String := #[]
+  for (rowId, identities) in deps do
+    unless rowIds.contains rowId do
+      return .error s!"{depPath}: {rowId} is not a row of this census"
+    for identity in identities do
+      if rowIds.contains identity then continue
+      if crossCensusIds.contains identity then continue
+      if externals.contains identity then
+        unless usedExternals.contains identity do
+          usedExternals := usedExternals.push identity
+        continue
+      return .error
+        s!"{depPath}: {rowId} names {identity}, which is neither a row of this census, a row of a joined census, nor an identity declared in {extPath}"
+  let mut unusedExternals : Array String := #[]
+  for identity in externals do
+    unless usedExternals.contains identity do
+      unusedExternals := unusedExternals.push identity
+  unless unusedExternals.isEmpty do
+    return .error
+      s!"{extPath}: {unusedExternals.size} declared identit(ies) no dependency uses: {unusedExternals.toList}"
+  return .ok ()
 
 /-! ## Rendering -/
 
@@ -1381,11 +1888,25 @@ def renderRowsModule (std : Standard) (entries : Array CoverageRow) (denominator
 structure Built where
   rows : Array Row
   dispositions : Array Disposition
-  paths : Array (String × String × String)
+  paths : Array (Array String)
   skippedIdl : Nat
   censusText : String
   rowsModuleText : String
   denominator : Nat
+  deriving Inhabited
+
+/-- Everything the generator reads from `census/<key>/`, plus the row ids of
+any joined census. A standard that does not use a file receives the empty
+string for it and never parses it. -/
+structure AuthoredInputs where
+  dispositions : String
+  overrides : String
+  rules : String
+  types : String
+  sections : String
+  dependencies : String
+  externals : String
+  crossCensusRowIds : Array String
   deriving Inhabited
 
 private def countKind (rows : Array Row) (k : Kind) : Nat :=
@@ -1394,24 +1915,22 @@ private def countKind (rows : Array Row) (k : Kind) : Nat :=
 private def countDisposition (ds : Array Disposition) (d : Disposition) : Nat :=
   ds.foldl (fun acc x => if x == d then acc + 1 else acc) 0
 
-def build (std : Standard) (bs : ByteArray)
-    (dispositionsText overridesText rulesText typesText : String) : Except String Built := do
-  let headings ← scanHeadings bs
-  let (sourced, skippedIdl) ←
-    if std.definitionKeyed then do
-      let types ← parseTypes typesText std.typesRelativePath
-      let definitions ← scanDefinitions bs types std.typesRelativePath
-      pure (definitions, 0)
-    else do
-      let ops ← scanOps bs
-      let slots ← scanSlots bs
-      let (idl, skippedIdl) ← scanIdl bs
-      let requirements ← scanRequirements bs ops
-      pure (ops ++ slots ++ idl ++ requirements, skippedIdl)
-  let ruleInputs ← parseRules rulesText std.rulesRelativePath
+/-- The tail both profiles share: the authored rule rows, the sort, the
+duplicate check, the anchor ladder, the section scope in both directions, the
+disposition join, the escaping-reference join, and the two projections. Only
+the row sourcing differs between the profiles.
+
+`scope` is `none` for a whole-document standard and the resolved sections of
+`sections.tsv` otherwise. `ancestryOf` gives the authored section keys that
+govern a row whose span starts at the given byte, innermost first: heading ids
+for a Bikeshed standard, enclosing clause ids for an ecmarkup one. -/
+def finishBuild (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs)
+    (sourced : Array Row) (skippedIdl : Nat) (scope : Option (Array Section))
+    (ancestryOf : Nat → Array String) : Except String Built := do
+  let ruleInputs ← parseRules inputs.rules std.rulesRelativePath
   let rules ← scanRules bs ruleInputs
-  let dispositionRules ← parseDispositions dispositionsText std.dispositionsRelativePath
-  let overrides ← parseOverrides overridesText std.overridesRelativePath
+  let dispositionRules ← parseDispositions inputs.dispositions std.dispositionsRelativePath
+  let overrides ← parseOverrides inputs.overrides std.overridesRelativePath
   let unsorted := sourced ++ rules
   let sorted := unsorted.qsort (fun a b => a.sortKey < b.sortKey)
   -- Ids are unique, so the sort is total and its result is deterministic.
@@ -1428,19 +1947,33 @@ def build (std : Standard) (bs : ByteArray)
     | .error rival =>
       .error s!"census: no unique anchor for {row.id}; its span at byte {row.spanB} is repeated at byte {rival}"
     | .ok len => anchored := anchored.push { row with anchorE := row.anchorB + len }
+  -- The frozen section scope, in both directions.
+  if let some sections := scope then
+    let mut stray : Array String := #[]
+    for row in anchored do
+      unless inScope? scope row.spanB do
+        stray := stray.push s!"{row.id} at byte {row.spanB}"
+    unless stray.isEmpty do
+      .error
+        s!"census: {stray.size} row(s) land outside every section of {std.sectionsRelativePath}: {stray.toList}"
+    let mut barren : Array String := #[]
+    for sec in sections do
+      unless anchored.any (fun r => Nat.ble sec.b r.spanB && !Nat.ble sec.e r.spanB) do
+        barren := barren.push sec.id
+    unless barren.isEmpty do
+      .error s!"{std.sectionsRelativePath}: {barren.size} section(s) govern no row: {barren.toList}"
   -- Dispositions.
   let mut dispositions : Array Disposition := #[]
-  let mut paths : Array (String × String × String) := #[]
+  let mut paths : Array (Array String) := #[]
   let mut usedRules : Array Nat := #[]
   let mut usedOverrides : Array Nat := #[]
   let mut unresolved : Array String := #[]
   for row in anchored do
-    let path := sectionPath headings row.spanB
+    let path := ancestryOf row.spanB
     paths := paths.push path
-    match resolveDisposition dispositionRules overrides path row with
+    match resolveDispositionAncestry dispositionRules overrides path row with
     | none =>
-      let (h4, h3, h2) := path
-      unresolved := unresolved.push s!"{row.id} (sections {h2}/{h3}/{h4})"
+      unresolved := unresolved.push s!"{row.id} (sections {path.toList})"
       dispositions := dispositions.push .owned
     | some (d, source) =>
       dispositions := dispositions.push d
@@ -1460,6 +1993,12 @@ def build (std : Standard) (bs : ByteArray)
       stale := stale.push s!"{std.overridesRelativePath}: {(overrides.getD i default).rowId} matches no row"
   unless stale.isEmpty do
     .error s!"census: {stale.size} authored disposition entr(ies) outlived their rows: {stale.toList}"
+  -- Escaping references (ruling R-P6), where the standard authors them.
+  if std.authoredDependencies then
+    let externals ← parseExternals inputs.externals std.externalsRelativePath
+    let deps ← parseDependencies inputs.dependencies std.dependenciesRelativePath
+    checkDependencies anchored deps externals inputs.crossCensusRowIds
+      std.dependenciesRelativePath std.externalsRelativePath
   let denominator :=
     dispositions.foldl (fun acc d => if d.excluded then acc else acc + 1) 0
   let censusText ← renderCensus std bs anchored
@@ -1472,6 +2011,83 @@ def build (std : Standard) (bs : ByteArray)
         skippedIdl := skippedIdl, censusText := censusText,
         rowsModuleText := renderRowsModule std coverageRows denominator,
         denominator := denominator }
+
+/-- The Bikeshed half of `build`. -/
+def buildBikeshed (std : Standard) (sw : Bikeshed) (bs : ByteArray) (inputs : AuthoredInputs) :
+    Except String Built := do
+  let headings ← scanHeadings bs sw.headingLevels
+  let scope : Option (Array Section) ←
+    if sw.sectionScope then do
+      let ids ← parseSections inputs.sections std.sectionsRelativePath
+      let sections ← sectionExtents bs headings ids std.sectionsRelativePath
+      pure (some sections)
+    else pure none
+  let blocks ← algorithmBlocks bs
+  let ops ← if sw.algorithmRows then scanOps bs blocks std.algorithmNameFirst scope else pure #[]
+  let slots ← if sw.slotRows then scanSlots bs else pure #[]
+  let (idl, skippedIdl) ←
+    if sw.idlRows then scanIdl bs sw.idlOpeners scope else pure (#[], 0)
+  let requirements ←
+    match sw.requirementMarker with
+    | some marker => scanRequirements bs marker ops
+    | none => pure #[]
+  let definitions ←
+    if sw.definitionRows then do
+      let types ←
+        if std.authoredTypeNames then parseTypes inputs.types std.typesRelativePath else pure #[]
+      let dfns ← scanDefinitions bs types std.typesRelativePath blocks sw.algorithmRows scope
+      let headingDfns ← scanHeadingDefinitions bs headings scope
+      pure (dfns ++ headingDfns)
+    else pure #[]
+  let sourced := ops ++ slots ++ idl ++ requirements ++ definitions
+  finishBuild std bs inputs sourced skippedIdl scope
+    (fun off => sectionAncestry headings sw.headingLevels off)
+
+/-- The authored section keys of an ecmarkup row, innermost first: the ids of
+every `<emu-clause>` whose span contains the row's span start, deepest first.
+A primary clause row therefore resolves against its own clause id, and a
+sub-row against the clause that encloses it, which is what section 8 of
+`test/contracts/ecma262-census.contract.md` states. The containing clauses of a
+point form a chain, so their depths are distinct and the order is total. -/
+def clauseAncestry (clauses : Array Gates.Ecmarkup.Clause) (off : Nat) : Array String :=
+  let containing := clauses.filter (fun c => Nat.ble c.b off && Nat.blt off c.e)
+  (containing.qsort (fun a b => Nat.blt b.depth a.depth)).map (·.id)
+
+/-- The ecmarkup half of `build` (ruling R-P1).
+
+`sections.tsv` names the root clause ids; `Gates.Ecmarkup.rootWindow` is the one
+function of that module that reads outside a window and it refuses a root id
+that does not occur exactly once. `Gates.Ecmarkup.rows` gives each row a kind
+spelling, an id and a half-open span, and everything after that — the anchor
+ladder, the span digests, the excerpts, the disposition join and both
+projections — is `finishBuild`, exactly the path the Bikeshed standards take. -/
+def buildEcmarkup (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs) :
+    Except String Built := do
+  let sectionIds ← parseSections inputs.sections std.sectionsRelativePath
+  let mut windows : Array (Nat × Nat) := #[]
+  let mut sections : Array Section := #[]
+  for clauseId in sectionIds do
+    let (b, e) ← Gates.Ecmarkup.rootWindow bs clauseId
+    windows := windows.push (b, e)
+    sections := sections.push { id := clauseId, b := b, e := e }
+  let specs ← Gates.Ecmarkup.rows bs windows
+  let mut rows : Array Row := #[]
+  for spec in specs do
+    let some kind := Kind.ofString? spec.kind
+      | .error s!"census: the ecmarkup scanner produced the unknown kind {spec.kind}"
+    rows := rows.push
+      { kind := kind, id := spec.id, anchorB := spec.b, anchorE := spec.b,
+        spanB := spec.b, spanE := spec.e }
+  let mut clauses : Array Gates.Ecmarkup.Clause := #[]
+  for (b, e) in windows do
+    clauses := clauses ++ (← Gates.Ecmarkup.scanClauses bs b e)
+  finishBuild std bs inputs rows 0 (some sections) (fun off => clauseAncestry clauses off)
+
+/-- The profile dispatch (ruling R-P1). -/
+def build (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs) : Except String Built :=
+  match std.profile with
+  | .bikeshed switches => buildBikeshed std switches bs inputs
+  | .ecmarkup => buildEcmarkup std bs inputs
 
 /-! ## Reading the pinned input -/
 
@@ -1486,19 +2102,54 @@ def readPinnedInput (root : System.FilePath) (std : Standard) : IO (Except Strin
       s!"census: refusing bytes that are not the pin; {std.inputRelativePath} has SHA-256 {observed}, expected {std.inputDigest}"
   return .ok bytes
 
-/-- The four authored inputs. `types.tsv` is read only for a definition-keyed
-standard and is required there. -/
+/-- The authored inputs the standard declares. Every one it declares is
+required; one it does not declare is never read. -/
 def readAuthored (root : System.FilePath) (std : Standard) :
-    IO (Except String (String × String × String × String)) := do
-  let mut texts : Array String := #[]
-  let mut wanted := [std.dispositionsRelativePath, std.overridesRelativePath, std.rulesRelativePath]
-  if std.definitionKeyed then wanted := wanted ++ [std.typesRelativePath]
-  for relative in wanted do
+    IO (Except String AuthoredInputs) := do
+  let readRequired (relative : String) : IO (Except String String) := do
     let path := root / relative
     unless ← path.pathExists do
       return .error s!"census: missing authored input {relative}"
-    texts := texts.push (← IO.FS.readFile path)
-  return .ok (texts.getD 0 "", texts.getD 1 "", texts.getD 2 "", texts.getD 3 "")
+    return .ok (← IO.FS.readFile path)
+  let sectionScope :=
+    match std.profile with
+    | .bikeshed switches => switches.sectionScope
+    | .ecmarkup => true
+  let mut texts : Array String := #[]
+  let mut wanted := [std.dispositionsRelativePath, std.overridesRelativePath, std.rulesRelativePath]
+  if std.authoredTypeNames then wanted := wanted ++ [std.typesRelativePath]
+  if sectionScope then wanted := wanted ++ [std.sectionsRelativePath]
+  if std.authoredDependencies then
+    wanted := wanted ++ [std.dependenciesRelativePath, std.externalsRelativePath]
+  for relative in wanted do
+    match ← readRequired relative with
+    | .error message => return .error message
+    | .ok text => texts := texts.push text
+  let mut index := 3
+  let mut typesText := ""
+  if std.authoredTypeNames then
+    typesText := texts.getD index ""
+    index := index + 1
+  let mut sectionsText := ""
+  if sectionScope then
+    sectionsText := texts.getD index ""
+    index := index + 1
+  let mut dependenciesText := ""
+  let mut externalsText := ""
+  if std.authoredDependencies then
+    dependenciesText := texts.getD index ""
+    externalsText := texts.getD (index + 1) ""
+  let mut crossCensusRowIds : Array String := #[]
+  for relative in std.crossCensusPaths do
+    let path := root / relative
+    unless ← path.pathExists do
+      return .error s!"census: missing joined census projection {relative}"
+    crossCensusRowIds := crossCensusRowIds ++ censusRowIds (← IO.FS.readFile path)
+  return .ok
+    { dispositions := texts.getD 0 "", overrides := texts.getD 1 "", rules := texts.getD 2 "",
+      types := typesText, sections := sectionsText,
+      dependencies := dependenciesText, externals := externalsText,
+      crossCensusRowIds := crossCensusRowIds }
 
 def buildFromRoot (root : System.FilePath) (std : Standard) :
     IO (Except String (ByteArray × Built)) := do
@@ -1507,8 +2158,8 @@ def buildFromRoot (root : System.FilePath) (std : Standard) :
   | .ok bytes =>
     match ← readAuthored root std with
     | .error message => return .error message
-    | .ok (dispositionsText, overridesText, rulesText, typesText) =>
-      match build std bytes dispositionsText overridesText rulesText typesText with
+    | .ok inputs =>
+      match build std bytes inputs with
       | .error message => return .error message
       | .ok built => return .ok (bytes, built)
 
