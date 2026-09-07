@@ -278,6 +278,11 @@ def settle {α ε : Type} (s : State α ε) (id : Nat)
 def markHandled {α ε : Type} (s : State α ε) (id : Nat) : State α ε :=
   if id ∈ s.handled then s else { s with handled := s.handled ++ [id] }
 
+/-- `E-45` (generalize, `PROMISE-PG-FIRST`): the sink-job list read as the general
+`hook.hostenqueuepromisejob` queue, at payload `SinkJob α ε`. -/
+def jobQueue {α ε : Type} (s : State α ε) : Whatwg.Ecma262.Jobs.Queue (SinkJob α ε) :=
+  Whatwg.Ecma262.Jobs.Queue.mk s.jobs
+
 /-- `E-13`..`E-15`, `E-18`..`E-23` (generalize, `PROMISE-PG-FIRST`): the promise slots read
 as the general promise table. Decision 9 puts `handled` in the cell, so this view folds the
 Streams identity list into the per-cell flag; `handled_bridge` is the relation it promises. -/

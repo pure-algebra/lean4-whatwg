@@ -188,9 +188,29 @@ theorem reactPull_rejected :
   intros
   rfl
 
+/-- `E-48` (generalize, `PROMISE-PG-FIRST`): the view is exactly the pull-answer job list. -/
+theorem jobQueue_eq {α ε : Type} (s : State α ε) :
+    jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
+
+/--
+`E-49` (generalize, `PROMISE-PG-FIRST`). The honest bridging shape: under the readable
+component's own spelling of `requirement.jobs.1` — an empty synchronous frame stack —
+`runPullJob` *reduces to* `Whatwg.Ecma262.Jobs.Queue.dequeue`. Mask M2.
+-/
+theorem runPullJob_dequeue_bridge {α ε : Type} (s : State α ε) :
+    s.frames = [] →
+      runPullJob s =
+        (Whatwg.Ecma262.Jobs.Queue.dequeue (jobQueue s)).map
+          (fun p => reactPull { s with jobs := p.2.pending } p.1) := by
+  intro hf
+  cases hj : s.jobs <;>
+    simp [runPullJob, jobQueue, Whatwg.Ecma262.Jobs.Queue.dequeue, hf, hj]
+
 /--
 `op.readable-stream-default-controller-call-pull-if-needed`.
 Frozen branch equation for `runPullJob_suspended`, under the local M1/M2 views.
+This one is the component's frame guard rather than a queue law, so it is not a
+consequence of `runPullJob_dequeue_bridge`, whose hypothesis it denies.
 -/
 theorem runPullJob_suspended :
   ∀ {α ε : Type} (s : State α ε),
@@ -201,16 +221,23 @@ theorem runPullJob_suspended :
 /--
 `op.readable-stream-default-controller-call-pull-if-needed`.
 Frozen branch equation for `runPullJob_empty`, under the local M1/M2 views.
+Re-derived through `runPullJob_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, never re-proved from `runPullJob`.
 -/
 theorem runPullJob_empty :
   ∀ {α ε : Type} (s : State α ε),
     s.jobs = [] → runPullJob s = none := by
-  intros
-  simp_all [runPullJob]
+  intro α ε s hj
+  by_cases hf : s.frames = []
+  · rw [runPullJob_dequeue_bridge s hf, jobQueue_eq, hj]
+    exact congrArg _ Whatwg.Ecma262.Jobs.Queue.dequeue_empty
+  · exact runPullJob_suspended s hf
 
 /--
 `op.readable-stream-default-controller-call-pull-if-needed`.
 Frozen branch equation for `runPullJob_cons`, under the local M1/M2 views.
+Re-derived through `runPullJob_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_cons`, never re-proved from `runPullJob`.
 -/
 theorem runPullJob_cons :
   ∀ {α ε : Type} (s : State α ε) (a : PullAnswer ε)
@@ -218,8 +245,10 @@ theorem runPullJob_cons :
     s.frames = [] → s.jobs = a :: rest →
       runPullJob s = some (reactPull { s with jobs
         := rest } a) := by
-  intros
-  simp_all [runPullJob]
+  intro α ε s a rest hf hj
+  rw [runPullJob_dequeue_bridge s hf, jobQueue_eq, hj,
+    Whatwg.Ecma262.Jobs.Queue.dequeue_cons]
+  rfl
 
 /--
 `op.readable-stream-default-controller-close`.

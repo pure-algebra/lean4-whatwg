@@ -166,6 +166,11 @@ structure State (α ε : Type) where
   jobs : List (PullAnswer ε)
   trace : List (Event α ε)
 
+/-- `E-48` (generalize, `PROMISE-PG-FIRST`): the pull-answer job list read as the general
+`hook.hostenqueuepromisejob` queue, at payload `PullAnswer ε`. -/
+def jobQueue {α ε : Type} (s : State α ε) : Whatwg.Ecma262.Jobs.Queue (PullAnswer ε) :=
+  Whatwg.Ecma262.Jobs.Queue.mk s.jobs
+
 /-- `E-22` (generalize, `PROMISE-PG-FIRST`): the read-promise slots read as the general
 promise table, at value parameter `ReadResult α`. This is why the general state needs two
 type parameters (decision 1). The operation-level generalization of `E-22` is deferred to

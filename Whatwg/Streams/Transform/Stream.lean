@@ -101,6 +101,12 @@ structure State (α β ε : Type) where
   nextCall : Nat
   trace : List (Event α β ε)
 
+/-- `E-52` (generalize, `PROMISE-PG-FIRST`): the coupled-job list read as the general
+`hook.hostenqueuepromisejob` queue, at payload `Job α ε`. `Job` derives `Repr` only, which
+is why the general queue's `DecidableEq` and `Repr` are conditional on the payload. -/
+def jobQueue {α β ε : Type} (s : State α β ε) : Whatwg.Ecma262.Jobs.Queue (Job α ε) :=
+  Whatwg.Ecma262.Jobs.Queue.mk s.jobs
+
 /-- Lift a canonical readable transition's trace suffix; prefix validity is a later invariant. -/
 def withReadable {α β ε : Type} (s : State α β ε) (r : Readable.State β ε) : State α β ε :=
   { s with

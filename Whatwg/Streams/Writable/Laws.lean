@@ -704,25 +704,90 @@ theorem tick_foreign_marker :
   | nil => exact (hn hc).elim
   | cons head tail => cases head <;> simp_all [externalFrontier, tick]
 
+/-! ## `PROMISE-PG-FIRST` bridging: the sink-job queue
+
+`E-45`, `E-46` (generalize). `E-46` records why this is the honest shape: the queue stage
+is one branch of a twenty-branch `tick`, so the general law is `Queue.dequeue`'s equation
+plus a Streams bridging lemma, not a relocation of `tick`. -/
+
+/-- `E-45`: the view is exactly the sink-job list. Mask M1. -/
+theorem jobQueue_eq {α ε : Type} (s : State α ε) :
+    jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
+
+/--
+`E-46` (generalize). Under the writable component's own spelling of
+`requirement.jobs.1` — an empty administrative control stack — `tick` reduces to
+`Whatwg.Ecma262.Jobs.Queue.dequeue`. Mask M2.
+-/
+theorem tick_dequeue_bridge {α ε : Type} (s : State α ε) :
+    s.control = [] →
+      tick s =
+        (Whatwg.Ecma262.Jobs.Queue.dequeue (jobQueue s)).map
+          (fun p => { s with control := [.react p.1], jobs := p.2.pending }) := by
+  intro hc
+  cases hj : s.jobs <;>
+    simp [tick, jobQueue, Whatwg.Ecma262.Jobs.Queue.dequeue, hc, hj]
+
 /--
 `op.writable-stream-default-controller-process-write`:
 tick no job for the local candidate observations.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, never re-proved from `tick`.
 -/
 theorem tick_no_job :
   ∀ {α ε : Type} (s : State α ε), s.control = [] → s.jobs = [] → tick s = none := by
-  intros
-  first | rfl | simp_all [tick]
+  intro α ε s hc hj
+  rw [tick_dequeue_bridge s hc, jobQueue_eq, hj]
+  exact congrArg _ Whatwg.Ecma262.Jobs.Queue.dequeue_empty
 
 /--
 `op.writable-stream-default-controller-process-write`:
 tick job fifo for the local candidate observations.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_cons` (the `later := []` instance of
+`Queue.dequeue_fifo`), never re-proved from `tick`. Mask M2.
 -/
 theorem tick_job_fifo :
   ∀ {α ε : Type} (s : State α ε) (job : SinkJob α ε) (jobs : List (SinkJob α ε)),
     tick { s with control := [], jobs := job :: jobs } =
       some { s with control := [.react job], jobs := jobs } := by
-  intros
-  first | rfl | simp_all [tick]
+  intro α ε s job jobs
+  rw [tick_dequeue_bridge { s with control := [], jobs := job :: jobs } rfl, jobQueue_eq]
+  rw [show ({ s with control := [], jobs := job :: jobs } : State α ε).jobs = job :: jobs from rfl,
+    Whatwg.Ecma262.Jobs.Queue.dequeue_cons]
+  rfl
+
+/-- `E-37` (generalize), the queueing half only: `attachSink` also clears the close and
+abort algorithm slots, which the general `react` must not do, so the bridge is stated on
+the job queue alone. Mask M2. -/
+theorem attachSink_settled_jobs {α ε : Type} (s : State α ε) (op : SinkOperation α ε)
+    (answer : SinkAnswer ε) :
+    jobQueue (attachSink s op (.settled answer)) =
+      Whatwg.Ecma262.Jobs.Queue.enqueue (jobQueue s)
+        ⟨operationKind op, operationRequest op, answer⟩ := by
+  cases op <;>
+    simp [attachSink, jobQueue, setOperationPhase, clearAlgorithms, operationKind,
+      operationRequest, Whatwg.Ecma262.Jobs.Queue.enqueue]
+
+/-- `E-37`: a callback that returned pending queues no reaction yet. Mask M2. -/
+theorem attachSink_pending_jobs {α ε : Type} (s : State α ε) (op : SinkOperation α ε) :
+    jobQueue (attachSink s op .pending) = jobQueue s := by
+  cases op <;> simp [attachSink, jobQueue, setOperationPhase, clearAlgorithms]
+
+/-- `E-38` (generalize), the queueing half only: the `operationPhase … = some .awaiting`
+guard stays in Streams. Mask M2. -/
+theorem acceptAnswer_jobs {α ε : Type} (s t : State α ε) (kind : SinkKind) (id : Nat)
+    (answer : SinkAnswer ε) :
+    acceptAnswer s kind id answer = some t →
+      jobQueue t = Whatwg.Ecma262.Jobs.Queue.enqueue (jobQueue s) ⟨kind, id, answer⟩ := by
+  intro h
+  simp only [acceptAnswer] at h
+  by_cases hg : operationPhase s kind id = some OperationPhase.awaiting
+  · rw [if_pos hg] at h
+    rw [← Option.some.inj h]
+    cases kind <;> simp [jobQueue, Whatwg.Ecma262.Jobs.Queue.enqueue]
+  · rw [if_neg hg] at h
+    exact absurd h (by simp)
 
 /--
 `op.writable-stream-default-writer-write`:

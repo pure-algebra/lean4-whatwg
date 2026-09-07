@@ -692,23 +692,56 @@ theorem tick_native_write :
   intros
   first | rfl | (simp_all [tick] <;> rfl)
 
-/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
+/-! ## `PROMISE-PG-FIRST` bridging: the coupled job queue
+
+`E-52`, `E-53` (generalize). The three-part guard below is the clearest statement in the
+repository of `requirement.jobs.1`, and it is stated today only as a hypothesis of
+`tick_job_fifo`; here it is the hypothesis of the bridge. -/
+
+/-- `E-52`: the view is exactly the coupled-job list. Mask M1. -/
+theorem jobQueue_eq {α β ε : Type} (s : State α β ε) :
+    jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
+
+/--
+`E-53` (generalize). Under the transform's own three-way spelling of
+`requirement.jobs.1`, `tick` reduces to `Whatwg.Ecma262.Jobs.Queue.dequeue` followed by
+the coupled component dispatch. Mask M2.
+-/
+theorem tick_dequeue_bridge {α β ε : Type} (s : State α β ε) :
+    s.control = [] → s.writable.control = [] → s.readable.frames = [] →
+      tick s =
+        (Whatwg.Ecma262.Jobs.Queue.dequeue (jobQueue s)).bind
+          (fun p => runJob { s with jobs := p.2.pending } p.1) := by
+  intro hc hw hf
+  cases hj : s.jobs <;>
+    simp [tick, jobQueue, Whatwg.Ecma262.Jobs.Queue.dequeue, hc, hw, hf, hj]
+
+/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_cons` (the `later := []` instance of
+`Queue.dequeue_fifo`), never re-proved from `tick`. Mask M2. -/
 theorem tick_job_fifo :
   ∀ {α β ε : Type} (s : State α β ε) (job : Job α ε) (tail : List
     (Job α ε)),
    s.control = [] → s.writable.control = [] → s.readable.frames = [] →
    s.jobs = job :: tail →
    tick s = runJob { s with jobs := tail } job := by
-  intros
-  first | rfl | (simp_all [tick] <;> rfl)
+  intro α β ε s job tail hc hw hf hj
+  rw [tick_dequeue_bridge s hc hw hf, jobQueue_eq, hj,
+    Whatwg.Ecma262.Jobs.Queue.dequeue_cons]
+  rfl
 
-/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
+/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, never re-proved from `tick`. -/
 theorem tick_no_job :
   ∀ {α β ε : Type} (s : State α β ε),
    s.control = [] → s.writable.control = [] → s.readable.frames = [] → s.jobs = [] →
    tick s = none := by
-  intros
-  first | rfl | (simp_all [tick] <;> rfl)
+  intro α β ε s hc hw hf hj
+  rw [tick_dequeue_bridge s hc hw hf, jobQueue_eq, hj,
+    ← Whatwg.Ecma262.Jobs.Queue.empty_eq, Whatwg.Ecma262.Jobs.Queue.dequeue_empty]
+  rfl
 
 /-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
 theorem tick_native_pull :
