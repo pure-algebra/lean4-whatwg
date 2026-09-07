@@ -835,6 +835,237 @@ library, so no coverage state can be anything else. `docs/PROMISE-DAG.md` is
 opened here with its ten edges, all `required-open` except those the packet
 declares `not-applicable` with a reason.
 
+### Q2 landing receipt
+
+Recorded by the Q2 tooling builder seat on `promise/q2-tooling`, 2026-09-07, on
+Lean 4.33.1, Windows x64. The branch is the frozen Q2 addenda at `087ba08` with
+`origin/main` merged in (no conflict). This subsection records what was run and
+what came out. **It grants no coverage state.** Both blocks below are
+all-`absent`: they say that nothing is proved about `Whatwg.WebIdl` or
+`Whatwg.Ecma262`, and quoting either as evidence of coverage is a defect.
+
+**What landed.** The three authored `rule` rows of the Web IDL addendum
+(review debts D3 and D5), the two disposition moves of debt D4, the three new
+dependency lines, both regenerated projections and rows modules, the keyed
+`Gates.Census.cli`, the two numerator modules, the three-entry map in
+`bin/Census.lean`, the two emitted coverage blocks in `docs/SPEC-COVERAGE.md`,
+review debts D6, D7 and D11, and two CI steps. Debt D10 is not touched: the two
+addenda freeze the dependency-line counts at 124 and 77, so recording
+same-census `<emu-xref>` and bare `<a>` links needs a later breaker.
+
+**The four identity files.** Recomputed with
+`Get-FileHash -Algorithm SHA256` before and after the four `--write` runs. Every
+byte is unchanged, so `test/contracts/census-profile-identity.contract.md`
+holds and this slice touches neither the Streams nor the Infra census.
+
+| Path | Bytes | SHA-256, before and after |
+| --- | ---: | --- |
+| `generated/spec-algorithm-census.tsv` | 141352 | `1a3672789fb62d3ae68eb528efb20a211727e9ed2b18c3e751c5acf67cd37e02` |
+| `generated/infra-census.tsv` | 55766 | `5041ef0035e087cb242a300a95398982351d766b39a4f24f28e94d9b853d5b18` |
+| `WhatwgTest/Audit/SpecCoverageRows.lean` | 32032 | `d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476` |
+| `WhatwgTest/Audit/Infra/SpecCoverageRows.lean` | 10607 | `94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0` |
+
+**The four projections this slice moves or re-derives.**
+`generated/ecma262-census.tsv` is byte-identical to its Q1 bytes, because a
+census row carries no disposition column and this addendum adds no ES2026 row;
+only its rows module moves.
+
+| Path | Bytes | SHA-256 at Q1 | SHA-256 at Q2 |
+| --- | ---: | --- | --- |
+| `generated/webidl-census.tsv` | 34729 | `28af714cb2af1223c716bfecf2d199d356a29433169c5a655bc31c2b3ad88cee` | `bef9917317b6d39daeac3670faf1a92775bb09d29d76f242856073ebbb040391` |
+| `WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean` | 8664 | `cf008161d29c9339b48cf1a1a09b8de71e03ac18a5ff2b996739ce7f40afdb54` | `feddb0a2802babcaa22d35e212d6b99786721c85cb50375893128f98b29eaf2d` |
+| `generated/ecma262-census.tsv` | 23292 | `2e1b79f2fd4d2bc545988f9ccd5b2cacea976d00641112c308536029f63d365f` | `2e1b79f2fd4d2bc545988f9ccd5b2cacea976d00641112c308536029f63d365f` |
+| `WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean` | 5941 | `9a0112756629ede3306dff312770d5d9493b8562f7d037bc8b54c2b21c41cd57` | `9a27f8b95b0f1aa35a30600c5db679afa748381752778645e04de99a1df794c7` |
+
+Running `lake exe census --write`, `--standard infra --write`,
+`--standard webidl --write` and `--standard ecma262 --write` again leaves
+`git status --short` reporting nothing.
+
+**Commands and results.**
+
+| Command | Result |
+| --- | --- |
+| `lake --wfail build Whatwg Gates vendorseal citations census urlinventory urlcensus` | `Build completed successfully (297 jobs).`, exit 0 |
+| `lake exe vendorseal` | `PASS vendor seal: manifest and vendor/ agree in both directions; every path is valid on Windows` |
+| `lake exe citations` | `PASS internal citations: 326 files scanned; no line-numbered citation into a protected authored document` |
+| `lake exe urlinventory` | `PASS URL inventory: pinned bytes, full token partition, 1473 source candidates; projection is byte-identical` |
+| `lake exe urlcensus` | `PASS URL census: pinned source, authored joins; both projections are byte-identical` |
+| `lake exe census` | `PASS census (streams): …, and the coverage emit agrees with that regeneration row for row` |
+| `lake exe census --report` | the Streams block, unchanged: denominator 410, owned-with-green 12/410, green 12, partial 6, absent 392, 450 rows, 40 excluded |
+| `lake exe census --standard infra` | `PASS census (infra): …; no numerator exists for this standard yet, so no emit was checked` |
+| `lake exe census --standard infra --report` | refused, exit 2: `census: no coverage numerator exists for infra, so there is no report yet` |
+| `lake exe census --standard webidl` | `PASS census (webidl): …`, quoted in full below |
+| `lake exe census --standard webidl --report` | exit 0, the block quoted below |
+| `lake exe census --standard ecma262` | `PASS census (ecma262): …`, quoted in full below |
+| `lake exe census --standard ecma262 --report` | exit 0, the block quoted below |
+| `lake --wfail build WhatwgTest` | `Build completed successfully (217 jobs).`, exit 0; the audit line reports 188 modules and 12124 declarations (1477 in the Gates tooling tree) |
+
+The exact `lake exe census --standard webidl` output, both lines, exit 0:
+
+```text
+census: 124 rows (idl 37, op 39, requirement 0, rule 9, slot 0, type 39, builtin 0, hook 0, property 0, record 0, field 0, term 0, clause 0); dispositions (owned 61, requirement 6, foreignBoundary 0, hostOnly 49, refused 0, evidenceOnly 8, targetOnly 0); denominator 116, excluded 8; 0 IDL statement(s) outside the row vocabulary
+PASS census (webidl): input digest is the pin, every anchor occurs exactly once at its span start, every span digest recomputes, every row has exactly one disposition, both projections are byte-identical to a fresh regeneration, and the coverage emit agrees with that regeneration row for row
+```
+
+The exact `lake exe census --standard ecma262` output, both lines, exit 0:
+
+```text
+census: 77 rows (idl 0, op 16, requirement 9, rule 0, slot 5, type 0, builtin 13, hook 6, property 3, record 3, field 8, term 6, clause 8); dispositions (owned 45, requirement 7, foreignBoundary 13, hostOnly 10, refused 0, evidenceOnly 2, targetOnly 0); denominator 75, excluded 2; 0 IDL statement(s) outside the row vocabulary
+PASS census (ecma262): input digest is the pin, every anchor occurs exactly once at its span start, every span digest recomputes, every row has exactly one disposition, both projections are byte-identical to a fresh regeneration, and the coverage emit agrees with that regeneration row for row
+```
+
+Both agree with the frozen summary lines of the two addenda character for
+character.
+
+**The two emitted coverage blocks**, printed by
+`lake exe census --standard webidl --report` and
+`--standard ecma262 --report` from the two Lean emits, after
+`Gates.Census.verifyEmit` re-derived every census-owned column from a fresh
+regeneration. The same bytes replace the two placeholder blocks in
+`docs/SPEC-COVERAGE.md`. Both are all-`absent`: `owned-with-green 0/116` and
+`owned-with-green 0/75` are the whole content of the two claims.
+
+```text
+WHATWG Web IDL (a652053f) coverage: denominator 116; owned-with-green 0/116;
+green 0, partial 0, absent 116; census 124 rows, 8 excluded
+partial:
+```
+
+```text
+ECMAScript ES2026 (0248456c) coverage: denominator 75; owned-with-green 0/75;
+green 0, partial 0, absent 75; census 77 rows, 2 excluded
+partial:
+```
+
+**The four batteries, all green with no frozen statement repaired.** No
+"Builder notes" heading was needed in either Q2 battery or either amended Q1
+battery: every frozen count, span, digest, locator, ascription and refusal
+elaborated as written the first time the tree satisfied it.
+
+```text
+webidl census Q2 contract: 124 rows, denominator 116, 3 new rule rows verified against vendor/whatwg-webidl-a652053f/index.bs (SHA-256 3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83) with the real anchor ladder, 124 dependency lines and 46 externals used in both directions, and the all-absent coverage block emitted
+ecma262 census Q2 contract: 77 rows, denominator 75, clause.promise-objects re-dispositioned owned against vendor/ecma262-0248456c/spec.html (SHA-256 ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0), 3 overrides unchanged, 77 dependency lines and 41 externals used in both directions, and the all-absent coverage block emitted
+webidl census contract: 124 rows, 121 frozen anchor rows verified against vendor/whatwg-webidl-a652053f/index.bs (SHA-256 3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83), denominator 116
+ecma262 census contract: 77 rows, 77 frozen anchor rows verified against vendor/ecma262-0248456c/spec.html (SHA-256 ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0), denominator 75
+census profile identity: 4 frozen files, Streams 450 rows / denominator 410, Infra 176 rows / denominator 165
+ecmarkup scanner: 49 clauses, 4 tables, 13 body rows, 9 requirement bullets, 390 step lines, 1 aoid, 9 dfn all named, 188 non-ASCII bytes over the two frozen windows of vendor/ecma262-0248456c/spec.html; 77 rows verified against the packet, 3 anchor lengths against Gates.Census.chooseAnchorLength, and both root clause ids resolved without the rootWindow occurrence cap firing
+```
+
+`test/fixtures/trust-gate/known-red.txt` is empty of entries, with the Q2
+packet note kept and extended by the removal record, so the trust gate's
+all-green control is restored.
+
+**The implementation ceiling.** The `Gates/` tree is admitted to the
+implementation ceiling as a whole, so `Classical.choice` is inside it.
+`#print axioms` over every declaration this slice adds or changes, measured
+with `lake env lean` on a scratch file importing the three numerators and
+`Gates`:
+
+| Declaration | Receipt |
+| --- | --- |
+| `Gates.Census.cli`, `.scanRules`, `.finishBuild`, `.build`, `.check`, `.report`, `.write` | `propext, Classical.choice, Quot.sound` |
+| `Gates.Census.verifyEmit` | `propext, Quot.sound` |
+| `Gates.Citations.protectedDocuments` | no axioms |
+| `Gates.Citations.protectedSpellings`, `Gates.Citations.cli` | `propext, Classical.choice, Quot.sound` |
+| `WhatwgTest.Audit.WebIdl.SpecCoverage.{rows, emit, expectedRowTotal, expectedDenominator}` | no axioms |
+| `WhatwgTest.Audit.Ecma262.SpecCoverage.{rows, emit, expectedRowTotal, expectedDenominator}` | no axioms |
+| `WhatwgTest.Audit.WebIdl.SpecCoverageRows.{rows, rowTotal, denominator}` | no axioms |
+| `WhatwgTest.Audit.Ecma262.SpecCoverageRows.{rows, rowTotal, denominator}` | no axioms |
+| `WhatwgTest.Audit.SpecCoverage.emit` (unchanged, re-measured through the changed entry point) | `propext` |
+
+Every receipt is inside the R-11 ceiling. `sorryAx`, `Lean.ofReduceBool`,
+`Lean.ofReduceNat`, `Lean.trustCompiler` and the `native_decide` auxiliaries
+appear nowhere. A token scan of every `.lean` file this slice touches finds no
+`partial`, `unsafe`, `sorry`, `native_decide` or `bv_decide` declaration: the
+only hits are the pre-existing prose and the `CoverageState.partialCoverage`
+constructor's external spelling, which the module header already explains.
+`bin/Census.lean`'s `main` is an executable root and carries no receipt of its
+own; every declaration it names is in the table above.
+
+**The three debts this seat closed.**
+
+- **D6** — `WhatwgTest/Audit/Ecma262/EcmarkupScanner.lean` gains probes for the
+  two refusal branches of `Gates/Ecmarkup.lean` that had none: the nameless
+  `<dfn>` of `termRows` and the 4096-occurrence cap of `rootWindow`. Each runs
+  on a synthetic input whose only defect is the stated one and is asserted by
+  the message it names rather than by "some refusal fired", with a positive
+  control beside it. The gate then shows neither fires at the pin: all nine
+  in-scope `<dfn>` elements derive a non-empty name under an independent
+  re-implementation of the scanner's own naming ladder, and both authored root
+  clause ids resolve to the two frozen windows, which a cap hit would prevent.
+  The `rootWindow` pin check costs about twelve seconds, taking that module's
+  elaboration from about fifteen to about twenty-seven; the module header
+  records the cost rather than hiding it.
+- **D7** — `Gates.Census.scanRules` takes both locator counts with a cap of
+  `bs.size + 1`, so a refusal reports the true number of occurrences instead of
+  a count clipped to 2; the end locator must now occur exactly once and
+  strictly after the start locator, which `findFrom` alone did not decide,
+  since it took the first occurrence *at or after* the start; and
+  `Gates.Census.finishBuild` refuses any row whose span is empty or reversed,
+  which only the ecmarkup path checked. All three are byte-neutral at the four
+  pins — every one of the nine Web IDL end locators occurs exactly once and
+  after its start, and the shortest landed span in any of the four projections
+  is eight bytes — and the identity battery plus the two unchanged Streams and
+  Infra digests above are the proof.
+- **D11** — `docs/PROMISE-PACKAGE-PLAN.md` joins
+  `Gates.Citations.protectedDocuments`, with the reason recorded on the list
+  itself. `lake exe citations` passes unchanged. Whether the other three
+  package plans and the DAG documents join as a class stays the coordinator's
+  call and is not taken here.
+
+**Five departures from the letter of the addenda, each recorded rather than
+silently taken.**
+
+1. **The two numerator modules define `rows` before `emit`.** Section 6.1 of
+   the Web IDL addendum says "`emit` is `SpecCoverageRows.rows`". Each module
+   spells that as `def rows : Array CoverageRow := SpecCoverageRows.rows`
+   followed by `def emit : Array CoverageRow := rows`, which is the shape
+   `WhatwgTest/Audit/SpecCoverage.lean` has for Streams and which the addendum
+   asks these modules to copy. The frozen fragment
+   `def emit : Array CoverageRow :=` that both batteries check is present
+   verbatim, and no row id is retyped anywhere.
+2. **Each numerator carries three `#guard` freeze checks** the addenda do not
+   name: the scaffold's size against `expectedRowTotal`, its non-excluded count
+   against `expectedDenominator`, and that every row is `absent` with an empty
+   witness list. Without them the two frozen totals would be inert text. They
+   are additive, declare nothing, and fail the census executable's own build if
+   a regeneration invalidates them, which is what section 6.1 asks the totals
+   to buy.
+3. **`Gates/Census.lean` changed beyond the `cli` signature.** Both addenda
+   fence the builder to "the `cli` signature only" in that file. Debt D7 is
+   assigned to this seat by the `COORDINATION.md` seat table and lands in the
+   same file: `scanRules`, `finishBuild` and three doc comments. Every frozen
+   ascription of both Q1 batteries and both Q2 batteries still elaborates, and
+   the change is byte-neutral for all four projections.
+4. **Four authored routers outside the addenda's fence were updated**, each
+   because this slice made a sentence in it false: `Gates/AGENTS.md` (the
+   census entry point now hands `cli` a map and `--standard infra --report`
+   refuses), `WhatwgTest/AGENTS.md` (two more numerators, neither on the
+   implementation ceiling), `README.md` and `.github/workflows/ci.yml` (the two
+   report steps), and `census/webidl/README.md` (nine `rule` rows, 124 rows,
+   denominator 116, and the `idl-DOMException` cell's fourth line). The last of
+   these was authored by the Q2 docs seat, which has landed; its counts are now
+   the Q2 counts and its Q1 numbers are kept as history.
+5. **`WhatwgTest.lean` gains two imports.** The audit's module-closure gate
+   requires every `WhatwgTest` module to be reachable from the root, exactly as
+   ruling R-P16 accepted for the two rows modules at Q1.
+
+**One thing the addenda ask for that this seat cannot deliver.** Acceptance
+condition 3 of both addenda is that the disposition totals agree with the two
+`SPEC-MANIFEST.md` tables, and both name the manifest repair as the
+coordinator's under debt D1. `SPEC-MANIFEST.md` still records the Q1 numbers —
+"Web IDL 121 rows, denominator 112; ES2026 77 rows, denominator 74" in the two
+authority rows and again in the Web IDL census paragraph, the
+`idl-DOMException-derived-interfaces` cell still says six authored `rule` rows,
+the `js-handling-exceptions` cell still says `evidenceOnly`, the
+`sec-promise-objects, sec-promise-abstract-operations, sec-promise-jobs` cell
+still calls all three `evidenceOnly`, and the ES2026 "ruled totals" paragraph
+still says three `evidenceOnly` and denominator 74. The authored inputs and the
+generated censuses are the Q2 numbers; the manifest is the side that needs the
+edit, and this seat is fenced out of that file. Until it is repaired, the two
+tables disagree with the two censuses by exactly the amendments the two addenda
+record, and no row was relabelled to make a total come out.
+
 ## The extraction inventory
 
 Ruling R-P12 requires that the four modules be seeded by extraction from what
