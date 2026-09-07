@@ -1,7 +1,8 @@
 # Promise layer reification plan
 
 Status: Q0 landed on `main` 2026-09-06 at `652d29e` (pins) and `5e7a4e6`
-(roots and ruling DB-11). Q1 through Q4 are open. This file owns the promise
+(roots and ruling DB-11). Q1 landed on `main` 2026-09-07 at `8ac0e6d` with
+its repair at `e819a9f`; Q2 through Q4 are open. This file owns the promise
 lane: the census of ECMA-262's Jobs and Promise Objects clauses and of Web
 IDL's promise and exception sections, the two libraries beneath Streams that
 those censuses classify, and the first semantic packet over them.
@@ -551,11 +552,21 @@ silently taken.**
    module.
 4. **Three ECMA-262 escapes the packet's section 7 lists are not in
    `externals.tsv`**: `{{%Error.prototype%}}`, `[=PromiseCapability=]` and
-   `[=ECMAScript/error objects=]`. All three occur only inside
-   `js-DOMException-specialness`, which produces no census row, and the
-   generator refuses an external identity that no dependency line uses. The
-   omission is recorded in the header of `census/webidl/externals.tsv` so that
-   it reads as a consequence of the row set rather than as an oversight.
+   `[=ECMAScript/error objects=]`. Between them they occur four times in the
+   sealed `vendor/whatwg-webidl-a652053f/index.bs`, at offsets 504381 and
+   663945, 346660 and 194765, and no census row's span covers any of the four.
+   A dependency line is derived from the references inside its own row's span,
+   so no line can name them, and the generator refuses an external identity
+   that no dependency line uses. Only one of the four, 663945, is inside
+   `js-DOMException-specialness`; 194765 is in `idl-exceptions`, between the
+   end of `type.uri-error` and `op.dfn-simple-exception` at 194721 and the
+   start of `op.dfn-create-exception` at 195867; 346660 is in the `js-promise`
+   lead, before `op.js-to-promise` starts at 346692; and 504381 lies outside
+   `census/webidl/sections.tsv` altogether. The reason first written here — that
+   all three occur only inside `js-DOMException-specialness` — is false, and
+   this sentence replaces it under review debt D2. The omission is recorded in
+   the header of `census/webidl/externals.tsv` so that it reads as a
+   consequence of the row set rather than as an oversight.
 
 **What the ES2026 builder inherits.** `Gates.Census.build` is a three-line
 dispatch and the `.ecmarkup` arm is the whole of its change:
@@ -803,9 +814,12 @@ subsection.
 5. The two anchor-ladder rows the ES survey flags are checked against the real
    `Gates.Census.chooseAnchorLength` rather than against the survey's
    PowerShell re-implementation:
-   `field.job-callback-record.host-defined` (span 629941..630193), unique only
-   at its full 252 bytes, and `field.promise-capability-record.promise` (span
-   2688749..2688997), the only row needing the 64-byte rung.
+   `field.jobcallback-records.HostDefined` (span 629941..630193), unique only
+   at its full 252 bytes, and `field.promisecapability-records.Promise` (span
+   2688749..2688997), the only row needing the 64-byte rung. (Both ids are
+   corrected here to the ones the census landed; the spans are unchanged, and
+   the phase 2 receipt records that the first row's anchor is 256 bytes, not
+   252, because `chooseAnchorLength` does not clamp a rung to the span.)
 
 One expected count moves under R-P4 and is recorded so that a landed census
 far from it is questioned rather than accepted. The Web IDL survey's expected
@@ -1154,62 +1168,118 @@ The table records the answer, not a re-argument; a ruling is not reopened here.
 
 ### Still open
 
-Five items have no ruling: four decisions the surveys raise and that R-P1
-through R-P7 do not reach, and one reading of R-P6 that the ruling's wording
-leaves ambiguous. Each is deferrable, and the reason is stated, because a
-deferral without one is a gap.
+This section carried five items after R-P1 through R-P7. Four of them are now
+answered by rulings made between 2026-09-06 and the Q1 landing, and one is
+still open. The answers stay recorded rather than deleted, so that a reader
+arriving from either survey finds the ruling that closed the question.
 
-1. **The per-standard algorithm-name-first naming flag.** The Web IDL survey
-   shows that preferring the block's `algorithm` attribute over its first
-   `<dfn>` id turns `op.dfn-perform-steps-once-promise-is-settled` into
-   `op.react` and `op.waiting-for-all-promise` into a readable name, and that
-   this is *not* byte-neutral for Streams, so it must be a per-`Standard`
-   flag. R-P1 enumerates six switches plus heading levels and does not
-   include it. Deferrable only as far as Q1's landing: a row id is stable for
-   the life of the census, so the flag is decided before
-   `lake exe census --standard webidl --write` runs for the first time, and
-   until it is, this plan cites the ids the current ladder derives.
-2. **The four escape groups R-P6 does not name.** The ES2026 survey proposes a
-   named "iterator tape" boundary for the combinators, externals for
-   intrinsics and for error objects, a conventions record for the List type
-   and the nine `~enum~` spellings, and out-of-lane dependency rows for the
-   two hooks named but not called. R-P6 names only the core boundary and the
-   agent externals. Deferrable: none of the four is reached by a Q3 row. The
-   iterator tape belongs to the four combinators, which Q3 does not touch; the
-   error-object external is not needed while a throw completion carries an
-   error kind whose universe `Whatwg.WebIdl.Exceptions` owns under R-P4; the
-   conventions record is admitted with the Completion carrier at the top of
-   Q3; and the two out-of-lane hooks have no in-scope call site. All four are
-   decided at Q2 when `externals.tsv` is authored, which is before any of them
-   can be silently skipped.
-3. **`idl-DOMException-derived-predefineds`: `hostOnly` or `evidenceOnly`.**
-   The Web IDL survey marks this section for ratification because
-   `QuotaExceededError` is the worked instance of the six requirements above
-   it. R-P4 rules the binding layer `hostOnly` but does not name this section.
-   The plan carries the survey's `hostOnly` and flags it. Deferrable: the
-   choice moves rows between the denominator and the excluded set of a census
-   that is all-`absent` until Q3, and no Streams algorithm reaches the name.
-   It is decided at Q2 with the rest of the dispositions.
-4. **Whether the 32 `DOMException` name rows stay 32 rows or become one
-   enumeration row.** The survey asks; no ruling answers. Deferrable for the
-   same reason as item 3, and decided at Q2. The 25 names no standard in this
-   repository reaches are the whole of the question.
-5. **What "named ECMA-262 core boundary" covers.** R-P6 groups Completion
-   Records, Abstract Closures and the object-model operations into one
-   category. The survey treats them differently and says so at length: the
-   object-model operations reach arbitrary user code and are a boundary in the
-   DB-02 sense; the thirteen Abstract Closures become first-order descriptors
-   and stay `owned`; and Completion Records are explicitly *not* a boundary,
-   because all 390 in-scope steps are written in the completion discipline and
-   53 of them are `? ` early returns a Lean model must reproduce exactly.
-   Recorded, not reopened: this plan reads the ruling as fixing where an
-   escaping reference is *recorded* — one dependency category in
-   `dependencies.tsv` — and not as fixing a row's disposition, which R-P5
-   owns and which gives no in-scope row `foreignBoundary` for a completion
-   reason. Under the stronger reading every ECMA-262 `op` row is permanently
-   `partial` and Q3's fourth acceptance condition is unreachable, so the
-   coordinator confirms the reading before the Q3 breaker freezes, and Q2's
-   `externals.tsv` review is the natural place to do it.
+**Answered.**
+
+- **Item 1, the per-standard algorithm-name-first naming flag.** **R-P8** adds
+  it as `algorithmNameFirst`, off for Streams and Infra, where it is
+  byte-neutral, and on for Web IDL. **R-P16** puts it on `Standard` rather than
+  on `Bikeshed`, because the frozen `Bikeshed.mk` ascription has eight
+  arguments. It is inert at the Web IDL pin: the eleven
+  `js-promise-manipulation` blocks open with the bare `<div algorithm>` and
+  carry no attribute value, so the naming ladder falls through to the block's
+  first `<dfn>`. **R-P17** therefore retracts R-P8's parenthetical `op.react`
+  and fixes the landed ids — `op.dfn-perform-steps-once-promise-is-settled`
+  (350075–352408), `op.waiting-for-all-promise` (354881–356058) and
+  `op.mark-a-promise-as-handled` (356060–356713) — for the life of the census.
+  The deferral this item allowed, "only as far as Q1's landing", was met: the
+  flag was decided before `lake exe census --standard webidl --write` first
+  ran.
+- **Item 3, `idl-DOMException-derived-predefineds`: `hostOnly` or
+  `evidenceOnly`.** **R-P10**: `hostOnly`, for the whole section rather than
+  `evidenceOnly` for its worked instance. One line of
+  `census/webidl/dispositions.tsv` carries it, the manifest's flag on that cell
+  is withdrawn, and the section's 12 rows sit outside the `owned` set but
+  inside the denominator.
+- **Item 4, whether the 32 `DOMException` name rows stay 32 rows or become one
+  enumeration row.** **R-P10**: one definition row per name, `owned` as the
+  data the table `Whatwg.WebIdl.Exceptions` reserves. The landed census carries
+  32 `type` rows plus the names table itself, `op.dfn-error-names-table`
+  (198659–198938), and the ruling's expected scoped total of 121 rather than
+  the survey's 118 is what the breaker recomputed and froze.
+- **Item 5, what "named ECMA-262 core boundary" covers.** **R-P9**: R-P6 fixes
+  only where an escaping reference is *recorded* — one dependency category —
+  and never a row's disposition, which R-P5 owns. The reading this plan
+  proposed is confirmed, no in-scope row is `foreignBoundary` for a completion
+  reason, and Q3's fourth acceptance condition is reachable. The
+  `ext.ecma262.core.*` namespace of `census/ecma262/externals.tsv` is that
+  category, and the completion discipline is reproduced by the model as an
+  `Except`-shaped result.
+
+**Still open.**
+
+- **Item 2, the four escape groups R-P6 does not name.** The ES2026 survey
+  proposes a named "iterator tape" boundary for the combinators, externals for
+  intrinsics and for error objects, a conventions record for the List type and
+  the nine `~enum~` spellings, and out-of-lane dependency rows for the two
+  hooks named but not called. R-P6 names only the core boundary and the agent
+  externals, and **R-P11** defers all four to the authoring of `externals.tsv`,
+  recording that none of them is reached by a Q3 row: the iterator tape belongs
+  to the four combinators, which Q3 does not touch; the error-object external
+  is not needed while a throw completion carries an error kind whose universe
+  `Whatwg.WebIdl.Exceptions` owns under R-P4; the conventions record is
+  admitted with the Completion carrier at the top of Q3; and the two
+  out-of-lane hooks have no in-scope call site. Both `externals.tsv` files were
+  in fact authored during Q1, so what Q2 owes is a review of the treatment they
+  already encode rather than a fresh decision, and the deferral holds until
+  that review lands.
+
+### Coordinator notes on frozen text
+
+Two sentences in the two frozen census contracts are wrong or superseded. A
+frozen contract is not edited, so the correction lives here and these notes are
+the amendment a reader of either contract carries with them. Neither note moves
+a count, a span, a digest or a refusal, and both batteries stay green against
+the contract text exactly as frozen.
+
+**The ES2026 contract's §11 histogram sentence.** Section 11 of
+`test/contracts/ecma262-census.contract.md` sets the survey's anchor histogram,
+20→1, 24→19, 32→26, 48→29, 64→1, 252→1, against the packet's, 24→20, 32→29,
+48→26, 64→1, 256→1, and explains the difference as the same clamp shifting one
+row out of each of the first three buckets. Both histograms are right: the
+second is what the real `Gates.Census.chooseAnchorLength` reproduced over all
+77 spans at the ES2026 phase 2 landing. The sentence mis-describes them.
+Nothing leaves the 24 bucket — the single 20-byte row moves *into* it, taking
+it from 19 to 20, because `baseWanted = min(bs.size - start, 24)` measures the
+rest of the file and never the span. Three rows move from 48 to 32, taking 48
+from 29 to 26 and 32 from 26 to 29. One row moves from 252 to 256. So one row
+moves 20→24 and three move 48→32; no bucket loses exactly one row, and the
+first three buckets are not what changes.
+
+**The Web IDL contract's §8 anchor sentence.** R-P17 supersedes it. Section 8
+of `test/contracts/webidl-census.contract.md` says the anchor itself is the
+first that many bytes of the span. The rule that holds is the ES2026 contract's
+§11 rule: an anchor is at least 24 bytes from its span start and may run past a
+short span, as six landed rows do. The invariant the gates check is
+anchor-at-span-start, unique in the file, and that is what
+`lake exe census --standard webidl` reports.
+
+**Whether this file joins the citations gate's protected set (review debt
+D11).** It should. `Gates.Citations`' rationale is that a name plus a line
+number silently retargets whenever a section above it grows or shrinks, and
+this file is the worst case for that in the repository: the Q1 slice alone
+gained three receipt subsections in the middle of the document, one of them by
+a merge that kept both sides, and Q2, Q3 and Q4 will each append more. Every
+existing protected document is an authority router, and this file is a lane
+plan rather than a router, which is the only argument against; it is a weak one,
+because the gate is a lexical scan whose cost is one string in a list and
+because the plan is cited by the breakers, the builders and the reviewer alike.
+The change is one line in `Gates/Citations.lean`: the closing line of
+`Gates.Citations.protectedDocuments`, which today reads
+`   "docs/SPEC-COVERAGE.md", "docs/PROVENANCE.md"]`, becomes
+`   "docs/SPEC-COVERAGE.md", "docs/PROVENANCE.md", "docs/PROMISE-PACKAGE-PLAN.md"]`.
+`protectedSpellings` then derives the full-path, `./` and basename forms with
+no further edit. No
+citation in the tree names this file with a line number today, so
+`lake exe citations` passes unchanged the moment the line lands. The same
+argument reaches the other three package plans and the DAG documents; taking
+them as a class is the coordinator's call, not this seat's, and is not part of
+the one-line change recommended here. The change itself is a `Gates/` edit and
+is not made by this seat.
 
 ## What this plan does not decide
 
