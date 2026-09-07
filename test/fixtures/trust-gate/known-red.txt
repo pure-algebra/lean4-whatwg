@@ -70,3 +70,17 @@
 # Infra integer constructive dependency witness INFRA-INTEGER-CE-001.
 # Packet: test/contracts/infra-integer-constructive.contract.md.
 # Green after direct numeric bound proofs; all nine alias/signature/axiom checks retained.
+
+# Promise census packet, frozen 2026-09-06 by the promise census breaker seat.
+# Packets: test/contracts/census-profile-identity.contract.md,
+# test/contracts/webidl-census.contract.md, test/contracts/ecma262-census.contract.md.
+# Implementation fence: Gates/Census.lean (the R-P1 source profile, the R-P2
+# kinds, the R-P4 rules.tsv end locator, the webidl and ecma262 standards),
+# Gates/Ecmarkup.lean, census/webidl/**, census/ecma262/**, and the four
+# generated projections those two standards write. Each module below is red
+# only because the names it ascribes do not exist yet; the Web IDL and ECMA-262
+# projection gates additionally refuse because no standard is registered under
+# their key. The builder removes an entry the moment its battery is green.
+WhatwgTest.Audit.CensusProfileIdentity
+WhatwgTest.Audit.WebIdl.CensusContract
+WhatwgTest.Audit.Ecma262.CensusContract
