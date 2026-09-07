@@ -1533,6 +1533,158 @@ the preservation obligations of §9. The `identity`, `construction` and
 `counterexamples` edges of `docs/PROMISE-DAG.md` are still `required-open`, and
 `coverage` is still `not-applicable`.
 
+### Q3b landing receipt
+
+Q3b builder seat, 2026-09-07, branch `promise/q3b-builder`, based on the frozen
+addendum `38a806a` merged with `origin/main` (rulings R-P21 and R-P22, no
+conflict). Lean 4.33.1 from the unchanged `lean-toolchain`, Windows x64, in the
+seat's own worktree; no `lake` command was run in the main checkout. Addendum:
+`test/contracts/promise-first-packet-q3b.contract.md`, ratified by R-P22. Base
+packet: `test/contracts/promise-first-packet.contract.md`, unedited. Graph:
+`docs/PROMISE-DAG.md`, whose "Q3b addendum" section now carries the landing
+rows.
+
+**The four moves, each committed separately with its findings and inventory
+rows.**
+
+| # | Commit | Move | Findings, rows and gaps | Result |
+| ---: | --- | --- | --- | --- |
+| 1 | `383c4d9` | the `Active`-threaded run-to-completion step in `Whatwg/Ecma262/Jobs.lean` | F5; `G-08`, `E-51` generalize, `E-47` keep; RUNCOND, ONEJOB, COMPLETE, ORDER | `lake env lean Whatwg/Ecma262/Jobs.lean` exit 0; 3 definitions and 11 theorems; the module still imports only `Whatwg.Infra` |
+| 2 | `21712e4` | F1–F4 and the F6 trace in `Whatwg/Ecma262/Promise.lean`, with the base packet's own Streams view and bridging lemmas carrying `Reactions.add`'s fifth argument | F1, F2, F3, F4, F6 and the two `G-03` minors; `G-01`, `G-03`, `G-06`, `G-07`, `G-11`; `E-20`, `E-21`, `E-29`, `E-31`, `E-33`, `E-37`, `E-50`, `E-51`, `E-56`, `E-63`, `E-71`; CAPFIELD, JOBS4, THEN, FULFILL, REJECT, TRIGGER, REACTJOB, RESOLVING | `lake --wfail build Whatwg` 125 jobs, exit 0; 1 type, 8 functions and 32 theorems |
+| 3 | `39d07ac` | F6 and the Web IDL minors in `Whatwg/WebIdl/Promise.lean` | F6, WS-PROM-CE-029..031, WS-PROM-CE-034..036; `G-03`, `G-06`, `G-11`; `E-19`, `E-20`, `E-31`, `E-37`, `E-55`, `E-56`; WAITALL, NEWP, NEWCAP, RESOLVE, REJECTOP, REACT | `lake --wfail build Whatwg` 125 jobs, exit 0; 4 functions and 13 theorems; the two `waitForAll_*` mask docstrings become M1 |
+| 4 | `f6e4381` | the one additive Streams bridge and the `attachSink_pending_jobs` mask | F6, WS-PROM-CE-030, WS-PROM-CE-037; `E-71` keep, `E-63` deferred with its stated reason | `lake --wfail build Whatwg` 125 jobs, exit 0; 1 theorem, no field, no import, no `@[simp]` |
+
+Two further commits close the landing: `2c5f7c9`, the elaboration repair of
+builder note B1, and `85a2d96`, which empties the nine Q3b entries from
+`test/fixtures/trust-gate/known-red.txt` and keeps the packet note, extended
+with the landing summary and the two axiom receipt distributions.
+
+**Every command run at the landing, with its result line, measured on
+`promise/q3b-builder` at `85a2d96`.**
+
+| Command | Result |
+| --- | --- |
+| `lake --wfail build Whatwg Gates` | `Build completed successfully (164 jobs).`, exit 0 |
+| `lake --wfail build WhatwgTest` | `Build completed successfully (230 jobs).`, exit 0; the audit line reports **201 modules and 13079 declarations** (1477 in the Gates tooling tree) |
+| `lake build` | `Build completed successfully (379 jobs).`, exit 0 |
+| `lake exe vendorseal` | `PASS vendor seal: manifest and vendor/ agree in both directions; every path is valid on Windows`, exit 0 |
+| `lake exe citations` | `PASS internal citations: 343 files scanned; no line-numbered citation into a protected authored document`, exit 0 |
+| `lake exe census --standard infra` | `PASS census (infra): … no numerator exists for this standard yet, so no emit was checked`, exit 0 |
+| `lake exe census --standard webidl` | `PASS census (webidl): … and the coverage emit agrees with that regeneration row for row`, exit 0 |
+| `lake exe census --standard ecma262` | `PASS census (ecma262): … and the coverage emit agrees with that regeneration row for row`, exit 0 |
+| `lake exe trustselftest` | `PASS trust self-test: every planted declaration was rejected for its stated reason and every control was accepted`, exit 0 |
+
+The three census PASS lines are the evidence for acceptance condition 9: both
+censuses stay all-`absent`, no coverage block changed and no row moved to
+`partial` or `green`. Every anchor the addendum cites — CAPFIELD, JOBS4, THEN,
+FULFILL, REJECT, TRIGGER, REACTJOB, RESOLVING, COMPLETE, WAITALL, REACT, NEWP,
+RESOLVE, REJECTOP — is cited as an anchor for a declaration and never as a
+witness.
+
+**The measured audit delta, before and after.** The baseline was re-measured on
+this worktree at `f700230` rather than quoted: `lake --wfail build WhatwgTest`
+completed 225 jobs with the audit line **196 modules and 12973 declarations**
+(1477 in the Gates tooling tree). After the landing it completes 230 jobs with
+**201 modules and 13079 declarations** (1477 in the Gates tooling tree). The
+module count is §10 of the addendum exactly, `196 → 201`: five test modules and
+no implementation module. The declaration figure is **13079, not §10's
+13047**, and the arithmetic is
+
+```text
+12973
+  + 73  authored, name for name §10's table
+        (1 type, 15 functions and predicates, 57 theorems)
+  +  1  the generated projection Reaction.capability
+  + 33  further Lean-generated constants, enumerated in builder note B2
+  -  1  Whatwg.WebIdl.Promise.react.match_1, which react no longer needs
+  = 13079
+```
+
+The 33 are two constants of the forced `deriving Repr` on `Capability`, three
+matchers and case analyses, twelve private match splitters with their
+equations, and sixteen equation lemmas raised by `simp`/`rw` inside proofs.
+Every one is named in builder note B2 of the addendum, which measures both
+sides by dumping `Environment.constants` for the six touched modules: 1558 at
+`f700230` and 1664 at the head, 107 appearing and 1 disappearing. No inductive,
+no structure and no authored name outside §10's list was added, which is §10's
+own defect test.
+
+**The nine declared batteries, all green.**
+
+| Module | Frozen count | Result |
+| --- | --- | --- |
+| `WhatwgTest/Ecma262/PromiseFidelityContract.lean` | 11 `#check` | exit 0 |
+| `WhatwgTest/Ecma262/PromiseFidelityLaws.lean` | 33 `#check` | exit 0 |
+| `WhatwgTest/Ecma262/JobsCompleteContract.lean` | 14 `#check` | exit 0, after builder note B1's elaboration repair |
+| `WhatwgTest/WebIdl/PromiseFidelityContract.lean` | 17 `#check` | exit 0 |
+| `WhatwgTest/Ecma262/PromiseFidelityAxiomReport.lean` | 57 `#print axioms` | exit 0 |
+| `WhatwgTest/Ecma262/PromiseContract.lean` | 3 amended signatures | exit 0 |
+| `WhatwgTest/Ecma262/PromiseLaws.lean` | 9 amended statements and telescopes | exit 0 |
+| `WhatwgTest/WebIdl/PromiseContract.lean` | 6 amended signatures and statements | exit 0 |
+| `WhatwgTest/Streams/PromiseBridge.lean` | 1 amended bridging ascription | exit 0, preservation half unchanged |
+
+`WhatwgTest/Ecma262/JobsLaws.lean` and
+`WhatwgTest/Ecma262/PromiseAxiomReport.lean` were not declared and stayed green
+throughout, which is the receipt that the amendments changed statements and
+never names.
+
+**The receipts, by ceiling (R-11: `propext`, `Quot.sound`,
+`Classical.choice`).** The addendum's 57 in
+`WhatwgTest/Ecma262/PromiseFidelityAxiomReport.lean`: **15 empty, 34
+`[propext]`, 6 `[propext, Quot.sound]`, 2
+`[propext, Classical.choice, Quot.sound]`**. The base packet's 125 in
+`WhatwgTest/Ecma262/PromiseAxiomReport.lean` are still exactly 125 names with
+the distribution the Q3 landing published: **59 empty, 41 `[propext]`, 20
+`[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]`** —
+neither short nor long. 182 named receipts across the two reports, all inside
+the ceiling; no `sorry`, `partial`, `unsafe`, `native_decide` or `bv_decide`
+anywhere, which `lake exe trustselftest` confirms in both directions.
+
+**Streams preservation.** Three files under `Whatwg/Streams/**` changed, out of
+68: `Transform/Stream.lean` and `Transform/Laws.lean`, where the base packet's
+own view `Transform.reactions` and its three bridging proofs plus
+`subscribe_reactions_bridge` carry `Reactions.add`'s fifth argument as `none`;
+and `Writable/Laws.lean`, which gains the one additive bridging lemma
+`settlementTrace_bridge` and the `attachSink_pending_jobs` mask docstring
+correction. The other **65 are byte-identical to `f700230`**, the four
+`attribute [local simp]` files —
+`Whatwg/Streams/{Piping/Runs,Writable/Lifecycle,Readable/Reentrancy,Transform/Runs}.lean`
+— among them, so no local simp set changed. No pre-existing P4–P7 theorem
+statement and no Streams definition body changed: `git diff f700230..HEAD --
+Whatwg/Streams` touches no line naming `tick_job_fifo`, `runPullJob_*` or
+`settlementTrace_eq`, and `Writable.settlementTrace`'s and
+`Readable.settlementTrace`'s bodies are unchanged. Of the 26 batteries under
+`WhatwgTest/Streams/**`, **25 are byte-identical to `f700230`** and all 26 are
+green; the one that differs is `PromiseBridge.lean`, which the breaker amended
+at its single bridging ascription and this seat did not touch. Its preservation
+half — 53 `#check`s, 13 `example`s and six `inferInstance` checks — is green,
+which is acceptance condition 3.
+
+Acceptance condition 2 is measured directly:
+`git diff f700230..HEAD -- WhatwgTest/Ecma262/{JobsContract,JobsLaws,PromiseAxiomReport}.lean
+WhatwgTest/WebIdl/ExceptionsContract.lean` reports one file changed with eight
+insertions, the breaker's `run_cons` annotation, and nothing else.
+
+**What this landing does not claim.** No coverage state moved and both censuses
+are still all-`absent`. No host observation, no WPT result, no engine
+equivalence, and no new claim about `Whatwg.Streams`. Every gap the addendum's
+§1 lists is still open: `G-02` remainder including `HostPromiseRejectionTracker`
+and THEN step 11's third sub-step, `G-04`, `G-05`, `G-06` remainder including
+`op.waiting-for-all-promise` and its `[=Queue a microtask=]` step, `G-07`
+remainder, `G-08` remainder (the single global configuration, P8), `G-09`
+remainder, `G-10`, and `G-11` remainder including the `newCapability` that
+REACT steps 6 and 8 create and return. `E-63`'s readable settlement bridge is
+deferred with the reason the addendum states.
+
+**Two items are offered for coordinator ratification**, both recorded in
+`test/contracts/promise-first-packet-q3b.contract.md` §13: builder note **B1**,
+the single `set_option linter.unusedVariables false in` scoped to the frozen
+`RunToCompletion` signature ascription, whose ascribed type binds a `payload`
+it does not mention; and builder note **B2**, the correction of §10's expected
+declaration figure from 13047 to the measured 13079, with all 33 further
+generated constants enumerated. Neither changes a statement, a mask, a decision
+or an acceptance condition.
+
 ## Q4 — the DB-11 restatement
 
 **What is restated.** The held P8a draft on `codex/configuration-breaker`

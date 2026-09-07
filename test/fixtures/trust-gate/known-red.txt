@@ -155,6 +155,77 @@
 # 59 empty, 41 [propext], 20 [propext, Quot.sound], 5
 # [propext, Classical.choice, Quot.sound]. No entry remains.
 
+# Q3b promise fidelity addendum, frozen RED 2026-09-07 by the Q3b addendum
+# breaker seat on branch promise/q3b-breaker, based on f700230.
+# Addendum: test/contracts/promise-first-packet-q3b.contract.md.
+# Base packet: test/contracts/promise-first-packet.contract.md, whose text is
+# unedited; the addendum is layered on it in the P5a "lifecycle and exact
+# in-flight" shape.
+# Graph: docs/PROMISE-DAG.md, "Q3b addendum".
+# Attacks: test/counterexamples/promise/ATTACKS.md (WS-PROM-CE-023..038).
+#
+# It answers the six fidelity findings F1-F6 of ruling R-P20 and the minors
+# that ruling lists. Both censuses stay all-absent and no coverage row moves.
+#
+# Implementation fence: Whatwg/Ecma262/{Promise,Jobs}.lean,
+# Whatwg/WebIdl/Promise.lean, and one additive bridging lemma inside
+# Whatwg/Streams/Writable/Laws.lean (settlementTrace_bridge), plus the two mask
+# docstrings acceptance condition 5 names. No Streams definition body, no P4-P7
+# theorem statement and no attribute [local simp] set may change.
+# Whatwg/WebIdl/Exceptions.lean is untouched.
+#
+# NINE entries, in two classes.
+#
+# Class 1, the five new batteries. Each is red because the names it ascribes do
+# not exist yet.
+#
+# Class 2, the four base-packet batteries that carry an amended ascription.
+# Each is red because a Q3 ascription now names a signature or a right-hand
+# side the landed implementation does not have. Every amended ascription
+# carries a dated comment naming the addendum, the finding, the counterexample
+# row and the superseded text, and nothing they checked was wrong:
+#
+#   WhatwgTest.Ecma262.PromiseContract   Reaction.mk, Reactions.add,
+#                                        performPromiseThen
+#   WhatwgTest.Ecma262.PromiseLaws       add_id, add_next, add_fulfill,
+#                                        add_reject, add_paired,
+#                                        settleAndTrigger_pending, and the
+#                                        three performPromiseThen branches
+#   WhatwgTest.WebIdl.PromiseContract    react, uponFulfillment, uponRejection,
+#                                        react_pending, react_fulfilled,
+#                                        react_rejected
+#   WhatwgTest.Streams.PromiseBridge     subscribe_reactions_bridge
+#
+# WhatwgTest.Ecma262.JobsLaws and WhatwgTest.Ecma262.PromiseAxiomReport are
+# NOT declared: the addendum changes only an annotation in the first and
+# nothing in the second, so both stay green. The amendments change statements,
+# never names, so the base packet's 125 receipts stay neither short nor long.
+#
+# WhatwgTest.Streams.PromiseBridge is red only at its one amended bridging
+# ascription. Its preservation half is green today and acceptance condition 4
+# of the addendum requires it to stay green: a repair that turns the module
+# green by weakening a preservation ascription is a refusal, not a landing.
+#
+# The builder removes an entry the moment its battery is green.
+#
+# The Q3b builder seat landed the addendum on branch promise/q3b-builder in
+# four moves: F5 in Whatwg/Ecma262/Jobs.lean; F1-F4 and the F6 trace in
+# Whatwg/Ecma262/Promise.lean with the base packet's own Streams view and
+# bridging lemma carrying the none result capability; F6 and the Web IDL
+# minors in Whatwg/WebIdl/Promise.lean; and the one additive bridge
+# Whatwg.Streams.Writable.settlementTrace_bridge inside
+# Whatwg/Streams/Writable/Laws.lean with the two mask docstring corrections
+# acceptance condition 5 names. All nine batteries are green and their nine
+# entries are removed, so the trust gate's all-green control is restored.
+#
+# The 57 named receipts of WhatwgTest.Ecma262.PromiseFidelityAxiomReport all
+# print inside the R-11 ceiling: 15 empty, 34 [propext], 6
+# [propext, Quot.sound], 2 [propext, Classical.choice, Quot.sound]. The base
+# packet's 125 in WhatwgTest.Ecma262.PromiseAxiomReport are still exactly 125
+# names with the same distribution as at the Q3 landing: 59 empty, 41
+# [propext], 20 [propext, Quot.sound], 5
+# [propext, Classical.choice, Quot.sound]. No entry remains.
+
 # Q4 DB-11 restatement of the held P8a configuration-ordering packet, frozen
 # RED 2026-09-07 by the Q4 restatement breaker seat on branch
 # promise/q4-breaker, based on f700230.

@@ -501,6 +501,14 @@ bridge is stated on the job queue alone. Mask M2. -/
         ⟨Whatwg.Streams.Writable.operationKind op,
           Whatwg.Streams.Writable.operationRequest op, answer⟩)
 
+/-! Mask **M1**, relabelled from M2 by the Q3b fidelity addendum, 2026-09-07
+(WS-PROM-CE-037). The statement is unchanged and stays frozen. Reason: §7 of
+the base packet lists `attachSink_settled_jobs` and `acceptAnswer_jobs` among
+the M2 bridging lemmas and does not list this one, and §7's rule agrees — the
+statement has `jobQueue s` on both sides, with no `Queue.enqueue` and no
+`Queue.dequeue`, so it observes a queue *shape* and no order at all. The
+`Whatwg/Streams/Writable/Laws.lean` docstring that says "Mask M2" is the
+builder's to correct, and acceptance condition 5 of the addendum requires it. -/
 #check (@Whatwg.Streams.Writable.attachSink_pending_jobs :
   ∀ {α ε : Type} (s : Whatwg.Streams.Writable.State α ε)
     (op : Whatwg.Streams.Writable.SinkOperation α ε),
@@ -549,6 +557,14 @@ replacement, agrees with the general accessor. -/
 /-! `E-31`: the pending branch of `subscribe` is `Reactions.add`. The two
 settled branches dispatch into the canonical component (`E-32` risk) and are
 therefore bridged on the job queue by the transform builder, not here. -/
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (finding F4,
+WS-PROM-CE-026). The superseded ascription is the same statement with
+`Reactions.add`'s four arguments. Reason: `op.performpromisethen` steps 7 and 8
+give both records the same `_resultCapability_`, so the registering operation
+takes it. Streams supplies `none`: a transform subscription has no result
+capability, because `Transform.subscribe` is `PerformPromiseThen` steps 8 to 10
+specialized and with no derived promise, which is `G-11`'s remainder and which
+`E-31` already records. Mask M1. -/
 #check (@Whatwg.Streams.Transform.subscribe_reactions_bridge :
   ∀ {α β ε : Type} (s : Whatwg.Streams.Transform.State α β ε)
     (sub : Whatwg.Streams.Transform.Subscription α),
@@ -556,7 +572,7 @@ therefore bridged on the job queue by the transform builder, not here. -/
         (Whatwg.Streams.Transform.subscriptionPromise sub) = some .pending →
       (Whatwg.Streams.Transform.subscribe s sub).map Whatwg.Streams.Transform.reactions =
         some (Whatwg.Ecma262.Promise.Reactions.add (Whatwg.Streams.Transform.reactions s)
-          (Whatwg.Streams.Transform.subscriptionPromise sub) (some sub) (some sub)).1)
+          (Whatwg.Streams.Transform.subscriptionPromise sub) (some sub) (some sub) none).1)
 
 /-! ## Bridging, part 4: the settled predicate
 

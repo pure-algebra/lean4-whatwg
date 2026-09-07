@@ -1150,7 +1150,7 @@ theorem reactions_next {α β ε : Type} (s : State α β ε) :
       (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
       (l.foldl (fun rs sub =>
         (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
-          (some sub) (some sub)).1) rs).next = rs.next + l.length := by
+          (some sub) (some sub) none).1) rs).next = rs.next + l.length := by
     intro l
     induction l with
     | nil => intro rs; simp
@@ -1171,7 +1171,7 @@ theorem reactions_registered {α β ε : Type} (s : State α β ε) :
       (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
       (l.foldl (fun rs sub =>
         (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
-          (some sub) (some sub)).1) rs).fulfill.filterMap
+          (some sub) (some sub) none).1) rs).fulfill.filterMap
           Whatwg.Ecma262.Promise.Reaction.handler =
         rs.fulfill.filterMap Whatwg.Ecma262.Promise.Reaction.handler ++ l := by
     intro l
@@ -1195,7 +1195,7 @@ theorem reactions_promises {α β ε : Type} (s : State α β ε) :
       (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
       (l.foldl (fun rs sub =>
         (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
-          (some sub) (some sub)).1) rs).fulfill.map
+          (some sub) (some sub) none).1) rs).fulfill.map
           Whatwg.Ecma262.Promise.Reaction.promise =
         rs.fulfill.map Whatwg.Ecma262.Promise.Reaction.promise ++ l.map subscriptionPromise := by
     intro l
@@ -1211,12 +1211,16 @@ theorem reactions_promises {α β ε : Type} (s : State α β ε) :
 
 /-- `E-31`: the pending branch of `subscribe` is `Reactions.add`. The two settled branches
 dispatch into the canonical component (`E-32` risk) and are therefore bridged on the job
-queue, not here. Mask M1. -/
+queue, not here. Mask M1.
+
+Amended by the Q3b fidelity addendum (finding F4, WS-PROM-CE-026): `Reactions.add` takes
+the shared `_resultCapability_` of `op.performpromisethen` steps 7 and 8, and Streams
+supplies `none` — `G-11`'s remainder, which `E-31` already records. -/
 theorem subscribe_reactions_bridge {α β ε : Type} (s : State α β ε) (sub : Subscription α) :
     lookupPromise s (subscriptionPromise sub) = some .pending →
       (subscribe s sub).map reactions =
         some (Whatwg.Ecma262.Promise.Reactions.add (reactions s)
-          (subscriptionPromise sub) (some sub) (some sub)).1 := by
+          (subscriptionPromise sub) (some sub) (some sub) none).1 := by
   intro h
   rw [subscribe_pending s sub h]
   simp [reactions, List.foldl_append]

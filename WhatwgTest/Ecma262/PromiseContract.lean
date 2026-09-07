@@ -266,8 +266,29 @@ the same way. -/
 #check (@Whatwg.Ecma262.Promise.Reaction :
   Type → Type)
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07**
+(`test/contracts/promise-first-packet-q3b.contract.md`, finding F4,
+WS-PROM-CE-026). Superseded ascription:
+
+```lean
 #check (@Whatwg.Ecma262.Promise.Reaction.mk :
   ∀ {body : Type}, Nat → Nat → Whatwg.Ecma262.Promise.ReactionType → Option body →
+    Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reaction body)
+```
+
+Reason: `record.promisereaction-records` (2690445..2692671) lists
+`[[Capability]]` first — `field.promisereaction-records.Capability`,
+2691475..2691802, digest
+`67b47fd1bc6773cb099432f10db3b5b427d445cd1a10077db3ec90ec381d6a77` — and
+`op.newpromisereactionjob` (2702885..2705591) reads it to resolve or reject the
+derived promise. Without the field `op.performpromisethen`'s capability
+argument is stored nowhere and `G-03`'s resolving functions settle nothing. The
+field sits between `handler` and `phase`, so the record still reads in the
+order the two source tables give. `E-50` (generalize) constrains the repair:
+`Reaction` must stay `Repr`-only. -/
+#check (@Whatwg.Ecma262.Promise.Reaction.mk :
+  ∀ {body : Type}, Nat → Nat → Whatwg.Ecma262.Promise.ReactionType → Option body →
+    Option Whatwg.Ecma262.Promise.Capability →
     Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reaction body)
 
 #check (@Whatwg.Ecma262.Promise.Reaction.id :
@@ -322,8 +343,22 @@ shared id, so an id alone does not name a reaction. -/
     Whatwg.Ecma262.Promise.ReactionType → Nat →
     Option (Whatwg.Ecma262.Promise.Reaction body))
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (finding F4,
+WS-PROM-CE-026). Superseded ascription:
+
+```lean
 #check (@Whatwg.Ecma262.Promise.Reactions.add :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat → Option body → Option body →
+    Whatwg.Ecma262.Promise.Reactions body × Nat)
+```
+
+Reason: `op.performpromisethen` steps 7 and 8 give **both** records the same
+`_resultCapability_`, so the registering operation must take it. Streams
+supplies `none`: a transform subscription has no result capability, which is
+`G-11`'s remainder and is recorded as such rather than smoothed. -/
+#check (@Whatwg.Ecma262.Promise.Reactions.add :
+  ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat → Option body → Option body →
+    Option Whatwg.Ecma262.Promise.Capability →
     Whatwg.Ecma262.Promise.Reactions body × Nat)
 
 #check (@Whatwg.Ecma262.Promise.Reactions.setPhase :
@@ -460,6 +495,10 @@ identity. `then`/`catch`/`finally` and the four combinators stay out.
 Anchor: `op.performpromisethen`, 2740635..2743669, digest
 `ff69ee65628ebe06e4fe2717feb6013c3d3089b3fa2b034fd90c085c3fa7e2ce`. -/
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (findings F1 and F2,
+WS-PROM-CE-023 and WS-PROM-CE-024). Superseded ascription:
+
+```lean
 #check (@Whatwg.Ecma262.Promise.performPromiseThen :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
@@ -468,3 +507,22 @@ Anchor: `op.performpromisethen`, 2740635..2743669, digest
     Option (Whatwg.Ecma262.Promise.Table value reason × Whatwg.Ecma262.Promise.Reactions body ×
       Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
       Option Nat))
+```
+
+Reason: steps 10 and 11 append nothing, so the PromiseReaction Record the job
+captures is not reachable through `Reactions` and the operation must return it.
+The fourth component is `none` on the pending branch, where step 9 appended
+both records, and `some` on a settled branch, where the record was captured by
+the Job Abstract Closure and by nothing else. The arguments are unchanged: the
+result capability is still `Option Capability`, and the returned `Option Nat`
+is still steps 13 and 14. Holding the capture is the caller's, which is the
+honest reading of "captures _reaction_ and _argument_" and leaves the
+identity's resolution to the P8 configuration. -/
+#check (@Whatwg.Ecma262.Promise.performPromiseThen :
+  ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
+    Whatwg.Ecma262.Promise.Reactions body →
+    Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
+    Nat → Option body → Option body → Option Whatwg.Ecma262.Promise.Capability →
+    Option (Whatwg.Ecma262.Promise.Table value reason × Whatwg.Ecma262.Promise.Reactions body ×
+      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
+      Option (Whatwg.Ecma262.Promise.Reaction body) × Option Nat))
