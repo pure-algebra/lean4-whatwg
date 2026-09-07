@@ -139,3 +139,41 @@ The specification byte-span cross-check, the intended-red commands and their
 exact diagnostics, and the immutable packet commit are recorded in the
 contract's "Freeze receipt". The coordinator owns root and `known-red`
 integration and may append landing receipts; it may not weaken this packet.
+
+## Q3 landing, 2026-09-07, branch `promise/q3-builder`
+
+Appended by the Q3 builder seat. The declaration and statement rows above are
+frozen and unchanged; this section records only which edges the landing closes,
+with the theorem names that close them, and which stay open. Full commands,
+results and per-move commits are in the "Q3 landing receipt" of
+`docs/PROMISE-PACKAGE-PLAN.md`; the builder's exceptions are §15 of the
+contract.
+
+Nothing here closes an edge from a compiling battery alone. An edge closes only
+when every item its "required evidence" column names is delivered, and the
+column's own explicit deferrals ("… are P8 and stay open") are read as outside
+Q3's obligation rather than as unmet.
+
+| Edge | Status after the landing | What closed it, or what is still missing |
+| --- | --- | --- |
+| identity | **required-open** | The first two evidence items are delivered: the exact ascriptions of all six statement batteries elaborate (`JobsContract` 27, `JobsLaws` 20, `PromiseContract` 88, `PromiseLaws` 44, `WebIdl/PromiseContract` 33, `WebIdl/ExceptionsContract` 69), and the moved carriers' constructor and instance census is checked *through* the Streams `abbrev`s by the preservation half of `PromiseBridge` (7 constructor `#check`s and 6 `inferInstance` checks). The third is not: **this repository has no generated declaration snapshot**, so no artifact joins each new public declaration to exactly one record above. The edge stays open on that item alone. Builder note B1 records that the seven constructor ascriptions needed seven reducible aliases to elaborate at all |
+| construction | **required-open** | `Table.empty_eq`, `Table.fresh_eq`, `fresh_id`, `fresh_next`, `fresh_old` (retention), `fresh_get`, `Queue.empty_eq`, `Queue.enqueue_eq`, `enqueueAll_eq` and `newPromiseCapability_eq` are proved, and the three job lists are exhibited as instances (`Writable.jobQueue_eq`, `Readable.jobQueue_eq`, `Transform.jobQueue_eq`). Two of the "three Streams tables" are exhibited (`Writable.promiseTable_eq`, `Readable.readTable_eq`); `E-22`'s operation-level generalization is deferred to Q4 with the reason the contract states — every `readPromises` update is an inline `List.map` in `Readable/DefaultController.lean` and `DefaultReader.lean`, and turning those five into `Table` calls would change a Streams definition body. Reachable-state and cross-owner freshness invariants stay open as the column already says |
+| semantics | **closed** | `WebIdl.Promise.react_pending`, `react_fulfilled`, `react_rejected`, `react_missing` (four branches); `Promise.triggerReactions_order` (M2) and `triggerReactions_once` (M1), with `triggerReactions_other_promise` and `_other_kind`; `Table.settleAndTrigger_pending` (M2) and `_other`; `performPromiseThen_missing`, `_pending`, `_fulfilled`, `_rejected` (three branches and the partial case); `Jobs.step_checkpoint`, `step_blocked`, `run_zero`, `run_nil`, `run_cons`, `run_split` under `Jobs.RunCondition`. The global configuration, the M2 mask projection and the bounded runner are P8 and stay open, as the column states |
+| laws | **closed** | All 125 theorem ascriptions are proved and named, each under the mask its block docstring gives: 20 in `Ecma262/JobsLaws`, 44 in `Ecma262/PromiseLaws`, 17 in `WebIdl/PromiseContract`, 15 in `WebIdl/ExceptionsContract`, 29 in the bridging half of `Streams/PromiseBridge`. `WhatwgTest/Ecma262/PromiseAxiomReport.lean` names exactly those 125 and no others |
+| representation | **closed** | Identities stay `Nat` with monotone cursors (`Table.fresh_id`, `fresh_next`, `Reactions.add_id`, `add_next`); reactions and jobs are first-order descriptors (`Reaction.handler : Option body`, `Jobs.ReactionJob.mk : Nat → arg → …`, no stored body anywhere); the two lists with their one-list view (`Reactions.add_fulfill`, `add_reject`, `add_paired`, `registered_eq`, and `Transform.reactions_registered`); the handled bit as a per-cell field with its identity-list bridge (`Table.markHandled_eq`, `markHandled_idem`, `markHandled_state`, `Writable.handled_bridge`); the exception universe with allocation identity preserved (`Exception.simple_eq_iff`, `domException_eq_iff`, `Boundary.Exception.toWebIdl_injective`) |
+| counterexamples | **required-open** | Untouched by this seat. The twenty-two `WS-PROM-CE-*` rows of `test/counterexamples/promise/ATTACKS.md` are a frozen breaker file, and `test/counterexamples/REGISTER.md` is outside the builder's fence. Linking each row to the production statement that rejects it is the reviewer's and the coordinator's |
+| bridges | **closed** | All 29 bridging lemmas are proved, and the preservation half of `WhatwgTest/Streams/PromiseBridge.lean` is green: 53 `#check`s elaborate at their pre-move types, all 13 `example`s close by `intros; rfl`, and all 6 `inferInstance` checks are found through the reducible `abbrev`s. Every pre-existing battery under `WhatwgTest/Streams/**` rebuilt green. Host profiles and WPT settlement-order replay are P8 and stay open, as the column states. Three `generalize` rows keep the deferred bridges §4.4 rows 14, 15 and 16 already declare deferred with their reasons (`Transform.notify`, `Transform.settle`, `Transform.runJob`); they are not among the 29 |
+| targets | not-applicable | Unchanged. Q3 lands no lowering and no generated code |
+| trust | **closed** | All 125 named receipts print inside the R-11 ceiling: 59 empty, 41 `[propext]`, 20 `[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]` (`Table.fresh_get`, `Table.settle_handled`, `Table.markHandled_idem`, `WebIdl.Promise.waitForAll_success`, `Streams.Writable.settle_bridge`). The exhaustive root audit checked 192 modules and 12849 declarations. `lake --wfail build Whatwg Gates` 164 jobs, `lake --wfail build WhatwgTest` 221 jobs, `lake build` 366 jobs, `lake exe vendorseal` PASS, `lake exe citations` PASS, and `lake exe census --standard {infra,webidl,ecma262}` PASS, all exit 0. No `sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` or `native_decide` auxiliary appears anywhere, and no `sorry`, `partial` or `unsafe` survives the source trust gate |
+| coverage | not-applicable | Unchanged, and **not** inherited silently. Neither numerator module was authored: `WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean` live under `WhatwgTest/Audit/`, which the Q3 seat instruction fences off to the concurrently running Q2 tooling builder along with `Gates/`, `census/` and `generated/`. Both censuses stay all-`absent`; the three census gates report "no numerator exists for this standard yet, so no emit was checked". The edge becomes `required-open` the moment a numerator module lands. Builder note B5 |
+
+Five edges close: `semantics`, `laws`, `representation`, `bridges`, `trust`.
+Three stay `required-open`: `identity` (no generated declaration snapshot
+exists), `construction` (`E-22`'s operations are Q4), and `counterexamples`
+(the reviewer's). `targets` and `coverage` stay `not-applicable`, `coverage`
+with the reason above rather than by inheritance.
+
+No row of the clause map above is claimed whole-row green: every "residual
+before whole-row green" column entry is still residual, and each is recorded
+against its gap id in the module docstrings of the four implementation modules
+and in the two updated roots.

@@ -922,3 +922,126 @@ remain open except `targets`, which is not applicable, and `coverage`, which is
 not applicable until a numerator module exists. This packet freezes what the
 builder must prove; it claims no implementation, no coverage increase, no host
 observation and no equivalence.
+
+## 15. Builder notes
+
+Appended by the Q3 builder seat on branch `promise/q3-builder`, based on
+`ef960be` merged with `origin/main`. This section is the builder's; it records
+what the packet did not anticipate. It weakens, deletes and replaces nothing:
+no frozen ascription, law, mask, decision or acceptance condition is changed,
+and all eight batteries are green.
+
+### B1 — a type `abbrev` does not carry its constructors, so §9.1's
+declaration arithmetic is seven short
+
+**Item.** The seven constructor ascriptions of the preservation half of
+`WhatwgTest/Streams/PromiseBridge.lean`: `Readable.PromiseState.pending`,
+`.fulfilled`, `.rejected` (lines 39, 42, 45), `Readable.PullAnswer.fulfilled`,
+`.rejected` (52, 55), and `Readable.PullReturn.pending`, `.settled` (61, 64).
+
+**Why the contract did not anticipate it.** §4.1's obligation 1 requires the
+three moved carriers' constructors to "still elaborate at their old types",
+and §9.1 simultaneously predicts that their generated constants "leave
+`Whatwg.Streams`" and "contribute **zero** to the audit's total". Both cannot
+hold of a bare `abbrev`: Lean 4 resolves an instance *through* a reducible
+`abbrev` but does not resolve a constructor name through one, so after the
+`E-01`..`E-03` move the seven names do not exist.
+
+**Exact diagnostic**, reproduced on this branch against the landed general
+types with the §4.1 `abbrev`s and no alias
+(`lake env lean -DmaxErrors=5000`, `LEAN_NUM_THREADS=1`):
+
+```text
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PromiseState.pending`
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PromiseState.fulfilled`
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PromiseState.rejected`
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PullAnswer.fulfilled`
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PullAnswer.rejected`
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PullReturn.pending`
+error(lean.unknownIdentifier): Unknown constant `Q3Probe.PullReturn.settled`
+```
+
+while, in the same probe, `inferInstance : DecidableEq (… Unit Nat)` and
+`inferInstance : Repr (… Unit Nat)` both elaborate, which is §4.1's
+obligation 2 and confirms the reducible view is doing its work.
+
+**Repair, and why it is not a weakening.** Seven `abbrev`s in the
+`PromiseState`, `PullAnswer` and `PullReturn` namespaces of
+`Whatwg/Streams/Readable/State.lean`, each at exactly the ascribed type and
+each definitionally the general constructor — for example
+`abbrev PromiseState.pending {α ε : Type} : PromiseState α ε :=
+Whatwg.Ecma262.Promise.State.pending`. They are `@[reducible]`, so every
+`rfl` receipt is unaffected; they are never selected by `.pending`-style
+anonymous-constructor notation, because that resolves through the expected
+type's head after reducible unfolding and so still reaches the general
+constructor, which is what keeps `match` patterns and record updates working.
+The eight `example`s of §9's obligation 2 that go through these carriers, and
+all 125 axiom receipts, close unchanged.
+
+**Consequence for §9.1 and acceptance condition 3.** The authored
+named-declaration delta is **210**, not 203: the frozen table's 203 plus these
+seven. The measured audit pair and the full arithmetic are published in the
+"Q3 landing receipt" of `docs/PROMISE-PACKAGE-PLAN.md`. Nothing else was added
+to `Whatwg/Streams/**` beyond §9.5's three re-pointed `abbrev`s, eight views
+and 29 bridging lemmas.
+
+### B2 — §9's "eight constructors" is seven
+
+**Item.** §9's obligation 1 enumerates "the three moved carriers and their
+eight constructors". `PromiseState` has three constructors, `PullAnswer` two
+and `PullReturn` two, so there are **seven**. The count of 53 preservation
+`#check` ascriptions that the same sentence gives is correct at seven
+(3 carriers + 7 constructors + 6 `inferInstance` + 3 `Writable` abbrevs +
+6 `E-04`..`E-12` receipts + 17 §4.4 functions + 6 FIFO neighbours + 5
+`Boundary.Exception`), and 53 is what the file contains. Recorded as a
+measurement correction in the spirit of §11; no ascription changes.
+
+### B3 — `runPullJob_suspended` is a frame guard, not a queue law
+
+**Item.** §4.5 and §9's obligation 6 require "the three `runPullJob_*`
+receipts" to be re-derived from the general FIFO law through
+`Readable.runPullJob_dequeue_bridge`. Two of the three are:
+`runPullJob_empty` is re-derived through the bridge and
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, and `runPullJob_cons` through the
+bridge and `Queue.dequeue_cons`.
+
+`runPullJob_suspended` cannot be, and no rewording of its proof would make it
+so: its hypothesis is `s.frames ≠ []`, which is the negation of the bridge's
+hypothesis `s.frames = []`. It observes the readable component's synchronous
+frame guard — its spelling of `requirement.jobs.1` — and not the queue at all.
+Its statement is unchanged and its proof is unchanged; the module records the
+reason beside it. The same distinction holds for `Writable.tick_no_job` and
+`Transform.tick_no_job`, which *are* re-derivable because their hypotheses
+include the bridge's and add `s.jobs = []`, and both are re-derived.
+
+### B4 — three additive imports inside `Whatwg/Streams/**`
+
+**Item.** §13's builder fence names "the additive `abbrev`s, views and bridging
+lemmas inside `Whatwg/Streams/**`" but does not mention imports, and the moves
+need three:
+
+| Module | Import added | Why |
+| --- | --- | --- |
+| `Whatwg/Streams/Readable/State.lean` | `Whatwg.Ecma262.Promise` | `E-01`..`E-03`: the three re-pointed `abbrev`s name the general carriers |
+| `Whatwg/Streams/Boundary/Exception.lean` | `Whatwg.WebIdl.Exceptions` | `E-59`: `toWebIdl` and `ofWebIdl` name the general exception |
+| `Whatwg/Streams/Piping/Laws.lean` | `Whatwg.Streams.Writable.Laws` and `Whatwg.WebIdl.Promise` | `allWrittenSettled_bridge` and `writesSettled_bridge` need `Writable.lookupPromise_bridge` and `WebIdl.Promise.allSettled`/`AllSettled`; `Piping/Laws.lean` reached `Writable.Stream` but not `Writable.Laws` |
+
+All three respect DB-11: `Whatwg.Ecma262` imports only `Whatwg.Infra`,
+`Whatwg.WebIdl` imports `Whatwg.Ecma262` and `Whatwg.Infra`, and
+`Whatwg.Streams` imports both. Nothing under `Whatwg/` imports a test module.
+The new `Whatwg.Streams.Writable.Laws` import introduces no global rewrite:
+the `Whatwg/Streams/Writable/` tree declares no `@[simp]` attribute, and all
+four `attribute [local simp]` sets are byte-identical to the base commit.
+
+### B5 — the two `SpecCoverage` numerator modules were not authored
+
+**Item.** §12's acceptance condition 8 makes
+`WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean` the builder's, and
+`docs/PROMISE-DAG.md`'s `coverage` edge becomes `required-open` the moment one
+lands. Neither was authored by this seat: both live under `WhatwgTest/Audit/`,
+which the Q3 seat instruction fences off to a concurrently running Q2 tooling
+builder together with `Gates/`, `census/` and `generated/`. The `coverage`
+edge therefore stays `not-applicable` with that reason recorded in the DAG's
+landing section, and both censuses stay all-`absent`, which the three
+`lake exe census --standard …` gates confirm ("no numerator exists for this
+standard yet, so no emit was checked").

@@ -1056,6 +1056,223 @@ and everything P8 owns above this layer. Which gap rows Q3 closes and which it
 defers is recorded in the landing record against the gap ids, so a deferral is
 visible rather than silent.
 
+### Q3 landing receipt
+
+Q3 builder seat, 2026-09-07, branch `promise/q3-builder`, based on the frozen
+packet `ef960be` merged with `origin/main` (documentation only, no conflict).
+Lean 4.33.1 from the unchanged `lean-toolchain`, Windows x64, in the seat's own
+worktree; no `lake` command was run in the main checkout. Packet:
+`test/contracts/promise-first-packet.contract.md`. Graph:
+`docs/PROMISE-DAG.md`, whose "Q3 landing" section records the edges.
+
+**The seven moves, in the contract's order — types, tables, queue, reactions,
+wait-for-all, `Boundary.Exception` last per R-P14 — each committed separately
+with its inventory rows, and each green before the next began.**
+
+| # | Commit | Move | Inventory rows and gaps | Narrow result |
+| ---: | --- | --- | --- | --- |
+| 1 | `3fbbc45` | the payload-polymorphic job queue and its FIFO realizer | `E-44`, `E-45`, `E-46`, `E-47`, `E-48`, `E-49`, `E-52`, `E-53`; `G-07`, `G-08` | `lake --wfail build Whatwg.Ecma262` 19 jobs, exit 0; `JobsContract` 27 and `JobsLaws` 20 ascriptions, exit 0 |
+| 2 | `1a4f287` | the three promise carriers move to `Whatwg.Ecma262.Promise` | `E-01`, `E-02`, `E-03` move; `E-04`..`E-06` re-pointed transitively; `E-14`, `E-23` | `lake --wfail build Whatwg` 125 jobs, exit 0; every pre-existing Streams battery green (97 + 101 jobs); `PromiseBridge` preservation half green, first diagnostic at line 371 |
+| 3 | `63a2bad` | the general promise table and its two Streams views | `E-13`, `E-14`, `E-15`, `E-18`..`E-23` generalize | `lake --wfail build Whatwg` 125 jobs, exit 0; `PromiseLaws` first diagnostic moved to line 155; `PromiseBridge` to line 441 |
+| 4 | `24c4d81` | the three job-queue views and the re-derived FIFO corollaries | `E-37`, `E-38`, `E-45`, `E-46`, `E-48`, `E-49`, `E-52`, `E-53` | `lake --wfail build Whatwg` 125 jobs, exit 0; all pre-existing Streams batteries green, 110 jobs; `PromiseBridge` to line 527 |
+| 5 | `b419145` | the reaction cluster, the capability record and `PerformPromiseThen` | `E-29`..`E-33`, `E-36`; `G-01`, `G-03`, `G-11` | `lake --wfail build Whatwg` 125 jobs, exit 0; **`PromiseContract` 88 and `PromiseLaws` 44 GREEN**; Streams batteries green, 110 jobs; `PromiseBridge` to line 569 |
+| 6 | `e6f69e9` | the Web IDL promise vocabulary and the two wait-for-all rows | `E-19`, `E-20`, `E-21`, `E-31`, `E-37`, `E-55`, `E-56`; `G-06` partially, `G-11` steps 8–10 | `lake --wfail build Whatwg` 125 jobs, exit 0; **`WebIdl/PromiseContract` 33 GREEN**; Streams batteries green, 112 jobs; `PromiseBridge` to line 598 |
+| 7 | `ea14580` | part C, `Boundary.Exception` last, and the eight batteries green | `E-59` generalize, `E-60`, `E-61` keep; `G-09` | `lake --wfail build Whatwg Gates` 164 jobs, exit 0; `lake --wfail build WhatwgTest` **221 jobs, exit 0** |
+
+Move 7 also updated the two roots' docstrings from "declaration-free" to the
+landed surface with the gap ids that stay open, and emptied the eight Q3
+entries from `test/fixtures/trust-gate/known-red.txt`, leaving the packet note
+extended with the landing receipt.
+
+**Every command run at the landing, with its result line.**
+
+| Command | Result |
+| --- | --- |
+| `lake --wfail build Whatwg Gates` | Build completed successfully (164 jobs), exit 0 |
+| `lake --wfail build WhatwgTest` | Build completed successfully (221 jobs), exit 0 |
+| `lake build` | Build completed successfully (366 jobs), exit 0 |
+| `lake exe vendorseal` | `PASS vendor seal: manifest and vendor/ agree in both directions; every path is valid on Windows`, exit 0 |
+| `lake exe citations` | `PASS internal citations: 331 files scanned; no line-numbered citation into a protected authored document`, exit 0 |
+| `lake exe census --standard infra` | `PASS census (infra): … no numerator exists for this standard yet, so no emit was checked`, exit 0 |
+| `lake exe census --standard webidl` | `PASS census (webidl): … no numerator exists for this standard yet, so no emit was checked`, exit 0 |
+| `lake exe census --standard ecma262` | `PASS census (ecma262): … no numerator exists for this standard yet, so no emit was checked`, exit 0 |
+
+The two census PASS lines are the evidence for acceptance condition 8: both
+censuses stay all-`absent`, no coverage block changed and no row went `green`.
+Neither `SpecCoverage` numerator module was authored, for the reason in builder
+note B5, so the `coverage` edge stays `not-applicable`.
+
+**The eight batteries, all green.**
+
+| Module | Ascriptions | Result |
+| --- | --- | --- |
+| `WhatwgTest/Ecma262/JobsContract.lean` | 27 `#check` | exit 0 |
+| `WhatwgTest/Ecma262/JobsLaws.lean` | 20 `#check` | exit 0 |
+| `WhatwgTest/Ecma262/PromiseContract.lean` | 88 `#check` | exit 0 |
+| `WhatwgTest/Ecma262/PromiseLaws.lean` | 44 `#check` | exit 0 |
+| `WhatwgTest/WebIdl/PromiseContract.lean` | 33 `#check` | exit 0 |
+| `WhatwgTest/WebIdl/ExceptionsContract.lean` | 69 `#check` | exit 0 |
+| `WhatwgTest/Streams/PromiseBridge.lean` | 90 `#check`, 13 `example` | exit 0 |
+| `WhatwgTest/Ecma262/PromiseAxiomReport.lean` | 125 `#print axioms` | exit 0 |
+
+371 `#check`s, 13 `example`s and 125 receipts, exactly as §3 of the contract
+freezes them.
+
+**The 125 axiom receipts, summarised by ceiling.** Every one is inside R-11
+(`propext`, `Quot.sound`, `Classical.choice`); none reaches a forbidden axiom,
+and the source trust gate found no `sorry`, `partial` or `unsafe`.
+
+| Axiom set | Receipts |
+| --- | ---: |
+| none (empty receipt) | 59 |
+| `[propext]` | 41 |
+| `[propext, Quot.sound]` | 20 |
+| `[propext, Classical.choice, Quot.sound]` | 5 |
+| **total** | **125** |
+
+The five that reach `Classical.choice` are
+`Whatwg.Ecma262.Promise.Table.fresh_get`, `Table.settle_handled`,
+`Table.markHandled_idem`, `Whatwg.WebIdl.Promise.waitForAll_success` and
+`Whatwg.Streams.Writable.settle_bridge`; each reaches it through core `List`
+and `Decidable` library proofs, never through computation, which is exactly
+the reading R-11 adopted.
+
+**The measured declaration delta.** Both figures are the root audit's own line,
+printed by `#whatwg_streams_axiom_gate` at the end of
+`lake --wfail build WhatwgTest`.
+
+| | Modules | Declarations | Gates tree | Jobs |
+| --- | ---: | ---: | ---: | ---: |
+| before, at `e819a9f`, measured in this worktree | 184 | 12000 | 1477 | 213 |
+| after, at the landing | 192 | 12849 | 1477 | 221 |
+| delta | **+8** | **+849** | 0 | +8 |
+
+The module delta is exactly the packet's eight test modules (six batteries, the
+axiom report and `PromiseBridge`); no implementation module was added, because
+all four promise modules already existed as declaration-free bootstraps. That
+is acceptance condition 3's module half, and §9.1's prediction, met exactly.
+
+The declaration arithmetic against §9.1's `12000 + 203 + g`:
+
+| Tree | Types | Functions | Theorems | Total |
+| --- | ---: | ---: | ---: | ---: |
+| `Whatwg/Ecma262/Jobs.lean` | 3 | 12 | 20 | 35 |
+| `Whatwg/Ecma262/Promise.lean` | 12 | 22 | 44 | 78 |
+| `Whatwg/WebIdl/Promise.lean` | 1 | 12 | 17 | 30 |
+| `Whatwg/WebIdl/Exceptions.lean` | 3 | 5 | 15 | 23 |
+| `Whatwg/Streams/**`, additive | 0 | 8 views | 29 bridging | 37 |
+| **subtotal, the frozen table** | **19** | **59** | **125** | **203** |
+| `Whatwg/Streams/**`, constructor aliases (builder note B1) | 0 | 7 | 0 | 7 |
+| **authored total** | **19** | **66** | **125** | **210** |
+
+Every line of the frozen table reproduces exactly, counted from the sources
+themselves. The three re-pointed `abbrev`s replace three `inductive`s one for
+one and contribute zero, as §9.1 says.
+
+So `849 = 203 + 7 + g` with **`g = 639`**. That residual is measured, not
+asserted: the four implementation modules hold **889** constants in total, of
+which 166 are their authored declarations (35 + 78 + 30 + 23), leaving 723
+generated there — constructors, recursors, `noConfusion`, `noConfusionType`,
+`toCtorIdx`, `below`/`brecOn`, the `deriving DecidableEq` and `deriving Repr`
+instances of the 19 new types, and the equation and `match` auxiliaries Lean
+materialises for the new `def`s. The `Whatwg/Streams/**` tree therefore moved
+by `849 − 889 = −40`: it gained 44 new names (7 aliases, 8 views, 29 bridging
+lemmas) and their auxiliaries, and lost the generated constants of the three
+`inductive`s that became `abbrev`s — which is precisely §9.1's "leave
+`Whatwg.Streams` and reappear verbatim under `Whatwg.Ecma262.Promise`", now
+measured rather than predicted. Nothing in the delta is unaccounted for by the
+table above plus those generated constants, which is what acceptance
+condition 3 asks.
+
+**Preservation, verified mechanically rather than asserted.** `git diff` over
+`Whatwg/Streams/**` between the merge base and the landing shows 626
+insertions and 31 deletions across 8 files. Every deletion is one of exactly
+two kinds:
+
+1. the three `inductive` declarations that `E-01`, `E-02` and `E-03` move,
+   replaced by the three `abbrev`s; and
+2. six proof scripts — `intros; simp_all [runPullJob]` twice,
+   `intros; first | rfl | simp_all [tick]` twice, and
+   `intros; first | rfl | (simp_all [tick] <;> rfl)` twice — belonging to
+   `Readable.runPullJob_empty`, `runPullJob_cons`, `Writable.tick_no_job`,
+   `Writable.tick_job_fifo`, `Transform.tick_job_fifo` and
+   `Transform.tick_no_job`, which obligation 6 requires to be re-derived.
+
+No theorem statement, no definition body and no `attribute [local simp]` line
+appears among the deletions. The four `attribute [local simp]` modules —
+`Readable/Reentrancy.lean`, `Writable/Lifecycle.lean`, `Transform/Runs.lean`
+and `Piping/Runs.lean` — are byte-identical to the base commit
+(`git diff` returns empty for each), which is obligation 4.
+
+**The `simp`-set verification, per function.** §4.4's obligation is that every
+function named in one of the four sets keeps an equation lemma `simp` finds.
+The executable check is that the four `simp`-driven modules still elaborate:
+they are the only consumers of those sets, and their proofs are `simp [f]`
+over exactly these functions. All four rebuilt green at every move. Per row:
+
+| # | Function (row, mode) | Body | Became an `abbrev`? | Bridging lemma landed | Receipt that checks it |
+| ---: | --- | --- | --- | --- | --- |
+| 1 | `Writable.lookupPromise` (`E-18`, generalize) | unchanged | no | `lookupPromise_bridge` | `PromiseBridge` `example` re-deriving `lookupPromise_eq`'s body by `rfl`; `Writable/Lifecycle.lean`, `Transform/Runs.lean`, `Piping/Runs.lean` green |
+| 2 | `Writable.freshPromise` (`E-19`, generalize) | unchanged | no | `freshPromise_bridge`, under `s.nextPromise ∉ s.handled` | `freshPromise_pending/_fulfilled/_rejected` unchanged and green |
+| 3 | `Writable.settle` (`E-20`, generalize) | unchanged | no | `settle_bridge` | `settle_pending`, `settle_other` unchanged and green |
+| 4 | `Writable.markHandled` (`E-21`, generalize) | unchanged | no | `markHandled_bridge`, `handled_bridge` | `PromiseBridge` `example` re-deriving `markHandled_eq`'s body by `rfl` |
+| 5 | `Writable.attachSink` (`E-37`, generalize) | unchanged | no | `attachSink_settled_jobs`, `attachSink_pending_jobs` | both proved; the bridge is on the job queue alone, because `attachSink` also clears the close and abort algorithm slots |
+| 6 | `Writable.acceptAnswer` (`E-38`, generalize) | unchanged | no | `acceptAnswer_jobs` | proved; the `operationPhase … = some .awaiting` guard stays in Streams |
+| 7 | `Writable.tick` (`E-46`, generalize) | unchanged | no | `tick_dequeue_bridge` | `tick_job_fifo` and `tick_no_job` re-derived from it and the general dequeue laws, statements unchanged |
+| 8 | `Writable.operationPhase` (`E-36`, keep) | unchanged | no | none owed | `Writable/Lifecycle.lean` green |
+| 9 | `Writable.setOperationPhase` (`E-36`, keep) | unchanged | no | none owed | as 8 |
+| 10 | `Writable.ensureReadyRejected` (`E-42`, keep) | unchanged | no | none owed | green; `Table.markHandled` accepts marking a fresh cell, which is what this needs |
+| 11 | `Writable.updateBackpressure` (`E-43`, keep) | unchanged | no | none owed | green; `Table.fresh_old` is the retention property it depends on |
+| 12 | `Transform.subscriptionPromise` (`E-30`, generalize) | unchanged | no | `reactions_promises` | the three `subscriptionPromise_*` `example`s in `PromiseBridge` close by `rfl` |
+| 13 | `Transform.subscribe` (`E-31`, generalize) | unchanged | no | `subscribe_reactions_bridge` (pending branch) | `subscribe_pending/_fulfilled/_rejected/_missing` unchanged and green |
+| 14 | `Transform.notify` (`E-32`, generalize) | unchanged | no | **deferred**, §4.4's stated reason: only the queueing half generalizes and the component dispatch stays in Streams | `Transform/Runs.lean` green |
+| 15 | `Transform.settle` (`E-33`, generalize) | unchanged | no | **deferred**, §4.4's stated reason: relating it to the `foldlM` over the filtered subscription list needs `notify`'s bridge. `Table.settleAndTrigger` and `triggerReactions_order` did land | `Transform/Runs.lean` green |
+| 16 | `Transform.runJob` (`E-51`, generalize) | unchanged | no | **deferred**, §4.4's stated reason: its `.writable` branch re-checks the mailbox head, which is stream-specific | `Transform/Runs.lean` green |
+| 17 | `Transform.tick` (`E-53`, generalize) | unchanged | no | `tick_dequeue_bridge` | `tick_job_fifo` and `tick_no_job` re-derived from it, statements unchanged |
+| 18 | `Readable.runPullJob` (`E-49`, generalize) | unchanged | no | `runPullJob_dequeue_bridge` | `runPullJob_empty` and `_cons` re-derived from it; `runPullJob_suspended` is the frame guard, not a queue law — builder note B3 |
+| 19 | `Transform.lookupPromise` (`E-25`, keep) | unchanged | no | none owed | `PromiseBridge` `example` re-deriving `lookupPromise_eq` by `rfl` |
+| 20 | `Transform.freshInternal` (`E-26`, keep) | unchanged | no | none owed | green; its four receipts still unfold `Writable.freshPromise` and `Writable.lookupPromise`, which stayed `def`s |
+| 21 | `Piping.allWrittenSettled` (`E-56`, generalize) | unchanged | no | `allWrittenSettled_bridge` | `Piping/Runs.lean` green |
+
+Twenty-one rows, fifteen `generalize` and six `keep`, matching §11's corrected
+count. Twelve of the fifteen `generalize` rows carry a landed bridging lemma;
+three carry the deferral §4.4 already declares, with its reason, which is what
+the plan's acceptance condition 8 requires to be visible rather than silent.
+
+**Builder notes.** Five, all in §15 of the contract, none of them a weakening:
+**B1**, a type `abbrev` does not carry its constructors, so the seven frozen
+constructor ascriptions needed seven reducible aliases and the authored delta
+is 210 rather than 203; **B2**, §9's "eight constructors" is seven, while its
+53 `#check` count is right; **B3**, `runPullJob_suspended` is the readable
+component's frame guard and cannot be a consequence of a bridge whose
+hypothesis it denies; **B4**, three additive imports inside `Whatwg/Streams/**`
+that §13's fence does not mention, all DB-11-respecting and none introducing a
+global rewrite; **B5**, the two `SpecCoverage` numerator modules were not
+authored because `WhatwgTest/Audit/` is fenced to the concurrent Q2 tooling
+builder.
+
+**Gap disposition after the landing.** Closed in this packet: `G-01` (the two
+reaction lists, the `[[Type]]` tag, `TriggerPromiseReactions` with its order
+and once-only laws), `G-03` (the capability record and the resolving
+functions), `G-07` for the realm-independent queue and `HostEnqueuePromiseJob`,
+`G-08` for the *statement* of the run condition, `G-11` for
+`PerformPromiseThen` with a result capability and for `react`'s steps 8 to 10,
+and `G-06` partially by decision 10 (the settled predicate with its agreement
+lemma, the ordered result list and the first-rejection short-circuit).
+Still open, each recorded against its id in the module docstrings and the two
+roots: `G-02` remainder, `G-04`, `G-05`, `G-06` remainder, `G-07` remainder,
+`G-08` remainder, `G-09` remainder, `G-10`, `G-11` remainder, and every group
+`G` inventory row `E-62`..`E-74`, which stays `keep` and in DB-04's claim
+scope.
+
+**What this landing does not claim.** No coverage state moved; every census row
+this packet cites is cited as an anchor for a declaration and never as a
+numerator, and both censuses are still all-`absent`. No host observation, no
+WPT result, no engine equivalence and no claim about `Whatwg.Streams` beyond
+the preservation obligations of §9. The `identity`, `construction` and
+`counterexamples` edges of `docs/PROMISE-DAG.md` are still `required-open`, and
+`coverage` is still `not-applicable`.
+
 ## Q4 — the DB-11 restatement
 
 **What is restated.** The held P8a draft on `codex/configuration-breaker`
