@@ -120,31 +120,71 @@ invocations; `op.upon-fulfillment`, 352410..352816, digest
 `op.upon-rejection`, 352818..353237, digest
 `f1e47b988febfd3652dac64ddb390db465d96a07f5b2d939cd8c62413221e7e9`, 11. -/
 
+/-! **The three ascriptions below are amended by the Q3b fidelity addendum,
+2026-09-07** (`test/contracts/promise-first-packet-q3b.contract.md`, findings
+F1 and F2, WS-PROM-CE-023 and WS-PROM-CE-024). The superseded ascriptions are
+the same three with the result
+`Option (Reactions body × Jobs.Queue (Jobs.ReactionJob (Except reason value)))`.
+
+Reason: `op.dfn-perform-steps-once-promise-is-settled` step 7 performs
+`PerformPromiseThen`, so `react` inherits step 12 — set `[[PromiseIsHandled]]`
+on every branch — and steps 10 and 11 — the settled branches append to no list
+and the record the job captures is held by the caller. Neither is expressible
+without the table and the captured record in the result. The **arguments** are
+unchanged: step 6's `newCapability` and step 8's `Return |newCapability|` are
+`G-11`'s remainder and stay out, as the base packet already records, so `react`
+still takes no capability.
+
+`uponFulfillment_eq` and `uponRejection_eq` below are **not** amended: their
+statements are byte-identical and elaborate unchanged at the new result type.
+
+The `none` those two wrappers pass on the other side is a `G-11` modelling
+restriction and is **not** what the pinned text does: steps 1 to 4 of
+`op.dfn-perform-steps-once-promise-is-settled` build both `onFulfilled` and
+`onRejected` unconditionally, so Web IDL `react` never registers an empty
+handler. §4.6's citation of this operation as the justification for
+`Reaction.handler : Option body` is corrected by the addendum: the `~empty~`
+handler comes from `op.performpromisethen` steps 3 and 5, the `IsCallable`
+test (WS-PROM-CE-036). -/
+
 #check (@Whatwg.WebIdl.Promise.react :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
     Nat → Option body → Option body →
-    Option (Whatwg.Ecma262.Promise.Reactions body ×
-      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value))))
+    Option (Whatwg.Ecma262.Promise.Table value reason ×
+      Whatwg.Ecma262.Promise.Reactions body ×
+      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
+      Option (Whatwg.Ecma262.Promise.Reaction body)))
 
 #check (@Whatwg.WebIdl.Promise.uponFulfillment :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
     Nat → body →
-    Option (Whatwg.Ecma262.Promise.Reactions body ×
-      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value))))
+    Option (Whatwg.Ecma262.Promise.Table value reason ×
+      Whatwg.Ecma262.Promise.Reactions body ×
+      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
+      Option (Whatwg.Ecma262.Promise.Reaction body)))
 
 #check (@Whatwg.WebIdl.Promise.uponRejection :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
     Nat → body →
-    Option (Whatwg.Ecma262.Promise.Reactions body ×
-      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value))))
+    Option (Whatwg.Ecma262.Promise.Table value reason ×
+      Whatwg.Ecma262.Promise.Reactions body ×
+      Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
+      Option (Whatwg.Ecma262.Promise.Reaction body)))
 
-/-! Mask M1. The generalization of `Transform.subscribe_pending`. -/
+/-! Mask M1. The generalization of `Transform.subscribe_pending`.
+
+**Amended by the Q3b fidelity addendum, 2026-09-07** (finding F1,
+WS-PROM-CE-023): the superseded ascription's right-hand side was
+`some ((Reactions.add rs promise onFulfilled onRejected).1, q)`. `react`
+performs `PerformPromiseThen`, whose step 12 marks the promise handled on every
+branch, and `add` gains the capability argument of finding F4, which `react`
+supplies as `none` (step 6's `newCapability` is `G-11`'s remainder). -/
 #check (@Whatwg.WebIdl.Promise.react_pending :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -152,10 +192,21 @@ invocations; `op.upon-fulfillment`, 352410..352816, digest
     (promise : Nat) (onFulfilled onRejected : Option body),
     Whatwg.Ecma262.Promise.Table.get t promise = some Whatwg.Ecma262.Promise.State.pending →
       Whatwg.WebIdl.Promise.react t rs q promise onFulfilled onRejected =
-        some ((Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1, q))
+        some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
+          (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected none).1,
+          q, none))
 
 /-! Mask M2: the statement observes the reaction job entering the queue. The
-generalization of `Transform.subscribe_fulfilled`. -/
+generalization of `Transform.subscribe_fulfilled`.
+
+**Amended by the Q3b fidelity addendum, 2026-09-07** (findings F1 and F2,
+WS-PROM-CE-023 and WS-PROM-CE-024): the superseded ascription's right-hand side
+was `some (Reactions.setPhase (Reactions.add rs promise onFulfilled onRejected).1
+ReactionType.fulfill rs.next (ReactionPhase.queued rs.next), Queue.enqueue q
+(ReactionJob.mk rs.next (Except.ok v)))`. It appended to both lists on a branch
+where the pinned text appends to neither, and left the reject-side entry
+waiting on a promise that had already fulfilled. The enqueued job is unchanged,
+so the M2 content of the law is exactly what it was. -/
 #check (@Whatwg.WebIdl.Promise.react_fulfilled :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -164,14 +215,18 @@ generalization of `Transform.subscribe_fulfilled`. -/
     Whatwg.Ecma262.Promise.Table.get t promise =
         some (Whatwg.Ecma262.Promise.State.fulfilled v) →
       Whatwg.WebIdl.Promise.react t rs q promise onFulfilled onRejected =
-        some (Whatwg.Ecma262.Promise.Reactions.setPhase
-            (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1
-            Whatwg.Ecma262.Promise.ReactionType.fulfill rs.next
-            (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next),
+        some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
+          (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled none).1,
           Whatwg.Ecma262.Jobs.Queue.enqueue q
-            (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.ok v))))
+            (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.ok v)),
+          some (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled none).2))
 
-/-! Mask M2. The generalization of `Transform.subscribe_rejected`. -/
+/-! Mask M2. The generalization of `Transform.subscribe_rejected`.
+
+**Amended by the Q3b fidelity addendum, 2026-09-07**, for the same two findings
+and the same reason as the fulfilled branch. -/
 #check (@Whatwg.WebIdl.Promise.react_rejected :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -180,12 +235,13 @@ generalization of `Transform.subscribe_fulfilled`. -/
     Whatwg.Ecma262.Promise.Table.get t promise =
         some (Whatwg.Ecma262.Promise.State.rejected r) →
       Whatwg.WebIdl.Promise.react t rs q promise onFulfilled onRejected =
-        some (Whatwg.Ecma262.Promise.Reactions.setPhase
-            (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1
-            Whatwg.Ecma262.Promise.ReactionType.reject rs.next
-            (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next),
+        some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
+          (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.reject onRejected none).1,
           Whatwg.Ecma262.Jobs.Queue.enqueue q
-            (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.error r))))
+            (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.error r)),
+          some (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.reject onRejected none).2))
 
 /-! Mask M1. The generalization of `Transform.subscribe_missing`. `E-31` risk:
 `PerformPromiseThen` is total where this is partial; the packet keeps the
@@ -272,8 +328,16 @@ Anchor: `op.wait-for-all`, 353239..354879, digest
     ¬ Whatwg.WebIdl.Promise.AllSettled t ids →
       Whatwg.WebIdl.Promise.waitForAll t ids = Whatwg.WebIdl.Promise.WaitResult.pending)
 
-/-! Mask M2: the result list is in argument order, which is the ordering
-content of `wait for all`'s "in the same order". -/
+/-! Mask **M1**, relabelled from M2 by the Q3b fidelity addendum, 2026-09-07
+(finding F6's minor, WS-PROM-CE-037). The statement is unchanged and stays
+frozen. Reason: §7's rule makes a theorem M2 when its **statement** observes
+the order in which settlements happen or in which reaction jobs enter the
+queue. This statement pairs `ids` with `values` positionally — argument order —
+and observes neither settlement order nor queue order; §7's table listed it
+under M2, and the rule governs the table. The genuinely M2 companion is
+`waitForAllTraced_failure` in `WhatwgTest/WebIdl/PromiseFidelityContract.lean`.
+Offered for coordinator ratification alongside the relabel R-P20 names
+explicitly, which is the one below. -/
 #check (@Whatwg.WebIdl.Promise.waitForAll_success :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (ids : List Nat)
     (values : List value),
@@ -283,7 +347,22 @@ content of `wait for all`'s "in the same order". -/
       Whatwg.WebIdl.Promise.waitForAll t ids =
         Whatwg.WebIdl.Promise.WaitResult.success values)
 
-/-! Mask M2: the first rejection in argument order is the one reported. -/
+/-! Mask **M1**, relabelled from M2 by the Q3b fidelity addendum, 2026-09-07
+(finding F6, WS-PROM-CE-030, and ruling R-P20's "`waitForAll_failure`'s M2
+label overstates it"). The statement is unchanged and stays frozen: the first
+rejection in **argument** order is the one this operation reports, and argument
+order is neither a settlement order nor a queue order, so §7's rule makes the
+theorem M1.
+
+What `op.wait-for-all` (353239..354879) actually says is that the rejection
+handler fires on the first rejection **to settle**, with the other promises
+possibly still pending. That needs a settlement order the general table cannot
+express, and it is stated — under a genuine M2 — as
+`Whatwg.WebIdl.Promise.waitForAllTraced_failure` and
+`waitForAllTraced_failure_pending` over
+`Whatwg.Ecma262.Promise.SettlementTrace`. This ascription keeps its place
+because `waitForAll` keeps its signature: `E-55` and `E-56` own the predicate
+half and eleven Streams call sites reach it. -/
 #check (@Whatwg.WebIdl.Promise.waitForAll_failure :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (before : List Nat) (id : Nat) (after : List Nat) (r : reason),

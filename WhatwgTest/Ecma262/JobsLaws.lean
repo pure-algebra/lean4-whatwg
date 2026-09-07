@@ -116,6 +116,14 @@ frontier and never a terminal outcome (DB-07). -/
         (Whatwg.Ecma262.Jobs.Queue.mk ([] : List payload)) =
       ([], Whatwg.Ecma262.Jobs.Queue.mk []))
 
+/-! Mask **M2**, confirmed by the Q3b fidelity addendum, 2026-09-07
+(WS-PROM-CE-037). The statement is unchanged and stays frozen. §7 of the base
+packet enumerates twelve M2 theorems and does not list this one, but its rule
+does: the statement observes that the *oldest* job is the one delivered, which
+is an order over jobs. `Whatwg/Ecma262/Jobs.lean`'s docstring already says
+"Mask M2", so the divergence is in §7's table and not in the tree; the addendum
+amends that table to thirteen. `run_zero`, `run_nil` and `run_split` sit under
+the same block heading and remain M1, as their own docstrings say. -/
 #check (@Whatwg.Ecma262.Jobs.run_cons :
   ∀ {payload : Type} (fuel : Nat) (job : payload) (rest : List payload),
     Whatwg.Ecma262.Jobs.run (fuel + 1) (Whatwg.Ecma262.Jobs.Queue.mk (job :: rest)) =

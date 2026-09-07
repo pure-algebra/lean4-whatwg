@@ -41,6 +41,11 @@ import WhatwgTest.WebIdl.PromiseContract
 import WhatwgTest.WebIdl.ExceptionsContract
 import WhatwgTest.Streams.PromiseBridge
 import WhatwgTest.Ecma262.PromiseAxiomReport
+import WhatwgTest.Ecma262.PromiseFidelityContract
+import WhatwgTest.Ecma262.PromiseFidelityLaws
+import WhatwgTest.Ecma262.JobsCompleteContract
+import WhatwgTest.WebIdl.PromiseFidelityContract
+import WhatwgTest.Ecma262.PromiseFidelityAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

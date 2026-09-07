@@ -165,31 +165,48 @@ idempotence. `Writable.markHandled`'s idempotence is stated today only through
         | .fulfill => rs.fulfill
         | .reject => rs.reject).find? (fun r => r.id == id))
 
+/-! **The four `add` laws below are amended by the Q3b fidelity addendum,
+2026-09-07** (`test/contracts/promise-first-packet-q3b.contract.md`, finding
+F4, WS-PROM-CE-026). The superseded ascriptions are the same four with
+`Reactions.add`'s four arguments and `Reaction.mk`'s five, without the
+capability. Reason: `op.performpromisethen` steps 7 and 8 give both records the
+same `_resultCapability_`, so `add` takes it and both appended records carry
+it; `add_fulfill` and `add_reject` are where that is checkable. Nothing else in
+the four statements changes, and `add_paired` below is amended only in its
+telescope. -/
+
 #check (@Whatwg.Ecma262.Promise.Reactions.add_id :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
-    (onFulfilled onRejected : Option body),
-    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).2 = rs.next)
+    (onFulfilled onRejected : Option body)
+    (capability : Option Whatwg.Ecma262.Promise.Capability),
+    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+      capability).2 = rs.next)
 
 #check (@Whatwg.Ecma262.Promise.Reactions.add_next :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
-    (onFulfilled onRejected : Option body),
-    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1.next =
-      rs.next + 1)
+    (onFulfilled onRejected : Option body)
+    (capability : Option Whatwg.Ecma262.Promise.Capability),
+    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+      capability).1.next = rs.next + 1)
 
 #check (@Whatwg.Ecma262.Promise.Reactions.add_fulfill :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
-    (onFulfilled onRejected : Option body),
-    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1.fulfill =
+    (onFulfilled onRejected : Option body)
+    (capability : Option Whatwg.Ecma262.Promise.Capability),
+    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+        capability).1.fulfill =
       rs.fulfill ++ [Whatwg.Ecma262.Promise.Reaction.mk rs.next promise
-        Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled
+        Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled capability
         Whatwg.Ecma262.Promise.ReactionPhase.waiting])
 
 #check (@Whatwg.Ecma262.Promise.Reactions.add_reject :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
-    (onFulfilled onRejected : Option body),
-    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1.reject =
+    (onFulfilled onRejected : Option body)
+    (capability : Option Whatwg.Ecma262.Promise.Capability),
+    (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+        capability).1.reject =
       rs.reject ++ [Whatwg.Ecma262.Promise.Reaction.mk rs.next promise
-        Whatwg.Ecma262.Promise.ReactionType.reject onRejected
+        Whatwg.Ecma262.Promise.ReactionType.reject onRejected capability
         Whatwg.Ecma262.Promise.ReactionPhase.waiting])
 
 #check (@Whatwg.Ecma262.Promise.Reactions.setPhase_eq :
@@ -223,15 +240,18 @@ id, so the fulfil list alone carries the registration order that
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body),
     Whatwg.Ecma262.Promise.Reactions.registered rs = rs.fulfill)
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (finding F4): the
+telescope gains `Reactions.add`'s capability argument and nothing else. -/
 #check (@Whatwg.Ecma262.Promise.Reactions.add_paired :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
-    (onFulfilled onRejected : Option body),
+    (onFulfilled onRejected : Option body)
+    (capability : Option Whatwg.Ecma262.Promise.Capability),
     rs.fulfill.map Whatwg.Ecma262.Promise.Reaction.id =
         rs.reject.map Whatwg.Ecma262.Promise.Reaction.id →
-      (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1.fulfill.map
-          Whatwg.Ecma262.Promise.Reaction.id =
-        (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1.reject.map
-          Whatwg.Ecma262.Promise.Reaction.id)
+      (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+          capability).1.fulfill.map Whatwg.Ecma262.Promise.Reaction.id =
+        (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+          capability).1.reject.map Whatwg.Ecma262.Promise.Reaction.id)
 
 /-! ### `TriggerPromiseReactions` — the order law `E-33` does not have
 
@@ -270,6 +290,18 @@ reaction left, so no reaction job is enqueued twice. -/
           (Whatwg.Ecma262.Promise.triggerReactions rs promise kind argument q).1 other kind =
         Whatwg.Ecma262.Promise.Reactions.waitingOn rs other kind)
 
+/-! **Annotated by the Q3b fidelity addendum, 2026-09-07** (finding F3,
+WS-PROM-CE-025). The statement is unchanged and stays frozen: it is a law about
+`op.triggerpromisereactions` (2700260..2701212) **alone**, whose entire content
+is "enqueue a reaction job for each record in _reactions_", and which really
+does not touch the other list. It must not be read as a law about
+`op.fulfillpromise` or `op.rejectpromise`, whose steps 4 and 5 each set both
+`[[PromiseFulfillReactions]]` and `[[PromiseRejectReactions]]` to *undefined*.
+The residue this ascription froze belongs to the two callers, and the addendum
+states it there: `Reactions.clear_waiting` and
+`Table.settleAndTrigger_cleared` in
+`WhatwgTest/Ecma262/PromiseFidelityLaws.lean`, with the amended
+`Table.settleAndTrigger_pending` below giving the exact equation. Mask M1. -/
 #check (@Whatwg.Ecma262.Promise.triggerReactions_other_kind :
   ∀ {value reason body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind other : Whatwg.Ecma262.Promise.ReactionType) (argument : Except reason value)
@@ -282,7 +314,12 @@ reaction left, so no reaction job is enqueued twice. -/
 /-! ### Settle-and-trigger, `FulfillPromise` and `RejectPromise` -/
 
 /-! Mask M2. `E-33`'s target: `op.fulfillpromise` / `op.rejectpromise`
-followed by `op.triggerpromisereactions`. -/
+followed by `op.triggerpromisereactions`.
+
+**Amended by the Q3b fidelity addendum, 2026-09-07** (finding F3,
+WS-PROM-CE-025). Superseded ascription:
+
+```lean
 #check (@Whatwg.Ecma262.Promise.Table.settleAndTrigger_pending :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -295,6 +332,32 @@ followed by `op.triggerpromisereactions`. -/
             (match result with
               | .ok _ => Whatwg.Ecma262.Promise.ReactionType.fulfill
               | .error _ => Whatwg.Ecma262.Promise.ReactionType.reject) result q))
+```
+
+Reason: `op.fulfillpromise` steps 4 and 5 and `op.rejectpromise` steps 4 and 5
+each set **both** reaction lists to *undefined*, and the base packet advanced
+only the triggered one, leaving the other side's registrations waiting on a
+promise that can never trigger them. `Reactions.clear` is the first-order form
+of that pair of steps; the job queue component is unchanged, so the M2 content
+of the law — the order in which reaction jobs enter the queue — is exactly what
+it was. -/
+#check (@Whatwg.Ecma262.Promise.Table.settleAndTrigger_pending :
+  ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
+    (rs : Whatwg.Ecma262.Promise.Reactions body)
+    (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (result : Except reason value),
+    Whatwg.Ecma262.Promise.Table.get t id = some Whatwg.Ecma262.Promise.State.pending →
+      Whatwg.Ecma262.Promise.Table.settleAndTrigger t rs q id result =
+        (Whatwg.Ecma262.Promise.Table.settle t id result,
+          Whatwg.Ecma262.Promise.Reactions.clear
+            (Whatwg.Ecma262.Promise.triggerReactions rs id
+              (match result with
+                | .ok _ => Whatwg.Ecma262.Promise.ReactionType.fulfill
+                | .error _ => Whatwg.Ecma262.Promise.ReactionType.reject) result q).1 id,
+          (Whatwg.Ecma262.Promise.triggerReactions rs id
+            (match result with
+              | .ok _ => Whatwg.Ecma262.Promise.ReactionType.fulfill
+              | .error _ => Whatwg.Ecma262.Promise.ReactionType.reject) result q).2))
 
 /-! Mask M1. The guard of decision 7 propagates: a non-pending promise
 notifies nobody. -/
@@ -340,6 +403,25 @@ promise handled. -/
       Whatwg.Ecma262.Promise.performPromiseThen t rs q promise onFulfilled onRejected
         capability = none)
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (finding F1,
+WS-PROM-CE-023). Superseded ascription:
+
+```lean
+#check (@Whatwg.Ecma262.Promise.performPromiseThen_pending :
+  ∀ … , Whatwg.Ecma262.Promise.Table.get t promise =
+          some Whatwg.Ecma262.Promise.State.pending →
+      Whatwg.Ecma262.Promise.performPromiseThen t rs q promise onFulfilled onRejected
+          capability =
+        some (t, (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1, q,
+          capability.map Whatwg.Ecma262.Promise.Capability.promise))
+```
+
+Reason: `op.performpromisethen` step 12, "Set _promise_.[[PromiseIsHandled]] to
+*true*", sits after the three-way branch of steps 9 to 11, not inside it. The
+superseded ascription returned the table untouched and so froze the omission.
+The registration half is unchanged apart from `add`'s capability argument
+(finding F4), and the new fourth component is `none`, because step 9 appends
+both records and captures neither. Mask M1. -/
 #check (@Whatwg.Ecma262.Promise.performPromiseThen_pending :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -349,9 +431,27 @@ promise handled. -/
     Whatwg.Ecma262.Promise.Table.get t promise = some Whatwg.Ecma262.Promise.State.pending →
       Whatwg.Ecma262.Promise.performPromiseThen t rs q promise onFulfilled onRejected
           capability =
-        some (t, (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1, q,
+        some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
+          (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected
+            capability).1,
+          q, none,
           capability.map Whatwg.Ecma262.Promise.Capability.promise))
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (finding F2,
+WS-PROM-CE-024). Superseded ascription: the same statement with
+`Reactions.setPhase (Reactions.add rs promise onFulfilled onRejected).1
+ReactionType.fulfill rs.next (ReactionPhase.queued rs.next)` as the reactions
+component and no reaction component.
+
+Reason: `op.performpromisethen` step 10 builds `_fulfillJob_` out of the record
+created at step 7 and enqueues it. It appends nothing: only step 9's pending
+branch appends, and it appends one record to each list. The superseded
+ascription appended to both lists and then advanced one of the two entries,
+leaving the reject-side entry in the `waiting` phase on a promise that has
+already fulfilled — a state the pinned text never has. `Reactions.mint` is the
+unappended record and the operation returns it, because nothing else holds it.
+The job queue component is unchanged, so the M2 content of the law is exactly
+what it was. Mask M2. -/
 #check (@Whatwg.Ecma262.Promise.performPromiseThen_fulfilled :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -363,14 +463,18 @@ promise handled. -/
       Whatwg.Ecma262.Promise.performPromiseThen t rs q promise onFulfilled onRejected
           capability =
         some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
-          Whatwg.Ecma262.Promise.Reactions.setPhase
-            (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1
-            Whatwg.Ecma262.Promise.ReactionType.fulfill rs.next
-            (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next),
+          (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled capability).1,
           Whatwg.Ecma262.Jobs.Queue.enqueue q
             (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.ok v)),
+          some (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled capability).2,
           capability.map Whatwg.Ecma262.Promise.Capability.promise))
 
+/-! **Amended by the Q3b fidelity addendum, 2026-09-07** (finding F2,
+WS-PROM-CE-024), for `op.performpromisethen` step 11 and the same reason as the
+fulfilled branch. Step 11's third sub-step, `HostPromiseRejectionTracker`, is
+`G-02` and stays out: no component here observes it. Mask M2. -/
 #check (@Whatwg.Ecma262.Promise.performPromiseThen_rejected :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
@@ -382,12 +486,12 @@ promise handled. -/
       Whatwg.Ecma262.Promise.performPromiseThen t rs q promise onFulfilled onRejected
           capability =
         some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
-          Whatwg.Ecma262.Promise.Reactions.setPhase
-            (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected).1
-            Whatwg.Ecma262.Promise.ReactionType.reject rs.next
-            (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next),
+          (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.reject onRejected capability).1,
           Whatwg.Ecma262.Jobs.Queue.enqueue q
             (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.error r)),
+          some (Whatwg.Ecma262.Promise.Reactions.mint rs promise
+            Whatwg.Ecma262.Promise.ReactionType.reject onRejected capability).2,
           capability.map Whatwg.Ecma262.Promise.Capability.promise))
 
 /-! ### Capability and resolving functions — mask M1
