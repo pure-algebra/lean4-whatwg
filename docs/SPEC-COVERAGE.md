@@ -11,11 +11,14 @@
 > establishes its separate denominator and checked reporting path.
 
 > Promise lane: `Whatwg.WebIdl` and `Whatwg.Ecma262` have pinned sources and
-> declaration-free roots (`docs/PROMISE-PACKAGE-PLAN.md`). Neither has a
-> census, a numerator, or a coverage report yet, and neither contributes rows
-> to any other standard's report. Slice Q2 establishes their two separate
-> denominators; the placeholder blocks below record their shape until then.
-> Five standards will then hold five denominators that never mix.
+> declaration-free roots (`docs/PROMISE-PACKAGE-PLAN.md`). Since the Q1
+> landing of 2026-09-07 each has a generated, drift-checked census with a
+> denominator (Web IDL 121 rows, denominator 112; ES2026 77 rows, denominator
+> 74) and an all-absent generated row list, and neither has an authored
+> theorem numerator or a coverage report yet; neither contributes rows to any
+> other standard's report. Slice Q2 authors the numerators; the placeholder
+> blocks below record the report shape until then. Five standards then hold
+> five denominators that never mix.
 
 This document owns the definition, vocabulary, and reporting format of the
 specification coverage metric. Numbers live in generated and emitted facts,
@@ -143,10 +146,10 @@ never restates numbers from memory or from an earlier session.
 
 ### Blocks not yet emitted
 
-The promise lane's two standards have no census and no numerator, so
-`lake exe census --standard webidl --report` and
-`--standard ecma262 --report` do not exist yet and the executable refuses a
-report for a standard without a numerator. The blocks below record the shape
+The promise lane's two standards have a census and a denominator but no
+numerator, so `lake exe census --standard webidl --report` and
+`--standard ecma262 --report` refuse: the executable reports only a standard
+with a numerator, exactly as it does for `--standard infra`. The blocks below record the shape
 those reports will take, with the label each standard's `Gates.Census.Standard`
 record supplies. Every field is a placeholder: **no number below has been
 computed, and neither block may be quoted as coverage.**
