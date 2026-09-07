@@ -1947,6 +1947,221 @@ the successful-profile progress theorem, the ordered-effect receipts, the
 token/mailbox correspondence, the finite witness through the original start
 gate, the scheduler mutants and the WS-CONFIG counterexample ids.
 
+### Q4 landing receipt (second pass)
+
+Q4 builder seat, second pass, 2026-09-07, branch `promise/q4-builder-2`, based
+on the amended packet `promise/q4-amend` at `9441995` merged with `origin/main`
+(the U3 landing, R-P26 and R-U3). Contract:
+`test/contracts/configuration-ordering.contract.md`, whose §1–§12 are unedited.
+Toolchain `leanprover/lean4:v4.33.1`.
+
+**The packet is fully landed.** All five declared batteries are green, no
+statement in any of them changed, and the trust gate's all-green control is
+restored. Nothing of the first pass's implementation was reverted: A1, A2 and A3
+now elaborate against it unchanged, and A4 to A7 are what this pass adds.
+
+**What landed, in three moves.**
+
+1. **A4, the phase erasure and the reaction half of `notifySettled`**, in
+   `Whatwg/Streams/Semantics/Configuration.lean`, additively:
+   `Semantics.Ordering.phaseErase` and `reactionErase` with `phaseErase_eq` and
+   `reactionErase_eq`; the restated `notifySettled_reactions_bridge`, modulo
+   `reactionErase` and under `(c.registrations.map (·.id)).Nodup`; and
+   `notifySettled_queued_serial`, mask M2, which recovers the payload the
+   erasure drops — for every waiting registration on the settled promise there
+   is a `serial ≥ c.nextJob` at which `lookupRegistration` finds it `.queued`
+   and at which the `.observer` token sits in `jobQueue`. Nine private lemmas
+   carry the fold: a fold/map commutation, the erased one-step image, the
+   `Nodup` single-fire lemma, and the identity-preservation, job-append and
+   cursor-monotonicity lemmas the serial statement needs. No frozen definition
+   body changed; `notifySettled_eq` and `register_eq` still close by `rfl`.
+2. **A5, the CFG-WPT seam**, in the new
+   `Whatwg/Streams/Semantics/Source.lean` under
+   `Whatwg.Streams.Semantics.Ordering.Source`: all 86 ascriptions as total
+   first-order definitions. The pinned block and its twelve occurrence spans and
+   digests; `Symbol`, `ScriptAction` and the pinned `wptScript`; `Attachment`,
+   `Certificate` and `Binding`; the four `Bool` checkers `sourceCheck`,
+   `causalCheck`, `retainedFifo` and `profileCheck` with their `= true` `Prop`s
+   and the five `_iff` ties; `SelectedLog`, `ReferenceEvent`, `referenceErase`,
+   `referenceSelectedLogs`; the target side `selectedLogs`, `targetProject`,
+   `bindReference`, `bindLogs`, `ErasesPrefix`; the pinned `wptCertificate`,
+   `wptReference` and `wptSelectedPrefix` with their three non-vacuity receipts;
+   the three mutants `mutantSelectedD0`, `mutantAliasedResults` and
+   `mutantFlushOnW0` with their three rejection receipts; and the two laws,
+   `erasure_preserves_selected_order` on the reference side and
+   `erases_prefix_selected_order` on the target side. The seam's reasons hold:
+   no mutable promise table, no scheduler, no `Config` field (R-P21), and
+   production imports no `WhatwgTest` module. `run_erases_to_reference`, the
+   transcription gate, the numeric chunk values and the `WS-CONFIG` register
+   rows stay P8's, as amendment A5 splits them.
+3. **A7, the census-profile identity pin.**
+   `WhatwgTest/Audit/CensusProfileIdentity.lean`'s row for
+   `WhatwgTest/Audit/SpecCoverageRows.lean` is amended to **32012 bytes**, digest
+   **`247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c`**, with a
+   dated comment citing ruling R-P26 and carrying the superseded values. The
+   other three identities are unchanged.
+
+**How `erasure_preserves_selected_order` earns its premises.**
+`referenceErase` is a `filter`, so it can delete but never reorder.
+`retainedFifo` is clauses 1 to 5 read off the FIFO skeleton
+`fifoTrace : List ReferenceEvent → List (Nat × Nat)`, and each clause is stable
+under a filter on the attachment index: repetition-freedom by sublist, the
+per-index kind order because the two filters commute, the single-script FIFO
+rule because `startIndices <+: enqueuedIndices` survives filtering both sides,
+and run-to-completion with the live tail because a deleted index takes its start
+and its finish together. `SourceChecked` is what makes the erasure's own
+rule — delete the enqueue a deleted settlement contributes — agree with deleting
+a whole index: conjunct `selectedOnWriterResults` says no selected attachment
+observes a derived result, and `mutantSelectedD0` is exactly the certificate
+that violates it. The second conjunct holds because `eraseKeep` keeps every
+`.logged` event, which is also what makes `erases_prefix_selected_order`
+provable from an `ErasesPrefix` witness.
+
+**The measured battery delta.** 253 diagnostics at the amendment freeze, 0 now.
+
+| Battery | Amendment freeze | This landing |
+| --- | ---: | ---: |
+| `OrderingContract.lean` | 2 | 0 — **green** (109 ascriptions) |
+| `OrderingLaws.lean` | 13 | 0 — **green** (69 ascriptions) |
+| `OrderingSource.lean` | 223 | 0 — **green** (86 ascriptions) |
+| `OrderingAxiomReport.lean` | 14 | 0 — **green** (93 receipts) |
+| `PromiseBridgeQ4.lean` | 0 | 0 — green (38 ascriptions) |
+| `CensusProfileIdentity.lean` | 1 gate `throwError` | 0 — **green** |
+
+**Receipts.** All **93** named receipts of `OrderingAxiomReport.lean` print, and
+every one is inside the R-11 ceiling: **16 with no axioms, 35 `[propext]`, 33
+`[propext, Quot.sound]`, 9 `[propext, Classical.choice, Quot.sound]`**.
+`sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` and the
+`native_decide` auxiliaries appear nowhere; the six `decide` receipts of §K and
+§L reduce in the kernel and reach `[propext]` only.
+
+**Streams preservation.** Every pre-existing battery is green and
+byte-identical: this pass changed no file under `WhatwgTest/Streams/**`,
+`WhatwgTest/Ecma262/**`, `WhatwgTest/WebIdl/**` or `WhatwgTest/Url/**`, and no
+file under `Whatwg/` except `Semantics/Configuration.lean` (additive),
+the new `Semantics/Source.lean`, and one import line in `Whatwg/Streams.lean`.
+The first pass's single tactic edit in `Whatwg/Streams/Readable/Laws.lean`
+`read_nextRead` (`unfold read` → `rw [read_body]`, contract §11.2) stays as
+recorded.
+
+**The audit delta.** `origin/main` at `a0c24f9`: **205 modules and 13690
+declarations**. This branch: **211 modules and 15025 declarations** — six
+modules and 1335 declarations for the whole Q4 landing. The six modules are
+`Whatwg.Streams.Semantics.Source` and the five Q4 batteries
+(`PromiseBridgeQ4`, `OrderingContract`, `OrderingLaws`, `OrderingSource`,
+`OrderingAxiomReport`). Both ends carry the same 1477 Gates tooling
+declarations.
+
+**Commands and results.**
+
+```text
+lake --wfail build Whatwg Gates
+Build completed successfully (164 jobs).                      exit 0
+
+lake --wfail build WhatwgTest
+Build completed successfully (240 jobs).                      exit 0
+
+lake --wfail build
+Build completed successfully (390 jobs).                      exit 0
+
+lake exe trustselftest
+PASS declared red set matches the observed red set (0 module(s))
+PASS trust self-test: every planted declaration was rejected for its stated
+     reason and every control was accepted                    exit 0
+
+lake exe vendorseal
+PASS vendor seal: manifest and vendor/ agree in both directions; every path is
+     valid on Windows                                         exit 0
+
+lake exe citations
+PASS internal citations: 358 files scanned; no line-numbered citation into a
+     protected authored document                              exit 0
+
+lake exe census --write
+WROTE generated/spec-algorithm-census.tsv
+WROTE WhatwgTest/Audit/SpecCoverageRows.lean                  exit 0
+(both byte-identical to what is committed; git reports no change)
+
+lake exe census
+census: 450 rows (idl 133, op 248, requirement 7, rule 0, slot 62, type 0,
+builtin 0, hook 0, property 0, record 0, field 0, term 0, clause 0);
+dispositions (owned 262, requirement 8, foreignBoundary 40, hostOnly 100,
+refused 14, evidenceOnly 26, targetOnly 0); denominator 410, excluded 40;
+0 IDL statement(s) outside the row vocabulary
+PASS census (streams)                                         exit 0
+
+lake exe census --standard webidl      PASS census (webidl)     exit 0
+lake exe census --standard ecma262     PASS census (ecma262)    exit 0
+lake exe census --standard infra       PASS census (infra)      exit 0
+```
+
+**The re-emitted Streams coverage block**, pasted from what
+`lake exe census --report` actually printed, and byte-identical to §7.5 of the
+contract and to the first pass's:
+
+```text
+WHATWG Streams (b9ba9f49) coverage: denominator 410; owned-with-green 12/410;
+green 12, partial 6, absent 392; census 450 rows, 40 excluded
+partial: op.blqs-size op.byte-length-queuing-strategy-size-function op.count-queuing-strategy-size-function op.cqs-size op.is-non-negative-number slot.queue-total-size
+```
+
+**Builder notes, second pass.** Four, none of them a statement change.
+
+- **B5 — one import outside the literal §9 fence.** `Whatwg/Streams.lean` gains
+  `import Whatwg.Streams.Semantics.Source`. §9 names `Whatwg/Streams/Semantics/*.lean`
+  but not the root; the module-closure gate rejects a production module that the
+  root does not reach, so the new module cannot land without it. The line is
+  additive and changes no declaration.
+- **B6 — "each occurrence role present once with its span equal to
+  `occurrenceSpan`".** The admitted profile unrolls the reentrant size callback,
+  so `nestedWriterCall`, `nestedObserverAttachment` and `sizeReturn` are each
+  named more than once by the pinned script and attachments — that is what
+  §3.2's three writer results `W0`/`W1`/`W2` and three derived results
+  `D0`/`D1`/`D2` from two source occurrences already record. `sourceCheck`
+  therefore decides this conjunct as the property of the pinned table a
+  first-order definition can decide: `spanTableOk`, the twelve spans
+  nondegenerate, strictly increasing in source order and inside `blockSpan`,
+  plus `rolesShapeOk`, which forbids relabelling a write occurrence as an
+  attachment occurrence or the reverse. The byte agreement stays the P8
+  transcription gate, as amendment A5 splits it.
+- **B7 — the twelve occurrence digests and the two block digests were verified
+  by hand against the sealed bytes at this landing**, outside Lean, and they
+  agree: block `[930,1956)` hashes to `386a437a…daf5`, the whole file to
+  `f1c49397…10aa`, and each of the twelve intervals to the digest §3.2 of the
+  contract carries. `vendor/` was read, never written. This is a recorded
+  measurement, not a theorem: the gate that makes it a repository obligation is
+  still P8's.
+- **B8 — `erasure_preserves_selected_order`'s second conjunct does not consume
+  `CausalPrefix`, and its first does not consume every conjunct of
+  `SourceChecked`.** The log conjunct holds of `referenceErase` alone, and the
+  FIFO conjunct consumes exactly `retainedFifo` out of `CausalPrefix` and
+  `selectedOnWriterResults` out of `SourceChecked`. Both premises are used, and
+  neither is decoration; the report is here so that no reader infers the proof
+  needs more than it does.
+
+**The sentence for `COORDINATION.md`.** This seat does not edit that file. The
+sentence the coordinator moves there is:
+
+> The configuration-breaker hold is **released**. The Q4 second builder pass on
+> `promise/q4-builder-2` landed amendments A4, A5 and A7 of
+> `test/contracts/configuration-ordering.contract.md`: all five declared
+> batteries are green with no statement changed, the 93 receipts print inside
+> R-11, `test/fixtures/trust-gate/known-red.txt` is empty and the trust gate's
+> all-green control is restored. The held draft at
+> `C:\Users\kokok\Dev\lean4-WHATWG-streams-configuration-breaker` was read
+> read-only and modified in nothing; its content is now re-homed under
+> `CONFIGURATION-PG-ORDERING`, and what it still owes is P8's, not the hold's.
+
+**Open after this landing**, unchanged from what §1, §3.3 and §12.3 of the
+contract already list: `run_erases_to_reference` with `WellFormed`
+initialization and preservation, the token/mailbox correspondence, the
+ordered-effect receipts, the successful-profile progress theorem and the finite
+witness through the original start gate; the digest-to-sealed-bytes
+transcription gate; the numeric chunk values under the three local host
+profiles; the `WS-CONFIG` register rows for the three mutants; and
+`WhatwgTest/Streams/Semantics/OrderingBridgeProofs.lean`, which amendment A5
+records as having nothing to prove at Q4 and which P8 fills.
+
 ## Survey decisions and the rulings that answer them
 
 Both surveys close with an explicit list of decisions for the coordinator.

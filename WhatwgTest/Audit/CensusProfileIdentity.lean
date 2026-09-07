@@ -98,8 +98,20 @@ private def identities : Array Identity := #[
     "1a3672789fb62d3ae68eb528efb20a211727e9ed2b18c3e751c5acf67cd37e02"⟩,
   ⟨"generated/infra-census.tsv", 55766,
     "5041ef0035e087cb242a300a95398982351d766b39a4f24f28e94d9b853d5b18"⟩,
-  ⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32032,
-    "d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476"⟩,
+  -- Amended 2026-09-07 by ruling R-P26 (amendment A7 of
+  -- test/contracts/configuration-ordering.contract.md, §12.5), applied by the Q4
+  -- builder seat. Superseded values, frozen by
+  -- test/contracts/census-profile-identity.contract.md at slice Q1: 32032 bytes,
+  -- digest d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476.
+  -- Reason: that pin guarded the generator refactor, not an authored
+  -- disposition change. The Q4 re-disposition of `slot.promise-state` and
+  -- `slot.promise-is-handled` from `.foreignBoundary` to `.owned` (R-P5, R-P21,
+  -- item 3 of the Q4 packet) legitimately shortens this generated file by 20
+  -- bytes. R-P26 amends the pin to the two values below; the other three
+  -- identities are unchanged, and no coverage number moves, because a
+  -- disposition is not a coverage state.
+  ⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32012,
+    "247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c"⟩,
   ⟨"WhatwgTest/Audit/Infra/SpecCoverageRows.lean", 10607,
     "94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0"⟩]
 

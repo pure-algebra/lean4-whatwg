@@ -318,3 +318,24 @@ own graph is `docs/CONFIGURATION-DAG.md`.
 **Edges closed at this landing: none.** The `construction` edge's named
 `E-22` item is discharged and the `bridges` edge's three deferred rows are
 added, but both keep the deferrals their columns already record.
+
+## Q4 landing, second pass, 2026-09-07, branch `promise/q4-builder-2`
+
+Appended by the Q4 builder seat, second pass. **Every row above is unchanged**,
+the first Q4 landing table included. Receipt: the "Q4 landing receipt (second
+pass)" of `docs/PROMISE-PACKAGE-PLAN.md`. Slice Q4's own graph is
+`docs/CONFIGURATION-DAG.md`; this section records only what the completed
+landing does to `PROMISE-PG-FIRST`.
+
+| Edge | Status before | Status at this landing | Evidence, with theorem names |
+| --- | --- | --- | --- |
+| identity | required-open | **required-open**, and item B1 is answered | All 15 class [R] ascriptions now elaborate. `Reaction.mk`'s ascription was re-frozen by amendment A1 under ruling R-P25 to the landed six-argument constructor with `capability : Option Capability` fifth; nothing in `Whatwg/Ecma262/Promise.lean` changed. The edge stays open on the generated declaration snapshot it already named |
+| semantics | required-open | **required-open**, unchanged | `Semantics.Ordering.notifySettled_reactions_bridge` is the first statement relating this configuration's reaction half to `op.triggerpromisereactions` (2700260..2701212), modulo the Q4-owned `reactionErase` and under distinct registration identities, and `notifySettled_queued_serial` recovers the payload the erasure drops. Both are Q4-owned and belong to `CONFIGURATION-PG-ORDERING`; neither discharges anything on this edge |
+| laws | closed | **closed**, unchanged | The 125 Q3 receipts and the 57 Q3b receipts stand, name for name, with the same distributions. Nothing under `Whatwg/Ecma262/` or `Whatwg/WebIdl/` was touched by this pass |
+| bridges | closed | **closed**, unchanged | `WhatwgTest/Streams/PromiseBridgeQ4.lean` stayed green and byte-identical throughout |
+| representation | closed | **closed**, unchanged | The four view record rows read as the first pass left them |
+| construction, counterexamples, targets | unchanged | unchanged | This pass lands no `E-` operation, no `WS-PROM-CE-*` row and no lowering. `WS-PROM-CE-039`, seeded by the amendment against the packet's own false bridge, is answered by the restated bridge plus `notifySettled_queued_serial`; its `test/counterexamples/REGISTER.md` row is the coordinator's at landing |
+| trust | closed | **closed**, unchanged | No Q3 or Q3b receipt changed. Q4's own 93 receipts all print inside R-11 and belong to the other graph. The trust gate's all-green control is restored: `test/fixtures/trust-gate/known-red.txt` holds no entry |
+| coverage | required-open | **required-open**, unchanged | Both promise censuses stay all-`absent`, no Streams number moved, and the Q1 identity pin amendment A7 (32012 bytes, digest `247f9909…a63c`, ruling R-P26) is a disposition fact, not a coverage fact |
+
+**Edges closed at this landing: none. Edges reopened: none.**

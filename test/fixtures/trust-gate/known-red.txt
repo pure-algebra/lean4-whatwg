@@ -288,10 +288,6 @@
 # certificate judgments of §6, which is why OrderingSource still has 66
 # diagnostics and OrderingAxiomReport three. The trust gate's all-green control
 # is NOT restored by this landing.
-WhatwgTest.Streams.Semantics.OrderingContract
-WhatwgTest.Streams.Semantics.OrderingLaws
-WhatwgTest.Streams.Semantics.OrderingSource
-WhatwgTest.Streams.Semantics.OrderingAxiomReport
 
 # Q4 AMENDMENT BREAKER SEAT, branch promise/q4-amend, 2026-09-07, over the
 # first builder pass at 746032c merged with origin/main. The packet is amended,
@@ -347,7 +343,33 @@ WhatwgTest.Streams.Semantics.OrderingAxiomReport
 # does not edit it. Its owner (or a coordinator ruling in the manner of R-P17)
 # amends the two numbers above; the replacement values are exactly the two
 # given. This entry is removed the moment that amendment lands.
-WhatwgTest.Audit.CensusProfileIdentity
+#
+# Q4 BUILDER SEAT, SECOND PASS, branch promise/q4-builder-2, 2026-09-07, on
+# promise/q4-amend 9441995 merged with origin/main (the U3 landing and R-P26).
+# All five entries are removed:
+#
+#   * A4 landed in Whatwg/Streams/Semantics/Configuration.lean — phaseErase,
+#     reactionErase, phaseErase_eq, reactionErase_eq, the restated
+#     notifySettled_reactions_bridge modulo the erasure under Nodup, and
+#     notifySettled_queued_serial (mask M2) — so OrderingContract and
+#     OrderingLaws are GREEN, with A1, A2 and A3 elaborating against the landed
+#     surface and the first pass's implementation unchanged.
+#   * A5 landed in the new Whatwg/Streams/Semantics/Source.lean: all 86
+#     ascriptions of the CFG-WPT seam as total first-order definitions, the four
+#     Bool checkers with their `= true` Props and five `_iff` ties, the pinned
+#     wptScript / wptCertificate / wptReference / wptSelectedPrefix with their
+#     three non-vacuity receipts, the three mutants with their three rejection
+#     receipts, erasure_preserves_selected_order on the reference side and
+#     erases_prefix_selected_order on the target side. No mutable table, no
+#     scheduler, no Config field (R-P21); the digests are pinned constants and
+#     the transcription gate stays P8's. OrderingSource is GREEN.
+#   * A6: all 93 receipts of OrderingAxiomReport print inside the R-11 ceiling.
+#   * A7: the CensusProfileIdentity pin is amended to 32012 bytes and digest
+#     247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c under
+#     ruling R-P26, with a dated comment; the other three pins are unchanged.
+#
+# WhatwgTest.Streams.PromiseBridgeQ4 stayed green throughout. No entry remains,
+# so the trust gate's all-green control is restored.
 
 # U3 URL percent-encoding packet, frozen RED 2026-09-07 by the URL U3 breaker
 # seat on branch url/u3-breaker, based on 7345c96.

@@ -358,6 +358,40 @@ any status:
 
 The other five edges are untouched by the amendment.
 
+## Q4 landing, second pass, 2026-09-07, branch `promise/q4-builder-2`
+
+Appended by the Q4 builder seat, second pass. **Every row above this section is
+unchanged**, including the first landing table and the amendment table. Receipt:
+the "Q4 landing receipt (second pass)" of `docs/PROMISE-PACKAGE-PLAN.md`, which
+carries every command and its result line.
+
+**No edge closes here either.** All five declared batteries are green, the 93
+receipts print inside R-11 and `test/fixtures/trust-gate/known-red.txt` is
+empty — and none of that closes an edge, because a compiling battery closes no
+edge and this packet proves no `WellFormed`, no progress theorem and no host
+relation.
+
+| Edge | Status before | Status at this landing | What moved |
+| --- | --- | --- | --- |
+| identity | required-open | **required-open**, unchanged | All 15 class [R] ascriptions elaborate, item B1 answered by A1. Two Q4-owned views are added, `phaseErase` and `reactionErase`, and 86 `Source` names. No generated declaration snapshot exists, so the edge's own item is untouched |
+| construction | required-open | **required-open**, unchanged | Nothing new. CFG-START, CFG-CELLS, CFG-TOKENS, CFG-STACK and reachable-state preservation stay open |
+| semantics | required-open | **required-open**, unchanged | `notifySettled_queued_serial` ties a triggered registration's phase payload to the serial of the `.observer` token the same notification appended, under mask M2 — the first statement in this packet that relates the two supplies of decision 2 through the queue. CFG-EFFECTS, CFG-FIFO, CFG-RUNS, the foreign profile, the global scheduler and the live frontiers stay open |
+| laws | required-open | **required-open**, and fully delivered as stated | All 54 restated law ascriptions and all 15 Q4-owned bridging receipts are proved, and all 18 deferred-generalization ascriptions were already. B1 to B4 are answered by A1 to A4. `OrderingLaws.lean` and `OrderingContract.lean` are at zero diagnostics. The edge stays open on the obligations §3.3 lists, which no law here states |
+| representation | required-open | **required-open**, unchanged | The `Source` judgment adds no cell and no table: `Certificate`, `Binding` and `ReferenceEvent` are immutable source-side data, and `referenceErase` is a `List.filter`. Still one cell owner, one payload owner, no shadow scheduler and no second table |
+| counterexamples | required-open | **required-open**, and three certificate mutants landed | `mutantSelectedD0`, `mutantAliasedResults` and `mutantFlushOnW0` exist with their three rejection receipts, which is what keeps `sourceCheck = fun _ => true` from satisfying every receipt above them. Their `WS-CONFIG` register rows are still owed, `test/counterexamples/REGISTER.md` being outside the fence, and `WS-PROM-CE-039`'s row is owed at landing. No configuration witness and no scheduler mutant is landed |
+| bridges | required-open | **required-open**, and Q4's half of CFG-WPT landed | The whole seam is stated and proved as amendment A5 splits it: the four checkers with their `_iff` ties, the pinned certificate and reference with three non-vacuity receipts, `erasure_preserves_selected_order` on the reference side and `erases_prefix_selected_order` on the target side. The edge stays open on P8's half — `run_erases_to_reference`, the transcription gate, the host replay — and on CFG-LOCAL, CFG-OBS, CFG-HOST and the full component embeddings |
+| targets | not-applicable | **not-applicable**, unchanged | This landing generates no target program |
+| trust | required-open | **required-open**, and the receipt half delivered | All 93 named receipts print, all inside the R-11 ceiling: 16 with no axioms, 35 `[propext]`, 33 `[propext, Quot.sound]`, 9 `[propext, Classical.choice, Quot.sound]`. `lake exe trustselftest` passes in both directions against an **empty** declared red set, so the all-green control is restored. Independent review is still not done, and that is what the edge is now open on |
+| coverage | required-open | **required-open**, unchanged | No coverage state moves. A7 amends the Q1 identity pin to 32012 bytes / `247f9909…a63c` under R-P26, which is a disposition fact, not a coverage fact; the Streams block re-emits byte-identically and all four census standards pass |
+
+**Edges closed at this landing: none. Edges reopened: none.** What the landing
+does close is the packet's own delivery list: the 158 restated ascriptions, the
+15 Q4-owned receipts, the 38 `PromiseBridgeQ4` ascriptions and the 86 `Source`
+ascriptions all elaborate, with no statement changed. The
+configuration-breaker hold can be released on that basis; the coordinator owns
+that sentence, and the "Q4 landing receipt (second pass)" of
+`docs/PROMISE-PACKAGE-PLAN.md` carries it.
+
 ## Evidence ledger
 
 The specification byte-span cross-check, the intended-red commands and their
