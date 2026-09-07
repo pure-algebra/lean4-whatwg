@@ -26,13 +26,23 @@ slot.byte-offset	foreignBoundary	ECMAScript ArrayBufferView internal slot on a h
 slot.typed-array-name	foreignBoundary	ECMAScript TypedArray internal slot on a host view object
 slot.viewed-array-buffer	foreignBoundary	ECMAScript ArrayBufferView internal slot on a host view object
 
-# ECMAScript promise and completion-record internals. The root AGENTS.md
-# representation rules name promises among the runtime objects that are not
-# stored content, so they enter as typed decisions rather than as model state.
-# Weakest of the overrides here; it wants ratification.
-slot.promise-state	foreignBoundary	ECMAScript promise internal slot; AGENTS.md rules promises are not stored content
-slot.promise-is-handled	foreignBoundary	ECMAScript promise internal slot; AGENTS.md rules promises are not stored content
-slot.value	foreignBoundary	ECMAScript completion-record field read off a host abrupt completion
+# ECMAScript promise internals. Since slice Q3 of docs/PROMISE-PACKAGE-PLAN.md
+# these two slots are modelled in Lean, by Whatwg.Ecma262.Promise.State fused
+# with its Cell and Table, and the Streams algorithms reach them through the
+# views Writable.promiseTable and Readable.readTable. Ruling R-P5 says the
+# Streams rows become references into that library when P8 opens; slice Q4 is
+# that point. They stay in the denominator and stay absent until a witness is
+# named in WhatwgTest/Audit/SpecCoverage.lean.
+slot.promise-state	owned	modelled by Whatwg.Ecma262.Promise.State (slot.PromiseState 2744957..2745252 fused with slot.PromiseResult 2745263..2745619); reached from Streams through Writable.promiseTable and Readable.readTable (R-P5, slice Q4)
+slot.promise-is-handled	owned	modelled by the handled field of Whatwg.Ecma262.Promise.Cell (slot.PromiseIsHandled 2746322..2746637); reached from Streams through Writable.promiseTable and Writable.handled_bridge (R-P5, slice Q4)
+
+# The completion-record field stays foreignBoundary. It is not a promise slot:
+# SPEC-MANIFEST.md records it as a field read off a host abrupt completion, the
+# ES2026 census has no counterpart row for it (its result slot is
+# [[PromiseResult]]), and gap G-10 of the extraction inventory records that no
+# Completion carrier exists in Whatwg.Ecma262 at this pin. Re-dispositioning it
+# would name an owner that does not exist.
+slot.value	foreignBoundary	ECMAScript completion-record field read off a host abrupt completion; no Whatwg.Ecma262 counterpart at this pin (gap G-10)
 
 # ReadableStream's [[Detached]] exists only for the transferable-streams
 # protocol. Its enclosing section rs-internal-slots is owned, but the three
