@@ -91,3 +91,33 @@
 # Gates.Census.build and the ecma262 standard on 2026-09-07; that battery is
 # green and its entry is removed. No entry remains, so the trust gate's
 # all-green control is restored.
+
+# Q3 first promise packet, frozen RED 2026-09-07 by the Q3 packet breaker seat
+# on branch promise/q3-breaker, based on e819a9f.
+# Packet: test/contracts/promise-first-packet.contract.md.
+# Graph: docs/PROMISE-DAG.md (PROMISE-PG-FIRST).
+# Attacks: test/counterexamples/promise/ATTACKS.md (WS-PROM-CE-001..022).
+# Implementation fence: Whatwg/Ecma262/{Promise,Jobs}.lean,
+# Whatwg/WebIdl/{Promise,Exceptions}.lean, and the additive abbrevs, views and
+# bridging lemmas the move-and-generalize rows add inside Whatwg/Streams/**.
+# Each module below is red only because the names it ascribes do not exist yet:
+# the measured diagnostics are 1077 in total and every one is an unknown
+# identifier or constant, except two missing-structure consequences of a
+# missing type in PromiseLaws. There is no parse, import, type-mismatch or
+# instance-synthesis failure.
+#
+# WhatwgTest.Streams.PromiseBridge is red only in its bridging half; its
+# preservation half is green today and the packet's acceptance condition 2
+# requires it to stay green through the builder's landing. A repair that turns
+# the module green by weakening a preservation ascription is a refusal, not a
+# landing.
+#
+# The builder removes an entry the moment its battery is green.
+WhatwgTest.Ecma262.JobsContract
+WhatwgTest.Ecma262.JobsLaws
+WhatwgTest.Ecma262.PromiseContract
+WhatwgTest.Ecma262.PromiseLaws
+WhatwgTest.WebIdl.PromiseContract
+WhatwgTest.WebIdl.ExceptionsContract
+WhatwgTest.Streams.PromiseBridge
+WhatwgTest.Ecma262.PromiseAxiomReport
