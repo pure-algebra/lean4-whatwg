@@ -91,3 +91,30 @@
 # Gates.Census.build and the ecma262 standard on 2026-09-07; that battery is
 # green and its entry is removed. No entry remains, so the trust gate's
 # all-green control is restored.
+
+# Promise census Q2 addenda, frozen 2026-09-07 by the Q2 census breaker seat.
+# Packets: test/contracts/webidl-census-q2.contract.md,
+# test/contracts/ecma262-census-q2.contract.md. They are addenda to the two
+# frozen Q1 packets, which stay byte-identical; the Q2 amendments answer the
+# review debts D3, D4 and D5 of COORDINATION.md and the five Q2 acceptance
+# conditions of docs/PROMISE-PACKAGE-PLAN.md.
+#
+# Implementation fence: the Gates.Census.cli signature (one map from standard
+# key to emit, replacing the single Streams emit), bin/Census.lean,
+# census/webidl/{rules,dispositions,dependencies}.tsv,
+# census/ecma262/dispositions.tsv, the two generated projections and rows
+# modules those two standards write, the two new numerator modules
+# WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean, and the coverage blocks
+# in docs/SPEC-COVERAGE.md.
+#
+# Four entries. The two Q2 batteries are red because the cli signature they
+# ascribe does not exist yet and because the projections still carry the Q1
+# totals. The two Q1 batteries are red only because these addenda supersede
+# totals they froze — 121 rows and denominator 112 for Web IDL, denominator 74
+# for ECMA-262 — and each amended line in them names the addendum and the date;
+# nothing they check is wrong. The builder removes an entry the moment its
+# battery is green.
+WhatwgTest.Audit.WebIdl.CensusQ2Contract
+WhatwgTest.Audit.WebIdl.CensusContract
+WhatwgTest.Audit.Ecma262.CensusQ2Contract
+WhatwgTest.Audit.Ecma262.CensusContract
