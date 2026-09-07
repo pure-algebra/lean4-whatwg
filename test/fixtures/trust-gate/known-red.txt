@@ -86,6 +86,8 @@
 # R-P4 end locator, the webidl standard and census/webidl/** on 2026-09-06, so
 # WhatwgTest.Audit.CensusProfileIdentity and
 # WhatwgTest.Audit.WebIdl.CensusContract are green and their two entries are
-# removed. WhatwgTest.Audit.Ecma262.CensusContract stays red: it ascribes
-# Gates.Ecmarkup and the ecma262 standard, which are the ES2026 builder's.
-WhatwgTest.Audit.Ecma262.CensusContract
+# removed. WhatwgTest.Audit.Ecma262.CensusContract stayed red until the ES2026
+# builder landed Gates/Ecmarkup.lean, the ecmarkup dispatch arm of
+# Gates.Census.build and the ecma262 standard on 2026-09-07; that battery is
+# green and its entry is removed. No entry remains, so the trust gate's
+# all-green control is restored.
