@@ -16,7 +16,9 @@ algorithms	*	evidenceOnly
 primitive-data-types	*	owned
 data-structures	*	owned
 # JSON: the Infra-value forms and the two conversions are owned; the four
-# JavaScript-value forms are intrinsic calls and overridden to hostOnly.
+# JavaScript-value forms invoke external intrinsics and are overridden to
+# foreignBoundary. Their wrappers still have proof obligations when the JSON
+# packet opens; this disposition does not discharge those steps.
 json	*	owned
 forgiving-base64	*	owned
 namespaces	*	owned

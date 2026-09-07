@@ -129,21 +129,21 @@ def stripAndCollapseAsciiWhitespace (s : JsString) : JsString :=
 /-! Witnesses derived from the text's sentences. The CR CR LF case is the
 INFRA-R4 discriminator. -/
 
-example : stripNewlines (ofLiteral "a\nb\r\nc") = ofLiteral "abc" := by decide
+example : stripNewlines (ofLiteral "a\nb\r\nc") = ofLiteral "abc" := by decide +kernel
 
-example : normalizeNewlines (ofLiteral "a\r\nb\rc\n") = ofLiteral "a\nb\nc\n" := by decide
+example : normalizeNewlines (ofLiteral "a\r\nb\rc\n") = ofLiteral "a\nb\nc\n" := by decide +kernel
 
-example : normalizeNewlines (ofLiteral "\r\r\n") = ofLiteral "\n\n" := by decide
+example : normalizeNewlines (ofLiteral "\r\r\n") = ofLiteral "\n\n" := by decide +kernel
 
-example : (normalizeNewlines (ofLiteral "\r\r\n")).length = 2 := by decide
+example : (normalizeNewlines (ofLiteral "\r\r\n")).length = 2 := by decide +kernel
 
 example : stripLeadingAndTrailingAsciiWhitespace (ofLiteral " \t a b \n") = ofLiteral "a b" := by
-  decide
+  decide +kernel
 
 example : stripAndCollapseAsciiWhitespace (ofLiteral "  a \t\n b\x0c c  ") = ofLiteral "a b c" := by
-  decide
+  decide +kernel
 
-example : stripAndCollapseAsciiWhitespace (ofLiteral " \t ") = ofLiteral "" := by decide
+example : stripAndCollapseAsciiWhitespace (ofLiteral " \t ") = ofLiteral "" := by decide +kernel
 
 end JsString
 

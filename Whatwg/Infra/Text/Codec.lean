@@ -44,7 +44,7 @@ def isomorphicEncode (input : JsString) (h : input.isIsomorphicString = true) : 
   (codePoints input).pmap
     (fun c (hc : c.inRange 0x00 0xFF = true) =>
       UInt8.ofNatLT c.val (Nat.lt_succ_of_le (of_decide_eq_true hc).2))
-    (List.all_eq_true.mp h)
+    ((List.all_eq_true (p := fun c : CodePoint => c.inRange 0x00 0xFF)).mp h)
 
 /-- `isomorphicEncode` with its hypothesis decided at run time: `none` when
 the string is not an isomorphic string. -/

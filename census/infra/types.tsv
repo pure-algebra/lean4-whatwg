@@ -1,0 +1,29 @@
+# Carrier definitions of the pinned Infra text. Predicates, operations,
+# component projections, and named singleton values keep their op rows.
+# Each name must match exactly one definition; unused names fail generation.
+boolean
+8-bit-unsigned-integer
+16-bit-unsigned-integer
+32-bit-unsigned-integer
+64-bit-unsigned-integer
+128-bit-unsigned-integer
+8-bit-signed-integer
+16-bit-signed-integer
+32-bit-signed-integer
+64-bit-signed-integer
+byte
+byte-sequence
+code-point
+scalar-value
+string
+code-unit
+ascii-string
+isomorphic-string
+scalar-value-string
+list
+stack
+queue
+ordered-set
+ordered-map
+struct
+tuple

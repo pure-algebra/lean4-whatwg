@@ -6,8 +6,12 @@ import Whatwg.Streams.Strategy.CountQueuing
 import Whatwg.Streams.Strategy.ByteLengthQueuing
 import Whatwg.Streams.Strategy.Ops
 import Whatwg.Streams.Readable.Stream
+import Whatwg.Streams.Readable.State
 import Whatwg.Streams.Readable.DefaultController
 import Whatwg.Streams.Readable.DefaultReader
+import Whatwg.Streams.Readable.Step
+import Whatwg.Streams.Readable.Laws
+import Whatwg.Streams.Readable.Reentrancy
 import Whatwg.Streams.Readable.GenericReader
 import Whatwg.Streams.Readable.Tee
 import Whatwg.Streams.Readable.AsyncIteration
@@ -18,12 +22,22 @@ import Whatwg.Streams.Readable.Byte.PullInto
 import Whatwg.Streams.Writable.Stream
 import Whatwg.Streams.Writable.DefaultController
 import Whatwg.Streams.Writable.DefaultWriter
+import Whatwg.Streams.Writable.Step
+import Whatwg.Streams.Writable.Laws
+import Whatwg.Streams.Writable.Lifecycle
 import Whatwg.Streams.Writable.Backpressure
 import Whatwg.Streams.Transform.Stream
 import Whatwg.Streams.Transform.DefaultController
 import Whatwg.Streams.Transform.Backpressure
+import Whatwg.Streams.Transform.Step
+import Whatwg.Streams.Transform.Observation
+import Whatwg.Streams.Transform.Laws
+import Whatwg.Streams.Transform.Runs
 import Whatwg.Streams.Piping.Requirements
 import Whatwg.Streams.Piping.PipeTo
+import Whatwg.Streams.Piping.Step
+import Whatwg.Streams.Piping.Laws
+import Whatwg.Streams.Piping.Runs
 import Whatwg.Streams.Piping.PipeThrough
 import Whatwg.Streams.Boundary.UnderlyingSource
 import Whatwg.Streams.Boundary.UnderlyingSink
@@ -59,9 +73,9 @@ Production root of the WHATWG Streams reification library. Every library
 module is imported from here; a module not reachable from this root is not
 part of the production build and is rejected by the module-closure gate.
 
-The imports above are the P2 breadth scaffold: one module per area and named
-sub-area of the planned source tree in `docs/ARCHITECTURE.md`, in that
-table's order. Every one of them is a module docstring and nothing else.
-P2 declares no semantic object anywhere in this tree; a declaration arrives
-only behind a frozen contract packet and its counterexample register.
+The imports retain the P2 breadth scaffold, with implemented modules added
+behind their frozen contracts and counterexample packets. P3, P4a, P5a, P6a,
+and P7a now contain declarations; later categories remain declaration-free stubs
+until their own packets admit implementation. `PLAN.md` owns phase status
+and the category proof graphs own the remaining assurance obligations.
 -/

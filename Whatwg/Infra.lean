@@ -1,3 +1,18 @@
+import Whatwg.Infra.Bytes.Byte
+import Whatwg.Infra.Bytes.Sequence
+import Whatwg.Infra.Primitive.Integer
+import Whatwg.Infra.Primitive.Singleton
+import Whatwg.Infra.Text.CodePoint
+import Whatwg.Infra.Text.String
+import Whatwg.Infra.Text.Scalar
+import Whatwg.Infra.Text.Codec
+import Whatwg.Infra.Text.Case
+import Whatwg.Infra.Text.Order
+import Whatwg.Infra.Text.Substring
+import Whatwg.Infra.Text.Whitespace
+import Whatwg.Infra.Text.Scan
+import Whatwg.Infra.Namespaces
+
 /-!
 # Whatwg.Infra
 

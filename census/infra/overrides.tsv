@@ -3,3 +3,11 @@
 # Three tab-separated fields: <row id> <disposition> <reason>. An override
 # beats every line in dispositions.tsv; one that no row matches fails
 # generation.
+op.list-sort-in-ascending-order	requirement	The pinned text constrains order, membership, and stability without selecting a sorting algorithm.
+op.list-sort-in-descending-order	requirement	The pinned text constrains order, membership, and stability without selecting a sorting algorithm.
+op.map-sort-in-ascending-order	requirement	The pinned text constrains entry order and stability without selecting a sorting algorithm.
+op.map-sort-in-descending-order	requirement	The pinned text constrains entry order and stability without selecting a sorting algorithm.
+op.parse-a-json-string-to-a-java-script-value	foreignBoundary	Calls the ECMAScript JSON.parse intrinsic and returns a realm-bound JavaScript value.
+op.parse-json-bytes-to-a-java-script-value	foreignBoundary	Uses Encoding UTF-8 decoding and the ECMAScript JSON.parse boundary.
+op.serialize-a-java-script-value-to-a-json-string	foreignBoundary	Calls ECMAScript JSON.stringify on realm-bound values; its result and abrupt completion enter through a boundary profile.
+op.serialize-a-java-script-value-to-json-bytes	foreignBoundary	Uses the JavaScript serialization boundary and Encoding UTF-8 encoding.

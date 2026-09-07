@@ -30,15 +30,15 @@ return false. Let `potentialPrefixCodeUnit` be the `i`th code unit of
 Return false if `potentialPrefixCodeUnit` is not `inputCodeUnit`. Set `i` to
 `i` + 1." Bounded by the code units of `potentialPrefix` not yet visited. -/
 def codeUnitPrefixLoop (potentialPrefix input : JsString) (i : Nat) : Bool :=
-  if hp : potentialPrefix.length ≤ i then true
-  else if hi : input.length ≤ i then false
+  if hp : List.length potentialPrefix ≤ i then true
+  else if hi : List.length input ≤ i then false
   else
     let potentialPrefixCodeUnit := potentialPrefix[i]'(Nat.lt_of_not_le hp)
     let inputCodeUnit := input[i]'(Nat.lt_of_not_le hi)
     if potentialPrefixCodeUnit ≠ inputCodeUnit then false
     else codeUnitPrefixLoop potentialPrefix input (i + 1)
-termination_by potentialPrefix.length - i
-decreasing_by simp only [JsString.length] at *; omega
+termination_by List.length potentialPrefix - i
+decreasing_by omega
 
 /-- A string `potentialPrefix` "is a code unit prefix of a string `input` if
 the following steps return true", section `strings`: "Let `i` be 0", then
@@ -66,18 +66,18 @@ written here, and the two indices are then formed by natural subtraction
 once the tests have established that they are not negative. Bounded by the
 code units of `potentialSuffix` not yet visited. -/
 def codeUnitSuffixLoop (potentialSuffix input : JsString) (i : Nat) (hi : 1 ≤ i) : Bool :=
-  if hs : potentialSuffix.length < i then true
-  else if hn : input.length < i then false
+  if hs : List.length potentialSuffix < i then true
+  else if hn : List.length input < i then false
   else
-    let potentialSuffixIndex := potentialSuffix.length - i
-    let inputIndex := input.length - i
+    let potentialSuffixIndex := List.length potentialSuffix - i
+    let inputIndex := List.length input - i
     let potentialSuffixCodeUnit :=
-      potentialSuffix[potentialSuffixIndex]'(by simp only [JsString.length] at *; omega)
-    let inputCodeUnit := input[inputIndex]'(by simp only [JsString.length] at *; omega)
+      potentialSuffix[potentialSuffixIndex]'(by omega)
+    let inputCodeUnit := input[inputIndex]'(by omega)
     if potentialSuffixCodeUnit ≠ inputCodeUnit then false
     else codeUnitSuffixLoop potentialSuffix input (i + 1) (Nat.le_succ_of_le hi)
-termination_by potentialSuffix.length + 1 - i
-decreasing_by simp only [JsString.length] at *; omega
+termination_by List.length potentialSuffix + 1 - i
+decreasing_by omega
 
 /-- A string `potentialSuffix` "is a code unit suffix of a string `input` if
 the following steps return true", section `strings`: "Let `i` be 1", then
@@ -100,13 +100,13 @@ other"). The index returned carries the two bounds that make it a valid
 index of both strings. Bounded by the code units of `a` not yet visited. -/
 def firstDifferingIndex (a b : JsString) (n : Nat) :
     Option { n : Nat // n < List.length a ∧ n < List.length b } :=
-  if ha : a.length ≤ n then none
-  else if hb : b.length ≤ n then none
+  if ha : List.length a ≤ n then none
+  else if hb : List.length b ≤ n then none
   else if a[n]'(Nat.lt_of_not_le ha) ≠ b[n]'(Nat.lt_of_not_le hb) then
     some ⟨n, Nat.lt_of_not_le ha, Nat.lt_of_not_le hb⟩
   else firstDifferingIndex a b (n + 1)
-termination_by a.length - n
-decreasing_by simp only [JsString.length] at *; omega
+termination_by List.length a - n
+decreasing_by omega
 
 /-- A string `a` "is code unit less than a string `b` if the following steps
 return true", section `strings`: "If `b` is a code unit prefix of `a`, then
@@ -128,11 +128,11 @@ def isCodeUnitLessThan (a b : JsString) : Bool :=
 tilde is composed of a single code unit 0xFF5E, while the smiley is composed
 of two code units 0xD83D and 0XDE00, so the smiley is code unit less than
 the tilde". -/
-example : isCodeUnitLessThan [0xD83D, 0xDE00] [0xFF5E] = true := by decide
+example : isCodeUnitLessThan [0xD83D, 0xDE00] [0xFF5E] = true := by decide +kernel
 
 /-- The converse of the same example: the tilde is not code unit less than
 the smiley. -/
-example : isCodeUnitLessThan [0xFF5E] [0xD83D, 0xDE00] = false := by decide
+example : isCodeUnitLessThan [0xFF5E] [0xD83D, 0xDE00] = false := by decide +kernel
 
 end JsString
 

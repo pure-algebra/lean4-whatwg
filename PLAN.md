@@ -95,6 +95,92 @@ when their implementation is not imported.
 
 ## Current phase
 
+**Current phase, 2026-09-05:** P3 is landed. P4a's default-readable
+representative is implemented against the independently frozen packet
+`f4394d81d59739dd1410c6cc16df17ee147d6e1f`: 204 exact ascriptions, 94 theorem
+obligations, and 17 retained finite witnesses pass. `docs/READABLE-DAG.md`
+owns its landing receipt and remaining assurance edges. This is one attached
+default reader after successful start, with staged size and pull callbacks,
+local M1/M2 observations, and finite external-step composition. Full P4 is
+still open: lifecycle, cancellation, global scheduling, reachable-state and
+freshness invariants, full-state/host embeddings, and the clause-level
+coverage join remain required work.
+
+P5a's fixed attached writer representative is implemented against base
+`68fc922` (integrated as `5669062`), lifecycle addendum `b4f8642` (`47a86da`),
+and exact in-flight addendum `15d198c` (`5f7cebe`). Its 162 interface entries,
+109 local laws, two composed lifecycle proofs, and retained finite witnesses
+pass the 72-job narrow build; the default build passes 275 jobs. All 111
+named theorem receipts and the exhaustive root audit pass under R-11.
+`docs/WRITABLE-DAG.md` owns the exact landing commands and scope. Full P5
+remains open for setup/start, writer acquisition/release, reachable-state and
+freshness invariants, global scheduling and promise embeddings, DB-04 mask
+relations, and the clause-level coverage join.
+
+P6a transform/backpressure coupling is implemented against the independent
+`03547f1feb938d65898c47b4061faeb3f4bd9edf` packet, integrated as `5d95212`
+after P5a `e4d053a`; the two elaboration annotations are recorded at
+`e668767`. All 112 interface entries, 115 local laws, three composed runs
+through actual P4/P5 states, and fourteen retained witnesses pass the
+71-job narrow build. The default build passes 287 jobs; all 118 theorem
+receipts and the exhaustive root audit pass under R-11. The known-red set
+is empty. `docs/TRANSFORM-DAG.md` owns the landing commands, four finite Node
+observations and scope. Full P6 remains open for setup/start, arbitrary
+output sizing, flush/cancel/close/abort, reachable-state and shared-identity
+invariants, global scheduling, full-state/host and DB-04 embeddings, and the
+clause-level coverage join.
+
+P7a forward-error shutdown is implemented against independent packet
+`2f4318337b839de1cce5d12e5c1f31e594dc6222`, integrated as `ea03725` after
+P6a `afb57f8`. All 98 interface entries, 44 requirements/stage laws, two
+composed runs, 46 production receipts and sixteen retained finite witnesses
+pass the 75-job narrow build. The known-red set is empty. The quantified
+`forwardShutdown_realizes` proves `ForwardShutdownSpec` under
+`observeShutdown` for every admitted finite candidate run, using independently
+established read inventory, returned-promise references and phase invariants.
+The two composed proofs establish actual P4 enqueue/read prefixes and P5
+write/drain/abort paths with exact reason precedence. The endpoint is a
+request to finalize; canonical release, pipe-promise settlement, progress,
+full lifecycle, global M1/M2 and the clause-level coverage join remain open.
+`docs/PIPING-DAG.md` owns the landing receipt and remaining graph obligations.
+
+**Operator hold, 2026-09-05:** further semantics formalization is deferred
+until there are more consumers. The current action is final review and
+submission of the existing work for approval, without extending its scope.
+P8a configuration ordering is not admitted for implementation. Its separate
+`codex/configuration-breaker` worktree retains explicitly unfrozen and
+unverified drafts for one actual writable root, observer registrations and
+a global FIFO of job references; that draft is excluded from the submission.
+Resumption requires a consumer-driven scope decision and the independent
+breaker freeze. The identity, FIFO, effect-order, replay, progress and
+independent source-prefix obligations remain open. The breadth-before-depth
+rule still applies on resumption. Full P4–P12 remain open.
+
+The package also contains HTML H1–H4 and the Infra text implementations
+introduced by `c610a5e`. Earlier empty/uncommitted descriptions below are
+historical. The following integration receipt landed at `319e744`.
+
+The Infra merge broke the existing Streams coverage caller and introduced
+unelaborated codec and ordering definitions. The integration slice repaired
+those failures without widening their public signatures, imported the Infra
+modules into the audited root, and connected the definition census to CI.
+Infra's generated row list has no claimed theorem witnesses; its semantic
+proof packets and assurance records remain open. The hash configuration is
+restored to the exact `0168306` pin already carried by the manifest and
+provenance after the configured `2447edd` revision could not be fetched.
+The full reification still requires P4–P12 and the breadth contracts listed
+above; neither this integration slice nor the HTML work closes those phases.
+
+Integration verification, 2026-09-05: `lake --log-level=warning build`
+passed all 247 jobs. The root's axiom gate checked 113 modules and 6540
+declarations under R-11; the six `WS-INFRA-CE-001` finite probes reach only
+`propext`, `Quot.sound`, and `Classical.choice`. The built vendor seal,
+citations, TyXML schema, Streams census/report, and Infra census executables
+all passed. An independent read-only review checked the source corrections,
+dispositions, generated assurance wording, and residual proof scope. Infra's
+text graph and full Streams P4–P12 remain open; these integration receipts
+do not add a semantic coverage witness.
+
 P0 is complete. The package is an independent Lean 4.33.1 package with no
 dependencies. The six routers exist. The specification source, its reference
 implementation, and the WPT `streams/` directory are vendored at exact
