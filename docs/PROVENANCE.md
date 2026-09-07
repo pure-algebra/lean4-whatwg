@@ -18,6 +18,8 @@ Lake dependency section states its local object-check protocol explicitly.
 
 | Pin | Fetched | Command | Cross-check |
 | --- | --- | --- | --- |
+| `whatwg/webidl` @ `a652053f1e74e4aaf647528deb174012ed6c909f` (2026-03-16T07:19:44Z, "Review Draft Publication: March 2026"), `index.bs`, `LICENSE`, `README.md` | 2026-09-06, for P8 | `gh api repos/whatwg/webidl/git/trees/a652053f…` (not truncated), then binary reads from `https://raw.githubusercontent.com/whatwg/webidl/a652053f…/<path>`; no checkout or newline conversion | all three files match upstream blob hash (`git hash-object --no-filters`) and byte size: `index.bs` blob `5e28e635ae9106fe18dc8d4c7b14f79b23355995`, 695,845 bytes, SHA-256 `3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83`; `LICENSE` is the same 16,315-byte CC-BY blob and digest as Infra/HTML/Streams/URL; `README.md` blob `7232827147b3c121eab2451e4a41ba0c3cc5324a`, 2,402 bytes, SHA-256 `78d9b5da7b22ef6f39704a0cc52e96c9c16c17ab6770ee868903eed7b21f0d81`; all rows agree between Lean's vendor seal and independent PowerShell `Get-FileHash -Algorithm SHA256` |
+| `tc39/ecma262` @ `0248456c758431e4bb8e5d26333ff1865123c9cd` (tag `es2026`, 2026-03-31T05:40:50Z), `spec.html`, `LICENSE.md`, `README.md` | 2026-09-06, for P8 | the same blob route through `gh api repos/tc39/ecma262/git/trees/0248456c…` and `raw.githubusercontent.com` at the commit | all three files match upstream blob hash and byte size: `spec.html` blob `22dc069f5aeda770c1db2e389cbaa252188f43bf`, 2,978,793 bytes, SHA-256 `ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0`; `LICENSE.md` blob `6e6b6a4742069c493c4b66e06dad9e5bd9f05f9a`, 804 bytes, SHA-256 `484d4a9e3e4bab42e5e2f8703c34ed46e861fb62662e1818b4534d1e34584967`; `README.md` blob `a816344bf5bf7dbdf8723a1e0b2ee627d957ba4c`, 1,662 bytes, SHA-256 `68872cf8dcff99d980cccdfeef312e69a1b9cb84378494152f10c66ed8eb7c47`; seal and `Get-FileHash` agree |
 | `whatwg/url` @ `55d6699373ba68a16ec182f34222a74ed8bc3dac` (2026-08-18T11:17:15Z, "Review Draft Publication: August 2026"), `url.bs`, `LICENSE`, `README.md` | 2026-09-05, U0 | unauthenticated GitHub API tree at the exact commit, then binary reads from `https://raw.githubusercontent.com/whatwg/url/55d6699373ba68a16ec182f34222a74ed8bc3dac/<path>`; no checkout or newline conversion | all three files match upstream blob hash and byte size, checked by `git hash-object --no-filters`; `url.bs` blob `3fd9afa1ea31fe397f38b901b0d46ac290ad3fc9`, 162,680 bytes, SHA-256 `a5aa827f544f9077912dc1553cfd9025b6afa4e996460074b5f67d83e0f3c805`; `LICENSE` is the same 16,315-byte blob and digest as Infra/HTML/Streams; `README.md` blob `0c05995e577af064e2ba8c13293f10194a6c6d93`, 5,549 bytes, SHA-256 `bc515ffd0eed8dd34f5fb9cf2b0099239fa6844a13db1c3122393bc560820206`; all rows agree between Lean's vendor seal and independent PowerShell `Get-FileHash -Algorithm SHA256` |
 | WPT `url/**` @ existing `480fdfcd85d043c23875665f464c35c0043dff52`, 49 files | 2026-09-05, U0 | read root tree at the pin and recursive `url/` tree `63cdded2721ea89e3d28f9bae6ed31ffaeeaf591` through GitHub API; binary reads from `https://raw.githubusercontent.com/web-platform-tests/wpt/480fdfcd85d043c23875665f464c35c0043dff52/url/<path>` | the tree response is not truncated; every file matches upstream blob hash (`git hash-object --no-filters`) and byte size; all 49 Lean-generated manifest digests independently match `Get-FileHash`; existing WPT `LICENSE.md` retained byte-identically; fetched corpus only, no runner or host receipt |
 | `whatwg/streams` @ `b9ba9f49d95b4280be0dc2372377a006c3a91c18` (2026-08-18T11:17:34Z, "Review Draft Publication: August 2026") | 2026-09-01 | `git clone --filter=blob:none https://github.com/whatwg/streams` then `git checkout b9ba9f49…`; copied `index.bs`, `LICENSE`, `README.md`, and `reference-implementation/{lib/**, package.json, README.md, LICENSE.md, COPYING.txt, run-web-platform-tests.js, compile-idl.js}` | every one of the 54 files matches the upstream git blob object hash from `git ls-tree -r b9ba9f49…` (checked with `git hash-object --no-filters`); `index.bs` `24360b4f8446e6c80e185c5021fcca9b67a7e0bb62490a00109080ebc04c6440`, 417,076 bytes, agrees between both SHA-256 implementations and with `raw.githubusercontent.com` at the commit; every file's digest is in `generated/vendor-manifest.tsv` |
@@ -39,7 +41,7 @@ order), and on 2026-09-06 the vendor tree, the projection
 schema modules are authored source from that date; the HTML Standard is the
 sole authority. TyXML bootstrapped the shape and has no further role.
 
-Vendored licenses: WHATWG Streams, Infra, HTML, and URL Standards, CC-BY 4.0 with BSD-3-Clause for
+Vendored licenses: WHATWG Streams, Infra, HTML, URL, and Web IDL Standards, CC-BY 4.0 with BSD-3-Clause for
 portions incorporated into source code (`vendor/whatwg-streams-b9ba9f49/LICENSE`,
 `85dc6f5ccb57a6fe8c33d158f9fc8fc7ee5655a5d3db2cdd131c6a3d0f48a864`); reference
 implementation, dual CC0 / MIT (`reference-implementation/LICENSE.md`,
@@ -47,7 +49,12 @@ implementation, dual CC0 / MIT (`reference-implementation/LICENSE.md`,
 BSD-3-Clause. TyXML (LGPL-2.1 with the OCaml linking exception, `LICENSE`
 `98ffe2221c1f0e316987ea418aada8e9e860b3fb79693ee768034328465fd440`) was
 retained until 2026-09-06 as a schema source only, never compiled or linked;
-the transcribed schema is attributed in its module headers. All permit
+the transcribed schema is attributed in its module headers. ECMA-262 is
+under Ecma International TC39's IP policy (`vendor/ecma262-0248456c/LICENSE.md`,
+`484d4a9e3e4bab42e5e2f8703c34ed46e861fb62662e1818b4534d1e34584967`): the
+natural-language text under Ecma's alternative copyright notice, which permits
+reproduction for standards work, and the source code under Ecma's MIT-style
+software policy; it is retained as a specification source only. All permit
 retention with attribution; the upstream license files are retained in place.
 
 The NIST pins (FIPS 180-4 and the two CAVP response files) moved to

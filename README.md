@@ -81,5 +81,9 @@ judgment, observation mask, theorem, assumptions, and remaining host boundary.
 Standard source (CC-BY 4.0). `vendor/whatwg-streams-b9ba9f49/` carries the WHATWG Streams Standard source
 (CC-BY 4.0, with BSD-3-Clause for portions incorporated into source code) and
 its reference implementation (dual CC0 / MIT). `vendor/wpt-480fdfcd/` carries
-the Web Platform Tests `streams/` directory (BSD-3-Clause). Each tree keeps
-its upstream license file. Nothing under `vendor/` is edited.
+the Web Platform Tests `streams/` directory (BSD-3-Clause).
+`vendor/whatwg-webidl-a652053f/` carries the Web IDL Standard source (CC-BY
+4.0). `vendor/ecma262-0248456c/` carries the ECMAScript 2026 specification
+source under Ecma International's text copyright policy, read as a
+specification source and never redistributed as a derived document. Each tree
+keeps its upstream license file. Nothing under `vendor/` is edited.
