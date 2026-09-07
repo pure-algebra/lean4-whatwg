@@ -154,3 +154,36 @@
 # WhatwgTest.Ecma262.PromiseAxiomReport all print inside the R-11 ceiling:
 # 59 empty, 41 [propext], 20 [propext, Quot.sound], 5
 # [propext, Classical.choice, Quot.sound]. No entry remains.
+
+# Q4 DB-11 restatement of the held P8a configuration-ordering packet, frozen
+# RED 2026-09-07 by the Q4 restatement breaker seat on branch
+# promise/q4-breaker, based on f700230.
+# Packet: test/contracts/configuration-ordering.contract.md.
+# Graphs: docs/CONFIGURATION-DAG.md (CONFIGURATION-PG-ORDERING) and the "Q4"
+# section of docs/PROMISE-DAG.md.
+# Held draft, read-only source of the 158 restated ascriptions:
+# C:\Users\kokok\Dev\lean4-WHATWG-streams-configuration-breaker at 6c44e08
+# plus uncommitted edits. Nothing in that worktree is modified by this packet.
+#
+# Implementation fence: Whatwg/Streams/Semantics/*.lean (the Ordering
+# configuration calculus and its Source judgment), the three Q4 operations and
+# five rewritten bodies inside Whatwg/Streams/Readable/{State,DefaultController,
+# DefaultReader}.lean, the additive Q4 bridging lemmas in
+# Whatwg/Streams/{Readable,Transform}/Laws.lean, the two census/overrides.tsv
+# disposition entries and the census/README.md paragraph of item 3 of the
+# contract, and the four declaration-record rows of item 2. The builder also
+# authors WhatwgTest/Streams/Semantics/OrderingBridgeProofs.lean, which is
+# outside this frozen battery's edit fence.
+#
+# Five entries. Each module is red only because the names it ascribes do not
+# exist yet. The fifteen class [R] ascriptions of OrderingContract already
+# elaborate against the landed Whatwg.Ecma262 names and must keep elaborating:
+# a repair that turns a module green by weakening one of them is a refusal,
+# not a landing.
+#
+# The builder removes an entry the moment its battery is green.
+WhatwgTest.Streams.Semantics.OrderingContract
+WhatwgTest.Streams.Semantics.OrderingLaws
+WhatwgTest.Streams.Semantics.OrderingSource
+WhatwgTest.Streams.Semantics.OrderingAxiomReport
+WhatwgTest.Streams.PromiseBridgeQ4

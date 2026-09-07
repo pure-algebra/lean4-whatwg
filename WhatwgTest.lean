@@ -41,6 +41,11 @@ import WhatwgTest.WebIdl.PromiseContract
 import WhatwgTest.WebIdl.ExceptionsContract
 import WhatwgTest.Streams.PromiseBridge
 import WhatwgTest.Ecma262.PromiseAxiomReport
+import WhatwgTest.Streams.PromiseBridgeQ4
+import WhatwgTest.Streams.Semantics.OrderingContract
+import WhatwgTest.Streams.Semantics.OrderingLaws
+import WhatwgTest.Streams.Semantics.OrderingSource
+import WhatwgTest.Streams.Semantics.OrderingAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders
