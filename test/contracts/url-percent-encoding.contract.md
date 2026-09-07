@@ -529,3 +529,87 @@ admitted as a proof, and no full build was run in this worktree.
 No graph edge of `URL-PG-PERCENT` closes at this freeze. The packet states what
 the builder must prove; it claims no implementation, no coverage, no host
 observation, and no property of the Encoding Standard or of ECMA-262.
+
+## Builder notes
+
+Appended by the U3 builder seat on 2026-09-07, branch `url/u3-builder` from
+`url/u3-breaker` at `5fa88a2`. **This section is additive.** No frozen
+statement, span, digest, count, acceptance condition or freeze-receipt line
+above it is changed, and no file under `WhatwgTest/` was touched:
+`git diff --name-only 5fa88a2 -- WhatwgTest` is empty, so the three batteries
+and the fifteen retained finite witnesses are byte-identical to the freeze.
+
+**No ascription failed to elaborate.** All 60 interface `#check`s, all 95 law
+`#check`s and all 95 `#print axioms` names resolve with no token changed, so no
+item below carries a diagnostic and acceptance condition 1 is met with an empty
+elaboration-repair list. The measured landing evidence, the audit delta and the
+receipt distribution are in the "U3 landing receipt" of
+`docs/URL-PACKAGE-PLAN.md`; the edge closures are in the "Landing" section of
+`docs/URL-PERCENT-ENCODING-DAG.md`.
+
+**Infra candidates.** Four facts the laws need do not exist under
+`Whatwg/Infra/`. Each was proved locally as a private lemma in
+`Whatwg/Url/PercentEncoding.lean`, and **nothing under `Whatwg/Infra/` was
+changed**, per the packet's fence and acceptance condition 6.
+
+1. `codePoints_of_no_lead : (∀ u ∈ s, u.toNat < 0xD800) →
+   JsString.codePoints s = s.map CodePoint.ofUnit`. Home:
+   `Whatwg/Infra/Text/String.lean`, beside `codePoints`.
+2. `isAsciiString_of_units : (∀ u ∈ s, u.toNat ≤ 0x7F) →
+   JsString.isAsciiString s = true`. Home: `Whatwg/Infra/Text/String.lean`.
+3. `isomorphicEncode_eq : JsString.isomorphicEncode s h =
+   (JsString.codePoints s).map (fun c => UInt8.ofNat c.val)`, via a generic
+   `pmap_eq_map_of`. Home: `Whatwg/Infra/Text/Codec.lean`. `isomorphicEncode` is
+   written with `List.pmap` and is otherwise opaque to rewriting.
+4. `asciiEncode?_eq : (∀ u ∈ s, u.toNat ≤ 0x7F) →
+   JsString.asciiEncode? s = some (s.map (fun u => UInt8.ofNat u.toNat))`. Home:
+   `Whatwg/Infra/Text/Codec.lean`, beside `asciiEncode?`. This is the
+   load-bearing one: all four round-trip laws are stated through
+   `asciiEncode?`, which is a `dite` over `isAsciiString` wrapping the `pmap`,
+   and without a computed form none of them can be discharged.
+
+**Choice minimization (the URL lane objective).** Ten of the 95 receipts reached
+`Classical.choice` in the first pass; all ten were re-proved constructively with
+no statement touched, and the final measurement is **0 of 95 reaching
+`Classical.choice`** — 42 with no axioms, 29 `[propext]`, 24
+`[propext, Quot.sound]`. The exact dependency path in every case was `omega`:
+it reaches `Classical.choice` when it must case-split a disjunctive hypothesis
+against a goal that mixes `∨` with `∧`, or negate a conjunction in a hypothesis.
+The three inclusive-range membership laws now go through `or_congr` and a
+private `three_or_iff_range`; `setOf_includes_non_ascii` uses `Nat.lt_or_ge`
+and `of_decide_eq_false` instead of `omega` on a negated conjunction, which also
+freed its four dependents (`followsUtf8Advice_component`,
+`utf8PercentEncodeString_isAsciiString`, `roundTrip_component`,
+`roundTrip_form`); and `form_complement` and `component_complement` split at
+U+007F, deciding the 127 values below by kernel reduction through
+`Nat.decidableBallLT` and settling the rest from the C0 control set's second
+clause.
+
+**Implementation shape, for a reviewer.**
+
+- `percentDecodeBytes` uses four top-level list patterns (`[]`, `[b]`, `[b, o]`,
+  `b :: f :: s :: t`). The inner-`match` shape is rejected by Lean's
+  structural-recursion checker and falls back to well-founded recursion, which
+  would also stop the finite probes reducing in the kernel. The two short
+  patterns are step 2.2 with fewer than two following bytes.
+- `decimalDigits` runs a fuel-bounded loop whose fuel is the value it prints, so
+  the recursion is structural and the 8253 probes reduce in the kernel.
+- The four `percentEncodeAfterEncoding_example_*` probes are preceded by
+  `rw [percentEncodeAfterEncoding_eq]` because `decide` refuses a goal with a
+  free variable, and their encoder label is free and unused.
+- `percentEncodeAfterEncoding`'s encoding argument and
+  `utf8PercentEncodeCodePoint`'s scalar value are spelled `_encoding` and
+  `_scalarValue`: the algorithm's own text puts step 1 in the separate
+  `encodingAssertion` predicate, exactly as this contract's interface splits
+  them, and `linter.unusedVariables` is an error under the package's
+  `warningAsError = true`. Binder names only; the frozen signatures are
+  unchanged.
+- `setOf_injective` is proved from eight separating code points — U+0020,
+  U+0023, U+0027, U+003F, U+002F, U+0024, U+0021, U+0060, the seven strictness
+  witnesses plus the omission `rule.query-fragment-encode-set-difference` names
+  — so its 64 cases close by kernel reduction.
+
+**Measured declaration delta.** 13055 → 13584 declarations in the root audit,
+that is **+529 in the two modules: 155 authored public names, exactly the
+"Expected declaration delta" above, plus 135 private helpers and 239
+Lean-generated constants**.

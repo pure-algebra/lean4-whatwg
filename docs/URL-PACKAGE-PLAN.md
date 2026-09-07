@@ -458,3 +458,175 @@ No parse error, import error, type mismatch, or failed instance synthesis
 appears in the red output. No graph edge of `URL-PG-PERCENT` closes at this
 freeze, no URL coverage denominator, numerator or report exists or is implied,
 and U3 through U10 remain open.
+
+### U3 landing receipt (builder, 2026-09-07)
+
+Branch `url/u3-builder` from `url/u3-breaker` at `5fa88a2`, merged with `main`
+at `105d218` (one documentation commit, `COORDINATION.md`, no conflict). The
+builder implemented the two modules the packet fences and nothing else.
+
+**Files changed by this seat.** `Whatwg/Url/Boundary.lean` and
+`Whatwg/Url/PercentEncoding.lean` (both declaration-free stubs before),
+`Whatwg/Url.lean` (root docstring only, from "declaration-free bootstrap stubs"
+to the landed surface), `test/fixtures/trust-gate/known-red.txt` (the three U3
+entries removed, the packet note kept and extended),
+`docs/URL-PERCENT-ENCODING-DAG.md` (landing rows) and this subsection. **No file
+under `WhatwgTest/` changed at all**: `git diff --name-only 5fa88a2 --
+WhatwgTest` is empty, so the three frozen batteries and the fifteen retained
+finite witnesses are byte-identical to the freeze and no elaboration repair was
+needed. Nothing under `vendor/`, `generated/`, `census/`, `Gates/`,
+`WhatwgTest/Audit`, `Whatwg/Infra`, `Whatwg/Streams`, `SPEC-MANIFEST.md`,
+`PLAN.md`, `COORDINATION.md` or `test/counterexamples/REGISTER.md` changed.
+
+**Statement fidelity.** All 60 interface ascriptions and all 95 law ascriptions
+elaborate with no token changed, and the 95 `#print axioms` names all resolve.
+Acceptance condition 1 is met with an empty repair list.
+
+| Command | Result |
+| --- | --- |
+| `git merge --no-edit origin/main` | clean, one commit (`COORDINATION.md`), no conflict |
+| `lake --wfail build Whatwg Gates` | PASS, 164 jobs |
+| `lake env lean -DmaxErrors=5000 WhatwgTest/Url/PercentEncodingContract.lean` | exit 0, 0 diagnostics (was exit 1, 114) |
+| `lake env lean -DmaxErrors=5000 WhatwgTest/Url/PercentEncodingLaws.lean` | exit 0, 0 diagnostics (was exit 1, 354) |
+| `lake env lean -DmaxErrors=5000 WhatwgTest/Url/PercentEncodingAxiomReport.lean` | exit 0, 0 diagnostics (was exit 1, 95) |
+| `lake env lean -DmaxErrors=5000 WhatwgTest/Url/Counterexamples/PercentEncoding.lean` | exit 0, unchanged; all fifteen mutant witnesses still pass by kernel reduction |
+| `lake --wfail build WhatwgTest` | PASS, 229 jobs |
+| `lake exe trustselftest` | PASS; "declared red set matches the observed red set (0 module(s))", every planted `partial`, `unsafe`, `sorry`, `native_decide`, malformed-literal and unreachable-module probe rejected for its stated reason |
+| `lake exe vendorseal` | PASS, manifest and `vendor/` agree in both directions; every path valid on Windows |
+| `lake exe citations` | PASS, 344 files scanned, no line-numbered citation into a protected authored document |
+| `lake exe urlinventory` | PASS, pinned bytes, 1473 source candidates, projection byte-identical |
+| `lake exe urlcensus` | PASS, both projections byte-identical |
+| `lake exe census` | PASS (streams), 450 rows, denominator 410, 12 green / 6 partial / 392 absent, both projections byte-identical |
+| `lake exe census --standard infra` | PASS, 176 rows, denominator 165; no numerator exists for this standard |
+| `lake exe census --standard webidl` | PASS, 124 rows, denominator 116, emit agrees row for row |
+| `lake exe census --standard ecma262` | PASS, 77 rows, denominator 75, emit agrees row for row |
+
+**Measured audit delta.** The gate line is
+`Whatwg module and axiom gate: checked N modules and M declarations (1477 in the
+Gates tooling tree)`. Before, measured on this branch with the three red battery
+files and their three imports temporarily removed so the build could complete:
+**197 modules, 13055 declarations**. After: **200 modules, 13584 declarations**.
+The three modules are the restored batteries, which declare nothing. The
+**+529 declarations** are all in the two implemented modules and decompose as
+**155 authored public names — exactly the contract's expected 155 — plus 135
+private helpers and 239 Lean-generated constants**. The generated constants are
+constructors, field projections, recursors, `noConfusion`/`noConfusionType`,
+`below`/`brecOn`/`binductionOn`, the derived `DecidableEq` and `Repr` instances,
+`.elim`/`ctorElim`/`ctorElimType`/`ofNat_ctorIdx`, equation lemmas and `eq_def`,
+`match_*` and `proof_*` auxiliaries, `percentDecodeBytes.induct`, and two
+`congr_simp` lemmas Lean attributes to this module for
+`Whatwg.Infra.CodePoint.mk` and `Whatwg.Infra.JsString.pairValue`.
+
+**The 95 receipts, by ceiling.** All inside R-11 (`propext`, `Quot.sound`,
+`Classical.choice`), and **none reaches `Classical.choice`**:
+
+| Axioms | Receipts |
+| --- | --- |
+| (none) | 42 |
+| `[propext]` | 29 |
+| `[propext, Quot.sound]` | 24 |
+| `[propext, Classical.choice, Quot.sound]` | 0 |
+
+**Graph edges.** Four of the ten `URL-PG-PERCENT` edges close at this landing —
+`construction`, `semantics`, `laws`, `trust` — with the theorem names recorded
+in the "Landing" section of `docs/URL-PERCENT-ENCODING-DAG.md`. Five stay
+`required-open`: `identity` (no URL declaration-snapshot join exists),
+`representation` (same, plus the unruled Encoding owner), `counterexamples` (the
+production half is discharged, the central `REGISTER.md` rows are the
+coordinator's), `bridges` (both bridges unproved) and `coverage` (URL has no
+denominator, numerator or report; none is inferred from a green battery).
+`targets` stays `not-applicable`. **The encoding obligation stays open**: no
+ruling on pinning the Encoding Standard had arrived when this landed, so option
+(B) holds, `op.percent-decode-string`, `op.utf8-percent-encode-code-point` and
+`op.utf8-percent-encode-string` keep their unowned UTF-8 half, and no
+`utf8Encode` is declared anywhere.
+
+#### Builder notes
+
+No ascription failed to elaborate, so no frozen statement carries a diagnostic
+and the contract's statement table is untouched. The notes below are the
+implementation facts a reviewer needs and the Infra candidates the packet
+produced; the same list is appended to the contract as an additive
+"Builder notes" section that changes no frozen statement.
+
+- **B1 (Infra candidate).** `JsString.codePoints` has no lemma saying that a
+  string with no leading surrogate has one code point per code unit. Proved
+  locally as the private `codePoints_of_no_lead :
+  (∀ u ∈ s, u.toNat < 0xD800) → JsString.codePoints s = s.map CodePoint.ofUnit`.
+  Its natural home is beside `codePoints` in `Whatwg/Infra/Text/String.lean`.
+  Nothing under `Whatwg/Infra/` was changed.
+- **B2 (Infra candidate).** `JsString.isAsciiString` has no introduction rule
+  from a per-code-unit bound. Proved locally as the private
+  `isAsciiString_of_units : (∀ u ∈ s, u.toNat ≤ 0x7F) → s.isAsciiString = true`.
+  Home: `Whatwg/Infra/Text/String.lean`.
+- **B3 (Infra candidate).** `JsString.isomorphicEncode` is written with
+  `List.pmap` and is therefore opaque to `rw`. Proved locally as the private
+  `isomorphicEncode_eq : isomorphicEncode s h = (codePoints s).map (fun c =>
+  UInt8.ofNat c.val)`, through a generic private `pmap_eq_map_of`. Home:
+  `Whatwg/Infra/Text/Codec.lean`.
+- **B4 (Infra candidate, the load-bearing one).** All four round-trip laws are
+  stated through `JsString.asciiEncode?`, which is a `dite` over
+  `isAsciiString` wrapping the `pmap`; without a computed form the laws cannot
+  be discharged at all. Proved locally as the private `asciiEncode?_eq :
+  (∀ u ∈ s, u.toNat ≤ 0x7F) → asciiEncode? s = some (s.map (fun u => UInt8.ofNat
+  u.toNat))`. Home: `Whatwg/Infra/Text/Codec.lean`, beside `asciiEncode?`.
+- **B5.** `(UInt16.ofNat n).toNat = n % 65536` is `rfl` but core states its
+  lemma only for the `OfNat` literal form, so the private `toNat_ofNat16` was
+  added. This is a Lean-core matter, not an Infra candidate.
+- **B6 (choice minimization, the URL lane objective).** `omega` reaches
+  `Classical.choice` exactly when it must case-split a disjunctive hypothesis
+  against a goal that mixes `∨` with `∧`, or negate a conjunction in a
+  hypothesis. Measured on the pinned toolchain: `(a = 5 ∨ a = 6) ↔ (5 ≤ a ∧ a ≤
+  6)` by `omega` gives `[propext, Classical.choice, Quot.sound]`, and so does
+  `(a = 5 ∨ a = 6) → (5 ≤ a ∧ a ≤ 6)`, while `(5 ≤ a ∧ a ≤ 6) → (a = 5 ∨ a = 6)`
+  and every purely inequational goal give `[propext, Quot.sound]`. Ten of the 95
+  receipts reached `Classical.choice` in the first pass —
+  `userinfo_mem_iff`, `component_mem_iff`, `form_mem_iff`, `form_complement`,
+  `component_complement`, `setOf_includes_non_ascii`,
+  `followsUtf8Advice_component`, `utf8PercentEncodeString_isAsciiString`,
+  `roundTrip_component`, `roundTrip_form` — and all ten were re-proved
+  constructively, with no statement touched:
+  - the three inclusive-range membership laws go through `or_congr` and a
+    private `three_or_iff_range`, whose only `omega` calls are plain
+    inequalities and one purely disjunctive goal;
+  - `setOf_includes_non_ascii` replaces `omega` on a negated conjunction with
+    `Nat.lt_or_ge` and `of_decide_eq_false`, which removed choice from its four
+    dependents as well;
+  - `form_complement` and `component_complement` split at U+007F: the 127 values
+    below are settled by kernel reduction through `Nat.decidableBallLT` over a
+    private `ofVal`, and above U+007E the C0 control set's second clause settles
+    both sides.
+  Final measurement: 0 of 95 reach `Classical.choice`.
+- **B7.** `percentDecodeBytes` is written with four top-level list patterns
+  (`[]`, `[b]`, `[b, o]`, `b :: f :: s :: t`). The more literal shape, an inner
+  `match rest with`, is rejected by Lean's structural-recursion checker
+  ("failed to eliminate recursive application `percentDecodeBytes rest`") and
+  falls back to well-founded recursion, which would also stop the finite probes
+  from reducing in the kernel. The two short patterns are step 2.2 with fewer
+  than two following bytes, which the docstring records. For the same reduction
+  reason `decimalDigitsAux` takes an explicit `Nat` fuel — the value it is
+  printing, a size the data carries — rather than recursing well-foundedly on
+  `value / 10`.
+- **B8.** `decide` refuses a goal containing free variables. The four
+  `percentEncodeAfterEncoding_example_*` probes quantify over an unused encoder
+  label, so each is preceded by `rw [percentEncodeAfterEncoding_eq]`, which
+  discharges the ignored encoder argument before the kernel reduces the rest. No
+  statement changed.
+- **B9.** `percentEncodeAfterEncoding` does not read its `encoding` argument —
+  step 1 is the separate `encodingAssertion` predicate, exactly as the frozen
+  interface splits them — and `utf8PercentEncodeCodePoint` does not read its
+  `scalarValue`. Both binders are spelled with a leading underscore, as is the
+  unused hypothesis of `utf8PercentEncodeCodePoint_eq`, because
+  `linter.unusedVariables` is an error under the package's
+  `warningAsError = true`. This is a binder-name choice; the frozen signatures
+  and propositions are unchanged.
+- **B10.** `setOf_injective` is proved from eight separating code points —
+  U+0020, U+0023, U+0027, U+003F, U+002F, U+0024, U+0021 and U+0060, which are
+  the seven strictness witnesses plus the omission
+  `rule.query-fragment-encode-set-difference` names — collected in a private
+  `separators`/`signature` pair so the 64 cases close by kernel reduction rather
+  than 56 hand-written witnesses.
+
+Nothing in this landing is reported as coverage; acceptance condition 7 holds.
+U4 through U10 remain open, and the URL lane's full reification and
+choice-minimization objectives remain active.

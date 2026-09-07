@@ -21,6 +21,11 @@ sealed under `vendor/whatwg-url-55d66993/`. `SPEC-MANIFEST.md` owns the pin and 
 `docs/PROVENANCE.md` owns the fetch and digest cross-check. The WPT `url/` corpus is evidence
 at the existing WPT pin, not the semantic owner.
 
-This root and every imported URL module are declaration-free bootstrap stubs. The URL census,
-public declaration records, frozen breaker packets, and proofs follow `docs/URL-PACKAGE-PLAN.md`.
+Two of the imported modules now carry declarations, from the U3 percent-encoding packet
+(`test/contracts/url-percent-encoding.contract.md`, graph `URL-PG-PERCENT` in
+`docs/URL-PERCENT-ENCODING-DAG.md`): `Whatwg.Url.PercentEncoding` owns the twenty census rows of
+the `percent-encoded-bytes` section and the eight percent-encode sets, and `Whatwg.Url.Boundary`
+owns the Encoding Standard's answer shapes as DB-02 first-order data. Every other imported URL
+module remains a declaration-free bootstrap stub. The URL census, public declaration records,
+frozen breaker packets, and proofs follow `docs/URL-PACKAGE-PLAN.md`.
 -/

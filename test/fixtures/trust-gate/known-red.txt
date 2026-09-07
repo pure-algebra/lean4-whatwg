@@ -177,6 +177,13 @@
 #
 # The builder removes an entry the moment its battery is green. Turning a
 # battery green by weakening an ascription is a refusal, not a landing.
-WhatwgTest.Url.PercentEncodingContract
-WhatwgTest.Url.PercentEncodingLaws
-WhatwgTest.Url.PercentEncodingAxiomReport
+#
+# The U3 builder seat landed the packet on branch url/u3-builder in two modules
+# (Whatwg/Url/Boundary.lean first, then Whatwg/Url/PercentEncoding.lean) on
+# 2026-09-07. All three batteries are green with no token of any ascription
+# changed: the 60 interface #checks, the 95 law #checks and the 95 #print axioms
+# all elaborate, and WhatwgTest.Url.Counterexamples.PercentEncoding stayed green
+# and byte-identical throughout. The 95 named receipts print inside the R-11
+# ceiling and none reaches Classical.choice: 42 with no axioms, 29 [propext],
+# 24 [propext, Quot.sound]. All three entries are removed, so the trust gate's
+# all-green control is restored. No entry remains.
