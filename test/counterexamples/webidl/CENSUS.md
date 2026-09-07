@@ -176,14 +176,114 @@ Encoded as: the contract's requirement that the scope is a predicate the
 scanners consult, together with the frozen `idl` count of 37, which is
 reachable only from the two in-scope blocks.
 
+## WEBIDL-CEN-CE-013 — normative steps written as a plain `<ol>` produce no row
+
+Seeded 2026-09-07 by the Q2 census breaker seat, alongside
+`test/contracts/webidl-census-q2.contract.md` and its frozen battery
+`WhatwgTest/Audit/WebIdl/CensusQ2Contract.lean`. Review debt D3.
+
+Attacked: the row-source ladder as a whole — `Gates.Census.scanOps`,
+`scanDefinitions` and `scanIdl` together. `DOMException`'s
+[=serialization steps=] and [=deserialization steps=], at bytes 676192 and
+676693, are normative steps, stated in order, that every WHATWG structured
+clone of a `DOMException` runs. No `<div>` carries an `algorithm` attribute
+over them, no `<dfn>` opens inside them, and they are not IDL, so every
+scanner passes over them and the census reports `PASS` with 121 rows. The
+error is invisible in exactly the way that matters: the *derived* interface
+`QuotaExceededError` states the same two operations inside
+`<div algorithm="…">` blocks and does get rows
+(`op.quota-exceeded-error-serialization-steps` at 216470–216860,
+`op.quota-exceeded-error-deserialization-steps` at 216862–217258), so a reader
+of the census sees the derived interface's steps and concludes the base
+interface has none.
+
+Encoded as: the frozen rows `rule.domexception-serialization-steps` at
+676192–676691 and `rule.domexception-deserialization-steps` at 676693–677111,
+with their digests, their 48-byte anchors and their `owned` disposition; and
+the frozen `rule` count of 9. Forced repair: two authored entries in
+`census/webidl/rules.tsv` using ruling R-P4's end locator, plus an
+`idl-DOMException rule owned` line in `census/webidl/dispositions.tsv`.
+
+## WEBIDL-CEN-CE-014 — one direction of a conversion pair has a row and the other does not
+
+Seeded 2026-09-07, review debt D5.
+
+Attacked: the same ladder, in the `js-promise` lead section. The
+JavaScript-to-IDL direction is
+`<div id="js-to-promise" algorithm="convert a JavaScript value to promise">`
+at 346692 and is the row `op.js-to-promise`. The IDL-to-JavaScript direction,
+immediately after it, is a bare `<p id="promise-to-js">` at 347211 and is
+nothing. A census that carries one direction of a stated conversion pair and
+not the other silently asserts that only one direction is specified, and the
+`js-promise` lead's `hostOnly` disposition then covers one row where the text
+states two obligations.
+
+Encoded as: the frozen row `rule.promise-to-js` at 347211–347495, digest
+`ef392964ee06eff2e3fd5682ecbb9704d004d704ec7de1032f8d40d9d535a111`, 24-byte
+anchor, disposition `hostOnly` from the unchanged `js-promise *` line, and the
+frozen `js-promise` lead count of 2. Forced repair: a third authored entry in
+`census/webidl/rules.tsv`. Recorded alternative, rejected with the source: an
+`op` row is unreachable because the element is a `<p>`, and a definition row is
+unreachable because the paragraph carries no `<dfn>` and its two autolinks
+resolve into a section outside the frozen scope.
+
+## WEBIDL-CEN-CE-015 — `evidenceOnly` removes a `must`-propagate obligation from the denominator
+
+Seeded 2026-09-07, review debt D4.
+
+Attacked: the disposition join, at `js-handling-exceptions`.
+`op.an-exception-was-thrown` at 669437–669665 is an exported normative `<dfn>`
+sitting under a sentence that requires the exception to propagate. Under
+`evidenceOnly` the row leaves the denominator, and `docs/SPEC-COVERAGE.md`
+then owes it nothing: no witness is ever expected, and no host-profile refusal
+is ever recorded against it. The row is still in the census, so the defect
+looks like a complete record.
+
+Encoded as: the frozen entry
+`⟨"op.an-exception-was-thrown", .hostOnly, .absent, []⟩` in
+`WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean`, and the frozen
+`evidenceOnly` count of 8 against `hostOnly` 49. Forced repair: change the
+disposition of the section's one line in `census/webidl/dispositions.tsv`.
+Recorded alternative, rejected because it does not generate: an entry in
+`census/webidl/overrides.tsv` would leave the section's own line matching no
+row, and `Gates.Census.finishBuild` fails on an authored entry that outlived
+its rows.
+
+## WEBIDL-CEN-CE-016 — the report prints from a file a person can edit
+
+Seeded 2026-09-07, Q2 acceptance 4.
+
+Attacked: the shape of the coverage report for a standard with a census but no
+numerator. Two wrong repairs are available and both look like progress: print
+the block from the generated `SpecCoverageRows.lean` directly, in which case a
+hand edit to one disposition moves the denominator with no gate; or keep
+`Gates.Census.cli` carrying one emit and give the two new standards an empty
+one, in which case `--report` prints a block that was never compared against a
+census regeneration. Either way the estate acquires a number nothing checks.
+
+Encoded as: the frozen `Gates.Census.cli` signature
+`List (String × Array Gates.Census.CoverageRow) → List String → IO UInt32`,
+the two `bin/Census.lean` map entries, the two numerator modules
+`WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean`, and the exact
+all-`absent` block text. The check that makes the block trustworthy is
+`Gates.Census.verifyEmit`, which re-derives ids, order and dispositions from a
+fresh regeneration before `report` prints. The frozen refusal that must
+survive the change is `lake exe census --standard infra --report`, still exit
+2 with `census: no coverage numerator exists for infra, so there is no report
+yet`: a change that makes every standard reportable by inventing an empty emit
+for Infra erases the record that Infra has no numerator.
+
 ## Scope
 
 These are finite tooling probes over a pinned source. They contribute no Web
 IDL semantic theorem, no coverage state, no denominator the numerator may
-quote, no host observation and no axiom receipt. The narrow command is
+quote, no host observation and no axiom receipt. The two coverage blocks
+`WEBIDL-CEN-CE-016` freezes are all-`absent`: they state that nothing is
+proved. The narrow commands are
 
 ```text
 lake build WhatwgTest.Audit.WebIdl.CensusContract
+lake build WhatwgTest.Audit.WebIdl.CensusQ2Contract
 ```
 
 and the coordinator owns the full build, the actual axiom receipt and the
