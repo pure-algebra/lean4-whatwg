@@ -177,3 +177,56 @@ No row of the clause map above is claimed whole-row green: every "residual
 before whole-row green" column entry is still residual, and each is recorded
 against its gap id in the module docstrings of the four implementation modules
 and in the two updated roots.
+
+## Q3b addendum, 2026-09-07, branch `promise/q3b-breaker`
+
+Appended by the Q3b addendum breaker seat, based on `f700230`. Contract:
+`test/contracts/promise-first-packet-q3b.contract.md`. Attacks: the sixteen new
+rows `WS-PROM-CE-023`..`WS-PROM-CE-038` of
+`test/counterexamples/promise/ATTACKS.md`.
+
+**Every landed row above is unchanged.** The authority-anchor table, the
+declaration and existing-type records, the ten-edge table, the clause map and
+the "Q3 landing" section keep their text. This section adds nothing to the
+graph's inventory: it states which edges the addendum **closes on landing**,
+and which it reopens or leaves as R-P20 left them. Nothing here closes an edge
+at freeze; the addendum is RED and its five batteries are declared in
+`test/fixtures/trust-gate/known-red.txt` together with the four base batteries
+that carry an amended ascription.
+
+The addendum answers the six fidelity findings **F1–F6** of ruling R-P20 and
+the minors that ruling lists. It adds one alias to the anchor table's reading —
+`CAPFIELD`, `field.promisereaction-records.Capability`, 2691475..2691802,
+digest `67b47fd1bc6773cb099432f10db3b5b427d445cd1a10077db3ec90ec381d6a77` — and
+one more, `JOBS4`, `requirement.jobs.4`, 626486..626589, digest
+`22934fdf600a46d75443c562c8de0fdd4f441e8f67c4816d25ac4ec03aca194b`; both are
+carried by the addendum's §2 rather than inserted above.
+
+| Edge | Status at this freeze | What the addendum closes on landing, or leaves open |
+| --- | --- | --- |
+| identity | **required-open**, unchanged | Untouched. The addendum adds 17 signature ascriptions and one `inferInstance` re-check, and the edge still waits on the item R-P20 left open: this repository has no generated declaration snapshot, so no artifact joins each public declaration to exactly one record. The addendum does not supply one |
+| construction | **required-open**, unchanged | Untouched by F1–F6. `E-22`'s operation-level generalization is still Q4, and reachable-state and cross-owner freshness invariants stay open, exactly as the column already says |
+| semantics | **required-open**, reopened by R-P20 — **the addendum closes the reopening** | R-P20 reopened this edge because `requirement.jobs.3` (COMPLETE, 626357..626479) is in its close-on set and had no declaration and no discharge-by-typing statement. **F5 closes that item on landing**: `Jobs.startJob` is the missing producer of `Active.job` (`startJob_active`), `Jobs.RunToCompletion` is the DB-05 specification half, `Jobs.run_to_completion` is the realizer theorem, and `Jobs.run_to_completion_nonvacuous` refuses a vacuous discharge. `Jobs.startJob_run_agree` keeps the threading conservative, so `run_fifo`, `run_split` and both Streams `tick_job_fifo` corollaries stand unchanged, and `Jobs.run_one_job_per_step` states the typing half beside it. F1, F2 and F3 also touch this edge's close-on set — THEN, REACT and TRIGGER — and repair what the landed branches say about them: step 12 becomes unconditional (`performPromiseThen_handled`, `react_handled`), the settled branches append to no list (`Reactions.mint_no_waiting` and the amended branch laws), and the two settling callers clear both lists (`Reactions.clear_waiting`, `Table.settleAndTrigger_cleared`). The edge's own explicit deferrals stand: the global configuration, the M2 mask projection and the bounded runner are P8 and stay open, so the edge does not become whole-row green |
+| laws | **closed**, and the addendum re-opens nothing | The 125 receipts stand. The seventeen amended statements keep their names, so `WhatwgTest/Ecma262/PromiseAxiomReport.lean` is neither short nor long, and the addendum's own 57 obligations have their own report, `WhatwgTest/Ecma262/PromiseFidelityAxiomReport.lean`. The edge closes again on landing with 182 named receipts across the two reports |
+| representation | **closed**, and the addendum keeps it closed | `Reaction` gains `[[Capability]]` (CAPFIELD), which strengthens rather than weakens the column's "reactions and jobs are first-order descriptors, never stored bodies": the capability is a triple of `Nat` identities, and F4's `runReactionJob` takes the handler's completion as a **decision** (DB-02) rather than running a stored body. `E-50`'s constraint holds: `Reaction` stays `Repr`-only, and the `inferInstance : Repr (Reaction Nat)` re-check is the receipt |
+| counterexamples | **required-open**, unchanged | The addendum adds sixteen rows, `WS-PROM-CE-023`..`WS-PROM-CE-038`, each linked to the statement that must reject it. Nine of them attack the landed Q3 implementation as built. `test/counterexamples/REGISTER.md` stays the coordinator's and is untouched by this seat, so the edge stays open on the same item as before |
+| bridges | **closed**, and the addendum adds one | `Whatwg.Streams.Writable.settlementTrace_bridge` (mask M2) is the thirtieth bridging lemma, relating `E-71`'s writable settlement order to `Whatwg.Ecma262.Promise.SettlementTrace` with no change to `Writable.settlementTrace`'s content. `E-63`'s readable counterpart is **deferred with a stated reason**: the readable settlement alphabet's `closed` entry carries no promise identity, and supplying one would change `Readable.Settlement`, a `keep` row. The preservation half of `WhatwgTest/Streams/PromiseBridge.lean` stays green throughout; the one amended bridging ascription is `subscribe_reactions_bridge` |
+| targets | not-applicable, unchanged | Q3b lands no lowering and no generated code |
+| trust | **closed**, and the addendum extends it | 57 further named receipts inside the R-11 ceiling on landing. `sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` and the `native_decide` auxiliaries appear nowhere, and no `sorry`, `partial` or `unsafe` survives the source trust gate |
+| coverage | **required-open**, unchanged | Both numerator modules exist and stay all-`absent`. Every anchor the addendum cites — CAPFIELD, JOBS4, THEN, FULFILL, REJECT, TRIGGER, REACTJOB, RESOLVING, COMPLETE, WAITALL, REACT, NEWP, RESOLVE, REJECTOP — is cited as an anchor for a declaration and never as a witness, so no row moves to `partial` or `green`. Acceptance condition 9 of the addendum requires the three census gates to confirm it |
+
+**Which edges the addendum closes on landing.** One: the reopening of
+`semantics`, through F5's realization of COMPLETE. It also delivers repairs
+inside `semantics`' close-on set for THEN, REACT, TRIGGER, FULFILL and REJECT,
+and one further bridge inside `bridges`, but neither edge becomes whole-row
+green: `semantics` keeps its P8 deferrals and `bridges` keeps `E-63`'s deferred
+readable bridge. `laws`, `representation`, `bridges` and `trust` stay closed
+and reclose with more evidence; `identity`, `construction`, `counterexamples`
+and `coverage` stay `required-open` on exactly the items R-P20 left them on;
+`targets` stays `not-applicable`.
+
+**The mask table.** §7 of the base packet is amended by §4.1 of the addendum,
+not edited: `Jobs.run_cons` joins the M2 list, `WebIdl.Promise.waitForAll_success`
+and `waitForAll_failure` leave it, `Writable.attachSink_pending_jobs`'s tree
+docstring is corrected to M1, and the addendum's eleven new M2 theorems join.
+No frozen statement changes for a mask correction.
