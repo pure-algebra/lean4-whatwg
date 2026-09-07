@@ -244,6 +244,76 @@ then and none closes one now.
    Streams census; `slot.value` stays `foreignBoundary`.** Contract §7.
    No Streams coverage number moves.
 
+### Made at the Q4 amendment, 2026-09-07, branch `promise/q4-amend`
+
+Breaker-owned, over the first builder pass. Decisions 1 to 8 above are
+unchanged; 9 to 13 are added. Contract §12 carries each with its superseded
+text, and every changed battery line carries its own dated comment. No edge
+closes here and none reopens: the amendment states, it implements nothing.
+
+9. **Ruling R-P25's three ascriptions are applied to the frozen batteries.**
+   `Reaction.mk` at six explicit arguments with `Option Capability` fifth
+   (amendment A1, builder note B1); `register_eq`'s registered entry gains
+   `none` at the fifth field (A2, note B2); `register_reactions_bridge`
+   projects `x.2.1` rather than `Prod.fst`, because `WebIdl.Promise.react`
+   returns the table first (A3, note B4). The first builder pass had applied
+   A2 and A3 in the implementation with recorded notes and stopped on A1; the
+   frozen text now matches.
+10. **The false reaction-half bridge is restated by erasure, not by a carried
+    map.** Amendment A4, builder note B3, counterexample `WS-PROM-CE-039`.
+    `notifySettled_reactions_bridge` was false as frozen — decision 6's two
+    cursors put a job serial in the configuration's `ReactionPhase.queued`
+    where `op.triggerpromisereactions` puts a registration id — so it is
+    restated modulo the new Q4-owned `Semantics.Ordering.reactionErase`, under
+    a `Nodup` hypothesis on registration ids, and the payload it drops is
+    recovered exactly by the new `notifySettled_queued_serial`, which ties it
+    to the token FIFO's own serial supply. The rejected alternative, a
+    serial-to-id map carried by the configuration, would add a tenth field to
+    the frozen nine-argument `Config.mk`, which decision 3 already refused for
+    `runningJob`, and would contradict decision 2's two unrelated supplies.
+    Decision 6 is unchanged and R-P25 confirms it.
+11. **The CFG-WPT seam is re-frozen as 86 total first-order ascriptions.**
+    Amendment A5. The frozen 28 pinned no carrier — eleven bare types, four
+    `Prop`s with no checker — which is why the first pass recorded §6 not
+    attempted. Added: the pinned block's digests; a `ScriptAction` carrier for
+    the finite first-order boundary script with its pinned `wptScript`; the
+    `Attachment` and `Certificate` constructors and the `Binding`; four `Bool`
+    checkers (`sourceCheck`, `causalCheck`, `retainedFifo`, `profileCheck`)
+    with their `Prop`s and the `_iff` equations that keep them from being
+    widened; a `SelectedLog`/`ReferenceEvent` alphabet over attachment,
+    return, settlement and FIFO enqueue/start/finish; the `referenceErase`
+    map; the pinned certificate, reference and selected prefix with three
+    non-vacuity receipts; and the draft's three certificate mutants with three
+    rejection receipts. Seven tightenings T1 to T7 are recorded in contract
+    §12.3. The ownership route of decision 7 is unchanged.
+12. **`run_erases_to_reference` moves to P8.** Amendment A5, tightening T5. As
+    frozen it is false, not merely hard: it quantifies over an arbitrary start
+    configuration, and `Reaches c [] c` for a fabricated `c.trace` has no
+    causal reference trace. With the missing `c = initial …` hypothesis its
+    proof still needs `WellFormed` initialization and preservation, the
+    token/mailbox correspondence, the ordered-effect receipts, the
+    successful-profile progress theorem and the finite witness through the
+    original start gate, none of which this packet states. Three further items
+    split to P8 for the same kind of reason: the agreement of the frozen
+    digests with the sealed WPT bytes (a gate, not a theorem — no first-order
+    definition reads `vendor/`), the numeric chunk values of the asserted
+    array (the decision alphabet is polymorphic in the chunk type), and the
+    `WS-CONFIG` register rows for the three mutants. The `bridges` edge stays
+    open on `CFG-WPT` for exactly the existence half.
+13. **The re-disposition of decision 8 breaks a second frozen battery.**
+    Amendment A7. `lake exe census --write` shortens
+    `WhatwgTest/Audit/SpecCoverageRows.lean` by 20 bytes, and
+    `WhatwgTest/Audit/CensusProfileIdentity.lean` — frozen by the Q1 packet
+    `test/contracts/census-profile-identity.contract.md`, not by Q4 — pins that
+    file at 32032 bytes and digest `d0e47fdf…`. Measured after the
+    regeneration: 32012 bytes, digest
+    `247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c`. The
+    battery was red at `746032c` too and §11.5 did not list it. This seat
+    declares it in `test/fixtures/trust-gate/known-red.txt` with the two
+    replacement values and does not edit it; its owner or a coordinator ruling
+    amends the pin. No Streams coverage number moves — a disposition is not a
+    coverage state — so decision 8 and contract §7.4 stand.
+
 ## Q4 landing, 2026-09-07, branch `promise/q4-builder`
 
 Appended by the Q4 builder seat. **Every row above this section is unchanged.**
@@ -266,6 +336,28 @@ command and its result line; the four blocking items are §11.1 of the contract.
 | coverage | required-open | **required-open**, unchanged | R-P5's re-disposition landed and no coverage state moved: the two rows are `owned` and still `absent`, the Streams block re-emits byte-identically, and all four census standards pass |
 
 **Edges closed at this landing: none. Edges reopened: none.**
+
+## Q4 amendment, 2026-09-07, branch `promise/q4-amend`
+
+Appended by the Q4 amendment breaker seat. **Every row above this section is
+unchanged**, including the landing table. No edge closes and none reopens: a
+breaker amendment states, it implements nothing, and four of the five declared
+batteries stay red by design. Receipt: §12.6 of
+`test/contracts/configuration-ordering.contract.md`.
+
+What the amendment changes about the edges' *required work*, without changing
+any status:
+
+| Edge | What the amendment changes about what is owed |
+| --- | --- |
+| identity | `Reaction.mk`'s ascription now matches the landed six-argument constructor, so all 15 class [R] ascriptions elaborate again; item B1 of the landing table is answered |
+| laws | four of the 54 + 12 are answered, three by R-P25's text (A1 to A3) and one by restatement (A4). The Q4-owned receipt count rises from 12 to 15 |
+| bridges | `CFG-WPT` is now split explicitly: the certificate carriers, the four checkers, the erasure and its two laws are Q4's and are stated; the existence half `run_erases_to_reference` is P8's, together with the transcription gate, the host replay and the mutants' register rows. The edge stays open on the P8 half |
+| trust | 82 named receipts become 93. 79 print, all inside R-11; the 14 that do not are the names the second builder pass supplies. A fifth module, `WhatwgTest.Audit.CensusProfileIdentity`, is declared red for the reason decision 13 records, and the trust gate's all-green control stays unrestored |
+| counterexamples | one row is seeded, `WS-PROM-CE-039`, against the packet's own false bridge. Its `test/counterexamples/REGISTER.md` entry is owed at landing; no `WS-CONFIG` id is frozen |
+
+The other five edges are untouched by the amendment.
+
 ## Evidence ledger
 
 The specification byte-span cross-check, the intended-red commands and their

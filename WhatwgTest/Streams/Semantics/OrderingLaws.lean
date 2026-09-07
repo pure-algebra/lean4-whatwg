@@ -5,9 +5,15 @@ import Whatwg.WebIdl
 /-!
 Breaker-owned Q4 law battery: the DB-11 restatement of the held P8a
 configuration-ordering draft's 54 law ascriptions, plus the twelve Q4-owned
-bridging receipts the re-homing owes. 66 ascriptions.
+bridging receipts the re-homing owes. **69 ascriptions** after the Q4
+amendment of 2026-09-07 (66 at the freeze; amendment A4 adds `phaseErase_eq`,
+`reactionErase_eq` and `notifySettled_queued_serial`, and restates
+`notifySettled_reactions_bridge`, `register_eq` and
+`register_reactions_bridge` in place).
 
-Contract: `test/contracts/configuration-ordering.contract.md`.
+Contract: `test/contracts/configuration-ordering.contract.md`, and its "Q4
+amendment" section for every changed line below, each of which also carries
+its own dated comment with the superseded text.
 Graph: `CONFIGURATION-PG-ORDERING`, `docs/CONFIGURATION-DAG.md`.
 Declared red: `test/fixtures/trust-gate/known-red.txt`.
 
@@ -222,6 +228,12 @@ operations write a `Jobs.Queue (Jobs.ReactionJob …)`, while this configuration
 has one heterogeneous token queue. Q3 bridged `Writable.attachSink` on its job
 queue alone for the same kind of reason. -/
 
+-- Q4 amendment A2, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
+-- ruling R-P25 and builder note B2 (contract §11.1). Superseded text, frozen
+-- 2026-09-07 at `promise/q4-breaker` 9ae662a: the registered entry was the
+-- five-field literal `⟨id, p.cell, .fulfill, some callback, .waiting⟩`.
+-- Reason: the same CAPFIELD of amendment A1. R-P25 rules that the anonymous
+-- constructor gains `none` in the fifth position and nothing else changes.
 #check (@Semantics.Ordering.register_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref)
     (callback : Nat),
@@ -232,7 +244,8 @@ queue alone for the same kind of reason. -/
           let id := c.nextObserver
           let b : Semantics.Ordering.Config α ε :=
             { c with
-              registrations := c.registrations ++ [⟨id, p.cell, .fulfill, some callback, .waiting⟩],
+              registrations :=
+                c.registrations ++ [⟨id, p.cell, .fulfill, some callback, none, .waiting⟩],
               nextObserver := id + 1, trace := c.trace ++ [.registered id p callback] }
           match outcome with
           | .pending => some b
@@ -530,6 +543,16 @@ a serial where this one takes the whole token, and `observer` is landed as
         (Semantics.Ordering.enqueueJob c kind).2)
 
 /-! The reaction half of `register` is Web IDL `react`'s pending branch. -/
+-- Q4 amendment A3, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
+-- ruling R-P25 and builder note B4 (contract §11.1). Superseded text, frozen
+-- 2026-09-07 at `promise/q4-breaker` 9ae662a: the right-hand side closed with
+-- `.map Prod.fst`. Reason: `Whatwg.WebIdl.Promise.react` returns
+-- `Option (Table value reason × Reactions body × Jobs.Queue … × Option (Reaction body))`,
+-- so `Prod.fst` projects the **table** and the equation does not typecheck
+-- against the `Option (Reactions Nat)` on the left. `x.2.1` is the reactions
+-- component, which is what this ascription's name and docstring say it is.
+-- This defect is independent of Q3b: the same projection was wrong against
+-- the slice Q3 surface.
 #check (@Semantics.Ordering.register_reactions_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref)
     (callback : Nat),
@@ -539,16 +562,95 @@ a serial where this one takes the whole token, and `observer` is landed as
       (Semantics.Ordering.register c p callback).map Semantics.Ordering.reactions =
         ((Whatwg.WebIdl.Promise.react (Writable.promiseTable c.writable)
           (Semantics.Ordering.reactions c) Whatwg.Ecma262.Jobs.Queue.empty
-          p.cell (some callback) none).map Prod.fst))
+          p.cell (some callback) none).map (fun x => x.2.1)))
 
-/-! The reaction half of `notifySettled` is `op.triggerpromisereactions`. -/
+/-! ## [Q4-owned] The reaction half of `notifySettled`, and the two cursors
+
+Q4 amendment A4, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
+builder note B3 (contract §11.1) and counterexample `WS-PROM-CE-039`. The
+superseded text, frozen 2026-09-07 at `promise/q4-breaker` 9ae662a, was
+
+```text
+  #check (@Semantics.Ordering.notifySettled_reactions_bridge :
+    ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat),
+      Writable.lookupPromise c.writable id = some (.fulfilled ()) →
+        (Semantics.Ordering.notifySettled c id).registrations =
+          (Whatwg.Ecma262.Promise.triggerReactions (Semantics.Ordering.reactions c) id
+            .fulfill (Except.ok () : Except (Boundary.Exception ε) Unit)
+            Whatwg.Ecma262.Jobs.Queue.empty).1.fulfill)
+```
+
+and it is **false**, not merely unproved. Contract §2.7 and decision 2 of §3.3
+give this configuration two unrelated monotone supplies, so `notifySettled`
+writes `.queued queued.2.serial`, a **job** serial drawn from `Config.nextJob`,
+where the landed `op.triggerpromisereactions` writes `.queued r.id`, a
+**registration** id. Witness (`WS-PROM-CE-039`): `c.nextJob = 7`, one
+registration `r` with `r.id = 0`, `r.promise = id`, `r.phase = .waiting`, and
+`Writable.lookupPromise c.writable id = some (.fulfilled ())`; the left side is
+`[{ r with phase := .queued 7 }]` and the right side `[{ r with phase := .queued 0 }]`.
+
+The restatement is option (a) of §11.1, the erasure, chosen over option (b), a
+serial-to-id map carried by the configuration, for the reasons contract §2.7
+now records: `Config.mk` is a frozen nine-argument class [A] ascription and
+§2.5 already refused a new `Config` field for exactly this kind of mismatch;
+decision 2 forbids a third supply; and §2.5's `activeErase` is the precedent
+for erasing a whole-record/serial difference and keeping the erased fact plus a
+separate receipt for the payload.
+
+The pair below is strictly more informative than the false equality. The first
+says the same registrations leave `waiting`, in the same list order, on the
+same trigger; the second recovers the payload exactly, by tying it to the token
+FIFO's own serial supply. The `Nodup` hypothesis is not decoration:
+`setRegistrationPhase` selects by id alone, so two registrations sharing an id
+but addressing different promises make even the erased equality false; it is
+the clause `SerialsWellFormed` will supply, and stating it is how this packet
+avoids assuming an invariant it has not proved. -/
+
+/-! The erasure itself, frozen as an equation so the builder cannot widen it.
+Mask M1. -/
+#check (@Semantics.Ordering.phaseErase_eq :
+  ∀ phase : Whatwg.Ecma262.Promise.ReactionPhase,
+    Semantics.Ordering.phaseErase phase =
+      (match phase with
+      | .waiting => .waiting
+      | .queued _ => .queued 0
+      | .running _ => .running 0
+      | .done => .done))
+
+/-! Mask M1. -/
+#check (@Semantics.Ordering.reactionErase_eq :
+  ∀ {body : Type} (r : Whatwg.Ecma262.Promise.Reaction body),
+    Semantics.Ordering.reactionErase r =
+      { r with phase := Semantics.Ordering.phaseErase r.phase })
+
 #check (@Semantics.Ordering.notifySettled_reactions_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat),
+    (c.registrations.map (fun r => r.id)).Nodup →
     Writable.lookupPromise c.writable id = some (.fulfilled ()) →
-      (Semantics.Ordering.notifySettled c id).registrations =
-        (Whatwg.Ecma262.Promise.triggerReactions (Semantics.Ordering.reactions c) id
+      (Semantics.Ordering.notifySettled c id).registrations.map
+          Semantics.Ordering.reactionErase =
+        ((Whatwg.Ecma262.Promise.triggerReactions (Semantics.Ordering.reactions c) id
           .fulfill (Except.ok () : Except (Boundary.Exception ε) Unit)
-          Whatwg.Ecma262.Jobs.Queue.empty).1.fulfill)
+          Whatwg.Ecma262.Jobs.Queue.empty).1.fulfill).map Semantics.Ordering.reactionErase)
+
+/-! The payload the erasure drops, recovered: every registration this
+notification triggers is left `.queued s` for exactly the serial of the
+`.observer` token the same notification appended to the configuration's FIFO,
+and that serial is drawn at or after `c.nextJob`. Mask M2: the statement
+observes the token entering the queue. This is the "separate lemma" the
+erasure owes, and together with the bridge above it is what the false equality
+was reaching for. -/
+#check (@Semantics.Ordering.notifySettled_queued_serial :
+  ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat)
+    (r : Whatwg.Ecma262.Promise.Reaction Nat),
+    (c.registrations.map (fun x => x.id)).Nodup →
+    Writable.lookupPromise c.writable id = some (.fulfilled ()) →
+    r ∈ c.registrations → r.promise = id → r.phase = .waiting →
+      ∃ serial : Nat, c.nextJob ≤ serial ∧
+        Semantics.Ordering.lookupRegistration (Semantics.Ordering.notifySettled c id) r.id =
+          some { r with phase := .queued serial } ∧
+        Semantics.Ordering.Job.mk serial (.observer r.id) ∈
+          (Semantics.Ordering.jobQueue (Semantics.Ordering.notifySettled c id)).pending)
 
 /-! One non-checkpoint step schedules at the tail, over the landed queue. -/
 #check (@Semantics.Ordering.step_active_jobQueue_eq :

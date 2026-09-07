@@ -14,10 +14,13 @@ This module restates the 104 interface ascriptions the held draft carries on
 disk at `C:\Users\kokok\Dev\lean4-WHATWG-streams-configuration-breaker`
 (`WhatwgTest/Streams/Semantics/OrderingContract.lean`, read-only), joined to
 the P8a reuse table of `docs/PROMISE-EXTRACTION-INVENTORY.md` and re-homed
-onto what slice Q3 actually landed. It adds three Q4-owned bridging views,
-for 107 ascriptions in total. Section §2 of the contract records the three
-classes and every place the reuse table's prediction and the landed surface
-disagree.
+onto what slice Q3 actually landed. It adds five Q4-owned bridging views, for
+**109 ascriptions** in total (107 at the freeze; the Q4 amendment of
+2026-09-07 adds `phaseErase` and `reactionErase`, and restates
+`Reaction.mk` in place). Section §2 of the contract records the three classes
+and every place the reuse table's prediction and the landed surface disagree;
+its "Q4 amendment" section records every changed line, each of which also
+carries its own dated comment with the superseded text.
 
 Three classes, marked per block:
 
@@ -105,8 +108,27 @@ All six are Q3b-sensitive: fidelity finding F4 adds a `[[Capability]]` field. -/
 
 #check (@Whatwg.Ecma262.Promise.Reaction : Type → Type)
 
+-- Q4 amendment A1, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
+-- ruling R-P25 and builder note B1 (contract §11.1). Superseded text, frozen
+-- 2026-09-07 at `promise/q4-breaker` 9ae662a:
+--
+--   ∀ {body : Type}, Nat → Nat → Whatwg.Ecma262.Promise.ReactionType → Option body →
+--     Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reaction body
+--
+-- Reason: Q3b fidelity finding F4 (WS-PROM-CE-026, ruling R-P22) gave
+-- `Whatwg.Ecma262.Promise.Reaction` the field `capability : Option Capability`
+-- (CAPFIELD, `field.promisereaction-records.Capability`, 2691475..2691802)
+-- between `handler` and `phase`, so the constructor has six explicit
+-- arguments with the capability fifth. R-P25 rules exactly this text. At this
+-- configuration the field is `none`: a P8a registration derives no promise,
+-- which is `G-11`'s remainder and what `Transform.subscribe` already supplies.
+-- The `capability` projection is *not* ascribed here: `Reaction` is owned by
+-- the Q3b addendum's own battery `WhatwgTest/Ecma262/PromiseContract.lean`,
+-- and Q4 restates only the six P8a `Registration` ascriptions, so the class
+-- [R] count stays 15 and the 15 + 19 + 124 = 158 arithmetic of §2.1 stands.
 #check (@Whatwg.Ecma262.Promise.Reaction.mk :
   ∀ {body : Type}, Nat → Nat → Whatwg.Ecma262.Promise.ReactionType → Option body →
+    Option Whatwg.Ecma262.Promise.Capability →
     Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reaction body)
 
 #check (@Whatwg.Ecma262.Promise.Reaction.id :
@@ -435,11 +457,12 @@ Draft ascriptions 103–104, carried over unchanged. -/
 
 /-! ## Q4-owned bridging views
 
-Three declarations the draft does not have. They are the whole cost of the
-re-homing on the interface side: each names a landed carrier and lets the
-class [B] receipts in `OrderingLaws.lean` be stated over the landed
-operations. They follow Q3's landed pattern exactly — `Writable.jobQueue`,
-`Writable.promiseTable`, `Transform.reactions`. -/
+Five declarations the draft does not have — three at the freeze, two added by
+Q4 amendment A4. They are the whole cost of the re-homing on the interface
+side: each names a landed carrier and lets the class [B] receipts in
+`OrderingLaws.lean` be stated over the landed operations. They follow Q3's
+landed pattern exactly — `Writable.jobQueue`, `Writable.promiseTable`,
+`Transform.reactions`. -/
 
 #check (@Semantics.Ordering.jobQueue :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε →
@@ -450,6 +473,28 @@ operations. They follow Q3's landed pattern exactly — `Writable.jobQueue`,
 
 #check (@Semantics.Ordering.activeErase :
   Semantics.Ordering.Active → Whatwg.Ecma262.Jobs.Active)
+
+/-! Q4 amendment A4, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
+builder note B3 and counterexample `WS-PROM-CE-039`. Two views are **added** to
+the three above; nothing above is superseded. They are the carrier of the phase
+erasure the restated `notifySettled_reactions_bridge` is stated modulo, and the
+reason they are here rather than in `Whatwg/Ecma262/Promise.lean` is the fence:
+that file belongs to the Q3 and Q3b packets, while §2.5 of this contract
+already establishes `Semantics.Ordering.activeErase` as the Q4-owned pattern
+for erasing exactly this kind of carrier difference.
+
+"Up to the payload" is realized by normalizing the payload to `0`, so the
+codomain stays `ReactionPhase` and `Reaction body` and the bridge stays a
+plain list equality. `phaseErase` is idempotent and no law reads the
+normalized payload; `notifySettled_queued_serial` in `OrderingLaws.lean`
+recovers it exactly, from the token FIFO's own supply. -/
+
+#check (@Semantics.Ordering.phaseErase :
+  Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.ReactionPhase)
+
+#check (@Semantics.Ordering.reactionErase :
+  ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body →
+    Whatwg.Ecma262.Promise.Reaction body)
 
 /-!
 Intentionally not ascribed here, and unchanged from the draft: `WellFormed`

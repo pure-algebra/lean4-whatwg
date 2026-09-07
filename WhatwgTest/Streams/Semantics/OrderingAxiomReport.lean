@@ -6,15 +6,44 @@ import Whatwg.WebIdl
 Q4 breaker theorem receipts. Freeze state, commands and results: the owning
 contract's "Freeze receipt", `test/contracts/configuration-ordering.contract.md`.
 
-82 receipts: the 54 restated P8a law ascriptions, the 12 Q4-owned bridging
-receipts, the 14 theorems of `WhatwgTest/Streams/PromiseBridgeQ4.lean`, and the
-2 laws of `WhatwgTest/Streams/Semantics/OrderingSource.lean`. The ceiling is
+**93 receipts** after the Q4 amendment of 2026-09-07 (82 at the freeze): the 54
+restated P8a law ascriptions, the 15 Q4-owned bridging receipts, the 14
+theorems of `WhatwgTest/Streams/PromiseBridgeQ4.lean`, and the 10 laws and
+receipts of `WhatwgTest/Streams/Semantics/OrderingSource.lean`. The ceiling is
 R-11: `propext`, `Quot.sound`, `Classical.choice` and nothing else. `sorryAx`,
 `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` and the
 `native_decide` auxiliaries are forbidden here as everywhere.
 
-Red today: every constant below is unknown. The builder removes the entry from
-`test/fixtures/trust-gate/known-red.txt` only when all 82 print.
+**Q4 amendment A6, 2026-09-07, breaker seat, branch `promise/q4-amend`.** The
+Q4 builder reported three missing receipts (contract §11.5): the name
+`notifySettled_reactions_bridge` did not exist because the frozen statement was
+false (B3), and the two §6 laws were not attempted (§11.4). This amendment
+reconciles the list with the names that exist after amendments A1 to A5:
+
+- `notifySettled_reactions_bridge` stays, at its restated statement (A4), and
+  three receipts join it: `phaseErase_eq`, `reactionErase_eq` and
+  `notifySettled_queued_serial`. The Q4-owned bridging block therefore holds
+  15 receipts, not 12.
+- `Source.run_erases_to_reference` is **removed**. Amendment A5 moves it to P8
+  with its reasons; a receipt for a name this packet no longer freezes would be
+  a permanent red line.
+- Nine source receipts join the one that remains of §6
+  (`erasure_preserves_selected_order`): `erases_prefix_selected_order`, the
+  target-side consequence A5 splits off, and then
+  `sourceChecked_iff`, `causalPrefix_iff`, `retainedFifo_iff`,
+  `erasesPrefix_iff`, `sourceProfileCompatible_iff` — the five equations that
+  keep a checker from being widened into vacuity — and
+  `wptCertificate_checked`, `wptReference_causal`, `wptReference_selected`,
+  the three non-vacuity receipts of §K. The three mutant rejections of §L are
+  `Bool` equalities on closed terms and carry no interesting axiom set, so
+  they are *not* listed here; they are checked by elaboration in the battery
+  itself.
+
+82 − 1 + 3 + 9 = 93.
+
+Red today: every constant below is unknown, or was named by an ascription this
+amendment restated. The builder removes the entry from
+`test/fixtures/trust-gate/known-red.txt` only when all 93 print.
 -/
 
 /-! ## The 54 restated P8a laws -/
@@ -74,7 +103,10 @@ Red today: every constant below is unknown. The builder removes the entry from
 #print axioms Whatwg.Streams.Semantics.Ordering.fixed_external_word_prefix_comparable
 #print axioms Whatwg.Streams.Semantics.Ordering.fixed_external_word_normalized_unique
 
-/-! ## The 12 Q4-owned bridging receipts -/
+/-! ## The 15 Q4-owned bridging receipts
+
+Twelve at the freeze; `phaseErase_eq`, `reactionErase_eq` and
+`notifySettled_queued_serial` are added by amendment A4. -/
 
 #print axioms Whatwg.Streams.Semantics.Ordering.jobQueue_eq
 #print axioms Whatwg.Streams.Semantics.Ordering.reactions_eq
@@ -85,7 +117,10 @@ Red today: every constant below is unknown. The builder removes the entry from
 #print axioms Whatwg.Streams.Semantics.Ordering.setRegistrationPhase_bridge
 #print axioms Whatwg.Streams.Semantics.Ordering.enqueueJob_queue_bridge
 #print axioms Whatwg.Streams.Semantics.Ordering.register_reactions_bridge
+#print axioms Whatwg.Streams.Semantics.Ordering.phaseErase_eq
+#print axioms Whatwg.Streams.Semantics.Ordering.reactionErase_eq
 #print axioms Whatwg.Streams.Semantics.Ordering.notifySettled_reactions_bridge
+#print axioms Whatwg.Streams.Semantics.Ordering.notifySettled_queued_serial
 #print axioms Whatwg.Streams.Semantics.Ordering.step_active_jobQueue_eq
 #print axioms Whatwg.Streams.Semantics.Ordering.episodePrefix_jobQueue_eq
 
@@ -106,7 +141,23 @@ Red today: every constant below is unknown. The builder removes the entry from
 #print axioms Whatwg.Streams.Transform.runJob_writable_dequeue
 #print axioms Whatwg.Streams.Transform.runJob_writable_blocked
 
-/-! ## The 2 source/certificate laws -/
+/-! ## The 10 source/certificate laws and receipts
+
+Two at the freeze. `Source.run_erases_to_reference` is removed by amendment A5,
+which moves it to P8 with its reasons. The five `_iff` equations keep a checker
+from being widened into vacuity; the three `wpt*` receipts are the packet's
+non-vacuity evidence that the pinned certificate and reference prefix are
+accepted and produce the selected-log prefix of §3.1. The three mutant
+rejections of `OrderingSource.lean` §L are closed `Bool` equalities and are
+checked by elaboration there, not listed here. -/
 
 #print axioms Whatwg.Streams.Semantics.Ordering.Source.erasure_preserves_selected_order
-#print axioms Whatwg.Streams.Semantics.Ordering.Source.run_erases_to_reference
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.erases_prefix_selected_order
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.sourceChecked_iff
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.causalPrefix_iff
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.retainedFifo_iff
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.erasesPrefix_iff
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.sourceProfileCompatible_iff
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.wptCertificate_checked
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.wptReference_causal
+#print axioms Whatwg.Streams.Semantics.Ordering.Source.wptReference_selected

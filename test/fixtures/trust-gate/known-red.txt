@@ -292,3 +292,59 @@ WhatwgTest.Streams.Semantics.OrderingContract
 WhatwgTest.Streams.Semantics.OrderingLaws
 WhatwgTest.Streams.Semantics.OrderingSource
 WhatwgTest.Streams.Semantics.OrderingAxiomReport
+
+# Q4 AMENDMENT BREAKER SEAT, branch promise/q4-amend, 2026-09-07, over the
+# first builder pass at 746032c merged with origin/main. The packet is amended,
+# breaker-owned; the four entries above STAY, and a fifth is added.
+#
+# Amended, each with its superseded text and a dated reason in the amended
+# line itself and in the "Q4 amendment" section of
+# test/contracts/configuration-ordering.contract.md:
+#
+#   A1  OrderingContract.lean  Reaction.mk at six explicit arguments with
+#                              Option Capability fifth (R-P25, builder note B1).
+#   A2  OrderingLaws.lean      register_eq gains none at the fifth field
+#                              (R-P25, builder note B2).
+#   A3  OrderingLaws.lean      register_reactions_bridge projects x.2.1, not
+#                              Prod.fst (R-P25, builder note B4).
+#   A4  OrderingContract.lean  notifySettled_reactions_bridge was FALSE as
+#       OrderingLaws.lean      frozen (builder note B3, WS-PROM-CE-039). It is
+#                              restated modulo the new phase erasure, and the
+#                              payload is recovered by the new
+#                              notifySettled_queued_serial. Five names are
+#                              added: phaseErase, reactionErase, their two
+#                              equations and that lemma.
+#   A5  OrderingSource.lean    the whole CFG-WPT seam is re-frozen, from 28
+#                              unimplementable ascriptions to 86 total
+#                              first-order ones. run_erases_to_reference is
+#                              REMOVED to P8 with its reasons.
+#   A6  OrderingAxiomReport.lean  82 receipts become 93, reconciled with the
+#                              names A1 to A5 leave in place.
+#
+# Diagnostics after the amendment, every one an unknown identifier or constant
+# naming a declaration the second builder pass must supply:
+#   OrderingContract      2   (phaseErase, reactionErase)
+#   OrderingLaws         13   (6 unknown identifiers, 4 invalidDottedIdent that
+#                              are the .constructor arms of the unknown
+#                              phaseErase_eq, 3 further unknown identifiers)
+#   OrderingSource      223   (86 unknown names, all of the seam)
+#   OrderingAxiomReport  14   (unknown constants)
+# WhatwgTest.Streams.PromiseBridgeQ4 stays GREEN and is not declared.
+#
+# FIFTH ENTRY, a defect the first builder pass did not report. Item 3 of the
+# packet (census/overrides.tsv) makes lake exe census --write regenerate
+# WhatwgTest/Audit/SpecCoverageRows.lean with .owned in place of
+# .foreignBoundary on slot.promise-state and slot.promise-is-handled. That is
+# 20 bytes shorter, and WhatwgTest/Audit/CensusProfileIdentity.lean freezes
+# that file at 32032 bytes and digest
+# d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476. The file
+# is now 32012 bytes with digest
+# 247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c, so the
+# battery is red and was red at 746032c as well.
+#
+# That battery belongs to test/contracts/census-profile-identity.contract.md,
+# the Q1 promise census packet, NOT to Q4, so this seat declares it red and
+# does not edit it. Its owner (or a coordinator ruling in the manner of R-P17)
+# amends the two numbers above; the replacement values are exactly the two
+# given. This entry is removed the moment that amendment lands.
+WhatwgTest.Audit.CensusProfileIdentity

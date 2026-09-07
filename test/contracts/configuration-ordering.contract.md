@@ -1137,3 +1137,390 @@ inside the R-11 ceiling: **14 empty, 27 `[propext]`, 33 `[propext, Quot.sound]`,
 5 `[propext, Classical.choice, Quot.sound]`**. `sorryAx`, `Lean.ofReduceBool`,
 `Lean.ofReduceNat`, `Lean.trustCompiler` and the `native_decide` auxiliaries
 appear nowhere.
+
+## 12. Q4 amendment (amendment breaker seat, branch `promise/q4-amend`, 2026-09-07)
+
+Breaker-owned. **Sections 1 to 11 are not edited.** Where this section and an
+earlier one differ, this section is the amendment, in the manner of R-P17 and
+R-P19. Base: `promise/q4-builder` at `746032c`, merged with `origin/main` (the
+merge is clean and touches `COORDINATION.md` only). Toolchain
+`leanprover/lean4:v4.33.1`.
+
+The seat implements nothing. It amends six things: the three ascriptions ruling
+R-P25 names (A1 to A3), the one the builder found false (A4), the whole CFG-WPT
+seam (A5), and the receipt list (A6). It also records one defect the first
+builder pass did not report (A7).
+
+### 12.1 The changed ascriptions, one row each
+
+Every changed line in a battery also carries its own dated comment with the
+superseded text; this table is the index.
+
+| Id | Ascription and file | Old text | New text | Reason |
+| --- | --- | --- | --- | --- |
+| A1 | `Whatwg.Ecma262.Promise.Reaction.mk`, `OrderingContract.lean` | `∀ {body}, Nat → Nat → ReactionType → Option body → ReactionPhase → Reaction body` | `∀ {body}, Nat → Nat → ReactionType → Option body → Option Capability → ReactionPhase → Reaction body` | R-P25, builder note B1. Q3b finding F4 (WS-PROM-CE-026, R-P22) added `capability : Option Capability` (CAPFIELD, `field.promisereaction-records.Capability`, 2691475..2691802) between `handler` and `phase`. At this configuration it is `none`: a P8a registration derives no promise, `G-11`'s remainder |
+| A2 | `Semantics.Ordering.register_eq`, `OrderingLaws.lean` | the registered entry is `⟨id, p.cell, .fulfill, some callback, .waiting⟩` | `⟨id, p.cell, .fulfill, some callback, none, .waiting⟩` | R-P25, builder note B2. The same CAPFIELD; nothing else changes and the equation still closes by `rfl` |
+| A3 | `Semantics.Ordering.register_reactions_bridge`, `OrderingLaws.lean` | right-hand side closes `… .map Prod.fst` | `… .map (fun x => x.2.1)` | R-P25, builder note B4. `WebIdl.Promise.react` returns `Option (Table × Reactions × Queue × Option Reaction)`, so `Prod.fst` projects the table and the equation does not typecheck. Independent of Q3b: the projection was already wrong against the Q3 surface |
+| A4 | `Semantics.Ordering.notifySettled_reactions_bridge`, `OrderingLaws.lean` | `lookupPromise c.writable id = some (.fulfilled ()) → (notifySettled c id).registrations = (triggerReactions (reactions c) id .fulfill (.ok ()) Queue.empty).1.fulfill` | `(c.registrations.map (·.id)).Nodup → lookupPromise c.writable id = some (.fulfilled ()) → (notifySettled c id).registrations.map reactionErase = ((triggerReactions (reactions c) id .fulfill (.ok ()) Queue.empty).1.fulfill).map reactionErase` | Builder note B3, `WS-PROM-CE-039`. The old statement is **false**, not unproved: §2.7's two cursors make the phase payloads differ. §12.2 is the design |
+| A4 | `Semantics.Ordering.phaseErase`, `OrderingContract.lean` | — (new) | `ReactionPhase → ReactionPhase` | the carrier of the erasure A4 is stated modulo |
+| A4 | `Semantics.Ordering.reactionErase`, `OrderingContract.lean` | — (new) | `∀ {body}, Reaction body → Reaction body` | as above, lifted to a whole reaction |
+| A4 | `Semantics.Ordering.phaseErase_eq`, `OrderingLaws.lean` | — (new) | the four-arm equation, payload normalized to `0` | freezes the erasure so a builder cannot widen it |
+| A4 | `Semantics.Ordering.reactionErase_eq`, `OrderingLaws.lean` | — (new) | `reactionErase r = { r with phase := phaseErase r.phase }` | as above |
+| A4 | `Semantics.Ordering.notifySettled_queued_serial`, `OrderingLaws.lean` | — (new) | for every waiting registration on the settled promise there is a `serial ≥ c.nextJob` with `lookupRegistration (notifySettled c id) r.id = some { r with phase := .queued serial }` and `Job.mk serial (.observer r.id) ∈ (jobQueue (notifySettled c id)).pending` | the payload the erasure drops, recovered through the token FIFO's own serial supply. Mask M2 |
+| A5 | the whole of `OrderingSource.lean` | 28 ascriptions: eleven bare types, four `Prop`s with no checker, three functions, two laws | 86 ascriptions, every one a total first-order definition or a `Prop` that is a named `Bool` checker's `= true` | §12.3 is the design and the split. The frozen surface pinned no carrier, so a builder had no statement to implement and no way to be refused for implementing the wrong one; the first pass recorded it not attempted (§11.4) and was right to |
+| A6 | `OrderingAxiomReport.lean` | 82 receipts (54 + 12 + 14 + 2) | 93 receipts (54 + 15 + 14 + 10) | §12.4 |
+
+Battery counts after the amendment: `OrderingContract` 109 (was 107),
+`OrderingLaws` 69 (was 66), `OrderingSource` 86 (was 28), `PromiseBridgeQ4` 38
+(unchanged, green), `OrderingAxiomReport` 93 (was 82). The 158-ascription
+restatement of §2.1 is untouched: A1 to A3 restate three of the 158 in place,
+and every declaration A4 and A5 add is Q4-owned, so 15 [R] + 19 [B] + 124 [A]
+still sums to 158 and no class moves. In particular `Reaction.capability` is
+**not** ascribed here: `Reaction` belongs to the Q3b addendum's own battery
+`WhatwgTest/Ecma262/PromiseContract.lean`, and Q4 restates only the six P8a
+`Registration` ascriptions.
+
+### 12.2 A4: how the false bridge is restated, and why by erasure
+
+**What is false.** `notifySettled` writes `.queued queued.2.serial`, a job
+serial drawn from `Config.nextJob`; `Ecma262.Promise.triggerReactions` writes
+`.queued r.id`, a registration id drawn from `Reactions.next`. Decision 2 of
+§3.3 makes the two supplies unrelated, and §2.7 rules that the Q4 builder keeps
+the draft's two cursors. So the two lists differ at the phase field. The
+witness is the counterexample row `WS-PROM-CE-039` of
+`test/counterexamples/promise/ATTACKS.md`: `c.nextJob = 7`, one registration
+`r` with `r.id = 0`, `r.promise = id`, `r.phase = .waiting`, and
+`Writable.lookupPromise c.writable id = some (.fulfilled ())`; the left side is
+`[{ r with phase := .queued 7 }]` and the right `[{ r with phase := .queued 0 }]`.
+
+**The two candidates.** §11.1 offers (a) an erasure that compares phases up to
+their payload, with a separate lemma relating the configuration's serial to the
+registration id through the token FIFO's serial supply, and (b) a serial-to-id
+map carried by the configuration, with the bridge stated through it.
+
+**Frozen choice: (a), the erasure.** Four reasons, in order of force.
+
+1. **(b) breaks a frozen ascription.** `Config.mk` is ascribed in
+   `OrderingContract.lean` with nine explicit arguments and is a class [A]
+   ascription of the 158. A carried map is a tenth field. §2.5 already refused
+   exactly this move — "adopting `Jobs.Active` and adding a `runningJob :
+   Option Job` field to `Config` changes `Config.mk`'s arity, which is also a
+   class [A] ascription, and is refused for the same reason" — and refusing it
+   there while accepting it here would be incoherent.
+2. **(b) contradicts decision 2.** Two unrelated monotone supplies is a
+   re-affirmed decision of §3.3, and `SerialsWellFormed` depends on it. A
+   carried map is a third piece of mutable state whose well-formedness that
+   invariant would have to constrain, and it stores nothing the configuration
+   does not already determine: the `jobQueued` event carries the serial and the
+   `.observer` registration id together, which is precisely what
+   `notifySettled_queued_serial` reads.
+3. **(a) is the pattern this packet already adopted.** §2.5's
+   `activeErase : Active → Jobs.Active` erases a whole-record/serial difference
+   onto a landed carrier and keeps the erased fact plus receipts
+   (`activeErase_eq`, `runCondition_iff`). `reactionErase` is the same move on
+   the phase payload, with `phaseErase_eq` and `reactionErase_eq` as its
+   receipts. It is also why the erasure is declared in
+   `Whatwg/Streams/Semantics/Configuration.lean` and named
+   `Semantics.Ordering.phaseErase` rather than
+   `Ecma262.Promise.ReactionPhase.erase`: `Whatwg/Ecma262/Promise.lean` belongs
+   to the Q3 and Q3b packets and is outside the Q4 implementation fence of §9.
+4. **(a) loses nothing.** The pair (bridge modulo erasure) + (serial lemma) is
+   strictly more informative than any map-mediated equality, which would only
+   say the map agrees with itself. The first states that the same registrations
+   leave `waiting`, in the same list order, on the same trigger; the second
+   recovers the payload exactly, and ties it to the queue, which is the fact a
+   later CFG-FIFO obligation actually needs.
+
+**Why the `Nodup` hypothesis is not decoration.** `setRegistrationPhase`
+selects by registration id alone and ignores the promise, while
+`triggerReactions`' filter is `r.promise == promise && r.phase == waiting`. Two
+registrations sharing an id but addressing different promises therefore make
+even the *erased* equality false: the fold advances both, the landed operation
+advances one. `SerialsWellFormed` will supply the clause; stating it is how
+this packet avoids assuming an invariant it has not proved.
+
+**What the amendment does not claim.** Nothing here relates the two supplies
+numerically, and nothing says the configuration could adopt the landed
+instantiation. §2.7 stands: Q4 keeps its two cursors, and R-P25 confirms it.
+
+### 12.3 A5: the CFG-WPT seam, made implementable, and the split with P8
+
+`OrderingSource.lean` carries the design in full, ascription by ascription;
+this is the summary and the split.
+
+**Kept from the draft, unchanged:** the coordinator-approved ownership route
+(§6.1, R-P21) — the judgments are authored under
+`Whatwg.Streams.Semantics.Ordering.Source` in `Whatwg/Streams/Semantics/`, the
+builder-owned `WhatwgTest/Streams/Semantics/OrderingBridgeProofs.lean` stays
+outside this battery's fence, production imports no `WhatwgTest` module, and
+the judgment carries no mutable promise table, no scheduler and no `Config`
+field.
+
+**Made implementable, in six blocks.**
+
+1. **The pinned block.** `OccurrenceRole` with its twelve constructors and the
+   total table `occurrenceSpan` are kept. Added: `occurrenceDigest`,
+   `blockSpan` and `blockDigest`, the twelve digests and the block's own span
+   and digest as authored data.
+2. **The finite first-order boundary script.** New carrier: `Symbol` (a fresh
+   source-level `Nat`, never a runtime address), `ScriptAction` with
+   `construct`, `acquireWriter`, `write`, `attach`, `callbackReturn` and
+   `scriptReturn`, and the pinned constant `wptScript`. The draft names this
+   script in prose and gives it no carrier, which is why
+   `SourceProfileCompatible` had nothing to be checked against.
+3. **The certificate and its checker.** `Attachment.mk` freezes the draft's
+   five-tuple `(occurrence, receiver, handler, derivedResult, capture)`;
+   `Certificate.mk` and its four projections freeze the four components the
+   frozen docstring names (script, attachments, return classifications,
+   selected-log occurrences). `sourceCheck : Certificate → Bool` is the
+   checker, `SourceChecked` is its `= true`, and `sourceChecked_iff` freezes
+   the tie. The conjuncts `sourceCheck` decides: each occurrence role present
+   once with its span equal to `occurrenceSpan`; every attachment index in the
+   script in range; derived result symbols fresh (`Nodup`, disjoint from the
+   writer results); one return classification per derived result; the selected
+   indices in range with primitive returns; `D0` and `D1` used by no
+   attachment; the flush attachment's receiver the outer observer's derived
+   result; the flush return classified `promise`. No runtime tape, no
+   configuration trace and no expected array is an argument.
+4. **The reference judgment.** `SelectedLog` (`size`, `sink`, `observer`, each
+   carrying the first-order identity the event already has) and
+   `ReferenceEvent` with `attached`, `returned`, `settled`, `enqueued`,
+   `started`, `finished`, `logged` and `scriptReturned` — attachment, return,
+   settlement and FIFO enqueue/start/finish, exactly as the draft asks.
+   `causalCheck : Certificate → List ReferenceEvent → Bool` decides the nine
+   clauses `OrderingSource.lean` §H lists over event positions alone: index
+   validity and at-most-once; the `attached < enqueued < started < finished`
+   order; the single-script FIFO rule at each start; run-to-completion between
+   a start and its finish; a live prefix that may end started-but-unfinished
+   and may retain never-started enqueues; enqueue at attachment for an already
+   settled receiver and at the receiver's settlement otherwise, in attachment
+   order; a derived-result handler starting only after its producer returns
+   and its result settles; every log inside a selected episode or before
+   `scriptReturned`; and no start before `scriptReturned`. `CausalPrefix` is
+   its `= true`, with `causalPrefix_iff`. `retainedFifo` / `RetainedFifo` /
+   `retainedFifo_iff` are clauses 1 to 5 alone — the part that must survive
+   erasure.
+5. **The erasure property.** `referenceErase` keeps the selected attachments'
+   events, the writer results' settlements and every log, and deletes the
+   unselected attachments (`flushAttachment`, `assertionCall`), the derived
+   results' settlements, and the enqueue those settlements contribute — which
+   at the boundary is exactly the pending flush token the draft insists be
+   erased explicitly. `erasure_preserves_selected_order` is restated on the
+   reference side, with no target and no `α`, `ε`: from `SourceChecked` and
+   `CausalPrefix` it concludes `RetainedFifo (referenceErase …)` and that the
+   selected logs survive in order. The first conjunct is the content the draft
+   demands — "it must show from the certificate that none of the deleted events
+   enqueues a retained reaction" — and it fails the moment the certificate
+   stops ruling out a selected handler on `D0`; the second is the
+   anti-degeneracy guard, which an erasure returning `[]` would fail.
+6. **The relation to the selected WPT prefix.** `selectedLogs` and
+   `targetProject` project a configuration trace, `bindReference` and
+   `bindLogs` rename a reference trace's symbols to runtime identities through
+   the explicit `Binding`, and `ErasesPrefix` is the equality of the bound
+   erased reference with the target's projection, frozen by `erasesPrefix_iff`.
+   `profileCheck` / `SourceProfileCompatible` / `sourceProfileCompatible_iff`
+   check the consumed external decision word against `Certificate.script` under
+   that binding. `wptCertificate`, `wptReference` and `wptSelectedPrefix` are
+   the pinned data, with three receipts: the certificate checks, the reference
+   is causal, and the erased reference's selected logs are the prefix of §3.1.
+   Three named mutants — `mutantSelectedD0`, `mutantAliasedResults`,
+   `mutantFlushOnW0` — carry three rejection receipts; without them
+   `sourceCheck = fun _ => true` would satisfy everything above.
+   `erases_prefix_selected_order` is the target-side consequence.
+
+**Where the draft was too loose to freeze, and how it is tightened.**
+
+| Id | Looseness | Tightening |
+| --- | --- | --- |
+| T1 | `Attachment`, `Certificate` and `SourceChecked` were a bare type, a bare type and an unconstrained `Prop`. `Unit`, `Unit` and `True` satisfied all three | constructors and projections frozen; `sourceCheck` named, `SourceChecked` its `= true`, `sourceChecked_iff` freezing the tie |
+| T2 | `SourceProfileCompatible` took no binding, while the draft's own text requires "an explicit symbol-to-address binding witness". It would have had to invent the correspondence between source symbols and runtime cells | `Binding` added as a separate argument. It is not a certificate component: the certificate must stay checkable with no run |
+| T3 | `selectedLogs : … → List OccurrenceRole` cannot tell `size, 2` from `size, 0`, nor the nested observer log from the outer one, so the comparison was blind exactly where the asserted array discriminates | `List SelectedLog`, carrying the size call, the sink request or the registration |
+| T4 | `erasure_preserves_selected_order` took a target and an `ErasesPrefix` premise and concluded that the two sides agree, which under any honest `ErasesPrefix` is that relation restated — the vacuous reading §6.2 forbids | restated on the reference side with `RetainedFifo` in the conclusion; the target-side consequence split off as `erases_prefix_selected_order` |
+| T5 | `run_erases_to_reference` quantified over an arbitrary start configuration. With `labels = []`, `Reaches c [] c` holds for a `c` whose trace was fabricated, and no reference trace exists for it: the statement is **false**, not merely hard | the `c = Semantics.Ordering.initial …` hypothesis is required, and the whole statement moves to P8 (below) |
+| T6 | `ErasesPrefix` was an unconstrained `Prop` that `True` satisfied, and took no binding | frozen as the equality of two total projections by `erasesPrefix_iff`; the anti-vacuity weight sits on `CausalPrefix`, which the reference must independently satisfy |
+| T7 | `referenceSelectedLogs` took a certificate it cannot use once the log alphabet carries its own identity | the certificate argument is dropped; selection is decided by clause 8 of `causalCheck`, where it is checkable |
+
+**The split: what this packet owes and what P8 owes.**
+
+This packet (Q4) owes every one of the 86 ascriptions above: the carriers, the
+four checkers and their `_iff` equations, the erasure, the two laws, the pinned
+certificate and reference with their three receipts, and the three mutant
+rejections. All are total first-order definitions or decidable `Prop`s; none
+needs an invariant this packet has not stated.
+
+P8 owes four things, each because no first-order definition in this packet can
+supply it:
+
+1. **`run_erases_to_reference`, the existence half.** For every run of the
+   admitted initial configuration whose consumed external decision word is
+   `SourceProfileCompatible`, an independently constructed causal reference
+   trace and an `ErasesPrefix` witness. Its proof needs `WellFormed`
+   initialization and preservation (CFG-CELLS, CFG-STACK), the token/mailbox
+   correspondence (CFG-TOKENS), the ordered-effect receipts (CFG-EFFECTS), the
+   successful-profile progress theorem, and the finite witness through the
+   original start gate. §3.3 lists every one of those as still required and
+   this packet states none of them. It also needs the hypothesis T5 adds. This
+   is the obligation `CFG-WPT` is really about, and the `bridges` edge of
+   `docs/CONFIGURATION-DAG.md` stays open on it.
+2. **The transcription gate.** The agreement of `blockDigest` and
+   `occurrenceDigest` with the sealed bytes of
+   `vendor/wpt-480fdfcd/streams/writable-streams/reentrant-strategy.any.js`,
+   plus the recorded human transcription review. A Lean definition cannot read
+   `vendor/`; this is a gate in the shape of `lake exe vendorseal`, and the
+   constants this packet freezes are its input, not its proof.
+3. **The numeric chunk values.** `Semantics.Ordering.Decision α ε` is
+   polymorphic in the chunk type, so no first-order predicate over it can say
+   "the chunk is 2". This packet compares role-and-identity sequences under the
+   binding; the numeric agreement of the asserted array is the host replay
+   under the three local profiles, by run identifier.
+4. **The `WS-CONFIG` register rows** for the three mutants.
+   `test/counterexamples/REGISTER.md` is outside this packet's fence (§9) and
+   no id is frozen here.
+
+`OrderingBridgeProofs.lean` therefore has nothing to prove at Q4: every
+statement this battery ascribes is provable inside
+`Whatwg/Streams/Semantics/`, and the module the seam reserves for the bridge is
+the one P8 fills. The seat records that rather than inventing work for it.
+
+### 12.4 A6: the receipt list, reconciled
+
+The first builder pass reported three missing receipts (§11.5):
+`notifySettled_reactions_bridge`, whose frozen statement was false, and the two
+§6 laws, which were not attempted. After A1 to A5 the list is 93:
+
+- the 54 restated P8a laws, unchanged;
+- **15** Q4-owned bridging receipts, not 12: `phaseErase_eq`,
+  `reactionErase_eq` and `notifySettled_queued_serial` join, and
+  `notifySettled_reactions_bridge` stays at its restated statement;
+- the 14 `PromiseBridgeQ4` theorems, unchanged;
+- **10** source receipts, not 2: `erasure_preserves_selected_order` stays,
+  `run_erases_to_reference` is removed with A5's reasons, and nine join —
+  `erases_prefix_selected_order`, the five `_iff` equations that keep a checker
+  from being widened into vacuity, and the three `wpt*` non-vacuity receipts.
+
+82 − 1 + 3 + 9 = 93. The three mutant rejections are closed `Bool` equalities
+with no interesting axiom set and are checked by elaboration in
+`OrderingSource.lean` itself, not listed in the report.
+
+### 12.5 A7: a defect the first builder pass did not report
+
+Item 3 of this packet (§7.1) makes `lake exe census --write` regenerate
+`WhatwgTest/Audit/SpecCoverageRows.lean` with `.owned` in place of
+`.foreignBoundary` on `slot.promise-state` and `slot.promise-is-handled`. §7.6
+anticipated the drift gate and said "regenerating it is a builder action and
+the gate decides it". What §7.6 did not see is that a *second* frozen battery
+pins that file's bytes: `WhatwgTest/Audit/CensusProfileIdentity.lean`, frozen
+by `test/contracts/census-profile-identity.contract.md` (the Q1 promise census
+packet), carries
+
+```text
+⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32032,
+  "d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476"⟩,
+```
+
+and `.foreignBoundary` → `.owned` twice is exactly 20 bytes shorter. Measured
+after the regeneration: **32012 bytes**, SHA-256
+**`247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c`**. The
+battery is red, and it was red at `746032c` as well; §11.5's table does not
+list it and the first pass's `lake exe trustselftest` line was taken against a
+four-module set.
+
+That battery is not Q4's. This seat declares
+`WhatwgTest.Audit.CensusProfileIdentity` in
+`test/fixtures/trust-gate/known-red.txt` with the two replacement values, and
+does not edit it: its owner, or a coordinator ruling in the manner of R-P17,
+amends the pinned size and digest. The entry is removed the moment that lands.
+The Streams coverage numbers are untouched by all of this — §7.4's five frozen
+totals still hold and §7.5's block still re-emits byte-identically, because a
+disposition is not a coverage state.
+
+### 12.6 Freeze receipt for the amendment
+
+Amended 2026-09-07 on branch `promise/q4-amend`, based on
+`promise/q4-builder` `746032c` merged with `origin/main`. Toolchain
+`leanprover/lean4:v4.33.1`. This seat ran no `lake`, `lean` or `lsp` in the
+held draft's worktree and modified nothing there. It edited nothing under
+`Whatwg/`, `Gates/`, `census/`, `generated/`, `vendor/`, and neither
+`test/counterexamples/REGISTER.md`, `SPEC-MANIFEST.md`, `PLAN.md` nor
+`COORDINATION.md`.
+
+**Green.**
+
+```text
+lake --wfail build Whatwg Gates
+Build completed successfully (164 jobs).   exit 0
+```
+
+**Red, in the declared modules only.**
+
+```text
+lake build WhatwgTest
+✖ [229/235] Building WhatwgTest.Streams.Semantics.OrderingContract (815ms)
+✖ [230/235] Building WhatwgTest.Streams.Semantics.OrderingLaws (838ms)
+✖ [231/235] Building WhatwgTest.Streams.Semantics.OrderingSource (815ms)
+✖ [232/235] Building WhatwgTest.Streams.Semantics.OrderingAxiomReport (814ms)
+✖ [233/235] Building WhatwgTest.Audit.CensusProfileIdentity (3.0s)
+error: build failed
+Some required targets logged failures:
+- WhatwgTest.Streams.Semantics.OrderingContract
+- WhatwgTest.Streams.Semantics.OrderingLaws
+- WhatwgTest.Streams.Semantics.OrderingSource
+- WhatwgTest.Streams.Semantics.OrderingAxiomReport
+- WhatwgTest.Audit.CensusProfileIdentity
+```
+
+Exactly the five declared modules fail. `WhatwgTest.Streams.PromiseBridgeQ4`
+stays green.
+
+**Exact diagnostics**, from `lake env lean -DmaxErrors=5000 <file>`.
+
+| Module | Diagnostics | Kinds | Names the second builder pass must supply |
+| --- | ---: | --- | --- |
+| `WhatwgTest/Streams/Semantics/OrderingContract.lean` | 2 | 2 `lean.unknownIdentifier` | `Semantics.Ordering.phaseErase`, `Semantics.Ordering.reactionErase` |
+| `WhatwgTest/Streams/Semantics/OrderingLaws.lean` | 13 | 9 `lean.unknownIdentifier`, 4 `lean.invalidDottedIdent` | `phaseErase`, `phaseErase_eq`, `reactionErase`, `reactionErase_eq`, `notifySettled_reactions_bridge`, `notifySettled_queued_serial`. The four `invalidDottedIdent` are the `.waiting`/`.queued`/`.running`/`.done` arms of `phaseErase_eq`, whose expected type is the unknown `phaseErase`'s codomain — a direct consequence, the same class §10 already records |
+| `WhatwgTest/Streams/Semantics/OrderingSource.lean` | 223 | 223 `lean.unknownIdentifier` | all 86 names of the seam, each mentioned in its own ascription and in the ascriptions that use it |
+| `WhatwgTest/Streams/Semantics/OrderingAxiomReport.lean` | 14 | 14 `lean.unknownIdentifier` (unknown constant) | the 4 of `OrderingLaws` that are theorems and the 10 source receipts |
+| `WhatwgTest/Streams/PromiseBridgeQ4.lean` | 0 | — | green |
+| `WhatwgTest/Audit/CensusProfileIdentity.lean` | 1 | 1 gate `throwError` | not a name: §12.5's size and digest, owed by the Q1 census packet |
+| **total** | **253** | | |
+
+Every diagnostic in the four Ordering modules is an unknown identifier or a
+direct consequence of one. There is no parse, import, type-mismatch or
+instance-synthesis failure anywhere, and the two type mismatches the first pass
+carried (B1 and B4) are gone.
+
+**Receipts.** 79 of the 93 named receipts of `OrderingAxiomReport.lean` print,
+and every one is inside the R-11 ceiling: **14 empty, 27 `[propext]`, 33
+`[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]`** — the
+same distribution the first pass measured, because A1 to A4 change statements
+and add names but repair no proof. `sorryAx`, `Lean.ofReduceBool`,
+`Lean.ofReduceNat`, `Lean.trustCompiler` and the `native_decide` auxiliaries
+appear nowhere. The 14 that do not print are the names A4 and A5 leave for the
+second builder pass.
+
+**Gates.** All four re-run by this seat:
+
+```text
+lake exe trustselftest
+PASS declared red set matches the observed red set (5 module(s))
+PASS trust self-test: every planted declaration was rejected for its stated
+reason and every control was accepted
+
+lake exe vendorseal
+PASS vendor seal: manifest and vendor/ agree in both directions; every path is
+valid on Windows
+
+lake exe citations
+PASS internal citations: 350 files scanned; no line-numbered citation into a
+protected authored document
+
+lake exe census --report
+WHATWG Streams (b9ba9f49) coverage: denominator 410; owned-with-green 12/410;
+green 12, partial 6, absent 392; census 450 rows, 40 excluded
+partial: op.blqs-size op.byte-length-queuing-strategy-size-function op.count-queuing-strategy-size-function op.cqs-size op.is-non-negative-number slot.queue-total-size
+```
+
+The Streams coverage block is byte-identical to §7.5, as §7.4 predicts. The
+trust self-test accepts the five-module declared red set in both directions,
+which is what makes A7's fifth entry a declaration rather than an undeclared
+failure.

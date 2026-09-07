@@ -111,3 +111,32 @@ step is `G-02` and no statement here covers it.
 Verification: the rejecting statements are checked by the four Q3b batteries'
 own narrow commands and by the amended Q3 ascriptions, recorded in the
 addendum's "Freeze receipt". No host was run and no WPT case was replayed.
+
+## Q4 amendment, 2026-09-07, branch `promise/q4-amend`
+
+Appended by the Q4 amendment breaker seat, based on `promise/q4-builder` at
+`746032c` merged with `origin/main`. Packet:
+`test/contracts/configuration-ordering.contract.md`, its "Q4 amendment"
+section. The thirty-eight rows above are frozen and unchanged; this one is new.
+`test/counterexamples/REGISTER.md` stays the coordinator's and is not edited
+here, so the row is `SEEDED` and its register entry is owed at landing.
+
+The row is not hypothetical. The mutant **is the statement the Q4 packet froze
+at `promise/q4-breaker` `9ae662a`**, which the first builder pass found false
+and correctly refused to prove (builder note B3, contract §11.1). The rejecting
+statements are the restated bridge and the new serial lemma of amendment A4.
+
+Byte offsets are 0-based, ends exclusive, into
+`vendor/ecma262-0248456c/spec.html`. No line number is cited.
+
+| ID | Mutant | Rejecting statement |
+| --- | --- | --- |
+| WS-PROM-CE-039 | state the reaction half of the configuration's `notifySettled` as a plain equality of registration lists with `op.triggerpromisereactions`' result, so that the configuration's `ReactionPhase.queued` payload is claimed to be the **registration id**. **This is the Q4 packet's own frozen `notifySettled_reactions_bridge`.** The mutant erases the distinction decision 2 of the contract's §3.3 makes between the two monotone supplies, and would let a later FIFO or replay proof read a registration id where a job serial is scheduled. Witness: `c.nextJob = 7`, one registration `r` with `r.id = 0`, `r.promise = id`, `r.phase = .waiting`, and `Writable.lookupPromise c.writable id = some (.fulfilled ())`; then `(notifySettled c id).registrations = [{ r with phase := .queued 7 }]` while `(triggerReactions (reactions c) id .fulfill (.ok ()) Queue.empty).1.fulfill = [{ r with phase := .queued 0 }]`. A second, independent witness for the `Nodup` clause: two registrations sharing `id = 0` whose `promise` fields differ, one equal to `id` and one not — the configuration's fold advances both, because `setRegistrationPhase` selects by registration id alone, while `op.triggerpromisereactions`' filter `r.promise == promise && r.phase == waiting` advances one | `op.triggerpromisereactions` (2700260..2701212) and `field.promisereaction-records.Type` (2691815..2692138); contract §2.7 and decision 2 of §3.3, ratified by R-P25 ("`ReactionPhase.queued`'s payload stays the job serial in the configuration and the registration id in the landed ECMA-262 operations; Q4 keeps its two cursors"). Three statements reject it: `Whatwg.Streams.Semantics.Ordering.notifySettled_reactions_bridge` as amended, which equates the two lists **only** modulo `reactionErase` and **only** under `(c.registrations.map (·.id)).Nodup` (mask M1); `Whatwg.Streams.Semantics.Ordering.notifySettled_queued_serial`, which recovers the payload the erasure drops and ties it to the token FIFO's own supply — every triggered registration is left `.queued serial` for a `serial ≥ c.nextJob` whose `.observer` token the same notification appended to `jobQueue` (mask M2); and `Whatwg.Streams.Semantics.Ordering.phaseErase_eq`, which pins the erasure so the bridge cannot be widened back into the mutant by redefining it |
+
+Verification: the three rejecting statements are frozen red in
+`WhatwgTest/Streams/Semantics/{OrderingContract,OrderingLaws}.lean` and named
+in `WhatwgTest/Streams/Semantics/OrderingAxiomReport.lean`; the second builder
+pass proves them. The two witnesses above are stated, not executed: no
+`WS-CONFIG` witness module exists yet, and the configuration counterexample
+tranche remains the `counterexamples` edge of `docs/CONFIGURATION-DAG.md`. No
+host was run and no WPT case was replayed.
