@@ -181,6 +181,15 @@ dispositions, generated assurance wording, and residual proof scope. Infra's
 text graph and full Streams P4–P12 remain open; these integration receipts
 do not add a semantic coverage witness.
 
+**Hold lifted, 2026-09-06:** the operator lifted the 2026-09-05 semantics
+hold and opened the promise lane: a census of ES2026's Jobs and Promise
+Objects clauses and of Web IDL's promise and exception sections, run as
+the P8 entry under ruling DB-11, with the coordinator, survey, breaker,
+builder and review seats recorded in `COORDINATION.md`. P8a's own draft
+stays held until that census and the DB-11 restatement exist. The
+breadth-before-depth rule applies: census and dispositions first, then a
+frozen packet, then declarations.
+
 **Promise layering, 2026-09-06:** the Web IDL Standard (March 2026 Review
 Draft) and ECMA-262 (ES2026) are pinned as the promise authorities, and
 ruling DB-11 places them in two libraries beneath Streams, `Whatwg.Ecma262`

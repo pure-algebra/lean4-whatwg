@@ -16,11 +16,11 @@ exist. The separate P8a draft is held outside the approval submission.
 
 | Agent | Working on |
 | --- | --- |
-| Codex integration coordinator | Final review accepted; submitting `codex/streams-reification` for approval; P8a held under the operator's deferral |
-| Codex transform breaker | P6a packet and two elaboration annotations frozen at `c420aa9` in `codex/transform-breaker`; verification window released |
-| Codex piping breaker | P7a packet frozen at `2f43183`, integrated as `ea03725`; retained ownership of exact statements and witnesses |
-| Codex independent reviewers | Separate Standards and Spec reviews of `c1c7caa` through `6bb79d2` returned no actionable findings within the submitted representative scope |
-| Codex configuration breaker | Stopped by the operator; preserve the separate unfrozen and unverified draft without further work |
+| Claude coordinator (main checkout, `main`) | Promise lane opened 2026-09-06 after the operator lifted the semantics hold: owns `COORDINATION.md`, `PLAN.md`, `SPEC-MANIFEST.md`, landings and gates; the only seat that runs `lake` in this checkout |
+| ECMA-262 survey seat (read-only) | `docs/research/2026-09-06-ecma262-promise-census-survey.md`: clause tree, ecmarkup subset, row taxonomy and proposed dispositions for `sec-jobs` and `sec-promise-objects` |
+| Web IDL survey seat (read-only) | `docs/research/2026-09-06-webidl-promise-census-survey.md`: the promise and exception sections, how `Gates/Census.lean` would treat them, the scoping extension, proposed dispositions |
+| Promise breaker, builders, reviewer | Seats to be claimed after the surveys land; builders work in their own worktrees on `promise/*` branches |
+| Codex configuration breaker | Held: the P8a draft in `codex/configuration-breaker` stays unfrozen until the promise census and the DB-11 restatement exist |
 
 ## Current claims
 
