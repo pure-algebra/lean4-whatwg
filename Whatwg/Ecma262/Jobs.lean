@@ -121,6 +121,47 @@ def step {payload : Type} (active : Active) (q : Queue payload) :
   | _ => none
 
 /--
+`requirement.jobs.1` (625769..626250) and `requirement.jobs.2`
+(626257..626350) as the operation that **enters** a job: dequeue the oldest job
+and record it as the agent's activation. `G-08`; `E-51` (`Transform.runJob`,
+generalize) is the Streams row whose general "run one job" step this is, and
+`E-47` (`Writable.Control.react`, keep) is the marker that is not re-stated
+here — no second activation state is introduced.
+
+Finding F5 of ruling R-P20: before this, `Active.job` was produced by no
+operation, so `requirement.jobs.3` could only be discharged vacuously. This is
+the missing producer. It is conservative: `startJob_run_agree` says that
+forgetting the activation gives `Queue.dequeue` back exactly.
+-/
+def startJob {payload : Type} (active : Active) (q : Queue payload) (serial : Nat) :
+    Option (payload × Active × Queue payload) :=
+  match active with
+  | .checkpoint => (Queue.dequeue q).map (fun p => (p.1, Active.job serial, p.2))
+  | _ => none
+
+/--
+`requirement.jobs.3` (626357..626479): the operation that **leaves** a job.
+Completing is the only route back to a checkpoint, so an activation that is not
+a job cannot be laundered into one. `G-08`.
+-/
+def completeJob : Active → Active
+  | .job _ => Active.checkpoint
+  | active => active
+
+/--
+`requirement.jobs.3` (626357..626479, digest
+`3cee57a0e02ed9d66b34bdaa1398995eebf32ac008eb9d493e15647bb9235378`) — "Once
+evaluation of a Job starts, it must run to completion before evaluation of any
+other Job starts in an agent" — as the DB-05 specification half, in the shape
+R-P5 already requires for `hook.hostenqueuepromisejob`: while a job is the
+agent's activation, no job starts, at any queue. `run_to_completion` is the
+realizer theorem and `run_to_completion_nonvacuous` the receipt that the
+specification bites. `G-08`.
+-/
+def RunToCompletion {payload : Type} (active : Active) : Prop :=
+  (∃ id : Nat, active = Active.job id) → ∀ q : Queue payload, step active q = none
+
+/--
 The deterministic FIFO realizer `E-46`, `E-49` and `E-53` extract from three
 places. The `Nat` argument bounds how far this observation reaches; it is not
 a semantic fuel parameter, because `run_split` returns whatever was not run.
@@ -260,5 +301,120 @@ theorem hostEnqueuePromiseJob_eq {payload : Type} (q : Queue payload) (job : pay
 /-- `op.newpromisereactionjob` builds exactly the capture record. Mask M1. -/
 theorem newReactionJob_eq {arg : Type} (reaction : Nat) (argument : arg) :
     newReactionJob reaction argument = ReactionJob.mk reaction argument := rfl
+
+/-! ## F5 — `requirement.jobs.3`, run to completion
+
+Finding F5 of ruling R-P20, answered by
+`test/contracts/promise-first-packet-q3b.contract.md` §5 with the
+`Active`-threaded step rather than a discharge by typing. Anchors: RUNCOND
+(`requirement.jobs.1`, 625769..626250), ONEJOB (`requirement.jobs.2`,
+626257..626350), COMPLETE (`requirement.jobs.3`, 626357..626479, digest
+`3cee57a0e02ed9d66b34bdaa1398995eebf32ac008eb9d493e15647bb9235378`) and ORDER
+(`requirement.hostenqueuepromisejob.3`, 634739..634841). `G-08`; `E-51`
+(generalize), `E-47` (keep). Attack: WS-PROM-CE-028. -/
+
+/-- Starting a job at a checkpoint is `Queue.dequeue` with the activation
+threaded through it. Mask M2: the statement observes which job leaves the
+queue. `G-08`. -/
+theorem startJob_checkpoint {payload : Type} (q : Queue payload) (serial : Nat) :
+    startJob Active.checkpoint q serial =
+      (Queue.dequeue q).map (fun p => (p.1, Active.job serial, p.2)) := rfl
+
+/-- The oldest job is the one that starts, which is `requirement.jobs.1`
+composed with `requirement.hostenqueuepromisejob.3` (634739..634841). Mask M2.
+`G-08`. -/
+theorem startJob_queue {payload : Type} (job : payload) (rest : List payload) (serial : Nat) :
+    startJob Active.checkpoint (Queue.mk (job :: rest)) serial =
+      some (job, Active.job serial, Queue.mk rest) := rfl
+
+/-- `requirement.jobs.1` and `requirement.jobs.2`: no job starts in any
+activation but a checkpoint — the same content as `step_blocked`, now for the
+operation that actually enters a job. Mask M1. `G-08`. -/
+theorem startJob_blocked {payload : Type} (active : Active) (q : Queue payload) (serial : Nat) :
+    active ≠ Active.checkpoint → startJob active q serial = none := by
+  cases active <;> intro h <;> first | rfl | exact absurd rfl h
+
+/-- **The producer.** Starting a job leaves the agent in `Active.job`, so that
+constructor is no longer reachable by nothing, and `requirement.jobs.3`
+constrains a state the model reaches. Mask M1. `G-08`. -/
+theorem startJob_active {payload : Type} (active : Active) (q : Queue payload) (serial : Nat)
+    (res : payload × Active × Queue payload) :
+    startJob active q serial = some res → res.2.1 = Active.job serial := by
+  cases active with
+  | script => intro h; exact absurd h (by simp [startJob])
+  | intrinsic id => intro h; exact absurd h (by simp [startJob])
+  | job id => intro h; exact absurd h (by simp [startJob])
+  | checkpoint =>
+      cases hq : Queue.dequeue q with
+      | none => intro h; rw [startJob_checkpoint, hq] at h; exact absurd h (by simp)
+      | some p =>
+          intro h
+          rw [startJob_checkpoint, hq] at h
+          simp only [Option.map_some, Option.some.injEq] at h
+          rw [← h]
+
+/-- Completion, and the only route back to a checkpoint. Mask M1. `G-08`,
+COMPLETE. -/
+theorem completeJob_job (id : Nat) : completeJob (Active.job id) = Active.checkpoint := rfl
+
+/-- Completing when no job is running changes nothing, so a script or intrinsic
+activation cannot be laundered into a checkpoint. Mask M1. `G-08`. -/
+theorem completeJob_other (active : Active) :
+    (∀ id : Nat, active ≠ Active.job id) → completeJob active = active := by
+  cases active with
+  | script => intro _; rfl
+  | intrinsic _ => intro _; rfl
+  | job id => intro h; exact absurd rfl (h id)
+  | checkpoint => intro _; rfl
+
+/-- The specification unfolded, so the reader can check what is claimed without
+reading the definition. Mask M1. `G-08`, COMPLETE. -/
+theorem RunToCompletion_iff {payload : Type} (active : Active) :
+    RunToCompletion (payload := payload) active ↔
+      ((∃ id : Nat, active = Active.job id) →
+        ∀ q : Queue payload, step active q = none) := Iff.rfl
+
+/-- **The realizer theorem for `requirement.jobs.3`.** Once evaluation of a job
+has started — that is, once the agent's activation is `Active.job` — no job
+starts, in any queue and at any payload, until `completeJob` returns the agent
+to a checkpoint. Mask M1. `G-08`, COMPLETE. -/
+theorem run_to_completion {payload : Type} (active : Active) :
+    RunToCompletion (payload := payload) active := by
+  intro hjob q
+  obtain ⟨id, hid⟩ := hjob
+  subst hid
+  rfl
+
+/-- The receipt that the theorem above is not vacuous: the activation
+`startJob` produces is one in which `RunCondition` fails, so the requirement
+constrains a state the model can actually reach. Mask M1. `G-08`, COMPLETE. -/
+theorem run_to_completion_nonvacuous {payload : Type} (job : payload) (rest : List payload)
+    (serial : Nat) :
+    ∃ res : payload × Active × Queue payload,
+      startJob Active.checkpoint (Queue.mk (job :: rest)) serial = some res ∧
+        res.2.1 = Active.job serial ∧ ¬ RunCondition res.2.1 :=
+  ⟨(job, Active.job serial, Queue.mk rest), rfl, rfl, by
+    intro h
+    exact absurd h (by simp [RunCondition])⟩
+
+/-- The typing half of the discharge, stated as §5 of the addendum requires it
+to be stated either way: `run` delivers exactly the oldest job and then
+continues on the rest, so no second job's evaluation can begin inside the
+first. Composition is `run_split`, unchanged. Mask M2. `G-08`, COMPLETE. -/
+theorem run_one_job_per_step {payload : Type} (fuel : Nat) (job : payload)
+    (rest : List payload) :
+    (run (fuel + 1) (Queue.mk (job :: rest))).1 =
+      job :: (run fuel (Queue.mk rest)).1 := rfl
+
+/-- Threading the activation is conservative: forgetting it from `startJob` at
+a checkpoint gives `Queue.dequeue` back exactly, so `run_fifo`, `run_split`,
+`hostEnqueuePromiseJob_order`, `Writable.tick_job_fifo` and
+`Transform.tick_job_fifo` keep their statements and their proofs. Mask M2.
+`G-08`, ORDER. -/
+theorem startJob_run_agree {payload : Type} (q : Queue payload) (serial : Nat) :
+    (startJob Active.checkpoint q serial).map (fun p => (p.1, p.2.2)) =
+      Queue.dequeue q := by
+  obtain ⟨pending⟩ := q
+  cases pending <;> rfl
 
 end Whatwg.Ecma262.Jobs
