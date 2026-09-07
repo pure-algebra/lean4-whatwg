@@ -431,6 +431,151 @@ on `origin/promise/webidl-census` or `origin/main`:
      run: lake exe census --standard ecma262
    ```
 
+### Q1 Web IDL landing receipt
+
+Recorded by the Web IDL builder seat on `promise/webidl-census`, 2026-09-06,
+on Lean 4.33.1, Windows x64. This subsection records what was run and what came
+out; it grants no coverage state and quotes no denominator as coverage. The
+ES2026 half of Q1 is not landed here and the lane's exit gate stays open.
+
+**The four identity files, before and after the R-P1 refactor.** Recomputed
+with `Get-FileHash -Algorithm SHA256` on the working tree at the merge base and
+again after `lake exe census --write` and
+`lake exe census --standard infra --write`. Every byte is unchanged, so
+`test/contracts/census-profile-identity.contract.md` holds.
+
+| Path | Bytes | SHA-256, before and after |
+| --- | ---: | --- |
+| `generated/spec-algorithm-census.tsv` | 141352 | `1a3672789fb62d3ae68eb528efb20a211727e9ed2b18c3e751c5acf67cd37e02` |
+| `generated/infra-census.tsv` | 55766 | `5041ef0035e087cb242a300a95398982351d766b39a4f24f28e94d9b853d5b18` |
+| `WhatwgTest/Audit/SpecCoverageRows.lean` | 32032 | `d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476` |
+| `WhatwgTest/Audit/Infra/SpecCoverageRows.lean` | 10607 | `94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0` |
+
+The two files this slice adds, for the reviewer's drift check:
+`generated/webidl-census.tsv`, 33685 bytes, SHA-256
+`28af714cb2af1223c716bfecf2d199d356a29433169c5a655bc31c2b3ad88cee`;
+`WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean`, 8472 bytes, SHA-256
+`cf008161d29c9339b48cf1a1a09b8de71e03ac18a5ff2b996739ce7f40afdb54`.
+
+**Commands and results.**
+
+| Command | Result |
+| --- | --- |
+| `lake --wfail build Whatwg Gates census vendorseal citations urlinventory urlcensus` | `Build completed successfully (287 jobs).` |
+| `lake exe vendorseal` | `PASS vendor seal: manifest and vendor/ agree in both directions; every path is valid on Windows` |
+| `lake exe citations` | `PASS internal citations: 308 files scanned; no line-numbered citation into a protected authored document` |
+| `lake exe urlinventory` | `PASS URL inventory: pinned bytes, full token partition, 1473 source candidates; projection is byte-identical` |
+| `lake exe urlcensus` | `PASS URL census: pinned source, authored joins; both projections are byte-identical` |
+| `lake exe census` | `PASS census (streams): …` |
+| `lake exe census --report` | the Streams coverage block, unchanged: denominator 410, owned-with-green 12/410, green 12, partial 6, absent 392, 450 rows, 40 excluded |
+| `lake exe census --standard infra` | `PASS census (infra): …` |
+| `lake exe census --standard webidl` | `PASS census (webidl): …`, quoted in full below |
+| `lake exe census --standard webidl --report` | refused, exit 2: `census: no coverage numerator exists for webidl, so there is no report yet` |
+| `lake build WhatwgTest.Audit.CensusProfileIdentity` | green |
+| `lake build WhatwgTest.Audit.WebIdl.CensusContract` | green |
+| `lake --wfail build WhatwgTest` | one failing target, `WhatwgTest.Audit.Ecma262.CensusContract`, which is the declared red set |
+
+Running `lake exe census --write`, `--standard infra --write` and
+`--standard webidl --write` again leaves `git status --short` reporting no
+change to any of the six projections.
+
+The exact `lake exe census --standard webidl` output, both lines:
+
+```text
+census: 121 rows (idl 37, op 39, requirement 0, rule 6, slot 0, type 39, builtin 0, hook 0, property 0, record 0, field 0, term 0, clause 0); dispositions (owned 59, requirement 6, foreignBoundary 0, hostOnly 47, refused 0, evidenceOnly 9, targetOnly 0); denominator 112, excluded 9; 0 IDL statement(s) outside the row vocabulary
+PASS census (webidl): input digest is the pin, every anchor occurs exactly once at its span start, every span digest recomputes, every row has exactly one disposition, both projections are byte-identical to a fresh regeneration; no numerator exists for this standard yet, so no emit was checked
+```
+
+The battery's own line, from
+`lake build WhatwgTest.Audit.WebIdl.CensusContract`:
+
+```text
+webidl census contract: 121 rows, 121 frozen anchor rows verified against vendor/whatwg-webidl-a652053f/index.bs (SHA-256 3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83), denominator 112
+```
+
+and from `lake build WhatwgTest.Audit.CensusProfileIdentity`:
+
+```text
+census profile identity: 4 frozen files, Streams 450 rows / denominator 410, Infra 176 rows / denominator 165
+```
+
+**Counts.** 121 rows: 37 `idl`, 39 `op`, 39 `type`, 6 `rule`, and zero of every
+other kind. 59 `owned`, 47 `hostOnly`, 9 `evidenceOnly`, 6 `requirement`,
+denominator 112 with 9 excluded. `census/webidl/dependencies.tsv` carries one
+line per row, 121 in all; `census/webidl/externals.tsv` declares 46 identities
+and every one is used.
+
+**The implementation ceiling.** The `Gates/` tree is admitted to the
+implementation ceiling as a whole, so `Classical.choice` is inside it.
+`#print axioms` over the twenty-two declarations this slice adds or rewrites
+(`build`, `buildBikeshed`, the five scanners, the four input parsers,
+`checkDependencies`, `sectionExtents`, `sectionAncestry`, `enclosingTableRow`,
+`lineStart`, `chunkStart`, `isListItemLine`, `dfnTypeOf`, `hasAlgorithmAttr`,
+`algorithmBlocks`, `webidl`) reports only `propext`, `Quot.sound` and
+`Classical.choice`; `sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`,
+`Lean.trustCompiler` and the `native_decide` auxiliaries appear nowhere. Every
+new definition is total: the two new backward scans `lineStart` and
+`chunkStart` are fuel-bounded structural recursion on `Nat`, as every other
+scan in the module is, and no `partial`, `unsafe`, `sorry` or `native_decide`
+token was added.
+
+**Four departures from the letter of the packet, each recorded rather than
+silently taken.**
+
+1. **`algorithmNameFirst` lives on `Standard`, not on `Bikeshed`.** R-P8 words
+   the switch as a Bikeshed profile field, but
+   `WhatwgTest/Audit/WebIdl/CensusContract.lean` freezes
+   `@Gates.Census.Bikeshed.mk` at exactly eight arguments, so a ninth field
+   would break a frozen ascription. It is `Gates.Census.Standard.algorithmNameFirst`
+   instead, `false` for Streams and Infra and `true` for Web IDL, and the
+   frozen profile `#guard`s pass unchanged. The switch is inert at this pin:
+   the eleven `js-promise-manipulation` blocks open with the bare
+   `<div algorithm>`, which carries no attribute value, so the ladder falls
+   through to the block's first `<dfn>` and the frozen ids
+   `op.dfn-perform-steps-once-promise-is-settled`,
+   `op.waiting-for-all-promise` and `op.mark-a-promise-as-handled` are exactly
+   what the packet's section 8 table records. The survey's `op.react` would
+   need the naming ladder to prefer a `<dfn>`'s `lt` head over its `id`, which
+   is a different change and is not made here.
+2. **`Standard` gains three further fields the packet does not name**:
+   `authoredTypeNames` (Infra alone has a `types.tsv`), `authoredDependencies`
+   (Streams and Infra author no dependency rows) and `crossCensusPaths` (Web
+   IDL joins `generated/infra-census.tsv`). Nothing frozen ascribes
+   `Standard.mk`, and the alternative was to infer each from another switch,
+   which would have hidden the decision.
+3. **`WhatwgTest.lean` gains one import.** The packet's builder fence does not
+   list it, but `WhatwgTest/Audit/AxiomGate.lean`'s module-closure gate fails
+   on any source under `WhatwgTest/` that the audit root does not reach, and
+   `WhatwgTest/Audit/Infra/SpecCoverageRows.lean` is imported there for exactly
+   that reason. The ES2026 builder owes the same one-line import for its rows
+   module.
+4. **Three ECMA-262 escapes the packet's section 7 lists are not in
+   `externals.tsv`**: `{{%Error.prototype%}}`, `[=PromiseCapability=]` and
+   `[=ECMAScript/error objects=]`. All three occur only inside
+   `js-DOMException-specialness`, which produces no census row, and the
+   generator refuses an external identity that no dependency line uses. The
+   omission is recorded in the header of `census/webidl/externals.tsv` so that
+   it reads as a consequence of the row set rather than as an oversight.
+
+**What the ES2026 builder inherits.** `Gates.Census.build` is a three-line
+dispatch and the `.ecmarkup` arm is the whole of its change:
+
+```lean
+def build (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs) : Except String Built :=
+  match std.profile with
+  | .bikeshed switches => buildBikeshed std switches bs inputs
+  | .ecmarkup => Except.error "profile ecmarkup: scanner not wired"
+```
+
+`Gates.Census.AuthoredInputs` is the record `readAuthored` fills; it already
+reads `sections.tsv` for a standard whose profile is `.ecmarkup`, and it reads
+`dependencies.tsv` and `externals.tsv` for a standard that sets
+`authoredDependencies`. `Gates.Census.Kind` already carries the seven R-P2
+constructors with `Kind.all` at length 13 in the frozen order, and
+`Gates.Census.standards` is `[streams, infra, webidl]`, so appending `ecma262`
+makes it the four the ECMA-262 battery `#guard`s. `Gates/Ecmarkup.lean` does
+not exist and no `ecma262` value was written here.
+
 ## Q2 — dispositions, dependency and external rows, coverage blocks
 
 **Seats.** The two builders author their standard's inputs; the coordinator
