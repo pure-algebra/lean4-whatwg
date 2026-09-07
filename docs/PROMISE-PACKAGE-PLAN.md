@@ -1889,7 +1889,7 @@ PASS vendor seal: manifest and vendor/ agree in both directions; every path is
      valid on Windows                                         exit 0
 
 lake exe citations
-PASS internal citations: 351 files scanned; no line-numbered citation into a
+PASS internal citations: 350 files scanned; no line-numbered citation into a
      protected authored document                              exit 0
 
 lake exe census --write
