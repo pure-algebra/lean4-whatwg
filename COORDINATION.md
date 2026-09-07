@@ -27,7 +27,10 @@ exist. The separate P8a draft is held outside the approval submission.
 | Q2 census breaker (own worktree, `promise/q2-census-breaker`) | Amends the two census packets for debts D3, D4 and D5 (new rule rows, the two disposition ratifications, the promise-to-JS row), freezes the per-standard numerator and `--report` obligations and the coverage-block format; breaker-owned statements amended with a recorded reason |
 | Q3 packet breaker (own worktree, `promise/q3-breaker`) | The first-packet contract and red batteries for `Whatwg.Ecma262.Promise`, `Whatwg.Ecma262.Jobs`, `Whatwg.WebIdl.Promise` and `Whatwg.WebIdl.Exceptions`, extraction-seeded row by row from `docs/PROMISE-EXTRACTION-INVENTORY.md` under R-P12 to R-P15; proposes inventory decisions 6–12 |
 | Q2 docs seat (main checkout, docs only, no `lake`) | Debts D1, D2, D8, D9 and D11: rulings R-P8 to R-P17 and the table repairs in `SPEC-MANIFEST.md`, the two false-reason sentences, `census/webidl/README.md`, the plan's stale "Still open" list and the ES2026 contract §11 sentence (as a coordinator note, not an edit of frozen text), and a recommendation on the citations gate's protected set |
-| Q2 tooling builder, Q2 and Q3 builders, reviewer | Claimed after the breakers freeze |
+| Q2 census breaker (landed) | Addenda frozen RED at `087ba08` on `promise/q2-census-breaker` (pushed): three Web IDL rule rows (DOMException serialization and deserialization steps, promise-to-JS), D4's two moves, Web IDL 124 rows / denominator 116, ES2026 77 / 75, the per-standard numerator modules and the keyed `Gates.Census.cli` ascribed, the two coverage blocks frozen; the Q1 batteries' superseded totals amended with dated reasons |
+| Q2 tooling builder (own worktree, `promise/q2-tooling` from the addenda) | Authored inputs and regeneration, numerators and `--report` for both standards, D6, D7 and D11, two CI steps, all four batteries green; D10 is deferred to a later breaker because the addenda freeze the dependency-line counts |
+| Q2 docs seat (landed) | D1, D2, D8, D9, D11 recommendation, on `main` at `0ea5f18` |
+| Q3 builder, reviewer | Claimed after the Q3 breaker freezes and the Q2 builder lands |
 | Codex configuration breaker | Held: the P8a draft in `codex/configuration-breaker` stays unfrozen until the promise census and the DB-11 restatement exist |
 
 ## Current claims
