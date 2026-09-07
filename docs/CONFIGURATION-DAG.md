@@ -244,6 +244,28 @@ then and none closes one now.
    Streams census; `slot.value` stays `foreignBoundary`.** Contract §7.
    No Streams coverage number moves.
 
+## Q4 landing, 2026-09-07, branch `promise/q4-builder`
+
+Appended by the Q4 builder seat. **Every row above this section is unchanged.**
+No edge closes here: the landing is partial, four of the five batteries stay
+declared red, and a compiling implementation is not a closed edge. Receipt: the
+"Q4 landing receipt" of `docs/PROMISE-PACKAGE-PLAN.md`, which carries every
+command and its result line; the four blocking items are §11.1 of the contract.
+
+| Edge | Status before | Status at this landing | What moved |
+| --- | --- | --- | --- |
+| identity | required-open | **required-open**, unchanged | The 15 class [R] ascriptions elaborate against the landed `Whatwg.Ecma262` names, with the single exception of `Reaction.mk` (item B1: five arguments ascribed, six landed). No generated declaration snapshot exists, so the edge's own item is untouched |
+| construction | required-open | **required-open**, unchanged | `E-22`'s three operations, five rewritten bodies and three table bridges landed, so `Readable.State.readPromises` is no longer a table without operations; CFG-START, CFG-CELLS, CFG-TOKENS, CFG-STACK and reachable-state preservation are untouched |
+| semantics | required-open | **required-open**, unchanged | `tick`, `decide`, `takeSinkHead`, `Step`, `Reaches` and `EpisodePrefix` exist and their frozen equations are proved, and `runCondition_iff` reaches `Jobs.RunCondition` through `activeErase`. CFG-EFFECTS, CFG-FIFO's source-specific half, CFG-RUNS, the foreign profile, the global scheduler and the live frontiers stay open |
+| laws | required-open | **required-open**, and most of it delivered | 50 of the 54 restated law ascriptions and 11 of the 12 Q4-owned bridging receipts are proved; all 18 deferred-generalization ascriptions are proved. The four that are not are B1 to B4. `OrderingLaws.lean` fell from 327 diagnostics to 4 |
+| representation | required-open | **required-open**, and the record change landed | The four view record rows of contract §4.1 read as frozen in `docs/READABLE-DAG.md`, `WRITABLE-DAG.md` and `TRANSFORM-DAG.md`, and the twenty ascriptions of §4.2 still elaborate. One cell owner, one payload owner, no shadow scheduler and no second table: `Writable.State.promises` read through `Writable.promiseTable` is the only outcome table the calculus touches |
+| counterexamples | required-open | **required-open**, unchanged | No configuration witness, no registered scheduler mutant and no WS-CONFIG row is landed by this seat |
+| bridges | required-open | **required-open**, and the Q4 halves landed | The three Q4-owned views `jobQueue`, `reactions` and `activeErase` exist with their receipts; the four deferred generalizations of contract §5 are all proved, which makes `WhatwgTest/Streams/PromiseBridgeQ4.lean` green. CFG-LOCAL, CFG-OBS, CFG-WPT, CFG-HOST and the full component embeddings stay open — CFG-WPT was not attempted at all |
+| targets | not-applicable | **not-applicable**, unchanged | This landing generates no target program |
+| trust | required-open | **required-open**, partially delivered | 79 of the 82 named receipts print, all inside the R-11 ceiling: 14 empty, 27 `[propext]`, 33 `[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]`. `lake exe trustselftest` passes in both directions against a four-module declared red set. Independent review is not done and the three missing receipts are B3 and the two §6 laws |
+| coverage | required-open | **required-open**, unchanged | R-P5's re-disposition landed and no coverage state moved: the two rows are `owned` and still `absent`, the Streams block re-emits byte-identically, and all four census standards pass |
+
+**Edges closed at this landing: none. Edges reopened: none.**
 ## Evidence ledger
 
 The specification byte-span cross-check, the intended-red commands and their

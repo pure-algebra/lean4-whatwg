@@ -253,8 +253,42 @@
 # not a landing.
 #
 # The builder removes an entry the moment its battery is green.
+#
+# Q4 BUILDER SEAT, branch promise/q4-builder, 2026-09-07. The packet is
+# PARTIALLY landed and four entries REMAIN. What landed:
+#
+#   * WhatwgTest.Streams.PromiseBridgeQ4 is GREEN — all 38 ascriptions, the 18
+#     for the four deferred generalizations and the 20 view conversions — so its
+#     entry is removed. `E-22`'s three operations, its five rewritten bodies and
+#     its five `rfl` equation lemmas landed, together with the three table
+#     bridges and the row 14, 15 and 16 bridges of the Q3 contract.
+#   * The `Whatwg.Streams.Semantics.Ordering` calculus landed in
+#     Configuration.lean, Step.lean, Runs.lean, Frontier.lean and Mask.lean.
+#     WhatwgTest.Streams.Semantics.OrderingContract fell from 235 diagnostics to
+#     ONE, OrderingLaws from 327 to FOUR, OrderingAxiomReport from 82 to THREE,
+#     and OrderingSource from 74 to 66.
+#
+# The four entries remain because four frozen ascriptions cannot be satisfied
+# against the Q3b-landed surface. They are recorded, with their exact
+# diagnostics, under "Builder notes" in
+# test/contracts/configuration-ordering.contract.md, and the coordinator rules
+# on each:
+#
+#   B1  OrderingContract.lean:108  `Reaction.mk` is ascribed at five explicit
+#       arguments; Q3b finding F4 gave it six (CAPFIELD).
+#   B2  OrderingLaws.lean:235      `register_eq` builds a five-field `Reaction`
+#       literal; six fields are required.
+#   B3  OrderingLaws.lean:545      `notifySettled_reactions_bridge` is FALSE as
+#       frozen: the two cursors of decision 2 make the phase payloads differ.
+#   B4  OrderingLaws.lean:540      `register_reactions_bridge` closes with
+#       `.map Prod.fst`, which projects the table, not the reactions, and does
+#       not typecheck.
+#
+# Not attempted, and recorded as remaining work: the CFG-WPT source and
+# certificate judgments of §6, which is why OrderingSource still has 66
+# diagnostics and OrderingAxiomReport three. The trust gate's all-green control
+# is NOT restored by this landing.
 WhatwgTest.Streams.Semantics.OrderingContract
 WhatwgTest.Streams.Semantics.OrderingLaws
 WhatwgTest.Streams.Semantics.OrderingSource
 WhatwgTest.Streams.Semantics.OrderingAxiomReport
-WhatwgTest.Streams.PromiseBridgeQ4

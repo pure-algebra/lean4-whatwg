@@ -980,3 +980,160 @@ reuse table's 73 plus the five reclassified by §2.3 (`Job`, `Job.mk`,
 No `lake exe` gate was run by this seat beyond the two builds above; the
 vendor seal, citations and census gates are unchanged by a document-and-battery
 freeze and are the coordinator's at landing.
+
+## 11. Builder notes (Q4 builder seat, branch `promise/q4-builder`, 2026-09-07)
+
+Appended by the builder as the discipline requires: for each frozen ascription
+that could not be satisfied against the surface slice Q3b landed, the exact
+mismatch and its diagnostic, and no silent adaptation. **The coordinator rules
+on every item below.** Nothing in §1–§10 is edited.
+
+Base: `promise/q4-breaker` at `9ae662a`, merged with the Q3b landing
+`promise/q3b-builder` at `9624c4b` and with `origin/main`. Toolchain
+`leanprover/lean4:v4.33.1`.
+
+### 11.1 The four blocking items
+
+**B1 — `Reaction.mk` is ascribed at five arguments and has six.** Q3b-sensitive
+list row 1 (`Reaction`, `.mk`, …). Frozen at
+`WhatwgTest/Streams/Semantics/OrderingContract.lean:108`. Finding F4 of the Q3b
+fidelity addendum inserted `capability : Option Capability` (CAPFIELD,
+2691475..2692138 for `Type`, 2691475..2691802 for `Capability`) between
+`handler` and `phase`. Diagnostic:
+
+```text
+WhatwgTest/Streams/Semantics/OrderingContract.lean:108:7: error: Type mismatch
+  @Whatwg.Ecma262.Promise.Reaction.mk
+has type
+  {body : Type} → Nat → Nat → ReactionType → Option body → Option Capability →
+    ReactionPhase → Reaction body
+but is expected to have type
+  {body : Type} → Nat → Nat → ReactionType → Option body → ReactionPhase → Reaction body
+```
+
+This is the **only** remaining diagnostic in `OrderingContract.lean`; the other
+234 are gone. §2.4's third bullet is what has to be re-frozen: the fifth
+argument is `Option Capability`, and at this configuration it is `none`,
+because a P8a registration derives no promise — `G-11`'s remainder, exactly as
+`Transform.subscribe` supplies `none`. **Stopped on this item.**
+
+**B2 — `register_eq` builds a five-field `Reaction` literal.** Frozen at
+`WhatwgTest/Streams/Semantics/OrderingLaws.lean:235`, the consequence of B1 in
+the law battery. Diagnostics:
+
+```text
+OrderingLaws.lean:235:51: error: Insufficient number of fields for `⟨...⟩` constructor:
+  Constructor `Whatwg.Ecma262.Promise.Reaction.mk` has 6 explicit field, but only 5 were provided
+OrderingLaws.lean:235:89: error: Unknown constant `Option.waiting`
+```
+
+The landed `Whatwg.Streams.Semantics.Ordering.register_eq` is the frozen
+statement with `none` inserted at the capability field and nothing else
+changed, and it closes by `rfl`. Its docstring carries this note. **The
+adaptation is recorded, not silent; the coordinator rules whether the frozen
+ascription is re-frozen to match.**
+
+**B3 — `notifySettled_reactions_bridge` is false as frozen.** Frozen at
+`WhatwgTest/Streams/Semantics/OrderingLaws.lean:545`. §2.7 of this contract
+already records the two readings of `ReactionPhase.queued`'s payload and rules
+that "the Q4 builder keeps the draft's two cursors and must not silently
+inherit the landed operations' instantiation". Under that ruling the bridge
+cannot hold: `notifySettled_eq` writes `.queued queued.2.serial`, the **job**
+serial drawn from `Config.nextJob`, while `Whatwg.Ecma262.Promise.triggerReactions`
+writes `.queued r.id`, the **registration** id. Decision 2 makes those two
+supplies unrelated, so the two lists differ at the phase field.
+
+Counterexample, from the decisions this packet re-affirms: take `c` with
+`c.nextJob = 7`, one registration `r` with `r.id = 0`, `r.promise = id`,
+`r.phase = .waiting`, and `Writable.lookupPromise c.writable id = some (.fulfilled ())`.
+Then `(notifySettled c id).registrations = [{ r with phase := .queued 7 }]`
+while `(triggerReactions (reactions c) id .fulfill (.ok ()) Queue.empty).1.fulfill
+= [{ r with phase := .queued 0 }]`.
+
+No replacement is authored: unlike B2 and B4 the repair changes the **content**
+of the claim, not a field count or a projection, and that is the breaker's and
+the coordinator's to decide. The obvious candidates are (a) state the bridge
+over the phase-erased registration lists, or (b) state it under a hypothesis
+that the two cursors agree at the triggered entries. `Whatwg.Streams.Semantics.Ordering.notifySettled_reactions_bridge`
+therefore **does not exist**, which is one of the three remaining diagnostics of
+`OrderingAxiomReport.lean`. **Stopped on this item.**
+
+**B4 — `register_reactions_bridge` does not typecheck.** Frozen at
+`WhatwgTest/Streams/Semantics/OrderingLaws.lean:540`. The left-hand side is
+`(register c p callback).map reactions : Option (Reactions Nat)`; the
+right-hand side closes with `.map Prod.fst` over
+`Whatwg.WebIdl.Promise.react`'s result, and `react` returns
+`Option (Table value reason × Reactions body × Jobs.Queue … × Option (Reaction body))`,
+so `Prod.fst` projects the **table**. Diagnostic:
+
+```text
+WhatwgTest/Streams/Semantics/OrderingLaws.lean:540:8: error: Type mismatch
+```
+
+This is independent of Q3b: the same projection was wrong against the slice Q3
+surface. The landed
+`Whatwg.Streams.Semantics.Ordering.register_reactions_bridge` is the frozen
+statement with `.map (fun x => x.2.1)` in place of `.map Prod.fst` — the
+reactions component, which is what the ascription's own name and docstring say
+it is — and it is proved. **The adaptation is recorded, not silent.**
+
+### 11.2 One dependent proof of `E-22` did not survive the frozen body
+
+Acceptance condition 5 and §5.4 say that the five equation lemmas keep every
+one of the nineteen dependent files "unchanged". Eighteen of the nineteen are
+byte-identical. The nineteenth is not:
+
+`Whatwg/Streams/Readable/Laws.lean`, `read_nextRead`. Its **statement** is
+unchanged and its `attribute [local simp]` neighbours are untouched, but its
+tactic proof needed one edit, from `unfold read` to `rw [read_body]`. The cause
+is the frozen body of `read` in §5.4, which introduces `let (t, id) := freshReadCell …`;
+that pattern-`let` elaborates to a `match` on the pair, so the proof's
+`split` reached the pair matcher before the `if`, and
+
+```text
+Whatwg/Streams/Readable/Laws.lean:842: Tactic `rewrite` failed:
+  Did not find an occurrence of the pattern (continuePull …)
+```
+
+`read_body` is the contract's own lemma for exactly this hazard, so the repair
+uses it and the proof is otherwise character-for-character the pre-Q4 one. All
+five equation lemmas do close definitionally, as required. Recorded for the
+coordinator; no statement changed.
+
+### 11.3 One additive import
+
+`Whatwg/Streams/Transform/Laws.lean` gains `import Whatwg.Streams.Writable.Laws`,
+because §5.2's `settle_table_bridge` is stated over the landed
+`Whatwg.Streams.Writable.settle_bridge`. The imported module declares no
+instance and no global `simp` lemma, and `Whatwg/Streams/Piping/Laws.lean`
+already imports it, so no dependency edge is new to `Whatwg/Streams/**`.
+
+### 11.4 What did not land
+
+§6, the CFG-WPT source and certificate seam, is **not attempted**. Neither
+`Whatwg/Streams/Semantics/` `Source` judgments nor
+`WhatwgTest/Streams/Semantics/OrderingBridgeProofs.lean` were authored.
+`erasure_preserves_selected_order` and `run_erases_to_reference` are
+research-scale statements — §6.2 forbids the vacuous reading explicitly, and an
+honest `run_erases_to_reference` has to construct an independent causal
+reference trace for every admitted run — and this seat judged that guessing at
+them was worse than recording them open. `OrderingSource.lean` keeps 66 of its
+74 diagnostics for that reason; the eight that cleared are the ones that name
+`Config`, `Reaches`, `externalWord`, `Event` and `Decision`.
+
+### 11.5 Measured state at the landing
+
+| Battery | Diagnostics at the freeze | Diagnostics at this landing |
+| --- | ---: | ---: |
+| `WhatwgTest/Streams/Semantics/OrderingContract.lean` | 235 | **1** (B1) |
+| `WhatwgTest/Streams/Semantics/OrderingLaws.lean` | 327 | **4** (B2 ×2, B3, B4) |
+| `WhatwgTest/Streams/Semantics/OrderingSource.lean` | 74 | **66** (§11.4) |
+| `WhatwgTest/Streams/Semantics/OrderingAxiomReport.lean` | 82 | **3** (B3 and the two §6 laws) |
+| `WhatwgTest/Streams/PromiseBridgeQ4.lean` | 24 | **0 — green** |
+| **total** | **742** | **74** |
+
+79 of the 82 receipts of `OrderingAxiomReport.lean` print, and every one is
+inside the R-11 ceiling: **14 empty, 27 `[propext]`, 33 `[propext, Quot.sound]`,
+5 `[propext, Classical.choice, Quot.sound]`**. `sorryAx`, `Lean.ofReduceBool`,
+`Lean.ofReduceNat`, `Lean.trustCompiler` and the `native_decide` auxiliaries
+appear nowhere.

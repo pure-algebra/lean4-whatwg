@@ -1759,6 +1759,183 @@ hold.
 bounded runner, the WPT replay harness against the three local host profiles,
 and the host-profile refusal rows. This lane ends where P8's exit gate begins.
 
+### Q4 landing receipt
+
+Q4 builder seat, 2026-09-07, branch `promise/q4-builder`, based on the frozen
+packet `promise/q4-breaker` at `9ae662a` merged with the Q3b landing
+`promise/q3b-builder` at `9624c4b` and with `origin/main` (R-P21 to R-P23).
+Contract: `test/contracts/configuration-ordering.contract.md`, whose §1–§10 are
+unedited; the builder appended §11, "Builder notes", as the discipline
+requires. Toolchain `leanprover/lean4:v4.33.1`.
+
+**This is a PARTIAL landing and the packet is not accepted.** Four of the
+frozen ascriptions cannot be satisfied against the surface slice Q3b landed,
+and this seat stopped on each rather than adapting it silently. They are B1 to
+B4 of §11.1 of the contract, and the coordinator rules on each. Four of the
+five batteries therefore stay declared in
+`test/fixtures/trust-gate/known-red.txt`, with the reason recorded beside them,
+and the trust gate's all-green control is **not** restored.
+
+**What landed, in four moves.**
+
+1. **`E-22`, the operation-level generalization.** The three operations
+   `Readable.freshReadCell`, `settleReadCell` and `settleReadCells` in
+   `Whatwg/Streams/Readable/State.lean`, exactly as §5.4 writes them; the five
+   rewritten bodies in `Readable/{DefaultController,DefaultReader}.lean`,
+   exactly as §5.4 writes them; and, in `Readable/Laws.lean`, the five
+   equation lemmas `continuePull_settleRead_body`, `streamClose_body`,
+   `error_body`, `beginEnqueue_settle_body` and `read_body`, each closing
+   definitionally, together with the three bridges `readTable_freshReadCell`,
+   `readTable_settleReadCell` and `readTable_settleReadCells` onto
+   `Whatwg.Ecma262.Promise.Table.fresh` and `.settle`.
+2. **The three `generalize` bridges slice Q3 deferred**, in
+   `Whatwg/Streams/Transform/Laws.lean`: `notifyJob` with
+   `notify_jobQueue_bridge` (row 14, `E-32`); `settle_table_bridge`,
+   `settle_jobQueue_order` and `settle_waiting_once` (row 15, `E-33`);
+   `runJob_writable_dequeue` and `runJob_writable_blocked` (row 16, `E-51`).
+   With move 1 this makes **`WhatwgTest/Streams/PromiseBridgeQ4.lean` green**,
+   all 38 ascriptions: the 18 red ones and the 20 view conversions that had to
+   stay green.
+3. **The DB-11 configuration calculus**, in `Whatwg/Streams/Semantics/`:
+   `Configuration.lean` (the carriers, `initial`, the four class [B]
+   operations, `register`, `notifySettled`, `liftWritable`, `queuedJobs`, the
+   three Q4-owned views `jobQueue`, `reactions`, `activeErase`, and their
+   equations and bridges), `Step.lean` (`preStartAllowed`, `authorFrontier`,
+   `takeSinkHead` with its nine receipts, `tick`, `decide`, `Step`, `Reaches`,
+   `EpisodePrefix` and the tick/decide equations), `Runs.lean` (`externalWord`,
+   `Normalized`, composition, determinism, `tick_decide_exclusive`, the step
+   invariants and both fixed-external-word laws), `Frontier.lean` (the
+   successful-control grammar) and `Mask.lean` (the live M2 prefix).
+   `Equivalence.lean` stays the P2 breadth stub.
+   R-P12's `active_episode_fifo_suffix` is landed as
+   `Semantics.Ordering.episodePrefix_jobQueue_eq`, stated over
+   `Whatwg.Ecma262.Jobs.Queue` through `Semantics.Ordering.jobQueue`, with
+   `episodePrefix_jobs_eq` retained beside it in the draft's `List` shape.
+   There is **no shadow table, no second promise table and no second
+   scheduler**: `Writable.State.promises` stays the sole outcome table, read
+   through `Writable.promiseTable`, and the configuration's own heterogeneous
+   token FIFO is the only queue the draft defines.
+4. **R-P5's Streams promise-slot re-disposition**, exactly as §7.1 and §7.3
+   freeze it, with `lake exe census --write` regenerating the two disposition
+   cells of `WhatwgTest/Audit/SpecCoverageRows.lean` and nothing else, and the
+   four record rows of §4.1 in `docs/READABLE-DAG.md`, `WRITABLE-DAG.md` and
+   `TRANSFORM-DAG.md` changed from canonical to view with the shared owner
+   named.
+
+**The measured battery delta.** 742 diagnostics at the freeze, 74 at this
+landing.
+
+| Battery | Freeze | Landing |
+| --- | ---: | ---: |
+| `OrderingContract.lean` | 235 | 1 (B1) |
+| `OrderingLaws.lean` | 327 | 4 (B2, B3, B4) |
+| `OrderingSource.lean` | 74 | 66 (§6 not attempted) |
+| `OrderingAxiomReport.lean` | 82 | 3 |
+| `PromiseBridgeQ4.lean` | 24 | 0 — **green** |
+
+**Receipts.** 79 of the 82 named receipts of `OrderingAxiomReport.lean` print,
+all inside the R-11 ceiling: 14 empty, 27 `[propext]`, 33
+`[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]`.
+`sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler` and
+the `native_decide` auxiliaries appear nowhere. The three that do not print are
+B3 and the two §6 laws.
+
+**Streams preservation.** Every pre-existing `WhatwgTest/Streams/**` battery is
+green and byte-identical. Inside `Whatwg/Streams/**` no theorem statement
+changed and no `attribute [local simp]` set changed; eighteen of the nineteen
+`E-22` dependents of §5.4 are byte-identical, and the nineteenth,
+`Whatwg/Streams/Readable/Laws.lean`, keeps every statement but needed one
+tactic edit in `read_nextRead` (`unfold read` became `rw [read_body]`), which
+is recorded as §11.2 of the contract. `Whatwg/Streams/Transform/Laws.lean`
+gains one additive import, recorded as §11.3.
+
+**The audit delta**, measured with the four still-red batteries out of the
+audit root at both ends: **201 modules and 13079 declarations before, 202
+modules and 13675 declarations after** — one module (`PromiseBridgeQ4`) and 596
+declarations.
+
+**Commands and results.**
+
+```text
+lake --wfail build Whatwg Gates
+Build completed successfully (164 jobs).                      exit 0
+
+lake build WhatwgTest
+Some required targets logged failures:
+- WhatwgTest.Streams.Semantics.OrderingContract
+- WhatwgTest.Streams.Semantics.OrderingLaws
+- WhatwgTest.Streams.Semantics.OrderingSource
+- WhatwgTest.Streams.Semantics.OrderingAxiomReport
+error: build failed                                           exit 1
+
+lake exe trustselftest
+PASS declared red set matches the observed red set (4 module(s))
+PASS trust self-test: every planted declaration was rejected for its stated
+     reason and every control was accepted                    exit 0
+
+lake exe vendorseal
+PASS vendor seal: manifest and vendor/ agree in both directions; every path is
+     valid on Windows                                         exit 0
+
+lake exe citations
+PASS internal citations: 351 files scanned; no line-numbered citation into a
+     protected authored document                              exit 0
+
+lake exe census --write
+WROTE generated/spec-algorithm-census.tsv
+WROTE WhatwgTest/Audit/SpecCoverageRows.lean                  exit 0
+
+lake exe census
+census: 450 rows (idl 133, op 248, requirement 7, rule 0, slot 62, type 0,
+builtin 0, hook 0, property 0, record 0, field 0, term 0, clause 0);
+dispositions (owned 262, requirement 8, foreignBoundary 40, hostOnly 100,
+refused 14, evidenceOnly 26, targetOnly 0); denominator 410, excluded 40;
+0 IDL statement(s) outside the row vocabulary
+PASS census (streams): input digest is the pin, every anchor occurs exactly
+once at its span start, every span digest recomputes, every row has exactly one
+disposition, both projections are byte-identical to a fresh regeneration, and
+the coverage emit agrees with that regeneration row for row      exit 0
+
+lake exe census --standard webidl      PASS census (webidl)     exit 0
+lake exe census --standard ecma262     PASS census (ecma262)    exit 0
+lake exe census --standard infra       PASS census (infra)      exit 0
+```
+
+**The re-emitted Streams coverage block**, pasted from what
+`lake exe census --report` actually printed, and byte-identical to §7.5:
+
+```text
+WHATWG Streams (b9ba9f49) coverage: denominator 410; owned-with-green 12/410;
+green 12, partial 6, absent 392; census 450 rows, 40 excluded
+partial: op.blqs-size op.byte-length-queuing-strategy-size-function op.count-queuing-strategy-size-function op.cqs-size op.is-non-negative-number slot.queue-total-size
+```
+
+The two re-disposed rows moved `foreignBoundary` → `owned` and stayed
+`absent`; the four frozen totals of `WhatwgTest/Audit/SpecCoverage.lean` —
+`expectedRowTotal 450`, `expectedDenominator 410`, `expectedGreen 12`,
+`expectedPartialCount 6`, `expectedAbsentInDenominator 392` — did not move, so
+§7.6's empty amendment stands and that module is untouched.
+
+**The sentence the coordinator moves into `COORDINATION.md`.** This seat does
+not edit that file. The sentence is:
+
+> R-P24 (2026-09-07): the configuration-breaker hold is **not** released. The
+> Q4 builder landed `E-22`, the three deferred `generalize` bridges, the
+> `Whatwg.Streams.Semantics.Ordering` calculus and the R-P5 Streams promise-slot
+> re-disposition on `promise/q4-builder`, and turned
+> `WhatwgTest/Streams/PromiseBridgeQ4.lean` green, but four frozen ascriptions
+> of `test/contracts/configuration-ordering.contract.md` are unsatisfiable
+> against the Q3b-landed surface (§11.1 items B1 to B4) and §6's CFG-WPT seam
+> was not attempted. The hold is released when the breaker re-freezes B1 to B4
+> and the four declared batteries are green.
+
+**Open after this landing.** B1 to B4; §6's source and certificate judgments
+with `OrderingBridgeProofs.lean`; and everything §1 and §3.3 of the contract
+already list as still required — `WellFormed` initialization and preservation,
+the successful-profile progress theorem, the ordered-effect receipts, the
+token/mailbox correspondence, the finite witness through the original start
+gate, the scheduler mutants and the WS-CONFIG counterexample ids.
+
 ## Survey decisions and the rulings that answer them
 
 Both surveys close with an explicit list of decisions for the coordinator.

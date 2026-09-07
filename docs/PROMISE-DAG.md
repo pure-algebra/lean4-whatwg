@@ -294,3 +294,27 @@ operations would have changed a Streams definition body. Q4 changes those five
 bodies, so `Readable.State.readPromises` stops being a table with no
 operations. The five equation lemmas that keep every dependent proof, the
 exact new bodies and the nineteen dependent files are §5.4 of the Q4 contract.
+
+## Q4 landing, 2026-09-07, branch `promise/q4-builder`
+
+Appended by the Q4 builder seat. **Every row above is unchanged**, the "Q4"
+table included. This section records what the partial Q4 landing did to the
+edges of `PROMISE-PG-FIRST` that its own freeze section said it would touch.
+Receipt: the "Q4 landing receipt" of `docs/PROMISE-PACKAGE-PLAN.md`. Slice Q4's
+own graph is `docs/CONFIGURATION-DAG.md`.
+
+| Edge | Status before | Status at this landing | Evidence, with theorem names |
+| --- | --- | --- | --- |
+| construction | **required-open** on the missing `E-22` operations | **required-open**, and the item this edge named is discharged | `Readable.freshReadCell`, `settleReadCell` and `settleReadCells` landed with the five rewritten bodies, and `Readable.readTable_freshReadCell`, `readTable_settleReadCell` and `readTable_settleReadCells` are their bridges onto `Whatwg.Ecma262.Promise.Table.fresh` and `.settle`. The five equation lemmas `continuePull_settleRead_body`, `streamClose_body`, `error_body`, `beginEnqueue_settle_body` and `read_body` close definitionally, which is what keeps every dependent. The reachable-state and cross-owner freshness invariants this column already defers stay open, so the edge does not close |
+| bridges | **closed** for the 29 Q3 bridges | **closed, and the three deferred rows are added** | Rows 14, 15 and 16 of §4.4 of the Q3 contract are landed: `Transform.notifyJob` with `notify_jobQueue_bridge`; `Transform.settle_table_bridge`, `settle_jobQueue_order` and `settle_waiting_once`; `Transform.runJob_writable_dequeue` and `runJob_writable_blocked`. With `E-22`'s three, the `generalize` mode's bridge set is complete for every row the Q3 contract deferred with a stated reason. `WhatwgTest/Streams/PromiseBridgeQ4.lean` is green |
+| representation | closed | **closed, and the record change landed** | The P4–P7 duplicate-prevention rows for `Readable.PromiseState`, `Writable.UnitPromise`/`SinkAnswer`/`SinkReturn`, `Writable.State`'s promise slots and the Transform subscription adapter now name `Whatwg.Ecma262.Promise` the shared owner, with `E-07`..`E-12` as the receipts; the twenty ascriptions of §4.2 of the Q4 contract still elaborate, which is the acceptance condition for that change |
+| identity | required-open | **required-open**, unchanged | 14 of the 15 class [R] ascriptions elaborate as the freeze predicted. The fifteenth, `Reaction.mk`, does not: it is ascribed at five explicit arguments and Q3b finding F4 gave it six. That is item B1 of §11.1 of the Q4 contract and the coordinator rules on it. No generated declaration snapshot exists, so the edge's own item is untouched |
+| semantics | required-open | **required-open**, unchanged | `Semantics.Ordering.activeErase` with `runCondition_iff` is the first client of `Jobs.RunCondition`, and `episodePrefix_jobQueue_eq` the first client of `Queue.enqueueAll` over a configuration. Neither discharges anything on this edge, exactly as the freeze said |
+| laws | closed | **closed**, unchanged | The 125 Q3 receipts and the 57 Q3b receipts stand, name for name. Q4's own receipts belong to `CONFIGURATION-PG-ORDERING` |
+| counterexamples, targets | required-open / not-applicable | unchanged | Q4 freezes no `WS-PROM-CE-*` row and lands no lowering |
+| trust | closed | **closed**, unchanged | No Q3 or Q3b receipt changed. Q4's own 79 printing receipts are inside R-11 and belong to the other graph |
+| coverage | required-open | **required-open**, unchanged | R-P5's Streams re-disposition landed: `slot.promise-state` and `slot.promise-is-handled` are `owned` and still `absent`, `slot.value` stays `foreignBoundary` under gap `G-10`, no Streams number moved, and both promise censuses stay all-`absent` |
+
+**Edges closed at this landing: none.** The `construction` edge's named
+`E-22` item is discharged and the `bridges` edge's three deferred rows are
+added, but both keep the deferrals their columns already record.
