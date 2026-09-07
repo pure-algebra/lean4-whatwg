@@ -144,32 +144,42 @@ prose unless it is `green` in the module. A handoff, plan row, or pull
 request that mentions coverage links the gate run and pastes the block. It
 never restates numbers from memory or from an earlier session.
 
-### Blocks not yet emitted
+### The promise lane's two blocks (emitted at slice Q2, 2026-09-07)
 
-The promise lane's two standards have a census and a denominator but no
-numerator, so `lake exe census --standard webidl --report` and
-`--standard ecma262 --report` refuse: the executable reports only a standard
-with a numerator, exactly as it does for `--standard infra`. The blocks below record the shape
-those reports will take, with the label each standard's `Gates.Census.Standard`
-record supplies. Every field is a placeholder: **no number below has been
-computed, and neither block may be quoted as coverage.**
+Slice Q2 of `docs/PROMISE-PACKAGE-PLAN.md` gave the promise lane's two
+standards numerators of their own —
+`WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and
+`WhatwgTest/Audit/Ecma262/SpecCoverage.lean` — so
+`lake exe census --standard webidl --report` and
+`--standard ecma262 --report` now print. The two blocks below are those two
+commands' own bytes, replacing the placeholder blocks that stood here until Q2.
+
+Both are **all-`absent`**: `owned-with-green 0/116` and `green 0` are the whole
+content of the Web IDL claim, and `owned-with-green 0/75` and `green 0` the
+whole of the ES2026 one. Every row of both denominators is owed a witness and
+none has one. Nothing is proved about `Whatwg.WebIdl` or `Whatwg.Ecma262`;
+quoting either block as evidence of coverage is a defect. The Q3 packet lands
+the first witness.
 
 ```text
-WHATWG Web IDL (a652053f) coverage: denominator <D>; owned-with-green <O>/<D>;
-green <G>, partial <P>, absent <A>; census <total> rows, <E> excluded
-partial: <ids>
+WHATWG Web IDL (a652053f) coverage: denominator 116; owned-with-green 0/116;
+green 0, partial 0, absent 116; census 124 rows, 8 excluded
+partial:
 ```
 
 ```text
-ECMAScript ES2026 (0248456c) coverage: denominator <D>; owned-with-green <O>/<D>;
-green <G>, partial <P>, absent <A>; census <total> rows, <E> excluded
-partial: <ids>
+ECMAScript ES2026 (0248456c) coverage: denominator 75; owned-with-green 0/75;
+green 0, partial 0, absent 75; census 77 rows, 2 excluded
+partial:
 ```
 
-Slice Q2 of `docs/PROMISE-PACKAGE-PLAN.md` replaces the placeholders with the
-Lean emit's own bytes, at which point both blocks read all-`absent` until the
-Q3 packet lands its first witness. Infra is the precedent for the intermediate
-state: a checked census, a generated all-`absent` row list, and no report.
+Infra still has no numerator, so `lake exe census --standard infra --report`
+still refuses with exit code 2 and
+`census: no coverage numerator exists for infra, so there is no report yet`,
+and `lake exe census --standard infra` still ends its PASS line
+"; no numerator exists for this standard yet, so no emit was checked". That
+refusal is the record that Infra has no numerator; inventing an empty emit to
+make every standard reportable would be a defect.
 
 ## Ownership of the three facts (ruled at P1 landing, 2026-09-02)
 

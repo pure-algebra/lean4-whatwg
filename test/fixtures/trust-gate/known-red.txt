@@ -107,14 +107,19 @@
 # WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean, and the coverage blocks
 # in docs/SPEC-COVERAGE.md.
 #
-# Four entries. The two Q2 batteries are red because the cli signature they
-# ascribe does not exist yet and because the projections still carry the Q1
-# totals. The two Q1 batteries are red only because these addenda supersede
+# Four entries. The two Q2 batteries were red because the cli signature they
+# ascribe did not exist yet and because the projections still carried the Q1
+# totals. The two Q1 batteries were red only because these addenda supersede
 # totals they froze — 121 rows and denominator 112 for Web IDL, denominator 74
 # for ECMA-262 — and each amended line in them names the addendum and the date;
-# nothing they check is wrong. The builder removes an entry the moment its
+# nothing they check was wrong. The builder removes an entry the moment its
 # battery is green.
-WhatwgTest.Audit.WebIdl.CensusQ2Contract
-WhatwgTest.Audit.WebIdl.CensusContract
-WhatwgTest.Audit.Ecma262.CensusQ2Contract
-WhatwgTest.Audit.Ecma262.CensusContract
+#
+# The Q2 tooling builder landed the keyed `Gates.Census.cli`, the three
+# authored Web IDL inputs, the ECMA-262 disposition move, both regenerated
+# projections, the two numerator modules
+# WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean, the three-entry map in
+# bin/Census.lean and the two emitted coverage blocks in docs/SPEC-COVERAGE.md
+# on 2026-09-07. All four batteries are green with no statement repaired, so
+# all four entries are removed and the trust gate's all-green control is
+# restored. No entry remains.

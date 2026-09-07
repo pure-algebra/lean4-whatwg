@@ -23,10 +23,14 @@ fresh regeneration, and the numerator's coverage emit against that same
 regeneration. `lake exe census --report` prints the coverage block from the
 emit.
 
-The emit is not a file. `WhatwgTest/Audit/SpecCoverage.lean` owns the
-coverage states and witnesses and exports them as `emit`; `bin/Census.lean`
-imports that module and hands the array to `cli` below, because `Gates/` may
-not import a test-side module. Every number this executable prints therefore
+The emit is not a file. `WhatwgTest/Audit/SpecCoverage.lean` owns the Streams
+coverage states and witnesses and exports them as `emit`, and since slice Q2
+`WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and
+`WhatwgTest/Audit/Ecma262/SpecCoverage.lean` do the same for their standards;
+`bin/Census.lean` imports all three and hands `cli` below a map from
+`Standard.key` to emit, because `Gates/` may not import a test-side module.
+Infra has no entry in that map and therefore no report. Every number this
+executable prints therefore
 comes from Lean data that the numerator's own elaboration-time gate has
 already checked, and the two functions below re-check it against the census
 they regenerate.
@@ -2375,11 +2379,21 @@ def usage : String :=
   "       lake exe census [--standard <key>] --report  print the coverage block of docs/SPEC-COVERAGE.md\n" ++
   "keys: " ++ String.intercalate ", " (standards.map (·.key)) ++ " (default streams)"
 
-/-- Command-line entry, invoked by `bin/Census.lean`, which supplies the
-Streams numerator's coverage emit. `--write` does not take it: regenerating
-the census must stay possible while the numerator is red. A standard without
-a numerator (Infra today) is checked without the emit and has no report. -/
-def cli (emit : Array CoverageRow) (args : List String) : IO UInt32 := do
+/-- Command-line entry, invoked by `bin/Census.lean`, which supplies one
+coverage emit per standard that has a numerator, keyed by `Standard.key`.
+
+Section 6.2 of `test/contracts/webidl-census-q2.contract.md` freezes the map
+shape rather than one `Option` argument per standard: the number of standards
+is already four and ruling R-P6 leaves the door open for more, an association
+list adds no case analysis at any call site, and a per-standard parameter would
+enter a signature whose only caller is `bin/Census.lean`.
+
+`--write` does not take an emit: regenerating a census must stay possible while
+a numerator is red. A standard the map does not name (Infra today) is checked
+without an emit, its PASS line says so, and its `--report` refuses with exit 2 —
+that refusal is the record that Infra has no numerator, and inventing an empty
+emit to make every standard reportable is a defect. -/
+def cli (emits : List (String × Array CoverageRow)) (args : List String) : IO UInt32 := do
   let root ← Gates.Common.projectRoot
   let (std?, rest) := match args with
     | "--standard" :: key :: rest => (Standard.ofKey? key, rest)
@@ -2387,7 +2401,7 @@ def cli (emit : Array CoverageRow) (args : List String) : IO UInt32 := do
   let some std := std?
     | IO.eprintln usage
       return 2
-  let emit? := if std.key == streams.key then some emit else none
+  let emit? := (emits.find? (fun pair => pair.1 == std.key)).map (·.2)
   match rest with
   | [] => check root std emit?
   | ["--write"] => write root std

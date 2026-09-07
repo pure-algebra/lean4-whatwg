@@ -53,8 +53,14 @@ js-exception-objects	*	hostOnly
 # The four algorithms that give "create" and "throw" their meaning.
 js-creating-throwing-exceptions	*	owned
 
-# One propagation sentence; the propagation rule itself is ECMA-262's.
-js-handling-exceptions	*	evidenceOnly
+# One propagation sentence, and the exported <dfn> under it. Review debt D4,
+# amendment 1.2 of test/contracts/webidl-census-q2.contract.md, 2026-09-07:
+# hostOnly, not the Q1 evidenceOnly. An exported normative <dfn> sitting under
+# a sentence that requires propagation is a host obligation, not an example;
+# evidenceOnly put it outside the denominator, where no witness is ever owed
+# and no host-profile refusal is ever recorded against it. The section holds
+# exactly the one row op.an-exception-was-thrown.
+js-handling-exceptions	*	hostOnly
 
 # The DOMException interface. Its associated name and message are first-order
 # content Whatwg.WebIdl.Exceptions carries; its IDL surface and the interface
@@ -62,3 +68,9 @@ js-handling-exceptions	*	evidenceOnly
 idl-DOMException	op	owned
 idl-DOMException	idl	hostOnly
 idl-DOMException	type	hostOnly
+# Review debt D3, amendment 1.1 of the same addendum: the serialization and
+# deserialization steps of DOMException, which enter as authored rule rows.
+# They are steps of the interface over the same associated name and message the
+# two op rows already carry, so they take the owned side of this cell's line;
+# they are not idl rows and they are not the interface type.
+idl-DOMException	rule	owned

@@ -103,6 +103,9 @@ rule.domexception-derived-constructor-name	ext.webidl.idl-constructors,ext.webid
 rule.domexception-derived-constructor-options	ext.webidl.idl-constructors,ext.webidl.idl-dictionaries
 rule.domexception-derived-identifier	ext.webidl.idl-interfaces,ext.webidl.idl-names
 rule.domexception-derived-serializable	ext.html.deserialization-steps,ext.html.serializable-objects,ext.html.serialization-steps
+rule.domexception-deserialization-steps	ext.html.deserialization-steps,ext.html.serialized-record,op.dom-exception-message,op.dom-exception-name
+rule.domexception-serialization-steps	ext.html.serialization-steps,ext.html.serialized-record,op.dom-exception-message,op.dom-exception-name
+rule.promise-to-js	ext.ecma262.slot-promise,ext.webidl.js-type-mapping,op.dfn-promise-type
 type.aborterror	-
 type.constrainterror	-
 type.datacloneerror	-
