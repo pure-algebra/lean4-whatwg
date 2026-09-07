@@ -813,4 +813,39 @@ theorem read_nextRead {α ε : Type} (s : State α ε) :
       · rw [continuePull_nextRead, streamClose_nextRead]
       · exact callPullIfNeededWith_nextRead _ _
 
+/-! ## `PROMISE-PG-FIRST` bridging: the read-promise table view
+
+`E-22` (generalize). The Streams slots stay exactly where they are; these two
+lemmas present them as `Whatwg.Ecma262.Promise.Table`. `E-22` is deliberately
+partial in this packet: `readPromises` has no `lookup`/`fresh`/`settle` of its
+own, so only the view and its `get` law land now. Mask M1. -/
+
+/-- `E-22`: the table view is exactly the read-promise slots, with no cell
+marked handled — nothing in the readable calculus reads the bit. Mask M1. -/
+theorem readTable_eq {α ε : Type} (s : State α ε) :
+    readTable s =
+      Whatwg.Ecma262.Promise.Table.mk
+        (s.readPromises.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false)))
+        s.nextRead := rfl
+
+/-- `E-22`: the general lookup agrees with the inline slot lookup. Mask M1. -/
+theorem readTable_get {α ε : Type} (s : State α ε) (id : Nat) :
+    Whatwg.Ecma262.Promise.Table.get (readTable s) id =
+      (s.readPromises.find? (fun p => p.1 == id)).map Prod.snd := by
+  have key : ∀ (l : List (Nat × PromiseState (ReadResult α) ε)),
+      Option.map Whatwg.Ecma262.Promise.Cell.state
+          (Option.map Prod.snd
+            (List.find? (fun e => e.1 == id)
+              (l.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false))))) =
+        (l.find? (fun p => p.1 == id)).map Prod.snd := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons q rest ih =>
+        simp only [List.map_cons, List.find?_cons]
+        cases hb : (q.1 == id) with
+        | true => rfl
+        | false => exact ih
+  exact key s.readPromises
+
 end Whatwg.Streams.Readable

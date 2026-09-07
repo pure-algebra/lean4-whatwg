@@ -278,6 +278,16 @@ def settle {α ε : Type} (s : State α ε) (id : Nat)
 def markHandled {α ε : Type} (s : State α ε) (id : Nat) : State α ε :=
   if id ∈ s.handled then s else { s with handled := s.handled ++ [id] }
 
+/-- `E-13`..`E-15`, `E-18`..`E-23` (generalize, `PROMISE-PG-FIRST`): the promise slots read
+as the general promise table. Decision 9 puts `handled` in the cell, so this view folds the
+Streams identity list into the per-cell flag; `handled_bridge` is the relation it promises. -/
+def promiseTable {α ε : Type} (s : State α ε) :
+    Whatwg.Ecma262.Promise.Table Unit (Boundary.Exception ε) :=
+  Whatwg.Ecma262.Promise.Table.mk
+    (s.promises.map (fun p =>
+      (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled)))))
+    s.nextPromise
+
 /-- Foreign write callback inputs in invocation order, not all admitted writer writes. -/
 def sinkInput {α ε : Type} (s : State α ε) : List α :=
   s.trace.filterMap fun e => match e with

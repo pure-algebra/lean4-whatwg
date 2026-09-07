@@ -1423,4 +1423,123 @@ theorem hasInFlight_exact {α ε : Type} (s : State α ε) :
       (s.inFlightWrite.isSome ||
         (match s.closeState with | .inFlight _ _ => true | _ => false)) := rfl
 
+/-! ## `PROMISE-PG-FIRST` bridging: the promise table view
+
+`E-13`..`E-15`, `E-18`..`E-21`, `E-23` (generalize). The Streams slots and
+operations stay exactly where they are, with their bodies and their equation
+lemmas unchanged, so every `attribute [local simp]` set keeps rewriting with
+them. These lemmas relate each operation to its general counterpart in
+`Whatwg.Ecma262.Promise`. All of them are mask M1. -/
+
+/-- The view folds the Streams identity list into decision 9's per-cell flag. Mask M1. -/
+theorem promiseTable_eq {α ε : Type} (s : State α ε) :
+    promiseTable s =
+      Whatwg.Ecma262.Promise.Table.mk
+        (s.promises.map (fun p =>
+          (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled)))))
+        s.nextPromise := rfl
+
+/-- `E-18`: `lookupPromise` is `Table.get` through the view. Mask M1. -/
+theorem lookupPromise_bridge {α ε : Type} (s : State α ε) (id : Nat) :
+    lookupPromise s id = Whatwg.Ecma262.Promise.Table.get (promiseTable s) id := by
+  have key : ∀ (l : List (Nat × UnitPromise ε)),
+      (l.find? (fun p => p.1 == id)).map Prod.snd =
+        Option.map Whatwg.Ecma262.Promise.Cell.state
+          (Option.map Prod.snd
+            (List.find? (fun e => e.1 == id)
+              (l.map (fun p =>
+                (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled))))))) := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons q rest ih =>
+        simp only [List.map_cons, List.find?_cons]
+        cases hb : (q.1 == id) with
+        | true => rfl
+        | false => exact ih
+  exact key s.promises
+
+/-- `E-19`: allocation is `Table.fresh` through the view, provided the cursor
+has not already been marked handled. The Streams instance additionally appends
+a `.settled` trace event, which the view does not read. Mask M1. -/
+theorem freshPromise_bridge {α ε : Type} (s : State α ε) (outcome : UnitPromise ε) :
+    s.nextPromise ∉ s.handled →
+      (promiseTable (freshPromise s outcome).1, (freshPromise s outcome).2) =
+        Whatwg.Ecma262.Promise.Table.fresh (promiseTable s) outcome := by
+  intro hne
+  cases outcome
+  all_goals simp [promiseTable, freshPromise, Whatwg.Ecma262.Promise.Table.fresh, hne]
+  all_goals intro a b _
+  all_goals rfl
+
+/-- `E-20`: settling is `Table.settle` through the view, guard and all. Mask M1. -/
+theorem settle_bridge {α ε : Type} (s : State α ε) (id : Nat)
+    (result : Except (Boundary.Exception ε) Unit) :
+    promiseTable (settle s id result) =
+      Whatwg.Ecma262.Promise.Table.settle (promiseTable s) id result := by
+  have hbridge := lookupPromise_bridge s id
+  by_cases hp : lookupPromise s id = some Whatwg.Ecma262.Promise.State.pending
+  · rw [settle_pending s id result hp,
+      Whatwg.Ecma262.Promise.Table.settle_pending (promiseTable s) id result (hbridge ▸ hp)]
+    simp only [promiseTable, List.map_map]
+    congr 1
+    apply List.map_congr_left
+    intro q _
+    by_cases hb : q.1 = id
+    · subst hb; cases result <;> simp
+    · simp [hb]
+  · rw [settle_other s id result hp,
+      Whatwg.Ecma262.Promise.Table.settle_other (promiseTable s) id result (hbridge ▸ hp)]
+
+/-- `E-21`: marking handled is `Table.markHandled` through the view. Mask M1. -/
+theorem markHandled_bridge {α ε : Type} (s : State α ε) (id : Nat) :
+    promiseTable (markHandled s id) =
+      Whatwg.Ecma262.Promise.Table.markHandled (promiseTable s) id := by
+  by_cases hm : id ∈ s.handled
+  · have hid : markHandled s id = s := by simp [markHandled, hm]
+    rw [hid]
+    simp only [promiseTable, Whatwg.Ecma262.Promise.Table.markHandled, List.map_map]
+    congr 1
+    apply List.map_congr_left
+    intro q _
+    by_cases hb : q.1 = id
+    · subst hb; simp [hm]
+    · simp [hb]
+  · have hid : markHandled s id = { s with handled := s.handled ++ [id] } := by
+      simp [markHandled, hm]
+    rw [hid]
+    simp only [promiseTable, Whatwg.Ecma262.Promise.Table.markHandled, List.map_map]
+    congr 1
+    apply List.map_congr_left
+    intro q _
+    by_cases hb : q.1 = id
+    · subst hb; simp
+    · simp [hb]
+
+/-- Decision 9's bridging lemma: the per-cell flag agrees with membership of the
+Streams identity list wherever the cell exists. Mask M1. -/
+theorem handled_bridge {α ε : Type} (s : State α ε) (id : Nat) :
+    (Whatwg.Ecma262.Promise.Table.getCell (promiseTable s) id).map
+        Whatwg.Ecma262.Promise.Cell.handled =
+      (lookupPromise s id).map (fun _ => Decidable.decide (id ∈ s.handled)) := by
+  have key : ∀ (l : List (Nat × UnitPromise ε)),
+      Option.map Whatwg.Ecma262.Promise.Cell.handled
+          (Option.map Prod.snd
+            (List.find? (fun e => e.1 == id)
+              (l.map (fun p =>
+                (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled))))))) =
+        Option.map (fun _ => Decidable.decide (id ∈ s.handled))
+          ((l.find? (fun p => p.1 == id)).map Prod.snd) := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons q rest ih =>
+        simp only [List.map_cons, List.find?_cons]
+        cases hb : (q.1 == id) with
+        | true =>
+            have hq : q.1 = id := by simpa using hb
+            simp [hq]
+        | false => exact ih
+  exact key s.promises
+
 end Whatwg.Streams.Writable

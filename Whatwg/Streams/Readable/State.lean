@@ -166,6 +166,18 @@ structure State (α ε : Type) where
   jobs : List (PullAnswer ε)
   trace : List (Event α ε)
 
+/-- `E-22` (generalize, `PROMISE-PG-FIRST`): the read-promise slots read as the general
+promise table, at value parameter `ReadResult α`. This is why the general state needs two
+type parameters (decision 1). The operation-level generalization of `E-22` is deferred to
+Q4: every update of `readPromises` is an inline `List.map` inside `DefaultController.lean`
+and `DefaultReader.lean`, and turning those five into `Table` calls would change a Streams
+definition body, which the Q3 fence forbids. -/
+def readTable {α ε : Type} (s : State α ε) :
+    Whatwg.Ecma262.Promise.Table (ReadResult α) (Boundary.Exception ε) :=
+  Whatwg.Ecma262.Promise.Table.mk
+    (s.readPromises.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false)))
+    s.nextRead
+
 /-- The frozen post-start view, before its first demand check; not the full setup algorithm. -/
 def initial {α ε : Type} (algorithms : Algorithms) (hwm : Size) : State α ε :=
   { status := .readable, queue := Data.Queue.empty sizes, highWaterMark := hwm,
