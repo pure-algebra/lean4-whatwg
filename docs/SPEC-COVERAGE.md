@@ -11,14 +11,13 @@
 > establishes its separate denominator and checked reporting path.
 
 > Promise lane: `Whatwg.WebIdl` and `Whatwg.Ecma262` have pinned sources and
-> declaration-free roots (`docs/PROMISE-PACKAGE-PLAN.md`). Since the Q1
-> landing of 2026-09-07 each has a generated, drift-checked census with a
-> denominator (Web IDL 121 rows, denominator 112; ES2026 77 rows, denominator
-> 74) and an all-absent generated row list, and neither has an authored
-> theorem numerator or a coverage report yet; neither contributes rows to any
-> other standard's report. Slice Q2 authors the numerators; the placeholder
-> blocks below record the report shape until then. Five standards then hold
-> five denominators that never mix.
+> declaration-free roots (`docs/PROMISE-PACKAGE-PLAN.md`). Since the Q1 and
+> Q2 landings of 2026-09-07 each has a generated, drift-checked census with a
+> denominator (Web IDL 124 rows, denominator 116; ES2026 77 rows, denominator
+> 75), an all-absent Lean numerator, and a coverage report printed by
+> `lake exe census --standard <key> --report` whose block appears below;
+> neither contributes rows to any other standard's report. Five standards
+> hold five denominators that never mix.
 
 This document owns the definition, vocabulary, and reporting format of the
 specification coverage metric. Numbers live in generated and emitted facts,
