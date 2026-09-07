@@ -5,6 +5,11 @@
 > infra`; it has no authored theorem numerator or coverage report yet. The two
 > standards never share a denominator.
 
+> URL bootstrap: `Whatwg.Url` has its own pinned source and declaration-free
+> scaffold (`docs/URL-PACKAGE-PLAN.md`). URL has no census, numerator, or
+> coverage report yet and contributes no rows to the Streams report. U2
+> establishes its separate denominator and checked reporting path.
+
 This document owns the definition, vocabulary, and reporting format of the
 specification coverage metric. Numbers live in generated and emitted facts,
 never here. Read this before quoting, changing, or extending coverage.

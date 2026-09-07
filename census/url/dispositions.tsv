@@ -1,0 +1,41 @@
+# Authored source dispositions, following SPEC-MANIFEST.md's URL section survey.
+# Exact nearest heading only; kind-specific rules precede that heading's wildcard.
+# section-id	kind-or-*	disposition
+goals	*	requirement
+infrastructure	requirement	requirement
+infrastructure	*	owned
+writing	*	owned
+parsers	*	owned
+percent-encoded-bytes	requirement	requirement
+percent-encoded-bytes	*	owned
+security-considerations	*	requirement
+hosts-(domains-and-ip-addresses)	*	owned
+host-representation	*	owned
+host-miscellaneous	requirement	requirement
+host-miscellaneous	*	owned
+idna	*	owned
+host-writing	*	owned
+host-parsing	*	owned
+host-serializing	*	owned
+host-equivalence	*	owned
+urls	*	owned
+url-representation	*	owned
+url-miscellaneous	*	owned
+url-writing	*	owned
+url-parsing	*	owned
+url-serializing	*	owned
+url-equivalence	*	owned
+origin	requirement	requirement
+origin	*	owned
+url-rendering	*	requirement
+url-rendering-simplification	*	requirement
+url-rendering-elision	*	requirement
+url-rendering-i18n	*	requirement
+application/x-www-form-urlencoded	*	owned
+urlencoded-parsing	*	owned
+urlencoded-serializing	*	owned
+urlencoded-hooks	*	owned
+api	*	requirement
+url-class	*	owned
+interface-urlsearchparams	*	owned
+url-apis-elsewhere	*	requirement

@@ -18,7 +18,11 @@ semantic statements.
 when it has six characters or fewer, and its first three or four letters
 otherwise: `DATA`, `READ` (readable), `WRITE`, `TRANS` (transform), `PIPE`
 (piping), `CONF` (configuration), `LOGIC`, `TARGET`, `BRIDGE`, `SHA` (the
-SHA-256 lane). IDs are never reused.
+SHA-256 lane). IDs are never reused. For standards added to the shared
+WHATWG package, use the owning standard's token in place of `WS`, such as
+`INFRA-TEXT-CE-001` or `URL-HOST-CE-001`. Existing Streams and moved hash IDs
+keep their original spelling. Witnesses for these lanes live under
+`WhatwgTest/<Standard>/Counterexamples/` and still join this single register.
 
 ## Statuses
 

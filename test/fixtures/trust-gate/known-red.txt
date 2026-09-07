@@ -38,3 +38,35 @@
 # P7a forward-error shutdown packet: 2f43183, integrated as ea03725.
 # All sixteen witnesses, 98 interface entries, 44 laws and two runs are green.
 # All 46 named axiom receipts compile; no entries remain.
+
+# U2a URL source inventory, frozen 2026-09-05 by the independent breaker.
+# Packet: test/contracts/url-inventory.contract.md.
+# Green after scanner implementation; frozen battery remains imported by WhatwgTest.
+
+# U2a independent review witnesses URL-INV-CE-001 through URL-INV-CE-005.
+# Attack record: test/counterexamples/url/INVENTORY.md.
+# Green after scanner repairs; the ten frozen assertions remain in the test root.
+
+# U2b source-to-census assignment, frozen 2026-09-05 by the independent breaker.
+# Packet: test/contracts/url-census.contract.md.
+# Green after join implementation; all frozen assertions remain imported by WhatwgTest.
+
+# U2b independent review witness URL-CEN-CE-001.
+# Attack record: test/counterexamples/url/CENSUS.md.
+# Green after justification repair; the two frozen refusal assertions remain in the test root.
+
+# Infra scalar/Char constructive dependency witness INFRA-SCALAR-CE-001.
+# Packet: test/contracts/infra-scalar-constructive.contract.md.
+# Green after constructive proof repair; the exact signatures and axiom ceiling remain in the test root.
+
+# U2c authored census input and projection, frozen 2026-09-05 by the independent breaker.
+# Packet: test/contracts/url-census-input.contract.md.
+# Green after reader implementation; all frozen assertions remain imported by WhatwgTest.
+
+# U2c independent review witness URL-INP-CE-001.
+# Attack record: test/counterexamples/url/CENSUS-INPUT.md.
+# Green after preserving field CR bytes across the shared-parser handoff; all five probes retained.
+
+# Infra integer constructive dependency witness INFRA-INTEGER-CE-001.
+# Packet: test/contracts/infra-integer-constructive.contract.md.
+# Green after direct numeric bound proofs; all nine alias/signature/axiom checks retained.

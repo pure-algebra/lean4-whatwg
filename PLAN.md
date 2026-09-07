@@ -181,6 +181,16 @@ dispositions, generated assurance wording, and residual proof scope. Infra's
 text graph and full Streams P4–P12 remain open; these integration receipts
 do not add a semantic coverage witness.
 
+**URL work, 2026-09-05:** `docs/URL-PACKAGE-PLAN.md` owns the URL lane,
+starting from `main` at `c1c7caa` on `codex/url-reification`. U0/U1 fetch
+and seal the URL source and WPT URL corpus and establish the declaration-free
+`Whatwg.Url` root. The requested end state is URL reification with verified
+algorithms, laws, and explicit dependency boundaries; the bootstrap is its
+first slice. U2a now checks the lexical source inventory under
+`lake exe urlinventory`; U2 semantic classification and proof obligations
+remain open in `docs/URL-CENSUS-DAG.md`. Streams phases and their coverage
+remain scoped as before.
+
 P0 is complete. The package is an independent Lean 4.33.1 package with no
 dependencies. The six routers exist. The specification source, its reference
 implementation, and the WPT `streams/` directory are vendored at exact

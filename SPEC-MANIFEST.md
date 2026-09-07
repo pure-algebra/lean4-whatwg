@@ -3,8 +3,11 @@
 This file owns the authority pins, the authority order, and the
 section-by-section dispositions of the WHATWG Streams Standard for this
 repository, and, since slice W5 of `docs/WHATWG-PACKAGE-PLAN.md`, the
-authority pin of the Infra Standard. The dispositions, the census, and
-`docs/SPEC-COVERAGE.md` are Streams-scoped until Infra has its own P1. `docs/PROVENANCE.md` owns the fetch record and cross-check of
+authority pins of the Infra, HTML, and URL Standards. The original disposition
+tables and coverage report are Streams-scoped; the URL bootstrap survey below
+is separate. Its reviewed source census is projected by `lake exe urlcensus`;
+the declaration/numerator join and URL coverage denominator remain unadmitted.
+`docs/PROVENANCE.md` owns the fetch record and cross-check of
 every digest quoted here; `generated/vendor-manifest.tsv` owns the per-file
 digests of the vendored bytes.
 
@@ -16,6 +19,8 @@ authored input.
 
 | Authority | Exact pin | Role |
 | --- | --- | --- |
+| WHATWG URL Standard source | `whatwg/url` commit `55d6699373ba68a16ec182f34222a74ed8bc3dac`, 2026-08-18, "Review Draft Publication: August 2026"; `url.bs` SHA-256 `a5aa827f544f9077912dc1553cfd9025b6afa4e996460074b5f67d83e0f3c805`, 162,680 bytes; CC-BY 4.0 with BSD-3-Clause for source-code portions | semantic owner for `Whatwg.Url`; URL section survey below and U2c source census in `docs/URL-PACKAGE-PLAN.md`; no semantic declarations or admitted coverage denominator yet |
+| Web Platform Tests `url/` | existing `web-platform-tests/wpt` commit `480fdfcd85d043c23875665f464c35c0043dff52`; 49 files, retained with the existing root `LICENSE.md` | URL host test corpus; fetched only, no host run or theorem evidence |
 | WHATWG Streams Standard source | `whatwg/streams` commit `b9ba9f49d95b4280be0dc2372377a006c3a91c18`, 2026-08-18, "Review Draft Publication: August 2026"; `index.bs` SHA-256 `24360b4f8446e6c80e185c5021fcca9b67a7e0bb62490a00109080ebc04c6440`, 417,076 bytes | **semantic owner** |
 | WHATWG Infra Standard source | `whatwg/infra` commit `3f984adcd24a6d5c53cc26b3e737701808003f3e`, 2026-07-17, "Review Draft Publication: July 2026"; `infra.bs` SHA-256 `7c38e6e25ef21f536142cfc6d94954c41bc9889cd0b6fd67ab34571215acd8eb`; CC-BY 4.0 | semantic authority for `Whatwg.Infra`, the value universe (Stratum V); pinned at W5, no dispositions yet |
 | WHATWG HTML Standard source | `whatwg/html` commit `746f2ede8a56bc01204e0f9cc23da33b37c6fbab`, 2026-07-17, "Review Draft Publication: July 2026"; `source` SHA-256 `c985a14d1871fe862de386f5af92b5da84068267c6095ef0379c069ae85f9cde`, 7,891,297 bytes; CC-BY 4.0 | semantic owner of the HTML content model for `Whatwg.Html`; pinned at H0 of `docs/HTML-PACKAGE-PLAN.md`, no dispositions yet |
@@ -35,10 +40,12 @@ under `vendor/` is edited; re-pinning moves a whole tree together.
 
 ## Authority order
 
-1. `index.bs` at the pin. Where it states an algorithm, the model is that
+1. Each standard's source at its pin (`index.bs` for Streams, `url.bs` for
+   URL). Where it states an algorithm, the model is that
    algorithm. Where it states requirements, the model is that specification,
    and any algorithm is a candidate realizer.
-2. The reference implementation. Evidence, never authority.
+2. A separately identified implementation, where pinned. Evidence, never
+   authority. No URL implementation is admitted by the bootstrap.
 3. WPT. Host conformance, never authority.
 4. Local host profiles, then published browser results by run identifier.
 
@@ -96,7 +103,40 @@ Underlying source, sink, and transformer dictionaries (`UnderlyingSource`,
 are named operations whose invocations are decisions, with the spec's
 "if it throws" and "wait for the promise" clauses modelled as answer kinds.
 
-## Promise and job model
+## URL section dispositions (U0 bootstrap survey of `url.bs`)
+
+This survey routes future packets; it is not a generated census or a coverage
+claim. U2 of `docs/URL-PACKAGE-PLAN.md` must inventory definitions, algorithms,
+parser states, record components, IDL members, validation errors, and prose
+requirements by byte span before semantic implementation. Each row then gets
+one disposition, including explicit dependency and boundary decisions.
+
+| Section id | Bootstrap disposition and boundary | Planned slice |
+| --- | --- | --- |
+| `goals` | goals requiring named laws in future packets; explanatory text `evidenceOnly` | U2 |
+| `infrastructure`, `writing`, `parsers`, `percent-encoded-bytes` | URL-owned helpers and validation-error behavior `owned`; Infra carriers retain their canonical owner; Encoding calls need dependency records | U3 |
+| `security-considerations` | security recommendations inventoried separately from executable algorithms; normative constraints `requirement` | U2 |
+| `hosts-(domains-and-ip-addresses)`, `host-representation`, `host-miscellaneous`, `host-writing`, `host-parsing`, `host-serializing`, `host-equivalence` | `owned`; domain processing links to the IDNA dependency below | U4 |
+| `idna` | URL's invocation parameters and error handling `owned`; Unicode UTS #46 processing and tables need their own exact pin and assurance route | U4 |
+| `urls`, `url-representation`, `url-miscellaneous`, `url-writing`, `url-parsing`, `url-serializing`, `url-equivalence` | `owned`; record and parser-state contracts distinguish validation errors from failure, and null from empty components | U5 |
+| `origin` | URL algorithm `owned`; HTML origin values and File API blob URL entries require named dependency/boundary records | U6 |
+| `url-rendering`, `url-rendering-simplification`, `url-rendering-elision`, `url-rendering-i18n` | `requirement` where the text constrains presentation; explanatory examples `evidenceOnly`; keep separate from serialization | U6 |
+| `application/x-www-form-urlencoded`, `urlencoded-parsing`, `urlencoded-serializing`, `urlencoded-hooks` | `owned`; Encoding dependency must account for UTF-8 and any supported legacy encoder | U7 |
+| `api`, `url-class`, `interface-urlsearchparams` | URL and URLSearchParams algorithms, mutation and association `owned`; Web IDL conversions and host identity need explicit boundary records | U8 |
+| `url-apis-elsewhere` | cross-standard requirements inventoried at U2; dependency obligations follow their named owner | U8 |
+| `acknowledgments` | `evidenceOnly` | — |
+
+The host miscellaneous algorithms also reference Public Suffix List data;
+URL-writing requirements reference the IANA URI Schemes registry, and
+rendering references Unicode bidi behavior. Their external authority and
+data/version boundaries require explicit U2 rows as well.
+
+No missing dependency is silently replaced by a host call. U2 must decide
+and record whether each imported algorithm is a proved dependency, a URL-owned
+adapter, or an explicit profiled boundary. Such a boundary limits the eventual
+claim and cannot count as a proof of that external standard.
+
+## Promise and job model (Streams)
 
 The specification is written over ECMAScript promises. Promise-job order is
 deterministic under ECMAScript's FIFO job queue, so the job queue is state in

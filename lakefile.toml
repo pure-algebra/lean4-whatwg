@@ -5,7 +5,7 @@ keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
 defaultTargets = ["Whatwg", "Gates", "WhatwgTest",
-                  "vendorseal", "citations", "census", "tyxmlschema"]
+                  "vendorseal", "citations", "census", "tyxmlschema", "urlinventory", "urlcensus"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -42,6 +42,16 @@ root = "VendorSeal"
 name = "citations"
 srcDir = "bin"
 root = "Citations"
+
+[[lean_exe]]
+name = "urlinventory"
+srcDir = "bin"
+root = "UrlInventory"
+
+[[lean_exe]]
+name = "urlcensus"
+srcDir = "bin"
+root = "UrlCensus"
 
 [[lean_exe]]
 name = "trustselftest"

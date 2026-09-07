@@ -30,15 +30,15 @@ return false. Let `potentialPrefixCodeUnit` be the `i`th code unit of
 Return false if `potentialPrefixCodeUnit` is not `inputCodeUnit`. Set `i` to
 `i` + 1." Bounded by the code units of `potentialPrefix` not yet visited. -/
 def codeUnitPrefixLoop (potentialPrefix input : JsString) (i : Nat) : Bool :=
-  if hp : List.length potentialPrefix ≤ i then true
-  else if hi : List.length input ≤ i then false
+  if hp : potentialPrefix.length ≤ i then true
+  else if hi : input.length ≤ i then false
   else
     let potentialPrefixCodeUnit := potentialPrefix[i]'(Nat.lt_of_not_le hp)
     let inputCodeUnit := input[i]'(Nat.lt_of_not_le hi)
     if potentialPrefixCodeUnit ≠ inputCodeUnit then false
     else codeUnitPrefixLoop potentialPrefix input (i + 1)
-termination_by List.length potentialPrefix - i
-decreasing_by omega
+termination_by potentialPrefix.length - i
+decreasing_by exact Nat.sub_lt_sub_left (Nat.lt_of_not_le hp) (Nat.lt_succ_self i)
 
 /-- A string `potentialPrefix` "is a code unit prefix of a string `input` if
 the following steps return true", section `strings`: "Let `i` be 0", then
@@ -66,18 +66,19 @@ written here, and the two indices are then formed by natural subtraction
 once the tests have established that they are not negative. Bounded by the
 code units of `potentialSuffix` not yet visited. -/
 def codeUnitSuffixLoop (potentialSuffix input : JsString) (i : Nat) (hi : 1 ≤ i) : Bool :=
-  if hs : List.length potentialSuffix < i then true
-  else if hn : List.length input < i then false
+  if hs : potentialSuffix.length < i then true
+  else if hn : input.length < i then false
   else
-    let potentialSuffixIndex := List.length potentialSuffix - i
-    let inputIndex := List.length input - i
+    let potentialSuffixIndex := potentialSuffix.length - i
+    let inputIndex := input.length - i
     let potentialSuffixCodeUnit :=
-      potentialSuffix[potentialSuffixIndex]'(by omega)
-    let inputCodeUnit := input[inputIndex]'(by omega)
+      potentialSuffix[potentialSuffixIndex]'(Nat.sub_lt_self hi (Nat.le_of_not_lt hs))
+    let inputCodeUnit := input[inputIndex]'(Nat.sub_lt_self hi (Nat.le_of_not_lt hn))
     if potentialSuffixCodeUnit ≠ inputCodeUnit then false
     else codeUnitSuffixLoop potentialSuffix input (i + 1) (Nat.le_succ_of_le hi)
-termination_by List.length potentialSuffix + 1 - i
-decreasing_by omega
+termination_by potentialSuffix.length + 1 - i
+decreasing_by
+  exact Nat.sub_lt_sub_left (Nat.lt_succ_of_le (Nat.le_of_not_lt hs)) (Nat.lt_succ_self i)
 
 /-- A string `potentialSuffix` "is a code unit suffix of a string `input` if
 the following steps return true", section `strings`: "Let `i` be 1", then
@@ -100,13 +101,13 @@ other"). The index returned carries the two bounds that make it a valid
 index of both strings. Bounded by the code units of `a` not yet visited. -/
 def firstDifferingIndex (a b : JsString) (n : Nat) :
     Option { n : Nat // n < List.length a ∧ n < List.length b } :=
-  if ha : List.length a ≤ n then none
-  else if hb : List.length b ≤ n then none
+  if ha : a.length ≤ n then none
+  else if hb : b.length ≤ n then none
   else if a[n]'(Nat.lt_of_not_le ha) ≠ b[n]'(Nat.lt_of_not_le hb) then
     some ⟨n, Nat.lt_of_not_le ha, Nat.lt_of_not_le hb⟩
   else firstDifferingIndex a b (n + 1)
-termination_by List.length a - n
-decreasing_by omega
+termination_by a.length - n
+decreasing_by exact Nat.sub_lt_sub_left (Nat.lt_of_not_le ha) (Nat.lt_succ_self n)
 
 /-- A string `a` "is code unit less than a string `b` if the following steps
 return true", section `strings`: "If `b` is a code unit prefix of `a`, then

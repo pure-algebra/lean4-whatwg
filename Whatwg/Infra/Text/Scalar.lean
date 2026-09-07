@@ -41,14 +41,20 @@ def ofChar (c : Char) : CodePoint := ⟨c.toNat, char_toNat_le c⟩
 
 /-- The code point of a `Char` is "not a surrogate", from `Char.valid`. -/
 theorem ofChar_isSurrogate (c : Char) : (ofChar c).isSurrogate = false := by
-  have h := c.valid
-  unfold UInt32.isValidChar Nat.isValidChar at h
-  unfold ofChar
-  simp only [isSurrogate, isLeadingSurrogate, isTrailingSurrogate, inRange,
-    Bool.or_eq_false_iff, decide_eq_false_iff_not]
-  show ¬(0xD800 ≤ c.val.toNat ∧ c.val.toNat ≤ 0xDBFF) ∧
-    ¬(0xDC00 ≤ c.val.toNat ∧ c.val.toNat ≤ 0xDFFF)
-  omega
+  have valid : c.val.toNat < 0xD800 ∨
+      (0xDFFF < c.val.toNat ∧ c.val.toNat < 0x110000) := c.valid
+  apply Bool.or_eq_false_iff.mpr
+  constructor
+  · apply decide_eq_false
+    intro leading
+    rcases valid with below | above
+    · exact Nat.not_lt_of_ge leading.1 below
+    · exact Nat.not_lt_of_ge (Nat.le_trans leading.2 (by decide)) above.1
+  · apply decide_eq_false
+    intro trailing
+    rcases valid with below | above
+    · exact Nat.not_lt_of_ge (Nat.le_trans (by decide) trailing.1) below
+    · exact Nat.not_lt_of_ge trailing.2 above.1
 
 end CodePoint
 
@@ -57,13 +63,19 @@ namespace ScalarValue
 /-- A scalar value's number satisfies `Nat.isValidChar`: being "not a
 surrogate" and at most U+10FFFF is exactly `Char`'s validity condition. -/
 theorem isValidChar (s : ScalarValue) : Nat.isValidChar s.val.val := by
-  have h := s.property
-  have hle := s.val.isLe
-  simp only [CodePoint.isSurrogate, CodePoint.isLeadingSurrogate,
-    CodePoint.isTrailingSurrogate, CodePoint.inRange, Bool.or_eq_false_iff,
-    decide_eq_false_iff_not] at h
-  unfold Nat.isValidChar
-  omega
+  have parts := Bool.or_eq_false_iff.mp s.property
+  have notLeading : ¬(0xD800 ≤ s.val.val ∧ s.val.val ≤ 0xDBFF) :=
+    of_decide_eq_false parts.1
+  have notTrailing : ¬(0xDC00 ≤ s.val.val ∧ s.val.val ≤ 0xDFFF) :=
+    of_decide_eq_false parts.2
+  by_cases below : s.val.val < 0xD800
+  · exact Or.inl below
+  · refine Or.inr ⟨?_, Nat.lt_succ_of_le s.val.isLe⟩
+    apply Nat.lt_of_not_ge
+    intro upper
+    by_cases leading : s.val.val ≤ 0xDBFF
+    · exact notLeading ⟨Nat.le_of_not_lt below, leading⟩
+    · exact notTrailing ⟨Nat.lt_of_not_ge leading, upper⟩
 
 /-- The `Char` of a scalar value, section `code-points`: "a code point that is
 not a surrogate" is exactly what `Char.valid` admits. -/

@@ -7,6 +7,16 @@ attack. Statuses are defined in `README.md` beside this file.
 | ID | Status | Attacked statement | Witness / evidence | Forced repair |
 | --- | --- | --- | --- | --- |
 | `WS-INFRA-CE-001` | `CLOSED` | Splitting `" a , ,b,"` on commas appends a trailing empty token | `WhatwgTest/Streams/Counterexamples/Infra/Split.lean`, `ce001_extra_trailing_token_refuted` and `ce001_comma_result`, with comma-pair, strict, whitespace, and empty-input controls; command `lake build WhatwgTest.Streams.Counterexamples.Infra.Split`; finite equational probes, no mask or host assumption | Closed 2026-09-05: corrected the false source example and draft plan; retained the kernel-checked negation and controls. The implementation's end-of-input check is unchanged. |
+| `INFRA-INTEGER-CE-001` | `CLOSED` | All nine fixed-width integer range proofs must avoid `Classical.choice` without changing their carriers or statements | `WhatwgTest/Infra/IntegerConstructiveContract.lean`, frozen at `d755ba6`; packet `test/contracts/infra-integer-constructive.contract.md`; all aliases/signatures pass and all nine initial proofs fail the actual constructive axiom check | explicit native numeric bounds and signed-case conjunction proofs; five unsigned receipts have no axioms, four signed receipts use `[propext, Quot.sound]`; narrow/full builds and all gates pass; local record `docs/INFRA-INTEGER-CONSTRUCTIVE.md` |
+| `URL-INP-CE-001` | `CLOSED` | U2c removes exactly one terminal CR from each authored line and preserves other field bytes | `WhatwgTest/Url/Counterexamples/CensusInput.lean`, frozen at `4742678`; packet `test/counterexamples/url/CENSUS-INPUT.md`; two positive controls elaborate while three retained-CR refusals fail before repair | add a fresh CRLF terminator at the shared-parser handoff so it consumes only that terminator; all five probes and the original 77 assertions pass unchanged; CLI CRLF and malformed-CR write checks pass; actual axiom receipt and full build/gates in the URL plan |
+| `INFRA-SCALAR-CE-001` | `CLOSED` | Scalar/Char validity and inverse declarations must avoid `Classical.choice` under the stronger local proof-quality target | `WhatwgTest/Infra/ScalarConstructiveContract.lean`, frozen at `9cf3216`; packet `test/contracts/infra-scalar-constructive.contract.md`; all signatures elaborate and six declarations fail the actual transitive axiom check before repair | only two helper proof bodies replaced with explicit decidable range reasoning; all nine exact signatures and constructive receipts pass unchanged; full build, repository gates and independent proof review pass; actual receipts in `docs/INFRA-SCALAR-ASSURANCE.md` |
+| `URL-CEN-CE-001` | `CLOSED` | A census explanation reason must contain a character outside the five ASCII whitespace characters | `WhatwgTest/Url/Counterexamples/Census.lean`, frozen at `cb4cee5`; packet `test/counterexamples/url/CENSUS.md`; FF-only and mixed whitespace-only reasons both failed against the initial join | explicit five-character ASCII whitespace predicate; both frozen refusals and the original census battery pass; default build, actual axiom receipt and repository gates pass; independent review confirms the repair |
+| `URL-INV-CE-001` | `CLOSED` | URL inventory preserves the full normalized `for` owner | `WhatwgTest/Url/Counterexamples/Inventory.lean`; packet `test/counterexamples/url/INVENTORY.md`; finite tooling output observation | removed uncontracted first-comma truncation from `definitionLabel` |
+| `URL-INV-CE-002` | `CLOSED` | ASCII form feed is whitespace in class tokens and visible labels | same retained battery and packet; finite class/paragraph inputs | normalize all five ASCII whitespace characters consistently |
+| `URL-INV-CE-003` | `CLOSED` | `xmp` content is raw text, including literal IDL generics and apparent tags | same retained battery and packet; finite raw-generic and fake-definition inputs | tokenize raw `xmp` content without treating its interior as source markup |
+| `URL-INV-CE-004` | `CLOSED` | IDL headers are ordinary named interfaces; missing names and unsupported mixins are rejected | same retained battery and packet; finite malformed/unsupported header inputs | recognize the contracted header shape rather than an `interface ` prefix alone |
+| `URL-INV-CE-005` | `CLOSED` | Paragraph lexical spans stop at ordinary block tags such as section and form | same retained battery and packet; finite paragraph-boundary inputs | use the explicit block-boundary vocabulary in the interface record |
+| `INFRA-TEXT-CE-001` | `CLOSED` | `JsString.splitOnCommas (ofLiteral " a , ,b,") = [ofLiteral "a", ofLiteral "", ofLiteral "b", ofLiteral ""]`, the source example at base `c1c7caa` | `WhatwgTest/Infra/Counterexamples/CommaSplit.lean`: `ce001_correct_result`, `ce001_original_result_false`, `ce001_empty_input`; packet, passing narrow/full builds and standard-base axiom receipts in `test/counterexamples/infra/COMMA-SPLIT.md`; full ordered token-list observation, finite kernel probes with no host assumptions | correct the unfrozen source example to three tokens; retain its original proposition under negation; preserve the algorithm and the distinct `strictlySplit` behavior; closed after coordinator compilation and the common axiom audit |
 | `WS-SHA-CE-001` | `MOVED` | `Sha256.Spec.H0` is FIPS 180-4 §5.3.3 and not §5.3.2 | moved to lean4-hash `0168306` (`test/counterexamples/sha256/` there, same ID) with the SHA-256 lane; was: `WhatwgTest/Streams/Counterexamples/Sha/Mutants.lean`, `ce001_sha224IV` with its control `ce001_control`; `Sha256.Bridge.sha256_ne_sha224_iv` on the constants | none: the shipped `H0` is §5.3.3, and the witness pins that the choice is load-bearing |
 | `WS-SHA-CE-002` | `MOVED` | `Sha256.Impl.padBytes` appends the 64-bit big-endian length of FIPS 180-4 §5.1.1 | moved to lean4-hash `0168306` (`test/counterexamples/sha256/` there, same ID) with the SHA-256 lane; was: same file, `ce002_noLengthField` on W2, with `ce002_padBytes_eq_on_empty` proving why W1 cannot discriminate | none to the implementation; the contract's claim that W1 catches this mutant is corrected in `test/counterexamples/sha/ATTACKS.md` |
 | `WS-SHA-CE-003` | `MOVED` | `Sha256.Impl.wordOfBytes` reads four bytes big-endian per FIPS 180-4 §3.1 | moved to lean4-hash `0168306` (`test/counterexamples/sha256/` there, same ID) with the SHA-256 lane; was: same file, `ce003_littleEndianWords` on W2 | none: the shipped reading is big-endian |
@@ -65,6 +75,27 @@ elaborated the witnesses here until the SHA-256 lane moved to lean4-hash at
 step 6 of `docs/HASH-PACKAGE-PLAN.md`; the rows, their kernel-checked
 witnesses, and the attack shapes now live in that repository under the same
 IDs, and `test/counterexamples/sha/ATTACKS.md` here is a pointer.
+
+The `URL-CEN-CE-001` row closes a finite source-tooling regression. The
+separate breaker observed both assertions fail before the repair. The
+original census battery and both retained refusal probes pass unchanged,
+and the default build checks 130 modules and 6896 declarations. The actual
+`Gates.UrlCensus.assign` axiom receipt is
+`[propext, Classical.choice, Quot.sound]`; there is no general theorem or
+URL execution claim in these probes. All repository gates pass and the
+independent reviewer confirms the whitespace repair. The source census and
+coverage graph remain open.
+
+The `URL-INV-CE-*` rows are finite source-tooling regressions frozen by a
+separate breaker in `4e4e880`, `6db5ec2`, and `a60add5`. All ten assertions
+failed against the initial scanner, then passed after implementation repairs.
+`lake build WhatwgTest.Url.Counterexamples.Inventory` and the default
+`lake build` pass, with the retained module imported by `WhatwgTest.lean`.
+The common axiom gate checks 127 modules and 6774 declarations. The production
+`scan` receipt is `[propext, Classical.choice, Quot.sound]`; the assertions
+are executable `#guard` probes, not general theorems. All repository gates
+and the URL projection drift gate pass. These rows close lexical regressions
+only; the census graph in `docs/URL-CENSUS-DAG.md` remains open.
 
 The `WS-DATA-*` rows were minted by the P3 queue-with-sizes breaker, 2026-09-02,
 and are the first rows outside the `SHA` area. Their evidence command is
