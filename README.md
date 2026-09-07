@@ -33,7 +33,9 @@ lake exe vendorseal              # vendor/ against generated/vendor-manifest.tsv
 lake exe citations               # no line-numbered citation into a protected authored document
 lake exe urlinventory            # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
 lake exe urlcensus               # the authored URL census and its source assignments against a regeneration
-lake exe census                  # the Streams census and coverage emit; --standard infra for the Infra census
+lake exe census                  # the Streams census and coverage emit
+lake exe census --standard infra # the Infra definition census
+lake exe census --standard webidl # the Web IDL promise and exception census
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
