@@ -25,9 +25,18 @@
 #
 # Three ECMA-262 escapes the packet's section 7 names are absent here, and
 # that is not an omission: {{%Error.prototype%}}, [=PromiseCapability=] and
-# [=ECMAScript/error objects=] occur only in js-DOMException-specialness,
-# which produces no census row, so no dependency line can reach them. They
-# enter the record when a row of that section exists.
+# [=ECMAScript/error objects=] occur four times between them, at offsets
+# 504381, 663945, 346660 and 194765 of the pinned index.bs, and no census
+# row's span covers any of the four. A dependency line is derived from the
+# references inside its own row's span, so no line can reach them, and an
+# unused external fails generation. Only 663945 is in
+# js-DOMException-specialness, which produces no row at all; 194765 falls
+# between rows of idl-exceptions, 346660 falls before op.js-to-promise in the
+# js-promise lead, and 504381 is outside census/webidl/sections.tsv. They
+# enter the record when some row's span covers an occurrence. (Ruling R-P17
+# ratified the omission; the earlier reason recorded here, that all three
+# occur only inside js-DOMException-specialness, was wrong and is corrected
+# under review debt D2.)
 ext.dom.document
 ext.dom.element
 ext.dom.node
