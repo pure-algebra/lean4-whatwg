@@ -207,12 +207,21 @@
 # green by weakening a preservation ascription is a refusal, not a landing.
 #
 # The builder removes an entry the moment its battery is green.
-WhatwgTest.Ecma262.PromiseFidelityContract
-WhatwgTest.Ecma262.PromiseFidelityLaws
-WhatwgTest.Ecma262.JobsCompleteContract
-WhatwgTest.WebIdl.PromiseFidelityContract
-WhatwgTest.Ecma262.PromiseFidelityAxiomReport
-WhatwgTest.Ecma262.PromiseContract
-WhatwgTest.Ecma262.PromiseLaws
-WhatwgTest.WebIdl.PromiseContract
-WhatwgTest.Streams.PromiseBridge
+#
+# The Q3b builder seat landed the addendum on branch promise/q3b-builder in
+# four moves: F5 in Whatwg/Ecma262/Jobs.lean; F1-F4 and the F6 trace in
+# Whatwg/Ecma262/Promise.lean with the base packet's own Streams view and
+# bridging lemma carrying the none result capability; F6 and the Web IDL
+# minors in Whatwg/WebIdl/Promise.lean; and the one additive bridge
+# Whatwg.Streams.Writable.settlementTrace_bridge inside
+# Whatwg/Streams/Writable/Laws.lean with the two mask docstring corrections
+# acceptance condition 5 names. All nine batteries are green and their nine
+# entries are removed, so the trust gate's all-green control is restored.
+#
+# The 57 named receipts of WhatwgTest.Ecma262.PromiseFidelityAxiomReport all
+# print inside the R-11 ceiling: 15 empty, 34 [propext], 6
+# [propext, Quot.sound], 2 [propext, Classical.choice, Quot.sound]. The base
+# packet's 125 in WhatwgTest.Ecma262.PromiseAxiomReport are still exactly 125
+# names with the same distribution as at the Q3 landing: 59 empty, 41
+# [propext], 20 [propext, Quot.sound], 5
+# [propext, Classical.choice, Quot.sound]. No entry remains.
