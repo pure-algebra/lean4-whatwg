@@ -188,7 +188,7 @@ theorem reactPull_rejected :
   intros
   rfl
 
-/-- `E-48` (generalize, `PROMISE-PG-FIRST`): the view is exactly the pull-answer job list. -/
+/-- `E-48` (generalize, `PROMISE-PG-FIRST`): the view is exactly the pull-answer job list. Mask M1. -/
 theorem jobQueue_eq {α ε : Type} (s : State α ε) :
     jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
 

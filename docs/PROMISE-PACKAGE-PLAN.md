@@ -1315,7 +1315,8 @@ landed surface with the gap ids that stay open, and emptied the eight Q3
 entries from `test/fixtures/trust-gate/known-red.txt`, leaving the packet note
 extended with the landing receipt.
 
-**Every command run at the landing, with its result line.**
+**Every command run at the landing, with its result line, measured on
+`promise/q3-builder` at `795b4f8`.**
 
 | Command | Result |
 | --- | --- |
@@ -1331,7 +1332,23 @@ extended with the landing receipt.
 The two census PASS lines are the evidence for acceptance condition 8: both
 censuses stay all-`absent`, no coverage block changed and no row went `green`.
 Neither `SpecCoverage` numerator module was authored, for the reason in builder
-note B5, so the `coverage` edge stays `not-applicable`.
+note B5, so the `coverage` edge stays `not-applicable`. That disposition is
+stated at `795b4f8`.
+
+**The same commands at the integration commit `7377134`.** Four figures move,
+because the Q2 merge this integration sits above adds four modules and 124
+declarations: `lake --wfail build WhatwgTest` completes 225 jobs, `lake build`
+completes 374 jobs, and the root audit line reads 196 modules and 12973
+declarations. Two result lines also change their tail. At `7377134` the
+numerator modules `WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean` exist,
+landed by the Q2 tooling seat and not by this packet, so
+`lake exe census --standard webidl` and `lake exe census --standard ecma262`
+end "and the coverage emit agrees with that regeneration row for row" instead
+of "no numerator exists for this standard yet"; only
+`lake exe census --standard infra` still ends "no numerator exists for this
+standard yet, so no emit was checked". Which numerator that is, and what it
+does to the `coverage` edge, is the Q2 receipt's and the graph's to record, not
+this one's.
 
 **The eight batteries, all green.**
 
@@ -1368,22 +1385,33 @@ The five that reach `Classical.choice` are
 and `Decidable` library proofs, never through computation, which is exactly
 the reading R-11 adopted.
 
-**The measured declaration delta.** Both figures are the root audit's own line,
+**The measured declaration delta.** Every figure is the root audit's own line,
 printed by `#whatwg_streams_axiom_gate` at the end of
-`lake --wfail build WhatwgTest`.
+`lake --wfail build WhatwgTest`, and every row names the commit it was measured
+at.
 
 | | Modules | Declarations | Gates tree | Jobs |
 | --- | ---: | ---: | ---: | ---: |
 | before, at `e819a9f`, measured in this worktree | 184 | 12000 | 1477 | 213 |
-| after, at the landing | 192 | 12849 | 1477 | 221 |
-| delta | **+8** | **+849** | 0 | +8 |
+| after, at the landing `795b4f8` | 192 | 12849 | 1477 | 221 |
+| delta on `promise/q3-builder` | **+8** | **+849** | 0 | +8 |
+| at the integration commit `7377134` | 196 | 12973 | — | 225 |
 
-The module delta is exactly the packet's eight test modules (six batteries, the
-axiom report and `PromiseBridge`); no implementation module was added, because
-all four promise modules already existed as declaration-free bootstraps. That
-is acceptance condition 3's module half, and §9.1's prediction, met exactly.
+The last row is not this packet's delta. The four modules and 124 declarations
+between `795b4f8` and `7377134` are the Q2 merge's, and the Gates tooling
+figure at `7377134` is left blank because this receipt did not measure it.
+Everything below is stated at `795b4f8`, where the Q3 landing is the only
+change above `e819a9f`.
 
-The declaration arithmetic against §9.1's `12000 + 203 + g`:
+The module delta at `795b4f8` is exactly the packet's eight test modules (six
+batteries, the axiom report and `PromiseBridge`); no implementation module was
+added, because all four promise modules already existed as declaration-free
+bootstraps. That is acceptance condition 3's module half, and §9.1's
+prediction, met exactly; the condition's 192 is a figure of
+`promise/q3-builder`, and the 196 modules at `7377134` are that 192 plus the
+Q2 merge's four.
+
+The declaration arithmetic at `795b4f8`, against §9.1's `12000 + 203 + g`:
 
 | Tree | Types | Functions | Theorems | Total |
 | --- | ---: | ---: | ---: | ---: |
@@ -1400,7 +1428,8 @@ Every line of the frozen table reproduces exactly, counted from the sources
 themselves. The three re-pointed `abbrev`s replace three `inductive`s one for
 one and contribute zero, as §9.1 says.
 
-So `849 = 203 + 7 + g` with **`g = 639`**. That residual is measured, not
+So at `795b4f8` `849 = 203 + 7 + g` with **`g = 639`**. That residual is
+measured, not
 asserted: the four implementation modules hold **889** constants in total, of
 which 166 are their authored declarations (35 + 78 + 30 + 23), leaving 723
 generated there — constructors, recursors, `noConfusion`, `noConfusionType`,
