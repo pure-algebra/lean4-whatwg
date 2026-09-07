@@ -181,6 +181,12 @@ dispositions, generated assurance wording, and residual proof scope. Infra's
 text graph and full Streams P4–P12 remain open; these integration receipts
 do not add a semantic coverage witness.
 
+**Main integration, 2026-09-06:** the streams lane (P4a–P7a, `3b7bdda`) and
+the URL lane (U0–U2c, `43c0917`) are both merged into `main`. The merged tree
+passes the full build, every gate and the root axiom gate (173 modules, 12270
+declarations); receipts are in `COORDINATION.md`. The operator hold on further
+semantics formalization and the P8a deferral are unchanged.
+
 **URL work, 2026-09-05:** `docs/URL-PACKAGE-PLAN.md` owns the URL lane,
 starting from `main` at `c1c7caa` on `codex/url-reification`. U0/U1 fetch
 and seal the URL source and WPT URL corpus and establish the declaration-free
