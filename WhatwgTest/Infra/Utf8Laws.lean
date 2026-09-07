@@ -155,7 +155,7 @@ first `number` items, cut at the terminator. -/
 /-! **INFRA-R15, stated as a theorem.** The literal transcription of
 `op.io-queue-peek` [7651,8447) — "For each n in the range 1 to number,
 inclusive … append ioQueue[n]" over Infra's zero-based indexing
-(`vendor/whatwg-infra-3f984adc/infra.bs` [67300,67450)) — is the zero-based peek
+(`vendor/whatwg-infra-3f984adc/infra.bs` [67159,67540)) — is the zero-based peek
 of the queue with its first item dropped. The two disagree on every nonempty
 queue, and `op.utf-8-decode` [45059,45762) step 2 is stated over
 `peekPrefix`. -/

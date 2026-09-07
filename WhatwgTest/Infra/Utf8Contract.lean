@@ -75,7 +75,7 @@ times … Remove end-of-queue from readItems". -/
 /-! `op.io-queue-peek` [7651,8447), transcribed literally: "For each n in the
 range 1 to number, inclusive: If ioQueue[n] is end-of-queue, break. Otherwise,
 append ioQueue[n] to prefix." Infra's indexing syntax is zero-based
-(`vendor/whatwg-infra-3f984adc/infra.bs` [67300,67450)), and Infra's "the range
+(`vendor/whatwg-infra-3f984adc/infra.bs` [67159,67540)), and Infra's "the range
 1 to number, inclusive" is the set {1,…,number}, so the literal reading skips
 `ioQueue[0]`. Ruling request INFRA-R15 in the contract. -/
 #check (@Whatwg.Infra.IoQueue.peek :
