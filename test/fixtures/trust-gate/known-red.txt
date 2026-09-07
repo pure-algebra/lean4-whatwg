@@ -225,3 +225,35 @@
 # names with the same distribution as at the Q3 landing: 59 empty, 41
 # [propext], 20 [propext, Quot.sound], 5
 # [propext, Classical.choice, Quot.sound]. No entry remains.
+
+# Infra UTF-8 codec packet, frozen RED 2026-09-07 by the Infra UTF-8 breaker
+# seat on branch infra/utf8-breaker, based on 062655a.
+# Packet: test/contracts/infra-utf8.contract.md.
+# Graph: docs/INFRA-UTF8-DAG.md (INFRA-PG-UTF8).
+# Attacks: test/counterexamples/infra/UTF8.md (INFRA-UTF8-CE-001..018).
+# Ratification requested: R-U1 named this packet; it asks for INFRA-R14 (the
+# module home) and INFRA-R15 (the 1-based index of op.io-queue-peek [7651,8447)
+# in the pinned Encoding text) in the contract's Design section.
+#
+# Implementation fence: a new Whatwg/Infra/Text/Utf8.lean, one import line in
+# Whatwg/Infra.lean, and four additive theorems adopted from the U3 builder's
+# Infra candidates - codePoints_of_no_lead and isAsciiString_of_units in
+# Whatwg/Infra/Text/String.lean, isomorphicEncode_eq and asciiEncode?_eq in
+# Whatwg/Infra/Text/Codec.lean. No existing definition body, signature or
+# docstring in those two files may change.
+#
+# THREE entries. Each module below is red only because the names it ascribes do
+# not exist yet: the measured diagnostics are 177 in Utf8Contract and 405 in
+# Utf8Laws, every one an unknown identifier, and 119 unknown constants in
+# Utf8AxiomReport. There is no parse, import, type-mismatch or
+# instance-synthesis failure in any of the three.
+#
+# WhatwgTest.Infra.Counterexamples.Utf8 is NOT declared: its eighteen finite
+# mutant witnesses are toy models over List Nat with no production import, and
+# the module is green from the freeze. A repair that turns a red module green by
+# weakening an ascription is a refusal, not a landing.
+#
+# The builder removes an entry the moment its battery is green.
+WhatwgTest.Infra.Utf8Contract
+WhatwgTest.Infra.Utf8Laws
+WhatwgTest.Infra.Utf8AxiomReport
