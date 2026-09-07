@@ -33,6 +33,14 @@ import WhatwgTest.Streams.Piping.ShutdownContract
 import WhatwgTest.Streams.Piping.ShutdownLaws
 import WhatwgTest.Streams.Piping.ShutdownRuns
 import WhatwgTest.Streams.Piping.ShutdownAxiomReport
+import WhatwgTest.Ecma262.JobsContract
+import WhatwgTest.Ecma262.JobsLaws
+import WhatwgTest.Ecma262.PromiseContract
+import WhatwgTest.Ecma262.PromiseLaws
+import WhatwgTest.WebIdl.PromiseContract
+import WhatwgTest.WebIdl.ExceptionsContract
+import WhatwgTest.Streams.PromiseBridge
+import WhatwgTest.Ecma262.PromiseAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

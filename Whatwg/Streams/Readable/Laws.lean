@@ -188,9 +188,29 @@ theorem reactPull_rejected :
   intros
   rfl
 
+/-- `E-48` (generalize, `PROMISE-PG-FIRST`): the view is exactly the pull-answer job list. -/
+theorem jobQueue_eq {α ε : Type} (s : State α ε) :
+    jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
+
+/--
+`E-49` (generalize, `PROMISE-PG-FIRST`). The honest bridging shape: under the readable
+component's own spelling of `requirement.jobs.1` — an empty synchronous frame stack —
+`runPullJob` *reduces to* `Whatwg.Ecma262.Jobs.Queue.dequeue`. Mask M2.
+-/
+theorem runPullJob_dequeue_bridge {α ε : Type} (s : State α ε) :
+    s.frames = [] →
+      runPullJob s =
+        (Whatwg.Ecma262.Jobs.Queue.dequeue (jobQueue s)).map
+          (fun p => reactPull { s with jobs := p.2.pending } p.1) := by
+  intro hf
+  cases hj : s.jobs <;>
+    simp [runPullJob, jobQueue, Whatwg.Ecma262.Jobs.Queue.dequeue, hf, hj]
+
 /--
 `op.readable-stream-default-controller-call-pull-if-needed`.
 Frozen branch equation for `runPullJob_suspended`, under the local M1/M2 views.
+This one is the component's frame guard rather than a queue law, so it is not a
+consequence of `runPullJob_dequeue_bridge`, whose hypothesis it denies.
 -/
 theorem runPullJob_suspended :
   ∀ {α ε : Type} (s : State α ε),
@@ -201,16 +221,23 @@ theorem runPullJob_suspended :
 /--
 `op.readable-stream-default-controller-call-pull-if-needed`.
 Frozen branch equation for `runPullJob_empty`, under the local M1/M2 views.
+Re-derived through `runPullJob_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, never re-proved from `runPullJob`.
 -/
 theorem runPullJob_empty :
   ∀ {α ε : Type} (s : State α ε),
     s.jobs = [] → runPullJob s = none := by
-  intros
-  simp_all [runPullJob]
+  intro α ε s hj
+  by_cases hf : s.frames = []
+  · rw [runPullJob_dequeue_bridge s hf, jobQueue_eq, hj]
+    exact congrArg _ Whatwg.Ecma262.Jobs.Queue.dequeue_empty
+  · exact runPullJob_suspended s hf
 
 /--
 `op.readable-stream-default-controller-call-pull-if-needed`.
 Frozen branch equation for `runPullJob_cons`, under the local M1/M2 views.
+Re-derived through `runPullJob_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_cons`, never re-proved from `runPullJob`.
 -/
 theorem runPullJob_cons :
   ∀ {α ε : Type} (s : State α ε) (a : PullAnswer ε)
@@ -218,8 +245,10 @@ theorem runPullJob_cons :
     s.frames = [] → s.jobs = a :: rest →
       runPullJob s = some (reactPull { s with jobs
         := rest } a) := by
-  intros
-  simp_all [runPullJob]
+  intro α ε s a rest hf hj
+  rw [runPullJob_dequeue_bridge s hf, jobQueue_eq, hj,
+    Whatwg.Ecma262.Jobs.Queue.dequeue_cons]
+  rfl
 
 /--
 `op.readable-stream-default-controller-close`.
@@ -812,5 +841,40 @@ theorem read_nextRead {α ε : Type} (s : State α ε) :
     · split
       · rw [continuePull_nextRead, streamClose_nextRead]
       · exact callPullIfNeededWith_nextRead _ _
+
+/-! ## `PROMISE-PG-FIRST` bridging: the read-promise table view
+
+`E-22` (generalize). The Streams slots stay exactly where they are; these two
+lemmas present them as `Whatwg.Ecma262.Promise.Table`. `E-22` is deliberately
+partial in this packet: `readPromises` has no `lookup`/`fresh`/`settle` of its
+own, so only the view and its `get` law land now. Mask M1. -/
+
+/-- `E-22`: the table view is exactly the read-promise slots, with no cell
+marked handled — nothing in the readable calculus reads the bit. Mask M1. -/
+theorem readTable_eq {α ε : Type} (s : State α ε) :
+    readTable s =
+      Whatwg.Ecma262.Promise.Table.mk
+        (s.readPromises.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false)))
+        s.nextRead := rfl
+
+/-- `E-22`: the general lookup agrees with the inline slot lookup. Mask M1. -/
+theorem readTable_get {α ε : Type} (s : State α ε) (id : Nat) :
+    Whatwg.Ecma262.Promise.Table.get (readTable s) id =
+      (s.readPromises.find? (fun p => p.1 == id)).map Prod.snd := by
+  have key : ∀ (l : List (Nat × PromiseState (ReadResult α) ε)),
+      Option.map Whatwg.Ecma262.Promise.Cell.state
+          (Option.map Prod.snd
+            (List.find? (fun e => e.1 == id)
+              (l.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false))))) =
+        (l.find? (fun p => p.1 == id)).map Prod.snd := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons q rest ih =>
+        simp only [List.map_cons, List.find?_cons]
+        cases hb : (q.1 == id) with
+        | true => rfl
+        | false => exact ih
+  exact key s.readPromises
 
 end Whatwg.Streams.Readable

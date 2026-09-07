@@ -123,3 +123,34 @@
 # on 2026-09-07. All four batteries are green with no statement repaired, so
 # all four entries are removed and the trust gate's all-green control is
 # restored. No entry remains.
+
+# Q3 first promise packet, frozen RED 2026-09-07 by the Q3 packet breaker seat
+# on branch promise/q3-breaker, based on e819a9f.
+# Packet: test/contracts/promise-first-packet.contract.md.
+# Graph: docs/PROMISE-DAG.md (PROMISE-PG-FIRST).
+# Attacks: test/counterexamples/promise/ATTACKS.md (WS-PROM-CE-001..022).
+# Implementation fence: Whatwg/Ecma262/{Promise,Jobs}.lean,
+# Whatwg/WebIdl/{Promise,Exceptions}.lean, and the additive abbrevs, views and
+# bridging lemmas the move-and-generalize rows add inside Whatwg/Streams/**.
+# Each module below is red only because the names it ascribes do not exist yet:
+# the measured diagnostics are 1077 in total and every one is an unknown
+# identifier or constant, except two missing-structure consequences of a
+# missing type in PromiseLaws. There is no parse, import, type-mismatch or
+# instance-synthesis failure.
+#
+# WhatwgTest.Streams.PromiseBridge is red only in its bridging half; its
+# preservation half is green today and the packet's acceptance condition 2
+# requires it to stay green through the builder's landing. A repair that turns
+# the module green by weakening a preservation ascription is a refusal, not a
+# landing.
+#
+# The builder removes an entry the moment its battery is green.
+#
+# The Q3 builder seat landed the packet on branch promise/q3-builder in seven
+# moves (types, tables, queue, reactions, wait-for-all, Boundary.Exception last
+# per R-P14, then the roots and the record). All eight modules are green and
+# their eight entries are removed, so the trust gate's all-green control is
+# restored. The 125 named axiom receipts of
+# WhatwgTest.Ecma262.PromiseAxiomReport all print inside the R-11 ceiling:
+# 59 empty, 41 [propext], 20 [propext, Quot.sound], 5
+# [propext, Classical.choice, Quot.sound]. No entry remains.

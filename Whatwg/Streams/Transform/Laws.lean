@@ -692,23 +692,56 @@ theorem tick_native_write :
   intros
   first | rfl | (simp_all [tick] <;> rfl)
 
-/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
+/-! ## `PROMISE-PG-FIRST` bridging: the coupled job queue
+
+`E-52`, `E-53` (generalize). The three-part guard below is the clearest statement in the
+repository of `requirement.jobs.1`, and it is stated today only as a hypothesis of
+`tick_job_fifo`; here it is the hypothesis of the bridge. -/
+
+/-- `E-52`: the view is exactly the coupled-job list. Mask M1. -/
+theorem jobQueue_eq {α β ε : Type} (s : State α β ε) :
+    jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
+
+/--
+`E-53` (generalize). Under the transform's own three-way spelling of
+`requirement.jobs.1`, `tick` reduces to `Whatwg.Ecma262.Jobs.Queue.dequeue` followed by
+the coupled component dispatch. Mask M2.
+-/
+theorem tick_dequeue_bridge {α β ε : Type} (s : State α β ε) :
+    s.control = [] → s.writable.control = [] → s.readable.frames = [] →
+      tick s =
+        (Whatwg.Ecma262.Jobs.Queue.dequeue (jobQueue s)).bind
+          (fun p => runJob { s with jobs := p.2.pending } p.1) := by
+  intro hc hw hf
+  cases hj : s.jobs <;>
+    simp [tick, jobQueue, Whatwg.Ecma262.Jobs.Queue.dequeue, hc, hw, hf, hj]
+
+/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_cons` (the `later := []` instance of
+`Queue.dequeue_fifo`), never re-proved from `tick`. Mask M2. -/
 theorem tick_job_fifo :
   ∀ {α β ε : Type} (s : State α β ε) (job : Job α ε) (tail : List
     (Job α ε)),
    s.control = [] → s.writable.control = [] → s.readable.frames = [] →
    s.jobs = job :: tail →
    tick s = runJob { s with jobs := tail } job := by
-  intros
-  first | rfl | (simp_all [tick] <;> rfl)
+  intro α β ε s job tail hc hw hf hj
+  rw [tick_dequeue_bridge s hc hw hf, jobQueue_eq, hj,
+    Whatwg.Ecma262.Jobs.Queue.dequeue_cons]
+  rfl
 
-/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
+/-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, never re-proved from `tick`. -/
 theorem tick_no_job :
   ∀ {α β ε : Type} (s : State α β ε),
    s.control = [] → s.writable.control = [] → s.readable.frames = [] → s.jobs = [] →
    tick s = none := by
-  intros
-  first | rfl | (simp_all [tick] <;> rfl)
+  intro α β ε s hc hw hf hj
+  rw [tick_dequeue_bridge s hc hw hf, jobQueue_eq, hj,
+    ← Whatwg.Ecma262.Jobs.Queue.empty_eq, Whatwg.Ecma262.Jobs.Queue.dequeue_empty]
+  rfl
 
 /-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
 theorem tick_native_pull :
@@ -1102,5 +1135,90 @@ theorem visible_writable_signal_call :
      (Event.writable (α := α) (β := β) (.signalCalled call e)) = none := by
   intros
   first | rfl | (simp_all [visibleEvent] <;> rfl)
+
+/-! ## `PROMISE-PG-FIRST` bridging: the reaction list
+
+`E-29`, `E-30`, `E-31` (generalize) and decision 8. `Transform.State.subscriptions` is the
+one-list view of the two general lists: `reactions` builds both positionally, giving the
+paired entries one id, and `Reactions.registered` is the fulfil list, so the registration
+order Streams records is preserved. All three are mask M1. -/
+
+/-- The shared registration cursor counts exactly the recorded subscriptions. Mask M1. -/
+theorem reactions_next {α β ε : Type} (s : State α β ε) :
+    (reactions s).next = s.subscriptions.length := by
+  have key : ∀ (l : List (Subscription α))
+      (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
+      (l.foldl (fun rs sub =>
+        (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
+          (some sub) (some sub)).1) rs).next = rs.next + l.length := by
+    intro l
+    induction l with
+    | nil => intro rs; simp
+    | cons sub rest ih =>
+        intro rs
+        rw [List.foldl_cons, ih]
+        simp only [Whatwg.Ecma262.Promise.Reactions.add, List.length_cons]
+        omega
+  simpa [reactions, Whatwg.Ecma262.Promise.Reactions.empty] using
+    key s.subscriptions Whatwg.Ecma262.Promise.Reactions.empty
+
+/-- Decision 8: the fulfil list alone carries the registration order that
+`Transform.State.subscriptions` records (`E-29`). Mask M1. -/
+theorem reactions_registered {α β ε : Type} (s : State α β ε) :
+    (Whatwg.Ecma262.Promise.Reactions.registered (reactions s)).filterMap
+        Whatwg.Ecma262.Promise.Reaction.handler = s.subscriptions := by
+  have key : ∀ (l : List (Subscription α))
+      (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
+      (l.foldl (fun rs sub =>
+        (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
+          (some sub) (some sub)).1) rs).fulfill.filterMap
+          Whatwg.Ecma262.Promise.Reaction.handler =
+        rs.fulfill.filterMap Whatwg.Ecma262.Promise.Reaction.handler ++ l := by
+    intro l
+    induction l with
+    | nil => intro rs; simp
+    | cons sub rest ih =>
+        intro rs
+        rw [List.foldl_cons, ih]
+        simp [Whatwg.Ecma262.Promise.Reactions.add]
+  simpa [reactions, Whatwg.Ecma262.Promise.Reactions.registered,
+    Whatwg.Ecma262.Promise.Reactions.empty] using
+      key s.subscriptions Whatwg.Ecma262.Promise.Reactions.empty
+
+/-- `E-30`: the identity captured at registration, independent of later slot
+replacement, agrees with the general accessor. Mask M1. -/
+theorem reactions_promises {α β ε : Type} (s : State α β ε) :
+    (Whatwg.Ecma262.Promise.Reactions.registered (reactions s)).map
+        Whatwg.Ecma262.Promise.Reaction.promise =
+      s.subscriptions.map subscriptionPromise := by
+  have key : ∀ (l : List (Subscription α))
+      (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
+      (l.foldl (fun rs sub =>
+        (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
+          (some sub) (some sub)).1) rs).fulfill.map
+          Whatwg.Ecma262.Promise.Reaction.promise =
+        rs.fulfill.map Whatwg.Ecma262.Promise.Reaction.promise ++ l.map subscriptionPromise := by
+    intro l
+    induction l with
+    | nil => intro rs; simp
+    | cons sub rest ih =>
+        intro rs
+        rw [List.foldl_cons, ih]
+        simp [Whatwg.Ecma262.Promise.Reactions.add]
+  simpa [reactions, Whatwg.Ecma262.Promise.Reactions.registered,
+    Whatwg.Ecma262.Promise.Reactions.empty] using
+      key s.subscriptions Whatwg.Ecma262.Promise.Reactions.empty
+
+/-- `E-31`: the pending branch of `subscribe` is `Reactions.add`. The two settled branches
+dispatch into the canonical component (`E-32` risk) and are therefore bridged on the job
+queue, not here. Mask M1. -/
+theorem subscribe_reactions_bridge {α β ε : Type} (s : State α β ε) (sub : Subscription α) :
+    lookupPromise s (subscriptionPromise sub) = some .pending →
+      (subscribe s sub).map reactions =
+        some (Whatwg.Ecma262.Promise.Reactions.add (reactions s)
+          (subscriptionPromise sub) (some sub) (some sub)).1 := by
+  intro h
+  rw [subscribe_pending s sub h]
+  simp [reactions, List.foldl_append]
 
 end Whatwg.Streams.Transform

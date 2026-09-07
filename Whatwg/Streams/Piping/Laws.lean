@@ -1,4 +1,6 @@
 import Whatwg.Streams.Piping.Step
+import Whatwg.Streams.Writable.Laws
+import Whatwg.WebIdl.Promise
 
 /-!
 # Frozen forward-shutdown equations
@@ -1396,5 +1398,73 @@ theorem forwardShutdown_realizes :
   obtain ⟨initial, _, entry, trace⟩ := admitted
   simpa only [ForwardShutdownSpec, observeShutdown, entry, trace, ObservationChain,
     List.not_mem_nil, false_implies, implies_true, and_true] using initial
+
+/-! ## `PROMISE-PG-FIRST` bridging: the settled predicate
+
+`E-55`, `E-56` (generalize) and decision 10. The two Streams forms are the `Prop` and
+`Bool` faces of `Whatwg.WebIdl.Promise.AllSettled` over the writable table, restricted to
+links whose write has been submitted, because the Streams forms answer `false` for a link
+that has not. `G-06` records what is still absent: `op.waiting-for-all-promise` and its
+`[=Queue a microtask=]` step. Both laws are mask M1. -/
+
+/-- `E-56` (generalize): the `Bool` face. Mask M1. -/
+theorem allWrittenSettled_bridge {α ε : Type} (w : Writable.State α ε)
+    (ls : List (ReadWriteLink α)) :
+    (∀ l ∈ ls, ∃ call request, l.write = WriteStage.submitted call request) →
+      allWrittenSettled w ls =
+        Whatwg.WebIdl.Promise.allSettled (Writable.promiseTable w)
+          (ls.filterMap (fun l => match l.write with
+            | .submitted _ request => some request
+            | _ => none)) := by
+  intro h
+  induction ls with
+  | nil => rfl
+  | cons l rest ih =>
+      obtain ⟨call, request, hl⟩ := h l (by simp)
+      have hrest := ih (fun x hx => h x (by simp [hx]))
+      simp only [allWrittenSettled, Whatwg.WebIdl.Promise.allSettled] at hrest ⊢
+      simp only [hl, List.all_cons, List.filterMap_cons, hrest]
+      congr 1
+      rw [Writable.lookupPromise_bridge]
+      cases Whatwg.Ecma262.Promise.Table.get (Writable.promiseTable w) request with
+      | none => rfl
+      | some st => cases st <;> rfl
+
+/-- `E-55` (generalize): the `Prop` face. Mask M1. -/
+theorem writesSettled_bridge {α ε : Type} (s : Snapshot α ε) :
+    (∀ l ∈ s.links, ∃ call request, l.write = WriteStage.submitted call request) →
+      (WritesSettled s ↔
+        Whatwg.WebIdl.Promise.AllSettled (Writable.promiseTable s.destination)
+          (s.links.filterMap (fun l => match l.write with
+            | .submitted _ request => some request
+            | _ => none))) := by
+  intro hsub
+  simp only [WritesSettled, Whatwg.WebIdl.Promise.AllSettled,
+    ← Writable.lookupPromise_bridge]
+  constructor
+  · intro h id hid
+    rw [List.mem_filterMap] at hid
+    obtain ⟨l, hlmem, hlg⟩ := hid
+    obtain ⟨call, request, hl⟩ := hsub l hlmem
+    rw [hl] at hlg
+    simp only at hlg
+    obtain ⟨call', request', hl', hsettled⟩ := h l hlmem
+    rw [hl] at hl'
+    cases hl'
+    cases hlg
+    rcases hsettled with hf | ⟨reason, hr⟩
+    · exact Or.inl ⟨(), hf⟩
+    · exact Or.inr ⟨reason, hr⟩
+  · intro h l hlmem
+    obtain ⟨call, request, hl⟩ := hsub l hlmem
+    have hmem : request ∈ s.links.filterMap (fun l => match l.write with
+        | .submitted _ request => some request
+        | _ => none) := by
+      rw [List.mem_filterMap]
+      exact ⟨l, hlmem, by rw [hl]⟩
+    refine ⟨call, request, hl, ?_⟩
+    rcases h request hmem with ⟨v, hv⟩ | ⟨reason, hr⟩
+    · exact Or.inl hv
+    · exact Or.inr ⟨reason, hr⟩
 
 end Whatwg.Streams.Piping

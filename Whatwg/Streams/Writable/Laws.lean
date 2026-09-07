@@ -704,25 +704,90 @@ theorem tick_foreign_marker :
   | nil => exact (hn hc).elim
   | cons head tail => cases head <;> simp_all [externalFrontier, tick]
 
+/-! ## `PROMISE-PG-FIRST` bridging: the sink-job queue
+
+`E-45`, `E-46` (generalize). `E-46` records why this is the honest shape: the queue stage
+is one branch of a twenty-branch `tick`, so the general law is `Queue.dequeue`'s equation
+plus a Streams bridging lemma, not a relocation of `tick`. -/
+
+/-- `E-45`: the view is exactly the sink-job list. Mask M1. -/
+theorem jobQueue_eq {α ε : Type} (s : State α ε) :
+    jobQueue s = Whatwg.Ecma262.Jobs.Queue.mk s.jobs := rfl
+
+/--
+`E-46` (generalize). Under the writable component's own spelling of
+`requirement.jobs.1` — an empty administrative control stack — `tick` reduces to
+`Whatwg.Ecma262.Jobs.Queue.dequeue`. Mask M2.
+-/
+theorem tick_dequeue_bridge {α ε : Type} (s : State α ε) :
+    s.control = [] →
+      tick s =
+        (Whatwg.Ecma262.Jobs.Queue.dequeue (jobQueue s)).map
+          (fun p => { s with control := [.react p.1], jobs := p.2.pending }) := by
+  intro hc
+  cases hj : s.jobs <;>
+    simp [tick, jobQueue, Whatwg.Ecma262.Jobs.Queue.dequeue, hc, hj]
+
 /--
 `op.writable-stream-default-controller-process-write`:
 tick no job for the local candidate observations.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_empty`, never re-proved from `tick`.
 -/
 theorem tick_no_job :
   ∀ {α ε : Type} (s : State α ε), s.control = [] → s.jobs = [] → tick s = none := by
-  intros
-  first | rfl | simp_all [tick]
+  intro α ε s hc hj
+  rw [tick_dequeue_bridge s hc, jobQueue_eq, hj]
+  exact congrArg _ Whatwg.Ecma262.Jobs.Queue.dequeue_empty
 
 /--
 `op.writable-stream-default-controller-process-write`:
 tick job fifo for the local candidate observations.
+Re-derived through `tick_dequeue_bridge` and the general
+`Whatwg.Ecma262.Jobs.Queue.dequeue_cons` (the `later := []` instance of
+`Queue.dequeue_fifo`), never re-proved from `tick`. Mask M2.
 -/
 theorem tick_job_fifo :
   ∀ {α ε : Type} (s : State α ε) (job : SinkJob α ε) (jobs : List (SinkJob α ε)),
     tick { s with control := [], jobs := job :: jobs } =
       some { s with control := [.react job], jobs := jobs } := by
-  intros
-  first | rfl | simp_all [tick]
+  intro α ε s job jobs
+  rw [tick_dequeue_bridge { s with control := [], jobs := job :: jobs } rfl, jobQueue_eq]
+  rw [show ({ s with control := [], jobs := job :: jobs } : State α ε).jobs = job :: jobs from rfl,
+    Whatwg.Ecma262.Jobs.Queue.dequeue_cons]
+  rfl
+
+/-- `E-37` (generalize), the queueing half only: `attachSink` also clears the close and
+abort algorithm slots, which the general `react` must not do, so the bridge is stated on
+the job queue alone. Mask M2. -/
+theorem attachSink_settled_jobs {α ε : Type} (s : State α ε) (op : SinkOperation α ε)
+    (answer : SinkAnswer ε) :
+    jobQueue (attachSink s op (.settled answer)) =
+      Whatwg.Ecma262.Jobs.Queue.enqueue (jobQueue s)
+        ⟨operationKind op, operationRequest op, answer⟩ := by
+  cases op <;>
+    simp [attachSink, jobQueue, setOperationPhase, clearAlgorithms, operationKind,
+      operationRequest, Whatwg.Ecma262.Jobs.Queue.enqueue]
+
+/-- `E-37`: a callback that returned pending queues no reaction yet. Mask M2. -/
+theorem attachSink_pending_jobs {α ε : Type} (s : State α ε) (op : SinkOperation α ε) :
+    jobQueue (attachSink s op .pending) = jobQueue s := by
+  cases op <;> simp [attachSink, jobQueue, setOperationPhase, clearAlgorithms]
+
+/-- `E-38` (generalize), the queueing half only: the `operationPhase … = some .awaiting`
+guard stays in Streams. Mask M2. -/
+theorem acceptAnswer_jobs {α ε : Type} (s t : State α ε) (kind : SinkKind) (id : Nat)
+    (answer : SinkAnswer ε) :
+    acceptAnswer s kind id answer = some t →
+      jobQueue t = Whatwg.Ecma262.Jobs.Queue.enqueue (jobQueue s) ⟨kind, id, answer⟩ := by
+  intro h
+  simp only [acceptAnswer] at h
+  by_cases hg : operationPhase s kind id = some OperationPhase.awaiting
+  · rw [if_pos hg] at h
+    rw [← Option.some.inj h]
+    cases kind <;> simp [jobQueue, Whatwg.Ecma262.Jobs.Queue.enqueue]
+  · rw [if_neg hg] at h
+    exact absurd h (by simp)
 
 /--
 `op.writable-stream-default-writer-write`:
@@ -1422,5 +1487,124 @@ theorem hasInFlight_exact {α ε : Type} (s : State α ε) :
     hasInFlight s =
       (s.inFlightWrite.isSome ||
         (match s.closeState with | .inFlight _ _ => true | _ => false)) := rfl
+
+/-! ## `PROMISE-PG-FIRST` bridging: the promise table view
+
+`E-13`..`E-15`, `E-18`..`E-21`, `E-23` (generalize). The Streams slots and
+operations stay exactly where they are, with their bodies and their equation
+lemmas unchanged, so every `attribute [local simp]` set keeps rewriting with
+them. These lemmas relate each operation to its general counterpart in
+`Whatwg.Ecma262.Promise`. All of them are mask M1. -/
+
+/-- The view folds the Streams identity list into decision 9's per-cell flag. Mask M1. -/
+theorem promiseTable_eq {α ε : Type} (s : State α ε) :
+    promiseTable s =
+      Whatwg.Ecma262.Promise.Table.mk
+        (s.promises.map (fun p =>
+          (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled)))))
+        s.nextPromise := rfl
+
+/-- `E-18`: `lookupPromise` is `Table.get` through the view. Mask M1. -/
+theorem lookupPromise_bridge {α ε : Type} (s : State α ε) (id : Nat) :
+    lookupPromise s id = Whatwg.Ecma262.Promise.Table.get (promiseTable s) id := by
+  have key : ∀ (l : List (Nat × UnitPromise ε)),
+      (l.find? (fun p => p.1 == id)).map Prod.snd =
+        Option.map Whatwg.Ecma262.Promise.Cell.state
+          (Option.map Prod.snd
+            (List.find? (fun e => e.1 == id)
+              (l.map (fun p =>
+                (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled))))))) := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons q rest ih =>
+        simp only [List.map_cons, List.find?_cons]
+        cases hb : (q.1 == id) with
+        | true => rfl
+        | false => exact ih
+  exact key s.promises
+
+/-- `E-19`: allocation is `Table.fresh` through the view, provided the cursor
+has not already been marked handled. The Streams instance additionally appends
+a `.settled` trace event, which the view does not read. Mask M1. -/
+theorem freshPromise_bridge {α ε : Type} (s : State α ε) (outcome : UnitPromise ε) :
+    s.nextPromise ∉ s.handled →
+      (promiseTable (freshPromise s outcome).1, (freshPromise s outcome).2) =
+        Whatwg.Ecma262.Promise.Table.fresh (promiseTable s) outcome := by
+  intro hne
+  cases outcome
+  all_goals simp [promiseTable, freshPromise, Whatwg.Ecma262.Promise.Table.fresh, hne]
+  all_goals intro a b _
+  all_goals rfl
+
+/-- `E-20`: settling is `Table.settle` through the view, guard and all. Mask M1. -/
+theorem settle_bridge {α ε : Type} (s : State α ε) (id : Nat)
+    (result : Except (Boundary.Exception ε) Unit) :
+    promiseTable (settle s id result) =
+      Whatwg.Ecma262.Promise.Table.settle (promiseTable s) id result := by
+  have hbridge := lookupPromise_bridge s id
+  by_cases hp : lookupPromise s id = some Whatwg.Ecma262.Promise.State.pending
+  · rw [settle_pending s id result hp,
+      Whatwg.Ecma262.Promise.Table.settle_pending (promiseTable s) id result (hbridge ▸ hp)]
+    simp only [promiseTable, List.map_map]
+    congr 1
+    apply List.map_congr_left
+    intro q _
+    by_cases hb : q.1 = id
+    · subst hb; cases result <;> simp
+    · simp [hb]
+  · rw [settle_other s id result hp,
+      Whatwg.Ecma262.Promise.Table.settle_other (promiseTable s) id result (hbridge ▸ hp)]
+
+/-- `E-21`: marking handled is `Table.markHandled` through the view. Mask M1. -/
+theorem markHandled_bridge {α ε : Type} (s : State α ε) (id : Nat) :
+    promiseTable (markHandled s id) =
+      Whatwg.Ecma262.Promise.Table.markHandled (promiseTable s) id := by
+  by_cases hm : id ∈ s.handled
+  · have hid : markHandled s id = s := by simp [markHandled, hm]
+    rw [hid]
+    simp only [promiseTable, Whatwg.Ecma262.Promise.Table.markHandled, List.map_map]
+    congr 1
+    apply List.map_congr_left
+    intro q _
+    by_cases hb : q.1 = id
+    · subst hb; simp [hm]
+    · simp [hb]
+  · have hid : markHandled s id = { s with handled := s.handled ++ [id] } := by
+      simp [markHandled, hm]
+    rw [hid]
+    simp only [promiseTable, Whatwg.Ecma262.Promise.Table.markHandled, List.map_map]
+    congr 1
+    apply List.map_congr_left
+    intro q _
+    by_cases hb : q.1 = id
+    · subst hb; simp
+    · simp [hb]
+
+/-- Decision 9's bridging lemma: the per-cell flag agrees with membership of the
+Streams identity list wherever the cell exists. Mask M1. -/
+theorem handled_bridge {α ε : Type} (s : State α ε) (id : Nat) :
+    (Whatwg.Ecma262.Promise.Table.getCell (promiseTable s) id).map
+        Whatwg.Ecma262.Promise.Cell.handled =
+      (lookupPromise s id).map (fun _ => Decidable.decide (id ∈ s.handled)) := by
+  have key : ∀ (l : List (Nat × UnitPromise ε)),
+      Option.map Whatwg.Ecma262.Promise.Cell.handled
+          (Option.map Prod.snd
+            (List.find? (fun e => e.1 == id)
+              (l.map (fun p =>
+                (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled))))))) =
+        Option.map (fun _ => Decidable.decide (id ∈ s.handled))
+          ((l.find? (fun p => p.1 == id)).map Prod.snd) := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons q rest ih =>
+        simp only [List.map_cons, List.find?_cons]
+        cases hb : (q.1 == id) with
+        | true =>
+            have hq : q.1 = id := by simpa using hb
+            simp [hq]
+        | false => exact ih
+  exact key s.promises
 
 end Whatwg.Streams.Writable
