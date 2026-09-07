@@ -1,5 +1,6 @@
 import Gates.Common
 import Gates.Sha256
+import Gates.Ecmarkup
 
 /-!
 # Gates.Census
@@ -554,7 +555,25 @@ def webidl : Standard :=
     algorithmNameFirst := true, authoredTypeNames := false,
     authoredDependencies := true, crossCensusPaths := ["generated/infra-census.tsv"] }
 
-def standards : List Standard := [streams, infra, webidl]
+/-- The promise lane's ECMA-262 census (`docs/PROMISE-PACKAGE-PLAN.md`, slice
+Q1; packet `test/contracts/ecma262-census.contract.md`). Two root clauses of
+the pinned `spec.html`, read through `Gates.Ecmarkup` rather than through the
+Bikeshed scanners: `<emu-clause>` primary rows, `<emu-table>` body rows,
+requirement bullets and `<dfn>` terms. No `types.tsv`, no cross-census join,
+and `algorithmNameFirst` is inert here because no Bikeshed scanner runs. -/
+def ecma262 : Standard :=
+  { key := "ecma262", label := "ECMAScript ES2026 (0248456c)",
+    inputRelativePath := "vendor/ecma262-0248456c/spec.html",
+    inputDigest := "ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0",
+    censusRelativePath := "generated/ecma262-census.tsv",
+    rowsRelativePath := "WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean",
+    rowsNamespace := "WhatwgTest.Audit.Ecma262.SpecCoverageRows",
+    authoredDir := "census/ecma262",
+    profile := .ecmarkup,
+    algorithmNameFirst := false, authoredTypeNames := false,
+    authoredDependencies := true, crossCensusPaths := [] }
+
+def standards : List Standard := [streams, infra, webidl, ecma262]
 
 def Standard.ofKey? (key : String) : Option Standard := standards.find? (·.key == key)
 
@@ -1896,34 +1915,18 @@ private def countKind (rows : Array Row) (k : Kind) : Nat :=
 private def countDisposition (ds : Array Disposition) (d : Disposition) : Nat :=
   ds.foldl (fun acc x => if x == d then acc + 1 else acc) 0
 
-/-- The Bikeshed half of `build`. -/
-def buildBikeshed (std : Standard) (sw : Bikeshed) (bs : ByteArray) (inputs : AuthoredInputs) :
-    Except String Built := do
-  let headings ← scanHeadings bs sw.headingLevels
-  let scope : Option (Array Section) ←
-    if sw.sectionScope then do
-      let ids ← parseSections inputs.sections std.sectionsRelativePath
-      let sections ← sectionExtents bs headings ids std.sectionsRelativePath
-      pure (some sections)
-    else pure none
-  let blocks ← algorithmBlocks bs
-  let ops ← if sw.algorithmRows then scanOps bs blocks std.algorithmNameFirst scope else pure #[]
-  let slots ← if sw.slotRows then scanSlots bs else pure #[]
-  let (idl, skippedIdl) ←
-    if sw.idlRows then scanIdl bs sw.idlOpeners scope else pure (#[], 0)
-  let requirements ←
-    match sw.requirementMarker with
-    | some marker => scanRequirements bs marker ops
-    | none => pure #[]
-  let definitions ←
-    if sw.definitionRows then do
-      let types ←
-        if std.authoredTypeNames then parseTypes inputs.types std.typesRelativePath else pure #[]
-      let dfns ← scanDefinitions bs types std.typesRelativePath blocks sw.algorithmRows scope
-      let headingDfns ← scanHeadingDefinitions bs headings scope
-      pure (dfns ++ headingDfns)
-    else pure #[]
-  let sourced := ops ++ slots ++ idl ++ requirements ++ definitions
+/-- The tail both profiles share: the authored rule rows, the sort, the
+duplicate check, the anchor ladder, the section scope in both directions, the
+disposition join, the escaping-reference join, and the two projections. Only
+the row sourcing differs between the profiles.
+
+`scope` is `none` for a whole-document standard and the resolved sections of
+`sections.tsv` otherwise. `ancestryOf` gives the authored section keys that
+govern a row whose span starts at the given byte, innermost first: heading ids
+for a Bikeshed standard, enclosing clause ids for an ecmarkup one. -/
+def finishBuild (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs)
+    (sourced : Array Row) (skippedIdl : Nat) (scope : Option (Array Section))
+    (ancestryOf : Nat → Array String) : Except String Built := do
   let ruleInputs ← parseRules inputs.rules std.rulesRelativePath
   let rules ← scanRules bs ruleInputs
   let dispositionRules ← parseDispositions inputs.dispositions std.dispositionsRelativePath
@@ -1966,7 +1969,7 @@ def buildBikeshed (std : Standard) (sw : Bikeshed) (bs : ByteArray) (inputs : Au
   let mut usedOverrides : Array Nat := #[]
   let mut unresolved : Array String := #[]
   for row in anchored do
-    let path := sectionAncestry headings sw.headingLevels row.spanB
+    let path := ancestryOf row.spanB
     paths := paths.push path
     match resolveDispositionAncestry dispositionRules overrides path row with
     | none =>
@@ -2009,15 +2012,82 @@ def buildBikeshed (std : Standard) (sw : Bikeshed) (bs : ByteArray) (inputs : Au
         rowsModuleText := renderRowsModule std coverageRows denominator,
         denominator := denominator }
 
-/-- The profile dispatch (ruling R-P1).
+/-- The Bikeshed half of `build`. -/
+def buildBikeshed (std : Standard) (sw : Bikeshed) (bs : ByteArray) (inputs : AuthoredInputs) :
+    Except String Built := do
+  let headings ← scanHeadings bs sw.headingLevels
+  let scope : Option (Array Section) ←
+    if sw.sectionScope then do
+      let ids ← parseSections inputs.sections std.sectionsRelativePath
+      let sections ← sectionExtents bs headings ids std.sectionsRelativePath
+      pure (some sections)
+    else pure none
+  let blocks ← algorithmBlocks bs
+  let ops ← if sw.algorithmRows then scanOps bs blocks std.algorithmNameFirst scope else pure #[]
+  let slots ← if sw.slotRows then scanSlots bs else pure #[]
+  let (idl, skippedIdl) ←
+    if sw.idlRows then scanIdl bs sw.idlOpeners scope else pure (#[], 0)
+  let requirements ←
+    match sw.requirementMarker with
+    | some marker => scanRequirements bs marker ops
+    | none => pure #[]
+  let definitions ←
+    if sw.definitionRows then do
+      let types ←
+        if std.authoredTypeNames then parseTypes inputs.types std.typesRelativePath else pure #[]
+      let dfns ← scanDefinitions bs types std.typesRelativePath blocks sw.algorithmRows scope
+      let headingDfns ← scanHeadingDefinitions bs headings scope
+      pure (dfns ++ headingDfns)
+    else pure #[]
+  let sourced := ops ++ slots ++ idl ++ requirements ++ definitions
+  finishBuild std bs inputs sourced skippedIdl scope
+    (fun off => sectionAncestry headings sw.headingLevels off)
 
-**This is the one branch the ES2026 builder replaces.** `Gates/Ecmarkup.lean`
-lands beside this module and the `.ecmarkup` arm below becomes a call into a
-`buildEcmarkup std bs inputs`; nothing else in this function changes. -/
+/-- The authored section keys of an ecmarkup row, innermost first: the ids of
+every `<emu-clause>` whose span contains the row's span start, deepest first.
+A primary clause row therefore resolves against its own clause id, and a
+sub-row against the clause that encloses it, which is what section 8 of
+`test/contracts/ecma262-census.contract.md` states. The containing clauses of a
+point form a chain, so their depths are distinct and the order is total. -/
+def clauseAncestry (clauses : Array Gates.Ecmarkup.Clause) (off : Nat) : Array String :=
+  let containing := clauses.filter (fun c => Nat.ble c.b off && Nat.blt off c.e)
+  (containing.qsort (fun a b => Nat.blt b.depth a.depth)).map (·.id)
+
+/-- The ecmarkup half of `build` (ruling R-P1).
+
+`sections.tsv` names the root clause ids; `Gates.Ecmarkup.rootWindow` is the one
+function of that module that reads outside a window and it refuses a root id
+that does not occur exactly once. `Gates.Ecmarkup.rows` gives each row a kind
+spelling, an id and a half-open span, and everything after that — the anchor
+ladder, the span digests, the excerpts, the disposition join and both
+projections — is `finishBuild`, exactly the path the Bikeshed standards take. -/
+def buildEcmarkup (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs) :
+    Except String Built := do
+  let sectionIds ← parseSections inputs.sections std.sectionsRelativePath
+  let mut windows : Array (Nat × Nat) := #[]
+  let mut sections : Array Section := #[]
+  for clauseId in sectionIds do
+    let (b, e) ← Gates.Ecmarkup.rootWindow bs clauseId
+    windows := windows.push (b, e)
+    sections := sections.push { id := clauseId, b := b, e := e }
+  let specs ← Gates.Ecmarkup.rows bs windows
+  let mut rows : Array Row := #[]
+  for spec in specs do
+    let some kind := Kind.ofString? spec.kind
+      | .error s!"census: the ecmarkup scanner produced the unknown kind {spec.kind}"
+    rows := rows.push
+      { kind := kind, id := spec.id, anchorB := spec.b, anchorE := spec.b,
+        spanB := spec.b, spanE := spec.e }
+  let mut clauses : Array Gates.Ecmarkup.Clause := #[]
+  for (b, e) in windows do
+    clauses := clauses ++ (← Gates.Ecmarkup.scanClauses bs b e)
+  finishBuild std bs inputs rows 0 (some sections) (fun off => clauseAncestry clauses off)
+
+/-- The profile dispatch (ruling R-P1). -/
 def build (std : Standard) (bs : ByteArray) (inputs : AuthoredInputs) : Except String Built :=
   match std.profile with
   | .bikeshed switches => buildBikeshed std switches bs inputs
-  | .ecmarkup => Except.error "profile ecmarkup: scanner not wired"
+  | .ecmarkup => buildEcmarkup std bs inputs
 
 /-! ## Reading the pinned input -/
 
