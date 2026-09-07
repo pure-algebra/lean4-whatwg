@@ -177,3 +177,34 @@ No row of the clause map above is claimed whole-row green: every "residual
 before whole-row green" column entry is still residual, and each is recorded
 against its gap id in the module docstrings of the four implementation modules
 and in the two updated roots.
+
+## Q4, the DB-11 restatement, frozen 2026-09-07 on branch `promise/q4-breaker`
+
+Appended by the Q4 restatement breaker seat. The declaration and statement
+rows above are frozen and unchanged. This section records only which edges of
+`PROMISE-PG-FIRST` the Q4 restatement touches, and how. Slice Q4's own graph
+is `docs/CONFIGURATION-DAG.md` (`CONFIGURATION-PG-ORDERING`); its contract is
+`test/contracts/configuration-ordering.contract.md`.
+
+Nothing here closes an edge. A frozen red battery is a statement, not
+evidence.
+
+| Edge | What Q4 touches | Effect on this graph |
+| --- | --- | --- |
+| identity | 15 ascriptions of `WhatwgTest/Streams/Semantics/OrderingContract.lean` name `Ecma262.Promise.Ref`, `.ReactionPhase` and `.Reaction` directly, and they elaborate. They are the first use of those three carriers by a client outside the Q3 batteries. | none: the edge stays `required-open` on the missing generated declaration snapshot. Q4 adds a second reader of the same names, not a second owner. |
+| construction | Q4 lands `E-22`'s operation-level generalization, which the Q3 landing recorded as the one item still missing from this edge's "three Streams tables" evidence: `Readable.freshReadCell`, `settleReadCell` and `settleReadCells`, with `readTable_freshReadCell`, `readTable_settleReadCell` and `readTable_settleReadCells` as their bridges. | the edge stays `required-open` at this freeze; when the Q4 builder lands those three bridges, the only item left on this edge is the reachable-state and cross-owner freshness invariants the column already defers. |
+| semantics | `Semantics.Ordering.activeErase` and `runCondition_iff` are the first client of `Jobs.RunCondition`, and `episodePrefix_jobQueue_eq` the first client of `Queue.enqueueAll` over a configuration. Neither realizes `requirement.jobs.3` (COMPLETE, 626357–626479), which R-P20 reopened this edge for; that stays Q3b's. | none. Q4 uses the run condition, it does not discharge COMPLETE. |
+| laws | untouched. The 125 Q3 receipts stand; Q4's 82 receipts are its own, in `WhatwgTest/Streams/Semantics/OrderingAxiomReport.lean`, and belong to `CONFIGURATION-PG-ORDERING`. | none. |
+| representation | the P4–P7 duplicate-prevention rows for `Readable.PromiseState`, `Writable.UnitPromise`/`SinkAnswer`/`SinkReturn`, `Writable.State.promises` and the Transform subscription adapter change from naming Streams the canonical owner to naming `Whatwg.Ecma262.Promise` the shared owner, with `E-07`..`E-12` as receipts (contract §4). This is the DB-11 sentence "at that point they become views onto the shared layer, with conversion receipts, rather than a second owner" being executed. | the edge is `closed` for Q3's own content and Q4 adds no obligation to it; the record change is `CONFIGURATION-PG-ORDERING`'s representation evidence, not a reopening of this one. |
+| counterexamples | untouched. Q4 freezes no `WS-PROM-CE-*` row and does not edit `test/counterexamples/promise/ATTACKS.md` or `test/counterexamples/REGISTER.md`. | none. |
+| bridges | Q4 lands the three bridges §4.4 of the Q3 contract deferred with a stated reason — rows 14 (`Transform.notify`), 15 (`Transform.settle`) and 16 (`Transform.runJob`) — as `notifyJob` and `notify_jobQueue_bridge`; `settle_table_bridge`, `settle_jobQueue_order` and `settle_waiting_once`; `runJob_writable_dequeue` and `runJob_writable_blocked`. The Q3 landing listed those three as "not among the 29". | the edge is `closed` for the 29 Q3 bridges. The three deferred rows were never counted in it, so Q4 does not reopen it; when they land, this edge's bridge set is complete for the whole `generalize` mode and the landing receipt should say so. |
+| targets | untouched. | none. |
+| trust | Q4's 82 receipts are inside the R-11 ceiling by its own acceptance condition 7, and no Q3 receipt changes. | none. |
+| coverage | Q4 executes R-P5's Streams slot re-disposition: `slot.promise-state` and `slot.promise-is-handled` become `owned` in the *Streams* census, naming `Whatwg.Ecma262.Promise.State` and the `handled` field of its `Cell` as the model. `slot.value` stays `foreignBoundary` (gap `G-10`: no Completion carrier exists at this pin). Both re-disposed rows stay `absent`, and every Streams total is unchanged (contract §7.4, §7.5). The ES2026 and Web IDL numerators are untouched and stay all-`absent`. | none. No row of either promise census moves, and no Streams number moves. A packet that names a witness for either re-disposed row is what moves them, and it owes the numerator amendment. |
+
+**The one thing Q4 gives this graph that is not an edge.** Q3's `E-22` was
+partial by construction: only the view and its `get` law landed, because the
+operations would have changed a Streams definition body. Q4 changes those five
+bodies, so `Readable.State.readPromises` stops being a table with no
+operations. The five equation lemmas that keep every dependent proof, the
+exact new bodies and the nineteen dependent files are §5.4 of the Q4 contract.
