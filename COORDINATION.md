@@ -33,7 +33,10 @@ exist. The separate P8a draft is held outside the approval submission.
 | Q3 packet breaker (landed) | Packet frozen RED at `ef960be` on `promise/q3-breaker`: 371 ascriptions, 125 receipts, the general FIFO law with both Streams corollaries, `docs/PROMISE-DAG.md` opened, 22 attacks seeded |
 | Q3 builder (landed) | Built at `795b4f8` on `promise/q3-builder` in seven extraction moves; integrated with the Q2 landing as `7377134` on `promise/q3-integration`; eight batteries green, every P4–P7 proof unchanged |
 | Q2 and Q3 reviewers (landed) | Q2 reviewed at `6d54a4a` (no standards blocker; the manifest repair and debts D12–D16); Q3 reviewed at `7377134` (no blocker; the coverage and semantics edge repairs, one mask, and the six fidelity findings F1–F6 of R-P20) |
-| Q3b addendum breaker, Q4 seats | Claimed next: the Q3b addendum for F1–F6 with counterexample rows before implementation; then Q4, the DB-11 restatement of P8a and the Streams promise-slot re-disposition |
+| Q3 landing | On `main` at `f700230`, 2026-09-07, with R-P20 |
+| Q3b addendum breaker (own worktree, `promise/q3b-breaker`) | The fidelity addendum to `PROMISE-PG-FIRST`: counterexample rows `WS-PROM-CE-023` onward seeded first for F1–F6 and the minors of R-P20, then the addendum contract and frozen red batteries; superseded Q3 statements amended with dated reasons; existing landed names kept stable, changes additive |
+| Q4 restatement breaker (own worktree, `promise/q4-breaker`) | The DB-11 restatement of the held P8a draft against `Whatwg.Ecma262.Jobs` and `Whatwg.Ecma262.Promise` per the inventory's P8a reuse table; the view conversions for the three Streams promise tables; the Streams promise-slot re-disposition; the three deferred Transform bridges and E-22's operation-level generalization; reads `codex/configuration-breaker` read-only |
+| Q3b builder, Q4 builder, reviewers | Q3b builder after its freeze; Q4 builder after Q3b lands; each landing reviewed before merge |
 | Codex configuration breaker | Held: the P8a draft in `codex/configuration-breaker` stays unfrozen until the promise census and the DB-11 restatement exist |
 
 ## Current claims
