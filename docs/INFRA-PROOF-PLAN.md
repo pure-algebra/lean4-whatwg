@@ -575,3 +575,126 @@ terms), then the I1 breaker packet, which states R3, R5, R7, R9, and R10 as
 ruling requests in its section 6 the way the queue packet stated `P3-R1`. No
 Lean declaration follows from this document, and `Whatwg/Infra.lean` stays
 declaration-free until that packet is frozen.
+
+## 11. The UTF-8 packet (frozen 2026-09-07, `infra/utf8-breaker`)
+
+Appended by the Infra UTF-8 breaker seat; the only edit this seat makes to this
+document. Everything above section 10 is the original W5 draft and is unchanged.
+
+Ruling R-U1 (`COORDINATION.md`, 2026-09-07) opened a packet this draft did not
+plan for. The draft's packet order I1 to I5 assumed Infra's own text was the
+only source in the lane; the URL U3 breaker found that `infra.bs` defers to the
+Encoding Standard at every UTF-8 call site and that this repository declares no
+`utf8Encode` anywhere, so the Encoding Standard was pinned
+(`whatwg/encoding` at `67494fceee1b95bbc87b58142fcc14e48310f257`, sealed under
+`vendor/whatwg-encoding-67494fce/`, `encoding.bs` SHA-256
+`43cb027a611580ad07b5cd3a96e82ee4303594e6b24b8b7c5b903cd2e50f19ad`) and the
+UTF-8 core became the next Infra packet.
+
+Packet: `test/contracts/infra-utf8.contract.md`.
+Graph: `docs/INFRA-UTF8-DAG.md` (`INFRA-PG-UTF8`).
+Attacks: `test/counterexamples/infra/UTF8.md` (`INFRA-UTF8-CE-001` … `018`).
+Batteries: `WhatwgTest/Infra/Utf8{Contract,Laws,AxiomReport}.lean` and
+`WhatwgTest/Infra/Counterexamples/Utf8.lean`.
+
+### What it adds to the plan
+
+**A fifth graph.** Section 5's table listed four Infra graphs. `INFRA-PG-UTF8`
+is a fifth, not a sixth family of `INFRA-PG-TEXT`, because its semantic owner is
+a different pin: an `identity` edge that spans two pins cannot say which pin it
+closed against. The graph's own header argues the point.
+
+**A new module, and one import.** Section 8's module tree gains
+`Whatwg/Infra/Text/Utf8.lean`, which **imports** `Whatwg.Infra.Text.Codec` and
+is imported by `Whatwg/Infra.lean`. `SPEC-MANIFEST.md` and R-U1 both name
+`Whatwg.Infra.Text.Codec` as "the natural home"; the packet reads that as naming
+the lane and asks the operator to ratify the file split as **INFRA-R14**. The
+arrow has to run Utf8 → Codec, because the ASCII-agreement law is stated through
+`JsString.asciiEncode?` and Codec must not acquire a dependency on the Encoding
+pin. The I/O queue stays inside the same module until a second encoding is
+owned, with the split condition stated in the contract.
+
+**A ruling on a defect in the pinned text, INFRA-R15.**
+`op.io-queue-peek` [7651,8447) reads "For each n in the range 1 to number,
+inclusive … append ioQueue[n] to prefix". Infra's indexing is zero-based
+(`infra.bs` [67159,67540), SHA-256
+`eca5371c663af72ff08ee1b9e767615e9f40b03ed9b97f67aa83d8e8a7cf81d5`) and Infra's
+`the range n to m, inclusive` is `{n,…,m}` (`op.the-range` [82259,82581),
+SHA-256 `7f370fadc30afecce83faac905f464646fcc55e37dd411c59fd017fb877674e4`), so
+the literal reading skips `ioQueue[0]` and `UTF-8 decode` would never strip a
+byte order mark from any input. Both readings are frozen —
+`IoQueue.peek` literal, `IoQueue.peekPrefix` zero-based — so the difference is a
+theorem and not a silent choice, and the operator is asked to ratify the
+zero-based reading as an editorial defect in the pin. `INFRA-UTF8-CE-008` is the
+retained witness either way.
+
+**Section 4.6's UTF-8 obligation closes on the encode side.** That section wrote
+that the note of `op.ascii-encode` [56961,57243) "is a theorem owed jointly with
+the Encoding Standard, which is not pinned; the row stays `partial` with that
+bridge named until Encoding has its own pin". The pin exists and the theorem is
+`Whatwg.Infra.Utf8.encode_ascii_eq_asciiEncode`. The **decode** half — the note
+of `op.ascii-decode` [57245,57668), that isomorphic decode and UTF-8 decode
+agree on ASCII bytes — is deliberately **not** stated by this packet and stays
+owed: `asciiDecode` is on a byte sequence and `UTF-8 decode` on an I/O queue
+with a byte-order-mark step, so the honest statement is about
+`decodeWithoutBom` and belongs with the ASCII row's own packet.
+
+**The U3 builder's four Infra candidates are adopted.**
+`test/contracts/url-percent-encoding.contract.md` recorded four facts that "do
+not exist under `Whatwg/Infra/`", proved locally as private lemmas.
+`codePoints_of_no_lead` and `isAsciiString_of_units` land in
+`Whatwg/Infra/Text/String.lean`; `isomorphicEncode_eq` and `asciiEncode?_eq`
+land in `Whatwg/Infra/Text/Codec.lean`, each with its exact statement. Removing
+the now-redundant private copies inside `Whatwg/Url/PercentEncoding.lean` is a
+URL-lane follow-up recorded on the graph's `bridges` edge, not part of this
+packet's fence.
+
+**INFRA-R3's discipline is exercised three more times.** The encoder's domain is
+`ScalarValue`, discharging step 3 of `op.process-an-item` [15509,17620) by
+typing; `IoQueue.restore` takes an `α` and `IoQueue.convertTo` a `List α`,
+discharging their assertions the same way; and `Utf8.encode` takes
+`input.isScalarValueString = true` as a hypothesis argument in the exact shape
+`JsString.isomorphicEncode` already uses.
+
+**Fuel appears once, in the decoder.** `op.process-a-queue` [14785,15508)'s
+`While true` is fuel-bounded in the idiom `Whatwg.Infra.ByteSequence.isPrefixLoop`
+already sets, with `none` for exhausted fuel as a live frontier (DB-07) and a
+frozen sufficiency law at `2 × length + 1`. The queue's length alone is not a
+decreasing measure because step 4.2 of `op.utf-8-decoder` [86515,90406) restores
+a byte; the restore happens only together with the reset of `bytes needed` to 0,
+and the `bytes needed = 0` branch never restores. The encoder needs no fuel: its
+loop is structural in `count`.
+
+### One law of the packet's own order was corrected
+
+The freeze order asked for "the fail mode returning none exactly when the
+replacement mode would emit U+FFFD". Read as a statement about the *output* that
+is false: U+FFFD is a scalar value, `0xEF 0xBF 0xBD` is its well-formed
+encoding, and the fatal mode succeeds on it. The packet declares
+`Whatwg.Infra.Utf8.errorCount`, which counts the `error` results the run
+*substituted*, and freezes
+`decodeWithoutBomOrFail_eq_none_iff : decodeWithoutBomOrFail b = none ↔
+0 < errorCount b`, with `isWellFormed_iff` pinning the failure set as the exact
+complement of the encoder's image. `INFRA-UTF8-CE-011` retains the attack.
+
+### Sizing, against this document's own estimates
+
+Section 7 sized I1 at "80 to 150 frozen statements" over 61 rows. This packet
+freezes **80 interface ascriptions and 119 theorem ascriptions** over 22 spans
+of the Encoding pin and 2 of the Infra pin — comparable to I1 in statement count
+over a third of the rows, because a state machine costs one law per numbered
+step where a one-sentence definition costs one law per sentence. The expected
+declaration delta is 195 named public declarations in one new module plus four
+additive theorems in two existing ones.
+
+### What the packet does not do
+
+It owns **one** encoding. The labels table, the index tables, `get an encoding`,
+`get an output encoding`, the legacy `decode` and `encode` hooks, `BOM sniff`,
+every single-byte and legacy multi-byte codec, and the four `TextDecoder`,
+`TextEncoder`, `TextDecoderStream` and `TextEncoderStream` interfaces are
+outside it and have no declaration. ISO-2022-JP appears only as a stated
+property of a DB-02 profile. Encoding still has no census, no denominator, no
+numerator and no report, so nothing here is coverage; the contract's span table
+is the join key a later Encoding census will use, and the packet order I1 to I5
+of section 7 is otherwise unchanged.
