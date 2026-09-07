@@ -412,4 +412,542 @@ theorem Table.markHandled_state {value reason : Type} (t : Table value reason) (
   rw [key (fun c => Cell.mk c.state true) t.entries]
   cases List.find? (fun (e : Nat × Cell value reason) => e.1 == id) t.entries <;> rfl
 
+/-! ## Part A/B — reactions and registration
+
+`E-29`..`E-33`, `E-37`, `E-38` (generalize) supply the extraction; `G-01`
+supplies the gap. Decision 8 splits the one Streams subscription list into the
+two ES2026 lists, with `Reactions.registered` as the one-list view Streams
+instantiates. -/
+
+/--
+`field.promisereaction-records.Type` (2691815..2692138). `Reaction.kind` is new
+content under `G-01`, not a rename: Streams has no `[[Type]]` tag.
+-/
+inductive ReactionType where
+  | fulfill
+  | reject
+  deriving DecidableEq, Repr
+
+/--
+P8a rename class "rename only": `Semantics.Ordering.ObserverPhase` becomes
+`ReactionPhase` with its four constructors unchanged. `E-36` (keep) fixes that
+`Writable.OperationPhase` is *not* unified with it in this packet: its fourteen
+receipts guard `acceptAnswer` and `attachSink`.
+-/
+inductive ReactionPhase where
+  | waiting
+  | queued (job : Nat)
+  | running (job : Nat)
+  | done
+  deriving DecidableEq, Repr
+
+/--
+`record.promisereaction-records` (2690445..2692671). `E-29` (generalize) and
+P8a `Registration` (rename only). `handler` is `Option body` because
+`field.promisereaction-records.Handler` (2692151..2692611) admits an empty
+handler, which is what Web IDL's one-sided "upon fulfillment" and "upon
+rejection" register. `E-29` risk: `deriving Repr` only — the general record
+must not gain `DecidableEq`, or `Transform.State` stops being `Repr`-only in
+the same way.
+-/
+structure Reaction (body : Type) where
+  id : Nat
+  promise : Nat
+  kind : ReactionType
+  handler : Option body
+  phase : ReactionPhase
+  deriving Repr
+
+/--
+`slot.PromiseFulfillReactions` (2745630..2745966) and
+`slot.PromiseRejectReactions` (2745977..2746311): the two reaction lists
+Streams does not have, under `G-01`, with one shared registration cursor.
+-/
+structure Reactions (body : Type) where
+  fulfill : List (Reaction body)
+  reject : List (Reaction body)
+  next : Nat
+
+/-- No registration has been made yet. -/
+def Reactions.empty {body : Type} : Reactions body := Reactions.mk [] [] 0
+
+/-- Keyed by list *and* id: `Reactions.add` gives the two paired entries one
+shared id, so an id alone does not name a reaction. -/
+def Reactions.get {body : Type} (rs : Reactions body) (kind : ReactionType) (id : Nat) :
+    Option (Reaction body) :=
+  (match kind with
+    | .fulfill => rs.fulfill
+    | .reject => rs.reject).find? (fun r => r.id == id)
+
+/--
+`op.performpromisethen` steps 8 to 10, registration half. Decision 8: one call
+registers into both lists under one id, so the two lists carry the same ids in
+the same order (`add_paired`).
+-/
+def Reactions.add {body : Type} (rs : Reactions body) (promise : Nat)
+    (onFulfilled onRejected : Option body) : Reactions body × Nat :=
+  (Reactions.mk
+    (rs.fulfill ++
+      [Reaction.mk rs.next promise ReactionType.fulfill onFulfilled ReactionPhase.waiting])
+    (rs.reject ++
+      [Reaction.mk rs.next promise ReactionType.reject onRejected ReactionPhase.waiting])
+    (rs.next + 1), rs.next)
+
+/-- Advance one registration's phase, retaining its identity and handler. -/
+def Reactions.setPhase {body : Type} (rs : Reactions body) (kind : ReactionType) (id : Nat)
+    (phase : ReactionPhase) : Reactions body :=
+  match kind with
+  | .fulfill =>
+      Reactions.mk (rs.fulfill.map (fun r => if r.id == id then { r with phase := phase } else r))
+        rs.reject rs.next
+  | .reject =>
+      Reactions.mk rs.fulfill
+        (rs.reject.map (fun r => if r.id == id then { r with phase := phase } else r)) rs.next
+
+/-- The registrations `TriggerPromiseReactions` would enqueue, in list order. -/
+def Reactions.waitingOn {body : Type} (rs : Reactions body) (promise : Nat)
+    (kind : ReactionType) : List (Reaction body) :=
+  (match kind with
+    | .fulfill => rs.fulfill
+    | .reject => rs.reject).filter
+    (fun r => r.promise == promise && r.phase == ReactionPhase.waiting)
+
+/-- Decision 8's one-list view: a registration made by `WebIdl.Promise.react`
+contributes one entry to each list under one id, so the fulfil list alone is
+the registration order `Transform.State.subscriptions` records (`E-29`). -/
+def Reactions.registered {body : Type} (rs : Reactions body) : List (Reaction body) :=
+  rs.fulfill
+
+/--
+`op.triggerpromisereactions` (2700260..2701212), whose entire content is
+"enqueue a reaction job for each reaction, in list order". `E-33` records that
+`Transform.settle` states only `settle_pending` and `settle_other`, so the
+order and once-only laws below are new content under `G-01`, not extraction.
+-/
+def triggerReactions {value reason body : Type} (rs : Reactions body) (promise : Nat)
+    (kind : ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    Reactions body × Jobs.Queue (Jobs.ReactionJob (Except reason value)) :=
+  let advance : List (Reaction body) → List (Reaction body) := fun l =>
+    l.map (fun r =>
+      if r.promise == promise && r.phase == ReactionPhase.waiting then
+        { r with phase := ReactionPhase.queued r.id }
+      else r)
+  (match kind with
+    | .fulfill => Reactions.mk (advance rs.fulfill) rs.reject rs.next
+    | .reject => Reactions.mk rs.fulfill (advance rs.reject) rs.next,
+    Jobs.Queue.enqueueAll q
+      ((Reactions.waitingOn rs promise kind).map (fun r => Jobs.ReactionJob.mk r.id argument)))
+
+/-- `E-33`'s target: `op.fulfillpromise`/`op.rejectpromise` followed by
+`op.triggerpromisereactions`. -/
+def Table.settleAndTrigger {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (result : Except reason value) :
+    Table value reason × Reactions body ×
+      Jobs.Queue (Jobs.ReactionJob (Except reason value)) :=
+  if Table.isPending t id then
+    (Table.settle t id result,
+      triggerReactions rs id
+        (match result with
+          | .ok _ => ReactionType.fulfill
+          | .error _ => ReactionType.reject) result q)
+  else (t, rs, q)
+
+/-- `op.fulfillpromise` (2695419..2696230) as the whole operation. -/
+def fulfillPromise {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (v : value) :
+    Table value reason × Reactions body ×
+      Jobs.Queue (Jobs.ReactionJob (Except reason value)) :=
+  Table.settleAndTrigger t rs q id (Except.ok v)
+
+/-- `op.rejectpromise` (2699323..2700252) as the whole operation. -/
+def rejectPromise {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (r : reason) :
+    Table value reason × Reactions body ×
+      Jobs.Queue (Jobs.ReactionJob (Except reason value)) :=
+  Table.settleAndTrigger t rs q id (Except.error r)
+
+/-! ## Part B — the capability record and the resolving functions
+
+`G-03`, wholly absent from Streams. `[[Resolve]]` and `[[Reject]]` are
+first-order function identities, never Lean functions: the representation rule
+in `AGENTS.md` forbids storing a body. -/
+
+/-- `record.promisecapability-records` (2687751..2690437) with its three field
+rows, as first-order identities. -/
+structure Capability where
+  promise : Nat
+  resolve : Nat
+  reject : Nat
+  deriving DecidableEq
+
+/-- `op.createresolvingfunctions` (2692679..2695411), with `[[AlreadyResolved]]`
+as the one-shot marker. `G-05` (thenable adoption) stays out of this packet. -/
+structure ResolvingFunctions where
+  promise : Nat
+  resolve : Nat
+  reject : Nat
+  alreadyResolved : Bool
+  deriving DecidableEq
+
+/-- `op.newpromisecapability` (2696238..2698770), restricted to the intrinsic
+constructor: allocate a pending promise and name its two resolving functions. -/
+def newPromiseCapability {value reason : Type} (t : Table value reason) (functionSeed : Nat) :
+    Table value reason × Capability :=
+  ((Table.fresh t State.pending).1,
+    Capability.mk (Table.fresh t State.pending).2 functionSeed (functionSeed + 1))
+
+/-- `op.createresolvingfunctions` (2692679..2695411). -/
+def createResolvingFunctions (promise functionSeed : Nat) : ResolvingFunctions :=
+  ResolvingFunctions.mk promise functionSeed (functionSeed + 1) false
+
+/-- The resolve function, one-shot. `G-05`: it settles with a plain value and
+never looks up a `then` method. -/
+def ResolvingFunctions.callResolve {value reason : Type} (f : ResolvingFunctions)
+    (t : Table value reason) (v : value) : ResolvingFunctions × Table value reason :=
+  if f.alreadyResolved then (f, t)
+  else ({ f with alreadyResolved := true }, Table.settle t f.promise (Except.ok v))
+
+/-- The reject function, one-shot. -/
+def ResolvingFunctions.callReject {value reason : Type} (f : ResolvingFunctions)
+    (t : Table value reason) (r : reason) : ResolvingFunctions × Table value reason :=
+  if f.alreadyResolved then (f, t)
+  else ({ f with alreadyResolved := true }, Table.settle t f.promise (Except.error r))
+
+/-! ## Part B — `PerformPromiseThen` as a whole operation
+
+`G-11`. Streams has steps 8 to 10 twice over (`E-31`, `E-37`), specialized and
+with no result capability. Anchor: `op.performpromisethen`, 2740635..2743669.
+-/
+
+/-- `op.performpromisethen` (2740635..2743669) with its capability argument and
+its returned promise identity. It keeps `E-31`'s `Option` result: a missing
+cell has no transition, where `PerformPromiseThen` is total. Step 12 sets
+`[[PromiseIsHandled]]`, which is why the two settled branches mark handled. -/
+def performPromiseThen {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (promise : Nat) (onFulfilled onRejected : Option body)
+    (capability : Option Capability) :
+    Option (Table value reason × Reactions body ×
+      Jobs.Queue (Jobs.ReactionJob (Except reason value)) × Option Nat) :=
+  match Table.get t promise with
+  | none => none
+  | some State.pending =>
+      some (t, (Reactions.add rs promise onFulfilled onRejected).1, q,
+        capability.map Capability.promise)
+  | some (State.fulfilled v) =>
+      some (Table.markHandled t promise,
+        Reactions.setPhase (Reactions.add rs promise onFulfilled onRejected).1
+          ReactionType.fulfill rs.next (ReactionPhase.queued rs.next),
+        Jobs.Queue.enqueue q (Jobs.ReactionJob.mk rs.next (Except.ok v)),
+        capability.map Capability.promise)
+  | some (State.rejected r) =>
+      some (Table.markHandled t promise,
+        Reactions.setPhase (Reactions.add rs promise onFulfilled onRejected).1
+          ReactionType.reject rs.next (ReactionPhase.queued rs.next),
+        Jobs.Queue.enqueue q (Jobs.ReactionJob.mk rs.next (Except.error r)),
+        capability.map Capability.promise)
+
+/-! ### The two reaction lists — mask M1 -/
+
+/-- No registration has been made yet. Mask M1. -/
+theorem Reactions.empty_eq {body : Type} :
+    (Reactions.empty : Reactions body) = Reactions.mk [] [] 0 := rfl
+
+/-- Lookup is keyed by list and id together. Mask M1. -/
+theorem Reactions.get_eq {body : Type} (rs : Reactions body) (kind : ReactionType) (id : Nat) :
+    Reactions.get rs kind id =
+      (match kind with
+        | .fulfill => rs.fulfill
+        | .reject => rs.reject).find? (fun r => r.id == id) := rfl
+
+/-- Registration returns the cursor it consumed. Mask M1. -/
+theorem Reactions.add_id {body : Type} (rs : Reactions body) (promise : Nat)
+    (onFulfilled onRejected : Option body) :
+    (Reactions.add rs promise onFulfilled onRejected).2 = rs.next := rfl
+
+/-- Registration advances the shared cursor by one. Mask M1. -/
+theorem Reactions.add_next {body : Type} (rs : Reactions body) (promise : Nat)
+    (onFulfilled onRejected : Option body) :
+    (Reactions.add rs promise onFulfilled onRejected).1.next = rs.next + 1 := rfl
+
+/-- The fulfil-side entry is appended with the `[[Type]]` tag `fulfill`. Mask M1. -/
+theorem Reactions.add_fulfill {body : Type} (rs : Reactions body) (promise : Nat)
+    (onFulfilled onRejected : Option body) :
+    (Reactions.add rs promise onFulfilled onRejected).1.fulfill =
+      rs.fulfill ++ [Reaction.mk rs.next promise ReactionType.fulfill onFulfilled
+        ReactionPhase.waiting] := rfl
+
+/-- The reject-side entry is appended with the `[[Type]]` tag `reject`. Mask M1. -/
+theorem Reactions.add_reject {body : Type} (rs : Reactions body) (promise : Nat)
+    (onFulfilled onRejected : Option body) :
+    (Reactions.add rs promise onFulfilled onRejected).1.reject =
+      rs.reject ++ [Reaction.mk rs.next promise ReactionType.reject onRejected
+        ReactionPhase.waiting] := rfl
+
+/-- Only the named list's matching entry changes phase. Mask M1. -/
+theorem Reactions.setPhase_eq {body : Type} (rs : Reactions body) (kind : ReactionType)
+    (id : Nat) (phase : ReactionPhase) :
+    Reactions.setPhase rs kind id phase =
+      (match kind with
+        | .fulfill =>
+            Reactions.mk
+              (rs.fulfill.map (fun r => if r.id == id then { r with phase := phase } else r))
+              rs.reject rs.next
+        | .reject =>
+            Reactions.mk rs.fulfill
+              (rs.reject.map (fun r => if r.id == id then { r with phase := phase } else r))
+              rs.next) := by
+  cases kind <;> rfl
+
+/-- The registrations still waiting on one promise, in list order. Mask M1. -/
+theorem Reactions.waitingOn_eq {body : Type} (rs : Reactions body) (promise : Nat)
+    (kind : ReactionType) :
+    Reactions.waitingOn rs promise kind =
+      (match kind with
+        | .fulfill => rs.fulfill
+        | .reject => rs.reject).filter
+        (fun r => r.promise == promise && r.phase == ReactionPhase.waiting) := rfl
+
+/-- Decision 8's one-list view is the fulfil list. Mask M1. -/
+theorem Reactions.registered_eq {body : Type} (rs : Reactions body) :
+    Reactions.registered rs = rs.fulfill := rfl
+
+/-- Decision 8: `add` gives the paired entries one id, so the two lists carry
+the same ids in the same order. Mask M1. -/
+theorem Reactions.add_paired {body : Type} (rs : Reactions body) (promise : Nat)
+    (onFulfilled onRejected : Option body) :
+    rs.fulfill.map Reaction.id = rs.reject.map Reaction.id →
+      (Reactions.add rs promise onFulfilled onRejected).1.fulfill.map Reaction.id =
+        (Reactions.add rs promise onFulfilled onRejected).1.reject.map Reaction.id := by
+  intro h
+  simp [Reactions.add, h]
+
+/-! ### `TriggerPromiseReactions` — the order law `E-33` does not have -/
+
+/-- Mask M2: the statement observes the order in which reaction jobs enter the
+queue, which is the whole content of `op.triggerpromisereactions`. -/
+theorem triggerReactions_order {value reason body : Type} (rs : Reactions body) (promise : Nat)
+    (kind : ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    (triggerReactions rs promise kind argument q).2.pending =
+      q.pending ++ (Reactions.waitingOn rs promise kind).map
+        (fun r => Jobs.ReactionJob.mk r.id argument) := rfl
+
+/-- Mask M1: once triggered, the same promise and list have no waiting
+reaction left, so no reaction job is enqueued twice. -/
+theorem triggerReactions_once {value reason body : Type} (rs : Reactions body) (promise : Nat)
+    (kind : ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    Reactions.waitingOn
+      (triggerReactions (value := value) rs promise kind argument q).1 promise kind = [] := by
+  have key : ∀ (l : List (Reaction body)),
+      (l.map (fun r =>
+        if r.promise == promise && r.phase == ReactionPhase.waiting then
+          { r with phase := ReactionPhase.queued r.id }
+        else r)).filter
+        (fun r => r.promise == promise && r.phase == ReactionPhase.waiting) = [] := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons r rest ih =>
+        by_cases hb : (r.promise == promise && r.phase == ReactionPhase.waiting) = true
+        · simp only [List.map_cons, if_pos hb, List.filter_cons]
+          rw [if_neg (by simp)]
+          exact ih
+        · simp only [List.map_cons, if_neg hb, List.filter_cons]
+          exact ih
+  cases kind <;> exact key _
+
+/-- Mask M1: triggering one promise leaves every other promise's registrations
+untouched. -/
+theorem triggerReactions_other_promise {value reason body : Type} (rs : Reactions body)
+    (promise other : Nat) (kind : ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    other ≠ promise →
+      Reactions.waitingOn
+          (triggerReactions (value := value) rs promise kind argument q).1 other kind =
+        Reactions.waitingOn rs other kind := by
+  intro hne
+  have key : ∀ (l : List (Reaction body)),
+      (l.map (fun r =>
+        if r.promise == promise && r.phase == ReactionPhase.waiting then
+          { r with phase := ReactionPhase.queued r.id }
+        else r)).filter
+        (fun r => r.promise == other && r.phase == ReactionPhase.waiting) =
+      l.filter (fun r => r.promise == other && r.phase == ReactionPhase.waiting) := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons r rest ih =>
+        by_cases hb : (r.promise == promise && r.phase == ReactionPhase.waiting) = true
+        · have hp : r.promise = promise := by
+            simp only [Bool.and_eq_true, beq_iff_eq] at hb
+            exact hb.1
+          have hpo : promise ≠ other := Ne.symm hne
+          simp only [List.map_cons, if_pos hb, List.filter_cons]
+          rw [if_neg (by simp), if_neg (by simp [hp, hpo])]
+          exact ih
+        · simp only [List.map_cons, if_neg hb, List.filter_cons, ih]
+  cases kind <;> exact key _
+
+/-- Mask M1: triggering one list leaves the other list untouched. -/
+theorem triggerReactions_other_kind {value reason body : Type} (rs : Reactions body)
+    (promise : Nat) (kind other : ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    other ≠ kind →
+      Reactions.waitingOn
+          (triggerReactions (value := value) rs promise kind argument q).1 promise other =
+        Reactions.waitingOn rs promise other := by
+  intro hne
+  cases kind <;> cases other <;> first | rfl | exact absurd rfl hne
+
+/-! ### Settle-and-trigger, `FulfillPromise` and `RejectPromise` -/
+
+/-- Mask M2. `E-33`'s target: settling followed by the ordered trigger. -/
+theorem Table.settleAndTrigger_pending {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (result : Except reason value) :
+    Table.get t id = some State.pending →
+      Table.settleAndTrigger t rs q id result =
+        (Table.settle t id result,
+          triggerReactions rs id
+            (match result with
+              | .ok _ => ReactionType.fulfill
+              | .error _ => ReactionType.reject) result q) := by
+  intro h
+  simp [Table.settleAndTrigger, (Table.isPending_iff t id).mpr h]
+
+/-- Mask M1. The guard of decision 7 propagates: a non-pending promise
+notifies nobody. -/
+theorem Table.settleAndTrigger_other {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (result : Except reason value) :
+    Table.get t id ≠ some State.pending →
+      Table.settleAndTrigger t rs q id result = (t, rs, q) := by
+  intro h
+  have hfalse : Table.isPending t id = false := by
+    cases hp : Table.isPending t id with
+    | false => rfl
+    | true => exact absurd ((Table.isPending_iff t id).mp hp) h
+  simp [Table.settleAndTrigger, hfalse]
+
+/-- `op.fulfillpromise` is settle-and-trigger at an `ok` result. Mask M1. -/
+theorem fulfillPromise_eq {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (v : value) :
+    fulfillPromise t rs q id v = Table.settleAndTrigger t rs q id (Except.ok v) := rfl
+
+/-- `op.rejectpromise` is settle-and-trigger at an `error` result. Mask M1. -/
+theorem rejectPromise_eq {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (id : Nat) (r : reason) :
+    rejectPromise t rs q id r = Table.settleAndTrigger t rs q id (Except.error r) := rfl
+
+/-! ### `PerformPromiseThen` — mask M2 for the two settled branches -/
+
+/-- `E-31` risk: `PerformPromiseThen` is total where this is partial; the
+packet keeps the Streams `Option` and records the difference. Mask M1. -/
+theorem performPromiseThen_missing {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (promise : Nat) (onFulfilled onRejected : Option body)
+    (capability : Option Capability) :
+    Table.get t promise = none →
+      performPromiseThen t rs q promise onFulfilled onRejected capability = none := by
+  intro h
+  simp [performPromiseThen, h]
+
+/-- Steps 8 to 10, pending branch: registration only. Mask M1. -/
+theorem performPromiseThen_pending {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (promise : Nat) (onFulfilled onRejected : Option body)
+    (capability : Option Capability) :
+    Table.get t promise = some State.pending →
+      performPromiseThen t rs q promise onFulfilled onRejected capability =
+        some (t, (Reactions.add rs promise onFulfilled onRejected).1, q,
+          capability.map Capability.promise) := by
+  intro h
+  simp [performPromiseThen, h]
+
+/-- Steps 8 to 10, fulfilled branch: a reaction job enters the queue, and
+step 12 marks the promise handled. Mask M2. -/
+theorem performPromiseThen_fulfilled {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (promise : Nat) (v : value) (onFulfilled onRejected : Option body)
+    (capability : Option Capability) :
+    Table.get t promise = some (State.fulfilled v) →
+      performPromiseThen t rs q promise onFulfilled onRejected capability =
+        some (Table.markHandled t promise,
+          Reactions.setPhase (Reactions.add rs promise onFulfilled onRejected).1
+            ReactionType.fulfill rs.next (ReactionPhase.queued rs.next),
+          Jobs.Queue.enqueue q (Jobs.ReactionJob.mk rs.next (Except.ok v)),
+          capability.map Capability.promise) := by
+  intro h
+  simp [performPromiseThen, h]
+
+/-- Steps 8 to 10, rejected branch. Mask M2. -/
+theorem performPromiseThen_rejected {value reason body : Type} (t : Table value reason)
+    (rs : Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
+    (promise : Nat) (r : reason) (onFulfilled onRejected : Option body)
+    (capability : Option Capability) :
+    Table.get t promise = some (State.rejected r) →
+      performPromiseThen t rs q promise onFulfilled onRejected capability =
+        some (Table.markHandled t promise,
+          Reactions.setPhase (Reactions.add rs promise onFulfilled onRejected).1
+            ReactionType.reject rs.next (ReactionPhase.queued rs.next),
+          Jobs.Queue.enqueue q (Jobs.ReactionJob.mk rs.next (Except.error r)),
+          capability.map Capability.promise) := by
+  intro h
+  simp [performPromiseThen, h]
+
+/-! ### Capability and resolving functions — mask M1 -/
+
+/-- `op.newpromisecapability` allocates a pending promise and names its two
+resolving functions. Mask M1. -/
+theorem newPromiseCapability_eq {value reason : Type} (t : Table value reason)
+    (functionSeed : Nat) :
+    newPromiseCapability t functionSeed =
+      ((Table.fresh t State.pending).1,
+        Capability.mk (Table.fresh t State.pending).2 functionSeed (functionSeed + 1)) := rfl
+
+/-- `op.createresolvingfunctions` mints an unresolved pair. Mask M1. -/
+theorem createResolvingFunctions_eq (promise functionSeed : Nat) :
+    createResolvingFunctions promise functionSeed =
+      ResolvingFunctions.mk promise functionSeed (functionSeed + 1) false := rfl
+
+/-- `[[AlreadyResolved]]` is the one-shot marker: the first call settles. Mask M1. -/
+theorem ResolvingFunctions.callResolve_fresh {value reason : Type} (f : ResolvingFunctions)
+    (t : Table value reason) (v : value) :
+    f.alreadyResolved = false →
+      ResolvingFunctions.callResolve f t v =
+        ({ f with alreadyResolved := true }, Table.settle t f.promise (Except.ok v)) := by
+  intro h
+  simp [ResolvingFunctions.callResolve, h]
+
+/-- A second call is inert. Mask M1. -/
+theorem ResolvingFunctions.callResolve_alreadyResolved {value reason : Type}
+    (f : ResolvingFunctions) (t : Table value reason) (v : value) :
+    f.alreadyResolved = true → ResolvingFunctions.callResolve f t v = (f, t) := by
+  intro h
+  simp [ResolvingFunctions.callResolve, h]
+
+/-- The reject function is one-shot the same way. Mask M1. -/
+theorem ResolvingFunctions.callReject_fresh {value reason : Type} (f : ResolvingFunctions)
+    (t : Table value reason) (r : reason) :
+    f.alreadyResolved = false →
+      ResolvingFunctions.callReject f t r =
+        ({ f with alreadyResolved := true }, Table.settle t f.promise (Except.error r)) := by
+  intro h
+  simp [ResolvingFunctions.callReject, h]
+
+/-- A second call is inert. Mask M1. -/
+theorem ResolvingFunctions.callReject_alreadyResolved {value reason : Type}
+    (f : ResolvingFunctions) (t : Table value reason) (r : reason) :
+    f.alreadyResolved = true → ResolvingFunctions.callReject f t r = (f, t) := by
+  intro h
+  simp [ResolvingFunctions.callReject, h]
+
 end Whatwg.Ecma262.Promise

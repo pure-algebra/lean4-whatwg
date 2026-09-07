@@ -1136,4 +1136,89 @@ theorem visible_writable_signal_call :
   intros
   first | rfl | (simp_all [visibleEvent] <;> rfl)
 
+/-! ## `PROMISE-PG-FIRST` bridging: the reaction list
+
+`E-29`, `E-30`, `E-31` (generalize) and decision 8. `Transform.State.subscriptions` is the
+one-list view of the two general lists: `reactions` builds both positionally, giving the
+paired entries one id, and `Reactions.registered` is the fulfil list, so the registration
+order Streams records is preserved. All three are mask M1. -/
+
+/-- The shared registration cursor counts exactly the recorded subscriptions. Mask M1. -/
+theorem reactions_next {α β ε : Type} (s : State α β ε) :
+    (reactions s).next = s.subscriptions.length := by
+  have key : ∀ (l : List (Subscription α))
+      (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
+      (l.foldl (fun rs sub =>
+        (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
+          (some sub) (some sub)).1) rs).next = rs.next + l.length := by
+    intro l
+    induction l with
+    | nil => intro rs; simp
+    | cons sub rest ih =>
+        intro rs
+        rw [List.foldl_cons, ih]
+        simp only [Whatwg.Ecma262.Promise.Reactions.add, List.length_cons]
+        omega
+  simpa [reactions, Whatwg.Ecma262.Promise.Reactions.empty] using
+    key s.subscriptions Whatwg.Ecma262.Promise.Reactions.empty
+
+/-- Decision 8: the fulfil list alone carries the registration order that
+`Transform.State.subscriptions` records (`E-29`). Mask M1. -/
+theorem reactions_registered {α β ε : Type} (s : State α β ε) :
+    (Whatwg.Ecma262.Promise.Reactions.registered (reactions s)).filterMap
+        Whatwg.Ecma262.Promise.Reaction.handler = s.subscriptions := by
+  have key : ∀ (l : List (Subscription α))
+      (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
+      (l.foldl (fun rs sub =>
+        (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
+          (some sub) (some sub)).1) rs).fulfill.filterMap
+          Whatwg.Ecma262.Promise.Reaction.handler =
+        rs.fulfill.filterMap Whatwg.Ecma262.Promise.Reaction.handler ++ l := by
+    intro l
+    induction l with
+    | nil => intro rs; simp
+    | cons sub rest ih =>
+        intro rs
+        rw [List.foldl_cons, ih]
+        simp [Whatwg.Ecma262.Promise.Reactions.add]
+  simpa [reactions, Whatwg.Ecma262.Promise.Reactions.registered,
+    Whatwg.Ecma262.Promise.Reactions.empty] using
+      key s.subscriptions Whatwg.Ecma262.Promise.Reactions.empty
+
+/-- `E-30`: the identity captured at registration, independent of later slot
+replacement, agrees with the general accessor. Mask M1. -/
+theorem reactions_promises {α β ε : Type} (s : State α β ε) :
+    (Whatwg.Ecma262.Promise.Reactions.registered (reactions s)).map
+        Whatwg.Ecma262.Promise.Reaction.promise =
+      s.subscriptions.map subscriptionPromise := by
+  have key : ∀ (l : List (Subscription α))
+      (rs : Whatwg.Ecma262.Promise.Reactions (Subscription α)),
+      (l.foldl (fun rs sub =>
+        (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub)
+          (some sub) (some sub)).1) rs).fulfill.map
+          Whatwg.Ecma262.Promise.Reaction.promise =
+        rs.fulfill.map Whatwg.Ecma262.Promise.Reaction.promise ++ l.map subscriptionPromise := by
+    intro l
+    induction l with
+    | nil => intro rs; simp
+    | cons sub rest ih =>
+        intro rs
+        rw [List.foldl_cons, ih]
+        simp [Whatwg.Ecma262.Promise.Reactions.add]
+  simpa [reactions, Whatwg.Ecma262.Promise.Reactions.registered,
+    Whatwg.Ecma262.Promise.Reactions.empty] using
+      key s.subscriptions Whatwg.Ecma262.Promise.Reactions.empty
+
+/-- `E-31`: the pending branch of `subscribe` is `Reactions.add`. The two settled branches
+dispatch into the canonical component (`E-32` risk) and are therefore bridged on the job
+queue, not here. Mask M1. -/
+theorem subscribe_reactions_bridge {α β ε : Type} (s : State α β ε) (sub : Subscription α) :
+    lookupPromise s (subscriptionPromise sub) = some .pending →
+      (subscribe s sub).map reactions =
+        some (Whatwg.Ecma262.Promise.Reactions.add (reactions s)
+          (subscriptionPromise sub) (some sub) (some sub)).1 := by
+  intro h
+  rw [subscribe_pending s sub h]
+  simp [reactions, List.foldl_append]
+
 end Whatwg.Streams.Transform

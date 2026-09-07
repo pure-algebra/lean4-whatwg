@@ -107,6 +107,17 @@ is why the general queue's `DecidableEq` and `Repr` are conditional on the paylo
 def jobQueue {α β ε : Type} (s : State α β ε) : Whatwg.Ecma262.Jobs.Queue (Job α ε) :=
   Whatwg.Ecma262.Jobs.Queue.mk s.jobs
 
+/-- `E-29`, `E-30` (generalize, `PROMISE-PG-FIRST`) and decision 8: the one Streams
+subscription list read as the two general reaction lists. Each subscription is registered
+once by `Whatwg.Ecma262.Promise.Reactions.add`, so the paired fulfil and reject entries
+share one id and both lists are built positionally in registration order. -/
+def reactions {α β ε : Type} (s : State α β ε) :
+    Whatwg.Ecma262.Promise.Reactions (Subscription α) :=
+  s.subscriptions.foldl
+    (fun rs sub =>
+      (Whatwg.Ecma262.Promise.Reactions.add rs (subscriptionPromise sub) (some sub) (some sub)).1)
+    Whatwg.Ecma262.Promise.Reactions.empty
+
 /-- Lift a canonical readable transition's trace suffix; prefix validity is a later invariant. -/
 def withReadable {α β ε : Type} (s : State α β ε) (r : Readable.State β ε) : State α β ε :=
   { s with
