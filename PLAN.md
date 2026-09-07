@@ -181,6 +181,13 @@ dispositions, generated assurance wording, and residual proof scope. Infra's
 text graph and full Streams P4–P12 remain open; these integration receipts
 do not add a semantic coverage witness.
 
+**Promise layering, 2026-09-06:** the Web IDL Standard (March 2026 Review
+Draft) and ECMA-262 (ES2026) are pinned as the promise authorities, and
+ruling DB-11 places them in two libraries beneath Streams, `Whatwg.Ecma262`
+and `Whatwg.WebIdl`, scaffolded declaration-free. P8's configuration and job
+queue will be built on those libraries; the held P8a draft is restated
+against them before it is unfrozen. The semantics hold is unchanged.
+
 **Main integration, 2026-09-06:** the streams lane (P4a–P7a, `3b7bdda`) and
 the URL lane (U0–U2c, `43c0917`) are both merged into `main`. The merged tree
 passes the full build, every gate and the root axiom gate (173 modules, 12270

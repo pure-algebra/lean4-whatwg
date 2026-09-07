@@ -142,7 +142,35 @@ there. This repository's `docs/SHA256-DAG.md` is a pointer. At the swap
 byte-identically through the package, so every digest this repository pins
 is unchanged.
 
+## DB-11 — promises and the job queue are libraries beneath Streams
+
+Ruled 2026-09-06 by the operator. ECMA-262's promise objects, reaction and
+capability records, and job queue live in `Whatwg.Ecma262`; the Web IDL
+operations WHATWG algorithms use over them ("a new promise", "resolve",
+"reject", "react", "wait for all", "mark as handled") and the exception kinds
+live in `Whatwg.WebIdl`. Both are pinned sources in `SPEC-MANIFEST.md` and
+sit beneath every Stratum S library: `Whatwg.Streams`, and later Fetch and
+the event loop, import them and never the reverse. Neither imports anything
+above `Whatwg.Infra`.
+
+The per-standard promise tables that P4–P7 proved over (`Readable.PromiseState`,
+`Writable.UnitPromise`, the `promises` slots) keep their current owners and
+proofs until P8 opens; at that point they become views onto the shared
+layer, with conversion receipts, rather than a second owner. DB-03 is
+unchanged: the job queue is deterministic FIFO state, now with a named home.
+The held P8a draft on `codex/configuration-breaker` was designed as an
+adapter inside Streams before this ruling; its cell, token and registration
+obligations must be restated against the new owners before it is unfrozen.
+The cost of that restatement is accepted in exchange for a promise layer
+usable without Streams.
+
 ## Primary sources
+
+- Ecma International TC39, ECMA-262 ECMAScript Language Specification,
+  source at `tc39/ecma262` commit `0248456c758431e4bb8e5d26333ff1865123c9cd`
+  (tag `es2026`).
+- WHATWG, [Web IDL Standard](https://webidl.spec.whatwg.org/), source at
+  commit `a652053f1e74e4aaf647528deb174012ed6c909f`.
 
 - WHATWG, [Streams Standard](https://streams.spec.whatwg.org/), source at
   commit `b9ba9f49d95b4280be0dc2372377a006c3a91c18`.

@@ -20,6 +20,8 @@ test tree imports both.
 
 | Area | Public responsibility |
 | --- | --- |
+| `Whatwg/Ecma262` | ECMA-262 (ES2026), not a WHATWG standard: `Promise` (promise objects, reaction and capability records, resolving functions, `PerformPromiseThen`) and `Jobs` (job closures, `HostEnqueuePromiseJob`, the FIFO queue DB-03 makes state); beneath every Stratum S library, imports only `Whatwg/Infra` (ruling DB-11); declaration-free bootstrap, 2026-09-06 |
+| `Whatwg/WebIdl` | Web IDL Standard: `Promise` (the spec-level verbs over `Ecma262.Promise`) and `Exceptions` (simple exceptions and `DOMException` names); imports `Whatwg/Ecma262` and `Whatwg/Infra` only; the binding layer stays `hostOnly`; declaration-free bootstrap, 2026-09-06 |
 | `Whatwg/Url` | URL Standard: `PercentEncoding`, `Host`, `Record`, `Parser`, `Serializer`, `Origin`, `Rendering`, `FormUrlEncoded`, `Api/Url`, `Api/UrlSearchParams`, `Boundary`; declaration-free U1 scaffold, with packets scheduled by `docs/URL-PACKAGE-PLAN.md` |
 | `Whatwg/Infra` | the Infra Standard: the value universe every other standard is indexed by (Stratum V); byte, code-point, UTF-16 string and text helpers imported from its root; `docs/INFRA-PROOF-PLAN.md` tracks the wider census and assurance work |
 | `Whatwg/Html` | the HTML content model ported from TyXML's row types under the HTML Standard's authority: `Schema` (authored source since 2026-09-06, first transcribed from TyXML at H2: tag and attribute universes, every named content and attribute set as a constructor-dispatch membership function, element and attribute rows; data and derived instances only), `Content` (admission, transparency, lattice, divergence rows), `Node`, `Print`, `Syntax`, `Bridge` (declaration-free stubs) |

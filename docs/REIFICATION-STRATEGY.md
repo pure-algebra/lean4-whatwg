@@ -171,7 +171,7 @@ judgments over programs in Stratum S.
 | Base64, Data URLs, MIME types | A | small atoms with in-document vectors |
 | Structured Field Values | A | the one IETF spec whose algorithms bind |
 | JSON grammar | A | the RFC leaves disagreements to the implementation-defined cases; those become refusals |
-| Promise jobs and event loop | S, foundational | the one signature every settlement-order theorem needs; FIFO, deterministic, so a job queue is state and not a decision |
+| Promise jobs and event loop | S, foundational | the one signature every settlement-order theorem needs; FIFO, deterministic, so a job queue is state and not a decision. Housed beneath Streams as `Whatwg.Ecma262` (objects and jobs, ES2026 pinned) and `Whatwg.WebIdl` (the spec-level verbs, March 2026 Review Draft pinned) by ruling DB-11, 2026-09-06 |
 | Streams | S | this repository; the combinator prize |
 | AbortSignal | S, small | the interruption boundary already treated as foreign; dependent signals are real algebra |
 | Fetch | S, integrator | the top of the tower; opened last |
