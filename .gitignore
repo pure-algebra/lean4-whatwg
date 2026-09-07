@@ -1,3 +1,6 @@
 /.lake
 .DS_Store
 **/node_modules/
+
+# Agent worktrees created by the Claude desktop app; never part of the tree.
+.claude/worktrees/

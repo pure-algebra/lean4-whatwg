@@ -10,6 +10,13 @@
 > coverage report yet and contributes no rows to the Streams report. U2
 > establishes its separate denominator and checked reporting path.
 
+> Promise lane: `Whatwg.WebIdl` and `Whatwg.Ecma262` have pinned sources and
+> declaration-free roots (`docs/PROMISE-PACKAGE-PLAN.md`). Neither has a
+> census, a numerator, or a coverage report yet, and neither contributes rows
+> to any other standard's report. Slice Q2 establishes their two separate
+> denominators; the placeholder blocks below record their shape until then.
+> Five standards will then hold five denominators that never mix.
+
 This document owns the definition, vocabulary, and reporting format of the
 specification coverage metric. Numbers live in generated and emitted facts,
 never here. Read this before quoting, changing, or extending coverage.
@@ -40,6 +47,44 @@ method, or constructor), `requirement` (a stated requirement, as in piping),
 `rule` (a cross-cutting rule the text states in prose), `type` (a carrier
 definition in a definition-keyed standard such as Infra). A row id is
 `<kind>.<kebab-name>` and is stable for the life of the census.
+
+Seven further kinds exist for ECMA-262 and are used by no other standard
+(ruling R-P2, 2026-09-06). They exist because the disposition of an ECMAScript
+clause is decided by which of these it is, and collapsing them onto `op` and
+`slot` would erase the distinction that decides `owned` against
+`foreignBoundary` against `hostOnly`:
+
+| Kind | What the row is | Effect on the denominator |
+| --- | --- | --- |
+| `builtin` | a built-in function object of the `Promise` constructor or prototype | in, unless its disposition excludes it; a `hostOnly` accessor is in and may stay `absent` |
+| `hook` | a host-defined abstract operation, a host layering point | in; a `foreignBoundary` hook can never go `green`, which is the point of counting it |
+| `property` | a clause whose content is a property descriptor or an initial value | in, and `hostOnly` in every case at the current pin |
+| `record` | a specification record type together with its field table | in |
+| `field` | one row of a record's field table | in; each field is counted separately from its record so a boundary field does not taint an owned record |
+| `term` | a `<dfn>` that names neither a record nor an operation | in |
+| `clause` | a structural clause with no operation, record or property of its own | in, unless it is `evidenceOnly`, which is the usual case for a bare heading |
+
+No kind removes a row from the denominator. Only the disposition does that,
+and only `evidenceOnly`, `refused` and `targetOnly` do it. A kind that is
+usually paired with an excluded disposition, such as `clause`, is still
+counted whenever the row's own disposition counts. `builtin` and `hook` in
+particular put rows in the denominator that this repository may never make
+`green`; that is the honest record, not a defect.
+
+**Source shapes.** A census reads one of two markup dialects, and the shape is
+a property of the standard, not of the metric.
+
+| Shape | Sources | Row-bearing constructs |
+| --- | --- | --- |
+| Bikeshed | Streams `index.bs`, Infra `infra.bs`, URL `url.bs`, Web IDL `index.bs` | `<div>` blocks carrying an `algorithm` attribute, `<dfn>` definitions with their Bikeshed dfn type and `for`, `<xmp class="idl">` and `<pre class=idl>` blocks, `<h2>`–`<h5>` headings for the disposition walk, and authored `rule` locators |
+| ecmarkup | ECMA-262 `spec.html` | `<emu-clause>` with its `id` and `type`, the structured `<h1>` that carries the operation name and signature, `<emu-alg>` bodies whose steps are indentation-nested `1. ` lines rather than HTML lists, `<emu-table>` field and slot rows, `<dfn>` terms, and normative `<li>` requirement bullets |
+
+The two dialects differ in more than tag names. In ecmarkup an operation's
+name lives only in its `<h1>`, section numbers are generated at build time and
+so are never read from the source or printed in a row, and clause ids are not
+confined to the `[a-z0-9-]` alphabet the Bikeshed sources use. A row id
+derived from an ecmarkup clause id therefore preserves `.`, `%` and case
+through a documented injective escaping (ruling R-P3).
 
 **Disposition** is the `SPEC-MANIFEST.md` vocabulary and answers who owns the
 row's carrier. `evidenceOnly`, `refused`, and `targetOnly` rows are outside
@@ -95,6 +140,33 @@ a percentage by hand, do not round, and do not describe a row as covered in
 prose unless it is `green` in the module. A handoff, plan row, or pull
 request that mentions coverage links the gate run and pastes the block. It
 never restates numbers from memory or from an earlier session.
+
+### Blocks not yet emitted
+
+The promise lane's two standards have no census and no numerator, so
+`lake exe census --standard webidl --report` and
+`--standard ecma262 --report` do not exist yet and the executable refuses a
+report for a standard without a numerator. The blocks below record the shape
+those reports will take, with the label each standard's `Gates.Census.Standard`
+record supplies. Every field is a placeholder: **no number below has been
+computed, and neither block may be quoted as coverage.**
+
+```text
+WHATWG Web IDL (a652053f) coverage: denominator <D>; owned-with-green <O>/<D>;
+green <G>, partial <P>, absent <A>; census <total> rows, <E> excluded
+partial: <ids>
+```
+
+```text
+ECMAScript ES2026 (0248456c) coverage: denominator <D>; owned-with-green <O>/<D>;
+green <G>, partial <P>, absent <A>; census <total> rows, <E> excluded
+partial: <ids>
+```
+
+Slice Q2 of `docs/PROMISE-PACKAGE-PLAN.md` replaces the placeholders with the
+Lean emit's own bytes, at which point both blocks read all-`absent` until the
+Q3 packet lands its first witness. Infra is the precedent for the intermediate
+state: a checked census, a generated all-`absent` row list, and no report.
 
 ## Ownership of the three facts (ruled at P1 landing, 2026-09-02)
 

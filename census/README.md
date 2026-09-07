@@ -7,8 +7,15 @@ generator writes. Nothing here may be produced by a tool.
 `SPEC-MANIFEST.md` owns the disposition vocabulary and the section table these
 files are seeded from. `docs/SPEC-COVERAGE.md` owns the row kinds, the row
 format, and what a disposition does to the denominator. Neither is restated
-here; this file records only the format of the three inputs and the places
-where a line departs from a literal reading of the manifest table.
+here; this file records only the format of the inputs and the places where a
+line departs from a literal reading of the manifest table.
+
+The files in this directory are the Streams census's inputs. Each further
+standard has its own subdirectory with the same discipline: `census/infra/`
+(which adds `types.tsv`), `census/url/` (whose six inputs have their own
+README), and, from the promise lane, `census/webidl/` and `census/ecma262/`,
+described at the end of this file. No two standards share a file, a
+denominator, or a row id space.
 
 ## Files
 
@@ -68,10 +75,80 @@ root `AGENTS.md` already states rather than from a new policy.
   runtime objects and promises outside stored content, so these rows are
   `foreignBoundary`. The three promise and completion-record rows are the
   weakest of the twelve and are flagged for ratification in `overrides.tsv`.
+  Ruling R-P5 (2026-09-06) ratifies them as they stand and records the
+  cross-reference: the same named slots are `owned` in the ECMA-262 census,
+  because the two censuses answer two ownership questions about two
+  libraries. Streams does not own them and `Whatwg.Ecma262` does. These three
+  Streams rows become references into that library when P8 opens, at slice Q4
+  of `docs/PROMISE-PACKAGE-PLAN.md`, and not before.
 - **The transfer-only slot.** `ReadableStream`'s `[[Detached]]` is defined in
   the `rs-internal-slots` section, which is `owned`, but nothing outside the
   refused `*-transfer` sub-sections reads or writes it. The manifest refuses
   it with them, so it is an override rather than a section default.
+
+## The promise lane's two directories
+
+`census/webidl/` and `census/ecma262/` are the authored inputs of the two
+promise censuses opened 2026-09-06. They do not exist until slice Q1 of
+`docs/PROMISE-PACKAGE-PLAN.md` lands; this section records the format they are
+written to, so that the breaker's frozen input interface and the authored files
+agree from the first commit. The rules above still hold: nothing here is
+generated, every entry must reach a row, and every row must resolve without a
+default.
+
+| File | Fields | Role |
+| --- | --- | --- |
+| `sections.tsv` | `<heading or clause id>` | the frozen section scope; a row outside it is not emitted |
+| `dispositions.tsv` | `<section id>` `<kind or *>` `<disposition>` | as for Streams and Infra |
+| `overrides.tsv` | `<row id>` `<disposition>` `<reason>` | as for Streams and Infra |
+| `rules.tsv` | `<kebab name>` `<locator>` `[<end locator>]` | authored `rule` rows, with the optional third field described below |
+| `dependencies.tsv` | one line per row id, naming the identities that row consumes | as `census/url/dependencies.tsv` |
+| `externals.tsv` | the external identities those lines name | as `census/url/externals.tsv` |
+
+`census/ecma262/` additionally has no `types.tsv`: `type` is an Infra kind, and
+ECMA-262 carrier definitions are `record` and `term` rows instead.
+
+**The section scope is data, not code.** Ruling R-P1 gives the generator
+profile a `sectionScope` switch; the plan resolves that switch against an
+authored `sections.tsv` rather than a list in Lean, so that widening or
+narrowing the scope is a data review with the same both-directions check as
+every other input. An id in `sections.tsv` that matches no heading fails
+generation, and an authored entry that reaches only rows the scope excludes
+fails generation too. Both existing censuses have whole-document scope and no
+`sections.tsv`; an absent file means "the whole document".
+
+**The optional end locator (ruling R-P4).** `rules.tsv` gains a third,
+optional field: a byte string that must occur exactly once after the locator
+and that ends the row's span, replacing the next-blank-line rule for that row.
+Web IDL's six `idl-DOMException-derived-interfaces` bullets need it, because
+they sit in one blank-line-delimited paragraph and would otherwise receive six
+nested spans all ending at the same offset. The field is optional and absent
+from `census/rules.tsv` and `census/infra/rules.tsv`, both of which are empty
+of rows, so the change is byte-neutral for the two existing censuses.
+
+**Dependency and external rows (ruling R-P6).** Each of the two censuses
+carries exactly one dependency list per row, in the format the URL lane
+established, and one externals file naming every identity those lists use.
+The split is fixed by the ruling:
+
+- Web IDL's escapes go to the `Whatwg.Ecma262` boundary — five ECMA-262
+  operations and three intrinsics, which is the exact P8 surface — to Infra
+  dependency rows by existing Infra row id, to out-of-scope sections of the
+  same pinned Web IDL source recorded as `hostOnly` dependency rows naming
+  their heading id, and to externals for HTML, DOM and realm machinery.
+- ECMA-262's escapes go to a named ECMA-262 core boundary carrying Completion
+  Records, Abstract Closures and the object-model operations, and to externals
+  for agents, realms and execution contexts.
+
+The Infra dependency rows are the first real cross-census join in this
+repository: they name a row id in `generated/infra-census.tsv` rather than a
+new external identity, and an id that no Infra row carries fails generation.
+
+**No `slot` rows for Web IDL (ruling R-P4).** The slot scanner is off for that
+standard. Every slot it would have produced anchors at an incidental use site
+rather than at a definition, and the four that matter —
+`[[PromiseIsHandled]]`, `[[Promise]]`, `[[Resolve]]`, `[[Reject]]` — are
+`Whatwg.Ecma262` dependency rows instead, which is where DB-11 puts them.
 
 ## Counting note
 
