@@ -68,7 +68,24 @@ the only way back to a checkpoint. `G-08`; `E-51` (generalize). -/
 
 /-! `requirement.jobs.3` as the DB-05 specification half, in the shape R-P5
 already requires for `hook.hostenqueuepromisejob`: while a job is the agent's
-activation, no job starts. `G-08`. -/
+activation, no job starts. `G-08`.
+
+**Elaboration repair by the Q3b builder seat, 2026-09-07** (builder note B1 of
+the addendum). The ascription below is byte-identical to the freeze and is the
+one place in the five batteries where the ascribed **type** binds a variable it
+does not mention: `RunToCompletion`'s payload is used only in its body, so
+`∀ {payload : Type}, Active → Prop` leaves the binder unreferenced and
+`linter.unusedVariables` reports it. Ruling R-6 makes every warning an error, so
+this module could not build although the ascription elaborates and prints the
+expected type. Nothing on the implementation side can reference the binder: the
+ascribed type is `Active → Prop` whatever `RunToCompletion` is. The addendum
+permits the builder to "repair elaboration but ... not weaken, delete or replace
+a frozen ascription", and acceptance condition 1 requires elaboration "with no
+edit to a statement", so the repair is the narrowest available: one
+`set_option … in` scoped to this single `#check`. No statement, mask, law,
+decision or acceptance condition changes, and the ascription must still
+elaborate at exactly the frozen type. -/
+set_option linter.unusedVariables false in
 #check (@Whatwg.Ecma262.Jobs.RunToCompletion :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Active → Prop)
 
