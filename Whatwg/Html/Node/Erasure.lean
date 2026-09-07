@@ -17,8 +17,8 @@ exists under a void tag in any context.
 What is *not* claimed here. Injectivity of the serializer and escaping
 soundness are the H4 theorems (ruling HP-8); a parse round trip is refused
 until a parser exists. Nothing below is a statement about the HTML Standard:
-the markup spellings are TyXML 4.6.0's, as sealed under
-`vendor/tyxml-d2916535/`.
+the markup spellings are TyXML 4.6.0's (`ocsigen/tyxml` at `d2916535`), as
+transcribed into `Whatwg.Html.Schema`.
 -/
 
 namespace Whatwg.Html

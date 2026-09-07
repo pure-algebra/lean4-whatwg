@@ -54,8 +54,8 @@ example : Sets.flow5_without_interactive .div = (Sets.flow5 .div && !Excluded.fl
 /-! ## Surprises in the projected data
 
 Each of these four probes contradicts what the name of the set suggests, and
-each is exactly what `vendor/tyxml-d2916535/lib/html_types.mli` says at the
-pin. -/
+each is exactly what TyXML 4.6.0's `html_types.mli` (`ocsigen/tyxml` at
+`d2916535`) said when the schema was transcribed. -/
 
 /-- `phrasing_without_noscript` drops far more than `Noscript`: `Span` is a
 phrasing tag and is not in it. -/

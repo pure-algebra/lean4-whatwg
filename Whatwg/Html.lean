@@ -28,10 +28,10 @@ recorded.
 Authority pins (`SPEC-MANIFEST.md`, `docs/PROVENANCE.md`):
 
 - TyXML 4.6.0, `ocsigen/tyxml` commit
-  `d2916535536f2134bad7793a598ba5b7327cae41`, sealed under
-  `vendor/tyxml-d2916535/`: the transcription source of the schema. The
-  projection `generated/tyxml-html-schema.tsv`, regenerated and checked by
-  `lake exe tyxmlschema`, is the one input the generated modules read.
+  `d2916535536f2134bad7793a598ba5b7327cae41`: the transcription source from
+  which the `Schema` modules were first generated at H2. The pin, its
+  projection and the drift gate were retired on 2026-09-06; the schema is
+  authored source now, and TyXML is cited only as the origin of its shape.
 - The HTML Standard, `whatwg/html` commit
   `746f2ede8a56bc01204e0f9cc23da33b37c6fbab` ("Review Draft Publication:
   July 2026"), `source` sealed under `vendor/whatwg-html-746f2ede/`: the

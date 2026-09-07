@@ -10,10 +10,10 @@ attribute constructor (216 of them). Slice H3.4 of
 
 PRODUCED FROM `Whatwg.Html.Schema.elements` and
 `Whatwg.Html.Schema.attributeCtors` at H3 by a hand-run script, then edited by
-hand for the labelled forms of `html_sigs.mli`. It is NOT drift-checked:
-`lake exe tyxmlschema` owns `Whatwg/Html/Schema/**` and says nothing about
-this file. A schema change therefore has to be reflected here by hand, and
-the shape check that catches an omission is that the tests in
+hand for the labelled forms of `html_sigs.mli`. It is not drift-checked, and
+since 2026-09-06 neither is `Whatwg/Html/Schema/**`, which is authored source.
+A schema change therefore has to be reflected here by hand, and the shape
+check that catches an omission is that the tests in
 `WhatwgTest/Html/Builders.lean` stop elaborating.
 
 ## Shape

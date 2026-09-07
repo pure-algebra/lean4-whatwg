@@ -47,13 +47,10 @@ cross-check and not a substitute for the extractor.
 ## 1. Target shape
 
 ```text
-vendor/tyxml-d2916535/            TyXML 4.6.0 at d2916535: lib/**, syntax/reflect/**, licenses
 vendor/whatwg-html-746f2ede/      the HTML Standard source at the July 2026 Review Draft
-generated/tyxml-html-schema.tsv   the schema projection: one row per type, val, and void tag
-Gates/TyxmlSchema.lean            the projection generator and drift gate (`lake exe tyxmlschema`)
 Whatwg/Html.lean                  root
 Whatwg/Html/
-  Schema/     Universe  Sets  Elements  Attributes  Void      generated from the projection (H2)
+  Schema/     Tags  Attributes  Families  ContentModel          authored source; first transcribed from TyXML at H2, pin and generator retired 2026-09-06
   Content/    Admission  Transparent  Lattice  Divergence     the decidable model and its lemmas (H3)
   Node/       Raw  Typed  Erasure                              trees (H3)
   Print/      Escape  Render                                   serializer (H4)
@@ -81,7 +78,7 @@ imports `Gates/`.
 | HP-7 | extractor | Lean, under `Gates/`, over the sealed bytes, producing a TSV projection with span digests and checked for byte drift; the OCaml `compiler-libs` reading is run once at each pin as a cross-check and recorded in `docs/PROVENANCE.md` |
 | HP-8 | printer claims | escaping soundness and serializer injectivity on erased trees are the H4 theorems; a parse round trip is refused with a refusal theorem until a parser exists in this package |
 | HP-9 | SVG | pinned with TyXML, no library; a future library sits beside `Whatwg.Html`, not under it, because SVG is a W3C standard |
-| HP-10 | generated Lean source | H2 emits `Whatwg/Html/Schema/*.lean` from the projection with a `GENERATED` header and a byte-drift check in `lake exe tyxmlschema`; the generated modules carry no proof, only data and derived instances, so they need no proof graph, but their declarations still receive ownership records by inheritance from the schema row |
+| HP-10 | schema source | H2 emitted `Whatwg/Html/Schema/*.lean` from the TyXML projection under a byte-drift gate. Amended 2026-09-06: TyXML only bootstrapped the shape, so the pin, the projection, the generator and `lake exe tyxmlschema` are retired and the four schema modules are authored source, edited by hand under ordinary review with the HTML Standard as the sole authority; they still carry no proof, only data and derived instances |
 | HP-11 | the `source` pin | the whole 7.9 MB `source` is sealed rather than digest-only, so that divergence rows can anchor by span digest exactly as census rows do; the seal takes under a second |
 
 ## 3. Anticipated proof graph

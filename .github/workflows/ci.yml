@@ -16,7 +16,7 @@ jobs:
       # The production libraries and gate executables; the test root with its
       # elaboration-time axiom gate is built by the default targets below.
       - name: Build production libraries and gate executables
-        run: lake --wfail build Whatwg Gates vendorseal citations census tyxmlschema urlinventory urlcensus
+        run: lake --wfail build Whatwg Gates vendorseal citations census urlinventory urlcensus
       - name: Vendor seal in both directions
         run: lake exe vendorseal
       - name: Internal-citation gate
@@ -25,12 +25,6 @@ jobs:
         run: lake exe urlinventory
       - name: URL authored census and assignment projection drift
         run: lake exe urlcensus
-      # The TyXML schema projection (slice H1 of docs/HTML-PACKAGE-PLAN.md):
-      # generated/tyxml-html-schema.tsv against a fresh regeneration from the
-      # sealed vendor/tyxml-d2916535 sources, whose digests the gate refuses
-      # to deviate from.
-      - name: TyXML schema projection drift
-        run: lake exe tyxmlschema
       # Both census steps link the coverage numerator: since the first P3
       # witnesses landed, bin/Census.lean imports
       # WhatwgTest/Audit/SpecCoverage.lean so that the block below is

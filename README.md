@@ -1,6 +1,6 @@
 # lean4-whatwg
 
-WHATWG standards reified in Lean 4, one library per standard: `Whatwg.Streams`, the Streams Standard; `Whatwg.Infra`, the Infra Standard (pinned, empty); and `Whatwg.Html`, the HTML content model ported from OCaml TyXML's row types under the HTML Standard's authority (pinned and scaffolded, declaration-free; `docs/HTML-PACKAGE-PLAN.md`). The Streams library: the specification's
+WHATWG standards reified in Lean 4, one library per standard: `Whatwg.Streams`, the Streams Standard; `Whatwg.Infra`, the Infra Standard (pinned, empty); and `Whatwg.Html`, the HTML content model under the HTML Standard's authority, whose schema was bootstrapped from OCaml TyXML's row types and is authored source since 2026-09-06 (`docs/HTML-PACKAGE-PLAN.md`). The Streams library: the specification's
 algorithms and internal state as first-order Lean data with proved laws, a
 relational semantics over explicit decisions, an EffHOL-style logic layer
 above it, and, later, a checked lowering of a closed combinator alphabet to
@@ -31,7 +31,9 @@ checkout.
 lake build                       # libraries, the elaboration-time axiom gate, the gate executables
 lake exe vendorseal              # vendor/ against generated/vendor-manifest.tsv, both directions
 lake exe citations               # no line-numbered citation into a protected authored document
-lake exe tyxmlschema             # generated/tyxml-html-schema.tsv against a regeneration from the sealed TyXML sources
+lake exe urlinventory            # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
+lake exe urlcensus               # the authored URL census and its source assignments against a regeneration
+lake exe census                  # the Streams census and coverage emit; --standard infra for the Infra census
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
@@ -75,9 +77,7 @@ judgment, observation mask, theorem, assumptions, and remaining host boundary.
 
 ## Licensing of vendored material
 
-`vendor/tyxml-d2916535/` carries TyXML 4.6.0's `lib/` interfaces and its
-reflection tool (LGPL-2.1 with linking exception; read as a schema source,
-never compiled or linked). `vendor/whatwg-html-746f2ede/` carries the HTML
+`vendor/whatwg-html-746f2ede/` carries the HTML
 Standard source (CC-BY 4.0). `vendor/whatwg-streams-b9ba9f49/` carries the WHATWG Streams Standard source
 (CC-BY 4.0, with BSD-3-Clause for portions incorporated into source code) and
 its reference implementation (dual CC0 / MIT). `vendor/wpt-480fdfcd/` carries

@@ -48,8 +48,8 @@ pin are:
   can be made.
 
 Nothing in this module is a claim about the HTML Standard. Every statement is
-about the TyXML 4.6.0 projection sealed under `vendor/tyxml-d2916535/`; the
-places where that projection departs from the standard are the business of
+about the `Whatwg.Html.Schema` transcription of TyXML 4.6.0 (`ocsigen/tyxml`
+at `d2916535`); the places where it departs from the standard are the business of
 `Whatwg.Html.Content.Divergence`.
 -/
 
