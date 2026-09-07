@@ -36,7 +36,9 @@ lake exe urlcensus               # the authored URL census and its source assign
 lake exe census                  # the Streams census and coverage emit
 lake exe census --standard infra # the Infra definition census
 lake exe census --standard webidl # the Web IDL promise and exception census
+lake exe census --standard webidl --report  # the Web IDL coverage block, all-absent
 lake exe census --standard ecma262 # the ECMA-262 promise and job census
+lake exe census --standard ecma262 --report # the ES2026 coverage block, all-absent
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.

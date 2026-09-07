@@ -45,6 +45,27 @@ lane (`term.%Promise%`, 24 bytes and not the survey's 20). The remaining 74
 choices are checked by the compiled `lake exe census --standard ecma262` when
 the standard is wired, and were measured once against this exact function; the
 Q1 receipt in `docs/PROMISE-PACKAGE-PLAN.md` records that run.
+
+**Review debt D6 (added by the Q2 tooling builder, 2026-09-07).** The Q1 review
+found two refusal branches of `Gates/Ecmarkup.lean` with no probe: the nameless
+`<dfn>` of `termRows` and the 4096-occurrence cap of `rootWindow`. Neither is
+reachable from the pinned bytes, which is why neither had one and why both were
+owed: a refusal nothing exercises is a refusal nobody knows still works.
+Section 3 probes each on a synthetic input whose only defect is the stated one,
+naming the message it expects rather than only that some refusal fired, with a
+positive control beside it; and the gate of section 6 shows that neither fires
+at the pin — every one of the nine in-scope `<dfn>` elements derives a non-empty
+name, and both authored root clause ids resolve, which they cannot do if the
+cap bites.
+
+The second of those two pin checks is the expensive one and the cost is
+recorded rather than hidden: `rootWindow` scans all 2,978,793 bytes twice per
+call, so resolving both root ids adds about twelve seconds, taking this
+module's elaboration from about fifteen seconds to about twenty-seven measured
+with `lake env lean` on Windows x64. It is paid because the cap is the one
+refusal in the scanner that a re-pin can start firing with no other symptom.
+The synthetic probes of section 3 cost milliseconds, and the `<dfn>` pin check
+is free: it reuses the tags the gate has already scanned.
 -/
 
 set_option autoImplicit false
@@ -142,6 +163,14 @@ private def refuses {α : Type} (result : Except String α) : Bool :=
   | .error _ => true
   | .ok _ => false
 
+/-- A refusal whose message carries `fragment`. Stronger than `refuses`: it
+says *which* refusal fired, so a probe cannot pass because the fixture broke
+somewhere else. -/
+private def refusesWith {α : Type} (result : Except String α) (fragment : String) : Bool :=
+  match result with
+  | .error message => (message.splitOn fragment).length > 1
+  | .ok _ => false
+
 private def accepts {α : Type} (result : Except String α) : Bool := !refuses result
 
 private def clauses (text : String) : Except String (Array Gates.Ecmarkup.Clause) :=
@@ -155,6 +184,10 @@ private def steps (text : String) : Except String (Array Gates.Ecmarkup.Step) :=
 private def tableRows (text : String) : Except String (Array Gates.Ecmarkup.TableRow) :=
   let bytes := src text
   Gates.Ecmarkup.scanTableRows bytes 0 bytes.size
+
+private def rowsOf (text : String) : Except String (Array Gates.Ecmarkup.RowSpec) :=
+  let bytes := src text
+  Gates.Ecmarkup.windowRows bytes 0 bytes.size
 
 -- The three observed `type` values are admitted, an untyped clause is
 -- admitted, and a fourth value is refused at its opening tag.
@@ -254,6 +287,52 @@ private def tableRows (text : String) : Except String (Array Gates.Ecmarkup.Tabl
 #guard refuses (Gates.Ecmarkup.rootWindow
   (src ("<emu-clause id=\"sec-a\"><h1>A</h1></emu-clause>" ++
         "<emu-clause id=\"sec-a\"><h1>A</h1></emu-clause>")) "sec-a")
+
+/-! ### The two refusals review debt D6 found unprobed (2026-09-07)
+
+The Q1 review of the ES2026 census found that two refusal branches of
+`Gates/Ecmarkup.lean` had no probe: the nameless `<dfn>` in `termRows`, and the
+occurrence cap in `rootWindow`. Neither can be reached from the pinned bytes —
+which is exactly why neither had a probe, and exactly why one is owed: a
+refusal nothing exercises is a refusal nobody knows still works. Each is probed
+here on a synthetic input whose only defect is the stated one, with a positive
+control beside it, and the gate of section 6 then shows that neither fires at
+the pin. -/
+
+-- A `<dfn>` with neither an `id` attribute nor text: refused at its own byte
+-- offset, and named as the empty-name refusal rather than any other. The same
+-- fixture with an id, and with text, is accepted, so what is refused is the
+-- empty name and not the shape.
+#guard refusesWith
+  (rowsOf "<emu-clause id=\"sec-x\"><h1>X</h1><p><dfn></dfn></p></emu-clause>")
+  "carries neither an id nor text"
+#guard refusesAt (rowsOf "<emu-clause id=\"sec-x\"><h1>X</h1><p><dfn></dfn></p></emu-clause>") 36
+#guard accepts (rowsOf "<emu-clause id=\"sec-x\"><h1>X</h1><p><dfn id=\"j\"></dfn></p></emu-clause>")
+#guard accepts (rowsOf "<emu-clause id=\"sec-x\"><h1>X</h1><p><dfn>job</dfn></p></emu-clause>")
+
+-- A `<dfn>` whose text is only markup is nameless too: `innerText` strips tags
+-- before the emptiness test, so `<dfn><b></b></dfn>` is refused exactly as the
+-- bare one is, and is not given the id `term.<b></b>`.
+#guard refusesWith
+  (rowsOf "<emu-clause id=\"sec-x\"><h1>X</h1><p><dfn><b></b></dfn></p></emu-clause>")
+  "carries neither an id nor text"
+
+/-- 4096 `<emu-clause>` openers: the smallest fixture that makes
+`Gates.Ecmarkup.rootWindow`'s occurrence cap bite, since the cap is 4096 and
+the test is `Nat.ble 4096 opens.size`. -/
+private def cappedSource : ByteArray :=
+  (String.join (List.replicate 4096 "<emu-clause>")).toUTF8
+
+/-- One opener fewer. The scan then completes, so the refusal that follows is
+the ordinary "no such clause id" one and not the cap: that is what makes the
+probe above a probe of the cap rather than of the fixture's size. -/
+private def uncappedSource : ByteArray :=
+  (String.join (List.replicate 4095 "<emu-clause>")).toUTF8
+
+#guard refusesWith (Gates.Ecmarkup.rootWindow cappedSource "sec-a")
+  "reached its 4096 occurrence cap"
+#guard refusesWith (Gates.Ecmarkup.rootWindow uncappedSource "sec-a")
+  "occurs 0 time(s)"
 
 /-! ## 4. The frozen census, transcribed from the packet
 
@@ -374,6 +453,13 @@ private def sourceSize : Nat := 2978793
 names. -/
 private def windows : Array (Nat × Nat) := #[(624525, 636548), (2686444, 2746707)]
 
+/-- The two root clause ids `census/ecma262/sections.tsv` authors, in the same
+order as `windows`. `Gates.Ecmarkup.rootWindow` resolves each against the whole
+pinned file, and review debt D6's second half is that its 4096-occurrence cap
+had no probe; the gate resolves both here so that the cap refusal is shown not
+to fire at this pin. -/
+private def rootClauseIds : Array String := #["sec-jobs", "sec-promise-objects"]
+
 private def expectedClauses : Nat := 49
 private def expectedTables : Nat := 4
 private def expectedBodyRows : Nat := 13
@@ -422,6 +508,7 @@ elab "#ecmarkup_scanner_gate" : command => do
   let mut headerBlocks : Nat := 0
   let mut descriptions : Nat := 0
   let mut dfnCount : Nat := 0
+  let mut namedDfns : Nat := 0
   let mut nonAscii : Nat := 0
   let mut tabs : Nat := 0
   let mut carriageReturns : Nat := 0
@@ -443,6 +530,25 @@ elab "#ecmarkup_scanner_gate" : command => do
       if tag.name == "dl" && (Gates.Ecmarkup.attrValue? bytes tag.b tag.e "class").getD "" == "header" then
         headerBlocks := headerBlocks + 1
       if tag.name == "dt" then descriptions := descriptions + 1
+    -- Review debt D6, first half: the nameless-`<dfn>` refusal does not fire at
+    -- the pin. Every in-scope `<dfn>` derives a non-empty name, by the same
+    -- ladder `Gates.Ecmarkup.termRows` uses — the `id` attribute, else the
+    -- tag-stripped, whitespace-normalised inner text — re-implemented here from
+    -- the public scanner surface rather than called, so the two readings are
+    -- independent.
+    for k in [0:tags.size] do
+      let t := tags.getD k default
+      if t.name != "dfn" || t.isClose then continue
+      let some dc := Gates.Ecmarkup.matchClose tags k
+        | throwError "ecmarkup scanner: the <dfn> opened at byte {t.b} is never closed"
+      let text :=
+        Gates.Ecmarkup.normalizeWhitespace
+          (Gates.Ecmarkup.stripTags
+            ((Gates.Ecmarkup.sliceString? bytes t.e (tags.getD dc default).b).getD ""))
+      let name := (Gates.Ecmarkup.attrValue? bytes t.b t.e "id").getD text
+      if name.isEmpty then
+        throwError "ecmarkup scanner: the <dfn> at byte {t.b} derives an empty name, so the nameless-<dfn> refusal of Gates/Ecmarkup.lean fires at this pin"
+      namedDfns := namedDfns + 1
     match Gates.Ecmarkup.scanClauses bytes windowB windowE with
     | .error message => throwError "ecmarkup scanner: {message}"
     | .ok cs =>
@@ -492,6 +598,8 @@ elab "#ecmarkup_scanner_gate" : command => do
     throwError "ecmarkup scanner: {descriptions} <dt> elements; the packet freezes {expectedDescriptions}"
   unless dfnCount == expectedDfns do
     throwError "ecmarkup scanner: {dfnCount} <dfn> elements; the packet freezes {expectedDfns}"
+  unless namedDfns == expectedDfns do
+    throwError "ecmarkup scanner: {namedDfns} of {expectedDfns} in-scope <dfn> elements derive a name"
   unless nonAscii == expectedNonAscii do
     throwError "ecmarkup scanner: {nonAscii} non-ASCII bytes in scope; the packet freezes {expectedNonAscii}"
   unless tabs == 0 && carriageReturns == 0 do
@@ -547,8 +655,22 @@ elab "#ecmarkup_scanner_gate" : command => do
     | .ok observed =>
       unless observed == expected do
         throwError "ecmarkup scanner: Gates.Census.chooseAnchorLength picks {observed} bytes for {rowId}; the packet freezes {expected}"
+  -- Review debt D6, second half: the `rootWindow` occurrence cap does not fire
+  -- at the pin. `rootWindow` is the one function of the scanner that reads the
+  -- whole 2,978,793-byte file, and the cap hit is its first refusal, so an
+  -- `.ok` for both authored root ids is the check that the cap still has room
+  -- here. The two windows it returns must be the two the packet freezes.
+  for i in [0:rootClauseIds.size] do
+    let clauseId := rootClauseIds.getD i ""
+    match Gates.Ecmarkup.rootWindow bytes clauseId with
+    | .error message =>
+      throwError "ecmarkup scanner: Gates.Ecmarkup.rootWindow refuses the authored root clause id {clauseId}: {message}"
+    | .ok (observedB, observedE) =>
+      let (wantB, wantE) := windows.getD i (0, 0)
+      unless observedB == wantB && observedE == wantE do
+        throwError "ecmarkup scanner: rootWindow resolves {clauseId} to [{observedB}, {observedE}); the packet freezes [{wantB}, {wantE})"
   logInfo
-    m!"ecmarkup scanner: {clauseCount} clauses, {tableCount} tables, {bodyRowCount} body rows, {expectedBullets} requirement bullets, {stepCount} step lines, {aoidCount} aoid, {dfnCount} dfn, {nonAscii} non-ASCII bytes over the two frozen windows of {sourceRelativePath}; {produced.size} rows verified against the packet, 3 anchor lengths against Gates.Census.chooseAnchorLength"
+    m!"ecmarkup scanner: {clauseCount} clauses, {tableCount} tables, {bodyRowCount} body rows, {expectedBullets} requirement bullets, {stepCount} step lines, {aoidCount} aoid, {dfnCount} dfn all named, {nonAscii} non-ASCII bytes over the two frozen windows of {sourceRelativePath}; {produced.size} rows verified against the packet, 3 anchor lengths against Gates.Census.chooseAnchorLength, and both root clause ids resolved without the rootWindow occurrence cap firing"
 
 #ecmarkup_scanner_gate
 

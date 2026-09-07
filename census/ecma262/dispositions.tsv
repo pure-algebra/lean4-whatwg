@@ -52,9 +52,16 @@ sec-hostenqueuetimeoutjob	hook	foreignBoundary
 
 # --- 27.2 Promise Objects ---------------------------------------------------
 # The fulfilled/rejected/pending/settled/resolved vocabulary and two bare
-# headings. R-P5 adopts the survey's `evidenceOnly`, which keeps all three out
-# of the denominator.
-sec-promise-objects	clause	evidenceOnly
+# headings. R-P5 adopted the survey's `evidenceOnly` for all three; review debt
+# D4, amendment 1.1 of test/contracts/ecma262-census-q2.contract.md,
+# 2026-09-07, separates the one clause that carries text a declaration realizes
+# from the two that carry none. The own prose of sec-promise-objects is the
+# promise state vocabulary that Whatwg.Ecma262.Promise.State realizes under
+# R-P13, so it is a row the model answers to and belongs in the denominator
+# where a witness can be owed; owed is not held, and the row stays absent.
+# Its two siblings are bare headings whose own prose is a section title, and
+# every operation under them is already its own row, so they stay evidenceOnly.
+sec-promise-objects	clause	owned
 sec-promise-abstract-operations	clause	evidenceOnly
 sec-promise-jobs	clause	evidenceOnly
 

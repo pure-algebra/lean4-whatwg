@@ -25,27 +25,35 @@ jobs:
         run: lake exe urlinventory
       - name: URL authored census and assignment projection drift
         run: lake exe urlcensus
-      # Both census steps link the coverage numerator: since the first P3
+      # Every census step links a coverage numerator: since the first P3
       # witnesses landed, bin/Census.lean imports
       # WhatwgTest/Audit/SpecCoverage.lean so that the block below is
-      # printed from that module's checked emit instead of from assumed zeros.
-      # Building the census executable therefore elaborates the numerator's
-      # gate, and a red numerator fails here rather than printing a number.
+      # printed from that module's checked emit instead of from assumed zeros,
+      # and since slice Q2 it also imports the Web IDL and ECMA-262 numerators
+      # and hands Gates.Census.cli a map from standard key to emit.
+      # Building the census executable therefore elaborates all three
+      # numerators' gates, and a red numerator fails here rather than printing
+      # a number.
       - name: Specification-algorithm census, and the coverage emit against it
         run: lake exe census
       - name: Specification coverage block from the Lean emit
         run: lake exe census --report
       - name: Infra definition census and generated row drift
         run: lake exe census --standard infra
-      # The Web IDL promise and exception census (slice Q1 of
-      # docs/PROMISE-PACKAGE-PLAN.md). No --report step: the standard has no
-      # coverage numerator, and the executable refuses a report without one,
-      # exactly as --standard infra does.
+      # The Web IDL promise and exception census (slices Q1 and Q2 of
+      # docs/PROMISE-PACKAGE-PLAN.md), and its coverage block. Q2 gave the
+      # standard a numerator, so unlike --standard infra it now reports; the
+      # block is all-absent and says that nothing is proved.
       - name: Web IDL promise and exception census and generated row drift
         run: lake exe census --standard webidl
+      - name: Web IDL coverage block from the Lean emit
+        run: lake exe census --standard webidl --report
       # The ECMA-262 promise and job census, read through the ecmarkup profile
-      # of Gates/Ecmarkup.lean. No --report step, for the same reason.
+      # of Gates/Ecmarkup.lean, and its coverage block, all-absent for the same
+      # reason. Infra remains the one standard with no numerator and no report.
       - name: ECMA-262 census
         run: lake exe census --standard ecma262
+      - name: ECMA-262 coverage block from the Lean emit
+        run: lake exe census --standard ecma262 --report
       - name: Test root and the elaboration-time axiom gate
         run: lake --wfail build WhatwgTest

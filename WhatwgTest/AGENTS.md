@@ -49,6 +49,16 @@ every step of its algorithm is a named theorem or an assertion discharged by
 typing.
 `docs/SPEC-COVERAGE.md` owns the rules.
 
+Slice Q2 of `docs/PROMISE-PACKAGE-PLAN.md` added two more numerators,
+`WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and
+`WhatwgTest/Audit/Ecma262/SpecCoverage.lean`, one per promise-lane standard.
+Both are thin at Q2: `emit` is the generated all-`absent` scaffold, no row
+carries a witness, and the module's freeze is the pair of expected totals,
+checked at elaboration. They declare no theorem and read no file, so neither
+joins the implementation ceiling below. `bin/Census.lean` hands all three to
+`Gates.Census.cli` keyed by standard; Infra has no numerator and therefore no
+report.
+
 ## Audit implementation
 
 `WhatwgTest/Audit/AxiomGate.lean` is the one module admitted to the

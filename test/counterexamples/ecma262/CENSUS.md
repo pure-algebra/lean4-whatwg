@@ -174,15 +174,101 @@ Encoded as the frozen anchor length 256 for that row, the frozen 64 for
 row falls through to the remainder. This is also where this packet disagrees
 with the survey, which reported 252 by clamping a rung to the span length.
 
+## ECMA-CEN-CE-015 — a blanket section label hides the one clause a declaration realizes
+
+Seeded 2026-09-07 by the Q2 census breaker seat, alongside
+`test/contracts/ecma262-census-q2.contract.md` and its frozen battery
+`WhatwgTest/Audit/Ecma262/CensusQ2Contract.lean`. Review debt D4.
+
+Attacked: the disposition join over the three structural `clause` rows of the
+promise subtree. `clause.promise-abstract-operations` (2687651–2702809) and
+`clause.promise-jobs` (2702815–2707559) really are bare headings: their own
+prose is a section title, and every operation beneath them is already its own
+row. `clause.promise-objects` (2686444–2746707) is not. Its own prose is the
+promise state vocabulary — fulfilled, rejected, pending, and the settled,
+resolved and unresolved distinctions — which is exactly what
+`Whatwg.Ecma262.Promise.State` realizes under ruling R-P13. Labelling all
+three `evidenceOnly` because two of them are headings puts the one clause the
+state type answers to outside the denominator, where no witness is ever owed;
+the census still lists it, so the record looks complete while understating the
+lane by one row.
+
+Encoded as: the frozen entry
+`⟨"clause.promise-objects", .owned, .absent, []⟩` in
+`WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean`, the two frozen sibling
+entries that stay `.evidenceOnly`, and the frozen totals `owned` 45,
+`evidenceOnly` 2, denominator 75. Forced repair: change the disposition of
+that one `dispositions.tsv` line and leave the two siblings alone. Recorded
+alternative, rejected because it does not generate: an entry in
+`census/ecma262/overrides.tsv` would leave `sec-promise-objects clause`
+matching no row, and `Gates.Census.finishBuild` fails on an authored entry
+that outlived its rows — which is why the battery also asserts that the
+overrides file still carries exactly its three Q1 entries and none for this
+row.
+
+Owed is not held. This attack moves a row into the denominator so that it
+*can* be owed a witness; it grants no coverage state, and the block of the
+addendum is all-`absent`.
+
+## ECMA-CEN-CE-016 — a standard with a denominator and no report
+
+Seeded 2026-09-07, Q2 acceptance 4.
+
+Attacked: the reporting path. Since the Q1 landing this standard has a
+checked, drift-gated census with a denominator and an all-absent generated row
+list, and `lake exe census --standard ecma262 --report` refuses. A denominator
+with no sanctioned way to state it is the condition under which a reader
+substitutes a row count for coverage, which is the one thing
+`docs/SPEC-COVERAGE.md` forbids: "Take exact row counts from the census, never
+from this document."
+
+Encoded as: the numerator module `WhatwgTest/Audit/Ecma262/SpecCoverage.lean`
+with `def emit : Array CoverageRow`, its `("ecma262", …)` entry in
+`bin/Census.lean`'s standard-key-to-emit map, and the exact three-line
+all-`absent` block
+
+```text
+ECMAScript ES2026 (0248456c) coverage: denominator 75; owned-with-green 0/75;
+green 0, partial 0, absent 75; census 77 rows, 2 excluded
+partial:
+```
+
+which the battery asserts is present in `docs/SPEC-COVERAGE.md` in place of
+the Q1 placeholder. `owned-with-green 0/75` and `green 0` are the whole
+content of the claim.
+
+## ECMA-CEN-CE-017 — the emit and the census drift apart
+
+Seeded 2026-09-07, Q2 acceptance 4.
+
+Attacked: the direction of trust between the two projections. The generated
+`SpecCoverageRows.lean` is Lean data, so it is tempting to print the coverage
+block straight from it and let `lake exe census` catch the drift. That is one
+gate too late: `--report` is the command a person quotes, and a
+`SpecCoverageRows.lean` edited by hand between a regeneration and a report
+prints a denominator nothing recomputed. The same hole opens if the emit is
+supplied for `--report` but not for the plain check, because then only the
+mode nobody runs in CI compares them.
+
+Encoded as: `Gates.Census.verifyEmit` re-deriving ids, order and dispositions
+from a fresh regeneration before `report` prints, and the frozen PASS line of
+`lake exe census --standard ecma262`, whose tail becomes ", and the coverage
+emit agrees with that regeneration row for row" — so the plain check runs the
+comparison too. The complementary frozen refusal is
+`lake exe census --standard infra --report`, still exit 2: a standard with no
+numerator keeps no report rather than acquiring an unchecked one.
+
 ## Scope
 
 These are finite tooling probes over a pinned source. They contribute no
 ECMAScript semantic theorem, no coverage state, no denominator the numerator
 may quote, no host observation and no axiom receipt; in particular none of them
-decides DB-03. The narrow command is
+decides DB-03, and `ECMA-CEN-CE-015` decides no promise semantics: it moves one
+row into the denominator and stops there. The narrow commands are
 
 ```text
 lake build WhatwgTest.Audit.Ecma262.CensusContract
+lake build WhatwgTest.Audit.Ecma262.CensusQ2Contract
 ```
 
 and the coordinator owns the full build, the actual axiom receipt and the

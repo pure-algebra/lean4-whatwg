@@ -62,7 +62,7 @@ def rows : Array CoverageRow := #[
   ⟨"op.a-promise-resolved-with", .owned, .absent, []⟩,
   ⟨"op.add-bookmark", .evidenceOnly, .absent, []⟩,
   ⟨"op.add-delay", .evidenceOnly, .absent, []⟩,
-  ⟨"op.an-exception-was-thrown", .evidenceOnly, .absent, []⟩,
+  ⟨"op.an-exception-was-thrown", .hostOnly, .absent, []⟩,
   ⟨"op.batch-request", .evidenceOnly, .absent, []⟩,
   ⟨"op.delay", .evidenceOnly, .absent, []⟩,
   ⟨"op.dfn-create-exception", .owned, .absent, []⟩,
@@ -102,6 +102,9 @@ def rows : Array CoverageRow := #[
   ⟨"rule.domexception-derived-constructor-options", .requirement, .absent, []⟩,
   ⟨"rule.domexception-derived-identifier", .requirement, .absent, []⟩,
   ⟨"rule.domexception-derived-serializable", .requirement, .absent, []⟩,
+  ⟨"rule.domexception-deserialization-steps", .owned, .absent, []⟩,
+  ⟨"rule.domexception-serialization-steps", .owned, .absent, []⟩,
+  ⟨"rule.promise-to-js", .hostOnly, .absent, []⟩,
   ⟨"type.aborterror", .owned, .absent, []⟩,
   ⟨"type.constrainterror", .owned, .absent, []⟩,
   ⟨"type.datacloneerror", .owned, .absent, []⟩,
@@ -144,9 +147,9 @@ def rows : Array CoverageRow := #[
 ]
 
 /-- Total census rows. -/
-def rowTotal : Nat := 121
+def rowTotal : Nat := 124
 
 /-- Rows inside the coverage denominator. -/
-def denominator : Nat := 112
+def denominator : Nat := 116
 
 end WhatwgTest.Audit.WebIdl.SpecCoverageRows

@@ -91,3 +91,35 @@
 # Gates.Census.build and the ecma262 standard on 2026-09-07; that battery is
 # green and its entry is removed. No entry remains, so the trust gate's
 # all-green control is restored.
+
+# Promise census Q2 addenda, frozen 2026-09-07 by the Q2 census breaker seat.
+# Packets: test/contracts/webidl-census-q2.contract.md,
+# test/contracts/ecma262-census-q2.contract.md. They are addenda to the two
+# frozen Q1 packets, which stay byte-identical; the Q2 amendments answer the
+# review debts D3, D4 and D5 of COORDINATION.md and the five Q2 acceptance
+# conditions of docs/PROMISE-PACKAGE-PLAN.md.
+#
+# Implementation fence: the Gates.Census.cli signature (one map from standard
+# key to emit, replacing the single Streams emit), bin/Census.lean,
+# census/webidl/{rules,dispositions,dependencies}.tsv,
+# census/ecma262/dispositions.tsv, the two generated projections and rows
+# modules those two standards write, the two new numerator modules
+# WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean, and the coverage blocks
+# in docs/SPEC-COVERAGE.md.
+#
+# Four entries. The two Q2 batteries were red because the cli signature they
+# ascribe did not exist yet and because the projections still carried the Q1
+# totals. The two Q1 batteries were red only because these addenda supersede
+# totals they froze — 121 rows and denominator 112 for Web IDL, denominator 74
+# for ECMA-262 — and each amended line in them names the addendum and the date;
+# nothing they check was wrong. The builder removes an entry the moment its
+# battery is green.
+#
+# The Q2 tooling builder landed the keyed `Gates.Census.cli`, the three
+# authored Web IDL inputs, the ECMA-262 disposition move, both regenerated
+# projections, the two numerator modules
+# WhatwgTest/Audit/{WebIdl,Ecma262}/SpecCoverage.lean, the three-entry map in
+# bin/Census.lean and the two emitted coverage blocks in docs/SPEC-COVERAGE.md
+# on 2026-09-07. All four batteries are green with no statement repaired, so
+# all four entries are removed and the trust gate's all-green control is
+# restored. No entry remains.

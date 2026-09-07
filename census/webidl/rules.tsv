@@ -19,3 +19,28 @@ domexception-derived-constructor-message	*   Their [=constructor operation=] mus
 domexception-derived-constructor-options	*   Their [=constructor operation=] should take as its second parameter	*   They should have [=read only=] [=attributes=], whose names
 domexception-derived-attributes	*   They should have [=read only=] [=attributes=], whose names	*   They should be [=serializable objects=], whose [=serialization steps=] and
 domexception-derived-serializable	*   They should be [=serializable objects=], whose [=serialization steps=] and	<p class=note>These requirements mean
+
+# DOMException's own serialization and deserialization steps (review debt D3,
+# section 1.1 and section 2 of test/contracts/webidl-census-q2.contract.md).
+# They are normative steps written as plain <ol> lists in running prose: no
+# <div algorithm> covers them, no <dfn> opens inside them, and they are not
+# IDL, so no scanner reaches them. The same two operations of the derived
+# QuotaExceededError are rows only because that section writes them inside
+# <div algorithm="...">. The shorter locator `Their [=serialization steps=],
+# given` occurs twice, at 216531 and 676192, because QuotaExceededError states
+# the same sentence with the Bikeshed variable spelling |value|; the
+# <var>value</var> tail separates them. The serialization row's end locator is
+# the deserialization row's start locator, which puts the boundary at the
+# blank line after </ol> and keeps the two spans disjoint.
+domexception-serialization-steps	Their [=serialization steps=], given <var>value</var>	Their [=deserialization steps=], given <var>value</var>
+domexception-deserialization-steps	Their [=deserialization steps=], given <var>value</var>	<h3 id="Function" callback
+
+# The reverse direction of the promise conversion pair (review debt D5,
+# section 1.3 of the same addendum). `convert a JavaScript value to promise`
+# is the row op.js-to-promise because it is written as
+# <div id="js-to-promise" algorithm="...">; `convert an IDL promise to a
+# JavaScript value` is a bare <p id="promise-to-js"> paragraph in the same
+# js-promise lead section, so no op row and no definition row is reachable and
+# it enters here. Its id mirrors the element's own id, as op.js-to-promise
+# mirrors js-to-promise.
+promise-to-js	<p id="promise-to-js">	<h5 id="js-promise-manipulation"

@@ -37,7 +37,7 @@ def rows : Array CoverageRow := #[
   ⟨"clause.promise-abstract-operations", .evidenceOnly, .absent, []⟩,
   ⟨"clause.promise-constructor", .hostOnly, .absent, []⟩,
   ⟨"clause.promise-jobs", .evidenceOnly, .absent, []⟩,
-  ⟨"clause.promise-objects", .evidenceOnly, .absent, []⟩,
+  ⟨"clause.promise-objects", .owned, .absent, []⟩,
   ⟨"clause.properties-of-promise-instances", .owned, .absent, []⟩,
   ⟨"clause.properties-of-the-promise-constructor", .hostOnly, .absent, []⟩,
   ⟨"clause.properties-of-the-promise-prototype-object", .hostOnly, .absent, []⟩,
@@ -103,6 +103,6 @@ def rows : Array CoverageRow := #[
 def rowTotal : Nat := 77
 
 /-- Rows inside the coverage denominator. -/
-def denominator : Nat := 74
+def denominator : Nat := 75
 
 end WhatwgTest.Audit.Ecma262.SpecCoverageRows
