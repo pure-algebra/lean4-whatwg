@@ -1646,14 +1646,25 @@ own view `Transform.reactions` and its three bridging proofs plus
 `subscribe_reactions_bridge` carry `Reactions.add`'s fifth argument as `none`;
 and `Writable/Laws.lean`, which gains the one additive bridging lemma
 `settlementTrace_bridge` and the `attachSink_pending_jobs` mask docstring
-correction. The other **65 are byte-identical to `f700230`**, the four
-`attribute [local simp]` files —
-`Whatwg/Streams/{Piping/Runs,Writable/Lifecycle,Readable/Reentrancy,Transform/Runs}.lean`
-— among them, so no local simp set changed. No pre-existing P4–P7 theorem
-statement and no Streams definition body changed: `git diff f700230..HEAD --
+correction. The other **65 are byte-identical to `f700230`**. Five files under
+`Whatwg/Streams/**` carry an `attribute [local simp]` line, not four: the four
+sets in
+`Whatwg/Streams/{Piping/Runs,Writable/Lifecycle,Readable/Reentrancy,Transform/Runs}.lean`,
+all among the 65, and `Whatwg/Streams/Writable/Laws.lean`, which names one in
+the bridging docstring the base packet added and which is one of the three
+files that changed. **No simp line changed in any of the five**: the four sets
+are byte-identical, `Writable/Laws.lean`'s docstring line is untouched, and
+that file's additions are the new lemma's own proof steps, so no local simp set
+changed. No pre-existing P4–P7 theorem statement and no Streams definition body
+changed: `git diff f700230..HEAD --
 Whatwg/Streams` touches no line naming `tick_job_fifo`, `runPullJob_*` or
 `settlementTrace_eq`, and `Writable.settlementTrace`'s and
-`Readable.settlementTrace`'s bodies are unchanged. Of the 26 batteries under
+`Readable.settlementTrace`'s bodies are unchanged. The two exceptions are the
+addendum's own and are named by it: the `Transform.reactions` body and the
+`subscribe_reactions_bridge` statement changed because §4 rows 2 and 19 require
+`Reactions.add`'s fifth argument, which R-P24 reconciles with the addendum's
+§11 fence by reading acceptance condition 3 as "no P4–P7 theorem statement or
+Streams definition body changed except those the addendum's own rows name". Of the 26 batteries under
 `WhatwgTest/Streams/**`, **25 are byte-identical to `f700230`** and all 26 are
 green; the one that differs is `PromiseBridge.lean`, which the breaker amended
 at its single bridging ascription and this seat did not touch. Its preservation
