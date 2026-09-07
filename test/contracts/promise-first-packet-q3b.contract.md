@@ -667,3 +667,185 @@ packet opened stays as R-P20 left it; §"Q3b addendum" of `docs/PROMISE-DAG.md`
 states which the addendum closes **on landing** and changes no landed row. This
 addendum freezes what the Q3b builder must prove; it claims no implementation,
 no coverage increase, no host observation and no equivalence.
+
+## 13. Builder notes
+
+Appended by the Q3b builder seat on branch `promise/q3b-builder`, based on
+`38a806a` merged with `origin/main` (rulings R-P21 and R-P22, no conflict).
+This section is the builder's; it records what the addendum did not anticipate.
+It weakens, deletes and replaces nothing: no frozen ascription, law, mask,
+decision or acceptance condition is changed, and all nine declared batteries
+are green.
+
+### B1 — the one ascribed type that binds a variable it does not mention
+
+**Item.** `WhatwgTest/Ecma262/JobsCompleteContract.lean` line 73, the
+`Jobs.RunToCompletion` signature ascription.
+
+**Why the addendum did not anticipate it.** §7.2 ascribes
+`RunToCompletion : ∀ {payload : Type}, Active → Prop`. `payload` appears in the
+declaration's *body* — `∀ q : Queue payload, step active q = none` — and never
+in its *type*, so the frozen ascription binds a variable the ascribed type does
+not mention. `linter.unusedVariables` reports the binder, and ruling R-6 makes
+every warning an error, so the module cannot build even though the ascription
+elaborates and prints exactly the expected type. The freeze receipt could not
+see this: with `RunToCompletion` unknown, elaboration stopped before the linter
+ran, which is why §12 records 24 `lean.unknownIdentifier` diagnostics and
+nothing else for this module. Nothing on the implementation side can reference
+the binder: the ascribed type is `Active → Prop` whatever `RunToCompletion` is.
+
+**Exact diagnostic**, on this branch against the landed implementation
+(`lake env lean -DmaxErrors=100 WhatwgTest/Ecma262/JobsCompleteContract.lean`);
+`lake build` reports the same text as an `error` under R-6:
+
+```text
+WhatwgTest/Ecma262/JobsCompleteContract.lean:73:5: warning: Variable name
+`payload` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used
+implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _payload
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+```
+
+In the same run every other ascription of the module elaborates and prints,
+`RunToCompletion` itself included.
+
+**Repair, and why it is not a weakening.** One
+`set_option linter.unusedVariables false in` scoped to that single `#check`,
+with a dated comment beside it. §1 of this addendum permits exactly this — "the
+Q3b builder may repair elaboration but may not weaken, delete or replace a
+frozen ascription, law, mask, decision or acceptance condition" — and
+acceptance condition 1 asks for elaboration "with no edit to a statement". The
+ascription's own text is byte-identical to the freeze and must still elaborate
+at the frozen type; no statement, mask, law, decision or acceptance condition
+changes, and the option's scope ends at that `#check`. The precedent in this
+repository is `WhatwgTest/Audit/SpecCoverage.lean`. The alternative the linter
+itself suggests — renaming the binder `_payload` — would edit the frozen text,
+so it was not taken. **Offered for coordinator ratification**; a breaker-owned
+rename of the binder would remove the need for the option.
+
+### B2 — §10's arithmetic assumes no generated constant but the projection
+
+**Item.** §10's expected figure, `12973 + 73 + 1 = 13047`. The measured pair on
+this branch is **201 modules and 13079 declarations** (1477 in the Gates
+tooling tree).
+
+**Why the addendum did not anticipate it.** §10 counts "the generated
+projection `Reaction.capability`" and nothing else. Lean 4 also mints, inside
+the audited tree and therefore inside the audit's total, an equation lemma for
+every definition a proof unfolds with `simp` or `rw`, a matcher with its case
+analysis and splitter for every definition that pattern-matches on a new
+scrutinee shape, and a `Repr` instance for every `deriving Repr`. The
+addendum's fifteen new functions include ones that pattern-match and ones that
+proofs unfold, so a delta of exactly `73 + 1` was not reachable. This is an
+arithmetic gap in §10, not an extra declaration: **every authored name is
+exactly the frozen list**, 73 of them, verified name for name.
+
+**The measurement.** Constants owned by the six touched modules, dumped from
+the environment at `f700230` and at this branch's head with a scratch
+`#dump_decls` command over `Environment.constants`:
+
+| | `f700230` | this branch | delta |
+| --- | ---: | ---: | ---: |
+| the six touched modules' constants | 1558 | 1664 | +106 |
+| the audit's total | 12973 | 13079 | +106 |
+
+**107 constants appear and 1 disappears.** The one that disappears is
+`Whatwg.WebIdl.Promise.react.match_1`: `react` is now
+`performPromiseThen … |>.map …` and pattern-matches on nothing, so its matcher
+is gone. `12973 + 107 − 1 = 13079`.
+
+The 107 split **74 + 33**, and the 74 are §10's table exactly:
+
+| Tree | Types | Functions and predicates | Theorems | Total |
+| --- | ---: | ---: | ---: | ---: |
+| `Whatwg/Ecma262/Promise.lean` | 1 | 8 | 32 | 41 |
+| `Whatwg/Ecma262/Jobs.lean` | 0 | 3 | 11 | 14 |
+| `Whatwg/WebIdl/Promise.lean` | 0 | 4 | 13 | 17 |
+| `Whatwg/Streams/**`, additive | 0 | 0 | 1 | 1 |
+| **authored total** | **1** | **15** | **57** | **73** |
+| the generated projection `Reaction.capability` | — | — | — | 1 |
+| **§10's expected total** | | | | **74** |
+
+The remaining **33** are Lean-generated and carry no content:
+
+- **2** the `deriving Repr` on `Capability` that B3 forces:
+  `instReprCapability` and `instReprCapability.repr`;
+- **3** matchers and case analyses for the new pattern-matching definitions:
+  `Jobs.completeJob.match_1`, `Jobs.completeJob._sparseCasesOn_1` and
+  `Promise.SettlementTrace.firstRejection.match_1`;
+- **12** match splitters with their equations, six raised in
+  `Whatwg/Ecma262/Promise.lean` and six again in
+  `Whatwg/Streams/Writable/Laws.lean`, for `List.findSome?.match_1` and
+  `SettlementTrace.firstRejection.match_1` (`.eq_1`, `.eq_2` and `.splitter`
+  each, all private);
+- **16** equation lemmas and simp auxiliaries raised by unfolding a definition
+  inside a proof: `Jobs.RunCondition.eq_1`, `Jobs.startJob.eq_1`,
+  `Jobs.startJob.eq_2`, `Promise.ResolvingFunctions.callResolveSelf.eq_1`,
+  `Promise.ResolvingFunctions.callSettle.eq_1`,
+  `Promise.ResolvingFunctions.callSettle.eq_2`,
+  `Promise.SettlementTrace.firstRejection.eq_1`,
+  `Promise.Table.settleTraced.eq_1`, `Promise.reactionHandlerResult.eq_1`,
+  `Promise.runReactionJob.eq_1`,
+  `Promise.Reactions.clear_other_promise._simp_1_1`,
+  `WebIdl.Promise.resolve.eq_1`, `WebIdl.Promise.reject.eq_1`,
+  `WebIdl.Promise.resolveThrough.eq_1`, `WebIdl.Promise.rejectThrough.eq_1`,
+  and `WebIdl.Promise.waitForAllTraced.eq_1`.
+
+`2 + 3 + 12 + 16 = 33`, and `74 + 33 = 107`. No inductive, no structure and no
+authored name outside §10's list was added, which is what §10's defect test is
+for.
+
+**Consequence for §10.** The arithmetic reads
+
+```text
+12973
+  + 73  authored, exactly §10's table
+  +  1  the generated projection Reaction.capability
+  + 33  further Lean-generated constants, enumerated above
+  -  1  Whatwg.WebIdl.Promise.react.match_1, no longer needed
+  = 13079
+```
+
+and the module count is §10's exactly, `196 → 201`.
+
+### B3 — `Reaction`'s `deriving Repr` forces `Repr Capability`
+
+**Item.** `WhatwgTest/Ecma262/PromiseFidelityContract.lean`'s
+`#check (inferInstance : Repr (Whatwg.Ecma262.Promise.Reaction Nat))`, §3's
+`E-50` receipt.
+
+**Why the addendum did not anticipate it.** §3 requires that re-check to stay
+green after `Reaction` gains its field, and §8 requires `Reaction` to stay
+`Repr`-only. `Capability` derived `DecidableEq` alone, so with the new
+`capability : Option Capability` field the deriving handler cannot build
+`Reaction`'s `Repr`.
+
+**Exact diagnostic**, before the repair:
+
+```text
+Whatwg/Ecma262/Promise.lean:492:11: error(lean.synthInstanceFailed): failed to
+synthesize instance of type class
+  Repr (Option Capability)
+```
+
+**Repair, and why it is not a weakening.** `Capability` derives
+`DecidableEq, Repr`. It is purely additive: the base packet's battery ascribes
+`inferInstance : DecidableEq Capability` and that is unchanged, and `Capability`
+is a triple of `Nat` identities, so `Reaction` still gains **no** `DecidableEq`
+and `E-29`'s and `E-50`'s constraint holds. The two generated constants are
+counted in B2. The `E-50` re-check is green.
+
+### B4 — what the addendum predicted and this seat confirms
+
+`Table.settleAndTrigger`'s job-queue component is byte-identical to the base
+packet's, so `Table.settleAndTrigger_pending`'s M2 content is unchanged, as
+§4's row 9 says. `Writable.settlementTrace`'s body is unchanged and
+`settlementTrace_bridge` needed no projection: after the `abbrev` it already
+*is* `SettlementTrace Unit (Boundary.Exception ε)`, which is what §6 predicted.
+The ripple into `Whatwg/Streams/Transform/**` is `Reactions.add`'s fifth
+argument in the base packet's own view `Transform.reactions` and in three
+bridging proofs; it added and removed no constant there. Every gap §1 lists is
+still open and recorded against its gap id in the module docstrings.

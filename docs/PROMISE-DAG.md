@@ -230,3 +230,36 @@ not edited: `Jobs.run_cons` joins the M2 list, `WebIdl.Promise.waitForAll_succes
 and `waitForAll_failure` leave it, `Writable.attachSink_pending_jobs`'s tree
 docstring is corrected to M1, and the addendum's eleven new M2 theorems join.
 No frozen statement changes for a mask correction.
+
+## Q3b landing
+
+Q3b builder seat, 2026-09-07, branch `promise/q3b-builder` at `85a2d96`, based
+on the frozen addendum `38a806a` merged with `origin/main` (R-P21, R-P22).
+Receipt: the "Q3b landing receipt" of `docs/PROMISE-PACKAGE-PLAN.md`, which
+carries every command and its result line. **Every landed row above this
+section is unchanged**, the "Q3b addendum" table included: this section records
+what the landing did to the edges it said it would.
+
+| Edge | Status before | Status at the landing | Evidence, with theorem names |
+| --- | --- | --- | --- |
+| semantics | **required-open**, reopened by R-P20 | **the reopening is closed**; the edge stays `required-open` on its own P8 deferrals | COMPLETE is realized. `Jobs.startJob_active` is the producer `Active.job` lacked, `Jobs.RunToCompletion` with `Jobs.RunToCompletion_iff` is the DB-05 specification half, `Jobs.run_to_completion` is the realizer, and `Jobs.run_to_completion_nonvacuous` refuses the vacuous discharge because the activation `startJob` produces is one in which `RunCondition` fails. `Jobs.startJob_checkpoint`, `startJob_queue` and `startJob_blocked` bound the operation and `Jobs.completeJob_job`, `completeJob_other` bound the return. `Jobs.startJob_run_agree` keeps the threading conservative: `Jobs.run_fifo`, `Jobs.run_split`, `Jobs.hostEnqueuePromiseJob_order`, `Writable.tick_job_fifo`, `Transform.tick_job_fifo` and the three `runPullJob_*` receipts keep their statements **and** their proofs, byte-identical. `Jobs.run_one_job_per_step` states the typing half beside it. Inside the same close-on set, THEN and REACT are repaired by `Promise.performPromiseThen_handled` and `WebIdl.Promise.react_handled` (step 12 unconditional), by `Promise.Reactions.mint_no_waiting` with the amended `performPromiseThen_fulfilled`/`_rejected` and `react_fulfilled`/`react_rejected` (the settled branches append to no list), and TRIGGER, FULFILL and REJECT by `Promise.Reactions.clear_waiting`, `clear_other_promise` and `Table.settleAndTrigger_cleared` (both lists cleared). The global configuration, the M2 mask projection and the bounded runner are P8 and stay open, so the row is not whole-row green |
+| laws | closed | **closed, with more evidence** | 182 named receipts across the two reports, all inside R-11. The addendum's 57 print 15 empty, 34 `[propext]`, 6 `[propext, Quot.sound]`, 2 `[propext, Classical.choice, Quot.sound]`; the base packet's 125 are still exactly 125 names with the Q3 landing's distribution, 59 empty, 41 `[propext]`, 20 `[propext, Quot.sound]`, 5 `[propext, Classical.choice, Quot.sound]` |
+| representation | closed | **closed, and strengthened** | `Reaction` carries CAPFIELD as `Reaction.capability` and stays `Repr`-only; the `inferInstance : Repr (Reaction Nat)` re-check is green, which is the `E-50` receipt. `Promise.reactionHandlerResult_handler` returns the handler's completion unexamined, so DB-02 holds: no body is stored and none is run. `Capability` gains `deriving Repr`, forced and additive, recorded as builder note B3 |
+| bridges | closed | **closed, and one bridge added** | `Whatwg.Streams.Writable.settlementTrace_bridge` (mask M2) is the thirtieth bridging lemma. `Writable.settlementTrace`'s content is unchanged and no projection was needed. `E-63`'s readable counterpart stays deferred with its stated reason. The preservation half of `WhatwgTest/Streams/PromiseBridge.lean` is green and 25 of the 26 `WhatwgTest/Streams/**` batteries are byte-identical to `f700230` |
+| trust | closed | **closed, and extended** | The 57 further receipts above, `lake exe trustselftest` PASS in both directions, and `known-red.txt` empty of entries again |
+| counterexamples | required-open | **required-open**, unchanged | The sixteen rows `WS-PROM-CE-023`..`WS-PROM-CE-038` each have the statement named for them landed and green. `test/counterexamples/REGISTER.md` is still the coordinator's and untouched, so the edge stays open on the same item |
+| identity, construction, coverage | required-open | **required-open**, unchanged | No generated declaration snapshot exists; `E-22`'s operation-level generalization is still Q4; both censuses stay all-`absent`, which the three `lake exe census` PASS lines confirm |
+| targets | not-applicable | **not-applicable**, unchanged | Q3b lands no lowering and no generated code |
+
+**Edges closed at this landing: one** — the reopening of `semantics`, through
+F5's realization of COMPLETE, whose theorem is `Jobs.run_to_completion` with
+`Jobs.run_to_completion_nonvacuous` beside it. **Edges reopened: none.**
+
+**The declaration delta.** 196 → 201 modules, exactly as the addendum's §10
+predicts, and 12973 → 13079 declarations. §10's expected 13047 counts the
+generated projection `Reaction.capability` and no other generated constant;
+the 33 further ones Lean mints — a `Repr` instance, three matchers, twelve
+private match splitters and sixteen equation lemmas — are enumerated in builder
+note B2 of the addendum, together with the one matcher that disappears because
+`WebIdl.Promise.react` now pattern-matches on nothing. Every **authored** name
+is §10's list, name for name: 1 type, 15 functions and predicates, 57 theorems.
