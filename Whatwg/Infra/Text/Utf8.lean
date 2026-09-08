@@ -1311,4 +1311,1221 @@ theorem EncoderTape.terminated_iff (tape : EncoderTape) :
 
 end Encoding
 
+/-! ## The UTF-8 decoder
+
+DECODER [86515,90406). "UTF-8's decoder has an associated UTF-8 code point,
+UTF-8 bytes seen, UTF-8 bytes needed — each a number, initially 0; UTF-8 lower
+boundary — a byte, initially 0x80; UTF-8 upper boundary — a byte, initially
+0xBF." -/
+
+namespace Utf8
+
+/-- The reachable-state invariant of DECODER [86515,90406), carried by the
+carrier under INFRA-R3.
+
+With `r = bytesNeeded − bytesSeen` bytes still to read and `p = 64 ^ (r − 1)`,
+the value the run will finish with lies between
+`codePoint × 64 × p + (lowerBoundary − 0x80) × p` and
+`codePoint × 64 × p + (upperBoundary − 0x80) × p + (p − 1)`. The invariant says
+that whole interval is inside U+0000…U+10FFFF and misses the surrogate range —
+which is exactly what step 3's boundary table installs (0xE0 lifts the lower
+boundary to 0xA0, 0xED drops the upper boundary to 0x9F, 0xF0 lifts to 0x90,
+0xF4 drops to 0x8F).
+
+Carrying it is forced, not decorative: `decoderHandler_complete` asks for a
+`CodePoint` whose value is `(UTF-8 code point << 6) | (byte & 0x3F)` and
+`decoderHandler_items_isScalarValue` asks for that value not to be a surrogate,
+and over unrestricted five-tuples both are false — `codePoint = 864`,
+`bytesNeeded = 1`, `bytesSeen = 0`, boundaries 0x80/0xBF and `byte = 0x80`
+complete to U+D800. The Builder note in the contract records the two
+counterexamples. -/
+@[reducible] private def decoderInv (cp seen needed lo hi : Nat) : Prop :=
+  needed = 0 ∨
+    (seen < needed ∧ needed ≤ 3 ∧ 0x80 ≤ lo ∧ hi ≤ 0xBF ∧
+      cp * 64 * 64 ^ (needed - seen - 1) + (hi - 0x80) * 64 ^ (needed - seen - 1)
+          + (64 ^ (needed - seen - 1) - 1) ≤ 0x10FFFF ∧
+      (cp * 64 * 64 ^ (needed - seen - 1) + (hi - 0x80) * 64 ^ (needed - seen - 1)
+            + (64 ^ (needed - seen - 1) - 1) < 0xD800 ∨
+        0xDFFF < cp * 64 * 64 ^ (needed - seen - 1) + (lo - 0x80) * 64 ^ (needed - seen - 1)))
+
+/-- The five values DECODER [86515,90406) associates with UTF-8's decoder, with
+the reachable-state invariant of `decoderInv` discharged by typing (INFRA-R3). -/
+abbrev DecoderState : Type :=
+  { st : Nat × Nat × Nat × Byte × Byte //
+      decoderInv st.1 st.2.1 st.2.2.1 st.2.2.2.1.toNat st.2.2.2.2.toNat }
+
+namespace DecoderState
+
+/-- The state of DECODER [86515,90406) with the given five values; a five-tuple
+outside the reachable set is not a state of any run and is mapped to the initial
+state, which is the total-function reading of INFRA-R3. -/
+def mk (codePoint bytesSeen bytesNeeded : Nat) (lowerBoundary upperBoundary : Byte) :
+    DecoderState :=
+  if h : decoderInv codePoint bytesSeen bytesNeeded lowerBoundary.toNat upperBoundary.toNat then
+    ⟨(codePoint, bytesSeen, bytesNeeded, lowerBoundary, upperBoundary), h⟩
+  else ⟨(0, 0, 0, 0x80, 0xBF), Or.inl rfl⟩
+
+/-- DECODER [86515,90406): "UTF-8 code point … a number, initially 0". -/
+def codePoint (st : DecoderState) : Nat := st.val.1
+
+/-- DECODER [86515,90406): "UTF-8 bytes seen … a number, initially 0". -/
+def bytesSeen (st : DecoderState) : Nat := st.val.2.1
+
+/-- DECODER [86515,90406): "UTF-8 bytes needed … a number, initially 0". -/
+def bytesNeeded (st : DecoderState) : Nat := st.val.2.2.1
+
+/-- DECODER [86515,90406): "UTF-8 lower boundary — a byte, initially 0x80". -/
+def lowerBoundary (st : DecoderState) : Byte := st.val.2.2.2.1
+
+/-- DECODER [86515,90406): "UTF-8 upper boundary — a byte, initially 0xBF". -/
+def upperBoundary (st : DecoderState) : Byte := st.val.2.2.2.2
+
+/-- The initial state of DECODER [86515,90406). -/
+def initial : DecoderState := mk 0 0 0 (0x80 : Byte) (0xBF : Byte)
+
+/-- DECODER [86515,90406)'s `<dl>` of initial values. -/
+theorem initial_eq : initial = mk 0 0 0 (0x80 : Byte) (0xBF : Byte) := rfl
+
+end DecoderState
+
+private theorem mk_fields (cp seen needed : Nat) (lo hi : Byte)
+    (h : decoderInv cp seen needed lo.toNat hi.toNat) :
+    (DecoderState.mk cp seen needed lo hi).codePoint = cp ∧
+      (DecoderState.mk cp seen needed lo hi).bytesSeen = seen ∧
+      (DecoderState.mk cp seen needed lo hi).bytesNeeded = needed ∧
+      (DecoderState.mk cp seen needed lo hi).lowerBoundary = lo ∧
+      (DecoderState.mk cp seen needed lo hi).upperBoundary = hi := by
+  rw [DecoderState.mk, dif_pos h]
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
+
+private theorem state_inv (st : DecoderState) :
+    decoderInv st.codePoint st.bytesSeen st.bytesNeeded st.lowerBoundary.toNat
+      st.upperBoundary.toNat := st.property
+
+/-- The completion value of DECODER [86515,90406) steps 9 to 11 is a code point:
+the invariant bounds the whole interval the run can still reach by U+10FFFF. -/
+private theorem complete_le (st : DecoderState) (b : Byte) (hzero : ¬ (st.bytesNeeded = 0))
+    (hin : ¬ (b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat))
+    (hcomp : st.bytesSeen + 1 = st.bytesNeeded) :
+    (st.codePoint <<< 6) ||| (b.toNat &&& 0x3F) ≤ 0x10FFFF := by
+  rcases state_inv st with hz | ⟨_, _, hlo, hhi, hmax, _⟩
+  · exact absurd hz hzero
+  · have hr : st.bytesNeeded - st.bytesSeen - 1 = 0 := by omega
+    rw [hr, Nat.pow_zero] at hmax
+    have hb : b.toNat % 64 < 64 := Nat.mod_lt _ (by decide)
+    rw [land_six, lor_shift_six _ _ hb]
+    have hble : b.toNat ≤ 0xBF := by omega
+    have hbge : 0x80 ≤ b.toNat := by omega
+    have hmod : b.toNat % 64 = b.toNat - 0x80 := by omega
+    omega
+
+/-- The completion value is never a surrogate: that is what the 0xED upper
+boundary of step 3 buys, and it is a theorem of the invariant rather than a
+typing assumption. -/
+private theorem complete_scalar (st : DecoderState) (b : Byte) (hzero : ¬ (st.bytesNeeded = 0))
+    (hin : ¬ (b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat))
+    (hcomp : st.bytesSeen + 1 = st.bytesNeeded) :
+    ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F)) < 0xD800 ∨
+      0xDFFF < ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F)) := by
+  rcases state_inv st with hz | ⟨_, _, hlo, hhi, _, hsur⟩
+  · exact absurd hz hzero
+  · have hr : st.bytesNeeded - st.bytesSeen - 1 = 0 := by omega
+    rw [hr, Nat.pow_zero] at hsur
+    have hb : b.toNat % 64 < 64 := Nat.mod_lt _ (by decide)
+    rw [land_six, lor_shift_six _ _ hb]
+    have hble : b.toNat ≤ 0xBF := by omega
+    have hbge : 0x80 ≤ b.toNat := by omega
+    have hmod : b.toNat % 64 = b.toNat - 0x80 := by omega
+    omega
+
+/-- DECODER [86515,90406): "UTF-8's decoder's handler, given ioQueue and byte,
+runs these steps", steps 1 to 11. The handler returns the possibly-modified
+input queue because step 4.2 restores the byte to it. Its item type is
+`CodePoint` and not `ScalarValue`: step 11 returns "a code point whose value is
+codePoint", and that the value is never a surrogate is the theorem
+`decoderHandler_items_isScalarValue`. -/
+def decoderHandler (st : DecoderState) (ioQueue : IoQueue Byte) (item : Item Byte) :
+    Encoding.HandlerResult CodePoint × DecoderState × IoQueue Byte :=
+  match item with
+  | Item.endOfQueue =>
+    if _hne : st.bytesNeeded ≠ 0 then
+      (Encoding.HandlerResult.error none,
+        DecoderState.mk st.codePoint st.bytesSeen 0 st.lowerBoundary st.upperBoundary, ioQueue)
+    else
+      (Encoding.HandlerResult.finished, st, ioQueue)
+  | Item.value byte =>
+    if hzero : st.bytesNeeded = 0 then
+      if hA : byte.toNat ≤ 0x7F then
+        (Encoding.HandlerResult.items [⟨byte.toNat, Nat.le_trans hA (by decide)⟩], st, ioQueue)
+      else if _h2 : 0xC2 ≤ byte.toNat ∧ byte.toNat ≤ 0xDF then
+        (Encoding.HandlerResult.continues,
+          DecoderState.mk (byte.toNat &&& 0x1F) st.bytesSeen 1 (0x80 : Byte) (0xBF : Byte),
+          ioQueue)
+      else if _h3 : 0xE0 ≤ byte.toNat ∧ byte.toNat ≤ 0xEF then
+        (Encoding.HandlerResult.continues,
+          DecoderState.mk (byte.toNat &&& 0xF) st.bytesSeen 2
+            (if byte.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))
+            (if byte.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte)),
+          ioQueue)
+      else if _h4 : 0xF0 ≤ byte.toNat ∧ byte.toNat ≤ 0xF4 then
+        (Encoding.HandlerResult.continues,
+          DecoderState.mk (byte.toNat &&& 0x7) st.bytesSeen 3
+            (if byte.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))
+            (if byte.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte)),
+          ioQueue)
+      else
+        (Encoding.HandlerResult.error none, st, ioQueue)
+    else
+      if hout : byte.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < byte.toNat then
+        (Encoding.HandlerResult.error none, DecoderState.initial, IoQueue.restore ioQueue byte)
+      else
+        if hcomp : st.bytesSeen + 1 = st.bytesNeeded then
+          (Encoding.HandlerResult.items
+              [⟨(st.codePoint <<< 6) ||| (byte.toNat &&& 0x3F),
+                complete_le st byte hzero hout hcomp⟩],
+            DecoderState.initial, ioQueue)
+        else
+          (Encoding.HandlerResult.continues,
+            DecoderState.mk ((st.codePoint <<< 6) ||| (byte.toNat &&& 0x3F)) (st.bytesSeen + 1)
+              st.bytesNeeded (0x80 : Byte) (0xBF : Byte),
+            ioQueue)
+
+/-! ### The handler's laws, one per numbered step or switch row -/
+
+/-- DECODER [86515,90406) step 1: "If byte is end-of-queue and UTF-8 bytes
+needed is not 0, then set UTF-8 bytes needed to 0 and return error." -/
+theorem decoderHandler_endOfQueue_pending (st : DecoderState) (q : IoQueue Byte)
+    (h : st.bytesNeeded ≠ 0) :
+    decoderHandler st q Item.endOfQueue =
+      (Encoding.HandlerResult.error none,
+        DecoderState.mk st.codePoint st.bytesSeen 0 st.lowerBoundary st.upperBoundary, q) := by
+  simp only [decoderHandler, dif_pos h]
+
+/-- DECODER [86515,90406) step 2: "If byte is end-of-queue, then return
+finished." -/
+theorem decoderHandler_endOfQueue_idle (st : DecoderState) (q : IoQueue Byte)
+    (h : st.bytesNeeded = 0) :
+    decoderHandler st q Item.endOfQueue = (Encoding.HandlerResult.finished, st, q) := by
+  simp only [decoderHandler, dif_neg (show ¬ (st.bytesNeeded ≠ 0) from fun hc => hc h)]
+
+/-- DECODER [86515,90406) step 3, switch row "0x00 to 0x7F": "Return a code
+point whose value is byte." -/
+theorem decoderHandler_ascii (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded = 0) (hA : b.toNat ≤ 0x7F) :
+    ∃ c : CodePoint,
+      decoderHandler st q (Item.value b) = (Encoding.HandlerResult.items [c], st, q) ∧
+        c.val = b.toNat := by
+  refine ⟨⟨b.toNat, Nat.le_trans hA (by decide)⟩, ?_, rfl⟩
+  simp only [decoderHandler, dif_pos hzero, dif_pos hA]
+
+/-- DECODER [86515,90406) step 3, switch row "0xC2 to 0xDF": bytes needed 1,
+code point `byte & 0x1F`, "the five least significant bits of byte". -/
+theorem decoderHandler_lead_two (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded = 0) (h1 : 0xC2 ≤ b.toNat) (h2 : b.toNat ≤ 0xDF) :
+    decoderHandler st q (Item.value b) =
+      (Encoding.HandlerResult.continues,
+        DecoderState.mk (b.toNat &&& 0x1F) st.bytesSeen 1 (0x80 : Byte) (0xBF : Byte), q) := by
+  simp only [decoderHandler, dif_pos hzero, dif_neg (show ¬ b.toNat ≤ 0x7F by omega),
+    dif_pos (show 0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF from ⟨h1, h2⟩)]
+
+/-- DECODER [86515,90406) step 3, switch row "0xE0 to 0xEF", with its boundary
+table: "If byte is 0xE0, then set UTF-8 lower boundary to 0xA0. If byte is 0xED,
+then set UTF-8 upper boundary to 0x9F." -/
+theorem decoderHandler_lead_three (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded = 0) (h1 : 0xE0 ≤ b.toNat) (h2 : b.toNat ≤ 0xEF) :
+    decoderHandler st q (Item.value b) =
+      (Encoding.HandlerResult.continues,
+        DecoderState.mk (b.toNat &&& 0xF) st.bytesSeen 2
+          (if b.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))
+          (if b.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte)), q) := by
+  simp only [decoderHandler, dif_pos hzero, dif_neg (show ¬ b.toNat ≤ 0x7F by omega),
+    dif_neg (show ¬ (0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF) by omega),
+    dif_pos (show 0xE0 ≤ b.toNat ∧ b.toNat ≤ 0xEF from ⟨h1, h2⟩)]
+
+/-- DECODER [86515,90406) step 3, switch row "0xF0 to 0xF4", with its boundary
+table: "If byte is 0xF0, then set UTF-8 lower boundary to 0x90. If byte is 0xF4,
+then set UTF-8 upper boundary to 0x8F." -/
+theorem decoderHandler_lead_four (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded = 0) (h1 : 0xF0 ≤ b.toNat) (h2 : b.toNat ≤ 0xF4) :
+    decoderHandler st q (Item.value b) =
+      (Encoding.HandlerResult.continues,
+        DecoderState.mk (b.toNat &&& 0x7) st.bytesSeen 3
+          (if b.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))
+          (if b.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte)), q) := by
+  simp only [decoderHandler, dif_pos hzero, dif_neg (show ¬ b.toNat ≤ 0x7F by omega),
+    dif_neg (show ¬ (0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF) by omega),
+    dif_neg (show ¬ (0xE0 ≤ b.toNat ∧ b.toNat ≤ 0xEF) by omega),
+    dif_pos (show 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4 from ⟨h1, h2⟩)]
+
+/-- DECODER [86515,90406) step 3, switch row "Otherwise": every byte from 0x80
+to 0xC1 and every byte from 0xF5 upward is an error at bytes-needed 0, with no
+state change and no restore. -/
+theorem decoderHandler_lead_error (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded = 0)
+    (h : (0x80 ≤ b.toNat ∧ b.toNat ≤ 0xC1) ∨ 0xF5 ≤ b.toNat) :
+    decoderHandler st q (Item.value b) = (Encoding.HandlerResult.error none, st, q) := by
+  simp only [decoderHandler, dif_pos hzero, dif_neg (show ¬ b.toNat ≤ 0x7F by omega),
+    dif_neg (show ¬ (0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF) by omega),
+    dif_neg (show ¬ (0xE0 ≤ b.toNat ∧ b.toNat ≤ 0xEF) by omega),
+    dif_neg (show ¬ (0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4) by omega)]
+
+/-- DECODER [86515,90406) step 4: "If byte is not in the range UTF-8 lower
+boundary to UTF-8 upper boundary, inclusive: Set UTF-8 code point, UTF-8 bytes
+needed, and UTF-8 bytes seen to 0, set UTF-8 lower boundary to 0x80, and set
+UTF-8 upper boundary to 0xBF. Restore byte to ioQueue. Return error." -/
+theorem decoderHandler_out_of_boundary (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded ≠ 0)
+    (hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat) :
+    decoderHandler st q (Item.value b) =
+      (Encoding.HandlerResult.error none, DecoderState.initial, IoQueue.restore q b) := by
+  simp only [decoderHandler, dif_neg hzero, dif_pos hout]
+
+/-- DECODER [86515,90406) steps 5 to 8: reset the boundaries to 0x80 and 0xBF,
+shift the accumulator left by six and take the byte's six least significant
+bits, increase bytes seen by one, and continue while more bytes are needed. -/
+theorem decoderHandler_accumulate (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded ≠ 0) (hlo : st.lowerBoundary.toNat ≤ b.toNat)
+    (hhi : b.toNat ≤ st.upperBoundary.toNat) (hne : st.bytesSeen + 1 ≠ st.bytesNeeded) :
+    decoderHandler st q (Item.value b) =
+      (Encoding.HandlerResult.continues,
+        DecoderState.mk ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F)) (st.bytesSeen + 1)
+          st.bytesNeeded (0x80 : Byte) (0xBF : Byte), q) := by
+  simp only [decoderHandler, dif_neg hzero,
+    dif_neg (show ¬ (b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat) by
+      omega),
+    dif_neg hne]
+
+/-- DECODER [86515,90406) steps 9 to 11: "Let codePoint be UTF-8 code point. Set
+UTF-8 code point, UTF-8 bytes needed, and UTF-8 bytes seen to 0. Return a code
+point whose value is codePoint." Step 5 has already reset the boundaries, so the
+state returned is the initial state. -/
+theorem decoderHandler_complete (st : DecoderState) (q : IoQueue Byte) (b : Byte)
+    (hzero : st.bytesNeeded ≠ 0) (hlo : st.lowerBoundary.toNat ≤ b.toNat)
+    (hhi : b.toNat ≤ st.upperBoundary.toNat) (hcomp : st.bytesSeen + 1 = st.bytesNeeded) :
+    ∃ c : CodePoint,
+      decoderHandler st q (Item.value b) =
+          (Encoding.HandlerResult.items [c], DecoderState.initial, q) ∧
+        c.val = (st.codePoint <<< 6) ||| (b.toNat &&& 0x3F) := by
+  have hout : ¬ (b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat) := by omega
+  refine ⟨⟨(st.codePoint <<< 6) ||| (b.toNat &&& 0x3F),
+    complete_le st b hzero hout hcomp⟩, ?_, rfl⟩
+  simp only [decoderHandler, dif_neg hzero, dif_neg hout, dif_pos hcomp]
+
+/-- The decoder never supplies a code point with its error: only an encoder
+does, for step 7's "html" arm of PROCI [15509,17620) and step 3 of ORFAILENC
+[51167,53203). -/
+theorem decoderHandler_error_none (st : DecoderState) (q : IoQueue Byte) (item : Item Byte)
+    (c : CodePoint) :
+    (decoderHandler st q item).1 ≠ Encoding.HandlerResult.error (some c) := by
+  match item with
+  | Item.endOfQueue =>
+    by_cases h : st.bytesNeeded = 0
+    · rw [decoderHandler_endOfQueue_idle st q h]; exact fun hc => by cases hc
+    · rw [decoderHandler_endOfQueue_pending st q h]; exact fun hc => by cases hc
+  | Item.value b =>
+    by_cases hzero : st.bytesNeeded = 0
+    · by_cases hA : b.toNat ≤ 0x7F
+      · obtain ⟨d, hd, _⟩ := decoderHandler_ascii st q b hzero hA
+        rw [hd]; exact fun hc => by cases hc
+      · by_cases h2 : 0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF
+        · rw [decoderHandler_lead_two st q b hzero h2.1 h2.2]; exact fun hc => by cases hc
+        · by_cases h3 : 0xE0 ≤ b.toNat ∧ b.toNat ≤ 0xEF
+          · rw [decoderHandler_lead_three st q b hzero h3.1 h3.2]; exact fun hc => by cases hc
+          · by_cases h4 : 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4
+            · rw [decoderHandler_lead_four st q b hzero h4.1 h4.2]; exact fun hc => by cases hc
+            · rw [decoderHandler_lead_error st q b hzero (by omega)]
+              exact fun hc => by cases hc
+    · by_cases hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat
+      · rw [decoderHandler_out_of_boundary st q b hzero hout]; exact fun hc => by cases hc
+      · by_cases hcomp : st.bytesSeen + 1 = st.bytesNeeded
+        · obtain ⟨d, hd, _⟩ :=
+            decoderHandler_complete st q b hzero (by omega) (by omega) hcomp
+          rw [hd]; exact fun hc => by cases hc
+        · rw [decoderHandler_accumulate st q b hzero (by omega) (by omega) hcomp]
+          exact fun hc => by cases hc
+
+/-- The decoder never returns a surrogate, which is what step 6.1 of PROCI
+[15509,17620) asserts: "Assert: encoderDecoder is not a decoder instance or
+result does not contain any surrogates." It is a theorem of the 0xED
+upper-boundary row through the carrier's invariant, not a typing assumption. -/
+theorem decoderHandler_items_isScalarValue (st : DecoderState) (q : IoQueue Byte)
+    (item : Item Byte) (out : List CodePoint) (_hn : st.bytesNeeded ≤ 3)
+    (_hc : st.codePoint ≤ 0x10FFFF)
+    (h : (decoderHandler st q item).1 = Encoding.HandlerResult.items out) :
+    out.all CodePoint.isScalarValue = true := by
+  match item with
+  | Item.endOfQueue =>
+    by_cases hz : st.bytesNeeded = 0
+    · rw [decoderHandler_endOfQueue_idle st q hz] at h; exact absurd h (by simp)
+    · rw [decoderHandler_endOfQueue_pending st q hz] at h; exact absurd h (by simp)
+  | Item.value b =>
+    by_cases hzero : st.bytesNeeded = 0
+    · by_cases hA : b.toNat ≤ 0x7F
+      · obtain ⟨d, hd, hdv⟩ := decoderHandler_ascii st q b hzero hA
+        rw [hd] at h
+        have : out = [d] := by
+          have := congrArg (fun r => match r with
+            | Encoding.HandlerResult.items l => l
+            | _ => ([] : List CodePoint)) h
+          exact this.symm
+        rw [this, List.all_cons, List.all_nil, Bool.and_true]
+        rw [CodePoint.isScalarValue, CodePoint.isSurrogate, CodePoint.isLeadingSurrogate,
+          CodePoint.isTrailingSurrogate, CodePoint.inRange, CodePoint.inRange, hdv]
+        have : b.toNat ≤ 0x7F := hA
+        simp only [decide_eq_false (show ¬ (0xD800 ≤ b.toNat ∧ b.toNat ≤ 0xDBFF) by omega),
+          decide_eq_false (show ¬ (0xDC00 ≤ b.toNat ∧ b.toNat ≤ 0xDFFF) by omega)]
+        rfl
+      · by_cases h2 : 0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF
+        · rw [decoderHandler_lead_two st q b hzero h2.1 h2.2] at h; exact absurd h (by simp)
+        · by_cases h3 : 0xE0 ≤ b.toNat ∧ b.toNat ≤ 0xEF
+          · rw [decoderHandler_lead_three st q b hzero h3.1 h3.2] at h; exact absurd h (by simp)
+          · by_cases h4 : 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4
+            · rw [decoderHandler_lead_four st q b hzero h4.1 h4.2] at h
+              exact absurd h (by simp)
+            · rw [decoderHandler_lead_error st q b hzero (by omega)] at h
+              exact absurd h (by simp)
+    · by_cases hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat
+      · rw [decoderHandler_out_of_boundary st q b hzero hout] at h; exact absurd h (by simp)
+      · by_cases hcomp : st.bytesSeen + 1 = st.bytesNeeded
+        · obtain ⟨d, hd, hdv⟩ :=
+            decoderHandler_complete st q b hzero (by omega) (by omega) hcomp
+          rw [hd] at h
+          have hout' : out = [d] := by
+            have := congrArg (fun r => match r with
+              | Encoding.HandlerResult.items l => l
+              | _ => ([] : List CodePoint)) h
+            exact this.symm
+          have hns := complete_scalar st b hzero hout hcomp
+          rw [hout', List.all_cons, List.all_nil, Bool.and_true]
+          rw [CodePoint.isScalarValue, CodePoint.isSurrogate, CodePoint.isLeadingSurrogate,
+            CodePoint.isTrailingSurrogate, CodePoint.inRange, CodePoint.inRange, hdv]
+          simp only [decide_eq_false (show ¬ (0xD800 ≤ ((st.codePoint <<< 6) |||
+              (b.toNat &&& 0x3F)) ∧ ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F)) ≤ 0xDBFF) by
+              omega),
+            decide_eq_false (show ¬ (0xDC00 ≤ ((st.codePoint <<< 6) |||
+              (b.toNat &&& 0x3F)) ∧ ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F)) ≤ 0xDFFF) by
+              omega)]
+          rfl
+        · rw [decoderHandler_accumulate st q b hzero (by omega) (by omega) hcomp] at h
+          exact absurd h (by simp)
+
+/-! ### Processing an item and processing a queue
+
+PROCI [15509,17620) and PROCQ [14785,15508), specialized to UTF-8's decoder. -/
+
+/-- PROCI [15509,17620) specialized to UTF-8's decoder. The three assertions of
+steps 1 to 3 hold by construction: the mode is a `DecoderErrorMode` so it is
+never "html", the instance is a decoder so it is never asked for "replacement"
+as an encoder, and the surrogate assertion is an encoder-side assertion. Step 5
+pushes `end-of-queue`, step 6 pushes the items, step 7 switches on the mode and
+step 8 returns `continue`. -/
+def processItem (mode : Encoding.DecoderErrorMode) (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (item : Item Byte) :
+    Encoding.HandlerResult CodePoint × DecoderState × IoQueue Byte × IoQueue CodePoint :=
+  match decoderHandler st input item with
+  | (Encoding.HandlerResult.finished, st', input') =>
+    (Encoding.HandlerResult.finished, st', input', IoQueue.push output Item.endOfQueue)
+  | (Encoding.HandlerResult.items out, st', input') =>
+    (Encoding.HandlerResult.continues, st', input',
+      IoQueue.pushItems output (out.map Item.value))
+  | (Encoding.HandlerResult.error c, st', input') =>
+    match mode with
+    | Encoding.DecoderErrorMode.replacement =>
+      (Encoding.HandlerResult.continues, st', input',
+        IoQueue.push output (Item.value replacementCharacter.val))
+    | Encoding.DecoderErrorMode.fatal =>
+      (Encoding.HandlerResult.error c, st', input', output)
+  | (Encoding.HandlerResult.continues, st', input') =>
+    (Encoding.HandlerResult.continues, st', input', output)
+
+/-- PROCQ [14785,15508): "While true: Let result be the result of processing an
+item with the result of reading from input …; If result is not continue, then
+return result." The `While true` is fuel-bounded exactly as
+`Whatwg.Infra.ByteSequence.isPrefixLoop` is, and the first component is `none`
+when the fuel runs out — a live frontier and never an error (DB-07). -/
+def processQueue : Encoding.DecoderErrorMode → DecoderState → IoQueue Byte →
+    IoQueue CodePoint → Nat →
+      Option (Encoding.HandlerResult CodePoint) × DecoderState × IoQueue Byte ×
+        IoQueue CodePoint
+  | _, st, input, output, 0 => (none, st, input, output)
+  | mode, st, input, output, fuel + 1 =>
+    match IoQueue.read input with
+    | none => (none, st, input, output)
+    | some (item, input') =>
+      match processItem mode st input' output item with
+      | (Encoding.HandlerResult.continues, st', input'', output') =>
+        processQueue mode st' input'' output' fuel
+      | (result, st', input'', output') => (some result, st', input'', output')
+
+/-- The fuel that always suffices. Step 4.2 of DECODER [86515,90406) restores a
+byte, so the queue's length alone is not a decreasing measure; `2 × length + 1`
+is, because a restore happens only together with a reset of "UTF-8 bytes needed"
+to 0 and the `bytesNeeded = 0` branch never restores. -/
+def processQueueFuel (input : IoQueue Byte) : Nat := 2 * input.length + 1
+
+/-- The fuel of PROCQ [14785,15508). -/
+theorem processQueueFuel_eq (q : IoQueue Byte) : processQueueFuel q = 2 * q.length + 1 := rfl
+
+private def runMeasure (st : DecoderState) (input : IoQueue Byte) : Nat :=
+  2 * input.length + (if st.bytesNeeded = 0 then 0 else 1)
+
+private theorem runMeasure_le (st : DecoderState) (input : IoQueue Byte) :
+    runMeasure st input ≤ 2 * input.length + 1 := by
+  rw [runMeasure]; split <;> omega
+
+private theorem runMeasure_ge (st : DecoderState) (input : IoQueue Byte) :
+    2 * input.length ≤ runMeasure st input := by
+  rw [runMeasure]; split <;> omega
+
+private theorem runMeasure_of_zero (st : DecoderState) (input : IoQueue Byte)
+    (h : st.bytesNeeded = 0) : runMeasure st input = 2 * input.length := by
+  rw [runMeasure, if_pos h, Nat.add_zero]
+
+private theorem runMeasure_of_pos (st : DecoderState) (input : IoQueue Byte)
+    (h : st.bytesNeeded ≠ 0) : runMeasure st input = 2 * input.length + 1 := by
+  rw [runMeasure, if_neg h]
+
+private theorem initial_bytesNeeded : DecoderState.initial.bytesNeeded = 0 := rfl
+
+private theorem processItem_carries (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (item : Item Byte) :
+    (processItem mode st input output item).2.1 = (decoderHandler st input item).2.1 ∧
+      (processItem mode st input output item).2.2.1 = (decoderHandler st input item).2.2 := by
+  simp only [processItem]
+  generalize decoderHandler st input item = d
+  obtain ⟨r, st', q'⟩ := d
+  cases r with
+  | finished => exact ⟨rfl, rfl⟩
+  | items out => exact ⟨rfl, rfl⟩
+  | error c => cases mode <;> exact ⟨rfl, rfl⟩
+  | continues => exact ⟨rfl, rfl⟩
+
+private theorem processItem_finished_result (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (item : Item Byte)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.finished) :
+    (processItem mode st input output item).1 = Encoding.HandlerResult.finished := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h
+  subst h
+  rfl
+
+/-- A value item either leaves the input queue alone, or is restored to it by
+step 4.2 of DECODER [86515,90406) — and a restore happens only from a pending
+state and always resets "UTF-8 bytes needed" to 0. That is the whole content of
+the fuel bound. -/
+private theorem handler_value_progress (st : DecoderState) (q : IoQueue Byte) (b : Byte) :
+    (decoderHandler st q (Item.value b)).2.2 = q ∨
+      (st.bytesNeeded ≠ 0 ∧ (decoderHandler st q (Item.value b)).2.2 = IoQueue.restore q b ∧
+        (decoderHandler st q (Item.value b)).2.1.bytesNeeded = 0) := by
+  by_cases hzero : st.bytesNeeded = 0
+  · by_cases hA : b.toNat ≤ 0x7F
+    · obtain ⟨d, hd, _⟩ := decoderHandler_ascii st q b hzero hA
+      exact Or.inl (by rw [hd])
+    · by_cases h2 : 0xC2 ≤ b.toNat ∧ b.toNat ≤ 0xDF
+      · exact Or.inl (by rw [decoderHandler_lead_two st q b hzero h2.1 h2.2])
+      · by_cases h3 : 0xE0 ≤ b.toNat ∧ b.toNat ≤ 0xEF
+        · exact Or.inl (by rw [decoderHandler_lead_three st q b hzero h3.1 h3.2])
+        · by_cases h4 : 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4
+          · exact Or.inl (by rw [decoderHandler_lead_four st q b hzero h4.1 h4.2])
+          · exact Or.inl (by rw [decoderHandler_lead_error st q b hzero (by omega)])
+  · by_cases hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat
+    · refine Or.inr ⟨hzero, ?_, ?_⟩
+      · rw [decoderHandler_out_of_boundary st q b hzero hout]
+      · rw [decoderHandler_out_of_boundary st q b hzero hout]
+        exact initial_bytesNeeded
+    · by_cases hcomp : st.bytesSeen + 1 = st.bytesNeeded
+      · obtain ⟨d, hd, _⟩ := decoderHandler_complete st q b hzero (by omega) (by omega) hcomp
+        exact Or.inl (by rw [hd])
+      · exact Or.inl (by rw [decoderHandler_accumulate st q b hzero (by omega) (by omega) hcomp])
+
+private theorem step_decreases (mode : Encoding.DecoderErrorMode) (st st' : DecoderState)
+    (input input' input'' : IoQueue Byte) (output output' : IoQueue CodePoint)
+    (item : Item Byte) (hread : IoQueue.read input = some (item, input'))
+    (hproc : processItem mode st input' output item =
+      (Encoding.HandlerResult.continues, st', input'', output')) :
+    runMeasure st' input'' < runMeasure st input := by
+  have hst : st' = (decoderHandler st input' item).2.1 := by
+    rw [← (processItem_carries mode st input' output item).1, hproc]
+  have hin : input'' = (decoderHandler st input' item).2.2 := by
+    rw [← (processItem_carries mode st input' output item).2, hproc]
+  match item with
+  | Item.endOfQueue =>
+    have hq : input' = input := by
+      match input with
+      | [] => rw [IoQueue.read_nil] at hread; simp at hread
+      | Item.endOfQueue :: rest =>
+        rw [IoQueue.read_endOfQueue] at hread
+        simp only [Option.some.injEq, Prod.mk.injEq] at hread
+        exact hread.2.symm
+      | Item.value a :: rest =>
+        rw [IoQueue.read_value] at hread
+        simp at hread
+    by_cases hzero : st.bytesNeeded = 0
+    · have hfin := processItem_finished_result mode st input' output Item.endOfQueue
+        (by rw [decoderHandler_endOfQueue_idle st input' hzero])
+      rw [hproc] at hfin
+      exact absurd hfin (by simp)
+    · rw [decoderHandler_endOfQueue_pending st input' hzero] at hst hin
+      simp only at hst hin
+      have hnb : st'.bytesNeeded = 0 := by
+        rw [hst]
+        exact (mk_fields st.codePoint st.bytesSeen 0 st.lowerBoundary st.upperBoundary
+          (Or.inl rfl)).2.2.1
+      rw [runMeasure_of_zero st' input'' hnb, runMeasure_of_pos st input hzero, hin, hq]
+      omega
+  | Item.value b =>
+    have hq : input = Item.value b :: input' := by
+      match input with
+      | [] => rw [IoQueue.read_nil] at hread; simp at hread
+      | Item.endOfQueue :: rest =>
+        rw [IoQueue.read_endOfQueue] at hread
+        simp at hread
+      | Item.value a :: rest =>
+        rw [IoQueue.read_value] at hread
+        simp only [Option.some.injEq, Prod.mk.injEq, Item.value.injEq] at hread
+        rw [hread.1, hread.2]
+    have hlen : input.length = input'.length + 1 := by rw [hq]; rfl
+    rcases handler_value_progress st input' b with hkeep | ⟨hpos, hres, hnb⟩
+    · rw [hkeep] at hin
+      have h1 := runMeasure_le st' input''
+      have h2 := runMeasure_ge st input
+      rw [hin]
+      rw [hin] at h1
+      omega
+    · rw [hres] at hin
+      have hnb' : st'.bytesNeeded = 0 := by rw [hst]; exact hnb
+      have hl : input''.length = input.length := by
+        rw [hin, IoQueue.restore, List.length_cons, hlen]
+      rw [runMeasure_of_zero st' input'' hnb', runMeasure_of_pos st input hpos, hl]
+      omega
+
+private theorem processQueue_succ (mode : Encoding.DecoderErrorMode) :
+    ∀ (fuel : Nat) (st : DecoderState) (input : IoQueue Byte) (output : IoQueue CodePoint),
+      runMeasure st input ≤ fuel →
+        processQueue mode st input output (fuel + 1) = processQueue mode st input output fuel
+  | 0, st, input, output, h => by
+    have hlen : input.length = 0 := by
+      have := runMeasure_ge st input
+      omega
+    have hnil : input = [] := List.eq_nil_of_length_eq_zero hlen
+    rw [hnil]
+    rfl
+  | fuel + 1, st, input, output, h => by
+    show (match IoQueue.read input with
+        | none => (none, st, input, output)
+        | some (item, input') =>
+          match processItem mode st input' output item with
+          | (Encoding.HandlerResult.continues, st', input'', output') =>
+            processQueue mode st' input'' output' (fuel + 1)
+          | (result, st', input'', output') => (some result, st', input'', output')) =
+      (match IoQueue.read input with
+        | none => (none, st, input, output)
+        | some (item, input') =>
+          match processItem mode st input' output item with
+          | (Encoding.HandlerResult.continues, st', input'', output') =>
+            processQueue mode st' input'' output' fuel
+          | (result, st', input'', output') => (some result, st', input'', output'))
+    match hread : IoQueue.read input with
+    | none => rfl
+    | some (item, input') =>
+      show (match processItem mode st input' output item with
+          | (Encoding.HandlerResult.continues, st', input'', output') =>
+            processQueue mode st' input'' output' (fuel + 1)
+          | (result, st', input'', output') => (some result, st', input'', output')) =
+        (match processItem mode st input' output item with
+          | (Encoding.HandlerResult.continues, st', input'', output') =>
+            processQueue mode st' input'' output' fuel
+          | (result, st', input'', output') => (some result, st', input'', output'))
+      match hproc : processItem mode st input' output item with
+      | (Encoding.HandlerResult.continues, st', input'', output') =>
+        have hdec :=
+          step_decreases mode st st' input input' input'' output output' item hread hproc
+        exact processQueue_succ mode fuel st' input'' output' (by omega)
+      | (Encoding.HandlerResult.finished, st', input'', output') => rfl
+      | (Encoding.HandlerResult.items out, st', input'', output') => rfl
+      | (Encoding.HandlerResult.error c, st', input'', output') => rfl
+
+private theorem processQueue_add (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (f : Nat)
+    (h : runMeasure st input ≤ f) :
+    ∀ k : Nat, processQueue mode st input output (f + k) = processQueue mode st input output f
+  | 0 => rfl
+  | k + 1 => by
+    rw [show f + (k + 1) = (f + k) + 1 from rfl,
+      processQueue_succ mode (f + k) st input output (by omega),
+      processQueue_add mode st input output f h k]
+
+/-- The `While true` of PROCQ [14785,15508) terminates on every immediate queue,
+and `processQueueFuel` is enough fuel: above it the result no longer depends on
+the fuel. -/
+theorem processQueue_fuel_stable (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (fuel : Nat)
+    (h : processQueueFuel input ≤ fuel) :
+    processQueue mode st input output fuel =
+      processQueue mode st input output (processQueueFuel input) := by
+  have hm : runMeasure st input ≤ processQueueFuel input := by
+    rw [processQueueFuel]; exact runMeasure_le st input
+  have hsplit : fuel = processQueueFuel input + (fuel - processQueueFuel input) := by omega
+  rw [hsplit, processQueue_add mode st input output _ hm]
+
+/-- PROCI [15509,17620) step 7's "replacement" arm: "Push U+FFFD (�) to
+output." -/
+theorem processItem_replacement (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (item : Item Byte)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.error none) :
+    (processItem Encoding.DecoderErrorMode.replacement st input output item).2.2.2 =
+      IoQueue.push output (Item.value replacementCharacter.val) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h
+  subst h
+  rfl
+
+/-- PROCI [15509,17620) step 7's "fatal" arm: "Return result." Nothing is
+pushed. -/
+theorem processItem_fatal (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (item : Item Byte)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.error none) :
+    processItem Encoding.DecoderErrorMode.fatal st input output item =
+      (Encoding.HandlerResult.error none, (decoderHandler st input item).2.1,
+        (decoderHandler st input item).2.2, output) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h ⊢
+  subst h
+  rfl
+
+/-- PROCI [15509,17620) step 5: "If result is finished: Push end-of-queue to
+output." -/
+theorem processItem_finished (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (h : st.bytesNeeded = 0) :
+    (processItem mode st input output Item.endOfQueue).2.2.2 =
+      IoQueue.push output Item.endOfQueue := by
+  simp only [processItem, decoderHandler_endOfQueue_idle st input h]
+
+/-! ### Unfolding lemmas for the run
+
+Private step lemmas that turn one iteration of PROCQ [14785,15508) into a
+handler transition. Every law below and every round trip is chained from
+them. -/
+
+private theorem processItem_of_finished (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (item : Item Byte)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.finished) :
+    processItem mode st input output item =
+      (Encoding.HandlerResult.finished, (decoderHandler st input item).2.1,
+        (decoderHandler st input item).2.2, IoQueue.push output Item.endOfQueue) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h ⊢
+  subst h
+  rfl
+
+private theorem processItem_of_items (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (item : Item Byte)
+    (out : List CodePoint) (h : (decoderHandler st input item).1 =
+      Encoding.HandlerResult.items out) :
+    processItem mode st input output item =
+      (Encoding.HandlerResult.continues, (decoderHandler st input item).2.1,
+        (decoderHandler st input item).2.2,
+        IoQueue.pushItems output (out.map Item.value)) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h ⊢
+  subst h
+  rfl
+
+private theorem processItem_of_error_replacement (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (item : Item Byte) (c : Option CodePoint)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.error c) :
+    processItem Encoding.DecoderErrorMode.replacement st input output item =
+      (Encoding.HandlerResult.continues, (decoderHandler st input item).2.1,
+        (decoderHandler st input item).2.2,
+        IoQueue.push output (Item.value replacementCharacter.val)) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h ⊢
+  subst h
+  rfl
+
+private theorem processItem_of_error_fatal (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (item : Item Byte) (c : Option CodePoint)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.error c) :
+    processItem Encoding.DecoderErrorMode.fatal st input output item =
+      (Encoding.HandlerResult.error c, (decoderHandler st input item).2.1,
+        (decoderHandler st input item).2.2, output) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h ⊢
+  subst h
+  rfl
+
+private theorem processQueue_succ_eq (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (fuel : Nat) :
+    processQueue mode st input output (fuel + 1) =
+      (match IoQueue.read input with
+        | none => (none, st, input, output)
+        | some (item, input') =>
+          match processItem mode st input' output item with
+          | (Encoding.HandlerResult.continues, st', input'', output') =>
+            processQueue mode st' input'' output' fuel
+          | (result, st', input'', output') => (some result, st', input'', output')) := rfl
+
+private theorem processQueue_step (mode : Encoding.DecoderErrorMode) (st st' : DecoderState)
+    (input input' input'' : IoQueue Byte) (output output' : IoQueue CodePoint) (fuel : Nat)
+    (item : Item Byte) (hread : IoQueue.read input = some (item, input'))
+    (hproc : processItem mode st input' output item =
+      (Encoding.HandlerResult.continues, st', input'', output')) :
+    processQueue mode st input output (fuel + 1) =
+      processQueue mode st' input'' output' fuel := by
+  simp only [processQueue_succ_eq, hread, hproc]
+
+private theorem processQueue_stop (mode : Encoding.DecoderErrorMode) (st st' : DecoderState)
+    (input input' input'' : IoQueue Byte) (output output' : IoQueue CodePoint) (fuel : Nat)
+    (item : Item Byte) (result : Encoding.HandlerResult CodePoint)
+    (hne : result ≠ Encoding.HandlerResult.continues)
+    (hread : IoQueue.read input = some (item, input'))
+    (hproc : processItem mode st input' output item = (result, st', input'', output')) :
+    processQueue mode st input output (fuel + 1) = (some result, st', input'', output') := by
+  simp only [processQueue_succ_eq, hread, hproc]
+
+private theorem processItem_of_continues (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (item : Item Byte)
+    (h : (decoderHandler st input item).1 = Encoding.HandlerResult.continues) :
+    processItem mode st input output item =
+      (Encoding.HandlerResult.continues, (decoderHandler st input item).2.1,
+        (decoderHandler st input item).2.2, output) := by
+  simp only [processItem]
+  generalize hd : decoderHandler st input item = d at h ⊢
+  obtain ⟨r, st', q'⟩ := d
+  simp only at h ⊢
+  subst h
+  rfl
+
+private theorem processQueue_read_none (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (fuel : Nat)
+    (hread : IoQueue.read input = none) :
+    processQueue mode st input output (fuel + 1) = (none, st, input, output) := by
+  simp only [processQueue_succ_eq, hread]
+
+private theorem processQueue_of_finished (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (fuel : Nat) (item : Item Byte)
+    (input' : IoQueue Byte) (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.finished) :
+    processQueue mode st input output (fuel + 1) =
+      (some Encoding.HandlerResult.finished, (decoderHandler st input' item).2.1,
+        (decoderHandler st input' item).2.2, IoQueue.push output Item.endOfQueue) := by
+  simp only [processQueue_succ_eq, hread, processItem_of_finished mode st input' output item hh]
+
+private theorem processQueue_of_items (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (fuel : Nat) (item : Item Byte)
+    (input' : IoQueue Byte) (out : List CodePoint)
+    (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.items out) :
+    processQueue mode st input output (fuel + 1) =
+      processQueue mode (decoderHandler st input' item).2.1 (decoderHandler st input' item).2.2
+        (IoQueue.pushItems output (out.map Item.value)) fuel := by
+  simp only [processQueue_succ_eq, hread,
+    processItem_of_items mode st input' output item out hh]
+
+private theorem processQueue_of_continues (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (input : IoQueue Byte) (output : IoQueue CodePoint) (fuel : Nat) (item : Item Byte)
+    (input' : IoQueue Byte) (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.continues) :
+    processQueue mode st input output (fuel + 1) =
+      processQueue mode (decoderHandler st input' item).2.1 (decoderHandler st input' item).2.2
+        output fuel := by
+  simp only [processQueue_succ_eq, hread, processItem_of_continues mode st input' output item hh]
+
+private theorem processQueue_of_error_fatal (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (fuel : Nat) (item : Item Byte) (input' : IoQueue Byte)
+    (c : Option CodePoint) (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.error c) :
+    processQueue Encoding.DecoderErrorMode.fatal st input output (fuel + 1) =
+      (some (Encoding.HandlerResult.error c), (decoderHandler st input' item).2.1,
+        (decoderHandler st input' item).2.2, output) := by
+  simp only [processQueue_succ_eq, hread, processItem_of_error_fatal st input' output item c hh]
+
+private theorem processQueue_of_error_replacement (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint) (fuel : Nat) (item : Item Byte) (input' : IoQueue Byte)
+    (c : Option CodePoint) (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.error c) :
+    processQueue Encoding.DecoderErrorMode.replacement st input output (fuel + 1) =
+      processQueue Encoding.DecoderErrorMode.replacement (decoderHandler st input' item).2.1
+        (decoderHandler st input' item).2.2
+        (IoQueue.push output (Item.value replacementCharacter.val)) fuel := by
+  simp only [processQueue_succ_eq, hread,
+    processItem_of_error_replacement st input' output item c hh]
+
+private theorem convertTo_cons {α : Type} (a : α) (l : List α) :
+    IoQueue.convertTo (a :: l) = Item.value a :: IoQueue.convertTo l := rfl
+
+private theorem read_convertTo_cons {α : Type} (a : α) (l : List α) :
+    IoQueue.read (IoQueue.convertTo (a :: l)) = some (Item.value a, IoQueue.convertTo l) := rfl
+
+private theorem read_convertTo_nil {α : Type} :
+    IoQueue.read (IoQueue.convertTo ([] : List α)) =
+      some (Item.endOfQueue, IoQueue.convertTo ([] : List α)) := rfl
+
+/-! ### The four hooks for standards
+
+HOOKS [43782,45058): "The algorithms defined below (UTF-8 decode, UTF-8 decode
+without BOM, UTF-8 decode without BOM or fail, and UTF-8 encode) are intended
+for usage by other standards." -/
+
+/-- DECODE [45059,45762): "Let buffer be the result of peeking three bytes from
+ioQueue, converted to a byte sequence. If buffer is 0xEF 0xBB 0xBF, then read
+three bytes from ioQueue. Process a queue with an instance of UTF-8's decoder,
+ioQueue, output, and 'replacement'. Return output." Step 1 is stated over
+`IoQueue.peekPrefix`, the zero-based reading of PEEK [7651,8447) that INFRA-R15
+asks the operator to ratify. -/
+def decodeQueue (ioQueue : IoQueue Byte) : IoQueue CodePoint :=
+  let stripped :=
+    if IoQueue.peekPrefix ioQueue 3 = bom then
+      match IoQueue.readItems ioQueue 3 with
+      | some (_, remaining) => remaining
+      | none => ioQueue
+    else ioQueue
+  (processQueue Encoding.DecoderErrorMode.replacement DecoderState.initial stripped []
+    (processQueueFuel stripped)).2.2.2
+
+/-- NOBOM [45763,46180): "Process a queue with an instance of UTF-8's decoder,
+ioQueue, output, and 'replacement'. Return output." -/
+def decodeWithoutBomQueue (ioQueue : IoQueue Byte) : IoQueue CodePoint :=
+  (processQueue Encoding.DecoderErrorMode.replacement DecoderState.initial ioQueue []
+    (processQueueFuel ioQueue)).2.2.2
+
+/-- ORFAIL [46181,46905): "Let potentialError be the result of processing a
+queue with an instance of UTF-8's decoder, ioQueue, output, and 'fatal'. If
+potentialError is an error, then return failure. Return output." Failure is
+`none` (INFRA-R3). -/
+def decodeWithoutBomOrFailQueue (ioQueue : IoQueue Byte) : Option (IoQueue CodePoint) :=
+  match processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial ioQueue []
+      (processQueueFuel ioQueue) with
+  | (some (Encoding.HandlerResult.error _), _, _, _) => none
+  | (_, _, _, output) => some output
+
+/-- DECODE [45059,45762) at the byte-sequence face, through TOQ [10286,10769)
+and FROMQ [9982,10285). -/
+def decode (input : ByteSequence) : List CodePoint :=
+  IoQueue.convertFrom (decodeQueue (IoQueue.convertTo input))
+
+/-- NOBOM [45763,46180) at the byte-sequence face. -/
+def decodeWithoutBom (input : ByteSequence) : List CodePoint :=
+  IoQueue.convertFrom (decodeWithoutBomQueue (IoQueue.convertTo input))
+
+/-- ORFAIL [46181,46905) at the byte-sequence face. -/
+def decodeWithoutBomOrFail (input : ByteSequence) : Option (List CodePoint) :=
+  (decodeWithoutBomOrFailQueue (IoQueue.convertTo input)).map IoQueue.convertFrom
+
+/-- DECODE [45059,45762) at the `JsString` face. -/
+def decodeString (input : ByteSequence) : JsString :=
+  JsString.ofCodePoints (decode input)
+
+/-- NOBOM [45763,46180) at the `JsString` face. -/
+def decodeWithoutBomString (input : ByteSequence) : JsString :=
+  JsString.ofCodePoints (decodeWithoutBom input)
+
+/-- ORFAIL [46181,46905) at the `JsString` face. -/
+def decodeWithoutBomOrFailString (input : ByteSequence) : Option JsString :=
+  (decodeWithoutBomOrFail input).map JsString.ofCodePoints
+
+private def errorCountLoop : DecoderState → IoQueue Byte → Nat → Nat
+  | _, _, 0 => 0
+  | st, input, fuel + 1 =>
+    match IoQueue.read input with
+    | none => 0
+    | some (item, input') =>
+      (match (decoderHandler st input' item).1 with
+        | Encoding.HandlerResult.error _ => 1
+        | _ => 0) +
+        (match processItem Encoding.DecoderErrorMode.replacement st input' [] item with
+          | (Encoding.HandlerResult.continues, st', input'', _) => errorCountLoop st' input'' fuel
+          | _ => 0)
+
+/-- How many `error` results the replacement-mode run of PROCQ [14785,15508)
+substituted a U+FFFD for. This is deliberately **not** the number of U+FFFD in
+the output: U+FFFD is itself a scalar value with a well-formed encoding, so
+`decodeWithoutBom [0xEF, 0xBF, 0xBD]` contains one U+FFFD and `errorCount` of it
+is 0 (`INFRA-UTF8-CE-011`). -/
+def errorCount (input : ByteSequence) : Nat :=
+  errorCountLoop DecoderState.initial (IoQueue.convertTo input)
+    (processQueueFuel (IoQueue.convertTo input))
+
+/-- Whether the byte sequence is in the image of the UTF-8 encoder, which is
+what ORFAIL [46181,46905) succeeds on. -/
+def isWellFormed (input : ByteSequence) : Bool := (decodeWithoutBomOrFail input).isSome
+
+private theorem errorCountLoop_succ_eq (st : DecoderState) (input : IoQueue Byte) (fuel : Nat) :
+    errorCountLoop st input (fuel + 1) =
+      (match IoQueue.read input with
+        | none => 0
+        | some (item, input') =>
+          (match (decoderHandler st input' item).1 with
+            | Encoding.HandlerResult.error _ => 1
+            | _ => 0) +
+            (match processItem Encoding.DecoderErrorMode.replacement st input' [] item with
+              | (Encoding.HandlerResult.continues, st', input'', _) =>
+                errorCountLoop st' input'' fuel
+              | _ => 0)) := rfl
+
+private theorem errorCountLoop_read_none (st : DecoderState) (input : IoQueue Byte) (fuel : Nat)
+    (hread : IoQueue.read input = none) : errorCountLoop st input (fuel + 1) = 0 := by
+  simp only [errorCountLoop_succ_eq, hread]
+
+private theorem errorCountLoop_of_finished (st : DecoderState) (input : IoQueue Byte)
+    (fuel : Nat) (item : Item Byte) (input' : IoQueue Byte)
+    (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.finished) :
+    errorCountLoop st input (fuel + 1) = 0 := by
+  simp only [errorCountLoop_succ_eq, hread, hh,
+    processItem_of_finished Encoding.DecoderErrorMode.replacement st input' [] item hh]
+
+private theorem errorCountLoop_of_items (st : DecoderState) (input : IoQueue Byte) (fuel : Nat)
+    (item : Item Byte) (input' : IoQueue Byte) (out : List CodePoint)
+    (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.items out) :
+    errorCountLoop st input (fuel + 1) =
+      errorCountLoop (decoderHandler st input' item).2.1 (decoderHandler st input' item).2.2
+        fuel := by
+  simp only [errorCountLoop_succ_eq, hread, hh,
+    processItem_of_items Encoding.DecoderErrorMode.replacement st input' [] item out hh,
+    Nat.zero_add]
+
+private theorem errorCountLoop_of_continues (st : DecoderState) (input : IoQueue Byte)
+    (fuel : Nat) (item : Item Byte) (input' : IoQueue Byte)
+    (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.continues) :
+    errorCountLoop st input (fuel + 1) =
+      errorCountLoop (decoderHandler st input' item).2.1 (decoderHandler st input' item).2.2
+        fuel := by
+  simp only [errorCountLoop_succ_eq, hread, hh,
+    processItem_of_continues Encoding.DecoderErrorMode.replacement st input' [] item hh,
+    Nat.zero_add]
+
+private theorem errorCountLoop_of_error (st : DecoderState) (input : IoQueue Byte) (fuel : Nat)
+    (item : Item Byte) (input' : IoQueue Byte) (c : Option CodePoint)
+    (hread : IoQueue.read input = some (item, input'))
+    (hh : (decoderHandler st input' item).1 = Encoding.HandlerResult.error c) :
+    errorCountLoop st input (fuel + 1) =
+      1 + errorCountLoop (decoderHandler st input' item).2.1
+        (decoderHandler st input' item).2.2 fuel := by
+  simp only [errorCountLoop_succ_eq, hread, hh,
+    processItem_of_error_replacement st input' [] item c hh]
+
+/-- The fatal run of PROCQ [14785,15508) reports an error exactly when the
+replacement run substituted at least one U+FFFD. The two runs visit the same
+states and the same input queues — `processItem`'s state and queue outputs do
+not depend on the mode — so they part company only at the first `error`. -/
+private theorem fatal_error_iff : ∀ (fuel : Nat) (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint),
+      ((∃ c : Option CodePoint,
+          (processQueue Encoding.DecoderErrorMode.fatal st input output fuel).1 =
+            some (Encoding.HandlerResult.error c)) ↔ 0 < errorCountLoop st input fuel)
+  | 0, st, input, output => by
+    constructor
+    · rintro ⟨c, hc⟩; exact absurd hc (by simp [processQueue])
+    · intro hc; exact absurd hc (by simp [errorCountLoop])
+  | fuel + 1, st, input, output => by
+    cases hread : IoQueue.read input with
+    | none =>
+      rw [processQueue_read_none _ st input output fuel hread,
+        errorCountLoop_read_none st input fuel hread]
+      constructor
+      · rintro ⟨c, hc⟩; exact absurd hc (by simp)
+      · intro hc; exact absurd hc (by simp)
+    | some p =>
+      obtain ⟨item, input'⟩ := p
+      cases hh : (decoderHandler st input' item).1 with
+      | finished =>
+        rw [processQueue_of_finished _ st input output fuel item input' hread hh,
+          errorCountLoop_of_finished st input fuel item input' hread hh]
+        constructor
+        · rintro ⟨c, hc⟩; exact absurd hc (by simp)
+        · intro hc; exact absurd hc (by simp)
+      | items out =>
+        rw [processQueue_of_items _ st input output fuel item input' out hread hh,
+          errorCountLoop_of_items st input fuel item input' out hread hh]
+        exact fatal_error_iff fuel _ _ _
+      | continues =>
+        rw [processQueue_of_continues _ st input output fuel item input' hread hh,
+          errorCountLoop_of_continues st input fuel item input' hread hh]
+        exact fatal_error_iff fuel _ _ _
+      | error c =>
+        rw [processQueue_of_error_fatal st input output fuel item input' c hread hh,
+          errorCountLoop_of_error st input fuel item input' c hread hh]
+        constructor
+        · intro _; omega
+        · intro _; exact ⟨c, rfl⟩
+
+/-- Wherever no error is substituted, the two error modes of PROCI
+[15509,17620) step 7 produce the same output: they part company only at an
+`error`. -/
+private theorem modes_agree : ∀ (fuel : Nat) (st : DecoderState) (input : IoQueue Byte)
+    (output : IoQueue CodePoint), errorCountLoop st input fuel = 0 →
+      (processQueue Encoding.DecoderErrorMode.fatal st input output fuel).2.2.2 =
+        (processQueue Encoding.DecoderErrorMode.replacement st input output fuel).2.2.2
+  | 0, _, _, _, _ => rfl
+  | fuel + 1, st, input, output, h => by
+    cases hread : IoQueue.read input with
+    | none =>
+      rw [processQueue_read_none _ st input output fuel hread,
+        processQueue_read_none _ st input output fuel hread]
+    | some p =>
+      obtain ⟨item, input'⟩ := p
+      cases hh : (decoderHandler st input' item).1 with
+      | finished =>
+        rw [processQueue_of_finished _ st input output fuel item input' hread hh,
+          processQueue_of_finished _ st input output fuel item input' hread hh]
+      | items out =>
+        rw [processQueue_of_items _ st input output fuel item input' out hread hh,
+          processQueue_of_items _ st input output fuel item input' out hread hh]
+        rw [errorCountLoop_of_items st input fuel item input' out hread hh] at h
+        exact modes_agree fuel _ _ _ h
+      | continues =>
+        rw [processQueue_of_continues _ st input output fuel item input' hread hh,
+          processQueue_of_continues _ st input output fuel item input' hread hh]
+        rw [errorCountLoop_of_continues st input fuel item input' hread hh] at h
+        exact modes_agree fuel _ _ _ h
+      | error c =>
+        rw [errorCountLoop_of_error st input fuel item input' c hread hh] at h
+        omega
+
+private theorem decodeWithoutBomOrFailQueue_eq_none_iff (q : IoQueue Byte) :
+    decodeWithoutBomOrFailQueue q = none ↔
+      ∃ c : Option CodePoint,
+        (processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial q []
+          (processQueueFuel q)).1 = some (Encoding.HandlerResult.error c) := by
+  rw [decodeWithoutBomOrFailQueue]
+  generalize processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial q []
+    (processQueueFuel q) = r
+  obtain ⟨r1, st', q', out⟩ := r
+  cases r1 with
+  | none => simp
+  | some hr =>
+    cases hr with
+    | error c => simp
+    | finished => simp
+    | items o => simp
+    | continues => simp
+
+private theorem decodeWithoutBomOrFailQueue_eq_some (q : IoQueue Byte)
+    (out : IoQueue CodePoint) (h : decodeWithoutBomOrFailQueue q = some out) :
+    out = (processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial q []
+      (processQueueFuel q)).2.2.2 := by
+  rw [decodeWithoutBomOrFailQueue] at h
+  generalize hr : processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial q []
+    (processQueueFuel q) = r at h ⊢
+  obtain ⟨r1, st', q', o⟩ := r
+  cases r1 with
+  | none => simp only [Option.some.injEq] at h; exact h.symm
+  | some hres =>
+    cases hres with
+    | error c => exact absurd h (by simp)
+    | finished => simp only [Option.some.injEq] at h; exact h.symm
+    | items l => simp only [Option.some.injEq] at h; exact h.symm
+    | continues => simp only [Option.some.injEq] at h; exact h.symm
+
+/-! ### The hooks' compositional laws -/
+
+/-- NOBOM [45763,46180) at the byte-sequence face. -/
+theorem decodeWithoutBom_eq (b : ByteSequence) :
+    decodeWithoutBom b =
+      IoQueue.convertFrom (decodeWithoutBomQueue (IoQueue.convertTo b)) := rfl
+
+/-- DECODE [45059,45762) at the byte-sequence face. -/
+theorem decode_eq (b : ByteSequence) :
+    decode b = IoQueue.convertFrom (decodeQueue (IoQueue.convertTo b)) := rfl
+
+/-- ORFAIL [46181,46905) at the byte-sequence face. -/
+theorem decodeWithoutBomOrFail_eq (b : ByteSequence) :
+    decodeWithoutBomOrFail b =
+      (decodeWithoutBomOrFailQueue (IoQueue.convertTo b)).map IoQueue.convertFrom := rfl
+
+/-- NOBOM [45763,46180) at the `JsString` face. -/
+theorem decodeWithoutBomString_eq (b : ByteSequence) :
+    decodeWithoutBomString b = JsString.ofCodePoints (decodeWithoutBom b) := rfl
+
+/-- DECODE [45059,45762) at the `JsString` face. -/
+theorem decodeString_eq (b : ByteSequence) :
+    decodeString b = JsString.ofCodePoints (decode b) := rfl
+
+/-- ORFAIL [46181,46905) at the `JsString` face. -/
+theorem decodeWithoutBomOrFailString_eq (b : ByteSequence) :
+    decodeWithoutBomOrFailString b =
+      (decodeWithoutBomOrFail b).map JsString.ofCodePoints := rfl
+
+/-! ### The failure set
+
+ORFAIL [46181,46905). The fail mode returns `none` exactly when the replacement
+mode substituted at least one U+FFFD for an `error`. This is *not* "when the
+output contains U+FFFD": U+FFFD is a scalar value with a well-formed encoding,
+so `errorCount` and not the output's contents is the right observation
+(`INFRA-UTF8-CE-011`). -/
+
+/-- ORFAIL [46181,46905) step 2 against PROCI [15509,17620) step 7's
+"replacement" arm. -/
+theorem decodeWithoutBomOrFail_eq_none_iff (b : ByteSequence) :
+    decodeWithoutBomOrFail b = none ↔ 0 < errorCount b := by
+  rw [decodeWithoutBomOrFail, Option.map_eq_none_iff, decodeWithoutBomOrFailQueue_eq_none_iff,
+    errorCount]
+  exact fatal_error_iff _ _ _ _
+
+/-- The failure set is exactly where the replacement mode substitutes. -/
+theorem errorCount_eq_zero_iff (b : ByteSequence) :
+    errorCount b = 0 ↔ isWellFormed b = true := by
+  constructor
+  · intro h
+    rw [isWellFormed]
+    cases hd : decodeWithoutBomOrFail b with
+    | none =>
+      have hpos := (decodeWithoutBomOrFail_eq_none_iff b).mp hd
+      omega
+    | some v => rfl
+  · intro h
+    rcases Nat.eq_zero_or_pos (errorCount b) with h0 | hp
+    · exact h0
+    · have hnone := (decodeWithoutBomOrFail_eq_none_iff b).mpr hp
+      rw [isWellFormed, hnone] at h
+      exact absurd h (by simp)
+
+/-- Wherever the fatal mode succeeds, the replacement mode gives the same
+answer: the two modes differ only at an `error`. -/
+theorem decodeWithoutBomOrFail_eq_some_imp (b : ByteSequence) (cs : List CodePoint)
+    (h : decodeWithoutBomOrFail b = some cs) : decodeWithoutBom b = cs := by
+  have hzero : errorCount b = 0 := by
+    rcases Nat.eq_zero_or_pos (errorCount b) with h0 | hp
+    · exact h0
+    · rw [(decodeWithoutBomOrFail_eq_none_iff b).mpr hp] at h
+      exact absurd h (by simp)
+  rw [decodeWithoutBomOrFail] at h
+  cases hq : decodeWithoutBomOrFailQueue (IoQueue.convertTo b) with
+  | none => rw [hq] at h; exact absurd h (by simp)
+  | some out =>
+    rw [hq] at h
+    simp only [Option.map_some, Option.some.injEq] at h
+    have hout := decodeWithoutBomOrFailQueue_eq_some (IoQueue.convertTo b) out hq
+    rw [decodeWithoutBom, decodeWithoutBomQueue, ← h, hout]
+    rw [modes_agree (processQueueFuel (IoQueue.convertTo b)) DecoderState.initial
+      (IoQueue.convertTo b) [] hzero]
+
+/-- `Whatwg.Url.Boundary.Utf8DecodeOrFail.failed`, as
+`requirement.percent-encoded-utf8-advice` of `vendor/whatwg-url-55d66993/url.bs`
+[16325,16862) reads it: the boundary's `failed` field is a function of the bytes,
+and this is that function. -/
+theorem u3Profile_decodeOrFail (b : ByteSequence) :
+    (decodeWithoutBomOrFail b).isNone = true ↔ isWellFormed b = false := by
+  rw [isWellFormed]
+  cases decodeWithoutBomOrFail b <;> simp
+
+end Utf8
+
 end Whatwg.Infra
