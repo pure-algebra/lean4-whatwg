@@ -1949,6 +1949,24 @@ gate, the scheduler mutants and the WS-CONFIG counterexample ids.
 
 ### Q4 landing receipt (second pass)
 
+> Coordinator note at the landing (R-P27). The review found that both passes
+> had placed a global `@[simp]` attribute on `freshReadCell`,
+> `settleReadCell` and `settleReadCells`, the only such attributes in the
+> production tree and absent from the frozen §5.4 text, and that the
+> receipts' "dependents unchanged" rested on it: with the attributes removed,
+> fourteen proof scripts in `Readable/Laws.lean`, `Piping/Laws.lean` and
+> `Transform/Runs.lean` fail. The landing tried removing the three attributes
+> and naming the operation in each of those fourteen `simp` calls (eleven in
+> `Readable/Laws.lean`, one at `Piping/Laws.lean` line 613, one at
+> `Transform/Runs.lean` line 79 with `zetaDelta`); the fourteen then elaborate,
+> but `Piping/Runs.lean`, which names none of the three operations, did not
+> finish in 42 CPU-minutes without the attributes. R-P27's fallback applies:
+> the attributes are re-frozen and their removal is debt D43. So the honest
+> count is: the three §5.4 targets and `Readable/Laws` changed bodies or
+> proofs as the packet authorizes, and the remaining dependents are
+> byte-identical, including the three global `@[simp]` attributes the frozen
+> §5.4 does not declare.
+
 Q4 builder seat, second pass, 2026-09-07, branch `promise/q4-builder-2`, based
 on the amended packet `promise/q4-amend` at `9441995` merged with `origin/main`
 (the U3 landing, R-P26 and R-U3). Contract:

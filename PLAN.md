@@ -181,6 +181,25 @@ dispositions, generated assurance wording, and residual proof scope. Infra's
 text graph and full Streams P4–P12 remain open; these integration receipts
 do not add a semantic coverage witness.
 
+**P8a released, 2026-09-07:** the 2026-09-05 hold's remaining item, the
+separate `codex/configuration-breaker` draft, is released by ruling R-P27:
+the Q4 packet restates all 158 of its ascriptions against `Whatwg.Ecma262`
+and `Whatwg.WebIdl` under DB-11 and landed green on `main`. P8's own
+obligations stay open exactly as listed there: well-formedness
+initialization and preservation, the token and mailbox correspondence, the
+ordered-effect receipts, the successful-profile progress theorem and the
+finite witness through the original start gate, arbitrary-tail FIFO beyond
+one episode, the existence half of the source erasure, the transcription
+gate to the sealed WPT bytes, the numeric chunk values under the three host
+profiles, and the register rows the seam's mutants owe.
+
+**Infra UTF-8 landed, 2026-09-07 (R-U4):** `Whatwg/Infra/Text/Utf8.lean` is
+on `main` with its 119-law battery green, the four U3 Infra candidates at
+their named homes, and the U3 tapes' UTF-8 profile discharged, so the U3
+graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
+still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
+global `@[simp]` attributes R-P27 re-froze.
+
 **Hold lifted, 2026-09-06:** the operator lifted the 2026-09-05 semantics
 hold and opened the promise lane: a census of ES2026's Jobs and Promise
 Objects clauses and of Web IDL's promise and exception sections, run as

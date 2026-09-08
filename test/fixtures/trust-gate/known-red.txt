@@ -432,6 +432,11 @@
 # weakening an ascription is a refusal, not a landing.
 #
 # The builder removes an entry the moment its battery is green.
-WhatwgTest.Infra.Utf8Contract
-WhatwgTest.Infra.Utf8Laws
-WhatwgTest.Infra.Utf8AxiomReport
+#
+# The Infra UTF-8 builder seat landed the packet on branch infra/utf8-builder on
+# 2026-09-07 (R-U4). All three batteries are green with no token of any
+# ascription changed: the interface #checks, the 119 law #checks and the 119
+# #print axioms all elaborate, and WhatwgTest.Infra.Counterexamples.Utf8 stayed
+# green. Every receipt prints inside the R-11 ceiling; 17 reach
+# Classical.choice against the stricter R-U3 target, recorded as debt D42. All
+# three entries are removed. No entry remains.
