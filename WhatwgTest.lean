@@ -50,6 +50,11 @@ import WhatwgTest.Ecma262.PromiseFidelityLaws
 import WhatwgTest.Ecma262.JobsCompleteContract
 import WhatwgTest.WebIdl.PromiseFidelityContract
 import WhatwgTest.Ecma262.PromiseFidelityAxiomReport
+import WhatwgTest.Streams.PromiseBridgeQ4
+import WhatwgTest.Streams.Semantics.OrderingContract
+import WhatwgTest.Streams.Semantics.OrderingLaws
+import WhatwgTest.Streams.Semantics.OrderingSource
+import WhatwgTest.Streams.Semantics.OrderingAxiomReport
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

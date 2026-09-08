@@ -226,6 +226,151 @@
 # [propext], 20 [propext, Quot.sound], 5
 # [propext, Classical.choice, Quot.sound]. No entry remains.
 
+# Q4 DB-11 restatement of the held P8a configuration-ordering packet, frozen
+# RED 2026-09-07 by the Q4 restatement breaker seat on branch
+# promise/q4-breaker, based on f700230.
+# Packet: test/contracts/configuration-ordering.contract.md.
+# Graphs: docs/CONFIGURATION-DAG.md (CONFIGURATION-PG-ORDERING) and the "Q4"
+# section of docs/PROMISE-DAG.md.
+# Held draft, read-only source of the 158 restated ascriptions:
+# C:\Users\kokok\Dev\lean4-WHATWG-streams-configuration-breaker at 6c44e08
+# plus uncommitted edits. Nothing in that worktree is modified by this packet.
+#
+# Implementation fence: Whatwg/Streams/Semantics/*.lean (the Ordering
+# configuration calculus and its Source judgment), the three Q4 operations and
+# five rewritten bodies inside Whatwg/Streams/Readable/{State,DefaultController,
+# DefaultReader}.lean, the additive Q4 bridging lemmas in
+# Whatwg/Streams/{Readable,Transform}/Laws.lean, the two census/overrides.tsv
+# disposition entries and the census/README.md paragraph of item 3 of the
+# contract, and the four declaration-record rows of item 2. The builder also
+# authors WhatwgTest/Streams/Semantics/OrderingBridgeProofs.lean, which is
+# outside this frozen battery's edit fence.
+#
+# Five entries. Each module is red only because the names it ascribes do not
+# exist yet. The fifteen class [R] ascriptions of OrderingContract already
+# elaborate against the landed Whatwg.Ecma262 names and must keep elaborating:
+# a repair that turns a module green by weakening one of them is a refusal,
+# not a landing.
+#
+# The builder removes an entry the moment its battery is green.
+#
+# Q4 BUILDER SEAT, branch promise/q4-builder, 2026-09-07. The packet is
+# PARTIALLY landed and four entries REMAIN. What landed:
+#
+#   * WhatwgTest.Streams.PromiseBridgeQ4 is GREEN — all 38 ascriptions, the 18
+#     for the four deferred generalizations and the 20 view conversions — so its
+#     entry is removed. `E-22`'s three operations, its five rewritten bodies and
+#     its five `rfl` equation lemmas landed, together with the three table
+#     bridges and the row 14, 15 and 16 bridges of the Q3 contract.
+#   * The `Whatwg.Streams.Semantics.Ordering` calculus landed in
+#     Configuration.lean, Step.lean, Runs.lean, Frontier.lean and Mask.lean.
+#     WhatwgTest.Streams.Semantics.OrderingContract fell from 235 diagnostics to
+#     ONE, OrderingLaws from 327 to FOUR, OrderingAxiomReport from 82 to THREE,
+#     and OrderingSource from 74 to 66.
+#
+# The four entries remain because four frozen ascriptions cannot be satisfied
+# against the Q3b-landed surface. They are recorded, with their exact
+# diagnostics, under "Builder notes" in
+# test/contracts/configuration-ordering.contract.md, and the coordinator rules
+# on each:
+#
+#   B1  OrderingContract.lean:108  `Reaction.mk` is ascribed at five explicit
+#       arguments; Q3b finding F4 gave it six (CAPFIELD).
+#   B2  OrderingLaws.lean:235      `register_eq` builds a five-field `Reaction`
+#       literal; six fields are required.
+#   B3  OrderingLaws.lean:545      `notifySettled_reactions_bridge` is FALSE as
+#       frozen: the two cursors of decision 2 make the phase payloads differ.
+#   B4  OrderingLaws.lean:540      `register_reactions_bridge` closes with
+#       `.map Prod.fst`, which projects the table, not the reactions, and does
+#       not typecheck.
+#
+# Not attempted, and recorded as remaining work: the CFG-WPT source and
+# certificate judgments of §6, which is why OrderingSource still has 66
+# diagnostics and OrderingAxiomReport three. The trust gate's all-green control
+# is NOT restored by this landing.
+
+# Q4 AMENDMENT BREAKER SEAT, branch promise/q4-amend, 2026-09-07, over the
+# first builder pass at 746032c merged with origin/main. The packet is amended,
+# breaker-owned; the four entries above STAY, and a fifth is added.
+#
+# Amended, each with its superseded text and a dated reason in the amended
+# line itself and in the "Q4 amendment" section of
+# test/contracts/configuration-ordering.contract.md:
+#
+#   A1  OrderingContract.lean  Reaction.mk at six explicit arguments with
+#                              Option Capability fifth (R-P25, builder note B1).
+#   A2  OrderingLaws.lean      register_eq gains none at the fifth field
+#                              (R-P25, builder note B2).
+#   A3  OrderingLaws.lean      register_reactions_bridge projects x.2.1, not
+#                              Prod.fst (R-P25, builder note B4).
+#   A4  OrderingContract.lean  notifySettled_reactions_bridge was FALSE as
+#       OrderingLaws.lean      frozen (builder note B3, WS-PROM-CE-039). It is
+#                              restated modulo the new phase erasure, and the
+#                              payload is recovered by the new
+#                              notifySettled_queued_serial. Five names are
+#                              added: phaseErase, reactionErase, their two
+#                              equations and that lemma.
+#   A5  OrderingSource.lean    the whole CFG-WPT seam is re-frozen, from 28
+#                              unimplementable ascriptions to 86 total
+#                              first-order ones. run_erases_to_reference is
+#                              REMOVED to P8 with its reasons.
+#   A6  OrderingAxiomReport.lean  82 receipts become 93, reconciled with the
+#                              names A1 to A5 leave in place.
+#
+# Diagnostics after the amendment, every one an unknown identifier or constant
+# naming a declaration the second builder pass must supply:
+#   OrderingContract      2   (phaseErase, reactionErase)
+#   OrderingLaws         13   (6 unknown identifiers, 4 invalidDottedIdent that
+#                              are the .constructor arms of the unknown
+#                              phaseErase_eq, 3 further unknown identifiers)
+#   OrderingSource      223   (86 unknown names, all of the seam)
+#   OrderingAxiomReport  14   (unknown constants)
+# WhatwgTest.Streams.PromiseBridgeQ4 stays GREEN and is not declared.
+#
+# FIFTH ENTRY, a defect the first builder pass did not report. Item 3 of the
+# packet (census/overrides.tsv) makes lake exe census --write regenerate
+# WhatwgTest/Audit/SpecCoverageRows.lean with .owned in place of
+# .foreignBoundary on slot.promise-state and slot.promise-is-handled. That is
+# 20 bytes shorter, and WhatwgTest/Audit/CensusProfileIdentity.lean freezes
+# that file at 32032 bytes and digest
+# d0e47fdfefdf412b88a51cfcbfa2ec573d6a8092faaba3462f68468ecb377476. The file
+# is now 32012 bytes with digest
+# 247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c, so the
+# battery is red and was red at 746032c as well.
+#
+# That battery belongs to test/contracts/census-profile-identity.contract.md,
+# the Q1 promise census packet, NOT to Q4, so this seat declares it red and
+# does not edit it. Its owner (or a coordinator ruling in the manner of R-P17)
+# amends the two numbers above; the replacement values are exactly the two
+# given. This entry is removed the moment that amendment lands.
+#
+# Q4 BUILDER SEAT, SECOND PASS, branch promise/q4-builder-2, 2026-09-07, on
+# promise/q4-amend 9441995 merged with origin/main (the U3 landing and R-P26).
+# All five entries are removed:
+#
+#   * A4 landed in Whatwg/Streams/Semantics/Configuration.lean — phaseErase,
+#     reactionErase, phaseErase_eq, reactionErase_eq, the restated
+#     notifySettled_reactions_bridge modulo the erasure under Nodup, and
+#     notifySettled_queued_serial (mask M2) — so OrderingContract and
+#     OrderingLaws are GREEN, with A1, A2 and A3 elaborating against the landed
+#     surface and the first pass's implementation unchanged.
+#   * A5 landed in the new Whatwg/Streams/Semantics/Source.lean: all 86
+#     ascriptions of the CFG-WPT seam as total first-order definitions, the four
+#     Bool checkers with their `= true` Props and five `_iff` ties, the pinned
+#     wptScript / wptCertificate / wptReference / wptSelectedPrefix with their
+#     three non-vacuity receipts, the three mutants with their three rejection
+#     receipts, erasure_preserves_selected_order on the reference side and
+#     erases_prefix_selected_order on the target side. No mutable table, no
+#     scheduler, no Config field (R-P21); the digests are pinned constants and
+#     the transcription gate stays P8's. OrderingSource is GREEN.
+#   * A6: all 93 receipts of OrderingAxiomReport print inside the R-11 ceiling.
+#   * A7: the CensusProfileIdentity pin is amended to 32012 bytes and digest
+#     247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c under
+#     ruling R-P26, with a dated comment; the other three pins are unchanged.
+#
+# WhatwgTest.Streams.PromiseBridgeQ4 stayed green throughout. No entry remains,
+# so the trust gate's all-green control is restored.
+
 # U3 URL percent-encoding packet, frozen RED 2026-09-07 by the URL U3 breaker
 # seat on branch url/u3-breaker, based on 7345c96.
 # Packet: test/contracts/url-percent-encoding.contract.md.

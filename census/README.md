@@ -68,19 +68,27 @@ root `AGENTS.md` already states rather than from a new policy.
   that reference algorithm `requirement`, so the `requirement` rows of
   `rs-abstract-ops` and the `op.readable-stream-pipe-to` row carry it.
 - **Foreign internal slots.** Twelve `slot` rows name ECMAScript internals
-  rather than streams state: the `ArrayBuffer` and `ArrayBufferView` slots the
-  byte-stream algorithms read, and the promise and completion-record fields the
-  algorithms branch on. The manifest names ArrayBuffer detachment
+  rather than streams state: the `ArrayBuffer` and `ArrayBufferView` slots
+  the byte-stream algorithms read, and the promise and completion-record
+  fields the algorithms branch on. The manifest names ArrayBuffer detachment
   `foreignBoundary`, and the root `AGENTS.md` representation rules put host
-  runtime objects and promises outside stored content, so these rows are
-  `foreignBoundary`. The three promise and completion-record rows are the
-  weakest of the twelve and are flagged for ratification in `overrides.tsv`.
-  Ruling R-P5 (2026-09-06) ratifies them as they stand and records the
-  cross-reference: the same named slots are `owned` in the ECMA-262 census,
-  because the two censuses answer two ownership questions about two
-  libraries. Streams does not own them and `Whatwg.Ecma262` does. These three
-  Streams rows become references into that library when P8 opens, at slice Q4
-  of `docs/PROMISE-PACKAGE-PLAN.md`, and not before.
+  runtime objects outside stored content, so the nine `ArrayBuffer` and
+  `ArrayBufferView` rows are `foreignBoundary`. The three promise and
+  completion-record rows were the weakest of the twelve and were flagged for
+  ratification. Ruling R-P5 (2026-09-06) ratified them as they stood and
+  recorded the cross-reference: the same named slots are `owned` in the
+  ECMA-262 census, and the Streams rows become references into
+  `Whatwg.Ecma262` when P8 opens, at slice Q4 of
+  `docs/PROMISE-PACKAGE-PLAN.md`. Slice Q4 is that point.
+  `slot.promise-state` and `slot.promise-is-handled` are now `owned`: since
+  slice Q3 they are modelled by `Whatwg.Ecma262.Promise.State` and the
+  `handled` field of its `Cell`, and the Streams algorithms reach them
+  through `Writable.promiseTable` and `Readable.readTable`. They stay inside
+  the denominator and stay `absent` until a witness is named. The third row,
+  `slot.value`, stays `foreignBoundary`: it is a completion-record field read
+  off a host abrupt completion, it has no counterpart row in the ECMA-262
+  census, and gap `G-10` of `docs/PROMISE-EXTRACTION-INVENTORY.md` records
+  that no Completion carrier exists in `Whatwg.Ecma262` at this pin.
 - **The transfer-only slot.** `ReadableStream`'s `[[Detached]]` is defined in
   the `rs-internal-slots` section, which is `owned`, but nothing outside the
   refused `*-transfer` sub-sections reads or writes it. The manifest refuses

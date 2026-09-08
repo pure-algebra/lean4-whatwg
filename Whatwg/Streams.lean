@@ -45,6 +45,7 @@ import Whatwg.Streams.Boundary.Transformer
 import Whatwg.Streams.Boundary.AbortSignal
 import Whatwg.Streams.Boundary.ArrayBuffer
 import Whatwg.Streams.Semantics.Configuration
+import Whatwg.Streams.Semantics.Source
 import Whatwg.Streams.Semantics.Step
 import Whatwg.Streams.Semantics.Runs
 import Whatwg.Streams.Semantics.Frontier

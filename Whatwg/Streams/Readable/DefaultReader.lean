@@ -25,30 +25,20 @@ The already-dequeued chunk is saved across synchronous pull reentrancy, under lo
 def read {α ε : Type} (s : State α ε) : State α ε :=
   match s.status with
   | .closed =>
-      { s with
-        nextRead := s.nextRead + 1,
-        readPromises := s.readPromises ++ [(s.nextRead, .fulfilled .done)],
-        trace := s.trace ++ [.settled (.read s.nextRead (.ok .done))] }
+      let (t, id) := freshReadCell s (.fulfilled .done)
+      { t with trace := t.trace ++ [.settled (.read id (.ok .done))] }
   | .errored e =>
-      { s with
-        nextRead := s.nextRead + 1,
-        readPromises := s.readPromises ++ [(s.nextRead, .rejected e)],
-        trace := s.trace ++ [.settled (.read s.nextRead (.error e))] }
+      let (t, id) := freshReadCell s (.rejected e)
+      { t with trace := t.trace ++ [.settled (.read id (.error e))] }
   | .readable =>
       match Data.dequeueValue sizes s.queue with
       | none =>
-          callPullIfNeeded
-            { s with
-              nextRead := s.nextRead + 1,
-              readPromises := s.readPromises ++ [(s.nextRead, .pending)],
-              readRequests := s.readRequests ++ [s.nextRead] }
+          let (t, id) := freshReadCell s .pending
+          callPullIfNeeded { t with readRequests := t.readRequests ++ [id] }
       | some (chunk, q) =>
-          let t :=
-            { s with
-              queue := q, nextRead := s.nextRead + 1,
-              readPromises := s.readPromises ++ [(s.nextRead, .pending)] }
+          let (t, id) := freshReadCell { s with queue := q } .pending
           if s.closeRequested = true ∧ q.entries = [] then
-            continuePull (streamClose { t with algorithms := none }) (.settleRead s.nextRead chunk)
-          else callPullIfNeededWith t (.settleRead s.nextRead chunk)
+            continuePull (streamClose { t with algorithms := none }) (.settleRead id chunk)
+          else callPullIfNeededWith t (.settleRead id chunk)
 
 end Whatwg.Streams.Readable

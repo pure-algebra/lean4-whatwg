@@ -173,15 +173,50 @@ def jobQueue {α ε : Type} (s : State α ε) : Whatwg.Ecma262.Jobs.Queue (PullA
 
 /-- `E-22` (generalize, `PROMISE-PG-FIRST`): the read-promise slots read as the general
 promise table, at value parameter `ReadResult α`. This is why the general state needs two
-type parameters (decision 1). The operation-level generalization of `E-22` is deferred to
-Q4: every update of `readPromises` is an inline `List.map` inside `DefaultController.lean`
-and `DefaultReader.lean`, and turning those five into `Table` calls would change a Streams
-definition body, which the Q3 fence forbids. -/
+type parameters (decision 1). The operation-level generalization of `E-22` landed at slice
+Q4 as `freshReadCell`, `settleReadCell` and `settleReadCells` below, with
+`readTable_freshReadCell`, `readTable_settleReadCell` and `readTable_settleReadCells` in
+`Whatwg/Streams/Readable/Laws.lean` as their bridges onto this view. -/
 def readTable {α ε : Type} (s : State α ε) :
     Whatwg.Ecma262.Promise.Table (ReadResult α) (Boundary.Exception ε) :=
   Whatwg.Ecma262.Promise.Table.mk
     (s.readPromises.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false)))
     s.nextRead
+
+/-- `E-22` (generalize, Q4): allocate a read cell at the cursor. The Streams
+instance of `Whatwg.Ecma262.Promise.Table.fresh` at value parameter
+`ReadResult α`. -/
+@[simp] def freshReadCell {α ε : Type} (s : State α ε)
+    (outcome : PromiseState (ReadResult α) ε) : State α ε × Nat :=
+  ({ s with
+      nextRead := s.nextRead + 1,
+      readPromises := s.readPromises ++ [(s.nextRead, outcome)] },
+    s.nextRead)
+
+/-- `E-22` (generalize, Q4): overwrite one read cell. Deliberately unguarded,
+exactly as the inline `List.map` updates are: the general `Table.settle` is
+guarded by `isPending` and a non-pending settle is the identity (decision 7),
+so the two agree only under the pending hypothesis, which is where
+`Table.settle_pending` puts them. Adopting the guard here would change the
+meaning of four landed Streams bodies. -/
+@[simp] def settleReadCell {α ε : Type} (s : State α ε) (id : Nat)
+    (result : Except (Boundary.Exception ε) (ReadResult α)) : State α ε :=
+  { s with
+    readPromises := s.readPromises.map (fun p =>
+      if p.1 = id then
+        (p.1, match result with | .ok v => .fulfilled v | .error e => .rejected e)
+      else p) }
+
+/-- `E-22` (generalize, Q4): overwrite every read cell whose identity is in
+`ids`. The two set-shaped updates of `streamClose` and `error` are its
+instances. -/
+@[simp] def settleReadCells {α ε : Type} (s : State α ε) (ids : List Nat)
+    (result : Except (Boundary.Exception ε) (ReadResult α)) : State α ε :=
+  { s with
+    readPromises := s.readPromises.map (fun p =>
+      if p.1 ∈ ids then
+        (p.1, match result with | .ok v => .fulfilled v | .error e => .rejected e)
+      else p) }
 
 /-- The frozen post-start view, before its first demand check; not the full setup algorithm. -/
 def initial {α ε : Type} (algorithms : Algorithms) (hwm : Size) : State α ε :=
