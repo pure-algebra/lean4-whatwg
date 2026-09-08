@@ -3300,6 +3300,600 @@ theorem decode_all_isScalarValue (b : ByteSequence) :
   rw [decode, decodeQueue]
   exact convertFrom_allScalar _ (run_allScalar _ _ _ _ _ rfl)
 
+/-! ### Generic step lemmas for the run
+
+One numbered step of DECODER [86515,90406) lifted to PROCQ [14785,15508), with
+the reachable-state invariant discharged. Used by the decomposition of a
+well-formed byte sequence and by the truncation law. -/
+
+private theorem inv_lead_two (b : Byte) (_h1 : 0xC2 ≤ b.toNat) (_h2 : b.toNat ≤ 0xDF) :
+    decoderInv (b.toNat &&& 0x1F) 0 1 ((0x80 : Byte)).toNat ((0xBF : Byte)).toNat := by
+  rw [land_five]
+  refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+  · rw [show (1 : Nat) - 0 - 1 = 0 from rfl, Nat.pow_zero]
+    show b.toNat % 32 * 64 * 1 + (191 - 0x80) * 1 + (1 - 1) ≤ 0x10FFFF
+    omega
+  · left
+    rw [show (1 : Nat) - 0 - 1 = 0 from rfl, Nat.pow_zero]
+    show b.toNat % 32 * 64 * 1 + (191 - 0x80) * 1 + (1 - 1) < 0xD800
+    omega
+
+private theorem inv_lead_three (b : Byte) (h1 : 0xE0 ≤ b.toNat) (h2 : b.toNat ≤ 0xEF) :
+    decoderInv (b.toNat &&& 0xF) 0 2
+      ((if b.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))).toNat
+      ((if b.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte))).toNat := by
+  rw [land_four]
+  refine Or.inr ⟨by omega, by omega, ?_, ?_, ?_, ?_⟩
+  · by_cases he : b.toNat = 0xE0
+    · rw [if_pos he]; exact (by decide : (0x80 : Nat) ≤ ((0xA0 : Byte)).toNat)
+    · rw [if_neg he]; exact (by decide : (0x80 : Nat) ≤ ((0x80 : Byte)).toNat)
+  · by_cases he : b.toNat = 0xED
+    · rw [if_pos he]; exact (by decide : ((0x9F : Byte)).toNat ≤ 0xBF)
+    · rw [if_neg he]; exact (by decide : ((0xBF : Byte)).toNat ≤ 0xBF)
+  · rw [show (2 : Nat) - 0 - 1 = 1 from rfl, Nat.pow_one]
+    by_cases he : b.toNat = 0xED
+    · rw [if_pos he]
+      show b.toNat % 16 * 64 * 64 + (159 - 0x80) * 64 + (64 - 1) ≤ 0x10FFFF
+      omega
+    · rw [if_neg he]
+      show b.toNat % 16 * 64 * 64 + (191 - 0x80) * 64 + (64 - 1) ≤ 0x10FFFF
+      omega
+  · rw [show (2 : Nat) - 0 - 1 = 1 from rfl, Nat.pow_one]
+    by_cases hed : b.toNat = 0xED
+    · left
+      rw [if_pos hed]
+      show b.toNat % 16 * 64 * 64 + (159 - 0x80) * 64 + (64 - 1) < 0xD800
+      omega
+    · rw [if_neg hed]
+      rcases Nat.lt_or_ge (b.toNat % 16) 14 with hkk | hkk
+      · left
+        show b.toNat % 16 * 64 * 64 + (191 - 0x80) * 64 + (64 - 1) < 0xD800
+        omega
+      · right
+        by_cases he0 : b.toNat = 0xE0
+        · rw [if_pos he0]
+          show 0xDFFF < b.toNat % 16 * 64 * 64 + (160 - 0x80) * 64
+          omega
+        · rw [if_neg he0]
+          show 0xDFFF < b.toNat % 16 * 64 * 64 + (128 - 0x80) * 64
+          omega
+
+private theorem inv_lead_four (b : Byte) (h1 : 0xF0 ≤ b.toNat) (h2 : b.toNat ≤ 0xF4) :
+    decoderInv (b.toNat &&& 0x7) 0 3
+      ((if b.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))).toNat
+      ((if b.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte))).toNat := by
+  rw [land_three]
+  refine Or.inr ⟨by omega, by omega, ?_, ?_, ?_, ?_⟩
+  · by_cases he : b.toNat = 0xF0
+    · rw [if_pos he]; exact (by decide : (0x80 : Nat) ≤ ((0x90 : Byte)).toNat)
+    · rw [if_neg he]; exact (by decide : (0x80 : Nat) ≤ ((0x80 : Byte)).toNat)
+  · by_cases he : b.toNat = 0xF4
+    · rw [if_pos he]; exact (by decide : ((0x8F : Byte)).toNat ≤ 0xBF)
+    · rw [if_neg he]; exact (by decide : ((0xBF : Byte)).toNat ≤ 0xBF)
+  · rw [show (3 : Nat) - 0 - 1 = 2 from rfl, show (64 : Nat) ^ 2 = 4096 from rfl]
+    by_cases he : b.toNat = 0xF4
+    · rw [if_pos he]
+      show b.toNat % 8 * 64 * 4096 + (143 - 0x80) * 4096 + (4096 - 1) ≤ 0x10FFFF
+      omega
+    · rw [if_neg he]
+      show b.toNat % 8 * 64 * 4096 + (191 - 0x80) * 4096 + (4096 - 1) ≤ 0x10FFFF
+      omega
+  · rw [show (3 : Nat) - 0 - 1 = 2 from rfl, show (64 : Nat) ^ 2 = 4096 from rfl]
+    right
+    by_cases he : b.toNat = 0xF0
+    · rw [if_pos he]
+      show 0xDFFF < b.toNat % 8 * 64 * 4096 + (144 - 0x80) * 4096
+      omega
+    · rw [if_neg he]
+      show 0xDFFF < b.toNat % 8 * 64 * 4096 + (128 - 0x80) * 4096
+      omega
+
+private theorem inv_accumulate (st : DecoderState) (b : Byte) (hne : st.bytesNeeded ≠ 0)
+    (hlo : st.lowerBoundary.toNat ≤ b.toNat) (hhi : b.toNat ≤ st.upperBoundary.toNat)
+    (hseen : st.bytesSeen + 1 ≠ st.bytesNeeded) :
+    decoderInv ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F)) (st.bytesSeen + 1) st.bytesNeeded
+      ((0x80 : Byte)).toNat ((0xBF : Byte)).toNat := by
+  rcases state_inv st with hz | ⟨hs, hn, hl, hh, hmax, hsur⟩
+  · exact absurd hz hne
+  · have hb : b.toNat % 64 < 64 := Nat.mod_lt _ (by decide)
+    rw [land_six, lor_shift_six _ _ hb]
+    have hmod : b.toNat % 64 = b.toNat - 0x80 := by omega
+    rw [hmod]
+    have hcase : (st.bytesSeen = 0 ∧ st.bytesNeeded = 2) ∨
+        (st.bytesSeen = 0 ∧ st.bytesNeeded = 3) ∨ (st.bytesSeen = 1 ∧ st.bytesNeeded = 3) := by
+      omega
+    rcases hcase with ⟨hsn, hnn⟩ | ⟨hsn, hnn⟩ | ⟨hsn, hnn⟩
+    · rw [hsn, hnn] at hmax hsur ⊢
+      rw [show (2 : Nat) - 0 - 1 = 1 from rfl, Nat.pow_one] at hmax hsur
+      refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+      · rw [show (2 : Nat) - (0 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+        show (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 1 + (191 - 0x80) * 1 + (1 - 1)
+          ≤ 0x10FFFF
+        omega
+      · rw [show (2 : Nat) - (0 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+        rcases hsur with hleft | hright
+        · left
+          show (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 1 + (191 - 0x80) * 1 + (1 - 1)
+            < 0xD800
+          omega
+        · right
+          show 0xDFFF < (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 1 + (128 - 0x80) * 1
+          omega
+    · rw [hsn, hnn] at hmax hsur ⊢
+      rw [show (3 : Nat) - 0 - 1 = 2 from rfl, show (64 : Nat) ^ 2 = 4096 from rfl] at hmax hsur
+      refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+      · rw [show (3 : Nat) - (0 + 1) - 1 = 1 from rfl, Nat.pow_one]
+        show (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 64 + (191 - 0x80) * 64 + (64 - 1)
+          ≤ 0x10FFFF
+        omega
+      · rw [show (3 : Nat) - (0 + 1) - 1 = 1 from rfl, Nat.pow_one]
+        rcases hsur with hleft | hright
+        · left
+          show (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 64 + (191 - 0x80) * 64 + (64 - 1)
+            < 0xD800
+          omega
+        · right
+          show 0xDFFF < (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 64 + (128 - 0x80) * 64
+          omega
+    · rw [hsn, hnn] at hmax hsur ⊢
+      rw [show (3 : Nat) - 1 - 1 = 1 from rfl, Nat.pow_one] at hmax hsur
+      refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+      · rw [show (3 : Nat) - (1 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+        show (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 1 + (191 - 0x80) * 1 + (1 - 1)
+          ≤ 0x10FFFF
+        omega
+      · rw [show (3 : Nat) - (1 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+        rcases hsur with hleft | hright
+        · left
+          show (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 1 + (191 - 0x80) * 1 + (1 - 1)
+            < 0xD800
+          omega
+        · right
+          show 0xDFFF < (st.codePoint * 64 + (b.toNat - 0x80)) * 64 * 1 + (128 - 0x80) * 1
+          omega
+
+private def mkScalar (n : Nat) (hle : n ≤ 0x10FFFF) (hns : n < 0xD800 ∨ 0xDFFF < n) :
+    ScalarValue :=
+  ⟨⟨n, hle⟩, by
+    rw [CodePoint.isSurrogate, CodePoint.isLeadingSurrogate, CodePoint.isTrailingSurrogate,
+      CodePoint.inRange, CodePoint.inRange, Bool.or_eq_false_iff]
+    exact ⟨decide_eq_false (show ¬ (0xD800 ≤ n ∧ n ≤ 0xDBFF) by omega),
+      decide_eq_false (show ¬ (0xDC00 ≤ n ∧ n ≤ 0xDFFF) by omega)⟩⟩
+
+private theorem step_lead_two (mode : Encoding.DecoderErrorMode) (b : Byte)
+    (h1 : 0xC2 ≤ b.toNat) (h2 : b.toNat ≤ 0xDF) (rest : ByteSequence)
+    (output : IoQueue CodePoint) (fuel : Nat) :
+    processQueue mode DecoderState.initial (IoQueue.convertTo (b :: rest)) output (fuel + 1) =
+      processQueue mode (DecoderState.mk (b.toNat &&& 0x1F) 0 1 (0x80 : Byte) (0xBF : Byte))
+        (IoQueue.convertTo rest) output fuel := by
+  have hlead := decoderHandler_lead_two DecoderState.initial (IoQueue.convertTo rest) b
+    initial_bytesNeeded h1 h2
+  rw [initial_bytesSeen] at hlead
+  have hh : (decoderHandler DecoderState.initial (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.continues := by rw [hlead]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh, hlead]
+
+private theorem step_lead_three (mode : Encoding.DecoderErrorMode) (b : Byte)
+    (h1 : 0xE0 ≤ b.toNat) (h2 : b.toNat ≤ 0xEF) (rest : ByteSequence)
+    (output : IoQueue CodePoint) (fuel : Nat) :
+    processQueue mode DecoderState.initial (IoQueue.convertTo (b :: rest)) output (fuel + 1) =
+      processQueue mode (DecoderState.mk (b.toNat &&& 0xF) 0 2
+        (if b.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))
+        (if b.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte)))
+        (IoQueue.convertTo rest) output fuel := by
+  have hlead := decoderHandler_lead_three DecoderState.initial (IoQueue.convertTo rest) b
+    initial_bytesNeeded h1 h2
+  rw [initial_bytesSeen] at hlead
+  have hh : (decoderHandler DecoderState.initial (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.continues := by rw [hlead]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh, hlead]
+
+private theorem step_lead_four (mode : Encoding.DecoderErrorMode) (b : Byte)
+    (h1 : 0xF0 ≤ b.toNat) (h2 : b.toNat ≤ 0xF4) (rest : ByteSequence)
+    (output : IoQueue CodePoint) (fuel : Nat) :
+    processQueue mode DecoderState.initial (IoQueue.convertTo (b :: rest)) output (fuel + 1) =
+      processQueue mode (DecoderState.mk (b.toNat &&& 0x7) 0 3
+        (if b.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))
+        (if b.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte)))
+        (IoQueue.convertTo rest) output fuel := by
+  have hlead := decoderHandler_lead_four DecoderState.initial (IoQueue.convertTo rest) b
+    initial_bytesNeeded h1 h2
+  rw [initial_bytesSeen] at hlead
+  have hh : (decoderHandler DecoderState.initial (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.continues := by rw [hlead]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh, hlead]
+
+private theorem step_accumulate (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (b : Byte) (hne : st.bytesNeeded ≠ 0) (hlo : st.lowerBoundary.toNat ≤ b.toNat)
+    (hhi : b.toNat ≤ st.upperBoundary.toNat) (hseen : st.bytesSeen + 1 ≠ st.bytesNeeded)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (fuel : Nat) :
+    processQueue mode st (IoQueue.convertTo (b :: rest)) output (fuel + 1) =
+      processQueue mode (DecoderState.mk ((st.codePoint <<< 6) ||| (b.toNat &&& 0x3F))
+        (st.bytesSeen + 1) st.bytesNeeded (0x80 : Byte) (0xBF : Byte))
+        (IoQueue.convertTo rest) output fuel := by
+  have hacc := decoderHandler_accumulate st (IoQueue.convertTo rest) b hne hlo hhi hseen
+  have hh : (decoderHandler st (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.continues := by rw [hacc]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh, hacc]
+
+private theorem inv_accumulate_fields (st : DecoderState) (b : Byte) (cp seen needed : Nat)
+    (hcp : st.codePoint = cp) (hseen : st.bytesSeen = seen) (hneed : st.bytesNeeded = needed)
+    (hne : needed ≠ 0) (hlo : st.lowerBoundary.toNat ≤ b.toNat)
+    (hhi : b.toNat ≤ st.upperBoundary.toNat) (hs : seen + 1 ≠ needed) :
+    decoderInv ((cp <<< 6) ||| (b.toNat &&& 0x3F)) (seen + 1) needed
+      ((0x80 : Byte)).toNat ((0xBF : Byte)).toNat := by
+  have h := inv_accumulate st b (by rw [hneed]; exact hne) hlo hhi
+    (by rw [hseen, hneed]; exact hs)
+  rw [hcp, hseen, hneed] at h
+  exact h
+
+private theorem step_accumulate_fields (mode : Encoding.DecoderErrorMode) (st : DecoderState)
+    (b : Byte) (cp seen needed : Nat) (hcp : st.codePoint = cp) (hseen : st.bytesSeen = seen)
+    (hneed : st.bytesNeeded = needed) (hne : needed ≠ 0)
+    (hlo : st.lowerBoundary.toNat ≤ b.toNat) (hhi : b.toNat ≤ st.upperBoundary.toNat)
+    (hs : seen + 1 ≠ needed) (rest : ByteSequence) (output : IoQueue CodePoint) (fuel : Nat) :
+    processQueue mode st (IoQueue.convertTo (b :: rest)) output (fuel + 1) =
+      processQueue mode (DecoderState.mk ((cp <<< 6) ||| (b.toNat &&& 0x3F)) (seen + 1) needed
+        (0x80 : Byte) (0xBF : Byte)) (IoQueue.convertTo rest) output fuel := by
+  have h := step_accumulate mode st b (by rw [hneed]; exact hne) hlo hhi
+    (by rw [hseen, hneed]; exact hs) rest output fuel
+  rw [hcp, hseen, hneed] at h
+  exact h
+
+private theorem step_complete (mode : Encoding.DecoderErrorMode) (st : DecoderState) (b : Byte)
+    (hne : st.bytesNeeded ≠ 0) (hlo : st.lowerBoundary.toNat ≤ b.toNat)
+    (hhi : b.toNat ≤ st.upperBoundary.toNat) (hcomp : st.bytesSeen + 1 = st.bytesNeeded)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (fuel : Nat) :
+    ∃ c : CodePoint, c.val = (st.codePoint <<< 6) ||| (b.toNat &&& 0x3F) ∧
+      processQueue mode st (IoQueue.convertTo (b :: rest)) output (fuel + 1) =
+        processQueue mode DecoderState.initial (IoQueue.convertTo rest)
+          (IoQueue.push output (Item.value c)) fuel := by
+  obtain ⟨c, hd, hcv⟩ := decoderHandler_complete st (IoQueue.convertTo rest) b hne hlo hhi hcomp
+  refine ⟨c, hcv, ?_⟩
+  have hh : (decoderHandler st (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.items [c] := by rw [hd]
+  rw [processQueue_of_items _ _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh, hd]
+  simp only [pushItems_singleton]
+
+private theorem step_end_error_fatal (st : DecoderState) (output : IoQueue CodePoint)
+    (fuel : Nat) (hne : st.bytesNeeded ≠ 0) :
+    (processQueue Encoding.DecoderErrorMode.fatal st (IoQueue.convertTo ([] : ByteSequence))
+      output (fuel + 1)).1 = some (Encoding.HandlerResult.error none) := by
+  have hp := decoderHandler_endOfQueue_pending st (IoQueue.convertTo ([] : ByteSequence)) hne
+  have hh : (decoderHandler st (IoQueue.convertTo ([] : ByteSequence)) Item.endOfQueue).1 =
+      Encoding.HandlerResult.error none := by rw [hp]
+  rw [processQueue_of_error_fatal st _ output fuel _ _ none read_convertTo_nil hh]
+
+private theorem step_out_error_fatal (st : DecoderState) (b : Byte) (rest : ByteSequence)
+    (output : IoQueue CodePoint) (fuel : Nat) (hne : st.bytesNeeded ≠ 0)
+    (hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat) :
+    (processQueue Encoding.DecoderErrorMode.fatal st (IoQueue.convertTo (b :: rest)) output
+      (fuel + 1)).1 = some (Encoding.HandlerResult.error none) := by
+  have hp := decoderHandler_out_of_boundary st (IoQueue.convertTo rest) b hne hout
+  have hh : (decoderHandler st (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.error none := by rw [hp]
+  rw [processQueue_of_error_fatal st _ output fuel _ _ none (read_convertTo_cons _ _) hh]
+
+private theorem step_lead_error_fatal (b : Byte) (rest : ByteSequence)
+    (output : IoQueue CodePoint) (fuel : Nat)
+    (h : (0x80 ≤ b.toNat ∧ b.toNat ≤ 0xC1) ∨ 0xF5 ≤ b.toNat) :
+    (processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial
+      (IoQueue.convertTo (b :: rest)) output (fuel + 1)).1 =
+      some (Encoding.HandlerResult.error none) := by
+  have hp := decoderHandler_lead_error DecoderState.initial (IoQueue.convertTo rest) b
+    initial_bytesNeeded h
+  have hh : (decoderHandler DecoderState.initial (IoQueue.convertTo rest) (Item.value b)).1 =
+      Encoding.HandlerResult.error none := by rw [hp]
+  rw [processQueue_of_error_fatal _ _ output fuel _ _ none (read_convertTo_cons _ _) hh]
+
+private theorem not_wellFormed_of_fatal_error (x : ByteSequence) (c : Option CodePoint)
+    (h : (processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial
+      (IoQueue.convertTo x) [] (processQueueFuel (IoQueue.convertTo x))).1 =
+      some (Encoding.HandlerResult.error c)) : isWellFormed x = false := by
+  have hnone : decodeWithoutBomOrFail x = none := by
+    rw [decodeWithoutBomOrFail, (decodeWithoutBomOrFailQueue_eq_none_iff _).mpr ⟨c, h⟩]
+    rfl
+  rw [isWellFormed, hnone]
+  rfl
+
+private theorem exists_scalar_two (b0 b1 : Byte) (h1 : 0xC2 ≤ b0.toNat) (h2 : b0.toNat ≤ 0xDF)
+    (h3 : 0x80 ≤ b1.toNat) (h4 : b1.toNat ≤ 0xBF) :
+    ∃ s : ScalarValue, encodeScalar s = [b0, b1] := by
+  refine ⟨mkScalar ((b0.toNat - 0xC0) * 64 + (b1.toNat - 0x80)) (by omega) (Or.inl (by omega)),
+    ?_⟩
+  have hv : (mkScalar ((b0.toNat - 0xC0) * 64 + (b1.toNat - 0x80)) (by omega)
+      (Or.inl (by omega))).val.val = (b0.toNat - 0xC0) * 64 + (b1.toNat - 0x80) := rfl
+  rw [encodeScalar_two_eq _ (by rw [hv]; omega) (by rw [hv]; omega), hv,
+    show ((b0.toNat - 0xC0) * 64 + (b1.toNat - 0x80)) / 64 + 0xC0 = b0.toNat by omega,
+    show 0x80 + ((b0.toNat - 0xC0) * 64 + (b1.toNat - 0x80)) % 64 = b1.toNat by omega,
+    UInt8.ofNat_toNat, UInt8.ofNat_toNat]
+
+private theorem exists_scalar_three (b0 b1 b2 : Byte) (h1 : 0xE0 ≤ b0.toNat)
+    (h2 : b0.toNat ≤ 0xEF)
+    (h3 : ((if b0.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))).toNat ≤ b1.toNat)
+    (h4 : b1.toNat ≤ ((if b0.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte))).toNat)
+    (h5 : 0x80 ≤ b2.toNat) (h6 : b2.toNat ≤ 0xBF) :
+    ∃ s : ScalarValue, encodeScalar s = [b0, b1, b2] := by
+  have hlo : (if b0.toNat = 0xE0 then 0xA0 else 0x80) ≤ b1.toNat := by
+    by_cases he : b0.toNat = 0xE0
+    · rw [if_pos he]; rw [if_pos he] at h3; exact h3
+    · rw [if_neg he]; rw [if_neg he] at h3; exact h3
+  have hhi : b1.toNat ≤ (if b0.toNat = 0xED then 0x9F else 0xBF) := by
+    by_cases he : b0.toNat = 0xED
+    · rw [if_pos he]; rw [if_pos he] at h4; exact h4
+    · rw [if_neg he]; rw [if_neg he] at h4; exact h4
+  have hlo' : b0.toNat = 0xE0 → 0xA0 ≤ b1.toNat := by
+    intro he; rw [if_pos he] at hlo; exact hlo
+  have hlo'' : b0.toNat ≠ 0xE0 → 0x80 ≤ b1.toNat := by
+    intro he; rw [if_neg he] at hlo; exact hlo
+  have hhi' : b0.toNat = 0xED → b1.toNat ≤ 0x9F := by
+    intro he; rw [if_pos he] at hhi; exact hhi
+  have hhi'' : b0.toNat ≠ 0xED → b1.toNat ≤ 0xBF := by
+    intro he; rw [if_neg he] at hhi; exact hhi
+  have hb1lo : 0x80 ≤ b1.toNat := by
+    by_cases he : b0.toNat = 0xE0
+    · have := hlo' he; omega
+    · exact hlo'' he
+  have hb1hi : b1.toNat ≤ 0xBF := by
+    by_cases he : b0.toNat = 0xED
+    · have := hhi' he; omega
+    · exact hhi'' he
+  have hrange : 0x800 ≤ (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) ∧
+      (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) ≤ 0xFFFF := by
+    by_cases he : b0.toNat = 0xE0
+    · have := hlo' he; omega
+    · omega
+  have hns : (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) < 0xD800 ∨
+      0xDFFF < (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) := by
+    by_cases he : b0.toNat = 0xED
+    · left; have := hhi' he; omega
+    · rcases Nat.lt_or_ge b0.toNat 0xED with hlt | hge
+      · left; omega
+      · right; omega
+  refine ⟨mkScalar ((b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80))
+    (by omega) hns, ?_⟩
+  have hv : (mkScalar ((b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80))
+      (by omega) hns).val.val =
+      (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) := rfl
+  rw [encodeScalar_three_eq _ (by rw [hv]; omega) (by rw [hv]; omega), hv,
+    show ((b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80)) / 4096 + 0xE0
+      = b0.toNat by omega,
+    show 0x80 + ((b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80)) / 64 % 64
+      = b1.toNat by omega,
+    show 0x80 + ((b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80)) % 64
+      = b2.toNat by omega,
+    UInt8.ofNat_toNat, UInt8.ofNat_toNat, UInt8.ofNat_toNat]
+
+private theorem exists_scalar_four (b0 b1 b2 b3 : Byte) (h1 : 0xF0 ≤ b0.toNat)
+    (h2 : b0.toNat ≤ 0xF4)
+    (h3 : ((if b0.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))).toNat ≤ b1.toNat)
+    (h4 : b1.toNat ≤ ((if b0.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte))).toNat)
+    (h5 : 0x80 ≤ b2.toNat) (h6 : b2.toNat ≤ 0xBF) (h7 : 0x80 ≤ b3.toNat)
+    (h8 : b3.toNat ≤ 0xBF) :
+    ∃ s : ScalarValue, encodeScalar s = [b0, b1, b2, b3] := by
+  have hlo' : b0.toNat = 0xF0 → 0x90 ≤ b1.toNat := by
+    intro he; rw [if_pos he] at h3; exact h3
+  have hlo'' : b0.toNat ≠ 0xF0 → 0x80 ≤ b1.toNat := by
+    intro he; rw [if_neg he] at h3; exact h3
+  have hhi' : b0.toNat = 0xF4 → b1.toNat ≤ 0x8F := by
+    intro he; rw [if_pos he] at h4; exact h4
+  have hhi'' : b0.toNat ≠ 0xF4 → b1.toNat ≤ 0xBF := by
+    intro he; rw [if_neg he] at h4; exact h4
+  have hb1lo : 0x80 ≤ b1.toNat := by
+    by_cases he : b0.toNat = 0xF0
+    · have := hlo' he; omega
+    · exact hlo'' he
+  have hb1hi : b1.toNat ≤ 0xBF := by
+    by_cases he : b0.toNat = 0xF4
+    · have := hhi' he; omega
+    · exact hhi'' he
+  have hlow : 0x10000 ≤ (b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 +
+      (b2.toNat - 0x80) * 64 + (b3.toNat - 0x80) := by
+    by_cases he : b0.toNat = 0xF0
+    · have := hlo' he; omega
+    · omega
+  have hhigh : (b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 + (b2.toNat - 0x80) * 64 +
+      (b3.toNat - 0x80) ≤ 0x10FFFF := by
+    by_cases he : b0.toNat = 0xF4
+    · have := hhi' he; omega
+    · omega
+  refine ⟨mkScalar ((b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 +
+    (b2.toNat - 0x80) * 64 + (b3.toNat - 0x80)) hhigh (Or.inr (by omega)), ?_⟩
+  have hv : (mkScalar ((b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 +
+      (b2.toNat - 0x80) * 64 + (b3.toNat - 0x80)) hhigh (Or.inr (by omega))).val.val =
+      (b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 + (b2.toNat - 0x80) * 64 +
+        (b3.toNat - 0x80) := rfl
+  rw [encodeScalar_four_eq _ (by rw [hv]; omega), hv,
+    show ((b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 + (b2.toNat - 0x80) * 64 +
+      (b3.toNat - 0x80)) / 262144 + 0xF0 = b0.toNat by omega,
+    show 0x80 + ((b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 + (b2.toNat - 0x80) * 64 +
+      (b3.toNat - 0x80)) / 4096 % 64 = b1.toNat by omega,
+    show 0x80 + ((b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 + (b2.toNat - 0x80) * 64 +
+      (b3.toNat - 0x80)) / 64 % 64 = b2.toNat by omega,
+    show 0x80 + ((b0.toNat - 0xF0) * 262144 + (b1.toNat - 0x80) * 4096 + (b2.toNat - 0x80) * 64 +
+      (b3.toNat - 0x80)) % 64 = b3.toNat by omega,
+    UInt8.ofNat_toNat, UInt8.ofNat_toNat, UInt8.ofNat_toNat, UInt8.ofNat_toNat]
+
+/-- Every byte sequence either begins with a whole encoded scalar value or is
+refused by the fatal mode. This is the case analysis of DECODER [86515,90406)
+step 3 read as a parser. -/
+private theorem head_step (b0 : Byte) (rest : ByteSequence) :
+    (∃ (s : ScalarValue) (tail : ByteSequence), b0 :: rest = encodeScalar s ++ tail) ∨
+      isWellFormed (b0 :: rest) = false := by
+  have hfuel : processQueueFuel (IoQueue.convertTo (b0 :: rest)) =
+      2 * List.length rest + 1 + 1 + 1 + 1 + 1 := by
+    rw [processQueueFuel_convertTo, List.length_cons]; omega
+  rcases Nat.lt_or_ge b0.toNat 0x80 with hA | hA
+  · left
+    refine ⟨mkScalar b0.toNat (by omega) (Or.inl (by omega)), rest, ?_⟩
+    rw [encodeScalar_ascii _ (show b0.toNat ≤ 0x7F by omega)]
+    show b0 :: rest = UInt8.ofNat b0.toNat :: rest
+    rw [UInt8.ofNat_toNat]
+  · rcases Nat.lt_or_ge b0.toNat 0xC2 with hB | hB
+    · right
+      refine not_wellFormed_of_fatal_error (b0 :: rest) none ?_
+      rw [hfuel]
+      exact step_lead_error_fatal b0 rest [] _ (Or.inl ⟨hA, by omega⟩)
+    · rcases Nat.lt_or_ge b0.toNat 0xE0 with hC | hC
+      · -- 0xC2 to 0xDF: one continuation byte
+        have hinv := inv_lead_two b0 hB (by omega)
+        obtain ⟨_, _, hneed, hlo, hhi⟩ :=
+          mk_fields (b0.toNat &&& 0x1F) 0 1 (0x80 : Byte) (0xBF : Byte) hinv
+        match rest with
+        | [] =>
+          right
+          refine not_wellFormed_of_fatal_error _ none ?_
+          rw [hfuel, step_lead_two _ b0 hB (by omega) [] [] _]
+          exact step_end_error_fatal _ [] _ (by rw [hneed]; omega)
+        | b1 :: rest' =>
+          by_cases hin : 0x80 ≤ b1.toNat ∧ b1.toNat ≤ 0xBF
+          · left
+            obtain ⟨s, hs⟩ := exists_scalar_two b0 b1 hB (by omega) hin.1 hin.2
+            exact ⟨s, rest', by rw [hs]; rfl⟩
+          · right
+            refine not_wellFormed_of_fatal_error _ none ?_
+            rw [hfuel, step_lead_two _ b0 hB (by omega) (b1 :: rest') [] _]
+            refine step_out_error_fatal _ b1 rest' [] _ (by rw [hneed]; omega) ?_
+            rw [hlo, hhi]
+            show b1.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b1.toNat
+            omega
+      · rcases Nat.lt_or_ge b0.toNat 0xF0 with hD | hD
+        · -- 0xE0 to 0xEF: two continuation bytes
+          have hinv := inv_lead_three b0 hC (by omega)
+          obtain ⟨hcp1, hseen1, hneed1, hlo1, hhi1⟩ :=
+            mk_fields (b0.toNat &&& 0xF) 0 2
+              (if b0.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))
+              (if b0.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte)) hinv
+          match rest with
+          | [] =>
+            right
+            refine not_wellFormed_of_fatal_error _ none ?_
+            rw [hfuel, step_lead_three _ b0 hC (by omega) [] [] _]
+            exact step_end_error_fatal _ [] _ (by rw [hneed1]; omega)
+          | b1 :: rest' =>
+            by_cases hin :
+                ((if b0.toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))).toNat ≤ b1.toNat ∧
+                  b1.toNat ≤
+                    ((if b0.toNat = 0xED then (0x9F : Byte) else (0xBF : Byte))).toNat
+            · have hinv2 := inv_accumulate_fields _ b1 (b0.toNat &&& 0xF) 0 2 hcp1 hseen1 hneed1
+                (by omega) (by rw [hlo1]; exact hin.1) (by rw [hhi1]; exact hin.2) (by omega)
+              obtain ⟨_, hseen2, hneed2, hlo2, hhi2⟩ :=
+                mk_fields _ _ _ (0x80 : Byte) (0xBF : Byte) hinv2
+              have hstep2 := step_accumulate_fields Encoding.DecoderErrorMode.fatal _ b1
+                (b0.toNat &&& 0xF) 0 2 hcp1 hseen1 hneed1 (by omega)
+                (by rw [hlo1]; exact hin.1) (by rw [hhi1]; exact hin.2) (by omega)
+              match rest' with
+              | [] =>
+                right
+                refine not_wellFormed_of_fatal_error _ none ?_
+                rw [hfuel, step_lead_three _ b0 hC (by omega) (b1 :: []) [] _, hstep2 [] [] _]
+                exact step_end_error_fatal _ [] _ (by rw [hneed2]; omega)
+              | b2 :: rest'' =>
+                by_cases hin2 : 0x80 ≤ b2.toNat ∧ b2.toNat ≤ 0xBF
+                · left
+                  obtain ⟨s, hs⟩ :=
+                    exists_scalar_three b0 b1 b2 hC (by omega) hin.1 hin.2 hin2.1 hin2.2
+                  exact ⟨s, rest'', by rw [hs]; rfl⟩
+                · right
+                  refine not_wellFormed_of_fatal_error _ none ?_
+                  rw [hfuel, step_lead_three _ b0 hC (by omega) (b1 :: b2 :: rest'') [] _,
+                    hstep2 (b2 :: rest'') [] _]
+                  refine step_out_error_fatal _ b2 rest'' [] _ (by rw [hneed2]; omega) ?_
+                  rw [hlo2, hhi2]
+                  show b2.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b2.toNat
+                  omega
+            · right
+              refine not_wellFormed_of_fatal_error _ none ?_
+              rw [hfuel, step_lead_three _ b0 hC (by omega) (b1 :: rest') [] _]
+              refine step_out_error_fatal _ b1 rest' [] _ (by rw [hneed1]; omega) ?_
+              rw [hlo1, hhi1]
+              omega
+        · rcases Nat.lt_or_ge b0.toNat 0xF5 with hE | hE
+          · -- 0xF0 to 0xF4: three continuation bytes
+            have hinv := inv_lead_four b0 hD (by omega)
+            obtain ⟨hcp1, hseen1, hneed1, hlo1, hhi1⟩ :=
+              mk_fields (b0.toNat &&& 0x7) 0 3
+                (if b0.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))
+                (if b0.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte)) hinv
+            match rest with
+            | [] =>
+              right
+              refine not_wellFormed_of_fatal_error _ none ?_
+              rw [hfuel, step_lead_four _ b0 hD (by omega) [] [] _]
+              exact step_end_error_fatal _ [] _ (by rw [hneed1]; omega)
+            | b1 :: rest' =>
+              by_cases hin :
+                  ((if b0.toNat = 0xF0 then (0x90 : Byte) else (0x80 : Byte))).toNat ≤ b1.toNat ∧
+                    b1.toNat ≤
+                      ((if b0.toNat = 0xF4 then (0x8F : Byte) else (0xBF : Byte))).toNat
+              · have hinv2 := inv_accumulate_fields _ b1 (b0.toNat &&& 0x7) 0 3 hcp1 hseen1
+                  hneed1 (by omega) (by rw [hlo1]; exact hin.1) (by rw [hhi1]; exact hin.2)
+                  (by omega)
+                obtain ⟨hcp2, hseen2, hneed2, hlo2, hhi2⟩ :=
+                  mk_fields _ _ _ (0x80 : Byte) (0xBF : Byte) hinv2
+                have hstep2 := step_accumulate_fields Encoding.DecoderErrorMode.fatal _ b1
+                  (b0.toNat &&& 0x7) 0 3 hcp1 hseen1 hneed1 (by omega)
+                  (by rw [hlo1]; exact hin.1) (by rw [hhi1]; exact hin.2) (by omega)
+                match rest' with
+                | [] =>
+                  right
+                  refine not_wellFormed_of_fatal_error _ none ?_
+                  rw [hfuel, step_lead_four _ b0 hD (by omega) (b1 :: []) [] _, hstep2 [] [] _]
+                  exact step_end_error_fatal _ [] _ (by rw [hneed2]; omega)
+                | b2 :: rest'' =>
+                  by_cases hin2 : 0x80 ≤ b2.toNat ∧ b2.toNat ≤ 0xBF
+                  · have hinv3 := inv_accumulate_fields _ b2
+                      (((b0.toNat &&& 0x7) <<< 6) ||| (b1.toNat &&& 0x3F)) (0 + 1) 3 hcp2 hseen2
+                      hneed2 (by omega) (by rw [hlo2]; exact hin2.1)
+                      (by rw [hhi2]; exact hin2.2) (by omega)
+                    obtain ⟨_, hseen3, hneed3, hlo3, hhi3⟩ :=
+                      mk_fields _ _ _ (0x80 : Byte) (0xBF : Byte) hinv3
+                    have hstep3 := step_accumulate_fields Encoding.DecoderErrorMode.fatal _ b2
+                      (((b0.toNat &&& 0x7) <<< 6) ||| (b1.toNat &&& 0x3F)) (0 + 1) 3 hcp2 hseen2
+                      hneed2 (by omega) (by rw [hlo2]; exact hin2.1)
+                      (by rw [hhi2]; exact hin2.2) (by omega)
+                    match rest'' with
+                    | [] =>
+                      right
+                      refine not_wellFormed_of_fatal_error _ none ?_
+                      rw [hfuel, step_lead_four _ b0 hD (by omega) (b1 :: b2 :: []) [] _,
+                        hstep2 (b2 :: []) [] _, hstep3 [] [] _]
+                      exact step_end_error_fatal _ [] _ (by rw [hneed3]; omega)
+                    | b3 :: rest''' =>
+                      by_cases hin3 : 0x80 ≤ b3.toNat ∧ b3.toNat ≤ 0xBF
+                      · left
+                        obtain ⟨s, hs⟩ := exists_scalar_four b0 b1 b2 b3 hD (by omega) hin.1
+                          hin.2 hin2.1 hin2.2 hin3.1 hin3.2
+                        exact ⟨s, rest''', by rw [hs]; rfl⟩
+                      · right
+                        refine not_wellFormed_of_fatal_error _ none ?_
+                        rw [hfuel,
+                          step_lead_four _ b0 hD (by omega) (b1 :: b2 :: b3 :: rest''') [] _,
+                          hstep2 (b2 :: b3 :: rest''') [] _, hstep3 (b3 :: rest''') [] _]
+                        refine step_out_error_fatal _ b3 rest''' [] _
+                          (by rw [hneed3]; omega) ?_
+                        rw [hlo3, hhi3]
+                        show b3.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b3.toNat
+                        omega
+                  · right
+                    refine not_wellFormed_of_fatal_error _ none ?_
+                    rw [hfuel, step_lead_four _ b0 hD (by omega) (b1 :: b2 :: rest'') [] _,
+                      hstep2 (b2 :: rest'') [] _]
+                    refine step_out_error_fatal _ b2 rest'' [] _ (by rw [hneed2]; omega) ?_
+                    rw [hlo2, hhi2]
+                    show b2.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b2.toNat
+                    omega
+              · right
+                refine not_wellFormed_of_fatal_error _ none ?_
+                rw [hfuel, step_lead_four _ b0 hD (by omega) (b1 :: rest') [] _]
+                refine step_out_error_fatal _ b1 rest' [] _ (by rw [hneed1]; omega) ?_
+                rw [hlo1, hhi1]
+                omega
+          · right
+            refine not_wellFormed_of_fatal_error (b0 :: rest) none ?_
+            rw [hfuel]
+            exact step_lead_error_fatal b0 rest [] _ (Or.inr hE)
+
 /-! ### The byte order mark
 
 DECODE [45059,45762) steps 1 and 2, against NOBOM [45763,46180). The note of
