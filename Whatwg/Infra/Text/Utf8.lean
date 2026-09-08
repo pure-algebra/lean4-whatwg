@@ -2190,6 +2190,12 @@ HOOKS [43782,45058): "The algorithms defined below (UTF-8 decode, UTF-8 decode
 without BOM, UTF-8 decode without BOM or fail, and UTF-8 encode) are intended
 for usage by other standards." -/
 
+/-- NOBOM [45763,46180): "Process a queue with an instance of UTF-8's decoder,
+ioQueue, output, and 'replacement'. Return output." -/
+def decodeWithoutBomQueue (ioQueue : IoQueue Byte) : IoQueue CodePoint :=
+  (processQueue Encoding.DecoderErrorMode.replacement DecoderState.initial ioQueue []
+    (processQueueFuel ioQueue)).2.2.2
+
 /-- DECODE [45059,45762): "Let buffer be the result of peeking three bytes from
 ioQueue, converted to a byte sequence. If buffer is 0xEF 0xBB 0xBF, then read
 three bytes from ioQueue. Process a queue with an instance of UTF-8's decoder,
@@ -2197,20 +2203,12 @@ ioQueue, output, and 'replacement'. Return output." Step 1 is stated over
 `IoQueue.peekPrefix`, the zero-based reading of PEEK [7651,8447) that INFRA-R15
 asks the operator to ratify. -/
 def decodeQueue (ioQueue : IoQueue Byte) : IoQueue CodePoint :=
-  let stripped :=
-    if IoQueue.peekPrefix ioQueue 3 = bom then
+  decodeWithoutBomQueue
+    (if IoQueue.peekPrefix ioQueue 3 = bom then
       match IoQueue.readItems ioQueue 3 with
       | some (_, remaining) => remaining
       | none => ioQueue
-    else ioQueue
-  (processQueue Encoding.DecoderErrorMode.replacement DecoderState.initial stripped []
-    (processQueueFuel stripped)).2.2.2
-
-/-- NOBOM [45763,46180): "Process a queue with an instance of UTF-8's decoder,
-ioQueue, output, and 'replacement'. Return output." -/
-def decodeWithoutBomQueue (ioQueue : IoQueue Byte) : IoQueue CodePoint :=
-  (processQueue Encoding.DecoderErrorMode.replacement DecoderState.initial ioQueue []
-    (processQueueFuel ioQueue)).2.2.2
+    else ioQueue)
 
 /-- ORFAIL [46181,46905): "Let potentialError be the result of processing a
 queue with an instance of UTF-8's decoder, ioQueue, output, and 'fatal'. If
@@ -3301,6 +3299,178 @@ theorem decode_all_isScalarValue (b : ByteSequence) :
     (decode b).all CodePoint.isScalarValue = true := by
   rw [decode, decodeQueue]
   exact convertFrom_allScalar _ (run_allScalar _ _ _ _ _ rfl)
+
+/-! ### The byte order mark
+
+DECODE [45059,45762) steps 1 and 2, against NOBOM [45763,46180). The note of
+DECODER [86515,90406): "A byte order mark has priority over a label … Therefore
+it is not part of the UTF-8 decoder algorithm, but rather the decode and UTF-8
+decode algorithms." -/
+
+private theorem readItems_three (x y z : Byte) (l : ByteSequence) :
+    IoQueue.readItems (IoQueue.convertTo (x :: y :: z :: l)) 3 =
+      some ([x, y, z], IoQueue.convertTo l) := rfl
+
+/-- DECODE [45059,45762) strips a leading mark. -/
+theorem decode_bom_prefix (b : ByteSequence) : decode (bom ++ b) = decodeWithoutBom b := by
+  have hbc : bom ++ b = (0xEF : Byte) :: 0xBB :: 0xBF :: b := rfl
+  have hpeek : IoQueue.peekPrefix (IoQueue.convertTo (bom ++ b)) 3 = bom := by
+    rw [IoQueue.peekPrefix_convertTo, hbc]; rfl
+  rw [decode, decodeQueue, if_pos hpeek, hbc]
+  simp only [readItems_three]
+  rfl
+
+/-- Exactly once: the second mark is data and decodes to U+FEFF. -/
+theorem decode_bom_once (b : ByteSequence) :
+    decode (bom ++ bom ++ b) = decodeWithoutBom (bom ++ b) := decode_bom_prefix (bom ++ b)
+
+/-- Anything that is not the three-byte mark is left alone. -/
+theorem decode_no_bom (b : ByteSequence)
+    (h : ByteSequence.startsWith b bom = false) : decode b = decodeWithoutBom b := by
+  have hne : IoQueue.peekPrefix (IoQueue.convertTo b) 3 ≠ bom := by
+    rw [IoQueue.peekPrefix_convertTo]
+    intro hc
+    have hsplit : b = bom ++ b.drop 3 := by rw [← hc, List.take_append_drop]
+    have hyes := (startsWith_bom_iff b).mpr ⟨b.drop 3, hsplit⟩
+    rw [h] at hyes
+    exact absurd hyes (by simp)
+  rw [decode, decodeQueue, if_neg hne]
+  rfl
+
+/-- The second mark of `decode_bom_once` decodes to U+FEFF. A finite probe. -/
+theorem decode_bom_twice_example :
+    ∃ c : CodePoint, decode (bom ++ bom) = [c] ∧ c.val = 0xFEFF :=
+  ⟨⟨0xFEFF, by decide⟩, by decide, rfl⟩
+
+/-- A lone mark decodes to nothing. A finite probe. -/
+theorem decode_bom_only_example : decode bom = [] := by decide
+
+/-- The mark's own two-byte prefix is not a mark, and decodes to one U+FFFD. A
+finite probe. -/
+theorem decode_partial_bom_example :
+    decode [(0xEF : Byte), 0xBB] = [replacementCharacter.val] := by decide
+
+/-- NOBOM [45763,46180) does not strip: that is the whole difference between the
+two hooks. A finite probe. -/
+theorem decodeWithoutBom_keeps_bom_example :
+    ∃ c : CodePoint, decodeWithoutBom bom = [c] ∧ c.val = 0xFEFF :=
+  ⟨⟨0xFEFF, by decide⟩, by decide, rfl⟩
+
+/-! ### The malformed classes
+
+The note of DECODER [86515,90406): "The constraints in the UTF-8 decoder above
+match 'Best Practices for Using U+FFFD' from the Unicode standard. No other
+behavior is permitted per the Encoding Standard." -/
+
+/-- One error at the head of a one-byte input costs exactly one U+FFFD: the
+error step pushes the replacement and leaves the state initial, and the next
+step reads `end-of-queue` and finishes. -/
+private theorem decodeWithoutBom_single_error (b : Byte)
+    (hh : (decoderHandler DecoderState.initial (IoQueue.convertTo ([] : ByteSequence))
+      (Item.value b)).1 = Encoding.HandlerResult.error none)
+    (hst : (decoderHandler DecoderState.initial (IoQueue.convertTo ([] : ByteSequence))
+      (Item.value b)).2.1 = DecoderState.initial)
+    (hq : (decoderHandler DecoderState.initial (IoQueue.convertTo ([] : ByteSequence))
+      (Item.value b)).2.2 = IoQueue.convertTo ([] : ByteSequence)) :
+    decodeWithoutBom [b] = [replacementCharacter.val] := by
+  rw [decodeWithoutBom, decodeWithoutBomQueue]
+  have hfuel : processQueueFuel (IoQueue.convertTo [b]) = 3 + 1 + 1 := by
+    rw [processQueueFuel_convertTo, List.length_cons, List.length_nil]
+  rw [hfuel]
+  rw [processQueue_of_error_replacement DecoderState.initial (IoQueue.convertTo [b]) []
+    (3 + 1) (Item.value b) (IoQueue.convertTo ([] : ByteSequence)) none
+    (read_convertTo_cons _ _) hh, hst, hq]
+  have hh2 : (decoderHandler DecoderState.initial (IoQueue.convertTo ([] : ByteSequence))
+      Item.endOfQueue).1 = Encoding.HandlerResult.finished := by
+    rw [decoderHandler_endOfQueue_idle _ _ initial_bytesNeeded]
+  rw [processQueue_of_finished _ _ _ _ 3 _ _ read_convertTo_nil hh2]
+  rfl
+
+/-- An unexpected continuation byte is one error and consumes one byte. -/
+theorem decodeWithoutBom_unexpected_continuation (b : Byte) (h1 : 0x80 ≤ b.toNat)
+    (h2 : b.toNat ≤ 0xBF) : decodeWithoutBom [b] = [replacementCharacter.val] := by
+  have herr := decoderHandler_lead_error DecoderState.initial
+    (IoQueue.convertTo ([] : ByteSequence)) b initial_bytesNeeded (Or.inl ⟨h1, by omega⟩)
+  exact decodeWithoutBom_single_error b (by rw [herr]) (by rw [herr]) (by rw [herr])
+
+/-- A lead byte that begins no sequence — 0xC0, 0xC1 (the overlong two-byte
+leads) and 0xF5 upward (above U+10FFFF) — is one error. -/
+theorem decodeWithoutBom_invalid_lead (b : Byte)
+    (h : (0xC0 ≤ b.toNat ∧ b.toNat ≤ 0xC1) ∨ 0xF5 ≤ b.toNat) :
+    decodeWithoutBom [b] = [replacementCharacter.val] := by
+  have herr := decoderHandler_lead_error DecoderState.initial
+    (IoQueue.convertTo ([] : ByteSequence)) b initial_bytesNeeded
+    (by rcases h with ⟨ha, hb⟩ | hc
+        · exact Or.inl ⟨by omega, by omega⟩
+        · exact Or.inr hc)
+  exact decodeWithoutBom_single_error b (by rw [herr]) (by rw [herr]) (by rw [herr])
+
+/-- A truncated sequence followed by an ASCII byte is one U+FFFD and then that
+byte, because step 4.2 restores it (`INFRA-UTF8-CE-012`). A finite probe. -/
+theorem decodeWithoutBom_truncated_then_ascii_example :
+    ∃ c : CodePoint,
+      decodeWithoutBom [(0xE2 : Byte), 0x82, 0x41] = [replacementCharacter.val, c] ∧
+        c.val = 0x41 :=
+  ⟨⟨0x41, by decide⟩, by decide, rfl⟩
+
+/-- The overlong two-byte form. A finite probe. -/
+theorem decodeWithoutBom_overlong_two_example :
+    decodeWithoutBom [(0xC0 : Byte), 0x80] =
+      [replacementCharacter.val, replacementCharacter.val] := by decide
+
+/-- The overlong three-byte form, excluded by the 0xE0 lower boundary 0xA0. A
+finite probe. -/
+theorem decodeWithoutBom_overlong_three_example :
+    decodeWithoutBom [(0xE0 : Byte), 0x80, 0x80] =
+      [replacementCharacter.val, replacementCharacter.val, replacementCharacter.val] := by decide
+
+/-- The overlong four-byte form, excluded by the 0xF0 lower boundary 0x90. A
+finite probe. -/
+theorem decodeWithoutBom_overlong_four_example :
+    decodeWithoutBom [(0xF0 : Byte), 0x8F, 0xBF, 0xBF] =
+      [replacementCharacter.val, replacementCharacter.val, replacementCharacter.val,
+        replacementCharacter.val] := by decide
+
+/-- The surrogate range, excluded by the 0xED upper boundary 0x9F. The bytes
+0xED 0xA0 0x80 are the CESU-8 encoding of U+D800. A finite probe. -/
+theorem decodeWithoutBom_surrogate_example :
+    decodeWithoutBom [(0xED : Byte), 0xA0, 0x80] =
+      [replacementCharacter.val, replacementCharacter.val, replacementCharacter.val] := by decide
+
+/-- Above U+10FFFF, excluded by the 0xF4 upper boundary 0x8F. A finite probe. -/
+theorem decodeWithoutBom_above_max_example :
+    decodeWithoutBom [(0xF4 : Byte), 0x90, 0x80, 0x80] =
+      [replacementCharacter.val, replacementCharacter.val, replacementCharacter.val,
+        replacementCharacter.val] := by decide
+
+/-- The last valid scalar value, U+10FFFF, is accepted: the 0xF4 boundary is
+0x8F inclusive and not exclusive. A finite probe. -/
+theorem decodeWithoutBom_max_example :
+    ∃ c : CodePoint,
+      decodeWithoutBom [(0xF4 : Byte), 0x8F, 0xBF, 0xBF] = [c] ∧ c.val = 0x10FFFF :=
+  ⟨⟨0x10FFFF, by decide⟩, by decide, rfl⟩
+
+/-- The last code point below the surrogates, U+D7FF, is accepted by the 0xED
+boundary. A finite probe. -/
+theorem decodeWithoutBom_before_surrogates_example :
+    ∃ c : CodePoint, decodeWithoutBom [(0xED : Byte), 0x9F, 0xBF] = [c] ∧ c.val = 0xD7FF :=
+  ⟨⟨0xD7FF, by decide⟩, by decide, rfl⟩
+
+/-- Each malformed class fails the fatal mode. A finite probe. -/
+theorem decodeWithoutBomOrFail_malformed_example :
+    decodeWithoutBomOrFail [(0xC0 : Byte), 0x80] = none ∧
+      decodeWithoutBomOrFail [(0xED : Byte), 0xA0, 0x80] = none ∧
+        decodeWithoutBomOrFail [(0xF4 : Byte), 0x90, 0x80, 0x80] = none ∧
+          decodeWithoutBomOrFail [(0xE2 : Byte), 0x82] = none ∧
+            decodeWithoutBomOrFail [(0x80 : Byte)] = none := by
+  refine ⟨by decide, by decide, by decide, by decide, by decide⟩
+
+/-- U+FFFD in the *input* is not an error: its own encoding is well-formed. A
+finite probe (`INFRA-UTF8-CE-011`). -/
+theorem replacement_input_example :
+    errorCount [(0xEF : Byte), 0xBF, 0xBD] = 0 ∧
+      decodeWithoutBom [(0xEF : Byte), 0xBF, 0xBD] = [replacementCharacter.val] := by
+  refine ⟨by decide, by decide⟩
 
 /-- `Whatwg.Url.Boundary.Utf8DecodeOrFail.failed`, as
 `requirement.percent-encoded-utf8-advice` of `vendor/whatwg-url-55d66993/url.bs`
