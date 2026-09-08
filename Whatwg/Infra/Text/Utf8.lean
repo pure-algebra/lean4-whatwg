@@ -92,32 +92,62 @@ private theorem lor_continuation (y : Nat) (hy : y < 64) : 0x80 ||| y = 0x80 + y
   rw [← hshift]
   exact (Nat.shiftLeft_add_eq_or_of_lt h6 2).symm
 
+/-- `(2 ^ n − 1).testBit i` is `i < n`. Core's `Nat.testBit_two_pow_sub_one`
+says exactly this but reaches `Classical.choice`; this induction does not, and
+it is the only reason `Nat.and_two_pow_sub_one_eq_mod` is not used below. -/
+private theorem testBit_two_pow_sub_one_cf :
+    ∀ (n i : Nat), (2 ^ n - 1).testBit i = decide (i < n)
+  | 0, i => by
+    rw [Nat.pow_zero, Nat.sub_self, Nat.zero_testBit]
+    exact (decide_eq_false (Nat.not_lt_zero i)).symm
+  | n + 1, 0 => by
+    have hp : 2 ^ (n + 1) = 2 * 2 ^ n := by rw [Nat.pow_succ]; omega
+    have hpos : 0 < 2 ^ n := Nat.two_pow_pos n
+    have h : (2 ^ (n + 1) - 1) % 2 = 1 := by omega
+    rw [Nat.testBit_zero, h, decide_eq_true (Nat.succ_pos n)]
+    rfl
+  | n + 1, i + 1 => by
+    have hp : 2 ^ (n + 1) = 2 * 2 ^ n := by rw [Nat.pow_succ]; omega
+    have hpos : 0 < 2 ^ n := Nat.two_pow_pos n
+    have hd : (2 ^ (n + 1) - 1) / 2 = 2 ^ n - 1 := by omega
+    rw [Nat.testBit_succ, hd, testBit_two_pow_sub_one_cf n i]
+    by_cases hlt : i < n
+    · rw [decide_eq_true hlt, decide_eq_true (Nat.succ_lt_succ hlt)]
+    · rw [decide_eq_false hlt,
+        decide_eq_false (fun hc => hlt (Nat.lt_of_succ_lt_succ hc))]
+
+/-- The choice-free `Nat.and_two_pow_sub_one_eq_mod`: masking with `2 ^ k − 1`
+is reduction modulo `2 ^ k`. -/
+private theorem land_two_pow_sub_one_cf (x k : Nat) : x &&& (2 ^ k - 1) = x % 2 ^ k := by
+  refine Nat.eq_of_testBit_eq (fun i => ?_)
+  rw [Nat.testBit_and, testBit_two_pow_sub_one_cf, Nat.testBit_mod_two_pow, Bool.and_comm]
+
 /-- `x &&& 0x3F` is `x % 64`, "the six least significant bits". -/
 private theorem land_six (x : Nat) : x &&& 0x3F = x % 64 := by
   have h : (0x3F : Nat) = 2 ^ 6 - 1 := by decide
   have hpow : (2 : Nat) ^ 6 = 64 := by decide
-  rw [h, Nat.and_two_pow_sub_one_eq_mod, hpow]
+  rw [h, land_two_pow_sub_one_cf, hpow]
 
 /-- `x &&& 0x1F` is `x % 32`, "the five least significant bits" of DECODER's
 0xC2-to-0xDF row. -/
 private theorem land_five (x : Nat) : x &&& 0x1F = x % 32 := by
   have h : (0x1F : Nat) = 2 ^ 5 - 1 := by decide
   have hpow : (2 : Nat) ^ 5 = 32 := by decide
-  rw [h, Nat.and_two_pow_sub_one_eq_mod, hpow]
+  rw [h, land_two_pow_sub_one_cf, hpow]
 
 /-- `x &&& 0xF` is `x % 16`, "the four least significant bits" of DECODER's
 0xE0-to-0xEF row. -/
 private theorem land_four (x : Nat) : x &&& 0xF = x % 16 := by
   have h : (0xF : Nat) = 2 ^ 4 - 1 := by decide
   have hpow : (2 : Nat) ^ 4 = 16 := by decide
-  rw [h, Nat.and_two_pow_sub_one_eq_mod, hpow]
+  rw [h, land_two_pow_sub_one_cf, hpow]
 
 /-- `x &&& 0x7` is `x % 8`, "the three least significant bits" of DECODER's
 0xF0-to-0xF4 row. -/
 private theorem land_three (x : Nat) : x &&& 0x7 = x % 8 := by
   have h : (0x7 : Nat) = 2 ^ 3 - 1 := by decide
   have hpow : (2 : Nat) ^ 3 = 8 := by decide
-  rw [h, Nat.and_two_pow_sub_one_eq_mod, hpow]
+  rw [h, land_two_pow_sub_one_cf, hpow]
 
 /-- A byte's number is what `UInt8.ofNat` was given, below 0x100. -/
 private theorem toNat_ofNat_lt {n : Nat} (h : n < 256) : (UInt8.ofNat n).toNat = n :=
@@ -942,6 +972,9 @@ theorem encodeScalar_bom_iff (s : ScalarValue) :
 encodings, because the encoder is stateless. -/
 theorem encodeScalars_eq (ss : List ScalarValue) :
     encodeScalars ss = ss.flatMap encodeScalar := rfl
+
+private theorem encodeScalars_cons (s : ScalarValue) (t : List ScalarValue) :
+    encodeScalars (s :: t) = encodeScalar s ++ encodeScalars t := rfl
 
 /-- Concatenation of inputs is concatenation of outputs. -/
 theorem encodeScalars_append (a b : List ScalarValue) :
@@ -3999,6 +4032,232 @@ theorem decodeWithoutBom_invalid_lead (b : Byte)
         · exact Or.inr hc)
   exact decodeWithoutBom_single_error b (by rw [herr]) (by rw [herr]) (by rw [herr])
 
+/-- A run that meets `end-of-queue` with bytes still needed substitutes exactly
+one U+FFFD and then finishes: step 1 of DECODER [86515,90406) fires once, and
+the state it leaves has "UTF-8 bytes needed" 0, so the next read finishes. -/
+private theorem run_pending_end (st : DecoderState) (output : IoQueue CodePoint) (fuel : Nat)
+    (hne : st.bytesNeeded ≠ 0) (hno : IoQueue.containsEndOfQueue output = false) :
+    (processQueue Encoding.DecoderErrorMode.replacement st
+        (IoQueue.convertTo ([] : ByteSequence)) output (fuel + 1 + 1)).2.2.2 =
+      output ++ [Item.value replacementCharacter.val, Item.endOfQueue] := by
+  have hp := decoderHandler_endOfQueue_pending st (IoQueue.convertTo ([] : ByteSequence)) hne
+  have hh : (decoderHandler st (IoQueue.convertTo ([] : ByteSequence)) Item.endOfQueue).1 =
+      Encoding.HandlerResult.error none := by rw [hp]
+  rw [processQueue_of_error_replacement st _ output (fuel + 1) _ _ none read_convertTo_nil hh,
+    hp]
+  simp only
+  have hz : (DecoderState.mk st.codePoint st.bytesSeen 0 st.lowerBoundary
+      st.upperBoundary).bytesNeeded = 0 := (mk_fields _ _ _ _ _ (Or.inl rfl)).2.2.1
+  have hh2 : (decoderHandler (DecoderState.mk st.codePoint st.bytesSeen 0 st.lowerBoundary
+      st.upperBoundary) (IoQueue.convertTo ([] : ByteSequence)) Item.endOfQueue).1 =
+      Encoding.HandlerResult.finished := by rw [decoderHandler_endOfQueue_idle _ _ hz]
+  rw [processQueue_of_finished _ _ _ _ fuel _ _ read_convertTo_nil hh2]
+  simp only
+  rw [push_of_no_end _ _ hno, push_of_no_end _ _ (containsEndOfQueue_append_value _ _ hno)]
+  simp
+
+private theorem cont1_range_three (s : ScalarValue) (h1 : 0x800 ≤ s.val.val)
+    (h2 : s.val.val ≤ 0xFFFF) (hns : s.val.val < 0xD800 ∨ 0xDFFF < s.val.val) :
+    ((if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte)
+        else (0x80 : Byte))).toNat ≤ (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat ∧
+      (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat ≤
+        ((if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte)
+          else (0xBF : Byte))).toNat := by
+  have hb0 : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = s.val.val / 4096 + 0xE0 :=
+    toNat_ofNat_lt (by omega)
+  have hb1 : (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat = 0x80 + s.val.val / 64 % 64 :=
+    toNat_ofNat_lt (by omega)
+  constructor
+  · rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0
+    · rw [if_pos he, hb0] at *
+      show (0xA0 : Nat) ≤ 0x80 + s.val.val / 64 % 64
+      omega
+    · rw [if_neg he]
+      show (0x80 : Nat) ≤ 0x80 + s.val.val / 64 % 64
+      omega
+  · rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED
+    · rw [if_pos he, hb0] at *
+      show 0x80 + s.val.val / 64 % 64 ≤ (0x9F : Nat)
+      omega
+    · rw [if_neg he]
+      show 0x80 + s.val.val / 64 % 64 ≤ (0xBF : Nat)
+      omega
+
+private theorem cont1_range_four (s : ScalarValue) (h1 : 0x10000 ≤ s.val.val)
+    (h2 : s.val.val ≤ 0x10FFFF) :
+    ((if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+        else (0x80 : Byte))).toNat ≤ (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat ∧
+      (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat ≤
+        ((if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+          else (0xBF : Byte))).toNat := by
+  have hb0 : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = s.val.val / 262144 + 0xF0 :=
+    toNat_ofNat_lt (by omega)
+  have hb1 : (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat =
+      0x80 + s.val.val / 4096 % 64 := toNat_ofNat_lt (by omega)
+  constructor
+  · rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0
+    · rw [if_pos he, hb0] at *
+      show (0x90 : Nat) ≤ 0x80 + s.val.val / 4096 % 64
+      omega
+    · rw [if_neg he]
+      show (0x80 : Nat) ≤ 0x80 + s.val.val / 4096 % 64
+      omega
+  · rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4
+    · rw [if_pos he, hb0] at *
+      show 0x80 + s.val.val / 4096 % 64 ≤ (0x8F : Nat)
+      omega
+    · rw [if_neg he]
+      show 0x80 + s.val.val / 4096 % 64 ≤ (0xBF : Nat)
+      omega
+
+/-- A truncated sequence at end of input is **one** U+FFFD, not one per missing
+byte: step 1 of DECODER [86515,90406) fires once on `end-of-queue`. Every proper
+nonempty prefix of one scalar value's encoding decodes to exactly one U+FFFD. -/
+theorem decodeWithoutBom_truncated_one (s : ScalarValue) (n : Nat) (hn : 0 < n)
+    (hlt : n < List.length (encodeScalar s)) :
+    decodeWithoutBom ((encodeScalar s).take n) = [replacementCharacter.val] := by
+  have hle : s.val.val ≤ 0x10FFFF := s.val.isLe
+  have hns := scalar_not_surrogate s
+  rcases Nat.lt_or_ge s.val.val 0x80 with h1 | h1
+  · rw [encodeScalar_length_one s (by omega)] at hlt; omega
+  · rcases Nat.lt_or_ge s.val.val 0x800 with h2 | h2
+    · -- two bytes: only n = 1
+      rw [encodeScalar_length_two s h1 (by omega)] at hlt
+      have hn1 : n = 1 := by omega
+      subst hn1
+      rw [encodeScalar_two_eq s h1 (by omega)]
+      have hb0 : (UInt8.ofNat (s.val.val / 64 + 0xC0)).toNat = s.val.val / 64 + 0xC0 :=
+        toNat_ofNat_lt (by omega)
+      have hinv := inv_lead_two (UInt8.ofNat (s.val.val / 64 + 0xC0)) (by rw [hb0]; omega)
+        (by rw [hb0]; omega)
+      have hneed := (mk_fields _ 0 1 (0x80 : Byte) (0xBF : Byte) hinv).2.2.1
+      show decodeWithoutBom [UInt8.ofNat (s.val.val / 64 + 0xC0)] = _
+      rw [decodeWithoutBom, decodeWithoutBomQueue,
+        show processQueueFuel (IoQueue.convertTo [UInt8.ofNat (s.val.val / 64 + 0xC0)]) =
+          2 + 1 + 1 + 1 by rw [processQueueFuel_convertTo, List.length_cons, List.length_nil],
+        step_lead_two _ _ (by rw [hb0]; omega) (by rw [hb0]; omega) [] [] (2 + 1 + 1),
+        run_pending_end _ [] 2 (by rw [hneed]; omega) rfl]
+      rfl
+    · rcases Nat.lt_or_ge s.val.val 0x10000 with h3 | h3
+      · -- three bytes: n = 1 or n = 2
+        rw [encodeScalar_length_three s h2 (by omega)] at hlt
+        rw [encodeScalar_three_eq s h2 (by omega)]
+        have hb0 : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = s.val.val / 4096 + 0xE0 :=
+          toNat_ofNat_lt (by omega)
+        have hinv := inv_lead_three (UInt8.ofNat (s.val.val / 4096 + 0xE0)) (by rw [hb0]; omega)
+          (by rw [hb0]; omega)
+        obtain ⟨hcp1, hseen1, hneed1, hlo1, hhi1⟩ := mk_fields _ 0 2 _ _ hinv
+        have hcont := cont1_range_three s h2 (by omega) hns
+        match n, hn, hlt with
+        | 1, _, _ =>
+          show decodeWithoutBom [UInt8.ofNat (s.val.val / 4096 + 0xE0)] = _
+          rw [decodeWithoutBom, decodeWithoutBomQueue,
+            show processQueueFuel (IoQueue.convertTo
+                [UInt8.ofNat (s.val.val / 4096 + 0xE0)]) = 2 + 1 + 1 + 1 by
+              rw [processQueueFuel_convertTo, List.length_cons, List.length_nil],
+            step_lead_three _ _ (by rw [hb0]; omega) (by rw [hb0]; omega) [] [] (2 + 1 + 1),
+            run_pending_end _ [] 2 (by rw [hneed1]; omega) rfl]
+          rfl
+        | 2, _, _ =>
+          show decodeWithoutBom [UInt8.ofNat (s.val.val / 4096 + 0xE0),
+            UInt8.ofNat (0x80 + s.val.val / 64 % 64)] = _
+          have hinv2 := inv_accumulate_fields _ (UInt8.ofNat (0x80 + s.val.val / 64 % 64))
+            ((UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat &&& 0xF) 0 2 hcp1 hseen1 hneed1
+            (by omega) (by rw [hlo1]; exact hcont.1) (by rw [hhi1]; exact hcont.2) (by omega)
+          have hneed2 := (mk_fields _ _ _ (0x80 : Byte) (0xBF : Byte) hinv2).2.2.1
+          rw [decodeWithoutBom, decodeWithoutBomQueue,
+            show processQueueFuel (IoQueue.convertTo
+                [UInt8.ofNat (s.val.val / 4096 + 0xE0),
+                  UInt8.ofNat (0x80 + s.val.val / 64 % 64)]) = 3 + 1 + 1 + 1 + 1 by
+              rw [processQueueFuel_convertTo, List.length_cons, List.length_cons,
+                List.length_nil],
+            step_lead_three _ _ (by rw [hb0]; omega) (by rw [hb0]; omega)
+              [UInt8.ofNat (0x80 + s.val.val / 64 % 64)] [] (3 + 1 + 1 + 1),
+            step_accumulate_fields _ _ (UInt8.ofNat (0x80 + s.val.val / 64 % 64))
+              ((UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat &&& 0xF) 0 2 hcp1 hseen1 hneed1
+              (by omega) (by rw [hlo1]; exact hcont.1) (by rw [hhi1]; exact hcont.2) (by omega)
+              [] [] (3 + 1 + 1),
+            run_pending_end _ [] 3 (by rw [hneed2]; omega) rfl]
+          rfl
+      · -- four bytes: n = 1, 2 or 3
+        rw [encodeScalar_length_four s h3] at hlt
+        rw [encodeScalar_four_eq s h3]
+        have hb0 : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat =
+          s.val.val / 262144 + 0xF0 := toNat_ofNat_lt (by omega)
+        have hb2 : (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat =
+          0x80 + s.val.val / 64 % 64 := toNat_ofNat_lt (by omega)
+        have hinv := inv_lead_four (UInt8.ofNat (s.val.val / 262144 + 0xF0))
+          (by rw [hb0]; omega) (by rw [hb0]; omega)
+        obtain ⟨hcp1, hseen1, hneed1, hlo1, hhi1⟩ := mk_fields _ 0 3 _ _ hinv
+        have hcont := cont1_range_four s h3 (by omega)
+        have hinv2 := inv_accumulate_fields _ (UInt8.ofNat (0x80 + s.val.val / 4096 % 64))
+          ((UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat &&& 0x7) 0 3 hcp1 hseen1 hneed1
+          (by omega) (by rw [hlo1]; exact hcont.1) (by rw [hhi1]; exact hcont.2) (by omega)
+        obtain ⟨hcp2, hseen2, hneed2, hlo2, hhi2⟩ :=
+          mk_fields _ _ _ (0x80 : Byte) (0xBF : Byte) hinv2
+        have hstep2 := step_accumulate_fields Encoding.DecoderErrorMode.replacement _
+          (UInt8.ofNat (0x80 + s.val.val / 4096 % 64))
+          ((UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat &&& 0x7) 0 3 hcp1 hseen1 hneed1
+          (by omega) (by rw [hlo1]; exact hcont.1) (by rw [hhi1]; exact hcont.2) (by omega)
+        match n, hn, hlt with
+        | 1, _, _ =>
+          show decodeWithoutBom [UInt8.ofNat (s.val.val / 262144 + 0xF0)] = _
+          rw [decodeWithoutBom, decodeWithoutBomQueue,
+            show processQueueFuel (IoQueue.convertTo
+                [UInt8.ofNat (s.val.val / 262144 + 0xF0)]) = 2 + 1 + 1 + 1 by
+              rw [processQueueFuel_convertTo, List.length_cons, List.length_nil],
+            step_lead_four _ _ (by rw [hb0]; omega) (by rw [hb0]; omega) [] [] (2 + 1 + 1),
+            run_pending_end _ [] 2 (by rw [hneed1]; omega) rfl]
+          rfl
+        | 2, _, _ =>
+          show decodeWithoutBom [UInt8.ofNat (s.val.val / 262144 + 0xF0),
+            UInt8.ofNat (0x80 + s.val.val / 4096 % 64)] = _
+          rw [decodeWithoutBom, decodeWithoutBomQueue,
+            show processQueueFuel (IoQueue.convertTo
+                [UInt8.ofNat (s.val.val / 262144 + 0xF0),
+                  UInt8.ofNat (0x80 + s.val.val / 4096 % 64)]) = 3 + 1 + 1 + 1 + 1 by
+              rw [processQueueFuel_convertTo, List.length_cons, List.length_cons,
+                List.length_nil],
+            step_lead_four _ _ (by rw [hb0]; omega) (by rw [hb0]; omega)
+              [UInt8.ofNat (0x80 + s.val.val / 4096 % 64)] [] (3 + 1 + 1 + 1),
+            hstep2 [] [] (3 + 1 + 1),
+            run_pending_end _ [] 3 (by rw [hneed2]; omega) rfl]
+          rfl
+        | 3, _, _ =>
+          show decodeWithoutBom [UInt8.ofNat (s.val.val / 262144 + 0xF0),
+            UInt8.ofNat (0x80 + s.val.val / 4096 % 64),
+            UInt8.ofNat (0x80 + s.val.val / 64 % 64)] = _
+          have hinv3 := inv_accumulate_fields _ (UInt8.ofNat (0x80 + s.val.val / 64 % 64))
+            (((UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat &&& 0x7) <<< 6 |||
+              ((UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat &&& 0x3F)) (0 + 1) 3
+            hcp2 hseen2 hneed2 (by omega) (by rw [hlo2, hb2]; exact Nat.le_add_right _ _)
+            (by rw [hhi2, hb2]; show 0x80 + s.val.val / 64 % 64 ≤ (0xBF : Nat); omega)
+            (by omega)
+          have hneed3 := (mk_fields _ _ _ (0x80 : Byte) (0xBF : Byte) hinv3).2.2.1
+          rw [decodeWithoutBom, decodeWithoutBomQueue,
+            show processQueueFuel (IoQueue.convertTo
+                [UInt8.ofNat (s.val.val / 262144 + 0xF0),
+                  UInt8.ofNat (0x80 + s.val.val / 4096 % 64),
+                  UInt8.ofNat (0x80 + s.val.val / 64 % 64)]) = 4 + 1 + 1 + 1 + 1 + 1 by
+              rw [processQueueFuel_convertTo, List.length_cons, List.length_cons,
+                List.length_cons, List.length_nil],
+            step_lead_four _ _ (by rw [hb0]; omega) (by rw [hb0]; omega)
+              [UInt8.ofNat (0x80 + s.val.val / 4096 % 64),
+                UInt8.ofNat (0x80 + s.val.val / 64 % 64)] [] (4 + 1 + 1 + 1 + 1),
+            hstep2 [UInt8.ofNat (0x80 + s.val.val / 64 % 64)] [] (4 + 1 + 1 + 1),
+            step_accumulate_fields _ _ (UInt8.ofNat (0x80 + s.val.val / 64 % 64))
+              (((UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat &&& 0x7) <<< 6 |||
+                ((UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat &&& 0x3F)) (0 + 1) 3
+              hcp2 hseen2 hneed2 (by omega) (by rw [hlo2, hb2]; exact Nat.le_add_right _ _)
+              (by rw [hhi2, hb2]; show 0x80 + s.val.val / 64 % 64 ≤ (0xBF : Nat); omega)
+              (by omega) [] [] (4 + 1 + 1),
+            run_pending_end _ [] 4 (by rw [hneed3]; omega) rfl]
+          rfl
+
 /-- A truncated sequence followed by an ASCII byte is one U+FFFD and then that
 byte, because step 4.2 restores it (`INFRA-UTF8-CE-012`). A finite probe. -/
 theorem decodeWithoutBom_truncated_then_ascii_example :
@@ -4065,6 +4324,196 @@ theorem replacement_input_example :
     errorCount [(0xEF : Byte), 0xBF, 0xBD] = 0 ∧
       decodeWithoutBom [(0xEF : Byte), 0xBF, 0xBD] = [replacementCharacter.val] := by
   refine ⟨by decide, by decide⟩
+
+private theorem processQueue_fst_output (mode : Encoding.DecoderErrorMode) :
+    ∀ (fuel : Nat) (st : DecoderState) (input : IoQueue Byte) (o1 o2 : IoQueue CodePoint),
+      (processQueue mode st input o1 fuel).1 = (processQueue mode st input o2 fuel).1
+  | 0, _, _, _, _ => rfl
+  | fuel + 1, st, input, o1, o2 => by
+    cases hread : IoQueue.read input with
+    | none =>
+      rw [processQueue_read_none _ st input o1 fuel hread,
+        processQueue_read_none _ st input o2 fuel hread]
+    | some p =>
+      obtain ⟨item, input'⟩ := p
+      cases hh : (decoderHandler st input' item).1 with
+      | finished =>
+        rw [processQueue_of_finished _ st input o1 fuel item input' hread hh,
+          processQueue_of_finished _ st input o2 fuel item input' hread hh]
+      | items out =>
+        rw [processQueue_of_items _ st input o1 fuel item input' out hread hh,
+          processQueue_of_items _ st input o2 fuel item input' out hread hh]
+        exact processQueue_fst_output mode fuel _ _ _ _
+      | continues =>
+        rw [processQueue_of_continues _ st input o1 fuel item input' hread hh,
+          processQueue_of_continues _ st input o2 fuel item input' hread hh]
+        exact processQueue_fst_output mode fuel _ _ _ _
+      | error c =>
+        cases mode with
+        | fatal =>
+          rw [processQueue_of_error_fatal st input o1 fuel item input' c hread hh,
+            processQueue_of_error_fatal st input o2 fuel item input' c hread hh]
+        | replacement =>
+          rw [processQueue_of_error_replacement st input o1 fuel item input' c hread hh,
+            processQueue_of_error_replacement st input o2 fuel item input' c hread hh]
+          exact processQueue_fst_output _ fuel _ _ _ _
+
+private theorem fatal_error_of_not_wellFormed (x : ByteSequence) (h : isWellFormed x = false) :
+    ∃ c : Option CodePoint,
+      (processQueue Encoding.DecoderErrorMode.fatal DecoderState.initial (IoQueue.convertTo x)
+        [] (processQueueFuel (IoQueue.convertTo x))).1 =
+        some (Encoding.HandlerResult.error c) := by
+  refine (decodeWithoutBomOrFailQueue_eq_none_iff _).mp ?_
+  rw [isWellFormed] at h
+  cases hq : decodeWithoutBomOrFailQueue (IoQueue.convertTo x) with
+  | none => rfl
+  | some v =>
+    rw [decodeWithoutBomOrFail, hq] at h
+    exact absurd h (by simp)
+
+private theorem wellFormed_tail (s : ScalarValue) (tail : ByteSequence)
+    (h : isWellFormed (encodeScalar s ++ tail) = true) : isWellFormed tail = true := by
+  cases hb : isWellFormed tail with
+  | true => rfl
+  | false =>
+    exfalso
+    obtain ⟨c, hc⟩ := fatal_error_of_not_wellFormed tail hb
+    have hrun := run_scalar Encoding.DecoderErrorMode.fatal s tail []
+      (processQueueFuel (IoQueue.convertTo (encodeScalar s ++ tail)))
+      (by rw [processQueueFuel_convertTo]; omega)
+    have hbad : isWellFormed (encodeScalar s ++ tail) = false := by
+      refine not_wellFormed_of_fatal_error (encodeScalar s ++ tail) c ?_
+      rw [hrun, processQueue_fst_output Encoding.DecoderErrorMode.fatal _ _ _ _ []]
+      exact hc
+    rw [h] at hbad
+    exact absurd hbad (by simp)
+
+private theorem wellFormed_decompose : ∀ (n : Nat) (b : ByteSequence), List.length b ≤ n →
+    isWellFormed b = true → ∃ ss : List ScalarValue, b = encodeScalars ss
+  | _, [], _, _ => ⟨[], rfl⟩
+  | 0, _ :: _, hlen, _ => absurd hlen (by simp)
+  | n + 1, b0 :: rest, hlen, hwf => by
+    rcases head_step b0 rest with ⟨s, tail, hsplit⟩ | hbad
+    · have hpos : 0 < List.length (encodeScalar s) := by
+        cases hE : encodeScalar s with
+        | nil => exact absurd hE (encodeScalar_ne_nil s)
+        | cons _ _ => rw [List.length_cons]; omega
+      have hlt : List.length tail ≤ n := by
+        have hl := congrArg List.length hsplit
+        rw [List.length_append, List.length_cons] at hl
+        rw [List.length_cons] at hlen
+        omega
+      have hwft : isWellFormed tail = true := wellFormed_tail s tail (by rw [← hsplit]; exact hwf)
+      obtain ⟨ss, hss⟩ := wellFormed_decompose n tail hlt hwft
+      exact ⟨s :: ss, by rw [hsplit, hss, encodeScalars_cons]⟩
+    · rw [hwf] at hbad
+      exact absurd hbad (by simp)
+
+/-- The failure set is exactly the complement of the encoder's image, which is
+ORFAIL [46181,46905) read as a specification rather than as an algorithm. The
+witness is computed from the bytes by the decoder itself, so the existential is
+constructive and no classical choice is taken. -/
+theorem isWellFormed_iff (b : ByteSequence) :
+    isWellFormed b = true ↔ ∃ ss : List ScalarValue, b = encodeScalars ss := by
+  constructor
+  · intro h
+    exact wellFormed_decompose (List.length b) b (Nat.le_refl _) h
+  · rintro ⟨ss, rfl⟩
+    rw [isWellFormed, decodeWithoutBomOrFail, decodeWithoutBomOrFailQueue,
+      run_scalars Encoding.DecoderErrorMode.fatal ss []
+        (processQueueFuel (IoQueue.convertTo (encodeScalars ss)))
+        (by rw [processQueueFuel_convertTo]; omega) rfl]
+    rfl
+
+private theorem codePoints_ofCodePoints : ∀ (cs : List CodePoint),
+    (∀ c ∈ cs, CodePoint.isScalarValue c = true) →
+      JsString.codePoints (JsString.ofCodePoints cs) = cs
+  | [], _ => rfl
+  | c :: t, h => by
+    have hc := h c (List.mem_cons_self ..)
+    have hns : c.val < 0xD800 ∨ 0xDFFF < c.val := by
+      rw [CodePoint.isScalarValue, CodePoint.isSurrogate, CodePoint.isLeadingSurrogate,
+        CodePoint.isTrailingSurrogate, CodePoint.inRange, CodePoint.inRange,
+        Bool.not_eq_true'] at hc
+      rw [Bool.or_eq_false_iff] at hc
+      have h1 := of_decide_eq_false hc.1
+      have h2 := of_decide_eq_false hc.2
+      omega
+    have hle : c.val ≤ 0x10FFFF := c.isLe
+    have hih := codePoints_ofCodePoints t (fun x hx => h x (List.mem_cons_of_mem _ hx))
+    rw [JsString.ofCodePoints, List.flatMap_cons, ← JsString.ofCodePoints,
+      JsString.unitsOfCodePoint]
+    by_cases hsmall : c.val < 0x10000
+    · rw [if_pos hsmall]
+      have hu : (UInt16.ofNat c.val).toNat = c.val := by
+        rw [UInt16.toNat_ofNat_of_lt' (by rw [show UInt16.size = 65536 from rfl]; omega)]
+      rw [List.cons_append, List.nil_append, JsString.codePoints,
+        dif_neg (show ¬ (0xD800 ≤ (UInt16.ofNat c.val).toNat ∧
+          (UInt16.ofNat c.val).toNat ≤ 0xDBFF) by rw [hu]; omega), hih]
+      exact congrArg (fun x => x :: t) (CodePoint.ext hu)
+    · rw [if_neg hsmall]
+      have hlead : (UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat =
+          0xD800 + (c.val - 0x10000) / 0x400 := by
+        rw [UInt16.toNat_ofNat_of_lt' (by rw [show UInt16.size = 65536 from rfl]; omega)]
+      have htrail : (UInt16.ofNat (0xDC00 + (c.val - 0x10000) % 0x400)).toNat =
+          0xDC00 + (c.val - 0x10000) % 0x400 := by
+        rw [UInt16.toNat_ofNat_of_lt' (by rw [show UInt16.size = 65536 from rfl]; omega)]
+      rw [List.cons_append, List.cons_append, List.nil_append, codePoints_cons₂,
+        dif_pos (show 0xD800 ≤ (UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat ∧
+          (UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat ≤ 0xDBFF by
+            rw [hlead]; omega),
+        dif_pos (show 0xDC00 ≤ (UInt16.ofNat (0xDC00 + (c.val - 0x10000) % 0x400)).toNat ∧
+          (UInt16.ofNat (0xDC00 + (c.val - 0x10000) % 0x400)).toNat ≤ 0xDFFF by
+            rw [htrail]; omega),
+        hih]
+      refine congrArg (fun x => x :: t) (CodePoint.ext ?_)
+      show ((UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat - 0xD800) * 0x400 +
+        ((UInt16.ofNat (0xDC00 + (c.val - 0x10000) % 0x400)).toNat - 0xDC00) + 0x10000 = c.val
+      rw [hlead, htrail]
+      omega
+
+private theorem scalarList_ext : ∀ (a b : List ScalarValue),
+    a.map (fun s => s.val) = b.map (fun s => s.val) → a = b
+  | [], [], _ => rfl
+  | [], _ :: _, h => by simp at h
+  | _ :: _, [], h => by simp at h
+  | x :: t, y :: u, h => by
+    rw [List.map_cons, List.map_cons, List.cons.injEq] at h
+    rw [Subtype.ext h.1, scalarList_ext t u h.2]
+
+/-- The other direction of RS-1's round trip, on the canonical domain: a
+well-formed byte sequence is the encoding of what it decodes to. -/
+theorem encode_decodeWithoutBom (b : ByteSequence) (h : isWellFormed b = true) :
+    encode? (decodeWithoutBomString b) = some b := by
+  obtain ⟨ss, hb⟩ := (isWellFormed_iff b).mp h
+  subst hb
+  have hall : ∀ c ∈ ss.map (fun s => s.val), CodePoint.isScalarValue c = true := by
+    intro c hc
+    obtain ⟨s, _, hcs⟩ := List.mem_map.mp hc
+    rw [← hcs, CodePoint.isScalarValue, s.property]
+    rfl
+  have hcp : JsString.codePoints (JsString.ofCodePoints (ss.map (fun s => s.val))) =
+      ss.map (fun s => s.val) := codePoints_ofCodePoints _ hall
+  have hsv : JsString.isScalarValueString
+      (JsString.ofCodePoints (ss.map (fun s => s.val))) = true := by
+    rw [JsString.isScalarValueString, hcp, List.all_eq_true]
+    exact hall
+  rw [decodeWithoutBomString_eq, decodeWithoutBom_encodeScalars, encode?_eq_some _ hsv,
+    Option.some.injEq, encode_eq]
+  exact congrArg encodeScalars
+    (scalarList_ext _ _ (by rw [scalars_val, hcp]))
+
+/-- `Whatwg.Url.Boundary.Utf8Encoding.tape`: "UTF-8 encodes every scalar value,
+so the run is one answer whose `potentialError` is null and whose output is the
+whole encoding; step 7's loop therefore runs exactly once." -/
+theorem u3Profile_encoderTape (input : JsString)
+    (h : JsString.isScalarValueString input = true) :
+    Encoding.encodeOrFail Encoding.Encoder.utf8 (IoQueue.convertTo (scalars input h)) =
+        some (Encoding.EncodeAnswer.mk (encode input h) none, Encoding.Encoder.utf8) ∧
+      Encoding.EncoderTape.terminated
+          [Encoding.EncodeAnswer.mk (encode input h) none] = true := by
+  refine ⟨?_, rfl⟩
+  rw [Encoding.encodeOrFail_utf8, encode_eq]
 
 /-- `Whatwg.Url.Boundary.Utf8DecodeOrFail.failed`, as
 `requirement.percent-encoded-utf8-advice` of `vendor/whatwg-url-55d66993/url.bs`
