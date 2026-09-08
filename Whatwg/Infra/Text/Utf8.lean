@@ -1644,13 +1644,11 @@ theorem decoderHandler_error_none (st : DecoderState) (q : IoQueue Byte) (item :
         · rw [decoderHandler_accumulate st q b hzero (by omega) (by omega) hcomp]
           exact fun hc => by cases hc
 
-/-- The decoder never returns a surrogate, which is what step 6.1 of PROCI
-[15509,17620) asserts: "Assert: encoderDecoder is not a decoder instance or
-result does not contain any surrogates." It is a theorem of the 0xED
-upper-boundary row through the carrier's invariant, not a typing assumption. -/
-theorem decoderHandler_items_isScalarValue (st : DecoderState) (q : IoQueue Byte)
-    (item : Item Byte) (out : List CodePoint) (_hn : st.bytesNeeded ≤ 3)
-    (_hc : st.codePoint ≤ 0x10FFFF)
+/-- Every code point the handler emits is a scalar value. The carrier's
+invariant makes this unconditional, so the hypotheses of the packet's
+`decoderHandler_items_isScalarValue` are not needed to prove it. -/
+private theorem handler_items_scalar (st : DecoderState) (q : IoQueue Byte)
+    (item : Item Byte) (out : List CodePoint)
     (h : (decoderHandler st q item).1 = Encoding.HandlerResult.items out) :
     out.all CodePoint.isScalarValue = true := by
   match item with
@@ -1708,6 +1706,17 @@ theorem decoderHandler_items_isScalarValue (st : DecoderState) (q : IoQueue Byte
           rfl
         · rw [decoderHandler_accumulate st q b hzero (by omega) (by omega) hcomp] at h
           exact absurd h (by simp)
+
+/-- The decoder never returns a surrogate, which is what step 6.1 of PROCI
+[15509,17620) asserts: "Assert: encoderDecoder is not a decoder instance or
+result does not contain any surrogates." It is a theorem of the 0xED
+upper-boundary row through the carrier's invariant, not a typing assumption. -/
+theorem decoderHandler_items_isScalarValue (st : DecoderState) (q : IoQueue Byte)
+    (item : Item Byte) (out : List CodePoint) (_hn : st.bytesNeeded ≤ 3)
+    (_hc : st.codePoint ≤ 0x10FFFF)
+    (h : (decoderHandler st q item).1 = Encoding.HandlerResult.items out) :
+    out.all CodePoint.isScalarValue = true :=
+  handler_items_scalar st q item out h
 
 /-! ### Processing an item and processing a queue
 
@@ -3010,6 +3019,25 @@ private theorem run_scalar_four (mode : Encoding.DecoderErrorMode) (s : ScalarVa
   rw [hcs, pushItems_singleton]
   exact processQueue_fuel_stable _ _ _ _ _ (by rw [processQueueFuel_convertTo]; omega)
 
+private theorem no_end_getLast {α : Type} (q : IoQueue α)
+    (h : IoQueue.containsEndOfQueue q = false) : q.getLast? ≠ some Item.endOfQueue := by
+  intro hc
+  have hmem : (Item.endOfQueue : Item α) ∈ q := List.mem_of_getLast? hc
+  rw [IoQueue.containsEndOfQueue, List.any_eq_false] at h
+  exact absurd (h _ hmem) (by simp)
+
+private theorem push_of_no_end {α : Type} (q : IoQueue α) (item : Item α)
+    (h : IoQueue.containsEndOfQueue q = false) : IoQueue.push q item = q ++ [item] :=
+  IoQueue.push_append q item (no_end_getLast q h)
+
+private theorem containsEndOfQueue_append_value {α : Type} (q : IoQueue α) (a : α)
+    (h : IoQueue.containsEndOfQueue q = false) :
+    IoQueue.containsEndOfQueue (q ++ [Item.value a]) = false := by
+  rw [IoQueue.containsEndOfQueue, List.any_append]
+  rw [IoQueue.containsEndOfQueue] at h
+  rw [h]
+  rfl
+
 /-- The run over one encoded scalar value: PROCQ [14785,15508) started in the
 initial state over `encodeScalar s ++ rest` consumes exactly `encodeScalar s`,
 pushes `s`'s code point, and returns to the initial state. -/
@@ -3029,6 +3057,250 @@ private theorem run_scalar (mode : Encoding.DecoderErrorMode) (s : ScalarValue)
     · rcases Nat.lt_or_ge s.val.val 0x10000 with h3 | h3
       · exact run_scalar_three mode s rest output h2 (by omega) fuel hfuel
       · exact run_scalar_four mode s rest output h3 fuel hfuel
+
+/-- The whole run over an encoded list: PROCQ [14785,15508) consumes every
+encoded scalar value in turn and finishes. Stated for both error modes, because
+the encoder's image never produces an `error` and the two modes therefore agree
+on it. -/
+private theorem run_scalars (mode : Encoding.DecoderErrorMode) :
+    ∀ (ss : List ScalarValue) (output : IoQueue CodePoint) (fuel : Nat),
+      2 * List.length (encodeScalars ss) + 3 ≤ fuel →
+        IoQueue.containsEndOfQueue output = false →
+          processQueue mode DecoderState.initial (IoQueue.convertTo (encodeScalars ss)) output
+              fuel =
+            (some Encoding.HandlerResult.finished, DecoderState.initial,
+              IoQueue.convertTo ([] : ByteSequence),
+              output ++ (ss.map (fun s => s.val)).map Item.value ++ [Item.endOfQueue])
+  | [], output, fuel, hfuel, hno => by
+    have hE : encodeScalars ([] : List ScalarValue) = [] := rfl
+    rw [hE] at hfuel ⊢
+    obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp at hfuel; omega⟩
+    have hh : (decoderHandler DecoderState.initial (IoQueue.convertTo ([] : ByteSequence))
+        Item.endOfQueue).1 = Encoding.HandlerResult.finished := by
+      rw [decoderHandler_endOfQueue_idle _ _ initial_bytesNeeded]
+    rw [processQueue_of_finished _ _ _ _ _ _ _ read_convertTo_nil hh,
+      decoderHandler_endOfQueue_idle _ _ initial_bytesNeeded]
+    simp only
+    rw [push_of_no_end _ _ hno]
+    simp
+  | s :: t, output, fuel, hfuel, hno => by
+    have hE : encodeScalars (s :: t) = encodeScalar s ++ encodeScalars t := by
+      rw [encodeScalars_eq, List.flatMap_cons, ← encodeScalars_eq]
+    rw [hE] at hfuel ⊢
+    rw [run_scalar mode s (encodeScalars t) output fuel hfuel, push_of_no_end _ _ hno,
+      run_scalars mode t (output ++ [Item.value s.val])
+        (processQueueFuel (IoQueue.convertTo (encodeScalars t)))
+        (by rw [processQueueFuel_convertTo]; omega)
+        (containsEndOfQueue_append_value _ _ hno)]
+    simp [List.append_assoc]
+
+/-- RS-1's codec round trip at the scalar face. -/
+theorem decodeWithoutBom_encodeScalars (ss : List ScalarValue) :
+    decodeWithoutBom (encodeScalars ss) = ss.map (fun s => s.val) := by
+  rw [decodeWithoutBom, decodeWithoutBomQueue,
+    run_scalars Encoding.DecoderErrorMode.replacement ss []
+      (processQueueFuel (IoQueue.convertTo (encodeScalars ss)))
+      (by rw [processQueueFuel_convertTo]; omega) rfl]
+  simp only [List.nil_append]
+  rw [← IoQueue.convertTo_eq, IoQueue.convertFrom_convertTo]
+
+/-- RS-1's codec round trip at the string face, in the replacement mode. -/
+theorem decodeWithoutBom_encode (input : JsString)
+    (h : JsString.isScalarValueString input = true) :
+    decodeWithoutBom (encode input h) = JsString.codePoints input := by
+  rw [encode_eq, decodeWithoutBom_encodeScalars, scalars_val]
+
+/-- The fatal mode agrees with the replacement mode on the encoder's image: it
+succeeds there and returns the same code points. -/
+theorem decodeWithoutBomOrFail_encode (input : JsString)
+    (h : JsString.isScalarValueString input = true) :
+    decodeWithoutBomOrFail (encode input h) = some (JsString.codePoints input) := by
+  rw [encode_eq, decodeWithoutBomOrFail, decodeWithoutBomOrFailQueue,
+    run_scalars Encoding.DecoderErrorMode.fatal (scalars input h) []
+      (processQueueFuel (IoQueue.convertTo (encodeScalars (scalars input h))))
+      (by rw [processQueueFuel_convertTo]; omega) rfl]
+  simp only [List.nil_append, Option.map_some]
+  rw [← IoQueue.convertTo_eq, IoQueue.convertFrom_convertTo, scalars_val]
+
+private theorem unitsOfCodePoint_ofUnit (u : CodeUnit) :
+    JsString.unitsOfCodePoint (CodePoint.ofUnit u) = [u] := by
+  have h1 : u.toNat < 2 ^ 16 := u.toNat_lt
+  have hlt : (CodePoint.ofUnit u).val < 0x10000 := by
+    show u.toNat < 0x10000
+    rw [show (2 : Nat) ^ 16 = 0x10000 from rfl] at h1
+    exact h1
+  rw [JsString.unitsOfCodePoint, if_pos hlt]
+  show [UInt16.ofNat u.toNat] = [u]
+  rw [UInt16.ofNat_toNat]
+
+private theorem unitsOfCodePoint_pair (u v : CodeUnit)
+    (hl : 0xD800 ≤ u.toNat ∧ u.toNat ≤ 0xDBFF) (ht : 0xDC00 ≤ v.toNat ∧ v.toNat ≤ 0xDFFF) :
+    JsString.unitsOfCodePoint (JsString.pairValue u v hl ht) = [u, v] := by
+  have hval : (JsString.pairValue u v hl ht).val =
+      (u.toNat - 0xD800) * 0x400 + (v.toNat - 0xDC00) + 0x10000 := rfl
+  have hge : ¬ ((JsString.pairValue u v hl ht).val < 0x10000) := by rw [hval]; omega
+  rw [JsString.unitsOfCodePoint, if_neg hge]
+  show [UInt16.ofNat (0xD800 + ((JsString.pairValue u v hl ht).val - 0x10000) / 0x400),
+    UInt16.ofNat (0xDC00 + ((JsString.pairValue u v hl ht).val - 0x10000) % 0x400)] = [u, v]
+  rw [hval]
+  rw [show 0xD800 + ((u.toNat - 0xD800) * 0x400 + (v.toNat - 0xDC00) + 0x10000 - 0x10000) / 0x400
+      = u.toNat by omega,
+    show 0xDC00 + ((u.toNat - 0xD800) * 0x400 + (v.toNat - 0xDC00) + 0x10000 - 0x10000) % 0x400
+      = v.toNat by omega,
+    UInt16.ofNat_toNat, UInt16.ofNat_toNat]
+
+/-- Infra's section `strings` read in both directions: the code point view of a
+string is invertible. Needed for the `JsString` face of the round trip. -/
+private theorem ofCodePoints_codePoints : ∀ (input : JsString),
+    JsString.ofCodePoints (JsString.codePoints input) = input
+  | [] => rfl
+  | [u] => by
+    rw [codePoints_single, JsString.ofCodePoints, List.flatMap_cons, List.flatMap_nil,
+      unitsOfCodePoint_ofUnit, List.append_nil]
+  | u :: v :: rest => by
+    rw [codePoints_cons₂]
+    by_cases hl : 0xD800 ≤ u.toNat ∧ u.toNat ≤ 0xDBFF
+    · rw [dif_pos hl]
+      by_cases ht : 0xDC00 ≤ v.toNat ∧ v.toNat ≤ 0xDFFF
+      · rw [dif_pos ht, JsString.ofCodePoints, List.flatMap_cons, unitsOfCodePoint_pair]
+        have ih := ofCodePoints_codePoints rest
+        rw [JsString.ofCodePoints] at ih
+        rw [ih]
+        rfl
+      · rw [dif_neg ht, JsString.ofCodePoints, List.flatMap_cons, unitsOfCodePoint_ofUnit]
+        have ih := ofCodePoints_codePoints (v :: rest)
+        rw [JsString.ofCodePoints] at ih
+        rw [ih]
+        rfl
+    · rw [dif_neg hl, JsString.ofCodePoints, List.flatMap_cons, unitsOfCodePoint_ofUnit]
+      have ih := ofCodePoints_codePoints (v :: rest)
+      rw [JsString.ofCodePoints] at ih
+      rw [ih]
+      rfl
+
+/-- RS-1's codec round trip at the `JsString` face. -/
+theorem decodeWithoutBomString_encode (input : JsString)
+    (h : JsString.isScalarValueString input = true) :
+    decodeWithoutBomString (encode input h) = input := by
+  rw [decodeWithoutBomString_eq, decodeWithoutBom_encode, ofCodePoints_codePoints]
+
+/-! ### Decoding yields scalar values only -/
+
+private def allScalarQueue (q : IoQueue CodePoint) : Bool :=
+  q.all fun item =>
+    match item with
+    | Item.value c => CodePoint.isScalarValue c
+    | Item.endOfQueue => true
+
+private theorem allScalarQueue_append (q1 q2 : IoQueue CodePoint) :
+    allScalarQueue (q1 ++ q2) = (allScalarQueue q1 && allScalarQueue q2) := by
+  rw [allScalarQueue, allScalarQueue, allScalarQueue, List.all_append]
+
+private theorem allScalarQueue_take (q : IoQueue CodePoint) (n : Nat)
+    (h : allScalarQueue q = true) : allScalarQueue (q.take n) = true := by
+  rw [allScalarQueue, List.all_eq_true]
+  rw [allScalarQueue, List.all_eq_true] at h
+  exact fun x hx => h x (List.mem_of_mem_take hx)
+
+private theorem allScalarQueue_push (q : IoQueue CodePoint) (item : Item CodePoint)
+    (hq : allScalarQueue q = true)
+    (hi : (match item with
+      | Item.value c => CodePoint.isScalarValue c
+      | Item.endOfQueue => true) = true) :
+    allScalarQueue (IoQueue.push q item) = true := by
+  simp only [IoQueue.push]
+  by_cases hlast : IoQueue.lastIsEndOfQueue q = true
+  · rw [if_pos hlast]
+    match item with
+    | Item.endOfQueue => exact hq
+    | Item.value a =>
+      rw [allScalarQueue_append, allScalarQueue_take q _ hq, Bool.true_and, allScalarQueue,
+        List.all_cons, List.all_cons, List.all_nil]
+      simpa using hi
+  · rw [if_neg hlast, allScalarQueue_append, hq, Bool.true_and, allScalarQueue, List.all_cons,
+      List.all_nil]
+    simpa using hi
+
+private theorem allScalarQueue_pushItems : ∀ (items : List (Item CodePoint))
+    (q : IoQueue CodePoint), allScalarQueue q = true → allScalarQueue items = true →
+      allScalarQueue (IoQueue.pushItems q items) = true
+  | [], q, hq, _ => hq
+  | i :: t, q, hq, hi => by
+    rw [allScalarQueue, List.all_cons] at hi
+    rw [IoQueue.pushItems, List.foldl_cons, ← IoQueue.pushItems]
+    exact allScalarQueue_pushItems t (IoQueue.push q i)
+      (allScalarQueue_push q i hq (by simpa using (Bool.and_eq_true _ _).mp hi |>.1))
+      (by rw [allScalarQueue]; exact ((Bool.and_eq_true _ _).mp hi).2)
+
+private theorem allScalarQueue_map (out : List CodePoint)
+    (h : out.all CodePoint.isScalarValue = true) :
+    allScalarQueue (out.map Item.value) = true := by
+  rw [allScalarQueue, List.all_eq_true]
+  rw [List.all_eq_true] at h
+  intro x hx
+  obtain ⟨c, hc, rfl⟩ := List.mem_map.mp hx
+  exact h c hc
+
+private theorem run_allScalar (mode : Encoding.DecoderErrorMode) :
+    ∀ (fuel : Nat) (st : DecoderState) (input : IoQueue Byte) (output : IoQueue CodePoint),
+      allScalarQueue output = true →
+        allScalarQueue (processQueue mode st input output fuel).2.2.2 = true
+  | 0, _, _, _, h => h
+  | fuel + 1, st, input, output, h => by
+    cases hread : IoQueue.read input with
+    | none => rw [processQueue_read_none _ st input output fuel hread]; exact h
+    | some p =>
+      obtain ⟨item, input'⟩ := p
+      cases hh : (decoderHandler st input' item).1 with
+      | finished =>
+        rw [processQueue_of_finished _ st input output fuel item input' hread hh]
+        exact allScalarQueue_push output Item.endOfQueue h rfl
+      | items out =>
+        rw [processQueue_of_items _ st input output fuel item input' out hread hh]
+        exact run_allScalar mode fuel _ _ _
+          (allScalarQueue_pushItems _ output h
+            (allScalarQueue_map out (handler_items_scalar st input' item out hh)))
+      | continues =>
+        rw [processQueue_of_continues _ st input output fuel item input' hread hh]
+        exact run_allScalar mode fuel _ _ _ h
+      | error c =>
+        cases mode with
+        | fatal => rw [processQueue_of_error_fatal st input output fuel item input' c hread hh]
+                   exact h
+        | replacement =>
+          rw [processQueue_of_error_replacement st input output fuel item input' c hread hh]
+          exact run_allScalar _ fuel _ _ _
+            (allScalarQueue_push output (Item.value replacementCharacter.val) h (by decide))
+
+private theorem convertFrom_allScalar : ∀ (q : IoQueue CodePoint), allScalarQueue q = true →
+    (IoQueue.convertFrom q).all CodePoint.isScalarValue = true
+  | [], _ => rfl
+  | Item.endOfQueue :: _, _ => rfl
+  | Item.value c :: t, h => by
+    rw [allScalarQueue, List.all_cons] at h
+    rw [IoQueue.convertFrom, List.all_cons]
+    have hpair := (Bool.and_eq_true _ _).mp h
+    rw [show (match (Item.value c : Item CodePoint) with
+      | Item.value c => CodePoint.isScalarValue c
+      | Item.endOfQueue => true) = CodePoint.isScalarValue c from rfl] at hpair
+    rw [hpair.1, Bool.true_and]
+    exact convertFrom_allScalar t (by rw [allScalarQueue]; exact hpair.2)
+
+/-- Decoding yields scalar values only, for **every** byte sequence and not only
+for well-formed ones: U+FFFD is itself a scalar value, and the 0xED upper
+boundary keeps the surrogate range out of the accepted set. This is the strong
+form of the obligation PROCI [15509,17620) step 6.1 asserts. -/
+theorem decodeWithoutBom_all_isScalarValue (b : ByteSequence) :
+    (decodeWithoutBom b).all CodePoint.isScalarValue = true := by
+  rw [decodeWithoutBom, decodeWithoutBomQueue]
+  exact convertFrom_allScalar _ (run_allScalar _ _ _ _ _ rfl)
+
+/-- The same for DECODE [45059,45762), which only strips a leading mark before
+running the same machine. -/
+theorem decode_all_isScalarValue (b : ByteSequence) :
+    (decode b).all CodePoint.isScalarValue = true := by
+  rw [decode, decodeQueue]
+  exact convertFrom_allScalar _ (run_allScalar _ _ _ _ _ rfl)
 
 /-- `Whatwg.Url.Boundary.Utf8DecodeOrFail.failed`, as
 `requirement.percent-encoded-utf8-advice` of `vendor/whatwg-url-55d66993/url.bs`
