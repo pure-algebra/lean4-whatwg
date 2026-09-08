@@ -11,6 +11,7 @@ import Whatwg.Infra.Text.Scalar
 import Whatwg.Infra.Text.Scan
 import Whatwg.Infra.Text.String
 import Whatwg.Infra.Text.Substring
+import Whatwg.Infra.Text.Utf8
 import Whatwg.Infra.Text.Whitespace
 
 /-!

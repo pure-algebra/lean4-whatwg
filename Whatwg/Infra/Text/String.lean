@@ -73,6 +73,27 @@ def codePoints : JsString → List CodePoint
     else
       CodePoint.ofUnit u :: codePoints rest
 
+/-- A string with no leading surrogate among its code units has one code point
+per code unit, section `strings`: the pairing branch of `codePoints` is entered
+only on a leading surrogate, so every unit takes the `CodePoint.ofUnit` branch.
+
+Adopted from the U3 builder's Infra candidate list
+(`test/contracts/url-percent-encoding.contract.md`) with its exact statement, at
+the home that contract named; `test/contracts/infra-utf8.contract.md` records
+the adoption. -/
+theorem codePoints_of_no_lead (input : JsString)
+    (h : ∀ unit ∈ input, unit.toNat < 0xD800) :
+    codePoints input = List.map CodePoint.ofUnit input := by
+  induction input with
+  | nil => rfl
+  | cons u rest ih =>
+    have hu : ¬ (0xD800 ≤ u.toNat ∧ u.toNat ≤ 0xDBFF) := by
+      have := h u (List.mem_cons_self ..)
+      omega
+    have hrest : ∀ unit ∈ rest, unit.toNat < 0xD800 := fun x hx =>
+      h x (List.mem_cons_of_mem _ hx)
+    rw [codePoints, dif_neg hu, ih hrest, List.map_cons]
+
 /-- The code units of one code point: itself below U+10000, and otherwise the
 surrogate pair of ECMA-262 §6.1.4. -/
 def unitsOfCodePoint (c : CodePoint) : List CodeUnit :=
@@ -93,6 +114,24 @@ def codePointLength (s : JsString) : Nat := (codePoints s).length
 /-- An ASCII string, section `strings`: "a string whose code points are all
 ASCII code points". -/
 def isAsciiString (s : JsString) : Bool := (codePoints s).all CodePoint.isAscii
+
+/-- Code units below 0x80 make an ASCII string, section `strings`: with no
+leading surrogate the code points are the units, and each is "in the range
+U+0000 NULL to U+007F DELETE".
+
+Adopted from the U3 builder's Infra candidate list
+(`test/contracts/url-percent-encoding.contract.md`) with its exact statement, at
+the home that contract named; `test/contracts/infra-utf8.contract.md` records
+the adoption. -/
+theorem isAsciiString_of_units (input : JsString)
+    (h : ∀ unit ∈ input, unit.toNat ≤ 0x7F) : isAsciiString input = true := by
+  have hlead : ∀ unit ∈ input, unit.toNat < 0xD800 := fun x hx => by
+    have := h x hx; omega
+  rw [isAsciiString, codePoints_of_no_lead input hlead]
+  refine List.all_eq_true.mpr ?_
+  intro c hc
+  obtain ⟨u, hu, rfl⟩ := List.mem_map.mp hc
+  exact decide_eq_true ⟨Nat.zero_le _, h u hu⟩
 
 /-- An isomorphic string, section `strings`: "a string whose code points are
 all in the range U+0000 NULL to U+00FF (ÿ), inclusive". -/

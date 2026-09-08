@@ -12,6 +12,10 @@ import WhatwgTest.Url.Counterexamples.PercentEncoding
 import WhatwgTest.Infra.Counterexamples.CommaSplit
 import WhatwgTest.Infra.ScalarConstructiveContract
 import WhatwgTest.Infra.IntegerConstructiveContract
+import WhatwgTest.Infra.Counterexamples.Utf8
+import WhatwgTest.Infra.Utf8Contract
+import WhatwgTest.Infra.Utf8Laws
+import WhatwgTest.Infra.Utf8AxiomReport
 import WhatwgTest.Streams.Counterexamples.Data.Queue
 import WhatwgTest.Streams.Counterexamples.Infra.Split
 import WhatwgTest.Streams.Data.QueueContract

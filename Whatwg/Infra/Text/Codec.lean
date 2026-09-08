@@ -49,6 +49,34 @@ def isomorphicEncode (input : JsString) (h : input.isIsomorphicString = true) : 
       exact (List.all_eq_true
         (p := fun c : CodePoint => c.inRange 0x00 0xFF) (l := codePoints input)).mp h c hc)
 
+/-- `List.pmap` collapses to `List.map` when the dependent function agrees with
+a plain one on every proof. The generic helper both computed forms below use;
+the U3 builder proved the same lemma privately in `Whatwg/Url/PercentEncoding.lean`. -/
+private theorem pmap_eq_map_of {α β : Type} {p : α → Prop} (f : (a : α) → p a → β)
+    (g : α → β) (hfg : ∀ (a : α) (h : p a), f a h = g a) :
+    ∀ (l : List α) (H : ∀ a ∈ l, p a), l.pmap f H = l.map g
+  | [], _ => rfl
+  | a :: t, H => by
+      rw [List.pmap, List.map, hfg,
+        pmap_eq_map_of f g hfg t (fun x hx => H x (List.mem_cons_of_mem _ hx))]
+
+/-- "Isomorphic encode" in computed form, section `strings`: the byte of a code
+point is `UInt8.ofNat` of its value, and the `List.pmap` of the definition is a
+`List.map` over the code points. The definition is otherwise opaque to
+rewriting, which is why the computed form is stated.
+
+Adopted from the U3 builder's Infra candidate list
+(`test/contracts/url-percent-encoding.contract.md`) with its exact statement, at
+the home that contract named; `test/contracts/infra-utf8.contract.md` records
+the adoption. -/
+theorem isomorphicEncode_eq (input : JsString) (h : input.isIsomorphicString = true) :
+    isomorphicEncode input h =
+      List.map (fun codePoint => UInt8.ofNat codePoint.val) (codePoints input) := by
+  rw [isomorphicEncode]
+  apply pmap_eq_map_of
+  intro _ _
+  exact UInt8.ofNatLT_eq_ofNat _
+
 /-- `isomorphicEncode` with its hypothesis decided at run time: `none` when
 the string is not an isomorphic string. -/
 def isomorphicEncode? (input : JsString) : Option ByteSequence :=
@@ -82,6 +110,24 @@ def asciiEncode (input : JsString) (h : input.isAsciiString = true) : ByteSequen
 string is not an ASCII string. -/
 def asciiEncode? (input : JsString) : Option ByteSequence :=
   if h : input.isAsciiString = true then some (asciiEncode input h) else none
+
+/-- "ASCII encode" in computed form, section `strings`: on a string whose code
+units are all below 0x80 the encoding is one byte per code unit. This is the
+load-bearing computed form: `asciiEncode?` is a `dite` over `isAsciiString`
+wrapping the `pmap`, so no law stated through it can be discharged without it.
+
+Adopted from the U3 builder's Infra candidate list
+(`test/contracts/url-percent-encoding.contract.md`) with its exact statement, at
+the home that contract named; `test/contracts/infra-utf8.contract.md` records
+the adoption. -/
+theorem asciiEncode?_eq (input : JsString) (h : ∀ unit ∈ input, unit.toNat ≤ 0x7F) :
+    asciiEncode? input = some (List.map (fun unit => UInt8.ofNat unit.toNat) input) := by
+  have hA : input.isAsciiString = true := isAsciiString_of_units input h
+  have hlead : ∀ unit ∈ input, unit.toNat < 0xD800 := fun x hx => by
+    have := h x hx; omega
+  rw [asciiEncode?, dif_pos hA, asciiEncode, isomorphicEncode_eq,
+    codePoints_of_no_lead input hlead, List.map_map]
+  rfl
 
 end JsString
 
