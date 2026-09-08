@@ -2517,6 +2517,519 @@ theorem decodeWithoutBomOrFail_eq_some_imp (b : ByteSequence) (cs : List CodePoi
     rw [modes_agree (processQueueFuel (IoQueue.convertTo b)) DecoderState.initial
       (IoQueue.convertTo b) [] hzero]
 
+/-! ### The run over one encoded scalar value
+
+The round trips are chained from one lemma: a run started in the initial state
+over `encodeScalar s ++ rest` consumes exactly `encodeScalar s`, pushes `s`'s
+code point, and comes back to the initial state. -/
+
+private theorem initial_codePoint : DecoderState.initial.codePoint = 0 := rfl
+private theorem initial_bytesSeen : DecoderState.initial.bytesSeen = 0 := rfl
+private theorem initial_lower : DecoderState.initial.lowerBoundary = (0x80 : Byte) := rfl
+private theorem initial_upper : DecoderState.initial.upperBoundary = (0xBF : Byte) := rfl
+
+private theorem scalar_not_surrogate (s : ScalarValue) :
+    s.val.val < 0xD800 ∨ 0xDFFF < s.val.val := by
+  have hp : CodePoint.isSurrogate s.val = false := s.property
+  rw [CodePoint.isSurrogate, CodePoint.isLeadingSurrogate, CodePoint.isTrailingSurrogate,
+    CodePoint.inRange, CodePoint.inRange, Bool.or_eq_false_iff] at hp
+  have h1 := of_decide_eq_false hp.1
+  have h2 := of_decide_eq_false hp.2
+  omega
+
+private theorem processQueueFuel_convertTo (l : ByteSequence) :
+    processQueueFuel (IoQueue.convertTo l) = 2 * List.length l + 3 := by
+  rw [processQueueFuel, IoQueue.convertTo]
+  simp only [List.length_append, List.length_map, List.length_cons, List.length_nil]
+  omega
+
+private theorem pushItems_singleton (output : IoQueue CodePoint) (c : CodePoint) :
+    IoQueue.pushItems output ([c].map Item.value) = IoQueue.push output (Item.value c) := rfl
+
+private theorem run_scalar_one (mode : Encoding.DecoderErrorMode) (s : ScalarValue)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (h : s.val.val ≤ 0x7F) (fuel : Nat)
+    (hfuel : 2 * List.length (encodeScalar s ++ rest) + 3 ≤ fuel) :
+    processQueue mode DecoderState.initial
+        (IoQueue.convertTo (encodeScalar s ++ rest)) output fuel =
+      processQueue mode DecoderState.initial
+        (IoQueue.convertTo rest) (IoQueue.push output (Item.value s.val))
+        (processQueueFuel (IoQueue.convertTo rest)) := by
+  rw [encodeScalar_ascii s h] at hfuel ⊢
+  have hcat : ([UInt8.ofNat s.val.val] ++ rest) = UInt8.ofNat s.val.val :: rest := rfl
+  rw [hcat] at hfuel ⊢
+  rw [List.length_cons] at hfuel
+  obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by omega⟩
+  have hb0 : (UInt8.ofNat s.val.val).toNat ≤ 0x7F := by rw [toNat_ofNat_lt (by omega)]; omega
+  obtain ⟨c, hd, hcv⟩ := decoderHandler_ascii DecoderState.initial (IoQueue.convertTo rest)
+    (UInt8.ofNat s.val.val) initial_bytesNeeded hb0
+  have hh : (decoderHandler DecoderState.initial (IoQueue.convertTo rest)
+      (Item.value (UInt8.ofNat s.val.val))).1 = Encoding.HandlerResult.items [c] := by rw [hd]
+  rw [processQueue_of_items _ _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh, hd]
+  simp only
+  have hcs : c = s.val := CodePoint.ext (by rw [hcv, toNat_ofNat_lt (by omega)])
+  rw [hcs, pushItems_singleton]
+  exact processQueue_fuel_stable _ _ _ _ _ (by rw [processQueueFuel_convertTo]; omega)
+
+private theorem run_scalar_two (mode : Encoding.DecoderErrorMode) (s : ScalarValue)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (h1 : 0x80 ≤ s.val.val)
+    (h2 : s.val.val ≤ 0x7FF) (fuel : Nat)
+    (hfuel : 2 * List.length (encodeScalar s ++ rest) + 3 ≤ fuel) :
+    processQueue mode DecoderState.initial
+        (IoQueue.convertTo (encodeScalar s ++ rest)) output fuel =
+      processQueue mode DecoderState.initial
+        (IoQueue.convertTo rest) (IoQueue.push output (Item.value s.val))
+        (processQueueFuel (IoQueue.convertTo rest)) := by
+  rw [encodeScalar_two_eq s h1 h2] at hfuel ⊢
+  have hcat : ([UInt8.ofNat (s.val.val / 64 + 0xC0), UInt8.ofNat (0x80 + s.val.val % 64)] ++
+      rest) = UInt8.ofNat (s.val.val / 64 + 0xC0) ::
+        UInt8.ofNat (0x80 + s.val.val % 64) :: rest := rfl
+  rw [hcat] at hfuel ⊢
+  rw [List.length_cons, List.length_cons] at hfuel
+  obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 + 1 := ⟨fuel - 2, by omega⟩
+  have hb0 : (UInt8.ofNat (s.val.val / 64 + 0xC0)).toNat = s.val.val / 64 + 0xC0 :=
+    toNat_ofNat_lt (by omega)
+  have hb1 : (UInt8.ofNat (0x80 + s.val.val % 64)).toNat = 0x80 + s.val.val % 64 :=
+    toNat_ofNat_lt (by omega)
+  -- step one: the lead byte
+  have hlead := decoderHandler_lead_two DecoderState.initial
+    (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+    (UInt8.ofNat (s.val.val / 64 + 0xC0)) initial_bytesNeeded (by rw [hb0]; omega)
+    (by rw [hb0]; omega)
+  have hhead : (decoderHandler DecoderState.initial
+      (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+      (Item.value (UInt8.ofNat (s.val.val / 64 + 0xC0)))).1 =
+      Encoding.HandlerResult.continues := by rw [hlead]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hhead, hlead]
+  simp only
+  -- the state after the lead byte
+  have hk : (UInt8.ofNat (s.val.val / 64 + 0xC0)).toNat &&& 0x1F = s.val.val / 64 := by
+    rw [hb0, land_five]; omega
+  have hinv : decoderInv (s.val.val / 64) DecoderState.initial.bytesSeen 1
+      ((0x80 : Byte)).toNat ((0xBF : Byte)).toNat := by
+    rw [initial_bytesSeen]
+    refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+    · rw [show 1 - 0 - 1 = 0 from rfl, Nat.pow_zero]
+      have : ((0xBF : Byte)).toNat = 191 := rfl
+      omega
+    · left
+      rw [show 1 - 0 - 1 = 0 from rfl, Nat.pow_zero]
+      have : ((0xBF : Byte)).toNat = 191 := rfl
+      omega
+  rw [hk]
+  obtain ⟨hcp, hseen, hneed, hlo, hhi⟩ := mk_fields (s.val.val / 64)
+    DecoderState.initial.bytesSeen 1 (0x80 : Byte) (0xBF : Byte) hinv
+  -- step two: the continuation byte completes the sequence
+  obtain ⟨c, hd, hcv⟩ := decoderHandler_complete
+    (DecoderState.mk (s.val.val / 64) DecoderState.initial.bytesSeen 1 (0x80 : Byte)
+      (0xBF : Byte)) (IoQueue.convertTo rest) (UInt8.ofNat (0x80 + s.val.val % 64))
+    (by rw [hneed]; omega) (by rw [hlo, hb1]; exact Nat.le_add_right _ _)
+    (by rw [hhi, hb1]; have : ((0xBF : Byte)).toNat = 191 := rfl; omega)
+    (by rw [hseen, hneed, initial_bytesSeen])
+  have hh2 : (decoderHandler (DecoderState.mk (s.val.val / 64) DecoderState.initial.bytesSeen 1
+      (0x80 : Byte) (0xBF : Byte)) (IoQueue.convertTo rest)
+      (Item.value (UInt8.ofNat (0x80 + s.val.val % 64)))).1 =
+      Encoding.HandlerResult.items [c] := by rw [hd]
+  rw [processQueue_of_items _ _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh2, hd]
+  simp only
+  have hcs : c = s.val := by
+    refine CodePoint.ext ?_
+    rw [hcv, hcp, hb1, land_six, lor_shift_six _ _ (by omega)]
+    omega
+  rw [hcs, pushItems_singleton]
+  exact processQueue_fuel_stable _ _ _ _ _ (by rw [processQueueFuel_convertTo]; omega)
+
+private theorem run_scalar_three (mode : Encoding.DecoderErrorMode) (s : ScalarValue)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (h1 : 0x800 ≤ s.val.val)
+    (h2 : s.val.val ≤ 0xFFFF) (fuel : Nat)
+    (hfuel : 2 * List.length (encodeScalar s ++ rest) + 3 ≤ fuel) :
+    processQueue mode DecoderState.initial
+        (IoQueue.convertTo (encodeScalar s ++ rest)) output fuel =
+      processQueue mode DecoderState.initial
+        (IoQueue.convertTo rest) (IoQueue.push output (Item.value s.val))
+        (processQueueFuel (IoQueue.convertTo rest)) := by
+  have hns := scalar_not_surrogate s
+  rw [encodeScalar_three_eq s h1 h2] at hfuel ⊢
+  have hcat : ([UInt8.ofNat (s.val.val / 4096 + 0xE0), UInt8.ofNat (0x80 + s.val.val / 64 % 64),
+      UInt8.ofNat (0x80 + s.val.val % 64)] ++ rest) =
+      UInt8.ofNat (s.val.val / 4096 + 0xE0) :: UInt8.ofNat (0x80 + s.val.val / 64 % 64) ::
+        UInt8.ofNat (0x80 + s.val.val % 64) :: rest := rfl
+  rw [hcat] at hfuel ⊢
+  rw [List.length_cons, List.length_cons, List.length_cons] at hfuel
+  obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 + 1 + 1 := ⟨fuel - 3, by omega⟩
+  have hb0 : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = s.val.val / 4096 + 0xE0 :=
+    toNat_ofNat_lt (by omega)
+  have hb1 : (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat = 0x80 + s.val.val / 64 % 64 :=
+    toNat_ofNat_lt (by omega)
+  have hb2 : (UInt8.ofNat (0x80 + s.val.val % 64)).toNat = 0x80 + s.val.val % 64 :=
+    toNat_ofNat_lt (by omega)
+  have hk : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat &&& 0xF = s.val.val / 4096 := by
+    rw [hb0, land_four]; omega
+  -- step one: the lead byte installs the boundary table
+  have hlead := decoderHandler_lead_three DecoderState.initial
+    (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val / 64 % 64) ::
+      UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+    (UInt8.ofNat (s.val.val / 4096 + 0xE0)) initial_bytesNeeded (by rw [hb0]; omega)
+    (by rw [hb0]; omega)
+  have hhead : (decoderHandler DecoderState.initial
+      (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val / 64 % 64) ::
+        UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+      (Item.value (UInt8.ofNat (s.val.val / 4096 + 0xE0)))).1 =
+      Encoding.HandlerResult.continues := by rw [hlead]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hhead, hlead]
+  simp only
+  rw [hk, initial_bytesSeen]
+  have hinv1 : decoderInv (s.val.val / 4096) 0 2
+      ((if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte)
+        else (0x80 : Byte))).toNat
+      ((if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte)
+        else (0xBF : Byte))).toNat := by
+    refine Or.inr ⟨by omega, by omega, ?_, ?_, ?_, ?_⟩
+    · by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0
+      · rw [if_pos he]; exact (by decide : (0x80 : Nat) ≤ ((0xA0 : Byte)).toNat)
+      · rw [if_neg he]; exact (by decide : (0x80 : Nat) ≤ ((0x80 : Byte)).toNat)
+    · by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED
+      · rw [if_pos he]; exact (by decide : ((0x9F : Byte)).toNat ≤ 0xBF)
+      · rw [if_neg he]; exact (by decide : ((0xBF : Byte)).toNat ≤ 0xBF)
+    · rw [show (2 : Nat) - 0 - 1 = 1 from rfl, Nat.pow_one]
+      by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED
+      · rw [if_pos he, hb0] at *
+        show s.val.val / 4096 * 64 * 64 + (159 - 0x80) * 64 + (64 - 1) ≤ 0x10FFFF
+        omega
+      · rw [if_neg he]
+        show s.val.val / 4096 * 64 * 64 + (191 - 0x80) * 64 + (64 - 1) ≤ 0x10FFFF
+        omega
+    · rw [show (2 : Nat) - 0 - 1 = 1 from rfl, Nat.pow_one]
+      by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED
+      · left
+        rw [if_pos he, hb0] at *
+        show s.val.val / 4096 * 64 * 64 + (159 - 0x80) * 64 + (64 - 1) < 0xD800
+        omega
+      · rw [if_neg he]
+        rw [hb0] at he
+        by_cases he0 : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0
+        · rw [if_pos he0]
+          rw [hb0] at he0
+          left
+          show s.val.val / 4096 * 64 * 64 + (191 - 0x80) * 64 + (64 - 1) < 0xD800
+          omega
+        · rw [if_neg he0]
+          rw [hb0] at he0
+          rcases Nat.lt_or_ge (s.val.val / 4096) 14 with hkk | hkk
+          · left
+            show s.val.val / 4096 * 64 * 64 + (191 - 0x80) * 64 + (64 - 1) < 0xD800
+            omega
+          · right
+            show 0xDFFF < s.val.val / 4096 * 64 * 64 + (128 - 0x80) * 64
+            omega
+  obtain ⟨hcp1, hseen1, hneed1, hlo1, hhi1⟩ := mk_fields (s.val.val / 4096) 0 2
+    (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte) else (0x80 : Byte))
+    (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte) else (0xBF : Byte))
+    hinv1
+  -- step two: the first continuation byte accumulates
+  have hlow : (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte)
+      else (0x80 : Byte)).toNat ≤ (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat := by
+    rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0
+    · rw [if_pos he, hb0] at *
+      show (0xA0 : Nat) ≤ 0x80 + s.val.val / 64 % 64
+      omega
+    · rw [if_neg he]
+      show (0x80 : Nat) ≤ 0x80 + s.val.val / 64 % 64
+      omega
+  have hhigh : (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat ≤
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte)
+        else (0xBF : Byte)).toNat := by
+    rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED
+    · rw [if_pos he, hb0] at *
+      show 0x80 + s.val.val / 64 % 64 ≤ (0x9F : Nat)
+      omega
+    · rw [if_neg he]
+      show 0x80 + s.val.val / 64 % 64 ≤ (0xBF : Nat)
+      omega
+  have hacc := decoderHandler_accumulate
+    (DecoderState.mk (s.val.val / 4096) 0 2
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte)
+        else (0x80 : Byte))
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte)
+        else (0xBF : Byte)))
+    (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+    (UInt8.ofNat (0x80 + s.val.val / 64 % 64)) (by rw [hneed1]; omega)
+    (by rw [hlo1]; exact hlow) (by rw [hhi1]; exact hhigh) (by rw [hseen1, hneed1]; omega)
+  have hhead2 : (decoderHandler (DecoderState.mk (s.val.val / 4096) 0 2
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte)
+        else (0x80 : Byte))
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte)
+        else (0xBF : Byte)))
+      (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+      (Item.value (UInt8.ofNat (0x80 + s.val.val / 64 % 64)))).1 =
+      Encoding.HandlerResult.continues := by rw [hacc]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hhead2, hacc]
+  simp only
+  have hmid : ((DecoderState.mk (s.val.val / 4096) 0 2
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xE0 then (0xA0 : Byte)
+        else (0x80 : Byte))
+      (if (UInt8.ofNat (s.val.val / 4096 + 0xE0)).toNat = 0xED then (0x9F : Byte)
+        else (0xBF : Byte))).codePoint <<< 6) |||
+      ((UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat &&& 0x3F) = s.val.val / 64 := by
+    rw [hcp1, hb1, land_six, lor_shift_six _ _ (by omega)]
+    omega
+  rw [hmid, hseen1, hneed1]
+  have hinv2 : decoderInv (s.val.val / 64) (0 + 1) 2 ((0x80 : Byte)).toNat
+      ((0xBF : Byte)).toNat := by
+    refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+    · rw [show (2 : Nat) - (0 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+      show s.val.val / 64 * 64 * 1 + (191 - 0x80) * 1 + (1 - 1) ≤ 0x10FFFF
+      omega
+    · rw [show (2 : Nat) - (0 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+      rcases hns with hlt | hgt
+      · left
+        show s.val.val / 64 * 64 * 1 + (191 - 0x80) * 1 + (1 - 1) < 0xD800
+        omega
+      · right
+        show 0xDFFF < s.val.val / 64 * 64 * 1 + (128 - 0x80) * 1
+        omega
+  obtain ⟨hcp2, hseen2, hneed2, hlo2, hhi2⟩ :=
+    mk_fields (s.val.val / 64) (0 + 1) 2 (0x80 : Byte) (0xBF : Byte) hinv2
+  -- step three: the second continuation byte completes the sequence
+  obtain ⟨c, hd, hcv⟩ := decoderHandler_complete
+    (DecoderState.mk (s.val.val / 64) (0 + 1) 2 (0x80 : Byte) (0xBF : Byte))
+    (IoQueue.convertTo rest) (UInt8.ofNat (0x80 + s.val.val % 64))
+    (by rw [hneed2]; omega) (by rw [hlo2, hb2]; exact Nat.le_add_right _ _)
+    (by rw [hhi2, hb2]; show 0x80 + s.val.val % 64 ≤ (0xBF : Nat); omega)
+    (by rw [hseen2, hneed2])
+  have hh3 : (decoderHandler
+      (DecoderState.mk (s.val.val / 64) (0 + 1) 2 (0x80 : Byte) (0xBF : Byte))
+      (IoQueue.convertTo rest) (Item.value (UInt8.ofNat (0x80 + s.val.val % 64)))).1 =
+      Encoding.HandlerResult.items [c] := by rw [hd]
+  rw [processQueue_of_items _ _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh3, hd]
+  simp only
+  have hcs : c = s.val := by
+    refine CodePoint.ext ?_
+    rw [hcv, hcp2, hb2, land_six, lor_shift_six _ _ (by omega)]
+    omega
+  rw [hcs, pushItems_singleton]
+  exact processQueue_fuel_stable _ _ _ _ _ (by rw [processQueueFuel_convertTo]; omega)
+
+private theorem run_scalar_four (mode : Encoding.DecoderErrorMode) (s : ScalarValue)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (h1 : 0x10000 ≤ s.val.val) (fuel : Nat)
+    (hfuel : 2 * List.length (encodeScalar s ++ rest) + 3 ≤ fuel) :
+    processQueue mode DecoderState.initial
+        (IoQueue.convertTo (encodeScalar s ++ rest)) output fuel =
+      processQueue mode DecoderState.initial
+        (IoQueue.convertTo rest) (IoQueue.push output (Item.value s.val))
+        (processQueueFuel (IoQueue.convertTo rest)) := by
+  have h2 : s.val.val ≤ 0x10FFFF := s.val.isLe
+  rw [encodeScalar_four_eq s h1] at hfuel ⊢
+  have hcat : ([UInt8.ofNat (s.val.val / 262144 + 0xF0), UInt8.ofNat (0x80 + s.val.val / 4096 % 64),
+      UInt8.ofNat (0x80 + s.val.val / 64 % 64), UInt8.ofNat (0x80 + s.val.val % 64)] ++ rest) =
+      UInt8.ofNat (s.val.val / 262144 + 0xF0) :: UInt8.ofNat (0x80 + s.val.val / 4096 % 64) ::
+        UInt8.ofNat (0x80 + s.val.val / 64 % 64) :: UInt8.ofNat (0x80 + s.val.val % 64) ::
+          rest := rfl
+  rw [hcat] at hfuel ⊢
+  rw [List.length_cons, List.length_cons, List.length_cons, List.length_cons] at hfuel
+  obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 + 1 + 1 + 1 := ⟨fuel - 4, by omega⟩
+  have hb0 : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = s.val.val / 262144 + 0xF0 :=
+    toNat_ofNat_lt (by omega)
+  have hb1 : (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat = 0x80 + s.val.val / 4096 % 64 :=
+    toNat_ofNat_lt (by omega)
+  have hb2 : (UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat = 0x80 + s.val.val / 64 % 64 :=
+    toNat_ofNat_lt (by omega)
+  have hb3 : (UInt8.ofNat (0x80 + s.val.val % 64)).toNat = 0x80 + s.val.val % 64 :=
+    toNat_ofNat_lt (by omega)
+  have hk : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat &&& 0x7 = s.val.val / 262144 := by
+    rw [hb0, land_three]; omega
+  -- step one: the lead byte installs the boundary table
+  have hlead := decoderHandler_lead_four DecoderState.initial
+    (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val / 4096 % 64) ::
+      UInt8.ofNat (0x80 + s.val.val / 64 % 64) :: UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+    (UInt8.ofNat (s.val.val / 262144 + 0xF0)) initial_bytesNeeded (by rw [hb0]; omega)
+    (by rw [hb0]; omega)
+  have hhead : (decoderHandler DecoderState.initial
+      (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val / 4096 % 64) ::
+        UInt8.ofNat (0x80 + s.val.val / 64 % 64) :: UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+      (Item.value (UInt8.ofNat (s.val.val / 262144 + 0xF0)))).1 =
+      Encoding.HandlerResult.continues := by rw [hlead]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hhead, hlead]
+  simp only
+  rw [hk, initial_bytesSeen]
+  have hinv1 : decoderInv (s.val.val / 262144) 0 3
+      ((if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+        else (0x80 : Byte))).toNat
+      ((if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+        else (0xBF : Byte))).toNat := by
+    refine Or.inr ⟨by omega, by omega, ?_, ?_, ?_, ?_⟩
+    · by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0
+      · rw [if_pos he]; exact (by decide : (0x80 : Nat) ≤ ((0x90 : Byte)).toNat)
+      · rw [if_neg he]; exact (by decide : (0x80 : Nat) ≤ ((0x80 : Byte)).toNat)
+    · by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4
+      · rw [if_pos he]; exact (by decide : ((0x8F : Byte)).toNat ≤ 0xBF)
+      · rw [if_neg he]; exact (by decide : ((0xBF : Byte)).toNat ≤ 0xBF)
+    · rw [show (3 : Nat) - 0 - 1 = 2 from rfl, show (64 : Nat) ^ 2 = 4096 from rfl]
+      by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4
+      · rw [if_pos he]
+        rw [hb0] at he
+        show s.val.val / 262144 * 64 * 4096 + (143 - 0x80) * 4096 + (4096 - 1) ≤ 0x10FFFF
+        omega
+      · rw [if_neg he]
+        rw [hb0] at he
+        show s.val.val / 262144 * 64 * 4096 + (191 - 0x80) * 4096 + (4096 - 1) ≤ 0x10FFFF
+        omega
+    · rw [show (3 : Nat) - 0 - 1 = 2 from rfl, show (64 : Nat) ^ 2 = 4096 from rfl]
+      right
+      by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0
+      · rw [if_pos he]
+        rw [hb0] at he
+        show 0xDFFF < s.val.val / 262144 * 64 * 4096 + (144 - 0x80) * 4096
+        omega
+      · rw [if_neg he]
+        rw [hb0] at he
+        show 0xDFFF < s.val.val / 262144 * 64 * 4096 + (128 - 0x80) * 4096
+        omega
+  obtain ⟨hcp1, hseen1, hneed1, hlo1, hhi1⟩ := mk_fields (s.val.val / 262144) 0 3
+    (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+      else (0x80 : Byte))
+    (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+      else (0xBF : Byte)) hinv1
+  -- step two: the first continuation byte accumulates
+  have hlow : (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+      else (0x80 : Byte)).toNat ≤ (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat := by
+    rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0
+    · rw [if_pos he]
+      rw [hb0] at he
+      show (0x90 : Nat) ≤ 0x80 + s.val.val / 4096 % 64
+      omega
+    · rw [if_neg he]
+      show (0x80 : Nat) ≤ 0x80 + s.val.val / 4096 % 64
+      omega
+  have hhigh : (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat ≤
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+        else (0xBF : Byte)).toNat := by
+    rw [hb1]
+    by_cases he : (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4
+    · rw [if_pos he]
+      rw [hb0] at he
+      show 0x80 + s.val.val / 4096 % 64 ≤ (0x8F : Nat)
+      omega
+    · rw [if_neg he]
+      show 0x80 + s.val.val / 4096 % 64 ≤ (0xBF : Nat)
+      omega
+  have hacc1 := decoderHandler_accumulate
+    (DecoderState.mk (s.val.val / 262144) 0 3
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+        else (0x80 : Byte))
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+        else (0xBF : Byte)))
+    (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val / 64 % 64) ::
+      UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+    (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)) (by rw [hneed1]; omega)
+    (by rw [hlo1]; exact hlow) (by rw [hhi1]; exact hhigh) (by rw [hseen1, hneed1]; omega)
+  have hhead2 : (decoderHandler (DecoderState.mk (s.val.val / 262144) 0 3
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+        else (0x80 : Byte))
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+        else (0xBF : Byte)))
+      (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val / 64 % 64) ::
+        UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+      (Item.value (UInt8.ofNat (0x80 + s.val.val / 4096 % 64)))).1 =
+      Encoding.HandlerResult.continues := by rw [hacc1]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hhead2, hacc1]
+  simp only
+  have hmid1 : ((DecoderState.mk (s.val.val / 262144) 0 3
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF0 then (0x90 : Byte)
+        else (0x80 : Byte))
+      (if (UInt8.ofNat (s.val.val / 262144 + 0xF0)).toNat = 0xF4 then (0x8F : Byte)
+        else (0xBF : Byte))).codePoint <<< 6) |||
+      ((UInt8.ofNat (0x80 + s.val.val / 4096 % 64)).toNat &&& 0x3F) = s.val.val / 4096 := by
+    rw [hcp1, hb1, land_six, lor_shift_six _ _ (by omega)]
+    omega
+  rw [hmid1, hseen1, hneed1]
+  have hinv2 : decoderInv (s.val.val / 4096) (0 + 1) 3 ((0x80 : Byte)).toNat
+      ((0xBF : Byte)).toNat := by
+    refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+    · rw [show (3 : Nat) - (0 + 1) - 1 = 1 from rfl, Nat.pow_one]
+      show s.val.val / 4096 * 64 * 64 + (191 - 0x80) * 64 + (64 - 1) ≤ 0x10FFFF
+      omega
+    · rw [show (3 : Nat) - (0 + 1) - 1 = 1 from rfl, Nat.pow_one]
+      right
+      show 0xDFFF < s.val.val / 4096 * 64 * 64 + (128 - 0x80) * 64
+      omega
+  obtain ⟨hcp2, hseen2, hneed2, hlo2, hhi2⟩ :=
+    mk_fields (s.val.val / 4096) (0 + 1) 3 (0x80 : Byte) (0xBF : Byte) hinv2
+  -- step three: the second continuation byte accumulates
+  have hacc2 := decoderHandler_accumulate
+    (DecoderState.mk (s.val.val / 4096) (0 + 1) 3 (0x80 : Byte) (0xBF : Byte))
+    (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+    (UInt8.ofNat (0x80 + s.val.val / 64 % 64)) (by rw [hneed2]; omega)
+    (by rw [hlo2, hb2]; exact Nat.le_add_right _ _)
+    (by rw [hhi2, hb2]; show 0x80 + s.val.val / 64 % 64 ≤ (0xBF : Nat); omega)
+    (by rw [hseen2, hneed2]; omega)
+  have hhead3 : (decoderHandler
+      (DecoderState.mk (s.val.val / 4096) (0 + 1) 3 (0x80 : Byte) (0xBF : Byte))
+      (IoQueue.convertTo (UInt8.ofNat (0x80 + s.val.val % 64) :: rest))
+      (Item.value (UInt8.ofNat (0x80 + s.val.val / 64 % 64)))).1 =
+      Encoding.HandlerResult.continues := by rw [hacc2]
+  rw [processQueue_of_continues _ _ _ _ _ _ _ (read_convertTo_cons _ _) hhead3, hacc2]
+  simp only
+  have hmid2 : ((DecoderState.mk (s.val.val / 4096) (0 + 1) 3 (0x80 : Byte)
+      (0xBF : Byte)).codePoint <<< 6) |||
+      ((UInt8.ofNat (0x80 + s.val.val / 64 % 64)).toNat &&& 0x3F) = s.val.val / 64 := by
+    rw [hcp2, hb2, land_six, lor_shift_six _ _ (by omega)]
+    omega
+  rw [hmid2, hseen2, hneed2]
+  have hinv3 : decoderInv (s.val.val / 64) (0 + 1 + 1) 3 ((0x80 : Byte)).toNat
+      ((0xBF : Byte)).toNat := by
+    refine Or.inr ⟨by omega, by omega, by decide, by decide, ?_, ?_⟩
+    · rw [show (3 : Nat) - (0 + 1 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+      show s.val.val / 64 * 64 * 1 + (191 - 0x80) * 1 + (1 - 1) ≤ 0x10FFFF
+      omega
+    · rw [show (3 : Nat) - (0 + 1 + 1) - 1 = 0 from rfl, Nat.pow_zero]
+      right
+      show 0xDFFF < s.val.val / 64 * 64 * 1 + (128 - 0x80) * 1
+      omega
+  obtain ⟨hcp3, hseen3, hneed3, hlo3, hhi3⟩ :=
+    mk_fields (s.val.val / 64) (0 + 1 + 1) 3 (0x80 : Byte) (0xBF : Byte) hinv3
+  -- step four: the third continuation byte completes the sequence
+  obtain ⟨c, hd, hcv⟩ := decoderHandler_complete
+    (DecoderState.mk (s.val.val / 64) (0 + 1 + 1) 3 (0x80 : Byte) (0xBF : Byte))
+    (IoQueue.convertTo rest) (UInt8.ofNat (0x80 + s.val.val % 64))
+    (by rw [hneed3]; omega) (by rw [hlo3, hb3]; exact Nat.le_add_right _ _)
+    (by rw [hhi3, hb3]; show 0x80 + s.val.val % 64 ≤ (0xBF : Nat); omega)
+    (by rw [hseen3, hneed3])
+  have hh4 : (decoderHandler
+      (DecoderState.mk (s.val.val / 64) (0 + 1 + 1) 3 (0x80 : Byte) (0xBF : Byte))
+      (IoQueue.convertTo rest) (Item.value (UInt8.ofNat (0x80 + s.val.val % 64)))).1 =
+      Encoding.HandlerResult.items [c] := by rw [hd]
+  rw [processQueue_of_items _ _ _ _ _ _ _ _ (read_convertTo_cons _ _) hh4, hd]
+  simp only
+  have hcs : c = s.val := by
+    refine CodePoint.ext ?_
+    rw [hcv, hcp3, hb3, land_six, lor_shift_six _ _ (by omega)]
+    omega
+  rw [hcs, pushItems_singleton]
+  exact processQueue_fuel_stable _ _ _ _ _ (by rw [processQueueFuel_convertTo]; omega)
+
+/-- The run over one encoded scalar value: PROCQ [14785,15508) started in the
+initial state over `encodeScalar s ++ rest` consumes exactly `encodeScalar s`,
+pushes `s`'s code point, and returns to the initial state. -/
+private theorem run_scalar (mode : Encoding.DecoderErrorMode) (s : ScalarValue)
+    (rest : ByteSequence) (output : IoQueue CodePoint) (fuel : Nat)
+    (hfuel : 2 * List.length (encodeScalar s ++ rest) + 3 ≤ fuel) :
+    processQueue mode DecoderState.initial
+        (IoQueue.convertTo (encodeScalar s ++ rest)) output fuel =
+      processQueue mode DecoderState.initial
+        (IoQueue.convertTo rest) (IoQueue.push output (Item.value s.val))
+        (processQueueFuel (IoQueue.convertTo rest)) := by
+  have hle : s.val.val ≤ 0x10FFFF := s.val.isLe
+  rcases Nat.lt_or_ge s.val.val 0x80 with h1 | h1
+  · exact run_scalar_one mode s rest output (by omega) fuel hfuel
+  · rcases Nat.lt_or_ge s.val.val 0x800 with h2 | h2
+    · exact run_scalar_two mode s rest output h1 (by omega) fuel hfuel
+    · rcases Nat.lt_or_ge s.val.val 0x10000 with h3 | h3
+      · exact run_scalar_three mode s rest output h2 (by omega) fuel hfuel
+      · exact run_scalar_four mode s rest output h3 fuel hfuel
+
 /-- `Whatwg.Url.Boundary.Utf8DecodeOrFail.failed`, as
 `requirement.percent-encoded-utf8-advice` of `vendor/whatwg-url-55d66993/url.bs`
 [16325,16862) reads it: the boundary's `failed` field is a function of the bytes,
