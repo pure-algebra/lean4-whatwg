@@ -2,8 +2,6 @@ import Lean.CoreM
 import Lean.DeclarationRange
 import Lean.ToExpr
 import Lean.Util.FoldConsts
-import Std.Data.HashMap
-import Std.Data.HashSet
 import WhatwgGates.Common
 import WhatwgGates.Sha256
 import WhatwgGates.Trust.Load
