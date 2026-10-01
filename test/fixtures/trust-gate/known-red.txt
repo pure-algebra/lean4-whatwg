@@ -548,3 +548,23 @@
 # and WhatwgTest.Audit.FreezeContract. The battery is green with no byte of it
 # changed: every #guard_msgs control matches and every rfl read-back holds.
 # The entry is removed. No entry remains.
+
+WhatwgTest.Audit.FreezeContract
+
+# W6 declaration snapshot (packet 2 of 2, ruling R-W5), frozen RED 2026-10-01
+# by the W6 breaker seat on branch review/w6-snapshot-breaker, stacked on
+# review/w6-freeze-breaker (R-W9). Packet:
+# test/contracts/declaration-snapshot.contract.md.
+# Implementation fence (builder 2, R-W8 wave 2b): WhatwgGates/DeclSnapshot.lean,
+# whatwgbin/DeclSnapshot.lean, the whatwg_declsnapshot executable in
+# lakefile.toml, one import in WhatwgGates.lean, the root import of the
+# battery, and generated/declarations/*.tsv.
+#
+# One entry. The battery is red for one reason only: it imports
+# WhatwgGates.DeclSnapshot, which does not exist yet. Against a scratch
+# implementation of the contract's pure core every #guard holds; the packet's
+# section 15 records that run. Lake also names the missing module
+# WhatwgGates.DeclSnapshot as a failing target, which, as for packet 1, the
+# self-test can neither ignore nor excise. The builder removes this entry the
+# moment the battery is green.
+WhatwgTest.Audit.DeclSnapshotContract
