@@ -2,6 +2,9 @@ import WhatwgTest.Ledger.DataQueue
 import WhatwgTest.Ledger.PromiseFirst
 import WhatwgTest.Ledger.ConfigurationOrdering
 import WhatwgTest.Ledger.ReadableDefault
+import WhatwgTest.Ledger.WritableDefault
+import WhatwgTest.Ledger.TransformBackpressure
+import WhatwgTest.Ledger.PipingForwardShutdown
 
 /-!
 # WhatwgTest.Ledger
@@ -45,7 +48,8 @@ def infraInteger : Leaf where
 /-- The ledger: the slice A graphs, the slice B graphs seeded so far, and the
 one leaf record. -/
 def ledger : Ledger where
-  graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault]
+  graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
+    transformBackpressure, pipingForwardShutdown]
   leaves := [infraInteger]
 
 /-- The ledger has no structural finding (contract section 4). -/

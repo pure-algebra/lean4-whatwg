@@ -10,25 +10,11 @@ backpressure Boolean model does not discharge its coupling obligation.
 
 ## Current state
 
-This table describes commit `325d5d5` on 2026-09-30, with the trust row brought to the lane V landing of 2026-10-01 (R-V6). P6a landed on
-2026-09-05 with implementation `afb57f8`, closing laws, counterexamples and
-trust; full P6 stays open. Ruling R-V4 sets the rule: an edge is
-`required-closed` only when every ground this document or a ruling in
-`COORDINATION.md` states for keeping it open is discharged by something named
-in the ground cell.
-
-| Edge | Status | Ground |
-| --- | --- | --- |
-| identity | `required-open` | The generated public-declaration snapshot and its joins, which have no generator (debt D47) (P6a landing receipt) |
-| construction | `required-open` | Valid ports, fresh and shared allocation, unique subscriptions, retained callback identity, trace-prefix validity and inductive reachable-state invariants; raw states can violate them (P6a landing receipt) |
-| semantics | `required-open` | Full-state embeddings, global ECMAScript job order and promise adoption and registration (P6a landing receipt) |
-| laws | `required-closed` | The 115 frozen local equations in `Whatwg/Streams/Transform/Laws.lean` and the three composed runs in `Runs.lean` are proved; the 118 named receipts print (P6a landing receipt) |
-| representation | `required-open` | Full-state embeddings, global ECMAScript job order, promise adoption and registration, and numeric boundaries (P6a landing receipt). Since Q3, subscriptions are a view of `Whatwg.Ecma262.Promise.Reactions`, and Q4 landed the `notify`, `settle` and `runJob` bridges, which are `PROMISE-PG-FIRST` bridge evidence |
-| counterexamples | `required-closed` | `WS-TRANS-CE-001` to `WS-TRANS-CE-014` are `CLOSED` in `test/counterexamples/REGISTER.md` with their linked production laws, for the exact local scope the register records (P6a landing receipt) |
-| bridges | `required-open` | Full-state embeddings, global ECMAScript job order, promise adoption and registration, numeric boundaries and host relations; the four Node observations are finite host observations, compared with no Lean run (P6a landing receipt) |
-| targets | `not-applicable` | This representative generates no target code; P11 owns lowering |
-| trust | `required-closed` | The 118 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent implementation and proof review passed (P6a landing receipt). Four of the receipts, `freshInternal_new`, `coupled_write_read_enqueue`, `coupled_error_during_transform` and `coupled_positive_readable_capacity`, reached `Classical.choice` at `325d5d5`; slice V5 of lane V repaired them with no statement changed, and since that landing the axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1, R-V6) |
-| coverage | `required-open` | The clause map and the test-side numerator witnesses; the packet adds no coverage claim (P6a landing receipt) |
+The status of every edge of this graph is recorded in the ledger module
+`WhatwgTest/Ledger/TransformBackpressure.lean`, rendered to
+`generated/graphs/TRANSFORM-PG-BACKPRESSURE.md` by `lake exe whatwg_ledger --write`, and
+checked by `lake exe whatwg_ledger`. The table this section held before the
+ledger is in `docs/receipts/TRANSFORM-PG-BACKPRESSURE.md`.
 
 ## Authority anchors
 
