@@ -164,11 +164,11 @@ def promiseAgent : Graph where
       note := "The `Effects.Signature` face (B4 battery) with its agreement laws, the Lake library `WhatwgSignatures` in `defaultTargets`, the umbrella import in `Whatwg.lean` that makes the audit root reach it, and the toy consumer sum of the battery's §4 are landed (R-W16). The face law `interpret_sumHandler_inr`, the consumer's half of the sum, landed with addendum Q5b (B6 battery, R-W21). No lowering and no generated code: P11 owns the TypeScript target." }
     trust := {
       status := .requiredOpen
-      remaining := [.named "`lake exe whatwg_trustselftest` at the Q5 landing, which R-W16 does not record",
+      remaining := [
         .named "the independent review of slice Q5, before which R-W16 changes no edge"]
       grounds := [.gate .build, .gate .leanchecker, .ruling "R-W3", .ruling "R-W16",
-        .ruling "R-W9"]
-      note := "Every declaration under `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Signatures` is inside `propext` and `Quot.sound`, enforced by the axiom gate with `Whatwg.Signatures` as the sixth strict prefix and no exception, and `lake env leanchecker` over the three library prefixes exits 0 (R-W16). No axiom-report module is written (R-W9)." }
+        .ruling "R-W9", .gate .trustselftest, .ruling "R-W24"]
+      note := "Every declaration under `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Signatures` is inside `propext` and `Quot.sound`, enforced by the axiom gate with `Whatwg.Signatures` as the sixth strict prefix and no exception, and `lake env leanchecker` over the three library prefixes exits 0 (R-W16). With slice Q5 and addendum Q5b on `main`, the trust self-test passes every check against an empty declared red set and `lake exe whatwg_trustgate` prints the in-tree gate's summary line (R-W24). No axiom-report module is written (R-W9)." }
     coverage := {
       status := .requiredOpen
       remaining := [
