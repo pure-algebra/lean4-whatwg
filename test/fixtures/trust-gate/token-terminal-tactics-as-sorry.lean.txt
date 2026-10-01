@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2b-T09: the option under which the
+-- terminal tactics `omega` and `grind` close their goal with `sorry`.
+#guard_msgs (drop all) in
+set_option debug.terminalTacticsAsSorry true in
+example : (1 : Nat) = 2 := by omega

@@ -1,0 +1,42 @@
+-- Planted by the trust self-test, acceptance plant V2b-A1. Trust-policy prose
+-- may name admit, stop, impossible, apply?, try?, grind?, sorryAx,
+-- warn.sorry, warningAsError, debug.byAsSorry, debug.terminalTacticsAsSorry,
+-- Lean.reduceBool and reduceNat.
+/- Block comments may too: /- set_option warningAsError false -/ by admit. -/
+/-- Documentation may name `admit`, `impossible`, `apply?`, `sorryAx`,
+`set_option warn.sorry false` and `Lean.reduceBool`. -/
+private def plantedV2bTrustTokenProse : String :=
+  "admit impossible apply? try? grind? sorryAx warn.sorry warningAsError debug.byAsSorry"
+private def plantedV2bRawTrustTokenProse : String :=
+  r#"debug.terminalTacticsAsSorry "Lean.reduceBool" reduceNat _root_.sorryAx"#
+
+-- Name literals are data, like strings.
+private def plantedV2bTrustTokenNames : List Lean.Name :=
+  [`admit, `impossible, `warn.sorry, `warningAsError, `debug.byAsSorry, ``sorryAx,
+   ``Lean.reduceBool, ``Lean.reduceNat]
+
+-- Identifiers that merely contain an added word, or carry one of the
+-- whole-name words as a component of a longer name, are names.
+private def admitted : Nat := 0
+private def impossibleCase : Nat := 0
+private def sorryAxiomatic : Nat := 0
+private def warningAsErrorNote : Nat := 0
+private def reduceBoolNote : Nat := 0
+private def plantedV2bVocabulary.admit : Nat := 0
+private def plantedV2bVocabulary.impossible : Nat := 0
+private def plantedV2bVocabulary.warningAsError : Nat := 0
+private def plantedV2bVocabulary.warn.sorry : Nat := 0
+
+-- `stop` is not a refused word: three tooling modules name a local `stop`.
+private def plantedV2bStopLocal : Nat := Id.run do
+  let stop := 3
+  return stop
+
+-- An ordinary option stays admitted; only the two message switches are refused.
+set_option linter.unusedVariables false in
+private def plantedV2bUnusedBinder (unused : Nat) : Nat := 0
+
+-- `#guard_msgs` around `#check_failure` stays admitted, as the HTML breakers
+-- use it.
+#guard_msgs (drop info) in
+#check_failure (rfl : (1 : Nat) = 2)

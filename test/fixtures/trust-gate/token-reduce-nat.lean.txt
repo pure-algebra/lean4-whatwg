@@ -1,0 +1,7 @@
+-- Planted by the trust self-test, plant V2b-T13: the short spelling of the
+-- `Nat` form of the same kernel hook, under `open Lean`.
+def plantedNativeNat : Nat := 4
+
+set_option linter.deprecated false in
+open Lean in
+example : reduceNat plantedNativeNat = 4 := rfl

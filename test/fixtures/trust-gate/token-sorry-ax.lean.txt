@@ -1,0 +1,7 @@
+-- Planted by the trust self-test, plant V2b-T01: the axiom behind `sorry`, named
+-- directly inside an `example`. `#guard_msgs (drop all)` consumes Lean's own
+-- "declaration uses `sorry`" message, which the package's warning-as-error
+-- option makes an error, so the build passes and no constant is left for the
+-- axiom pass.
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := sorryAx _ false

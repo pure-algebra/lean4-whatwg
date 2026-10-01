@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, plant V2b-T08: the option under which every
+-- `by` block whose type is a proposition elaborates as `sorry`, so `decide`
+-- never runs.
+#guard_msgs (drop all) in
+set_option debug.byAsSorry true in
+example : (1 : Nat) = 2 := by decide

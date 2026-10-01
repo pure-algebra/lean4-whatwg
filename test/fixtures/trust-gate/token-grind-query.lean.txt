@@ -1,0 +1,8 @@
+/-!
+Planted by the trust self-test, plant V2b-T07: `grind?`. It runs `grind` with
+its `useSorry` setting, closes every branch it cannot solve with `sorry`, and
+suggests the script `grind => sorry`.
+-/
+
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := by grind?

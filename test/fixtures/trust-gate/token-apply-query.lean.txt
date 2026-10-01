@@ -1,0 +1,9 @@
+/-!
+Planted by the trust self-test, plant V2b-T05: `apply?`, core's library search.
+When it finds only partial suggestions it reports them as information and
+closes the goal with `sorry`. The module imports nothing beyond `Init`, so the
+search runs over the core library only.
+-/
+
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := by apply?

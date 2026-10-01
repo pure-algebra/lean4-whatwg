@@ -616,3 +616,453 @@ fence.
   the probe never runs the census generator, but the census batteries read
   `vendor/` and `docs/` when they are re-elaborated, so a stale cache makes
   step 0 fail (section 15).
+
+## Addendum V2b (2026-10-01)
+
+Status: FROZEN / RED, V2b breaker seat, 2026-10-01, on branch
+`review/v2b-token-breaker`, based on `863b596` (the commit that lands ruling
+R-V6, which opens this addendum). The addendum is appended; no earlier sentence
+of this file is changed. Where it and an earlier section differ, the addendum
+governs, and V2b.5 names each place.
+
+Authority: ruling R-V6 at the end of `COORDINATION.md`. The V2 builder found
+that an `example` under `set_option warningAsError false` can admit a goal
+through spellings the frozen word list does not carry (`sorryAx` by name,
+`debug.byAsSorry`); a breaker freezes fixtures and plant rows for those and
+for every other goal-admitting spelling it finds in the toolchain, and the
+coordinator applies the word-list change.
+
+### V2b.1 Method, and the fact that decides most rows
+
+Each candidate was written as a small file in a scratch directory outside the
+worktree, pinned to `leanprover/lean4:v4.33.1`, and elaborated with
+`lake env lean -DwarningAsError=true <file>`, the package's own option. The
+toolchain source under `src/lean/Init`, `src/lean/Lean` and `src/lean/Std` was
+read for every `sorry`-like syntax, every option whose description mentions
+`sorry` or skipping a check, and every caller of `Lean.Elab.admitGoal`,
+`Lean.MVarId.admit`, `Lean.Meta.mkSorry` and `Lean.Meta.mkLabeledSorry`. Lean's
+own semantic highlighter classes four keywords as sorry-like: `sorry`, `admit`,
+`stop` and `#exit` (`keywordSemanticTokenMap` in
+`Lean/Server/FileWorker/SemanticHighlighting.lean`). `Std` adds no admitting
+syntax.
+
+`Lean.warnIfUsesSorry` (`Lean/AddDecl.lean`) logs "declaration uses `sorry`"
+for every declaration added to the environment, an `example` included, whose
+value contains `sorryAx`, synthetic or not, unless the option `warn.sorry` is
+false or the message log already holds an error. Under the package-wide
+`warningAsError = true` that warning is an error: `example : (1 : Nat) = 2 :=
+by admit` and `example : (1 : Nat) = 2 := sorryAx _ true` each fail the build.
+An admitted goal inside an `example` therefore survives the build through one
+of three source-level switches only:
+
+1. `set_option warningAsError false`, for one command or for the rest of the
+   file;
+2. `set_option warn.sorry false`, which removes the warning itself, so that the
+   `example` passes with no message even under `warningAsError = true`;
+3. `#guard_msgs`, which removes the messages of the command it wraps, with
+   `(drop all)`, `(drop error)`, or a docstring that expects the message.
+   `(drop warning)` does not: under `warningAsError` the message is already an
+   error.
+
+A failing proof behaves the same way: the elaborator closes the goal with a
+synthetic `sorry` and logs an error, which fails the build unless `#guard_msgs`
+consumes it.
+
+### V2b.2 Candidates
+
+"Admits" means the file's `example` of the false goal `(1 : Nat) = 2`
+elaborated with exit code 0 under the stated condition. "Today's gate" is the
+gate at the base, whose passes see no constant and no refused word in such an
+`example`.
+
+| Candidate | Measured | Admits, or skips a check | Today's gate | Decision |
+| --- | --- | --- | --- | --- |
+| the term `sorryAx _ false`, also spelled `_root_.sorryAx` | exit 0 with `warningAsError` off; exit 0 and no message under `#guard_msgs (drop all)` | admits | accepts | refuse `sorryAx`, last-component shape (V2b-T01, V2b-T02) |
+| the tactic `admit`, also `grind => admit` | the same | admits: core's `macro "admit" : tactic` expands to the `sorry` tactic | accepts | refuse `admit` (V2b-T03) |
+| the tactic `stop tacs` | the same, and through a `macro` that expands to it | admits every goal: it expands to `repeat sorry` | accepts | not refused: legitimate identifier uses (V2b.4); Lean's warning catches it once the two switches are refused |
+| the tactic `impossible by t` | the same | admits the goal its inner tactic has just refuted: core closes it "as if `sorry` was used" | accepts | refuse `impossible` (V2b-T04) |
+| the tactic `apply?` | the same | admits: on partial suggestions it calls `admitGoal goal (synthetic := false)` | accepts | refuse `apply?` (V2b-T05) |
+| the tactic `try?` | the same | admits: it runs its suggestion `impossible by decide` | accepts | refuse `try?` (V2b-T06) |
+| the tactic `grind?` | the same | admits: `grind` with `useSorry` closes what it cannot solve and suggests `grind => sorry` | accepts | refuse `grind?` (V2b-T07) |
+| `grind +trace`, `grind (trace := true)` | exit 0 with `warningAsError` off; exit 1 under `warn.sorry false` alone, through its own warning "generated tactic cannot close the goal" | admits, through the same `useSorry` | accepts | no word: `trace` is an ordinary configuration field; caught once `warningAsError` is refused (V2b-T11 uses it) |
+| `set_option debug.byAsSorry true` | exit 0 with `warningAsError` off or under `#guard_msgs` | admits: every `by` block of propositional type becomes `sorry` | accepts | refuse `debug.byAsSorry` (V2b-T08) |
+| `set_option debug.terminalTacticsAsSorry true` | the same, under `omega` and under `grind` | admits: `omega` and `grind` close their goal with `sorry` | accepts | refuse `debug.terminalTacticsAsSorry` (V2b-T09) |
+| `set_option debug.proofAsSorry true` | an `example` is unaffected (`decide` runs and fails); a `theorem` reaches `sorryAx` | theorem bodies only | the axiom pass refuses the theorem | not added: no hole |
+| `set_option warn.sorry false` | exit 0 and no message under `warningAsError = true`, with `admit`, with `stop`, and with an elaborator that builds `sorryAx` from a name literal | removes the one warning that catches every admission | accepts | refuse `warn.sorry` (V2b-T10) |
+| `set_option warningAsError false` | every admitting row above passes with it | turns that warning back into a warning | accepts (section 13) | refuse `warningAsError` (V2b-T11); supersedes section 13 (V2b.5) |
+| `#exit` | after a file-level `set_option warningAsError false`, exit 0 with every later command unelaborated; without it, exit 1 ("using 'exit' to interrupt Lean"); `set_option warningAsError false in #exit` does not end the file | skips every later command | accepts with the file-level switch | not added: once `warningAsError` is refused, its own warning fails the build (V2b.6) |
+| `#guard_msgs (drop error) in`, `(drop all)`, or a docstring expecting the error | exit 0 for `example : (1 : Nat) = 2 := by decide`, a failing proof with no admitting word, and for every admitting spelling above | admits any `example` | accepts | not refused: legitimate uses (V2b.4); recorded in V2b.6 |
+| `Lean.reduceBool c`, `Lean.reduceNat n` | `example : plantedNativeInput = true := (rfl : Lean.reduceBool plantedNativeInput = true)` exit 0; the same statement as a `theorem` reaches `Lean.trustCompiler` | skips a check: the kernel evaluates `c` with compiled code | accepts in an `example` | refuse both, last-component shape (V2b-T12, V2b-T13) |
+| an elaborator or macro defined in an audited tree: `elab` calling `Lean.MVarId.admit`, `run_tac` calling `Lean.Elab.admitGoal`, `elab` assigning `sorryAx` built from a name literal, `macro` expanding to `stop` | each admits with `warningAsError` off; the name-literal one with no message under `warn.sorry false` | admits | accepts | no word: a name literal is not code and the Meta API names are ordinary; Lean's warning catches each once the two switches are refused |
+| `Lean.Environment.addDeclCore … (doCheck := false)` inside `run_cmd` | adds `plantedUnchecked : False` with value `Nat.zero`; `#print axioms` reports no axiom; `example : False := plantedUnchecked` elaborates | skips the kernel check of a persistent theorem | accepts in every pass: a theorem that reaches no axiom | no word closes it; the class of section 13's second bullet (V2b.6) |
+| `decide +kernel` | exit 1: the kernel rejects the false goal | no | — | not a hole |
+| `lcProof`, `lcUnreachable`, `unsafeCast`, `ptrAddrUnsafe` | exit 1: "(kernel) invalid declaration, it uses unsafe declaration" | no | — | not a hole |
+| the term `unsafe t` | carries the keyword `unsafe` | — | the modifier pass refuses it | unchanged |
+| `exact?`, `exact?%`, `rw?` | exit 1: `exact?` and `exact?%` log an error when they cannot close the goal; `rw?` rewrites with its first suggestion and the goal then fails as unsolved | no: every step they take is a checked one | — | not added |
+| `#check_failure t` | exit 0 with an information message | no: it adds no declaration | — | not a hole |
+| `@[csimp]`, an `opaque` with a body, `omit`, `include` | `@[csimp]` needs a proved equation; an authored `opaque` body is kernel-checked; `omit` and `include` only manage section variables | no | — | not a hole |
+| `native_decide`, `bv_decide`, `bv_decide?`, `bv_check`, `native`, `sorry`, `axiom`, `implemented_by`, `extern`, `debug.skipKernelTC`, the three forbidden axioms | section 4.2 | — | refused | unchanged |
+
+The premise that a macro or elaborator defined in the audited trees must spell
+`sorry` to admit a goal does not hold: a macro can expand to `stop`, and an
+elaborator can close a goal through the Meta API, or through `sorryAx` built
+from a name literal, without spelling any refused word (the elaborator row).
+
+### V2b.3 Words added to section 4.2
+
+The carried-by rule of section 4.2 keeps its two shapes. A whole-name word is
+carried by an atom whose text is the word, or by an identifier whose `Name`,
+with `«»` escapes removed, equals the word's `Name`. The last-component shape,
+which section 4.2 gives the three forbidden axioms, extends to `sorryAx` and
+the two kernel-evaluation hooks.
+
+| Refused word, printed as | Shape | Spellings refused | Channel |
+| --- | --- | --- | --- |
+| `admit` | whole name | `admit`, `«admit»`, in tactic and in `grind` mode | core's second name for the `sorry` tactic |
+| `impossible` | whole name | `impossible`, `«impossible»` | closes a goal its inner tactic refutes, as if by `sorry` |
+| `apply?` | whole name | `apply?` | library search that closes the goal with `sorry` on partial results |
+| `try?` | whole name | `try?` | runs its suggestions, `impossible` among them |
+| `grind?` | whole name | `grind?` | closes with `sorry` what `grind` cannot solve |
+| `debug.byAsSorry` | whole name | `debug.byAsSorry` and every escaping, any value | every `by` block of propositional type becomes `sorry` |
+| `debug.terminalTacticsAsSorry` | whole name | the same shapes | `omega` and `grind` close their goal with `sorry` |
+| `warn.sorry` | whole name | `warn.sorry`, `«warn».sorry`, `warn.«sorry»`, any value | removes "declaration uses `sorry`" |
+| `warningAsError` | whole name | `warningAsError`, `«warningAsError»`, any value | makes the package's warnings, that one included, warnings again |
+| `sorryAx` | last component | `sorryAx`, `_root_.sorryAx`, and any identifier ending in the component | the axiom behind `sorry`, by name |
+| `Lean.reduceBool` | last component | `reduceBool` (short, under `open Lean`), `Lean.reduceBool`, `_root_.Lean.reduceBool`, and any identifier ending in the component | the kernel evaluates the argument with compiled code |
+| `Lean.reduceNat` | last component | the same shapes for `reduceNat` | the same, for `Nat` |
+
+Measured with the gate's tokenizer (`Parser.tokenFn` with the token table of an
+environment that imports `Lean`): `admit`, `stop`, `impossible`, `apply?`,
+`try?` and `grind?` are identifier tokens, because tactic names are not reserved
+symbols (`LeadingIdentBehavior.both`); the option names are dotted
+identifiers; `«warn».sorry` and `warn.«sorry»` read as the identifier
+`warn.sorry`; `#exit` and `#guard_msgs` are atoms. Section 4.2 refuses both
+shapes for every word, so a change of grammar opens no hole.
+
+Diagnostic fragments, in the template of section 4.2, unchanged:
+
+```text
+Whatwg source trust gate: <path> contains an authored `admit` trust token
+Whatwg source trust gate: <path> contains an authored `impossible` trust token
+Whatwg source trust gate: <path> contains an authored `apply?` trust token
+Whatwg source trust gate: <path> contains an authored `try?` trust token
+Whatwg source trust gate: <path> contains an authored `grind?` trust token
+Whatwg source trust gate: <path> contains an authored `debug.byAsSorry` trust token
+Whatwg source trust gate: <path> contains an authored `debug.terminalTacticsAsSorry` trust token
+Whatwg source trust gate: <path> contains an authored `warn.sorry` trust token
+Whatwg source trust gate: <path> contains an authored `warningAsError` trust token
+Whatwg source trust gate: <path> contains an authored `sorryAx` trust token
+Whatwg source trust gate: <path> contains an authored `Lean.reduceBool` trust token
+Whatwg source trust gate: <path> contains an authored `Lean.reduceNat` trust token
+```
+
+Decisions frozen here:
+
+- `warningAsError` and `warn.sorry` are refused whatever value they are set to.
+  Setting either to its default is never needed in source, and a rule on the
+  value would need more than one token.
+- `sorryAx`, `Lean.reduceBool` and `Lean.reduceNat` take the last-component
+  shape, as the three forbidden axioms do: `_root_.sorryAx` names the same
+  constant (V2b-T02), `reduceNat` under `open Lean` resolves to the hook
+  (V2b-T13), and no identifier in the tree ends in any of the three components.
+- Every other added word is refused only as a whole name.
+  `plantedV2bVocabulary.admit`, `goal.admit`, `Lean.MVarId.admit`,
+  `Lean.Elab.admitGoal`, `admitted` and `impossibleCase` are names; V2b-A1 pins
+  the first, and the last two. `(← getMainGoal).admit` is refused: the
+  tokenizer reads the atom `.` and then the identifier `admit`.
+
+### V2b.4 Legitimate uses in the tree
+
+Measured at the base by searching the audited sources, then confirmed with the
+tokenizer rule: a scratch file outside the worktree that imports `WhatwgTest`,
+takes the token table of that environment, and repeats the gate's scan
+(`Parser.whitespace`, documentation and module-documentation parsers,
+`Parser.tokenFn`, `Parser.fieldIdxFn` after a projection dot) with the carried-by
+rule of section 4.2 and the list of V2b.8. Over the 222 audited sources it
+reported no tokenization failure and no token carrying any word of that list;
+its only hits were the two words not added, `stop` (19) and `#guard_msgs` (9).
+This is a re-implementation, not the gate: the gate's own verdict with V2b.8
+applied is the coordinator's to record (V2b.9).
+
+Every added word also occurs in the string literals of the V2b rows of
+`Gates/TrustSelfTest.lean`, which are not code.
+
+| Word | Uses in code | Elsewhere |
+| --- | --- | --- |
+| `admit` | none. Identifiers that contain it are names under the whole-name shape: `admits`, `Admits`, `admits_iff`, `admitted`, `admitted_iff`, `tick_beginClose_admitted`, `admitAnswer`, `admitAnyInflight` and others in the production and test trees | prose in documentation and comments of many modules |
+| `impossible` | none | none |
+| `sorryAx` | none: the gate's `forbiddenAxioms` spells it as the name literal ``` ``sorryAx ``` | documentation of the gate, of `Gates/TrustSelfTest.lean` and of four axiom-report modules; a string literal of `Gates/TrustSelfTest.lean` |
+| `warningAsError` | none | documentation and a label string of `Gates/TrustSelfTest.lean`; `lakefile.toml`, which is not an audited source |
+| every other added word | none | none |
+| `stop`, not added | 19 tokens on 18 lines, a local variable: `Gates/Census.lean` (9), `Gates/UrlCensusInput.lean` (6, on 5 lines), `Gates/UrlInventory.lean` (4) | prose |
+| `#guard_msgs`, not added | 9 commands in `WhatwgTest/Html/Breakers.lean`, each wrapping `#check_failure`: 7 `#guard_msgs in`, 2 `#guard_msgs (drop info) in` | its module documentation |
+
+No added word needs an exemption. The two words not added would each need an
+exemption or a narrower rule:
+
+- `stop`: the tactic and a local named `stop` are the same identifier token, so
+  no one-token rule tells them apart, and an exemption would admit three
+  tooling modules to every refused word. Once the eighteen locals are renamed a
+  later addendum can refuse it; the rename is outside this packet's fence.
+- `#guard_msgs`: an exemption for the HTML breakers would admit that module to
+  every refused word. A rule that admits `#guard_msgs` only around
+  `#check_failure`, or refuses its `drop error`, `drop warning` and `drop all`
+  filters, needs more than one token of context, which the word list cannot
+  express.
+
+### V2b.5 Changes to earlier sections
+
+- Section 13, the bullet "`set_option warningAsError false` is not refused":
+  superseded. Its abuse is not only a `sorry`: `stop`, `grind +trace` and an
+  elaborator built on the Meta API admit a goal with no refused word, and
+  Lean's warning is the only check that sees them. `warningAsError` and
+  `warn.sorry` are refused in code, whatever their value.
+- Section 4.2, "The pass may stop at the first refused token or report every
+  one": narrowed to "reports every refused token of every source", which the
+  landed gate does. The frozen fixture `token-sorry.lean.txt` of V2-T07 now
+  carries two refused words, `warningAsError` before `sorry`, and its row
+  expects the `sorry` fragment. Each V2b fixture carries exactly one word, so
+  no V2b row depends on this.
+- Section 4.2's last-component shape: from the three forbidden axioms to those
+  three, `sorryAx`, `Lean.reduceBool` and `Lean.reduceNat`.
+- Section 8 holds for every row that predates this addendum: none is changed.
+  With V2b.8 applied, each is expected to stay green: the same scratch scan
+  finds no word of the extended list in any older acceptance fixture, and among
+  the older rejection fixtures only `token-sorry.lean.txt` gains a word (V2b.9).
+- Review clause R7 applies to V2b-T07's fragment as it does to V2-T16's.
+
+### V2b.6 What a pass does not mean (extends section 13)
+
+A green `lake exe trustselftest` with the V2b rows says that each V2b plant is
+refused or accepted for its stated reason on Lean 4.33.1. In addition to
+section 13, it does not say the following.
+
+- `#guard_msgs` admits any `example`. Wrapped around one, `(drop error)`,
+  `(drop all)` or a docstring that expects the errors consumes both the error
+  of a failing proof (`#guard_msgs (drop error) in example : (1 : Nat) = 2 :=
+  by decide` builds) and the "declaration uses `sorry`" error of an admitted
+  goal. No word refuses it (V2b.4). The added spellings are refused inside it,
+  and V2b-T01 to V2b-T09 are wrapped in it to show that; a failing proof,
+  `stop`, `grind +trace` and a Meta-API elaborator are not. Until a later
+  addendum adds a rule with context, a reviewer reads every `#guard_msgs`; at
+  the base each wraps `#check_failure`.
+- Admission that spells no refused word is caught by Lean, not by the gate.
+  `stop`, `grind +trace`, and an elaborator or macro defined in an audited tree
+  that closes a goal through `Lean.MVarId.admit`, `Lean.Elab.admitGoal`,
+  `Lean.Meta.mkSorry` or `sorryAx` built from a name literal all reach
+  "declaration uses `sorry`", which fails the build only because
+  `lakefile.toml` sets `warningAsError = true` package-wide. The gate does not
+  check the option's effective value, and an option set by `-D`, by
+  `leanOptions` or `moreLeanArgs`, or by a metaprogram's `withOptions` or
+  `modifyScope` stays invisible (section 13). A command elaborator defined in
+  an audited tree can also discard an inner command's messages, as
+  `#guard_msgs` does.
+- `#exit` is not refused. Once `warningAsError` cannot be switched off in
+  source, its own warning fails the build. In `WhatwgTest.lean`, a file-level
+  `set_option warningAsError false` and `#exit` ahead of
+  `#whatwg_streams_axiom_gate` stop the gate before it runs, so no pass refuses
+  the switch there; the trust self-test still fails, since every rejection
+  plant is then accepted and the narrow run V2-N1 finds no summary line.
+- A theorem added without kernel checking is accepted by every pass.
+  `Lean.Environment.addDeclCore … (doCheck := false)` inside `run_cmd` left
+  `plantedUnchecked : False` with value `Nat.zero`; `#print axioms` reports it
+  as reaching no axiom, and an `example : False` can use it. This is the class
+  of section 13's second bullet: the leanchecker replay that ruling R-V6 made a
+  CI step is the only check that refuses it, and neither `lake build` nor
+  `lake exe trustselftest` runs that replay. Refusing `addDeclCore` or
+  `doCheck` would not close it: the argument can be positional, and the option
+  route of section 13 remains.
+- `Lean.reduceBool` and `Lean.reduceNat` are refused as spellings. The
+  evaluation they trigger stays reachable through metaprogramming, as for
+  `Lean.ofReduceBool`.
+- `debug.proofAsSorry` is not refused: it replaces theorem bodies only, and a
+  theorem that reaches `sorryAx` is refused by the axiom pass.
+
+### V2b.7 Plants
+
+Breaker-owned and frozen by this addendum, beside the files of section 1: this
+addendum; the fixtures `test/fixtures/trust-gate/benign-trust-tokens-v2b.lean.txt`
+and `test/fixtures/trust-gate/token-{sorry-ax,sorry-ax-root,admit,impossible,apply-query,try-query,grind-query,by-as-sorry,terminal-tactics-as-sorry,warn-sorry,warning-as-error,reduce-bool,reduce-nat}.lean.txt`;
+and the rows of `acceptancePlants` and `rejectionPlants` in
+`Gates/TrustSelfTest.lean` whose labels begin `V2b-`. Those rows are appended
+to each table with `++`, so every earlier line of the harness is unchanged, and
+they use only the existing placements. The coordinator applies V2b.8 in
+`WhatwgTest/Audit/AxiomGate.lean` and edits none of these files.
+
+Placement as in section 9. Every plant is undone before the next.
+
+Acceptance plant (the build must succeed):
+
+| ID | Fixture | Target, placement | State at the freeze |
+| --- | --- | --- | --- |
+| V2b-A1 | `benign-trust-tokens-v2b.lean.txt` | `Whatwg.lean`, append | green |
+
+Rejection plants (the build must fail and print the fragment):
+
+| ID | Fixture | Target, placement | Expected fragment |
+| --- | --- | --- | --- |
+| V2b-T01 | `token-sorry-ax.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `sorryAx` trust token`` |
+| V2b-T02 | `token-sorry-ax-root.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `sorryAx` trust token`` |
+| V2b-T03 | `token-admit.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `admit` trust token`` |
+| V2b-T04 | `token-impossible.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `impossible` trust token`` |
+| V2b-T05 | `token-apply-query.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `apply?` trust token`` |
+| V2b-T06 | `token-try-query.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `try?` trust token`` |
+| V2b-T07 | `token-grind-query.lean.txt` | `Gates/TrustSelfTestToolingPlant.lean`, new module | ``TrustSelfTestToolingPlant.lean contains an authored `grind?` trust token`` |
+| V2b-T08 | `token-by-as-sorry.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `debug.byAsSorry` trust token`` |
+| V2b-T09 | `token-terminal-tactics-as-sorry.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `debug.terminalTacticsAsSorry` trust token`` |
+| V2b-T10 | `token-warn-sorry.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `warn.sorry` trust token`` |
+| V2b-T11 | `token-warning-as-error.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `warningAsError` trust token`` |
+| V2b-T12 | `token-reduce-bool.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `Lean.reduceBool` trust token`` |
+| V2b-T13 | `token-reduce-nat.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `Lean.reduceNat` trust token`` |
+
+Why each plant is shaped as it is:
+
+- Each rejection fixture is an `example` that elaborates at the base and admits
+  `(1 : Nat) = 2`, except V2b-T12 and V2b-T13, whose true `example` is checked
+  by compiled code. Each carries exactly one word of the extended list, so a
+  gate that stops at the first refused token and one that reports every token
+  print the same fragment, and each row names one fragment.
+- V2b-T01 to V2b-T09 wrap their `example` in `#guard_msgs (drop all) in`, the
+  switch that remains once `warningAsError` and `warn.sorry` are refused
+  (V2b.6). It is why those spellings need words of their own.
+- V2b-T10 closes its goal with an elaborator that builds `sorryAx` from a name
+  literal, which no word can see: the route `warn.sorry` opens. V2b-T11 closes
+  its goal with `grind +trace`, which no word spells: the route
+  `warningAsError` opens.
+- V2b-T05 and V2b-T06 are new test modules that import only `Init`, so library
+  search runs over the core library and the plant is fast and stable. V2b-T07
+  puts one plant in the tooling tree. V2b-T10 needs `import Lean`.
+- V2b-T12 and V2b-T13 hand the hook a definition, which reaches no axiom: on
+  this toolchain a literal argument fails to evaluate ("(interpreter) unknown
+  declaration 'Bool.true'"). Each switches the deprecation linter off for one
+  command, as V2-T13 to V2-T15 do.
+- V2b-A1 pins what stays admitted: the added words in comments, documentation,
+  strings and name literals; identifiers that only contain an added word, or
+  carry a whole-name word as a component of a longer name; a local named
+  `stop`; an ordinary `set_option`; and `#guard_msgs (drop info)` around
+  `#check_failure`, the form the HTML breakers use.
+
+The `V2b-` labels are stable identifiers and are never reused. As section 1
+says of the `V2-` plants, they are not registered in
+`test/counterexamples/REGISTER.md`. No module is red, so
+`test/fixtures/trust-gate/known-red.txt` gains no entry.
+
+### V2b.8 The change the coordinator applies
+
+In `WhatwgTest/Audit/AxiomGate.lean`, `refusedWords` becomes, literally:
+
+```lean
+private def refusedWords : List RefusedWord :=
+  ["native_decide", "bv_decide", "bv_decide?", "bv_check", "native", "sorry", "axiom",
+    "implemented_by", "extern", "debug.skipKernelTC", "admit", "impossible", "apply?", "try?",
+    "grind?", "debug.byAsSorry", "debug.terminalTacticsAsSorry", "warn.sorry",
+    "warningAsError"].map refusedWord ++
+  (forbiddenAxioms ++ [``Lean.reduceBool, ``Lean.reduceNat]).map refusedAxiomWord
+```
+
+`forbiddenAxioms` is ``` ``sorryAx :: forbiddenTrustAxioms ```, so the three
+forbidden axioms keep their words and `sorryAx` joins them. Nothing else in the
+gate changes. The documentation of `refusedWords`, `forbiddenTrustAxioms` and
+`RefusedWord.lastComponent?`, and the trust self-test rows of `Gates/AGENTS.md`
+and `WhatwgTest/AGENTS.md`, describe the old list and are the coordinator's to
+update.
+
+### V2b.9 Red state and freeze run
+
+`lake build` is green on the base tree with this packet (it adds fixtures and
+harness rows only). `lake exe trustselftest` fails, and fails exactly on the
+thirteen V2b rejection rows, each "unexpectedly accepted": today's gate sees
+neither a refused word nor a refused constant in them. V2b-A1, every older row
+and both narrow runs pass.
+
+Recorded on Windows 11, Lean 4.33.1, at the freeze tree, after a full build:
+`lake build` exit 0, 380 jobs, its gate line `checked 222 source files and 16490
+declarations; … 0 source-token exemption(s)`; then `lake exe trustselftest`
+exit 1 in 6 min 13 s. Its result lines, in the order the harness checks them
+(in a captured log the standard-output lines follow the standard-error lines,
+as section 15 says):
+
+```text
+PASS declared red set matches the observed red set (0 module(s))
+PASS trust gate accepted the unmodified source tree (the step-0 build)
+PASS trust gate accepted comments, strings, and numeric projections
+PASS trust gate accepted V2-A1 refused trust words in comments, documentation, strings and name literals, and identifiers that only contain them
+PASS trust gate accepted V2-A2 an opaque with an authored body in the production tree
+PASS trust gate accepted V2-S2 a theorem reaching Classical.choice in a new module under WhatwgTest
+PASS trust gate accepted V2b-A1 the added trust words in comments, documentation, strings and name literals, identifiers that only contain them, a local named stop, an ordinary set_option, and #guard_msgs around #check_failure
+PASS planted partial declaration rejected with the expected diagnostic: contains an authored `partial` declaration modifier
+PASS planted unsafe declaration rejected with the expected diagnostic: contains an authored `unsafe` declaration modifier
+PASS planted sorry in the production tree rejected with the expected diagnostic: declaration uses `sorry`
+PASS planted native_decide in the production tree rejected with the expected diagnostic: (native_decide auxiliary)
+PASS planted malformed string literal rejected
+PASS planted malformed raw string literal rejected
+PASS planted malformed decimal literal rejected
+PASS planted unterminated comment rejected
+PASS planted V2-E1 an axiom added through Lean.addDecl in a new test module rejected with the expected diagnostic: declaration plantedDeclaredAxiom is an axiom; no audited tree declares one
+PASS planted V2-E2 a declared axiom in the production tree rejected with the expected diagnostic: declaration plantedProductionAxiom is an axiom; no audited tree declares one
+PASS planted V2-E3 @[extern] attached through the attribute API in a new test module rejected with the expected diagnostic: declaration plantedExternTarget is `@[extern]`
+PASS planted V2-E4 @[implemented_by] attached through the attribute API in a new test module rejected with the expected diagnostic: declaration plantedImplementedTarget is `@[implemented_by]`
+PASS planted V2-E5 @[implemented_by] under its escaped name in the production tree rejected with the expected diagnostic: declaration plantedEscapedTarget is `@[implemented_by]`
+PASS planted V2-E6 an opaque with no body in the production tree rejected with the expected diagnostic: declaration plantedBodylessOpaque is an `opaque` with no authored body
+PASS planted V2-E7 a parameterised opaque with no body in a new tooling module rejected with the expected diagnostic: declaration plantedParameterisedOpaque is an `opaque` with no authored body
+PASS planted V2-T01 native_decide inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `native_decide` trust token
+PASS planted V2-T02 bv_decide inside an example in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `bv_decide` trust token
+PASS planted V2-T03 bv_decide? inside a tactic quotation in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `bv_decide?` trust token
+PASS planted V2-T04 bv_check inside a tactic quotation in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `bv_check` trust token
+PASS planted V2-T05 decide +native inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `native` trust token
+PASS planted V2-T06 decide (native := true) inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `native` trust token
+PASS planted V2-T07 sorry inside an example with warningAsError switched off rejected with the expected diagnostic: Whatwg.lean contains an authored `sorry` trust token
+PASS planted V2-T08 axiom inside a command quotation in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `axiom` trust token
+PASS planted V2-T09 extern inside a command quotation in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `extern` trust token
+PASS planted V2-T10 implemented_by inside a command quotation in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `implemented_by` trust token
+PASS planted V2-T11 debug.skipKernelTC on a theorem in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `debug.skipKernelTC` trust token
+PASS planted V2-T12 the escaped spelling of debug.skipKernelTC in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `debug.skipKernelTC` trust token
+PASS planted V2-T13 the qualified spelling Lean.ofReduceBool in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.ofReduceBool` trust token
+PASS planted V2-T14 the short spelling ofReduceNat under open Lean in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.ofReduceNat` trust token
+PASS planted V2-T15 the spelling _root_.Lean.trustCompiler in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.trustCompiler` trust token
+PASS planted V2-T16 native_decide inside an example in a new tooling module rejected with the expected diagnostic: TrustSelfTestToolingPlant.lean contains an authored `native_decide` trust token
+PASS planted V2-T17 native_decide inside an example in an entry point under bin/ rejected with the expected diagnostic: Citations.lean contains an authored `native_decide` trust token
+PASS planted V2-S1 a theorem reaching Classical.choice in a new module under Whatwg.Ecma262 rejected with the expected diagnostic: declaration TrustSelfTestPlant.plantedChoice reaches Classical.choice under the strict ceiling of Whatwg.Ecma262
+PASS planted V2-S3 a strict-ceiling exception naming no declaration rejected with the expected diagnostic: strict-ceiling exception names missing declaration TrustSelfTestPlant.plantedMissing
+PASS planted V2-S4 a strict-ceiling exception naming a declaration that reaches no Classical.choice rejected with the expected diagnostic: stale strict-ceiling exception for TrustSelfTestPlant.plantedChoiceFree; it does not reach Classical.choice
+PASS planted V2-S5 a strict-ceiling exception naming a declaration under no strict prefix rejected with the expected diagnostic: stale strict-ceiling exception for TrustSelfTestPlant.plantedChoice; its module WhatwgTest.TrustSelfTestPlant is under no strict prefix
+PASS planted V2-S6 a strict-ceiling exception whose reason is blank rejected with the expected diagnostic: strict-ceiling exception for TrustSelfTestPlant.plantedChoice carries no reason
+PASS planted V2-X1 a source-token exemption for a module that names no refused token rejected with the expected diagnostic: stale source-token exemption for WhatwgTest.TrustSelfTestPlant; its source contains no refused token
+PASS planted V2-X2 a source-token exemption naming no module rejected with the expected diagnostic: source-token exemption names missing module WhatwgTest.TrustSelfTestPlantMissing
+FAIL trust gate unexpectedly accepted V2b-T01 sorryAx inside an example whose messages #guard_msgs drops, in the production tree
+FAIL trust gate unexpectedly accepted V2b-T02 the spelling _root_.sorryAx in the production tree
+FAIL trust gate unexpectedly accepted V2b-T03 the admit tactic inside an example in the production tree
+FAIL trust gate unexpectedly accepted V2b-T04 the impossible tactic inside an example in the production tree
+FAIL trust gate unexpectedly accepted V2b-T05 apply? inside an example in a new test module
+FAIL trust gate unexpectedly accepted V2b-T06 try? inside an example in a new test module
+FAIL trust gate unexpectedly accepted V2b-T07 grind? inside an example in a new tooling module
+FAIL trust gate unexpectedly accepted V2b-T08 debug.byAsSorry on an example in the production tree
+FAIL trust gate unexpectedly accepted V2b-T09 debug.terminalTacticsAsSorry on an example in the production tree
+FAIL trust gate unexpectedly accepted V2b-T10 warn.sorry on an example closed by an elaborator in a new test module
+FAIL trust gate unexpectedly accepted V2b-T11 warningAsError switched off for an example closed by grind +trace in the production tree
+FAIL trust gate unexpectedly accepted V2b-T12 the qualified spelling Lean.reduceBool inside an example in the production tree
+FAIL trust gate unexpectedly accepted V2b-T13 the short spelling reduceNat under open Lean in the production tree
+PASS planted unreachable test module rejected with the expected diagnostic: is not reachable from the WhatwgTest audit root
+PASS trust gate accepted the restored source tree
+PASS V2-N1 the axiom gate run narrowly as `lake env lean WhatwgTest.lean`: exit code 0 and a line matching each of [Whatwg module and axiom gate: checked <n> source files and <n> declarations; Classical.choice is reached by <n> of <n> declarations in Whatwg, <n> of <n> in WhatwgTest and <n> of <n> in Gates; strict ceiling propext and Quot.sound over <n> module prefix(es) with <n> exact exception(s); <n> source-token exemption(s)]
+PASS V2-N2 the spec coverage gate run narrowly by its relative file name: exit code 0 and a line matching each of [Whatwg spec coverage gate: <n> frozen rows agree with ]
+FAIL trust self-test
+```
+
+Turning the rows green needs V2b.8, an edit to `WhatwgTest/Audit/AxiomGate.lean`,
+which is outside this packet's fence; the breaker seat did not run the gate
+with it applied. The evidence the seat has is the scratch scan of V2b.4. Over
+the fixtures it reports, for each V2b rejection fixture, exactly its own word
+and no other word of the extended list; none for `benign-trust-tokens-v2b.lean.txt`
+or any older acceptance fixture; and, among the older rejection fixtures,
+`warningAsError` and `sorry` for `token-sorry.lean.txt` and an unchanged word
+set for every other one. With V2b.8 applied, the expected run is every row
+PASS, the gate line unchanged apart from its counts, and
+`0 source-token exemption(s)`; the coordinator records the actual run at
+landing.
+
+Before every V2b fixture was planted, each was elaborated on its own from the
+scratch directory with `lake env lean -DwarningAsError=true`: exit 0 for all
+fourteen, with no message except V2b-T11's two warnings, which its
+`set_option warningAsError false in` keeps as warnings. `lake exe citations`
+and `lake exe vendorseal` pass at the freeze.
