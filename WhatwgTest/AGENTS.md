@@ -54,17 +54,33 @@ Slice Q2 of `docs/PROMISE-PACKAGE-PLAN.md` added two more numerators,
 `WhatwgTest/Audit/Ecma262/SpecCoverage.lean`, one per promise-lane standard.
 Both are thin at Q2: `emit` is the generated all-`absent` scaffold, no row
 carries a witness, and the module's freeze is the pair of expected totals,
-checked at elaboration. They declare no theorem and read no file, so neither
-joins the implementation ceiling below. `bin/Census.lean` hands all three to
-`Gates.Census.cli` keyed by standard; Infra has no numerator and therefore no
-report.
+checked at elaboration. They declare no theorem and read no file, and like
+every module of this tree they stay under R-11's ceiling (below).
+`bin/Census.lean` hands all three to `Gates.Census.cli` keyed by standard;
+Infra has no numerator and therefore no report.
 
 ## Audit implementation
 
-`WhatwgTest/Audit/AxiomGate.lean` is the one module admitted to the
-implementation ceiling in this tree, by exact name, because `MetaM` reaches
-`Classical.choice`. Another audit module is admitted only by adding its exact
-name to the gate's list, where a stale entry fails the build.
+`WhatwgTest/Audit/AxiomGate.lean` admits no module by name to a wider
+ceiling: the implementation ceiling and its audit-module list are gone (ruling
+R-V1). R-11's ceiling binds every audited tree, this one and the gate itself
+included, so an audit module that reaches `Classical.choice` through `MetaM`
+needs no entry. The one narrower bound is the strict ceiling, `propext` and
+`Quot.sound` only, over the production modules under the gate's
+`strictCeilingPrefixes`; a declaration there that reaches `Classical.choice`
+is admitted only by an exact entry of `strictCeilingExceptions` (or
+`privateStrictCeilingExceptions`, by owning module and original name) with its
+reason, and an entry that names no declaration, sits under no strict prefix,
+no longer reaches `Classical.choice`, or carries no reason fails the build.
+
+The gate's token pass (ruling R-V2) refuses, in code, the trust words no
+constant records, in every source of this tree, `Whatwg/`, `Gates/` and `bin/`.
+A module that must spell one in code is admitted to that pass, and to no other
+check, by an exact entry of `sourceTokenExemptions`; an entry whose module has
+no source, or whose source carries no refused word, fails the build, and no
+file under `bin/` can be exempted. The list is empty: the gate spells its own
+words as string and name literals. `test/contracts/trust-gate-hardening.contract.md`
+freezes this behaviour and `lake exe trustselftest` plants its violations.
 
 Before handoff, run the narrow file directly and the default Lake build. Link
 the exact command and result to the affected proof-graph edge or leaf receipt;
