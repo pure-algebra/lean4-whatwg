@@ -22,8 +22,10 @@ exclude every `AGENTS.md`; they may neither create nor replace instructions.
 - graph-bearing owner obligation ledgers, leaf receipt indexes, and
   per-declaration assurance snapshots, among them the graph ledger's
   projection: one file per proof graph with its ten edges, in
-  `generated/graphs/<GRAPH-ID>.md`, written by `lake exe whatwg_ledger --write`
-  from the Lean data under `WhatwgTest/Ledger/`;
+  `generated/graphs/<GRAPH-ID>.md`, and the index `generated/graphs/INDEX.md`
+  of graphs, leaf records and unrouted prefixes, written by
+  `lake exe whatwg_ledger --write` from the Lean data under
+  `WhatwgTest/Ledger/`;
 - theorem and axiom receipt indexes;
 - counterexample coverage indexes; and
 - host-profile conformance and refusal coverage.
