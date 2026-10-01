@@ -210,9 +210,11 @@ example :
 example :
     Effects.interpret both
         (Effects.Program.inl (T := Tick)
-          (Whatwg.Signatures.Ecma262.resolvedWith (value := Unit) (reason := Nat) (body := Nat) ())) =
+          (Whatwg.Signatures.Ecma262.resolvedWith (value := Unit) (reason := Nat)
+            (body := Nat) ())) =
       Effects.interpret (Whatwg.Signatures.Ecma262.handlerAt view update)
-        (Whatwg.Signatures.Ecma262.resolvedWith (value := Unit) (reason := Nat) (body := Nat) ()) :=
+        (Whatwg.Signatures.Ecma262.resolvedWith (value := Unit) (reason := Nat)
+          (body := Nat) ()) :=
   Whatwg.Signatures.Ecma262.interpret_sumHandler_inl view update tickHandler _
 
 /-- `interpret_handlerAt` at the consumer's instance. -/

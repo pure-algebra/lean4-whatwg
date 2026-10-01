@@ -17,9 +17,10 @@ The Lean batteries are the authority on names and propositions; the Lean in
 this file is a reading aid.
 
 Read first, in this order: `COORDINATION.md` rulings R-W1, R-W3, R-W5, R-W8
-and R-W9; the design document in full; `test/contracts/promise-first-packet.contract.md`
-and its Q3b addendum `test/contracts/promise-first-packet-q3b.contract.md`
-(the landed surface this packet contains); `docs/PROMISE-DAG.md`;
+and R-W9; the design document in full;
+`test/contracts/promise-first-packet.contract.md` and its Q3b addendum
+`test/contracts/promise-first-packet-q3b.contract.md` (the landed surface
+this packet contains); `docs/PROMISE-DAG.md`;
 `test/counterexamples/promise/ATTACKS.md`, section "Q5 agent packet".
 
 ## 1. Claim boundary
@@ -59,7 +60,7 @@ What the packet does **not** model is §16.
 | ES2026 census | `generated/ecma262-census.tsv`, 77 rows |
 | Web IDL census | `generated/webidl-census.tsv`, 124 rows |
 | `effects` | `a4ee7a14248ee5976039b73039319efa87834986` (v0.8.0), the face imports `Effects.Algebra.Sum` only |
-| lean4-effect4 (read only) | `refactor/phase1-phase3` at `b9d0d19fcb0cd39e87ebd11d4458b34a137f6b75`, read in source for §7.6; nothing built or run there |
+| lean4-effect4 (read only) | `refactor/phase1-phase3` at `b9d0d19fcb0cd39e87ebd11d4458b34a137f6b75`, read in source for §7.5; nothing built or run there |
 | toolchain | `leanprover/lean4:v4.33.1` |
 
 Byte offsets are 0-based and ends exclusive. No line number is cited
@@ -175,37 +176,53 @@ including every disabled branch. Reading aid:
 ```lean
 newPromise a = ({ a with
     table := (Promise.newPromiseCapability a.table a.nextFunction).1,
-    functions := a.functions ++ [Promise.createResolvingFunctions a.table.next a.nextFunction],
+    functions := a.functions ++
+      [Promise.createResolvingFunctions a.table.next a.nextFunction],
     nextFunction := a.nextFunction + 2 },
   (Promise.newPromiseCapability a.table a.nextFunction).2)
 settle a p result = { a with
-    table := (Promise.Table.settleAndTrigger a.table a.reactions a.queue p result).1,
-    reactions := (… settleAndTrigger …).2.1, queue := (… settleAndTrigger …).2.2,
-    settlements := (Promise.Table.settleTraced a.table a.settlements p result).2 }
-callFunctions a pick result =        -- find? pick = some f, f unfired
+    table := (Table.settleAndTrigger a.table a.reactions a.queue p result).1,
+    reactions := (… settleAndTrigger …).2.1,
+    queue := (… settleAndTrigger …).2.2,
+    settlements := (Table.settleTraced a.table a.settlements p result).2 }
+-- when a.functions.find? pick = some f and f is unfired:
+callFunctions a pick result =
   { settle a f.promise result with
-    functions := a.functions.map (fun g => if pick g then { g with alreadyResolved := true } else g) }
-resolve a cap v = callFunctions a (fun f => f.resolve == cap.resolve) (Except.ok v)
-reject a cap r = callFunctions a (fun f => f.reject == cap.reject) (Except.error r)
-mintFor a true = ((newPromise a).1, some (newPromise a).2);  mintFor a false = (a, none)
-perform a p onF onR d =              -- a.table.get p = some .pending
+    functions := a.functions.map (fun g =>
+      if pick g then { g with alreadyResolved := true } else g) }
+resolve a cap v =
+  callFunctions a (fun f => f.resolve == cap.resolve) (.ok v)
+reject a cap r =
+  callFunctions a (fun f => f.reject == cap.reject) (.error r)
+mintFor a true = ((newPromise a).1, some (newPromise a).2)
+mintFor a false = (a, none)
+-- when a.table.get p = some .pending:
+perform a p onF onR d =
   ({ (mintFor a d).1 with
-      table := Promise.Table.markHandled (mintFor a d).1.table p,
-      reactions := (Promise.Reactions.add a.reactions p onF onR (mintFor a d).2).1 },
+      table := Table.markHandled (mintFor a d).1.table p,
+      reactions :=
+        (Reactions.add a.reactions p onF onR (mintFor a d).2).1 },
     some (mintFor a d).2)
-perform a p onF onR d =              -- a.table.get p = some (.fulfilled v); `.rejected` alike
+-- when a.table.get p = some (.fulfilled v); `.rejected` alike:
+perform a p onF onR d =
   ({ (mintFor a d).1 with
-      table := Promise.Table.markHandled (mintFor a d).1.table p,
-      reactions := (Promise.Reactions.mint a.reactions p .fulfill onF (mintFor a d).2).1,
-      queue := Jobs.Queue.enqueue a.queue ⟨a.reactions.next, .ok v⟩,
-      held := a.held ++ [(Promise.Reactions.mint a.reactions p .fulfill onF (mintFor a d).2).2] },
+      table := Table.markHandled (mintFor a d).1.table p,
+      reactions :=
+        (Reactions.mint a.reactions p .fulfill onF (mintFor a d).2).1,
+      queue := Queue.enqueue a.queue ⟨a.reactions.next, .ok v⟩,
+      held := a.held ++
+        [(Reactions.mint a.reactions p .fulfill onF (mintFor a d).2).2] },
     some (mintFor a d).2)
-startJob a =                         -- a.active = .checkpoint, a.queue.pending = job :: rest
-  ({ a with queue := ⟨rest⟩, active := .job job.reaction, running := some job },
-    some (job, (reactionOf a job).bind Promise.Reaction.handler))
-finishJob a d =                      -- a.active = .job s, a.running = some job,
-  { callFunctions a (fun f => f.resolve == cap.resolve)   -- reactionOf a job = some r,
-      (Promise.reactionHandlerResult r job.argument d) with   -- r.capability = some cap
+-- when a.active = .checkpoint and a.queue.pending = job :: rest:
+startJob a =
+  ({ a with queue := ⟨rest⟩, active := .job job.reaction,
+      running := some job },
+    some (job, (reactionOf a job).bind Reaction.handler))
+-- when a.active = .job s, a.running = some job,
+-- reactionOf a job = some r and r.capability = some cap:
+finishJob a d =
+  { callFunctions a (fun f => f.resolve == cap.resolve)
+      (reactionHandlerResult r job.argument d) with
     active := .checkpoint, running := none }
 ```
 
@@ -296,8 +313,10 @@ is upward closed in `Le`.
 ### 7.3 `Agent.Implements` and the nine rows
 
 ```lean
-Implements op ↔ ∀ (a : Agent value reason body) (c : Cert op), WF a → pre a op c →
-  Le a (step a op).1 ∧ WF (step a op).1 ∧ post (step a op).1 op c (step a op).2
+Implements op ↔
+  ∀ (a : Agent value reason body) (c : Cert op), WF a → pre a op c →
+    Le a (step a op).1 ∧ WF (step a op).1 ∧
+      post (step a op).1 op c (step a op).2
 ```
 
 `newPromise_implements`, `resolve_implements cap v`, `reject_implements cap
@@ -344,11 +363,12 @@ so their `∃ st' ans` is our step's own components; their later world is any
 `w'` above `w` over the new store, ours is the stepped agent with `Le a (step
 a op).1` as a conjunct; their typing is "every value fits its declared type"
 over a heterogeneous store, ours is identity and reference coherence over a
-homogeneous one. `Protocol`'s `Cert`, `pre` and `post` and `WorldOrder`'s
-`le`, `refl` and `trans` have the types `⟨Agent.Cert, Agent.pre, Agent.post⟩`
-and `⟨Agent.Le, Agent.Le.refl, Agent.Le.trans⟩` fill by constructor
-application; the design measured that glue (its appendix B.8), and this
-packet does not freeze it.
+homogeneous one. `Agent.Cert`, `Agent.pre` and `Agent.post` have the types of
+`Protocol`'s `Cert`, `pre` and `post` at the face's signature, and `Agent.Le`,
+`Le.refl` and `Le.trans` those of `WorldOrder`'s `le`, `refl` and `trans`, so
+a consumer fills both by constructor application; the design measured that
+glue against a field-for-field copy (its appendix B.8), and this packet does
+not freeze it.
 
 ## 8. D46 and the views onto the frozen store-level operations
 
@@ -478,7 +498,9 @@ statement of every declaration is its battery ascription. "Validation" is
 §14's classification: P = proved in the design's prototype and re-proved
 here; S = proved in this seat's scratch prototype.
 
-### 11.1 `Whatwg/Ecma262/Agent.lean` (slice B1; battery `WhatwgTest/Ecma262/AgentContract.lean`)
+### 11.1 Slice B1: `Whatwg/Ecma262/Agent.lean`
+
+Battery `WhatwgTest/Ecma262/AgentContract.lean`.
 
 | Declaration | Role | Anchor (census row) | Route | Mask | Val. |
 | --- | --- | --- | --- | --- | --- |
@@ -512,7 +534,9 @@ here; S = proved in this seat's scratch prototype.
 | `finishJob_settles_capability` | law (D17) | `op.newpromisereactionjob` inner steps 6 to 9 | G laws | M1 | P |
 | `startJob_running` | law | `requirement.jobs.3` | G laws | M1 | P |
 
-### 11.2 `Whatwg/Ecma262/AgentLaws.lean` (slice B2; battery `WhatwgTest/Ecma262/AgentLaws.lean`)
+### 11.2 Slice B2: `Whatwg/Ecma262/AgentLaws.lean`
+
+Battery `WhatwgTest/Ecma262/AgentLaws.lean`.
 
 | Declaration | Role | Anchor | Route | Mask | Val. |
 | --- | --- | --- | --- | --- | --- |
@@ -534,7 +558,9 @@ here; S = proved in this seat's scratch prototype.
 | `resolve_then_reject`, `reject_then_resolve` | lifted laws | `op.createresolvingfunctions` | G laws, counterexamples | M1 | S |
 | `resolve_unminted`, `reject_unminted`, `startJob_serial` | laws | `op.createresolvingfunctions`; `requirement.jobs.1` | G counterexamples | M1 | S |
 
-### 11.3 `Whatwg/WebIdl/Agent.lean` (slice B3; battery `WhatwgTest/WebIdl/AgentContract.lean`)
+### 11.3 Slice B3: `Whatwg/WebIdl/Agent.lean`
+
+Battery `WhatwgTest/WebIdl/AgentContract.lean`.
 
 | Declaration | Role | Anchor (Web IDL census row) | Route | Mask | Val. |
 | --- | --- | --- | --- | --- | --- |
@@ -550,7 +576,9 @@ here; S = proved in this seat's scratch prototype.
 | `resolve_view` | bridge (D46) | `op.resolve` | G bridges | M1 | P |
 | `react_resolve` | law (D46) | `op.resolve`, `op.dfn-perform-steps-once-promise-is-settled` | G laws | M2 | P |
 
-### 11.4 `Whatwg/Signatures/Ecma262.lean` and `Whatwg/Signatures.lean` (slice B4; battery `WhatwgTest/Signatures/Ecma262Contract.lean`)
+### 11.4 Slice B4: `Whatwg/Signatures/Ecma262.lean`, `Whatwg/Signatures.lean`
+
+Battery `WhatwgTest/Signatures/Ecma262Contract.lean`.
 
 | Declaration | Role | Anchor | Route | Mask | Val. |
 | --- | --- | --- | --- | --- | --- |
@@ -598,6 +626,13 @@ gate cannot run on that branch, so builders check the strict ceiling with
 
 What each builder must know:
 
+- **All slices.** Declare each theorem with its ascribed statement copied
+  verbatim as its type, binders in the ascribed order: R-W5's conversion turns
+  every `#check (@n : T)` into `#whatwg_freeze (@n : T)`, which compares the
+  declared type with `T` by `Expr.eqv`, unfolding nothing but `let`/`have` and
+  auxiliary matchers. The B1 battery's `#guard_msgs` docstring is Lean
+  4.33.1's exact diagnostic text; a toolchain change that rewords it needs a
+  breaker amendment, not a builder edit.
 - **B1.** `WF` and `Minted` are B1's, with the fourteen clauses exactly as
   ascribed; their lemmas are B2's. The instance set goes in
   `Whatwg/Ecma262/Agent.lean` as `scoped instance` and `deriving instance`
@@ -663,10 +698,10 @@ with 0 exact exception(s); 0 source-token exemption(s)". The base at `b0d35e2`
 reads 222 source files, 16723 declarations and 84 of 12766 in `Whatwg`: the
 prototype adds 531 declarations to `Whatwg` and none of them reaches
 `Classical.choice`. `lake env leanchecker` over the four prototype modules and
-the four batteries exited 0. Prototype sizes: `Whatwg/Ecma262/Agent.lean` 833
-lines (58 theorems), `Whatwg/Ecma262/AgentLaws.lean` 2118 lines (121
-theorems), `Whatwg/WebIdl/Agent.lean` 123 lines, `Whatwg/Signatures/Ecma262.lean`
-100 lines.
+the four batteries exited 0. Prototype sizes: `Whatwg/Ecma262/Agent.lean`
+833 lines (58 theorems), `Whatwg/Ecma262/AgentLaws.lean` 2118 lines (121
+theorems), `Whatwg/WebIdl/Agent.lean` 123 lines and
+`Whatwg/Signatures/Ecma262.lean` 100 lines.
 
 ## 15. Counterexample rows
 
@@ -764,16 +799,47 @@ Observed in this worktree at this branch's head, Lean 4.33.1, Windows 11,
 after the prototype was removed and every tracked file restored. Before the
 removal the batteries were green against it (§14).
 
-`lake build` fails, and the failing targets are exactly the four declared in
-`test/fixtures/trust-gate/known-red.txt`. Each battery's complete diagnostic
-list, collected with `lake env lean -DmaxErrors=5000 <file>`:
+`lake build` fails, and the failing targets are the four modules declared in
+`test/fixtures/trust-gate/known-red.txt` and the root `WhatwgTest`, whose
+module-closure gate reports exactly those four sources as "not reachable from
+the WhatwgTest audit root". That root failure is R-W9's arrangement, not a
+fifth red module: breakers do not edit `WhatwgTest.lean`, the builder that
+turns a battery green adds its root import, and `lake exe
+whatwg_trustselftest` excises the declared modules from its probe copy
+before it builds.
 
-<!-- FREEZE-RECEIPT-TABLE -->
+Each battery's complete diagnostic list, collected with
+`lake env lean -DmaxErrors=5000 <file>` after `lake build Whatwg WhatwgEcma262
+WhatwgWebIdl`:
 
-There is no parse error, no import error, no failed instance synthesis other
-than the five new instances the B1 battery ascribes, and no type mismatch:
-every battery is red only because the names it ascribes do not exist.
+| Module | Exit | Diagnostics | Classes |
+| --- | ---: | ---: | --- |
+| `WhatwgTest.Ecma262.AgentContract` | 1 | 430 | 386 `lean.unknownIdentifier`; 6 `lean.synthInstanceFailed`, one per instance slice B1 adds (the five global ones, and the scoped `Except` one under `open Whatwg.Ecma262.Agent in`); 1 "unknown namespace `Whatwg.Ecma262.Agent`" (that `open … in`); 37 error-recovery consequences of the unknown names in dependent statements and `example`s: 11 invalid field notation, 1 invalid projection, 9 "`sorryAx` is not a structure", 5 "expected structure", 10 "don't know how to synthesize implicit argument", 1 "expected type must not contain metavariables" |
+| `WhatwgTest.Ecma262.AgentLaws` | 1 | 281 | 273 `lean.unknownIdentifier`; 8 invalid field notation on a binder whose type is the unknown `Agent.Agent` |
+| `WhatwgTest.WebIdl.AgentContract` | 1 | 94 | 92 `lean.unknownIdentifier`; 2 "invalid match expression: this pattern contains metavariables", in the two store-level witnesses whose scrutinee mentions the unknown `start` |
+| `WhatwgTest.Signatures.Ecma262Contract` | 1 | 101 | 100 `lean.unknownIdentifier`; 1 warning "declaration uses `sorry`" on the test-local theorem `lens`, whose type mentions the unknown agent: the `sorry` is Lean's error-recovery term, not source text |
 
+**906 diagnostics in total.** There is no parse error, no import error and no
+type mismatch, and the only failed instance syntheses are the six instances
+B1 adds: every battery is red only because the names it ascribes do not exist
+yet. The `#guard_msgs`-pinned `#check_failure` of a global `DecidableEq
+(Except Nat Nat)` elaborates green already, as it must after B1.
+
+### 19.1 The other gates
+
+- `lake exe whatwg_vendorseal`: PASS ("manifest and vendor/ agree in both
+  directions; every path is valid on Windows").
+- `lake exe whatwg_citations`: PASS ("455 files scanned; no line-numbered
+  citation into a protected authored document").
+- `lake exe whatwg_trustselftest`: PASS, exit 0 ("every planted declaration
+  was rejected for its stated reason, every control was accepted, and every
+  narrow run exited 0 with its frozen summary"). It excises the four declared
+  modules from its probe copy, so this is the receipt that the declared red set
+  is exact in both directions.
+- The prototype was reinstated once more after the last battery edit: the
+  full gate line was unchanged (231 source files, 17284 declarations, six
+  strict prefixes, zero exceptions), and after its second removal the four
+  batteries gave the same 906 diagnostics.
 ## 20. Fence
 
 Breaker files, which the builders may not edit: this contract; the four
