@@ -1,4 +1,4 @@
-import Gates.UrlCensus
+import WhatwgGates.UrlCensus
 
 /-!
 Independent census review regression `URL-CEN-CE-001`, frozen before repair.

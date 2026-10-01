@@ -1,4 +1,4 @@
-import Gates.UrlInventory
+import WhatwgGates.UrlInventory
 
 /-!
 Independent URL inventory review regressions, frozen before repair.

@@ -1,6 +1,6 @@
 # Web IDL census inputs
 
-Authored input to `lake exe census --standard webidl`, seeded from the Web IDL
+Authored input to `lake exe whatwg_census --standard webidl`, seeded from the Web IDL
 section-disposition table of `SPEC-MANIFEST.md` as amended by rulings R-P1,
 R-P4, R-P6, R-P10 and R-P16 in `COORDINATION.md`. The frozen packet is
 `test/contracts/webidl-census.contract.md` as amended by

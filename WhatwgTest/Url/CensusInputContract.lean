@@ -1,4 +1,4 @@
-import Gates.UrlCensusInput
+import WhatwgGates.UrlCensusInput
 
 /-!
 Breaker-owned U2c finite input/projection contract, frozen before implementation.

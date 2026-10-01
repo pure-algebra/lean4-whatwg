@@ -20,7 +20,7 @@ full, then open only the authority documents named for the current task.
 | `test/counterexamples/` | central counterexample register and durable witnesses |
 | `Whatwg/Streams/` | library declarations and proofs |
 | `WhatwgTest/Streams/` | Lean tests, attacks, receipts, and the axiom gate |
-| `Gates/` | repository gates implemented in Lean |
+| `WhatwgGates/` | repository gates implemented in Lean |
 | `harness/` | host conformance evidence |
 | `generated/` | deterministic projections only; never hand-edited |
 | `vendor/` | sealed pinned third-party bytes; never edited |
@@ -125,8 +125,8 @@ orchestrate; they decide nothing.
 | Command | Decides |
 | --- | --- |
 | `lake build` | the libraries elaborate; the elaboration-time axiom gate in `WhatwgTest.lean` passes over every declaration |
-| `lake exe vendorseal` | `vendor/` and `generated/vendor-manifest.tsv` agree in both directions; every path is valid on Windows |
-| `lake exe citations` | no line-numbered citation into a protected authored document |
+| `lake exe whatwg_vendorseal` | `vendor/` and `generated/vendor-manifest.tsv` agree in both directions; every path is valid on Windows |
+| `lake exe whatwg_citations` | no line-numbered citation into a protected authored document |
 
 The axiom ceiling is Lean's standard base, `propext`, `Quot.sound`, and
 `Classical.choice`, for every tree (operator ruling R-11, 2026-09-02;

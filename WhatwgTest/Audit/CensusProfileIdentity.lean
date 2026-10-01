@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # Census profile-identity battery
@@ -79,8 +79,8 @@ after them keeps the sort key of every Streams and Infra row unchanged. -/
 #guard (Gates.Census.Kind.all.take 6).map (·.name) ==
   ["idl", "op", "requirement", "rule", "slot", "type"]
 #guard Gates.Census.formatVersion == "1"
-#guard Gates.Census.streams.regenerateCommand == "lake exe census --write"
-#guard Gates.Census.infra.regenerateCommand == "lake exe census --standard infra --write"
+#guard Gates.Census.streams.regenerateCommand == "lake exe whatwg_census --write" -- R-V7, 2026-10-01
+#guard Gates.Census.infra.regenerateCommand == "lake exe whatwg_census --standard infra --write" -- R-V7, 2026-10-01
 #guard Gates.Census.streams.key == "streams"
 #guard Gates.Census.infra.key == "infra"
 #guard (Gates.Census.standards.take 2).map (·.key) == ["streams", "infra"]
@@ -94,10 +94,15 @@ private structure Identity where
   deriving Inhabited
 
 private def identities : Array Identity := #[
-  ⟨"generated/spec-algorithm-census.tsv", 141352,
-    "1a3672789fb62d3ae68eb528efb20a211727e9ed2b18c3e751c5acf67cd37e02"⟩,
-  ⟨"generated/infra-census.tsv", 55766,
-    "5041ef0035e087cb242a300a95398982351d766b39a4f24f28e94d9b853d5b18"⟩,
+  -- R-V7, 2026-10-01: the header's regeneration command became
+  -- `lake exe whatwg_census --write` (+7 bytes); superseded 141352 bytes,
+  -- digest 1a3672789fb62d3ae68eb528efb20a211727e9ed2b18c3e751c5acf67cd37e02.
+  ⟨"generated/spec-algorithm-census.tsv", 141359,
+    "2b9b7c07a7019b50259c4720602db8c498e82759162307aa6e655a1ab93992b0"⟩,
+  -- R-V7, 2026-10-01: the same header command (+7 bytes); superseded 55766
+  -- bytes, digest 5041ef0035e087cb242a300a95398982351d766b39a4f24f28e94d9b853d5b18.
+  ⟨"generated/infra-census.tsv", 55773,
+    "718b75d50cf4ef5f56e07932f21535525c71633e5147821d60d429645298f406"⟩,
   -- Amended 2026-09-07 by ruling R-P26 (amendment A7 of
   -- test/contracts/configuration-ordering.contract.md, §12.5), applied by the Q4
   -- builder seat. Superseded values, frozen by
@@ -110,20 +115,30 @@ private def identities : Array Identity := #[
   -- bytes. R-P26 amends the pin to the two values below; the other three
   -- identities are unchanged, and no coverage number moves, because a
   -- disposition is not a coverage state.
-  ⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32012,
-    "247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c"⟩,
-  ⟨"WhatwgTest/Audit/Infra/SpecCoverageRows.lean", 10607,
-    "94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0"⟩]
+  -- R-V3(c), 2026-10-01: the generated import line `import Gates` became
+  -- `import WhatwgGates` (+6 bytes); superseded 32012 bytes, digest
+  -- 247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c.
+  -- R-V7, 2026-10-01: the two regeneration-command lines of the generated
+  -- docstring name `whatwg_census` (+14 bytes); superseded 32018 bytes, digest
+  -- fd6a5a5ba41346b631d96a4d914f80f4b4ac80488512fe1e29ca3c0589072937.
+  ⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32032,
+    "047c0437315f81647bb470fc8de8b2576db68db6a287baaaec6f66d8211c5cd8"⟩,
+  -- R-V3(c), 2026-10-01: the same import line; superseded 10607 bytes, digest
+  -- 94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0.
+  -- R-V7, 2026-10-01: the same two docstring lines (+14 bytes); superseded
+  -- 10613 bytes, digest fb948275a04de97628c6bc3654ab5392021ed7eba1784bf4e2e37e3d57e4ebba.
+  ⟨"WhatwgTest/Audit/Infra/SpecCoverageRows.lean", 10627,
+    "df45221823212e99cccaf7a194416f92b24cae8faeb0d4554eff25fd0f381ef8"⟩]
 
 private def streamsHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/whatwg-streams-b9ba9f49/index.bs " ++
   "input-sha256=24360b4f8446e6c80e185c5021fcca9b67a7e0bb62490a00109080ebc04c6440 " ++
-  "rows=450 regenerate=lake exe census --write"
+  "rows=450 regenerate=lake exe whatwg_census --write" -- R-V7, 2026-10-01
 
 private def infraHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/whatwg-infra-3f984adc/infra.bs " ++
   "input-sha256=7c38e6e25ef21f536142cfc6d94954c41bc9889cd0b6fd67ab34571215acd8eb " ++
-  "rows=176 regenerate=lake exe census --standard infra --write"
+  "rows=176 regenerate=lake exe whatwg_census --standard infra --write" -- R-V7, 2026-10-01
 
 private def streamsKindCounts : List (String × Nat) :=
   [("idl", 133), ("op", 248), ("requirement", 7), ("slot", 62), ("rule", 0), ("type", 0)]

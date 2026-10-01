@@ -1,4 +1,4 @@
-import Gates.VendorSeal
+import WhatwgGates.VendorSeal
 
 /-- Entry point only; the audited logic is Gates.VendorSeal.cli. -/
 def main (args : List String) : IO UInt32 := Gates.VendorSeal.cli args

@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # Web IDL census Q2 addendum battery
@@ -170,11 +170,11 @@ private def externalsRelativePath : String := "census/webidl/externals.tsv"
 
 private def numeratorRelativePath : String := "WhatwgTest/Audit/WebIdl/SpecCoverage.lean"
 
-private def entryPointRelativePath : String := "bin/Census.lean"
+private def entryPointRelativePath : String := "whatwgbin/Census.lean" -- R-V3(c), 2026-10-01
 
 private def coverageDocRelativePath : String := "docs/SPEC-COVERAGE.md"
 
-private def regenerateCommand : String := "lake exe census --standard webidl --write"
+private def regenerateCommand : String := "lake exe whatwg_census --standard webidl --write" -- R-V7, 2026-10-01
 
 private def expectedRowTotal : Nat := 124
 
@@ -183,7 +183,7 @@ private def expectedDenominator : Nat := 116
 private def expectedHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/whatwg-webidl-a652053f/index.bs " ++
   "input-sha256=3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83 " ++
-  "rows=124 regenerate=lake exe census --standard webidl --write"
+  "rows=124 regenerate=lake exe whatwg_census --standard webidl --write" -- R-V7, 2026-10-01
 
 private def expectedKindCounts : List (String × Nat) :=
   [("idl", 37), ("op", 39), ("requirement", 0), ("rule", 9), ("slot", 0), ("type", 39),

@@ -1,4 +1,4 @@
-import Gates
+import WhatwgGates
 import WhatwgTest.Url.InventoryContract
 import WhatwgTest.Url.Counterexamples.Inventory
 import WhatwgTest.Url.CensusContract

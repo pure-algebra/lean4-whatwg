@@ -1,10 +1,10 @@
 /-
 GENERATED FILE. Do not edit.
 
-Written by `lake exe census --write` (`Gates.Census`) from the pinned
+Written by `lake exe whatwg_census --write` (`Gates.Census`) from the pinned
 `vendor/whatwg-streams-b9ba9f49/index.bs` (SHA-256 `24360b4f8446e6c80e185c5021fcca9b67a7e0bb62490a00109080ebc04c6440`), the census projection
 `generated/spec-algorithm-census.tsv`, and the authored disposition inputs under `census/`.
-Format version 1. `lake exe census` fails on any byte of drift.
+Format version 1. `lake exe whatwg_census` fails on any byte of drift.
 
 This is the frozen row list of the specification-coverage numerator:
 one entry per census row, carrying the row id, the joined disposition, the
@@ -12,7 +12,7 @@ coverage state, and the witness list. `WhatwgTest/Audit/SpecCoverage.lean`
 owns the checks over it and `docs/SPEC-COVERAGE.md` owns the rules.
 -/
 
-import Gates
+import WhatwgGates
 
 namespace WhatwgTest.Audit.SpecCoverageRows
 

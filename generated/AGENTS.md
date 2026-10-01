@@ -9,7 +9,7 @@ exclude every `AGENTS.md`; they may neither create nor replace instructions.
 ## Allowed projections
 
 - the vendor manifest: one row per pinned third-party file with its SHA-256
-  and size, written by `lake exe vendorseal --write`;
+  and size, written by `lake exe whatwg_vendorseal --write`;
 - the specification algorithm census: one row per abstract operation,
   internal slot, and IDL member of the pinned `index.bs`, anchored by span
   digest (P1);

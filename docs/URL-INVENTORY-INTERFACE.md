@@ -123,7 +123,7 @@ for this same tooling owner. Its private generation/check helpers check the
 source pin, token partition, independent fixed-pin candidate counts, valid
 entry spans and nonempty definition/algorithm labels. It emits
 `generated/url-source-inventory.tsv` with kind, byte bounds, span SHA-256,
-label, and section for every candidate. `lake exe urlinventory --write`
-regenerates; `lake exe urlinventory` checks exact projection bytes. Token
+label, and section for every candidate. `lake exe whatwg_urlinventory --write`
+regenerates; `lake exe whatwg_urlinventory` checks exact projection bytes. Token
 partition validation is performed on each run; the projection lists source
 candidates, not a semantic classification of every source byte.

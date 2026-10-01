@@ -4,25 +4,69 @@ description = "WHATWG standards reified in Lean 4, one library per standard; Str
 keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
-defaultTargets = ["Whatwg", "Gates", "WhatwgTest",
-                  "vendorseal", "citations", "census", "urlinventory", "urlcensus"]
+defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
+                  "WhatwgUrl", "WhatwgHtml", "WhatwgStreams",
+                  "WhatwgGates", "WhatwgTest",
+                  "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
+                  "whatwg_urlinventory", "whatwg_urlcensus"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
 # so that `lake --wfail build` and a plain `lake build` decide the same thing.
 leanOptions = { autoImplicit = false, relaxedAutoImplicit = false, warningAsError = true }
 
-# The production library: one root per standard under Whatwg/, all
-# reached from Whatwg.lean. Semantic declarations and proofs only.
+# The production libraries: one per standard, and the umbrella. Semantic
+# declarations and proofs only (ruling R-V3(d)). Each standard's library owns
+# its root module and every module under it, so `lake build WhatwgEcma262`
+# builds that standard's import closure and nothing else. `Whatwg` owns only
+# the umbrella module `Whatwg`, whose imports reach every standard's root, so
+# `lake build Whatwg` still builds the whole production tree. No module is
+# owned by two libraries: Lake counts every submodule of a library's root as
+# local to that library, so the umbrella declares no root and names its one
+# module by an exact glob (with `roots = ["Whatwg"]` it would claim every
+# `Whatwg.*` module beside the library that owns it).
 [[lean_lib]]
 name = "Whatwg"
-globs = ["Whatwg.*"]
+roots = []
+globs = ["Whatwg"]
+
+[[lean_lib]]
+name = "WhatwgInfra"
+roots = ["Whatwg.Infra"]
+globs = ["Whatwg.Infra.*"]
+
+[[lean_lib]]
+name = "WhatwgEcma262"
+roots = ["Whatwg.Ecma262"]
+globs = ["Whatwg.Ecma262.*"]
+
+[[lean_lib]]
+name = "WhatwgWebIdl"
+roots = ["Whatwg.WebIdl"]
+globs = ["Whatwg.WebIdl.*"]
+
+[[lean_lib]]
+name = "WhatwgUrl"
+roots = ["Whatwg.Url"]
+globs = ["Whatwg.Url.*"]
+
+[[lean_lib]]
+name = "WhatwgHtml"
+roots = ["Whatwg.Html"]
+globs = ["Whatwg.Html.*"]
+
+[[lean_lib]]
+name = "WhatwgStreams"
+roots = ["Whatwg.Streams"]
+globs = ["Whatwg.Streams.*"]
 
 # Repository gates implemented in Lean. Tooling, not semantics; audited for
-# totality and forbidden axioms under the implementation ceiling.
+# totality and forbidden axioms under ruling R-11's ceiling, like every tree.
+# The modules are `WhatwgGates.*` and their declarations keep the namespace
+# `Gates.*` (ruling R-V3(c)).
 [[lean_lib]]
-name = "Gates"
-globs = ["Gates.*"]
+name = "WhatwgGates"
+globs = ["WhatwgGates.*"]
 
 # Contracts, attacks, receipts, and the elaboration-time axiom gate.
 [[lean_lib]]
@@ -30,65 +74,72 @@ name = "WhatwgTest"
 globs = ["WhatwgTest.*"]
 
 
-# Executable entry points. Each is a one-line wrapper under bin/ that calls
-# the audited `cli` of its Gates module; bin/ itself holds no logic.
+# Executable entry points. Each is a one-line wrapper under `whatwgbin/` that
+# calls the audited `cli` of its WhatwgGates module; `whatwgbin/` itself holds
+# no logic, and the census entry point alone also imports the test-side
+# coverage numerators.
+#
+# Lake resolves module names and executable names across the whole workspace,
+# so a package that requires this one could not also define `Gates.Common`, a
+# `bin.*` or bare `Citations` root, or an executable called `census`
+# (docs/AGENT-ROUTING.md, "Packages cloned from this skeleton"). Every entry
+# point therefore uses `root = "whatwgbin.<Name>"` under the default source
+# directory, which resolves to `whatwgbin/<Name>.lean`, and every executable
+# name carries the `whatwg_` prefix.
 
 [[lean_exe]]
-name = "vendorseal"
-srcDir = "bin"
-root = "VendorSeal"
+name = "whatwg_vendorseal"
+root = "whatwgbin.VendorSeal"
 
 [[lean_exe]]
-name = "citations"
-srcDir = "bin"
-root = "Citations"
+name = "whatwg_citations"
+root = "whatwgbin.Citations"
 
 [[lean_exe]]
-name = "urlinventory"
-srcDir = "bin"
-root = "UrlInventory"
+name = "whatwg_urlinventory"
+root = "whatwgbin.UrlInventory"
 
 [[lean_exe]]
-name = "urlcensus"
-srcDir = "bin"
-root = "UrlCensus"
+name = "whatwg_urlcensus"
+root = "whatwgbin.UrlCensus"
 
 [[lean_exe]]
-name = "trustselftest"
-srcDir = "bin"
-root = "TrustSelfTest"
+name = "whatwg_trustselftest"
+root = "whatwgbin.TrustSelfTest"
 
-# The P1 specification-algorithm census. `root = "bin.Census"` under the
-# default `srcDir` resolves to `bin/Census.lean`, matching the `sha256`
-# entry point above; there is no `Census` library root to collide with today,
-# and the spelling keeps the two entry-point conventions from diverging.
+# The P1 specification-algorithm census, and since slice Q2 the Web IDL and
+# ECMA-262 censuses, each with its coverage report.
 [[lean_exe]]
-name = "census"
-root = "bin.Census"
+name = "whatwg_census"
+root = "whatwgbin.Census"
 
 # The proved hash functions the gates compute every digest with. Exact commit
-# of mepuka/lean4-hash (step 6 of docs/HASH-PACKAGE-PLAN.md); the vendor
-# manifest regenerated byte-identically through `Hash.Sha256.sha256` at the
-# swap, which is the cutover proof.
+# of pure-algebra/lean4-hash `main`, the pin lean4-effect4 uses (ruling
+# R-V3(b)); MIT from this commit. The vendor manifest regenerated
+# byte-identically through `Hash.Sha256.sha256` at the swap (step 6 of
+# docs/HASH-PACKAGE-PLAN.md) and again at this pin, which is the cutover proof.
 [[require]]
 name = "hash"
 git = "https://github.com/pure-algebra/lean4-hash"
-rev = "0168306b7068b97758e3f2d4307eeb97aa31a104"
+rev = "c906b15dc3e94ebac0c10056270fbb345a1d2b6e"
 
 # The generic effect algebra every standard here builds against (RS-D1 as
-# ruled in lean4-effect4 docs/EFFECTS-SPLIT-PLAN.md, EP-9), now with signature
+# ruled in lean4-effect4 docs/EFFECTS-SPLIT-PLAN.md, EP-9), with signature
 # morphisms, handler transport, families, and the generic first-order Flow.
-# Exact commit of tag v0.5.0 of pure-algebra/lean4-effects. Nothing imports it
-# until the first Stratum S packet (P4).
+# Exact commit of tag v0.8.0 of pure-algebra/lean4-effects, the pin
+# lean4-effect4 uses (ruling R-V3(b)). Nothing imports it yet.
 [[require]]
 name = "effects"
 git = "https://github.com/pure-algebra/lean4-effects"
-rev = "c28833b3c14431ba2886a0fb66bcc688c86c2589"
+rev = "a4ee7a14248ee5976039b73039319efa87834986"
 
 # TypeScript as a target: syntax, renderer, identifier profile, host pins.
-# Exact commit of tag v0.2.0 of pure-algebra/lean4-typescript. P11 lowers
-# through it instead of declaring a second intermediate representation.
+# Exact commit of pure-algebra/lean4-typescript whose lakefile declares
+# version 0.6.0, the pin lean4-effect4 uses (ruling R-V3(b)); the remote
+# carries no `v0.6.0` tag, and the commit is the tip of its branch
+# `codex/typed-source-carrier`. P11 lowers through it instead of declaring a
+# second intermediate representation. Nothing imports it yet.
 [[require]]
 name = "typescript"
 git = "https://github.com/pure-algebra/lean4-typescript"
-rev = "fcbc05a40e52f9bbe8a8e3ee0f4a746ebd4e9554"
+rev = "6afc9b841603796c16b266c0b8b92ded37a9445c"

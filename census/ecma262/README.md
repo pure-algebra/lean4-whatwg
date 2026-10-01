@@ -1,6 +1,6 @@
 # ECMA-262 census inputs
 
-Authored input to `lake exe census --standard ecma262`, seeded from the
+Authored input to `lake exe whatwg_census --standard ecma262`, seeded from the
 ECMA-262 clause-disposition table of `SPEC-MANIFEST.md` as amended by rulings
 R-P3, R-P5, R-P6, R-P9 and R-P11 in `COORDINATION.md`. The frozen packet is
 `test/contracts/ecma262-census.contract.md`; it owns every count below and

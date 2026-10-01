@@ -15,18 +15,20 @@ jobs:
           auto-config: false
       # The production libraries and gate executables; the test root with its
       # elaboration-time axiom gate is built by the default targets below.
+      # `Whatwg` is the umbrella module; each standard is its own library
+      # (ruling R-V3(d)), and each is built here as a target of its own.
       - name: Build production libraries and gate executables
-        run: lake --wfail build Whatwg Gates vendorseal citations census urlinventory urlcensus
+        run: lake --wfail build Whatwg WhatwgInfra WhatwgEcma262 WhatwgWebIdl WhatwgUrl WhatwgHtml WhatwgStreams WhatwgGates whatwg_vendorseal whatwg_citations whatwg_census whatwg_urlinventory whatwg_urlcensus
       - name: Vendor seal in both directions
-        run: lake exe vendorseal
+        run: lake exe whatwg_vendorseal
       - name: Internal-citation gate
-        run: lake exe citations
+        run: lake exe whatwg_citations
       - name: URL source inventory projection drift
-        run: lake exe urlinventory
+        run: lake exe whatwg_urlinventory
       - name: URL authored census and assignment projection drift
-        run: lake exe urlcensus
+        run: lake exe whatwg_urlcensus
       # Every census step links a coverage numerator: since the first P3
-      # witnesses landed, bin/Census.lean imports
+      # witnesses landed, whatwgbin/Census.lean imports
       # WhatwgTest/Audit/SpecCoverage.lean so that the block below is
       # printed from that module's checked emit instead of from assumed zeros,
       # and since slice Q2 it also imports the Web IDL and ECMA-262 numerators
@@ -35,26 +37,27 @@ jobs:
       # numerators' gates, and a red numerator fails here rather than printing
       # a number.
       - name: Specification-algorithm census, and the coverage emit against it
-        run: lake exe census
+        run: lake exe whatwg_census
       - name: Specification coverage block from the Lean emit
-        run: lake exe census --report
+        run: lake exe whatwg_census --report
       - name: Infra definition census and generated row drift
-        run: lake exe census --standard infra
+        run: lake exe whatwg_census --standard infra
       # The Web IDL promise and exception census (slices Q1 and Q2 of
       # docs/PROMISE-PACKAGE-PLAN.md), and its coverage block. Q2 gave the
       # standard a numerator, so unlike --standard infra it now reports; the
       # block is all-absent and says that nothing is proved.
       - name: Web IDL promise and exception census and generated row drift
-        run: lake exe census --standard webidl
+        run: lake exe whatwg_census --standard webidl
       - name: Web IDL coverage block from the Lean emit
-        run: lake exe census --standard webidl --report
+        run: lake exe whatwg_census --standard webidl --report
       # The ECMA-262 promise and job census, read through the ecmarkup profile
-      # of Gates/Ecmarkup.lean, and its coverage block, all-absent for the same
-      # reason. Infra remains the one standard with no numerator and no report.
+      # of WhatwgGates/Ecmarkup.lean, and its coverage block, all-absent for the
+      # same reason. Infra remains the one standard with no numerator and no
+      # report.
       - name: ECMA-262 census
-        run: lake exe census --standard ecma262
+        run: lake exe whatwg_census --standard ecma262
       - name: ECMA-262 coverage block from the Lean emit
-        run: lake exe census --standard ecma262 --report
+        run: lake exe whatwg_census --standard ecma262 --report
       - name: Test root and the elaboration-time axiom gate
         run: lake --wfail build WhatwgTest
       # Ruling R-V2 returns the trust-gate self-test to CI after its removal on
@@ -65,7 +68,7 @@ jobs:
       # and every row of test/contracts/trust-gate-hardening.contract.md, and
       # runs the gate and the coverage numerator by relative file name.
       - name: Trust-gate self-test (planted violations, controls and narrow runs)
-        run: lake exe trustselftest
+        run: lake exe whatwg_trustselftest
       # Ruling R-V2: a kernel replay of every module of the three libraries.
       # leanchecker re-adds each module's declarations to the environment its
       # imports build and type-checks them in the kernel, so a declaration the
@@ -73,5 +76,5 @@ jobs:
       # axiom records and no token names) fails here. Measured by the V2 gate
       # builder on 2026-10-01 on the Windows development host: 216 modules in
       # 79 s, exit 0, inside the fifteen-minute bound of R-V2.
-      - name: Kernel replay of Whatwg, WhatwgTest and Gates (leanchecker)
-        run: lake env leanchecker Whatwg WhatwgTest Gates
+      - name: Kernel replay of Whatwg, WhatwgTest and WhatwgGates (leanchecker)
+        run: lake env leanchecker Whatwg WhatwgTest WhatwgGates

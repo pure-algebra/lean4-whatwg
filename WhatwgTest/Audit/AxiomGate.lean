@@ -1,7 +1,7 @@
 import Lean
 import Lean.Util.CollectAxioms
 import Whatwg
-import Gates
+import WhatwgGates
 
 /-!
 # Whatwg trust and axiom gate
@@ -200,7 +200,7 @@ components. The SHA-256 lane that used to be a fourth is the required `hash`
 package since step 6 of `docs/HASH-PACKAGE-PLAN.md`; its own gate audits it
 there, and nothing under a dependency is inspected here. -/
 private def auditedTrees : List Name :=
-  [`Whatwg, `WhatwgTest, `Gates]
+  [`Whatwg, `WhatwgTest, `WhatwgGates] -- R-V3(c), 2026-10-01
 
 private def treeOf? (moduleName : Name) : Option Name :=
   auditedTrees.find? (·.isPrefixOf moduleName)
@@ -454,10 +454,10 @@ private structure AuditedSources where
 private def auditedSources (projectRoot : System.FilePath) : IO AuditedSources := do
   let production ← leanFilesBelow (projectRoot / "Whatwg")
   let tests ← leanFilesBelow (projectRoot / "WhatwgTest")
-  let tooling ← leanFilesBelow (projectRoot / "Gates")
-  let entryPoints ← leanFilesBelow (projectRoot / "bin")
+  let tooling ← leanFilesBelow (projectRoot / "WhatwgGates") -- R-V3(c), 2026-10-01
+  let entryPoints ← leanFilesBelow (projectRoot / "whatwgbin") -- R-V3(c), 2026-10-01
   let roots :=
-    #[projectRoot / "Whatwg.lean", projectRoot / "Gates.lean", projectRoot / "WhatwgTest.lean"]
+    #[projectRoot / "Whatwg.lean", projectRoot / "WhatwgGates.lean", projectRoot / "WhatwgTest.lean"] -- R-V3(c), 2026-10-01
   return { modules := production ++ tests ++ tooling ++ roots, entryPoints }
 
 /-! ## The passes -/
@@ -539,7 +539,7 @@ private def strictCeilingFindings (environment : Environment)
   for strictPrefix in strictCeilingPrefixes do
     if !(`Whatwg).isPrefixOf strictPrefix then
       findings := findings.push
-        m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} is outside the Whatwg tree; ruling R-V1 keeps WhatwgTest and Gates under R-11"
+        m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} is outside the Whatwg tree; ruling R-V1 keeps WhatwgTest and WhatwgGates under R-11" -- R-V3(c), 2026-10-01
     if !(declarations.any fun declaration => strictPrefix.isPrefixOf declaration.moduleName) then
       findings := findings.push
         m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} covers no audited module"
@@ -598,10 +598,10 @@ private def trustTokenFindings (projectRoot : System.FilePath) (sources : Audite
       continue
     listed := listed.push moduleName
     let path := (Lean.modToFilePath projectRoot moduleName "lean").normalize
-    let entryPath := (Lean.modToFilePath (projectRoot / "bin") moduleName "lean").normalize
+    let entryPath := (Lean.modToFilePath (projectRoot / "whatwgbin") moduleName "lean").normalize -- R-V3(c), 2026-10-01
     if entryPaths.contains path || entryPaths.contains entryPath then
       findings := findings.push
-        m!"Whatwg source trust gate: source-token exemption for {moduleName} names an entry point under bin/, and no file under bin/ can be exempted"
+        m!"Whatwg source trust gate: source-token exemption for {moduleName} names an entry point under whatwgbin/, and no file under whatwgbin/ can be exempted" -- R-V3(c), 2026-10-01
     else if modulePaths.contains path then
       exempted := exempted.push (path, moduleName)
     else
@@ -694,12 +694,12 @@ elab "#whatwg_streams_axiom_gate" : command => do
   let whatwgTotal := inTree `Whatwg declarations
   let testReached := inTree `WhatwgTest choiceReachers
   let testTotal := inTree `WhatwgTest declarations
-  let gatesReached := inTree `Gates choiceReachers
-  let gatesTotal := inTree `Gates declarations
+  let gatesReached := inTree `WhatwgGates choiceReachers -- R-V3(c), 2026-10-01
+  let gatesTotal := inTree `WhatwgGates declarations -- R-V3(c), 2026-10-01
   let prefixCount := strictCeilingPrefixes.length
   let exceptionCount :=
     strictCeilingExceptions.length + privateStrictCeilingExceptions.length
   let exemptionCount := sourceTokenExemptions.length
-  logInfo m!"Whatwg module and axiom gate: checked {sourceCount} source files and {declarations.size} declarations; Classical.choice is reached by {whatwgReached} of {whatwgTotal} declarations in Whatwg, {testReached} of {testTotal} in WhatwgTest and {gatesReached} of {gatesTotal} in Gates; strict ceiling propext and Quot.sound over {prefixCount} module prefix(es) with {exceptionCount} exact exception(s); {exemptionCount} source-token exemption(s)"
+  logInfo m!"Whatwg module and axiom gate: checked {sourceCount} source files and {declarations.size} declarations; Classical.choice is reached by {whatwgReached} of {whatwgTotal} declarations in Whatwg, {testReached} of {testTotal} in WhatwgTest and {gatesReached} of {gatesTotal} in WhatwgGates; strict ceiling propext and Quot.sound over {prefixCount} module prefix(es) with {exceptionCount} exact exception(s); {exemptionCount} source-token exemption(s)" -- R-V3(c), 2026-10-01
 
 end WhatwgTest.Audit

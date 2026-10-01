@@ -1,5 +1,5 @@
 import Hash
-import Gates.Common
+import WhatwgGates.Common
 
 /-!
 # Gates.Sha256

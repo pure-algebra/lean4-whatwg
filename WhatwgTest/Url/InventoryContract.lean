@@ -1,4 +1,4 @@
-import Gates.UrlInventory
+import WhatwgGates.UrlInventory
 
 /-!
 Breaker-owned U2a finite executable probes, frozen before the scanner implementation.

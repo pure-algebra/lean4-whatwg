@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # ECMA-262 promise census contract battery
@@ -86,7 +86,7 @@ seven new ones in the order R-P2 writes them. -/
 #guard Gates.Census.ecma262.rowsRelativePath == "WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean"
 #guard Gates.Census.ecma262.rowsNamespace == "WhatwgTest.Audit.Ecma262.SpecCoverageRows"
 #guard Gates.Census.ecma262.authoredDir == "census/ecma262"
-#guard Gates.Census.ecma262.regenerateCommand == "lake exe census --standard ecma262 --write"
+#guard Gates.Census.ecma262.regenerateCommand == "lake exe whatwg_census --standard ecma262 --write" -- R-V7, 2026-10-01
 #guard Gates.Census.ecma262.sectionsRelativePath == "census/ecma262/sections.tsv"
 #guard Gates.Census.ecma262.dependenciesRelativePath == "census/ecma262/dependencies.tsv"
 #guard Gates.Census.ecma262.externalsRelativePath == "census/ecma262/externals.tsv"
@@ -348,7 +348,7 @@ private def censusRelativePath : String := "generated/ecma262-census.tsv"
 
 private def rowsRelativePath : String := "WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean"
 
-private def regenerateCommand : String := "lake exe census --standard ecma262 --write"
+private def regenerateCommand : String := "lake exe whatwg_census --standard ecma262 --write" -- R-V7, 2026-10-01
 
 private def expectedRowTotal : Nat := 77
 
@@ -360,7 +360,7 @@ private def expectedDenominator : Nat := 75
 private def expectedHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/ecma262-0248456c/spec.html " ++
   "input-sha256=ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0 " ++
-  "rows=77 regenerate=lake exe census --standard ecma262 --write"
+  "rows=77 regenerate=lake exe whatwg_census --standard ecma262 --write" -- R-V7, 2026-10-01
 
 private def expectedKindCounts : List (String × Nat) :=
   [("builtin", 13), ("clause", 8), ("field", 8), ("hook", 6), ("op", 16),

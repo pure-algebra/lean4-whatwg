@@ -1,14 +1,14 @@
 # Specification coverage
 
 > Scope: the report below is Streams-specific. Infra has a definition census
-> and an all-absent generated row list, checked by `lake exe census --standard
+> and an all-absent generated row list, checked by `lake exe whatwg_census --standard
 > infra`; it has no authored theorem numerator or coverage report yet. The two
 > standards never share a denominator.
 
 > URL: `Whatwg.Url` has its own pinned source (`docs/URL-PACKAGE-PLAN.md`)
 > and, since slice U3, declarations in `Whatwg/Url/PercentEncoding.lean` and
 > `Whatwg/Url/Boundary.lean`. Its authored source census is projected and
-> drift-checked by `lake exe urlcensus`, but URL has no admitted denominator,
+> drift-checked by `lake exe whatwg_urlcensus`, but URL has no admitted denominator,
 > numerator, or coverage report yet and contributes no rows to the Streams
 > report. The declaration/numerator join that would admit its denominator and
 > checked reporting path is still open (`docs/URL-CENSUS-DAG.md`).
@@ -19,7 +19,7 @@
 > Q2 landings of 2026-09-07 each has a generated, drift-checked census with a
 > denominator (Web IDL 124 rows, denominator 116; ES2026 77 rows, denominator
 > 75), an all-absent Lean numerator, and a coverage report printed by
-> `lake exe census --standard <key> --report` whose block appears below;
+> `lake exe whatwg_census --standard <key> --report` whose block appears below;
 > neither contributes rows to any other standard's report. Five standards
 > hold five denominators that never mix.
 
@@ -38,7 +38,7 @@ Three artefacts carry it once P1 lands:
 
 | Artefact | Role | Owner |
 | --- | --- | --- |
-| `generated/spec-algorithm-census.tsv` | the denominator: one row per specification row, anchored to the pinned bytes with a span digest | the P1 census generator under `Gates/` |
+| `generated/spec-algorithm-census.tsv` | the denominator: one row per specification row, anchored to the pinned bytes with a span digest | the P1 census generator under `WhatwgGates/` |
 | `WhatwgTest/Audit/SpecCoverage.lean` | the numerator: the frozen row list with disposition, coverage state, witnesses, receipts, and exact witness statements | authored, test-side |
 | a Lean census gate | byte drift of the census and the join between census and Lean rows | CI step |
 
@@ -153,7 +153,7 @@ Slice Q2 of `docs/PROMISE-PACKAGE-PLAN.md` gave the promise lane's two
 standards numerators of their own —
 `WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and
 `WhatwgTest/Audit/Ecma262/SpecCoverage.lean` — so
-`lake exe census --standard webidl --report` and
+`lake exe whatwg_census --standard webidl --report` and
 `--standard ecma262 --report` now print. The two blocks below are those two
 commands' own bytes, replacing the placeholder blocks that stood here until Q2.
 
@@ -177,10 +177,10 @@ green 0, partial 0, absent 75; census 77 rows, 2 excluded
 partial:
 ```
 
-Infra still has no numerator, so `lake exe census --standard infra --report`
+Infra still has no numerator, so `lake exe whatwg_census --standard infra --report`
 still refuses with exit code 2 and
 `census: no coverage numerator exists for infra, so there is no report yet`,
-and `lake exe census --standard infra` still ends its PASS line
+and `lake exe whatwg_census --standard infra` still ends its PASS line
 "; no numerator exists for this standard yet, so no emit was checked". That
 refusal is the record that Infra has no numerator; inventing an empty emit to
 make every standard reportable would be a defect.
@@ -199,11 +199,11 @@ make every standard reportable would be a defect.
   by the same drift gate; the authored freeze is the pair of expected totals
   and the checks.
 - Since the P3 coverage landing (2026-09-02) the report is printed from the
-  numerator's checked emit: `bin/Census.lean` imports
+  numerator's checked emit: `whatwgbin/Census.lean` imports
   `WhatwgTest/Audit/SpecCoverage.lean`, so building the census
   executable elaborates the numerator's gate, and `Gates.Census.verifyEmit`
   re-derives every census-owned column from a fresh regeneration and enforces
-  the witness rules before `lake exe census --report` prints. There is no
+  the witness rules before `lake exe whatwg_census --report` prints. There is no
   generated coverage file; a red numerator fails the build instead of
   printing a number.
 

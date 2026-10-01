@@ -1,10 +1,10 @@
 /-
 GENERATED FILE. Do not edit.
 
-Written by `lake exe census --standard ecma262 --write` (`Gates.Census`) from the pinned
+Written by `lake exe whatwg_census --standard ecma262 --write` (`Gates.Census`) from the pinned
 `vendor/ecma262-0248456c/spec.html` (SHA-256 `ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0`), the census projection
 `generated/ecma262-census.tsv`, and the authored disposition inputs under `census/ecma262/`.
-Format version 1. `lake exe census --standard ecma262` fails on any byte of drift.
+Format version 1. `lake exe whatwg_census --standard ecma262` fails on any byte of drift.
 
 This is an all-absent census scaffold, not a checked coverage numerator.
 One entry per census row carries its id and joined disposition, with no
@@ -12,7 +12,7 @@ theorem witnesses. The census command checks projection drift; the Streams
 numerator does not validate this module. `docs/SPEC-COVERAGE.md` owns the rules.
 -/
 
-import Gates
+import WhatwgGates
 
 namespace WhatwgTest.Audit.Ecma262.SpecCoverageRows
 

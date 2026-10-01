@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # Web IDL promise and exception census contract battery
@@ -153,7 +153,7 @@ private def scannedRules (text : String) (rules : Array Gates.Census.RuleInput) 
 #guard Gates.Census.webidl.rowsRelativePath == "WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean"
 #guard Gates.Census.webidl.rowsNamespace == "WhatwgTest.Audit.WebIdl.SpecCoverageRows"
 #guard Gates.Census.webidl.authoredDir == "census/webidl"
-#guard Gates.Census.webidl.regenerateCommand == "lake exe census --standard webidl --write"
+#guard Gates.Census.webidl.regenerateCommand == "lake exe whatwg_census --standard webidl --write" -- R-V7, 2026-10-01
 #guard Gates.Census.webidl.sectionsRelativePath == "census/webidl/sections.tsv"
 #guard Gates.Census.webidl.dependenciesRelativePath == "census/webidl/dependencies.tsv"
 #guard Gates.Census.webidl.externalsRelativePath == "census/webidl/externals.tsv"
@@ -321,7 +321,7 @@ private def censusRelativePath : String := "generated/webidl-census.tsv"
 
 private def rowsRelativePath : String := "WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean"
 
-private def regenerateCommand : String := "lake exe census --standard webidl --write"
+private def regenerateCommand : String := "lake exe whatwg_census --standard webidl --write" -- R-V7, 2026-10-01
 
 -- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
 -- 121 -> 124. Debt D3 adds the two `rule` rows for DOMException's
@@ -339,7 +339,7 @@ private def expectedDenominator : Nat := 116
 private def expectedHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/whatwg-webidl-a652053f/index.bs " ++
   "input-sha256=3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83 " ++
-  "rows=124 regenerate=lake exe census --standard webidl --write"
+  "rows=124 regenerate=lake exe whatwg_census --standard webidl --write" -- R-V7, 2026-10-01
 
 -- Q2 amendment, `test/contracts/webidl-census-q2.contract.md`, 2026-09-07:
 -- `rule` 6 -> 9. Every other kind is unchanged.

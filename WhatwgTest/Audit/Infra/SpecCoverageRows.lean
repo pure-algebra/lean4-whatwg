@@ -1,10 +1,10 @@
 /-
 GENERATED FILE. Do not edit.
 
-Written by `lake exe census --standard infra --write` (`Gates.Census`) from the pinned
+Written by `lake exe whatwg_census --standard infra --write` (`Gates.Census`) from the pinned
 `vendor/whatwg-infra-3f984adc/infra.bs` (SHA-256 `7c38e6e25ef21f536142cfc6d94954c41bc9889cd0b6fd67ab34571215acd8eb`), the census projection
 `generated/infra-census.tsv`, and the authored disposition inputs under `census/infra/`.
-Format version 1. `lake exe census --standard infra` fails on any byte of drift.
+Format version 1. `lake exe whatwg_census --standard infra` fails on any byte of drift.
 
 This is an all-absent census scaffold, not a checked coverage numerator.
 One entry per census row carries its id and joined disposition, with no
@@ -12,7 +12,7 @@ theorem witnesses. The census command checks projection drift; the Streams
 numerator does not validate this module. `docs/SPEC-COVERAGE.md` owns the rules.
 -/
 
-import Gates
+import WhatwgGates
 
 namespace WhatwgTest.Audit.Infra.SpecCoverageRows
 

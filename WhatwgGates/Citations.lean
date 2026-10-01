@@ -1,4 +1,4 @@
-import Gates.Common
+import WhatwgGates.Common
 
 /-!
 # Gates.Citations
@@ -123,13 +123,13 @@ def check (root : System.FilePath) : IO UInt32 := do
     IO.eprintln s!"  {v.file} line {v.line}: {v.text}"
   return 1
 
-/-- Command-line entry, invoked by `bin/Citations.lean`. -/
+/-- Command-line entry, invoked by `whatwgbin/Citations.lean`. -/
 def cli (args : List String) : IO UInt32 := do
   match args with
   | [] => check (← Gates.Common.projectRoot)
   | ["--root", directory] => check directory
   | _ =>
-    IO.eprintln "usage: lake exe citations [--root <dir>]"
+    IO.eprintln "usage: lake exe whatwg_citations [--root <dir>]" -- R-V3(c), 2026-10-01
     return 2
 
 end Gates.Citations

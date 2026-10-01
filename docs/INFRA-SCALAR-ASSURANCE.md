@@ -17,7 +17,7 @@ named in the ground cell.
 
 | Edge | Status | Ground |
 | --- | --- | --- |
-| identity | `required-open` | The joins of the frozen source, carrier and adapter roles to the Infra census rows and to the generated declaration snapshot, which has no generator (debt D47). The Infra definition census exists (`lake exe census --standard infra`) and has no numerator |
+| identity | `required-open` | The joins of the frozen source, carrier and adapter roles to the Infra census rows and to the generated declaration snapshot, which has no generator (debt D47). The Infra definition census exists (`lake exe whatwg_census --standard infra`) and has no numerator |
 | construction | `required-closed` | The nine frozen ascriptions of `WhatwgTest/Infra/ScalarConstructiveContract.lean` pass; checked constructors and all conversion definition bodies are unchanged (receipt "Proof repair and receipts") |
 | semantics | `required-closed` | Independent review matched the two source spans to the canonical range and surrogate definitions and `Char.valid`, including all surrogate boundaries and U+10FFFF |
 | laws | `required-closed` | The general validity helpers and both exact inverse theorems, `ScalarValue.ofChar_toChar` and `ScalarValue.toChar_ofChar`, elaborate unchanged with constructive receipts |

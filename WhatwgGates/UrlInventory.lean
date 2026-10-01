@@ -1,4 +1,4 @@
-import Gates.Census
+import WhatwgGates.Census
 
 /-!
 Byte-oriented lexical inventory of the pinned URL Bikeshed source.
@@ -372,7 +372,7 @@ private def generate (root : System.FilePath) : IO String := do
   unless errors.isEmpty do throw <| IO.userError ("\n".intercalate errors.toList)
   let mut out := s!"#url-source-inventory format=1 generator=Gates.UrlInventory " ++
     s!"input={inputPath} input-sha256={inputDigest} tokens={tokens.size} " ++
-    s!"tags={tags} candidates={entries.size} regenerate=lake exe urlinventory --write\n" ++
+    s!"tags={tags} candidates={entries.size} regenerate=lake exe whatwg_urlinventory --write\n" ++ -- R-V7, 2026-10-01
     "#ordinal\tkind\tbyte-start\tbyte-end\tspan-sha256\tlabel\tsection\n"
   for i in [:entries.size] do
     let row := entries[i]!
@@ -412,7 +412,7 @@ def cli (args : List String) : IO UInt32 := do
     | [] => checkOrWrite root false
     | ["--write"] => checkOrWrite root true
     | _ =>
-      IO.eprintln "usage: lake exe urlinventory [--write]"
+      IO.eprintln "usage: lake exe whatwg_urlinventory [--write]" -- R-V3(c), 2026-10-01
       return 2
   catch err =>
     IO.eprintln s!"FAIL URL inventory: {err}"

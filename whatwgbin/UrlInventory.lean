@@ -1,3 +1,3 @@
-import Gates.UrlInventory
+import WhatwgGates.UrlInventory
 
 def main (args : List String) : IO UInt32 := Gates.UrlInventory.cli args

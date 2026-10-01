@@ -1,4 +1,4 @@
-import Gates.UrlInventory
+import WhatwgGates.UrlInventory
 
 /-!
 Strict source-to-census assignment for URL's reviewed authored inputs.
