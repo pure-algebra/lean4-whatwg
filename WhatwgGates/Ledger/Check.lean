@@ -20,8 +20,11 @@ built environment of the roots `Whatwg`, `WhatwgTest` and `WhatwgGates`
 through the shared loader `WhatwgGates/Trust/Load.lean`, with no environment
 extension loaded, and refuses the run when a module source's `.olean` is
 missing or stale against its source; it then reads exactly the run-time file
-set (`Ledger.files`, section 11) and the listing of `generated/graphs/`,
-builds the `World` of the run, and acts on `outcome`.
+set (`Ledger.runFiles`, addendum D.7) and the listing of `generated/graphs/`,
+builds the `World` and the `ModuleTable` of the run, and acts on
+`routedOutcome`. `outcome`, the slice A run with neither the routing pass nor
+the index, keeps its body and meaning; the slice A battery pins it and `cli`
+no longer calls it (ruling R-W22(6), debt D69).
 
 The reference pass resolves every ground, item and recorded debt of every
 cell, leaf and unrouted prefix: theorem and declaration names against the
@@ -37,9 +40,26 @@ ruling naming a graph is cited or acknowledged by it, and that every graph
 document links its projection. `outcome` decides a run from these findings
 and the projection comparison.
 
-What a pass does not mean is section 13 of the contract: note text, review
-judgments, a ruling's wording beyond its tokens and mentions, and what a
-counted command proves are not read.
+The routing pass (addendum D of the contract, ruling R-W22) reads a second
+fact table, `ModuleTable`: every module of the loaded environment with the
+constants the environment attributes to it, as the shared loader's
+`Gates.Trust.moduleDeclarations` reads them. Rule M selects the modules under
+`productionRoot`, by component, that declare a constant whose name is not
+internal; each must have exactly one owner among the graph fences (one module
+per entry, exactly), the leaf records (the modules that declare their
+declarations; a leaf with a parent counts as its parent graph) and the
+unrouted prefixes (by component). An unrouted prefix that is a module of the
+table must claim at least one module rule M selects. `routedOutcome` decides a
+run from the reference findings, then the routing findings, then, when
+comparing, the projection findings and the drift findings of the index
+`generated/graphs/INDEX.md`, which `projectionFindings` does not report as a
+stray file.
+
+What a pass does not mean is section 13 of the contract and, for the routing
+pass and the index, section D.11: note text, review judgments, a ruling's
+wording beyond its tokens and mentions, what a counted command proves, whether
+an owner's obligations cover the modules it claims, and private and internal
+constants are not read.
 -/
 
 namespace Gates.Ledger
@@ -536,7 +556,8 @@ def referenceFindings (w : World) (l : Ledger) : List String :=
 
 /-- The drift findings: each graph's projection exists and is byte-identical
 to a fresh rendering, and every file under `generated/graphs/` is some
-graph's projection. -/
+graph's projection or the index, `indexPath` exactly (addendum D.6, ruling
+R-W11); `indexFindings` compares the index. -/
 def projectionFindings (w : World) (l : Ledger) : List String :=
   (l.graphs.filterMap fun g =>
     match w.file? g.projection with
@@ -545,8 +566,107 @@ def projectionFindings (w : World) (l : Ledger) : List String :=
       if text == g.render ledgerInput then none
       else some (g.projection ++ " differs from a fresh rendering")) ++
   w.projectionFiles.filterMap fun path =>
-    if l.graphs.any (·.projection == path) then none
+    if path == indexPath || l.graphs.any (·.projection == path) then none
     else some (path ++ " is not the projection of a ledger graph")
+
+/-! ## Module routing and the index (addendum D) -/
+
+/-- The root of rule M: a module must be routed only when this name is a
+prefix of its name by component. -/
+def productionRoot : Lean.Name := `Whatwg
+
+/-- The list of names with later repeats removed, keeping the first
+occurrence. -/
+private def keepFirstNames (xs : List Lean.Name) : List Lean.Name :=
+  xs.foldl (fun acc x => if acc.contains x then acc else acc ++ [x]) []
+
+/-- The module table the routing pass reads, as data: each module with the
+constants the environment attributes to it. `cli` fills it from the loaded
+environment in the order of its module table, with
+`Gates.Trust.moduleDeclarations`; a battery plants it. -/
+structure ModuleTable where
+  modules : List (Lean.Name × List Lean.Name)
+  deriving DecidableEq, Repr
+
+/-- The modules that must be routed (rule M, addendum D.2): each module of the
+table that has `productionRoot` as a prefix by component and declares at least
+one constant whose name is not internal (`Lean.Name.isInternal`, so a private
+name does not count), in table order, each once at its first position. -/
+def ModuleTable.mustRoute (t : ModuleTable) : List Lean.Name :=
+  keepFirstNames <| t.modules.filterMap fun (m, constants) =>
+    if productionRoot.isPrefixOf m && constants.any (!·.isInternal) then some m else none
+
+/-- The module that declares the constant `n`: the first module of the table
+whose constants include it, or `none`. -/
+def ModuleTable.declaringModule? (t : ModuleTable) (n : Lean.Name) : Option Lean.Name :=
+  (t.modules.find? fun (_, constants) => constants.contains n).map (·.1)
+
+/-- Each leaf record with the declaring modules of its declarations, in ledger
+order; a declaration that names no constant of the table contributes none. -/
+private def leafModules (t : ModuleTable) (l : Ledger) : List (Leaf × List Lean.Name) :=
+  l.leaves.map fun leaf => (leaf, leaf.declarations.filterMap t.declaringModule?)
+
+/-- The claims on module `m`, given the leaves' declaring modules: the graphs
+whose fence lists `m`, then the leaves that declare into `m`, then the unrouted
+entries whose prefix is `m` or a prefix of `m` by component, each in ledger
+order, as (claimant, owner). -/
+private def claimsWith (leaves : List (Leaf × List Lean.Name)) (l : Ledger) (m : Lean.Name) :
+    List (String × String) :=
+  (l.graphs.filter (·.fence.contains m)).map (fun g => ("graph " ++ g.id, "graph " ++ g.id)) ++
+  (leaves.filter (·.2.contains m)).map (fun (leaf, _) =>
+    ("leaf " ++ leaf.id,
+     match leaf.parent with
+     | some (g, _) => "graph " ++ g
+     | none => "leaf " ++ leaf.id)) ++
+  (l.unrouted.filter (·.modulePrefix.isPrefixOf m)).map fun u =>
+    ("unrouted " ++ toString u.modulePrefix, "unrouted " ++ toString u.modulePrefix)
+
+/-- Every claim on module `m` (addendum D.3), as (claimant, owner): each graph
+whose fence lists `m` exactly (`graph G`, owner `graph G`); each leaf record
+one of whose declarations `m` declares (`leaf L`, owner `graph G` when the
+leaf's parent is `G`, otherwise `leaf L`); each unrouted entry whose prefix is
+`m` or a prefix of `m` by component (`unrouted P`, owner `unrouted P`). The
+graphs come first, then the leaves, then the unrouted entries, each in ledger
+order. -/
+def Ledger.claimsOn (t : ModuleTable) (l : Ledger) (m : Lean.Name) : List (String × String) :=
+  claimsWith (leafModules t l) l m
+
+/-- The routing findings (addendum D.4), in order: for each module of
+`t.mustRoute`, in that order, `module <m> is claimed by no graph fence, leaf
+record or unrouted prefix` when nothing claims it, or `module <m> is claimed by
+<claimants>` when its claims count for two owners or more, the claimants each
+once in claim order; then, for each unrouted entry in ledger order whose prefix
+is a module of the table, `unrouted <P>: claims no module that must be routed`
+when no module of `t.mustRoute` has the prefix by component. An unrouted prefix
+that is no module of the table is `unroutedFindings`' finding, not this one. -/
+def routingFindings (t : ModuleTable) (l : Ledger) : List String :=
+  let routed := t.mustRoute
+  let leaves := leafModules t l
+  let perModule := routed.filterMap fun m =>
+    let claims := claimsWith leaves l m
+    if claims.isEmpty then
+      some ("module " ++ toString m ++ " is claimed by no graph fence, leaf record or unrouted prefix")
+    else if (keepFirst (claims.map (·.2))).length ≥ 2 then
+      some ("module " ++ toString m ++ " is claimed by " ++ joinAnd (keepFirst (claims.map (·.1))))
+    else none
+  let unclaiming := l.unrouted.filterMap fun u =>
+    if t.modules.any (·.1 == u.modulePrefix) && !routed.any u.modulePrefix.isPrefixOf then
+      some ("unrouted " ++ toString u.modulePrefix ++ ": claims no module that must be routed")
+    else none
+  perModule ++ unclaiming
+
+/-- The drift findings of the index (addendum D.6): `indexPath` exists and is
+byte-identical to `l.renderIndex ledgerInput`. -/
+def indexFindings (w : World) (l : Ledger) : List String :=
+  match w.file? indexPath with
+  | none => [indexPath ++ " does not exist"]
+  | some text =>
+    if text == l.renderIndex ledgerInput then [] else [indexPath ++ " differs from a fresh rendering"]
+
+/-- The run-time file set of a routed run (addendum D.7): `Ledger.files`, then
+the index, repeats removed keeping the first. -/
+def Ledger.runFiles (l : Ledger) : List String :=
+  keepFirst (l.files ++ [indexPath])
 
 /-! ## The outcome of a run (contract section 9) -/
 
@@ -559,7 +679,9 @@ structure Outcome where
   deriving DecidableEq, Repr
 
 /-- The outcome of a run over `w`; with `write`, the projections are written
-when there is no reference finding and are not compared. -/
+when there is no reference finding and are not compared. This is the slice A
+run, with neither the routing pass nor the index; `cli` decides by
+`routedOutcome` (addendum D.7, debt D69). -/
 def outcome (w : World) (l : Ledger) (write : Bool) : Outcome :=
   let findings := referenceFindings w l ++ (if write then [] else projectionFindings w l)
   if findings.isEmpty then
@@ -577,7 +699,34 @@ def outcome (w : World) (l : Ledger) (write : Bool) : Outcome :=
         findings.map ("  " ++ ·)
       writes := [] }
 
-/-! ## The executable (contract sections 10 and 11) -/
+/-- The outcome of a routed run over `w` and the module table `t` (addendum
+D.7): the reference findings, then the routing findings, then, unless writing,
+the projection findings and the index findings. With no finding the run passes
+and, with `write`, writes every projection in ledger order and then the index;
+otherwise it fails, lists every finding and writes nothing. -/
+def routedOutcome (w : World) (t : ModuleTable) (l : Ledger) (write : Bool) : Outcome :=
+  let findings := referenceFindings w l ++ routingFindings t l ++
+    (if write then [] else projectionFindings w l ++ indexFindings w l)
+  if findings.isEmpty then
+    let pass := "PASS whatwg_ledger: " ++ toString l.graphs.length ++ " graph(s), " ++
+      toString (10 * l.graphs.length) ++ " edges, " ++ toString l.leaves.length ++
+      " leaf record(s), " ++ toString l.unrouted.length ++ " unrouted prefix(es), " ++
+      toString t.mustRoute.length ++ " production module(s) with one owner each; every " ++
+      "reference resolves against the built environment and the authored files, and every " ++
+      "projection and the index are byte-identical to a fresh rendering"
+    { exitCode := 0
+      output := [if write then pass ++ " (written)" else pass]
+      writes := if write then
+          l.graphs.map (fun g => (g.projection, g.render ledgerInput)) ++
+            [(indexPath, l.renderIndex ledgerInput)]
+        else [] }
+  else
+    { exitCode := 1
+      output := ("FAIL whatwg_ledger: " ++ toString findings.length ++ " finding(s)") ::
+        findings.map ("  " ++ ·)
+      writes := [] }
+
+/-! ## The executable (contract sections 10 and 11, addendum D.7) -/
 
 /-- The library roots whose built environment a run loads, the set
 `leanchecker` replays (contract section 10, step 2; addendum V2e.4, item 2 of
@@ -674,9 +823,17 @@ private def worldOf (environment : Lean.Environment) (files : List (String × Op
     | none => none
   projectionFiles := projections
 
+/-- The module table of the loaded environment (addendum D.2): every module, in
+the order of `Environment.header.moduleNames`, with the constants
+`Gates.Trust.moduleDeclarations` attributes to it, the shared loader's read. -/
+private def moduleTableOf (environment : Lean.Environment) : ModuleTable :=
+  { modules := (environment.header.moduleNames.mapIdx fun index m =>
+      (m, (Gates.Trust.moduleDeclarations environment index).toList)).toList }
+
 /-- One run, comparing or, with `write`, writing: load, refuse or read the
-run-time file set and the listing, decide the `outcome`, write what it says to
-write, print its lines, and return its exit code. -/
+run-time file set and the listing, build the module table, decide the
+`routedOutcome`, write what it says to write, print its lines, and return its
+exit code. -/
 private def run (l : Ledger) (write : Bool) : IO UInt32 := do
   let root ← Gates.Common.projectRoot
   match ← loadEnvironment root with
@@ -685,9 +842,10 @@ private def run (l : Ledger) (write : Bool) : IO UInt32 := do
       IO.println s!"FAIL whatwg_ledger: {refusal}"
     return 1
   | .ok environment =>
-    let files ← readFileSet root l.files
+    let files ← readFileSet root l.runFiles
     let projections ← projectionListing root
-    let decided := outcome (worldOf environment files projections) l write
+    let decided :=
+      routedOutcome (worldOf environment files projections) (moduleTableOf environment) l write
     for (path, text) in decided.writes do
       let file := underRoot root path
       if let some parent := file.parent then
@@ -707,13 +865,14 @@ private def runGuarded (l : Ledger) (write : Bool) : IO UInt32 := do
     IO.println s!"FAIL whatwg_ledger: {e}"
     return 1
 
-/-- The executable `lake exe whatwg_ledger` (contract section 10). With no
-argument it compares every projection with a fresh rendering; with `--write`
-it writes every projection when there is no reference finding; any other
-argument list prints the usage line on standard error and returns 2 having
-read nothing. A refusal of the built environment, or a file that exists and
-cannot be read, prints a `FAIL whatwg_ledger:` line carrying the diagnostic,
-writes nothing and returns 1. -/
+/-- The executable `lake exe whatwg_ledger` (contract section 10, addendum
+D.7). With no argument it compares every projection and the index with a fresh
+rendering; with `--write` it writes every projection and then the index when
+there is no reference finding and no routing finding; any other argument list
+prints the usage line on standard error and returns 2 having read nothing. A
+refusal of the built environment, or a file that exists and cannot be read,
+prints a `FAIL whatwg_ledger:` line carrying the diagnostic, writes nothing and
+returns 1. -/
 def cli (l : Ledger) (args : List String) : IO UInt32 := do
   match args with
   | [] => runGuarded l false

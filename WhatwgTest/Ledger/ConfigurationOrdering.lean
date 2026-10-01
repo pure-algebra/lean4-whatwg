@@ -30,7 +30,10 @@ open Gates.Ledger
 def configurationOrdering : Graph where
   id := "CONFIGURATION-PG-ORDERING"
   document := "docs/CONFIGURATION-DAG.md"
-  fence := [`Whatwg.Streams.Semantics.Configuration]
+  fence := [`Whatwg.Streams.Semantics.Configuration, `Whatwg.Streams.Semantics.Step,
+    `Whatwg.Streams.Semantics.Runs, `Whatwg.Streams.Semantics.Source,
+    `Whatwg.Streams.Semantics.Frontier, `Whatwg.Streams.Semantics.Mask,
+    `Whatwg.Streams.Semantics.Invariants]
   dependsOn := ["PROMISE-PG-FIRST", "WRITABLE-PG-DEFAULT"]
   edges := {
     identity := {
