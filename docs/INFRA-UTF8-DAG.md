@@ -20,38 +20,11 @@ between them.
 
 ## Current state
 
-This table describes commit `325d5d5` on 2026-09-30, with the trust row
-brought to the lane V landing of 2026-10-01 (R-V6, R-V8). Ruling R-U4 landed the
-packet on `main` as `854cc68` on 2026-09-07: all 119 ascriptions of
-`WhatwgTest/Infra/Utf8Laws.lean` green, the counterexample battery green, no
-statement of the frozen packet changed, and the R-11 ceiling held for every
-receipt, while the stricter R-U3 target was unmet for 17 receipts (debt D42,
-closed by lane V).
-This document carried no landing record before this table. Ruling R-V4 sets
-the rule: an edge is `required-closed` only when every ground this document
-or a ruling in `COORDINATION.md` states for keeping it open is discharged by
-something named in the ground cell.
-
-| Edge | Status | Ground |
-| --- | --- | --- |
-| identity | `required-open` | The declaration snapshot that joins every public name, which has no generator (debt D47). The 80 interface ascriptions of `WhatwgTest/Infra/Utf8Contract.lean` elaborate |
-| construction | `required-open` | The decoder's reachable-state invariant (`bytesSeen ≤ bytesNeeded ≤ 3` and `codePoint ≤ 0x10FFFF` at every step of a run started from `initial`) has no run-level proof; at `325d5d5` it is still only a hypothesis of `decoderHandler_items_isScalarValue` |
-| semantics | `required-open` | No theorem relates a run of `processQueue` to a specification of UTF-8 independent of the transcription; R-U4 does not address this ground |
-| laws | `required-closed` | All 119 ascriptions of `WhatwgTest/Infra/Utf8Laws.lean` elaborate and are proved (R-U4) |
-| representation | `required-closed` | The three bridges the edge names are among the 119 laws R-U4 lands: `IoQueue.convertFrom_convertTo`, the `JsString.ofCodePoints` faces `decodeString_eq`, `decodeWithoutBomString_eq` and `decodeWithoutBomOrFailString_eq`, and `Utf8.scalars_val`. The `Array`/`ByteArray` realizer of `ByteSequence` is outside this packet by the edge's own statement |
-| counterexamples | `required-open` | `INFRA-UTF8-CE-001` to `INFRA-UTF8-CE-018` stand `SEEDED` in `test/counterexamples/infra/UTF8.md`, and no landing record moves them. They have no row in `test/counterexamples/REGISTER.md` (debt D45), and the witness module `WhatwgTest/Infra/Counterexamples/Utf8.lean` imports no production module (debt D50). R-U4 records the counterexample battery green |
-| bridges | `required-open` | Of the three obligations, (1) is closed by `encode_ascii_eq_asciiEncode`; (2), the decode half of ASCIIDEC's agreement note (isomorphic decode and UTF-8 decode agree on ASCII bytes), is not stated and stays owed; (3) is ruled by R-U5: R-U4's closure of the URL `encoding` obligation stands on the ground R-U3 gave it, the theorems `u3Profile_encoderTape` and `u3Profile_decodeOrFail`, and what that closure does not cover is debt D44, since no declaration constructs a `Whatwg.Url.Boundary.Utf8Encoding` from this encoder |
-| targets | `not-applicable` | This packet has no lowering and no generated code; P11 owns that obligation. The "Implementation considerations" section is `evidenceOnly` |
-| trust | `required-closed` | The edge was open at `325d5d5` on one ground: the R-U3 target, `propext` and `Quot.sound` only, was unmet for 17 of the 119 receipts of `WhatwgTest/Infra/Utf8AxiomReport.lean` (debt D42). Slice V5 of lane V repaired the proofs with no statement changed, and since that landing the axiom gate holds every declaration of `Whatwg.Infra.Text.Utf8` to `propext` and `Quot.sound` with no exception (R-V1, R-V6). D42 is closed |
-| coverage | `required-open` | The Encoding Standard has no census, denominator, numerator or report; the edge closes only after an Encoding census exists and `docs/SPEC-COVERAGE.md` admits it |
-
-The URL `encoding` obligation, under ruling R-U5: R-U4's closure stands. The
-two facts `Whatwg.Url.Boundary.Utf8Encoding.tape` assumes are theorems of this
-owner, `Whatwg.Infra.Utf8.u3Profile_encoderTape` and
-`Whatwg.Infra.Utf8.u3Profile_decodeOrFail`. No declaration constructs a
-`Utf8Encoding` from this encoder, so its `bytes` field is unconstrained in every
-URL operation; that gap is debt D44, owed before U5 consumes the
-percent-encoding rows.
+The status of every edge of this graph is recorded in the ledger module
+`WhatwgTest/Ledger/InfraUtf8.lean`, rendered to
+`generated/graphs/INFRA-PG-UTF8.md` by `lake exe whatwg_ledger --write`, and
+checked by `lake exe whatwg_ledger`. The table this section held before the
+ledger is in `docs/receipts/INFRA-PG-UTF8.md`.
 
 ## Authority anchors
 
