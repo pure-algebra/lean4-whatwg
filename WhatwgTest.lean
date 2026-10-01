@@ -54,6 +54,7 @@ import WhatwgTest.Ecma262.PromiseFidelityLaws
 import WhatwgTest.Ecma262.JobsCompleteContract
 import WhatwgTest.WebIdl.PromiseFidelityContract
 import WhatwgTest.Ecma262.PromiseFidelityAxiomReport
+import WhatwgTest.Ecma262.AgentContract
 import WhatwgTest.Streams.PromiseBridgeQ4
 import WhatwgTest.Streams.Semantics.OrderingContract
 import WhatwgTest.Streams.Semantics.OrderingLaws

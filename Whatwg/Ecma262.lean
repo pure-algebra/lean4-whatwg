@@ -1,5 +1,6 @@
 import Whatwg.Ecma262.Promise
 import Whatwg.Ecma262.Jobs
+import Whatwg.Ecma262.Agent
 
 /-!
 # Whatwg.Ecma262

@@ -457,7 +457,11 @@
 # red: each slice branches from the breaker's head and merges when its battery
 # is green and its entry is gone. Breakers do not edit WhatwgTest.lean; the
 # builder that turns a battery green adds its root import.
-WhatwgTest.Ecma262.AgentContract
+#
+# 2026-10-01, Q5 builder slice B1 (branch review/w9-q5-b1 from 49d45e1, rulings
+# R-W3 and R-W13): Whatwg/Ecma262/Agent.lean landed and
+# WhatwgTest.Ecma262.AgentContract is green with no statement changed. Its entry
+# is removed and its root import added; three entries remain.
 WhatwgTest.Ecma262.AgentLaws
 WhatwgTest.WebIdl.AgentContract
 WhatwgTest.Signatures.Ecma262Contract
