@@ -434,9 +434,10 @@ rows, as first-order identities. `G-03`, CAPREC.
 `deriving Repr` is forced by finding F4 and is additive: `Reaction` derives
 `Repr` and now carries an `Option Capability` field, so `Repr (Reaction Nat)` —
 the `E-50` receipt of the Q3b addendum — cannot be synthesized without it. The
-`DecidableEq` the base packet's battery ascribes is unchanged, and `Reaction`
-still gains none: a capability is a triple of `Nat` identities. Builder note of
-the Q3b landing. -/
+`DecidableEq` the base packet's battery ascribes is unchanged. Builder note of
+the Q3b landing. Since promise slice Q5 (ruling R-W3) `Reaction` derives a
+`DecidableEq` conditional on its body type, in `Whatwg/Ecma262/Agent.lean`,
+and this instance is what its `capability` field uses. -/
 structure Capability where
   promise : Nat
   resolve : Nat
@@ -477,9 +478,11 @@ inductive ReactionPhase where
 P8a `Registration` (rename only). `handler` is `Option body` because
 `field.promisereaction-records.Handler` (2692151..2692611) admits an empty
 handler, which is what Web IDL's one-sided "upon fulfillment" and "upon
-rejection" register. `E-29` risk: `deriving Repr` only — the general record
-must not gain `DecidableEq`, or `Transform.State` stops being `Repr`-only in
-the same way.
+rejection" register. `E-29` risk: this declaration derives `Repr` only. Ruling
+R-W3 (promise slice Q5) supersedes the inventory sentence that the general
+record "must not gain one silently": `Whatwg/Ecma262/Agent.lean` derives a
+`DecidableEq` for it conditional on `body`, and `Transform.State` stays
+`Repr`-only because its own `deriving` clause is unchanged.
 
 `capability` is `field.promisereaction-records.Capability` (CAPFIELD,
 2691475..2691802, digest
@@ -489,8 +492,8 @@ fidelity addendum (WS-PROM-CE-026): `op.newpromisereactionjob` (REACTJOB,
 2702885..2705591) reads it to resolve or reject the derived promise, and
 without it `op.performpromisethen`'s `_resultCapability_` is stored nowhere.
 `G-01`; `E-50` (`Transform.Job`, generalize) constrains the repair — the field
-is a triple of `Nat` identities, so the record stays `Repr`-only and gains no
-`DecidableEq`.
+is a triple of `Nat` identities, so it adds no instance requirement beyond
+`Capability`'s own, and this declaration's `deriving` clause stays `Repr`.
 -/
 structure Reaction (body : Type) where
   id : Nat
