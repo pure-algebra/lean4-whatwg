@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, plant V2c-T1: a token that fails the inert
+-- test by cutting a refused word short. `(nat` ends where `native` would
+-- continue, so the identifier `nat` starting inside it is a prefix of `native`
+-- cut short by the token's end. No bare refused word appears in code; rule 2 of
+-- addendum V2c refuses the table token.
+syntax "(nat" : term

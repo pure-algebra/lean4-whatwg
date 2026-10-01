@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2c-C3 (B2 of ruling R-V10): the escaped
+-- key `«config»`, which tokenizes as the identifier `config`. Rule 3 of addendum
+-- V2c treats it as `config` and refuses the non-brace value.
+example : (2 : Nat) + 2 = 4 := by decide («config» := ⟨false, true, true, false⟩)

@@ -1,0 +1,12 @@
+/-!
+Planted by the trust self-test, plant V2c-B1 (B1 of ruling R-V10): a use of the
+shadow token `(native_decide`, declared in `v2c-token-shadow-decl.lean.txt`. In
+this module's own token table the token is absent, so `(native_decide)` reads as
+`(`, the `native_decide` tactic and `)`, the tactic proves the goal and the
+`example` leaves no constant. The gate, though, reads this source with the final
+table, which holds `(native_decide`, so the bare word `native_decide` is never a
+token the trust-token pass can see. Rule 2 of addendum V2c (token-table hygiene)
+refuses the non-inert token.
+-/
+
+example : (2 : Nat) + 2 = 4 := by (native_decide)

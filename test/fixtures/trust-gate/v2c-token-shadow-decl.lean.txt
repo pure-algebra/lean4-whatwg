@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, plant V2c-B1: declares the shadow token
+-- `(native_decide` used by `v2c-token-shadow-use.lean.txt`. Adding it to the
+-- final token table is what lets an earlier source hide the word `native_decide`
+-- from the gate (B1 of ruling R-V10). The `syntax` keyword here is itself refused
+-- by rule 1 in a non-listed module; rule 2 refuses the token it adds.
+syntax "(native_decide" : term

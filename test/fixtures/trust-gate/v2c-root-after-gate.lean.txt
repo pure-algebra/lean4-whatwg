@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2c-R2 (B3 of ruling R-V10): a
+-- declaration after the gate command. The gate has already run, so it never
+-- audits this declaration. Rule 4 of addendum V2c requires the gate to be the
+-- root's last command.
+theorem rvV2cAfterGate : True := trivial

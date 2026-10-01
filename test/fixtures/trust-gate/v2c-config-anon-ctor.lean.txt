@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2c-C1 (B2 of ruling R-V10): the native
+-- flag smuggled through the configuration value as an anonymous constructor. No
+-- source token spells `native`, and the `example` leaves no constant, so only
+-- rule 3 of addendum V2c refuses it: the value does not open with a literal `{`.
+example : (2 : Nat) + 2 = 4 := by decide (config := ⟨false, true, true, false⟩)

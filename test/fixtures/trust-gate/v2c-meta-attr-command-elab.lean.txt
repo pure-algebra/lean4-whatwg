@@ -1,0 +1,10 @@
+-- Planted by the trust self-test, plant V2c-E01: a registration no source token
+-- spells. `@[command_elab ...]` attaches a command elaborator; `command_elab` is
+-- an identifier, not a keyword, so rule 1's token half does not see it and only
+-- the environment half (reading the elaborator extension) refuses it. The target
+-- command is not invoked in this module, so it builds and perturbs nothing.
+import Lean
+
+open Lean Elab Command in
+@[command_elab Lean.Parser.Command.check]
+def rvV2cRegisteredElab : CommandElab := fun _ => pure ()

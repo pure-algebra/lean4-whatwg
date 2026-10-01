@@ -1,0 +1,11 @@
+-- Planted by the trust self-test, plant V2c-R1 (B3 of ruling R-V10): a false
+-- axiom added to the root module and a theorem proved from it, placed before the
+-- gate command. The gate audits the imported modules' constants, never the root
+-- module's own, so at the base this is not refused. Rule 4 of addendum V2c
+-- refuses the root for holding a command other than imports and the gate, and for
+-- declaring a constant when the gate runs.
+open Lean Elab Command in
+run_cmd liftCoreM <| Lean.addDecl (.axiomDecl
+  { name := `rvV2cRootAxiom, levelParams := [], type := Lean.mkConst ``False, isUnsafe := false })
+
+theorem rvV2cRootFalse : (1 : Nat) = 2 := rvV2cRootAxiom.elim
