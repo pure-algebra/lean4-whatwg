@@ -743,3 +743,595 @@ outputs were removed, and the battery fails as in 15.1.
 | the environment of `[WhatwgTest]` | the roots `Whatwg`, `WhatwgTest` and `WhatwgGates`, the set `leanchecker` replays | a ground may name a production module no battery imports |
 | `unrouted` entries checked by nobody until slice D | `unroutedFindings` from slice A | a cheap check of data slice D adds |
 | public declarations of section 3 | also `Ground.attests`, `ConstantKind`, `World.linesOf`, `codeLines`, `unroutedFindings`, `Ledger.files`, `referenceFindings`, `projectionFindings`, `Outcome` and `outcome` | the changes above; each is ascribed by the battery |
+
+## Addendum D. Module routing and the index (slice D)
+
+Status: FROZEN / RED, slice D breaker seat of review lane W, 2026-10-01, on
+branch `review/w7-ledger-d-breaker` from
+`fc0b9fbf69cf209eba43de161e0d6715d7fb187b`, "the base commit" below. Section
+12 left slice D unfrozen because its routing pass was not prototyped; rulings
+R-W6, R-W11 and R-W18(5) give it to this addendum. The addendum is appended
+and no line above it changes. Where it and a section above disagree, the
+addendum is what slice D builds, and D.13 names each such point.
+
+Battery: `WhatwgTest/Audit/LedgerRoutingContract.lean`, new. As for the base
+packet, the battery is the authority on names and propositions and the Lean
+here is a reading aid; the builder may repair elaboration but may not weaken,
+delete or replace a frozen ascription, plant, finding text, count or byte of
+rendered output. The slice A battery `WhatwgTest/Audit/LedgerContract.lean`
+stays green and unedited.
+
+Evidence class (R-W9). Nothing in this addendum is a theorem. Every rule of
+D.2 to D.8 was evaluated on concrete instances, the battery's planted module
+tables, ledgers and worlds, against a scratch prototype of the pass and the
+renderer; the measurement of D.5 is a run of that prototype over the built
+environment at the base commit. D.12 records both, and what was not run.
+
+### D.1 Claim boundary
+
+The routing pass is tooling, like the rest of the ledger (section 1): it owns
+no specification anchor, grants no coverage state and closes no edge. What a
+green routing pass means, and nothing more: every module of the environment
+the gate loads that rule M (D.2) selects has exactly one owner among the
+ledger's graph fences, leaf records and unrouted prefixes (D.3); and every
+unrouted prefix that names a module of that environment claims at least one
+module rule M selects (D.4). Whether an owner's obligations cover the
+declarations of the modules it claims is review, not this pass (D.11).
+
+### D.2 The module table and rule M
+
+Module `WhatwgGates.Ledger.Check`, namespace `Gates.Ledger`:
+
+```lean
+structure ModuleTable where
+  modules : List (Lean.Name × List Lean.Name)
+  deriving DecidableEq, Repr
+
+def productionRoot : Lean.Name := `Whatwg
+def ModuleTable.mustRoute : ModuleTable → List Lean.Name
+def ModuleTable.declaringModule? : ModuleTable → Lean.Name → Option Lean.Name
+```
+
+The module table is a second set of facts the pass reads, beside `World`
+(section 5.1), and like it is plain data that a battery plants. `World` is not
+extended: `World.mk` is ascribed with four fields by the slice A battery, and
+`moduleBuilt` is a predicate, which cannot list modules. `cli` fills the
+table with every module of the loaded environment, in the order of
+`Environment.header.moduleNames`, each paired with
+`Gates.Trust.moduleDeclarations env i` as a list: the constants the
+environment attributes to that module. That is the shared loader's read, so
+the trust gate, the declaration snapshot and the ledger agree on which module
+declares which constant. At the base commit the table holds 2,627 modules and
+228,259 constants.
+
+Rule M. A module must be routed when both hold:
+
+1. `productionRoot` is a prefix of its name by component
+   (`Lean.Name.isPrefixOf`): the module `Whatwg` and every module `Whatwg.*`,
+   never `WhatwgTest.*`, `WhatwgGates.*`, `whatwgbin.*`, another package's
+   module, or a name whose first component merely begins with `Whatwg`;
+2. it declares at least one constant whose name is not internal
+   (`Lean.Name.isInternal`: no string component begins with `_`).
+
+A private name begins with the component `_private`, so a module whose
+constants are all private, or all internal (`_auxLemma`, `_sunfold` and the
+like), is not routed. An umbrella module that only imports, and a scaffold
+module with no declaration, declare no constant and are not routed.
+`ModuleTable.mustRoute t` lists the modules that must be routed in table
+order, each once, at its first position. `ModuleTable.declaringModule? t n` is
+the first module of the table whose constants include `n`, or `none`.
+
+The eight production libraries of `lakefile.toml` own exactly the modules
+under `Whatwg`: the umbrella library owns the module `Whatwg` by an exact
+glob, and the seven others own `Whatwg.Infra`, `Whatwg.Ecma262`,
+`Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Html`, `Whatwg.Streams` and
+`Whatwg.Signatures` with every module under them. The component rule and the
+library boundary therefore select the same modules.
+
+Measured at the base commit (D.12): the loaded environment holds 134
+production modules. 77 declare at least one constant, and each of the 77 also
+declares one that is not private and one that is not internal, so the three
+readings ("any constant", "a constant that is not private", rule M) select
+the same 77 modules today; the other 57 declare nothing. Rule M is the
+reading that does not count what Lean generates for a private or auxiliary
+declaration.
+
+### D.3 Claims and owners
+
+`Ledger.claimsOn t l m : List (String × String)` lists every claim on module
+`m` as a pair (claimant, owner): the graphs first, then the leaf records, then
+the unrouted entries, each in ledger order.
+
+| Claimant | Claims `m` when | Claimant text | Owner |
+| --- | --- | --- | --- |
+| graph `G` | `m` is an entry of `G.fence`, exactly | `graph G` | `graph G` |
+| leaf record `L` | `ModuleTable.declaringModule? t d = some m` for some declaration `d` of `L` | `leaf L` | `graph G` when `L.parent = some (G, e)`; `leaf L` when `L.parent = none` |
+| unrouted entry with prefix `P` | `P.isPrefixOf m`: `P` is `m`, or a prefix of `m` by component | `unrouted P` | `unrouted P` |
+
+A fence entry names one module, exactly. That is what the landed field
+already means: section 3 calls `fence` "the production modules whose
+declarations the graph owns", section 5.4 checks each entry as a built
+module, section 8 renders the entries one by one, and nothing in the base
+packet or in `WhatwgGates/Ledger/Check.lean` reads an entry as a prefix. None
+of the 47 entries of the twelve fences at the base commit is a proper prefix
+of another module of the environment (measured, D.12), so the exact and the
+prefix reading give the same claims today. They differ for a module added later under a fenced one: the
+exact reading reports it as claimed by nobody (D.4) instead of absorbing it,
+and that is the event the pass exists to catch.
+
+`Unrouted.modulePrefix` is a prefix, by its name and its docstring ("a
+production module prefix"), matched by component: `Whatwg.Ecma262.Agent`
+claims `Whatwg.Ecma262.Agent` and `Whatwg.Ecma262.Agent.X`, and never
+`Whatwg.Ecma262.AgentInvariant`; `Whatwg.Html` claims the module `Whatwg.Html`
+and every module under it. Section 5.4 still requires the prefix itself to be
+a built module.
+
+A leaf whose parent is a graph counts for that graph: under
+`docs/AGENT-ROUTING.md`, "Assurance threshold", such a leaf "links its
+receipts to one named edge of that graph". So a module that a graph fences
+and that a leaf of the same graph declares into has one owner, and a leaf of
+graph `G` routes a module to `G` even when `G` does not fence it. A standalone
+leaf is its own owner.
+
+Claims are computed for any module; rule M decides which modules the findings
+look at. A fence entry that names a tooling module (`URL-PG-CENSUS` fences
+three `WhatwgGates` modules) or a module with no constant claims nothing the
+pass checks and raises nothing.
+
+### D.4 The routing findings
+
+`routingFindings t l : List String` reports, in this order:
+
+1. for each module `m` of `t.mustRoute`, in that order, at most one of
+   - `module <m> is claimed by no graph fence, leaf record or unrouted
+     prefix`, when `l.claimsOn t m` is empty;
+   - `module <m> is claimed by <claimants>`, when its claims have two owners
+     or more, each owner counted once; `<claimants>` is the claimant texts,
+     each once, in claim order, joined by `joinAnd`:
+     `module Whatwg.X is claimed by graph A-PG-X and unrouted Whatwg.X`, and
+     with three, `… by graph G, leaf L and unrouted P`;
+2. for each unrouted entry, in ledger order, whose prefix is a module of the
+   table: `unrouted <P>: claims no module that must be routed`, when no module
+   of `t.mustRoute` has `P` as a prefix by component.
+
+A claim repeated by one owner is one owner and no finding: a fence that lists
+a module twice, the same unrouted entry given twice, a leaf of the graph that
+fences the module. An unrouted prefix that is no module of the table raises no
+routing finding, because `unrouted <P>: not a built module` of section 5.4
+reports it, so one defect gives one finding. An unrouted prefix that is a
+built module outside the production root, or a module none of whose
+constants rule M counts, claims nothing and is reported.
+
+Placement. `World` and `referenceFindings` keep their slice A signatures,
+which the slice A battery ascribes, and the module table is not in `World`, so
+the routing findings cannot enter `referenceFindings`. They follow it: after
+its last `unroutedFindings` line and before every projection finding, as D.7
+composes them.
+
+### D.5 The tree at the base commit, and the data slice D adds
+
+The prototype's pass over the unchanged ledger at the base commit (twelve
+graphs, one leaf, no unrouted entry) reports exactly 32 modules claimed by
+nobody, and no other routing finding:
+
+| Modules claimed by nobody at the base commit | Count | Claim slice D makes |
+| --- | ---: | --- |
+| under `Whatwg.Html`: `Content.Admission`, `Content.Lattice`, `Content.Transparent`, `Node.Combinators`, `Node.Erasure`, `Node.Raw`, `Node.Typed`, `Print.Escape`, `Print.Render`, `Schema.Attributes`, `Schema.ContentModel`, `Schema.Families`, `Schema.Tags` | 13 | the one entry ``⟨`Whatwg.Html, "D57"⟩`` |
+| under `Whatwg.Infra`: `Namespaces`, `Bytes.Byte`, `Bytes.Sequence`, `Primitive.Singleton`, `Text.Case`, `Text.Codec`, `Text.CodePoint`, `Text.Order`, `Text.Scan`, `Text.String`, `Text.Substring`, `Text.Whitespace` | 12 | one entry ``⟨`Whatwg.Infra.<module>, "D57"⟩`` each |
+| under `Whatwg.Streams.Semantics`: `Step`, `Runs`, `Source`, `Frontier`, `Mask`, `Invariants` | 6 | entries of the fence of `CONFIGURATION-PG-ORDERING` |
+| `Whatwg.Streams.Kernel` | 1 | none until the coordinator rules (D.14, point 1) |
+
+The other 45 modules rule M selects have one owner each at the base commit:
+44 through the entries of the twelve fences, and
+`Whatwg.Infra.Primitive.Integer` through the leaf `INFRA-LF-INTEGER`, all of
+whose nine declarations it declares.
+
+D57 data. The thirteen unrouted entries are those of section 12, in its
+order, each citing `D57`: ``⟨`Whatwg.Html, "D57"⟩``, then
+`Whatwg.Infra.Namespaces`, `Bytes.Byte`, `Bytes.Sequence`,
+`Primitive.Singleton`, `Text.Case`, `Text.Codec`, `Text.CodePoint`,
+`Text.Order`, `Text.Scan`, `Text.String`, `Text.Substring` and
+`Text.Whitespace`, each under `Whatwg.Infra`. They are the ledger's only
+entries citing `D57`, which the battery pins. Each prefix is a built module
+(`Whatwg.Html` is the HTML umbrella, with no constant; each Infra module
+declares constants and has no module under it), so section 5.4 passes them,
+and each claims at least one module rule M selects, so item 2 of D.4 passes
+them. One prefix serves the HTML tree; the Infra modules need one each,
+because a `Whatwg.Infra` prefix would also claim `Text.Utf8`, `Text.Scalar`
+and `Primitive.Integer`, which `INFRA-PG-UTF8`, `INFRA-PG-SCALAR` and
+`INFRA-LF-INTEGER` own.
+
+Fence additions. Each of the six `Whatwg.Streams.Semantics` modules names
+`CONFIGURATION-PG-ORDERING` in its module docstring: `Source`, `Step`,
+`Frontier`, `Mask` and `Runs` were opened by slice Q4 for that graph under
+`test/contracts/configuration-ordering.contract.md`, and `Invariants`, opened
+by slice W8a.3, reads "Owner: `CONFIGURATION-PG-ORDERING`, construction edge".
+The graph document's declaration table places `Step.lean`, `Runs.lean`,
+`Frontier.lean` and the source judgments in the same graph. The builder adds
+the six entries to `WhatwgTest.Ledger.configurationOrdering.fence`, after
+`Whatwg.Streams.Semantics.Configuration`; the battery pins membership, not
+order (the prototype's order is `Step`, `Runs`, `Source`, `Frontier`, `Mask`,
+`Invariants`).
+
+`Whatwg.Streams.Kernel`. Ruling R-W4 gives it "local receipts on the laws
+edge of the five calculus graphs" (`READABLE-PG-DEFAULT`,
+`WRITABLE-PG-DEFAULT`, `TRANSFORM-PG-BACKPRESSURE`,
+`PIPING-PG-FORWARD-SHUTDOWN` and `CONFIGURATION-PG-ORDERING`). The pass admits
+one owner per module and a leaf record has one parent edge, so none of the
+three kinds of claim states that route as written. The builder does not
+choose: the gate reports the module until the coordinator rules, and the
+ruling names the claim and the file it goes in.
+
+`Whatwg.Ecma262.AgentInvariant` is not in the base commit. Its docstring on
+`review/w9-q5b-builder` names graph `PROMISE-PG-AGENT` (addendum Q5b of
+`test/contracts/promise-agent-q5.contract.md`, slice B5). Whichever of slice D
+and that slice reaches `main` second adds `` `Whatwg.Ecma262.AgentInvariant ``
+to `WhatwgTest.Ledger.promiseAgent.fence` in its landing: before the module is
+built the entry is a finding of section 5.4, and once it is built the module
+without the entry is a finding of D.4.
+
+These counts describe the tree at the base commit, and the battery does not
+pin them: a count of today's tree would fail when the next module lands. It
+pins the thirteen D57 entries and the six fence entries, and decides every
+rule on planted tables.
+
+### D.6 The index projection
+
+`generated/graphs/INDEX.md` is rendered by
+`Gates.Ledger.Ledger.renderIndex l ledgerInput`, a function of the ledger
+alone: neither the environment nor a file is an input, so the index changes
+only with `WhatwgTest/Ledger.lean` and its graph modules, which are its
+canonical inputs as they are the graph projections'. The text has LF line
+ends, ends in one LF, and holds no timestamp, commit or absolute path:
+
+```text
+<!-- GENERATED by `lake exe whatwg_ledger --write` (Gates.Ledger, format 1) from `WhatwgTest/Ledger.lean`; do not edit. -->
+
+# Graph ledger index
+
+Totals: <g> graph(s), <10g> edges (<o> required-open, <c> required-closed, <n> not-applicable), <k> leaf record(s), <u> unrouted prefix(es).
+
+## Graphs
+
+| Graph | Document | Open | Closed | Not applicable |
+| --- | --- | ---: | ---: | ---: |
+| [`<GRAPH-ID>`](<GRAPH-ID>.md) | `<document>` | <open> | <closed> | <not applicable> |
+
+## Leaf records
+
+| Leaf | Document | Parent | Declarations |
+| --- | --- | --- | ---: |
+| `<LEAF-ID>` | `<document>` | <parent> | <number of declarations> |
+
+## Unrouted prefixes
+
+| Prefix | Recorded by |
+| --- | --- |
+| `<prefix>` | <recordedBy> |
+```
+
+- One row per graph, leaf record and unrouted entry, in ledger order. A
+  section with no row holds the single line `None.` in place of its table.
+- The first line is the graph projections' header, with the same
+  `formatVersion` (1), command and input.
+- `Graph.countStatus g s` is the number of the ten edges of `g` whose cell has
+  status `s`. The totals sum it over the graphs; the edge total is ten per
+  graph.
+- The graph cell links the graph's projection with a relative link, which
+  resolves inside `generated/graphs/`.
+- `<parent>` is `standalone`, or the parent graph's identifier in backticks, a
+  space and the edge label.
+- `<recordedBy>` is the entry's debt or ruling identifier as written.
+
+On the real ledger with the slice D data and the scratch-only claim of D.12,
+the prototype wrote the totals line "Totals: 12 graph(s), 120 edges (68
+required-open, 39 required-closed, 13 not-applicable), 1 leaf record(s), 14
+unrouted prefix(es)."; without that claim the last count is 13. The three
+edge totals are those of R-W18.
+
+Drift and writing. `indexFindings w l` reports `generated/graphs/INDEX.md does
+not exist` when `w.file? indexPath` is `none`, and `generated/graphs/INDEX.md
+differs from a fresh rendering` when its text is not byte-identical to
+`l.renderIndex ledgerInput`; a CRLF copy differs, and `.gitattributes` turns
+conversion off as section 8 says. `lake exe whatwg_ledger --write` compares
+neither the projections nor the index and, when there is no reference finding
+and no routing finding, writes every projection in ledger order and then the
+index. It is the regeneration command; a drift failure is repaired in the
+ledger data or the renderer, never in the file.
+
+Stray-file exemption (R-W11). `projectionFindings` does not report the one
+path `generated/graphs/INDEX.md` (`indexPath`) as `is not the projection of a
+ledger graph`. Every other file under `generated/graphs/` that is no graph's
+projection is still reported, `generated/graphs/index.md` among them, since
+the path is compared exactly. This is the only change to the behaviour of a
+slice A function, and no row of the slice A battery lists `INDEX.md` among
+the projection files, so none of its rows moves.
+
+A graph whose identifier is `INDEX` would have the index's path as its
+projection. Nothing refuses that identifier; a compare run then fails,
+because the file can equal at most one of the two renderings (D.11).
+
+### D.7 The routed run
+
+```lean
+def routedOutcome (w : World) (t : ModuleTable) (l : Ledger) (write : Bool) : Outcome
+```
+
+The findings are `referenceFindings w l`, then `routingFindings t l`, then,
+unless writing, `projectionFindings w l` and `indexFindings w l`. With no
+finding: exit code 0 and one line,
+
+```text
+PASS whatwg_ledger: <g> graph(s), <10g> edges, <k> leaf record(s), <u> unrouted prefix(es), <r> production module(s) with one owner each; every reference resolves against the built environment and the authored files, and every projection and the index are byte-identical to a fresh rendering
+```
+
+where `<r>` is `t.mustRoute.length`, followed by ` (written)` in write mode,
+whose writes are `(g.projection, g.render ledgerInput)` for each graph in
+ledger order and then `(indexPath, l.renderIndex ledgerInput)`. Otherwise:
+exit code 1, nothing written, the line `FAIL whatwg_ledger: <n> finding(s)`
+and each finding on its own line indented by two spaces, untruncated.
+
+`cli` keeps its signature, its usage line, its exit codes and its refusal of a
+missing or stale `.olean` (section 10), and changes in three places: it reads
+`Ledger.runFiles l` instead of `Ledger.files l`; it builds the `ModuleTable`
+of D.2 from the loaded environment; and it acts on `routedOutcome` instead of
+`outcome`. `outcome` keeps its slice A body and meaning, a run with neither
+the routing pass nor the index; the slice A battery pins it, and `cli` no
+longer calls it.
+
+The run-time file set gains one path (section 11). `Ledger.runFiles l` is
+`Ledger.files l` followed by `generated/graphs/INDEX.md`, repeats removed
+keeping the first. `cli` reads exactly those files and the listing of
+`generated/graphs/`; the loader reads what section 10 says.
+
+### D.8 Public declaration record
+
+The declarations slice D adds, namespace `Gates.Ledger`. Every other
+declaration the builder adds to the three ledger modules is `private`; what
+Lean generates is not counted (section 2). Each is `canonical`: no `Gates.*`
+or `Whatwg.*` constant routes modules or renders an index at the base commit.
+The one name shared with another declaration is the last component of
+`productionRoot`: `Gates.TrustSelfTest.productionRoot` is a file path, the
+self-test's `Whatwg.lean` under a probe directory, in another namespace and
+with another role. The assurance route of the declarations below is this
+addendum and its battery, as for the base packet (section 1).
+
+| Declaration | Module | Signature | Role |
+| --- | --- | --- | --- |
+| `productionRoot` | `WhatwgGates.Ledger.Check` | `Lean.Name` | the root of rule M, `` `Whatwg `` |
+| `ModuleTable` | `WhatwgGates.Ledger.Check` | `Type`, the one field `modules`, deriving `DecidableEq` and `Repr` | the module table |
+| `ModuleTable.mk` | `WhatwgGates.Ledger.Check` | `List (Lean.Name × List Lean.Name) → ModuleTable` | its constructor |
+| `ModuleTable.modules` | `WhatwgGates.Ledger.Check` | `ModuleTable → List (Lean.Name × List Lean.Name)` | its field |
+| `ModuleTable.mustRoute` | `WhatwgGates.Ledger.Check` | `ModuleTable → List Lean.Name` | rule M |
+| `ModuleTable.declaringModule?` | `WhatwgGates.Ledger.Check` | `ModuleTable → Lean.Name → Option Lean.Name` | the module that declares a constant |
+| `Ledger.claimsOn` | `WhatwgGates.Ledger.Check` | `ModuleTable → Ledger → Lean.Name → List (String × String)` | D.3 |
+| `routingFindings` | `WhatwgGates.Ledger.Check` | `ModuleTable → Ledger → List String` | D.4 |
+| `indexFindings` | `WhatwgGates.Ledger.Check` | `World → Ledger → List String` | the index's drift |
+| `Ledger.runFiles` | `WhatwgGates.Ledger.Check` | `Ledger → List String` | the run-time file set |
+| `routedOutcome` | `WhatwgGates.Ledger.Check` | `World → ModuleTable → Ledger → Bool → Outcome` | the run |
+| `indexPath` | `WhatwgGates.Ledger.Render` | `String` | `generated/graphs/INDEX.md` |
+| `Graph.countStatus` | `WhatwgGates.Ledger.Render` | `Graph → Status → Nat` | edge counts |
+| `Ledger.renderIndex` | `WhatwgGates.Ledger.Render` | `Ledger → String → String` | the index |
+
+The battery ascribes each with `#check (@n : T)` under its full
+`Gates.Ledger` name (14 ascriptions), as the slice A battery does, and checks
+the `DecidableEq` and `Repr` instances of `ModuleTable`. `indexPath` and
+`Graph.countStatus` sit in the renderer because the index is a projection and
+`WhatwgGates/Ledger/Model.lean` is outside the builder's fence.
+
+Changed bodies, unchanged signatures: `projectionFindings` (D.6) and `cli`
+(D.7). Unchanged: `WhatwgGates/Ledger/Model.lean`, `whatwgbin/Ledger.lean`,
+`lakefile.toml`. Data: `WhatwgTest.Ledger.ledger` gains its `unrouted` entries
+and `WhatwgTest.Ledger.configurationOrdering` six fence entries (D.5); no data
+name is added.
+
+### D.9 Counterexample rows
+
+`LEDGER-CE-006` to `LEDGER-CE-009` are appended to
+`test/counterexamples/REGISTER.md` under "Graph-ledger witnesses", each
+`SEEDED`:
+
+| Id | Attack | Rejected by |
+| --- | --- | --- |
+| `LEDGER-CE-006` | a production module with public theorems that no fence, leaf or debt claims passes the gate: at the base commit `lake exe whatwg_ledger` passes while 32 modules are claimed by nobody, among them `Whatwg.Streams.Kernel` (23 public theorems) and `Whatwg.Streams.Semantics.Source` (113) | battery section 5, plant R1; section 7.3, where the slice A `outcome` passes a planted world that `routedOutcome` refuses in both modes |
+| `LEDGER-CE-007` | one module claimed by two owners: two fences, a fence and a debt, a fence and a leaf of another graph, or two nested unrouted prefixes | battery section 5, plants R4 to R9 |
+| `LEDGER-CE-008` | a claim read by spelling: an unrouted prefix `Whatwg.Ecma262.Agent` read as a string prefix absorbs `Whatwg.Ecma262.AgentInvariant`, and a fence entry read as a prefix absorbs every module later added under it | battery sections 4 and 5, plants R2 and R3 |
+| `LEDGER-CE-009` | an unrouted entry outlives what it records: its prefix comes to name a scaffold, a module of private constants only, or a module outside the production root, and the debt still reads as carried | battery section 5, plant R10 |
+
+### D.10 Builder fence and acceptance conditions
+
+One builder slice, D, branched from this packet's head; under R-W9 the packet
+reaches `main` with the slice.
+
+Files the builder edits:
+
+- `WhatwgGates/Ledger/Render.lean` and `WhatwgGates/Ledger/Check.lean`: the
+  declarations of D.8, the exemption in `projectionFindings`, and the three
+  changes to `cli`;
+- `WhatwgTest/Ledger.lean`: the `unrouted` field of `ledger` (D.5), and its
+  docstring where it describes slice D;
+- `WhatwgTest/Ledger/ConfigurationOrdering.lean`: the six fence entries, and
+  its docstring where it describes the fence;
+- `WhatwgTest/Ledger/PromiseAgent.lean`: the fence entry
+  `` `Whatwg.Ecma262.AgentInvariant ``, only when Q5b's slice B5 is on `main`
+  as slice D merges (D.5);
+- the claim on `Whatwg.Streams.Kernel` the coordinator rules, in the file the
+  ruling names (D.14, point 1);
+- `generated/graphs/INDEX.md`, new, and each projection whose `Fence:` line a
+  fence edit changes, all written by `lake exe whatwg_ledger --write`;
+- `WhatwgTest.lean`: the line `import WhatwgTest.Audit.LedgerRoutingContract`
+  after `import WhatwgTest.Audit.LedgerContract`, once the battery is green;
+- `test/fixtures/trust-gate/known-red.txt`: this packet's entry removed, with a
+  dated note in its block.
+
+Byte-identical: this packet's files; `WhatwgGates/Ledger/Model.lean`;
+`whatwgbin/Ledger.lean`; `lakefile.toml`; every file under `Whatwg/`; the
+graph data modules apart from the fence edits above; and every projection
+under `generated/graphs/` whose graph's fence does not change. The `fence`
+field is rendered, in the `Fence:` line of section 8, so a fence edit moves
+exactly that line of that graph's projection, and the index shows no fence.
+In the prototype's run only `generated/graphs/CONFIGURATION-PG-ORDERING.md`
+changed among the twelve projections.
+
+Acceptance:
+
+1. `lake env lean WhatwgTest/Audit/LedgerRoutingContract.lean` exits 0 with no
+   error or warning and no token of the battery changed;
+   `WhatwgTest/Audit/LedgerContract.lean` stays green and unedited.
+2. `lake build` is green with the root import added and this packet's
+   `known-red.txt` entry removed; the gate line keeps 6 strict prefixes and 0
+   exceptions, and its numbers for `Whatwg` do not move.
+3. `lake exe whatwg_ledger` passes on the real tree and the builder reports
+   its PASS line; a second `lake exe whatwg_ledger --write` changes no byte.
+4. `lake exe whatwg_vendorseal`, `lake exe whatwg_citations` and
+   `lake exe whatwg_declsnapshot` pass, and
+   `lake env leanchecker Whatwg WhatwgTest WhatwgGates` exits 0. The trust
+   self-test is the coordinator's run; it is red on `main` on its executable
+   rows until the executable gate lands.
+5. The builder plants on the real tree, one at a time, and restores: a fence
+   entry removed, a production module fenced by a second graph, an unrouted
+   entry whose prefix is a scaffold module, `INDEX.md` deleted, `INDEX.md`
+   edited, and a stray file under `generated/graphs/`. Each is reported with
+   its D.4 or D.6 text and exit code 1.
+6. No list of the trust gate changes; no ledger module declares syntax, a
+   macro, an elaborator or an initializer, or imports a production module;
+   every declaration added beyond D.8 is `private`.
+
+### D.11 Claim scope
+
+The routing pass does not decide, and a green gate says nothing about:
+
+- whether an owner's obligations cover the module it claims: a fence entry or
+  a leaf claims a module wholesale, whatever its declarations are, and the
+  cells say what is proved;
+- whether a claim is the right one: a module fenced by the wrong graph
+  passes, and so does a leaf's choice of parent edge;
+- what an unrouted entry owes: it is a recorded debt, not a route; it claims
+  modules so that the gap is named and counted, and the debt it cites says
+  what is owed;
+- private and internal constants: a module whose constants are all private or
+  internal is not routed, and a routed module's private constants are not
+  looked at;
+- the test and tooling trees and every module outside `Whatwg`: rule M does
+  not select them, and a fence entry naming one claims nothing the findings
+  check (an unrouted prefix naming one is reported by item 2 of D.4);
+- a module with no constant, umbrella or scaffold: not routed, and a fence
+  entry naming one is not a finding;
+- a module the loaded environment does not hold: rule M reads the environment
+  of the roots `Whatwg`, `WhatwgTest` and `WhatwgGates`, so a source no root
+  imports is outside it; the module-closure gate of `lake build` refuses such
+  a source, subject to debt D61;
+- repetition: a fence that lists a module twice, an unrouted entry given
+  twice, or two unrouted entries with one prefix and different debts;
+- anything in the index beyond the ledger: it lists no routed module, no
+  fence and nothing of the environment;
+- a graph whose identifier is `INDEX` (D.6);
+- routing by declaration: claims are by module, and the declaration snapshot
+  of R-W5 owns the per-declaration records.
+
+The last bullet of section 13, "module routing, before slice D", is
+superseded by this list.
+
+### D.12 Freeze receipt and validation
+
+Observed in the breaker's worktree on Lean 4.33.1, Windows 11, with no slice
+D code and no slice D data present.
+
+`lake env lean -DmaxErrors=5000 WhatwgTest/Audit/LedgerRoutingContract.lean`
+exits 1 with 174 errors, no warning, no parse error and no import error:
+
+| Class | Errors |
+| --- | ---: |
+| unknown identifier or constant: the 14 names of D.8, in 21 spellings | 64 |
+| invalid field notation on a missing name, or on a term whose type is the missing `ModuleTable` | 37 |
+| `cannot evaluate code` for a `#guard` whose term did not elaborate | 52 |
+| anonymous constructor or implicit argument of the missing `ModuleTable` | 19 |
+| `#guard` that evaluates to `false`: the two data rows of battery section 2, because the slice D data is not in the ledger yet | 2 |
+
+`lake build` finishes 480 jobs and fails exactly the target
+`WhatwgTest.Audit.LedgerRoutingContract`; the root `WhatwgTest` is replayed
+from the cache (debt D61). A fresh `lake env lean WhatwgTest.lean` reports one
+error, `Whatwg module-closure gate: …\WhatwgTest\Audit\LedgerRoutingContract.lean
+is not reachable from the WhatwgTest audit root`, because R-W9 keeps the
+battery out of `WhatwgTest.lean` until the builder turns it green; that is the
+state R-W9 describes, not a second defect.
+
+`lake exe whatwg_ledger` at this head refuses before reading the ledger, with
+exit code 1 and the one line `FAIL whatwg_ledger: module
+WhatwgTest.Audit.LedgerRoutingContract has no built .olean; run lake build
+before lake exe whatwg_ledger`: the freshness check of section 10 covers every
+module source of the three trees, and a red battery has no `.olean`. On the
+base commit the gate passes. So on this branch, and on the builder's until the
+battery is green, the ledger gate cannot run; the builder runs it once the
+battery builds. `lake exe whatwg_declsnapshot`, which snapshots the
+production libraries, passes at this head, and so do
+`lake exe whatwg_vendorseal` and `lake exe whatwg_citations`.
+
+Validation against the prototype (R-W9). The pass and the renderer were
+written as uncommitted changes to `WhatwgGates/Ledger/Check.lean` and
+`Render.lean`, with the data of D.5, in a scratch copy of the worktree at the
+base commit, and kept in the seat's scratch directory for the builder:
+
+| Item | Command | Result |
+| --- | --- | --- |
+| the battery | `lake env lean -DmaxErrors=5000 WhatwgTest/Audit/LedgerRoutingContract.lean` | exit 0, no error and no warning: 14 ascriptions, 2 instance checks, 82 `#guard` rows |
+| that the rows discriminate | fourteen one-line mutants of the prototype: a fence matched as a prefix; an unrouted prefix matched on its string; rule M counting private and internal constants; a parented leaf as its own owner; the index as a stray file; an unbuilt unrouted prefix reported as claiming nothing; no production-root filter; claimants counted instead of owners; the index written before the projections; the routing findings skipped in write mode; the index not compared; not-applicable edges counted as closed; a leaf's parent rendered without its edge; claimants listed with repeats | every mutant fails the battery, with 1 to 32 errors |
+| the trust gate with the battery imported (a temporary root import) | `lake build` | 480 jobs, green: "checked 280 source files and 20007 declarations; Classical.choice is reached by 84 of 13965 declarations in Whatwg, 89 of 2318 in WhatwgTest and 384 of 3724 in WhatwgGates; strict ceiling propext and Quot.sound over 6 module prefix(es) with 0 exact exception(s); 0 source-token exemption(s)"; the slice A battery green and unedited |
+| kernel replay | `lake env leanchecker` naming the three ledger modules, `WhatwgTest.Ledger`, `WhatwgTest.Ledger.ConfigurationOrdering` and both batteries | exit 0, 18.7 s |
+| the pass on the base data | `lake -q exe whatwg_ledger` | exit 1 with 33 findings: the 32 modules of D.5, then `generated/graphs/INDEX.md does not exist` |
+| the pass with the slice D data | the same | exit 1 with 3 findings: `Whatwg.Streams.Kernel` claimed by nobody, `generated/graphs/CONFIGURATION-PG-ORDERING.md` differs (its `Fence:` line), and the index does not exist |
+| a write with a scratch-only claim on the kernel (an unrouted entry citing R-W4, removed afterwards) | `lake -q exe whatwg_ledger --write`, then `lake -q exe whatwg_ledger` | both PASS, "12 graph(s), 120 edges, 1 leaf record(s), 14 unrouted prefix(es), 77 production module(s) with one owner each"; `INDEX.md` written; `CONFIGURATION-PG-ORDERING.md` changed in its `Fence:` line and the eleven other projections byte-identical; about 3 s per run |
+| the measurements of D.2, D.3 and D.5 | probes importing the three roots through the shared loader, at the base commit | 2,627 modules and 228,259 constants in the table; 134 production modules, 77 selected by each of the three readings; each of the 47 fence entries is a module and none is a proper prefix of a module; `Whatwg.Html` has 19 modules under it, and none of the twelve Infra prefixes of D57 has one |
+
+Not run: the coordinator's claim on `Whatwg.Streams.Kernel` and the fence
+entry for `Whatwg.Ecma262.AgentInvariant`, which do not exist yet; `cli`'s
+refusal paths, which slice D does not change; the trust self-test; a run on
+Linux. After validation nothing of the prototype entered this branch.
+
+### D.13 Deviations and amendments
+
+| Design or section | Here | Reason |
+| --- | --- | --- |
+| design, slice row D: "a module routing pass in `Check.lean`" | a second fact table, `ModuleTable`, and `routedOutcome`; the routing findings follow `referenceFindings` | `World.mk`, `referenceFindings` and `outcome` are ascribed and pinned by the slice A battery |
+| brief: the new findings placed in `referenceFindings`' order | immediately after it, before the projection findings | the same |
+| section 9: `outcome` decides a run | `routedOutcome` decides it; `outcome` stays, and `cli` no longer calls it | the same |
+| section 8: every file under `generated/graphs/` that is no graph's projection is reported | except the one path `generated/graphs/INDEX.md` | R-W11 |
+| section 11: the run-time file set | `Ledger.runFiles`, one path more | the index's drift check |
+| section 12: slice D not frozen; design row D: "`fence` for every graph" | the twelve fences stay, `CONFIGURATION-PG-ORDERING` gains six entries, the kernel waits for a ruling and `AgentInvariant` for its landing | measured, D.5 |
+| design, row D: "`INDEX.md` with the section 2.11 counts" | the open, closed and not-applicable counts per graph; not the evidence-kind columns of the design's section 2.11 | those columns were counted by regular expressions over the old tables, and the cells do not determine them; a later format can add them under a new `formatVersion` |
+| section 13, last bullet | D.11 | the pass exists |
+| brief: at least two counterexample rows | four | the component rule and the stale debt entry are attacks the battery pins |
+
+### D.14 Points for the coordinator
+
+1. The owner of `Whatwg.Streams.Kernel`. R-W4's route, local receipts on the
+   laws edges of five graphs, has no single owner in the ledger. Options: (a)
+   an entry of one graph's fence; (b) a leaf record, standalone or with one
+   of the five laws edges as parent, whose document names it (the
+   threshold's leaf conditions 3 and 4 exclude composition laws, which R-W4
+   overrode for the receipts, and a leaf has one parent); (c) an `unrouted`
+   entry citing a new debt until a packet decides. This seat recommends (c):
+   it names the gap without inventing a route, as D57 does, at the cost of one
+   debt and one entry. Slice D cannot pass its gate until one is ruled.
+2. `Whatwg.Ecma262.AgentInvariant`: the second of slice D and Q5b slice B5 to
+   land adds the fence entry (D.5).
+3. From slice D on, a packet that adds a production module with a constant
+   must add its claim in the same landing, or `lake exe whatwg_ledger` fails.
+   The coordinator owns `WhatwgTest/Ledger/` (section 12): either a builder's
+   fence includes the one fence line of its graph's data module, or the
+   coordinator adds it in the landing commit. A ruling should say which.
+4. The leaf rule of D.3, a leaf with a parent counting for its parent graph,
+   reads `docs/AGENT-ROUTING.md`; it makes a module fenced by a graph and
+   declared into by that graph's leaf one owner. Confirm or amend.
+5. Routers: `generated/AGENTS.md` describes the ledger's projection as one
+   file per proof graph, and neither the root gate row of
+   `lake exe whatwg_ledger` nor the gate table of `WhatwgGates/AGENTS.md`
+   mentions routing or the index. These are the coordinator's, after the
+   slice lands.
+6. `outcome` stays as a function `cli` no longer calls, pinned by the slice A
+   battery; retiring it needs a breaker amendment of that battery.
+7. On any branch that holds a red battery under `WhatwgTest`, `Whatwg` or
+   `WhatwgGates`, `lake exe whatwg_ledger` refuses for the missing `.olean`
+   before it reads the ledger (D.12). R-W9 keeps such branches off `main`, so
+   `main` is not affected, but the gate cannot be used to judge a breaker
+   head, this one included.
