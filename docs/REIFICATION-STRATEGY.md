@@ -190,6 +190,16 @@ in which lowering can be trusted follows Effect4's own ledger: Schema
 generation is closed, program lowering is `required-open`, so Stratum A
 ships compiled artifacts before Stratum S does.
 
+Note, 2026-10-01 (ruling R-W7): three sentences of the paragraph above do not
+hold for lean4-effect4 at `b9d0d19f`. It has no Stream, Channel or Sink
+calculus and archived its Flow route, so Stratum S cannot lower "through the
+checked Flow"; the ledger wording "`required-open`" is no longer that
+repository's; and the route that remains is the second one, the host's
+native WHATWG Streams under RS-5 with a generated adapter. The paragraph is
+left as written until the operator decides P11's exit gate (`PLAN.md`,
+O-W1); the replacement text is appendix A of
+`docs/research/2026-10-01-w10-retarget-gate-package-design.md`.
+
 ## 6. Decisions this design forces
 
 | Id | Question | Proposed ruling |

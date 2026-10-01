@@ -5,8 +5,10 @@ of P4 to P7 (P4a, P5a, P6a, P7a), the promise slices Q0 to Q4 with the
 configuration-ordering restatement of P8a, URL U0 to U3, the Infra UTF-8
 codec and HTML H0 to H4 are on `main`. P8 proper is next, and P4 to P12
 remain open. Review lane V landed on 2026-10-01. Review lane W, rows 6 to 10
-of the same review, opened on 2026-10-01 in its design phase. "Current phase"
-below is the dated record; its entries are not in date order.
+of the same review, opened on 2026-10-01; its designs are ruled (R-W2 to R-W8)
+and its breaker wave is running. P12 is retargeted by R-W7(c); the P11 exit
+gate waits on the operator (O-W1). "Current phase" below is the dated record;
+its entries are not in date order.
 
 ## Objective
 
@@ -64,7 +66,7 @@ checked TypeScript. Host conformance is measured, never assumed.
 | P9 — byte streams | `ReadableByteStreamController`, BYOB reader and request, ArrayBuffer detachment as a foreign boundary | separate calculus with explicit embedding rows |
 | P10 — logic | `wlp`, totality, the `wp` decomposition theorem, EffHOL modality instance | decomposition theorem proved for the chosen semantics |
 | P11 — targets | closed combinator alphabet, typed TypeScript IR, lowering, render, host harness | typing and simulation proofs; deterministic bytes; exact coverage |
-| P12 — bridges | Node legacy streams calculus, Effect Channel embedding (cross-repository) | each bridge names its loss and its mask |
+| P12 — bridges (retargeted 2026-10-01, R-W7(c)) | the `Effects.Signature` face of the Streams calculi in the `WhatwgSignatures` library beside the agent face of promise slice Q5, with its embedding in the calculus; the Node legacy streams calculus and its relation to the WHATWG calculus through `Readable.toWeb` and `Readable.fromWeb` | the face's handler run equals the calculus run under a named DB-04 mask (theorem); each Node direction names its loss under M1, with the Node profile's observations as host evidence; an embedding into an Effect Stream or Channel calculus opens only when lean4-effect4 lands one |
 | S1 — SHA-256 proof lane (landed; moved to lean4-hash at step 6, 2026-09-02) | the three-layer `Spec`/`Impl`/`Fast` SHA-256 with the `Impl = Spec` refinement and the pointwise `Fast = Impl` bridge, a `Digest`/`Hex` API, root split so consumers never pay for kernel known-answer tests, a typed audit line, streaming, and SHA-224, in stages S1.0–S1.7 per `docs/SHA256-DAG.md` | every edge of `SHA256-PG-IMPL-EQ-SPEC` closed; `Gates` consumes `Sha256.sha256` and regenerates `generated/vendor-manifest.tsv` byte-identically; `leanchecker --fresh`, dual-host, and lean4lean receipts recorded |
 
 S1 is independent of P1 through P12 and may run beside any of them. Its
@@ -87,7 +89,9 @@ Before deep work, freeze one representative contract in each group:
 6. configuration: one promise-settlement ordering case from WPT;
 7. logic: one `wlp` judgment over a stream program;
 8. target: one generated combinator checked by the TypeScript compiler;
-9. bridge: one Node legacy stream related in both directions.
+9. bridge: one Node legacy stream related in both directions with its loss
+   named, and one readable operation through the `Effects.Signature` face
+   whose handler run equals the calculus step under M1 (R-W7(c)).
 
 ## Dependency policy
 
@@ -204,6 +208,49 @@ their named homes, and the U3 tapes' UTF-8 profile discharged, so the U3
 graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
 still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
 global `@[simp]` attributes R-P27 re-froze.
+
+**Review lane W ruled, 2026-10-01** (rulings R-W2 to R-W8 in
+`COORDINATION.md`; evidence: the five `docs/research/2026-10-01-w*-design.md`
+documents). The designs are adopted and built in waves: breakers first, then
+builders, then an independent review. No phase gate P4 to P11 changes.
+
+- Promise slice Q5 (W9, R-W3), before P8 proper: `Whatwg.Ecma262.Agent` holds
+  the landed promise table, reaction store and job queue in one record with
+  one total step function; agent-level `resolve` and `reject` trigger
+  reactions (debt D46) while the landed store-level operations stay as proved
+  views; the laws are stated as handler adequacy (a well-formed agent, an
+  enabled request, a later well-formed agent whose answer lies in the post);
+  the `Effects.Signature` face is its own library `WhatwgSignatures` under a
+  sixth strict prefix. P8 builds its configuration on this record.
+- W8a (R-W4): `Whatwg.Streams.Kernel`, a generic labelled-path closure, with
+  every per-calculus inductive kept and bridged, and three invariants carried
+  (the Readable and Writable queue invariants, registration-identity
+  freshness). W8b, the store views onto the agent record, opens after Q5.
+- W6 (R-W5): `#whatwg_freeze` pins each ascribed statement and, for a
+  theorem, its exact axiom set, as one kernel-checked declaration; the
+  declaration snapshot `whatwg_declsnapshot` is the generator debt D47 asked
+  for; every battery is converted in the lane's last builder slice.
+- W7 (R-W6): edge status is Lean data under `WhatwgTest/Ledger/`, checked by a
+  kernel-decided theorem and by `lake exe whatwg_ledger`, with each graph's
+  table generated under `generated/graphs/`.
+- W10 (R-W7): the trust gate gains an executable over the built `.olean`
+  files, `whatwg_trustgate`, which no audited code can replace (debt D56);
+  P12 is retargeted as the phase table now reads.
+
+Open decision for the operator (O-W1), P11's exit gate. The P11 row presumes
+a typed TypeScript IR built here and typing and simulation proofs. The
+lakefile already lowers through the `typescript` package instead of a second
+IR, and that package at its pin has syntax and a renderer and no typing
+judgment; no pinned artifact supplies a semantics of the emitted fragment or
+of the host's Streams API. The W10 design recommends a row whose theorems are
+totality of the lowering, decoding back to the program and admission of every
+rendered module, with compiler acceptance and host runs under M1 recorded as
+host observations, and a simulation theorem as a later row if a fragment
+semantics is ever pinned. That replaces proof obligations of a ratified phase
+by host evidence, so the row is unchanged until the operator decides; section
+3.2 and appendix A of
+`docs/research/2026-10-01-w10-retarget-gate-package-design.md` hold the
+candidates and the proposed text.
 
 **Review lane W opened, 2026-10-01:** the operator opened rows 6 to 10 of the
 review's recommended order as slices W6 to W10: a freeze registry with pinned
