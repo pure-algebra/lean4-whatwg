@@ -78,9 +78,11 @@ lake env leanchecker Whatwg WhatwgTest WhatwgGates # every built module under th
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
 
-`lake exe whatwg_trustselftest` (not a default target; a CI step since ruling
-R-V2, after the full build) plants known violations in a throwaway copy and checks that the axiom
-gate rejects each; run it after changing the gate itself. The WP-7 rename-parity receipt was
+`lake exe whatwg_trustselftest` (not a default target) plants known violations
+in a throwaway copy and checks that the axiom gate rejects each. It tests the
+gate's own code, so it runs after a change to the gate, its configuration, its
+fixtures, `lakefile.toml` or a pin, and in CI from its own workflow on those
+paths (ruling R-W25); it is not part of every change. The WP-7 rename-parity receipt was
 retired on 2026-09-03: it had proved what it was written to prove.
 
 ## Where to start

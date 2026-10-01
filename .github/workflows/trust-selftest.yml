@@ -1,0 +1,67 @@
+name: Trust-gate self-test
+
+# Ruling R-W25 (operator direction, 2026-10-01). The self-test plants
+# violations of the trust gate in a throwaway copy of the tree and checks that
+# the gate refuses each one for its frozen reason. What it tests is the gate's
+# own code, and that code's behaviour changes only when one of the paths below
+# changes: the toolchain and every dependency are pinned to exact commits. So
+# it runs on those changes and on demand, and no longer on every push. The
+# per-push trust checks are `lake build`, `lake exe whatwg_trustgate` and
+# `leanchecker` in ci.yml.
+#
+# known-red.txt is left out of the path lists on purpose: it changes with
+# every breaker packet, and a red module on `main` already fails ci.yml's
+# build. The two path lists are the same list.
+
+on:
+  push:
+    paths:
+      - 'WhatwgGates/Trust/**'
+      - 'WhatwgGates/TrustConfig.lean'
+      - 'WhatwgGates/TrustSelfTest.lean'
+      - 'WhatwgGates/Common.lean'
+      - 'WhatwgTest/Audit/AxiomGate.lean'
+      - 'WhatwgTest/Audit/SpecCoverage.lean'
+      - 'whatwgbin/TrustGate.lean'
+      - 'whatwgbin/TrustSelfTest.lean'
+      - 'test/fixtures/trust-gate/**'
+      - '!test/fixtures/trust-gate/known-red.txt'
+      - 'test/contracts/trust-gate-hardening.contract.md'
+      - 'lakefile.toml'
+      - 'lake-manifest.json'
+      - 'lean-toolchain'
+      - '.github/workflows/trust-selftest.yml'
+  pull_request:
+    paths:
+      - 'WhatwgGates/Trust/**'
+      - 'WhatwgGates/TrustConfig.lean'
+      - 'WhatwgGates/TrustSelfTest.lean'
+      - 'WhatwgGates/Common.lean'
+      - 'WhatwgTest/Audit/AxiomGate.lean'
+      - 'WhatwgTest/Audit/SpecCoverage.lean'
+      - 'whatwgbin/TrustGate.lean'
+      - 'whatwgbin/TrustSelfTest.lean'
+      - 'test/fixtures/trust-gate/**'
+      - '!test/fixtures/trust-gate/known-red.txt'
+      - 'test/contracts/trust-gate-hardening.contract.md'
+      - 'lakefile.toml'
+      - 'lake-manifest.json'
+      - 'lean-toolchain'
+      - '.github/workflows/trust-selftest.yml'
+  workflow_dispatch:
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+      # The self-test seeds its probe from the build cache, so every default
+      # target is built first; each planted violation is then an incremental
+      # build of the roots it touches.
+      - name: Build every default target
+        run: lake --wfail build
+      - name: Trust-gate self-test (planted violations, controls and narrow runs)
+        run: lake exe whatwg_trustselftest

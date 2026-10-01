@@ -82,15 +82,11 @@ jobs:
         run: lake exe whatwg_ledger
       - name: Declaration snapshot and its projection drift
         run: lake exe whatwg_declsnapshot
-      # Ruling R-V2 returns the trust-gate self-test to CI after its removal on
-      # 2026-09-03. It copies the sources and the build cache into a throwaway
-      # directory, so it must follow the full build above: each planted
-      # violation is then one incremental build of the roots it touches. It
-      # checks the declared red set, plants the older trust-gate violations
-      # and every row of test/contracts/trust-gate-hardening.contract.md, and
-      # runs the gate and the coverage numerator by relative file name.
-      - name: Trust-gate self-test (planted violations, controls and narrow runs)
-        run: lake exe whatwg_trustselftest
+      # The trust-gate self-test is not a step of this workflow (ruling R-W25).
+      # It tests the gate's own code, so it runs from
+      # .github/workflows/trust-selftest.yml when that code, its
+      # configuration, its fixtures or the build configuration change, and on
+      # demand. The executable gate above is the trust check of every push.
       # Ruling R-V2: a kernel replay of every module of the three libraries.
       # leanchecker re-adds each module's declarations to the environment its
       # imports build and type-checks them in the kernel, so a declaration the
