@@ -1148,10 +1148,11 @@ reports a plant two rules would refuse:
 | before step 1 | V2c.5 the root pass (rule 4) |
 | 1 module closure | V2c.6 reverse closure (rule 5) |
 | 2 modifier pass | *(after it)* V2c.3 token-table hygiene (rule 2), a new pass over the final table |
-| 3 environment pass | V2c.2 the environment half of the metaprogramming-module rule (rule 1): a non-listed audited module that registers a token, parser, syntax category, macro or elaborator |
+| 3 environment pass | V2c.2 the environment half of the metaprogramming-module rule (rule 1): a non-listed audited module that registers a token, parser, syntax category, macro, elaborator or initializer |
 | 4 axiom pass | *(unchanged)* |
 | 5 trust-token pass | V2c.2 the token half of rule 1 (metaprogramming keywords outside the list) and V2c.4 the configuration-shape refusal (rule 3) |
 | 6 summary line | *(unchanged counts; V2c adds no field)* |
+| after the root's gate command | V2c.5 the post-command check: if the gate's own elaborator did not run to completion, run every pass or fail with V2c.5's diagnostic |
 
 Token-table hygiene (V2c.3) runs before the environment pass on purpose: it is
 the last line of defence against a token that shadows a refused word (B1), and
@@ -1163,17 +1164,18 @@ shadowing token through `syntax` is reported by V2c.3, not by rule 1.
 
 **Statement.** Outside `metaprogrammingModules`, an audited source may not
 spell a metaprogramming keyword in code, and an audited module may not register
-a token, parser, syntax category, macro or elaborator, whatever spelled the
-registration. A listed module may do both and remains bound by every trust word
+a token, parser, syntax category, macro, elaborator or initializer, whatever
+spelled the registration. A listed module may do both and remains bound by every trust word
 of sections 4.2 and V2b.3.
 
-**The keyword set.** The token half refuses these keyword atoms (each a token
-of the final table in Lean 4.33.1; the gate's tokenizer reads each as an
-`atom`, so the `carriedBy` rule of section 4.2, atom-text equality, catches it;
-`local` and `scoped` prefixes do not fuse — `local syntax` tokenizes as the
-atoms `local` then `syntax`, so refusing the keyword below catches its
-`local`/`scoped`-prefixed form too, and `local` and `scoped` themselves are not
-refused, since the tree uses `scoped` and `local` legitimately):
+**The keyword set.** The token half refuses the words below with the
+whole-name shape of section 4.2: a token of code carries a word when it is an
+atom whose text is the word, or an identifier whose `Name`, with `«»` escapes
+removed, equals the word's `Name`. `local` and `scoped` prefixes do not fuse
+with the keyword — `local syntax` tokenizes as the atoms `local` then `syntax`
+— so refusing the keyword catches its `local`- and `scoped`-prefixed forms too,
+and `local` and `scoped` themselves are not refused, since the tree uses both
+legitimately:
 
 - *declaring*: `syntax`, `macro`, `macro_rules`, `elab`, `elab_rules`,
   `notation`, `infix`, `infixl`, `infixr`, `prefix`, `postfix`,
@@ -1185,25 +1187,29 @@ refused, since the tree uses `scoped` and `local` legitimately):
   `register_sym_simp_attr`, `register_parser_alias`, `register_tactic_tag`,
   `register_error_explanation`, `declare_config_elab`,
   `declare_command_config_elab`;
-- *running*: `run_cmd`, `run_elab`, `run_meta`, `by_elab`, `#eval`, `#eval!`,
-  `initialize`, `builtin_initialize`, `test_extern`.
+- *running*: `run_cmd`, `run_elab`, `run_meta`, `run_tac`, `by_elab`, `#eval`,
+  `#eval!`, `initialize`, `builtin_initialize`, `test_extern`.
 
-Measured in 4.33.1 with the gate's tokenizer: every word above is a keyword
-`atom`. Four candidates are **not** keyword atoms and so are left to the
-environment half (they tokenize as ordinary identifiers): `run_tac`,
-`command_elab`, `term_elab`, `tactic`, `init`, `builtin_init`, `syntax_cat`.
-Two keyword atoms that would otherwise belong are **excluded** because the tree
-uses them as ordinary names, exactly as `stop` and `#guard_msgs` were excluded
-in V2b.4: `meta` (the HTML `<meta>` element, always written `«meta»`, is an
-identifier `meta`; refusing it would strike every such element) and `deriving`,
-`open`, `attribute`, `#guard`, `#guard_msgs`, `#check_failure` (ordinary,
-pervasive). The channel they would open is instead closed by the environment
-half: `@[command_elab …]`, `deriving`-generated code and the rest register
-through an environment extension, which V2c.2's environment half sees whatever
-the token was.
+Measured in 4.33.1 with the gate's tokenizer: every word above except `run_tac`
+is a keyword `atom` of the final table; `run_tac` is a tactic name, read as an
+identifier token (as V2b.3 found for `admit` and `stop`), and is refused by the
+identifier shape, which is why the shape is whole-name and not atom-only. Six
+further candidates read as identifiers and are **not** refused, because they are
+attribute or category names with ordinary uses (`init` is the named argument
+`(init := …)` of `foldl` in the gate itself): `command_elab`, `term_elab`,
+`tactic`, `init`, `builtin_init`, `syntax_cat`; what they register is the
+environment half's to refuse. Seven words are **excluded** because the tree uses
+them as ordinary code, as `stop` and `#guard_msgs` were excluded in V2b.4:
+`meta` (the HTML `<meta>` element, written `«meta»`, is the identifier `meta`;
+refusing it would strike every such element), `deriving`, `open`, `attribute`,
+`#guard`, `#guard_msgs` and `#check_failure`. `deriving` registers only
+instances, not syntax, a macro or an elaborator; `#guard` evaluates a `Bool`
+with compiled code and adds no declaration (V2c.7); `attribute [k] d` that
+attaches an elaborator or macro is refused by the environment half for what it
+registers.
 
-Diagnostic fragment, token half (in the message style of section 4.2; a
-position may follow):
+Diagnostic fragment, token half (in the message style of section 4.2; nothing
+may stand between `<path>` and ` contains`; a position may follow):
 
 ```text
 Whatwg source trust gate: <path> contains an authored `<keyword>` metaprogramming keyword
@@ -1211,11 +1217,17 @@ Whatwg source trust gate: <path> contains an authored `<keyword>` metaprogrammin
 
 **The environment half.** An audited module not on `metaprogrammingModules` is
 refused when it registers, in any environment extension the gate reads, a token,
-a parser or parser alias, a syntax category, a macro, or a command/term/tactic
-elaborator. The builder maps these to the extensions that hold them
-(`Parser.parserExtension` for tokens, parsers and categories; the macro and
-`*_elab` attributes for macros and elaborators), attributing each registration
-to the module that owns the registering declaration. This half catches a
+a parser or parser alias, a syntax category, a macro, a command/term/tactic
+elaborator, or an initializer. The builder maps these to the extensions that
+hold them (`Parser.parserExtension` module entries, global or scoped, for
+tokens, parsers and categories; the macro and the command, term and tactic
+elaborator attributes; the `init` and `builtin_init` attributes, which
+`initialize`, `builtin_initialize` and the `register_*` commands produce, for
+initializers), attributing each registration to the module that owns the
+registering declaration. An initializer runs `IO` whenever a later module is
+imported, the gate's own elaboration included, so it is a running channel no
+keyword need spell (`@[init f]` writes `init` as an identifier); the tree has
+none. This half catches a
 registration no token spells: `@[command_elab K] def f : CommandElab := …`
 spells `command_elab` as an identifier, which the token half does not refuse,
 yet registers an elaborator (measured: such a declaration builds exit 0 at the
@@ -1224,11 +1236,11 @@ base and the gate accepts it; V2c-E01).
 Diagnostic fragment, environment half:
 
 ```text
-Whatwg trust gate: module <m> registers a <kind> but is not a listed metaprogramming module
+Whatwg trust gate: module <m> registers <kind> but is not a listed metaprogramming module
 ```
 
-with `<kind>` one of `token`, `parser`, `syntax category`, `macro`,
-`elaborator`.
+with `<kind>` one of `a token`, `a parser`, `a syntax category`, `a macro`,
+`an elaborator`, `an initializer` (the article is part of `<kind>`).
 
 **Tree measurement.** Over the 222 audited sources, scanned with the gate's own
 tokenizer and the keyword set above, the only code occurrences of any listed
@@ -1292,17 +1304,20 @@ lists of sections 4.2 and V2b.3 (`refusedWords` as printed; the modifier words
 
 - *(T1)* `t` contains a space, tab, carriage return, line feed, `"`, `«`, `»`,
   `--`, `/-` or `-/`;
-- *(T2)* `t` ends in `-` or `/`; or `t` has a `'` at a position that is index 0
-  or is preceded by a non-`isIdRest` character (a character-literal opener); or
-  `t` begins a raw-string literal, i.e. an `r` at index 0 that `isIdFirst`-starts
-  an identifier `r` whose next character is `#` or `"`;
-- *(T3)* some identifier starts inside `t` — at index 0, or after a non-`isIdRest`
-  character, or after a prefix of `t` that ends in a non-`isIdRest` character the
-  token table splits on — and that identifier, read to where it meets a
-  non-identifier character or the end of `t`, either **equals** a refused word, a
-  refused last component, or a modifier keyword; or, when it runs to the end of
-  `t` (so the next source character could extend it), is a **prefix** of one of
-  those cut short by the token's end.
+- *(T2)* `t` ends in `-` or `/`; or `t` has a `'` at index 0 or after a
+  character that is not `isIdRest` (a character-literal opener); or, at an
+  identifier start as T3 defines it, the identifier read is exactly `r` and is
+  followed by `#`, by `"`, or by the end of `t` (a raw-string opener);
+- *(T3)* at some *identifier start* `k` — a position with `isIdFirst t[k]` where
+  `k` is 0, or `t[k-1]` is not `isIdRest`, or the prefix `t[0:k]` ends with some
+  token of the table that contains a character that is not `isIdRest` — the
+  identifier read from `k` (components joined by `.` when the next character is
+  `isIdFirst`), up to a non-identifier character or the end of `t`, either
+  **equals** a whole-name refused word or modifier keyword, or has a last
+  component equal to a last-component word; or, when the read reaches the end of
+  `t` (optionally ending in `.`), so the next source character could extend it,
+  it is a **prefix** of such a word, or its last component is a prefix of such a
+  last component.
 
 A builder implements T3 by walking each index `k` of `t`, and where an
 identifier may begin there, reading its `Name` (escapes do not occur inside a
@@ -1310,38 +1325,43 @@ registered token) and testing equality against the whole-name words and the
 last component against the last-component words; when the read reaches the end of
 `t`, it also tests `isPrefixOf` against every such word, because the source
 character after the token could continue the identifier and complete the word.
-A token that begins no refused identifier, contains no forbidden character and
-does not end in `-` or `/` is accepted.
+A token for which none of T1, T2 and T3 holds is inert. This is the procedure
+the V2c measurement ran (and the one the prior V2c seat's scratch measurement
+of 127 inert tokens used).
 
 **Measurement.** The final table holds 512 tokens (574 with the scoped entries);
 239 are built into the binary and 277 are declared by `Init` modules, leaving
-127 non-base tokens. All 127 pass the inert test today. Eight tokens of the
-table contain a refused word as a substring and all pass, which fixes the
-boundary logic:
+127 non-base tokens. All 127 pass the inert test today (the V2c scratch
+measurement re-ran the test of this section over the union of the gate's table
+and the scoped entries). Eight tokens of the table contain a refused word as a
+substring; six are base and two are non-base:
 
-- `axiom`, `sorry`, `unsafe`, `partial` — base keywords; each *equals* the
-  word (for `axiom` and `sorry`) or the modifier word (`unsafe`, `partial`), so
-  each is a hazard by T3, but each is a **base** token, which the rule does not
-  test. The rule tests non-base tokens only; the words themselves are refused in
-  *code* by the trust-token and modifier passes, not in the table.
-- `partial_fixpoint` (non-base) — the identifier at index 0 reads to
-  `partial_fixpoint`, which neither equals nor is a prefix of `partial`
-  (`partial` is a prefix of it, not it of `partial`); no identifier starts at
-  the `f` of `_fixpoint` because `_` is `isIdRest`. Inert.
-- `test_extern` (non-base) — the whole-token identifier is `test_extern`, not
-  `extern`; the `e` of `extern` is preceded by `_` (`isIdRest`), so no
-  identifier starts there. Inert.
-- `register_try?_tactic` (non-base) — the whole-token identifier is
-  `register_try?_tactic`; `try?` is not at an identifier boundary (`try` is
-  preceded by `_`). Inert.
-- `#whatwg_streams_axiom_gate` (non-base) — `axiom` is preceded by `_`, not an
-  identifier start. Inert.
+- `axiom`, `sorry`, `unsafe`, `partial` (built into the binary),
+  `partial_fixpoint` (built into the binary) and `register_try?_tactic`
+  (`Init.Try`) are **base** tokens, which the rule does not test. The first four
+  equal a refused or modifier word and would fail T3 if tested; the words are
+  refused in *code* by the trust-token and modifier passes, which read them as
+  atoms whose text is the word. `partial_fixpoint` and `register_try?_tactic`
+  would pass anyway: no identifier starts at the word, because the character
+  before it (`_`) is `isIdRest`.
+- `test_extern` (non-base, `Lean.Util.TestExtern`) passes: the identifier at
+  index 0 is `test_extern`, which is neither `extern` nor a prefix of a refused
+  word, and no identifier starts at the `e` of `extern`, which follows `_`.
+- `#whatwg_streams_axiom_gate` (non-base, the gate module) passes: the
+  identifier starting after `#` is `whatwg_streams_axiom_gate`, and `axiom`
+  follows `_`, so no identifier starts there.
 
-Two base tokens would fail the inert test and are exempt as toolchain tokens,
-outside the rule's scope: the scoped `#'` (`BitVec`, a character-literal quote
-at index 1, T2) and `#reduce` (`Init.Notation`, whose last component `reduce` is
-a prefix of `reduceBool` and `reduceNat`, T3). They are base tokens, which the
-rule does not test; the rule covers the 127 non-base tokens only.
+Many base tokens would fail the test and are outside its scope by definition:
+operators ending in `-` or `/` (`-`, `/`, `//`, `<-`, `\/`), the comment
+openers `/--` and `/-!`, the primed operators `]'`, `×'`, `Σ'`, `⊕'`, the four
+keywords above, `try` (a prefix of `try?`), the scoped `#'` (`BitVec`) and
+`#reduce` (`Init.Notation`, whose identifier part `reduce` begins `reduceBool`
+and `reduceNat`). The exemption is sound for the global ones because every
+audited module imports `Init` (no audited source is a `prelude` module,
+measured over the 222 sources), so the gate's table and every module's
+elaboration table agree on them; the scoped `#'` is the exception V2c.7 records,
+since a module that opens `BitVec` elaborates with a token the gate's table
+lacks.
 
 Diagnostic fragment:
 
@@ -1403,6 +1423,39 @@ Whatwg axiom gate: the root WhatwgTest.lean contains a command other than import
 Whatwg axiom gate: #whatwg_streams_axiom_gate is not the last command of the root
 Whatwg axiom gate: the root module WhatwgTest has declared a constant when the gate runs; the root must declare none
 ```
+
+**The gate runs even when its command is replaced.** Every pass of this gate,
+rule 1 included, runs inside the elaborator of `#whatwg_streams_axiom_gate`. An
+imported module that registers a macro or a command elaborator for that command
+(`macro_rules | `(#whatwg_streams_axiom_gate) => …`, or `@[command_elab
+WhatwgTest.Audit.«command#whatwg_streams_axiom_gate»]`) takes precedence over the
+gate's own elaborator, so no pass runs and the build passes (measured at the
+base; plant V2c-M03). A refusal that lives only inside that elaborator therefore
+cannot refuse the module that replaced it. So rule 4 also requires: the gate
+module registers, when it is imported, a check that runs after each command of
+the root and is not reached through the gate command's own syntax; when the root
+command `#whatwg_streams_axiom_gate` finishes without the gate's own elaborator
+having run to completion, that check either runs every pass itself, so that the
+replacing module is refused by rule 1 for its keyword or its registration, or
+fails the build with the diagnostic below. The breaker measured the mechanism
+outside the tree, in a three-module package on Lean 4.33.1: a gate module that
+sets a flag in its elaborator and registers a linter (`initialize addLinter …`)
+that, for the root's gate command, logs an error when the flag is unset. With a
+`macro_rules` replacement imported, and again with a `@[command_elab …]`
+replacement, the build failed with that error; with neither, it passed and the
+gate ran. A linter runs after every command with the command's original syntax,
+whatever macro or elaborator handled it, so neither replacement reaches it. The
+gate module is a listed metaprogramming module, so its `initialize` is admitted.
+
+```text
+Whatwg axiom gate: the gate command of WhatwgTest.lean did not run the gate
+```
+
+What this leaves is recorded in V2c.7: an `IO` initializer that runs before the
+check and removes it. Outside the list an initializer is refused by rule 1's
+environment half, but that refusal also runs inside the gate, so the
+self-test's rejection rows, not the in-build gate, are what expose such a
+module.
 
 ### V2c.6 Rule 5 — reverse closure
 
@@ -1485,6 +1538,28 @@ assurance route still catches it.
   later composed in source to hide a word across token boundaries; the token
   passes read token by token and do not compose, a lexical limit sections 13 and
   V2b.7 already state.
+- **An initializer that removes the post-command check (V2c.5).** An `IO`
+  initializer runs when its module is imported, before any command of the root,
+  and can unregister the check that catches a replaced gate command. Outside the
+  list it is refused by rule 1's environment half, but every pass runs in the
+  gate, so a module that both removes the check and replaces the gate command is
+  refused by no in-build pass. The trust self-test catches it, because every
+  rejection row is then accepted; the `leanchecker` replay does not, since it
+  checks declarations, not the gate's run. Inside the list, only review
+  catches it.
+- **`#guard` is compiler evaluation.** The tree's 416 `#guard` commands
+  (counted with the gate's tokenizer, all under `WhatwgTest/`) decide a `Bool` with compiled code at elaboration. They add no
+  declaration, so they cannot admit a false theorem, but a `#guard` that passes
+  is evidence under compiler trust, not a kernel-checked statement. `#guard` is
+  not refused (V2c.2). Nothing here re-checks it; a reader treats a `#guard` as
+  a finite executable probe.
+- **The scoped base token `#'`.** A module that opens `BitVec` elaborates with
+  the token `#'`, which the gate's final table lacks, so the gate reads `#` and
+  then a character literal where Lean read one atom. A character literal holds
+  one character, so this cannot hide a multi-character word, but the gate's
+  token stream and the elaborator's differ in that module. No audited source
+  opens `BitVec` (measured: no `open … BitVec` line among the 222 sources), so
+  the token is active in no module today; nothing checks that it stays so.
 
 Summary of routes: the `leanchecker` CI replay catches a kernel-unchecked
 declaration and a false statement from `debug.skipKernelTC`/`reduceBool` however
@@ -1558,7 +1633,7 @@ the rule; "expected" is the fragment any one of which proves the rejection:
 | --- | --- | --- | --- |
 | V2c-M01 | `v2c-meta-notation-prod.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `notation` metaprogramming keyword``; or `module Whatwg registers a` |
 | V2c-M02 | `v2c-meta-run-cmd-test.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `run_cmd` metaprogramming keyword`` |
-| V2c-M03 | `v2c-meta-gate-macro-rules.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `macro_rules` metaprogramming keyword``; or `registers a macro but is not a listed metaprogramming module` |
+| V2c-M03 | `v2c-meta-gate-macro-rules.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `macro_rules` metaprogramming keyword``; or `registers a macro but is not a listed metaprogramming module`; or `the gate command of WhatwgTest.lean did not run the gate` |
 | V2c-E01 | `v2c-meta-attr-command-elab.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | `registers an elaborator but is not a listed metaprogramming module` |
 | V2c-B1 | `v2c-token-shadow-decl.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module; new module `Whatwg/Ecma262/TrustSelfTestPlant.lean` from `v2c-token-shadow-use.lean.txt` | ``token `(native_decide` of the final token table is not inert``; or ``contains an authored `syntax` metaprogramming keyword`` |
 | V2c-T1 | `v2c-token-cut-word.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``token `(nat` of the final token table is not inert`` |
@@ -1579,9 +1654,14 @@ Why each plant is shaped as it is:
   root builds at the base; it is caught by the token half, and by the
   environment half for the parser it registers, so two fragments are admitted.
 - V2c-M02 uses `run_cmd`, which registers nothing, so only the token half
-  applies and one fragment names it. V2c-M03's `macro_rules` suppresses the gate
-  at the base (build exit 0, no summary line), which is exactly the
-  gate-replacement hole; it imports the gate module to name its command syntax.
+  applies and one fragment names it; its fixture imports `Lean.Elab.Command`,
+  which `run_cmd` needs. V2c-M03's `macro_rules` suppresses the gate at the base
+  (build exit 0, no summary line), which is exactly the gate-replacement hole;
+  it imports the gate module to name its command syntax. Because the replaced
+  command never runs the gate's own elaborator, the row turns green only through
+  V2c.5's post-command check: either that check runs the passes and rule 1
+  names the keyword or the macro, or it fails closed with its own diagnostic.
+  All three fragments are admitted.
 - V2c-E01 is the registration no token spells: `@[command_elab K]` on a no-op
   `CommandElab`, `command_elab` an identifier. It targets
   `Lean.Parser.Command.check`, a command the plant module does not invoke, so it
@@ -1611,7 +1691,12 @@ Why each plant is shaped as it is:
 - Section 3's pass order: V2c.1 inserts the root pass before step 1, reverse
   closure into step 1, token-table hygiene after step 2, the environment half of
   rule 1 into step 3, and the token half of rule 1 and the configuration-shape
-  rule into step 5. No existing step's checks move.
+  rule into step 5, and adds the post-command check of V2c.5 after the root's
+  gate command. No existing step's checks move.
+- The premise of R-V10 that the gate-replacement hole closes "checked from the
+  environment and the tokens together" holds only once the gate runs whatever
+  handled its command; V2c.5 adds that requirement, which R-V10's text does not
+  state. It is a finding for the coordinator as well as a frozen rule.
 - Section 13, the bullet "a name built by metaprogramming … are invisible to the
   token pass": still true, and V2c.7 says which route catches each residual.
 - Sections 8 and V2b.5 hold for every row that predates this addendum: none is
@@ -1636,7 +1721,7 @@ outside this packet's fence; the breaker did not run the gate with them applied.
 Recorded on Windows 11, Lean 4.33.1, at the freeze tree, after a full build:
 `lake build` exit 0, 386 jobs, its gate line `checked 222 source files and 16497
 declarations; ... 0 source-token exemption(s)`; then `lake exe whatwg_trustselftest`
-exit 1 in 525 s. Its result lines, in the order the harness checks them (in a
+exit 1 in 526 s. Its result lines, in the order the harness checks them (in a
 captured log the standard-output lines follow the standard-error lines, as
 section 15 says), are 65 PASS and 17 FAIL: the 63 checks of the base and the two
 V2c acceptance rows pass, exactly the sixteen V2c rejection rows fail, and the
@@ -1729,7 +1814,11 @@ FAIL trust self-test
 
 A first run of this freeze reported V2c-M02 `rejected ... for an unexpected
 reason`: its fixture's `run_cmd` needed `import Lean.Elab.Command`, so the module
-did not build at the base. The fixture was repaired, not the expectation, and
-the run above is the repaired one; every V2c rejection row now fails only because
-the base gate lacks rules 1 through 5 or the metaprogramming anchor.
+did not build at the base. The fixture was repaired, not the expectation. The
+seat then added V2c.5's post-command requirement and its diagnostic as a third
+admitted fragment of V2c-M03, a string that cannot change any row's outcome at
+the base, and ran the self-test again on the final harness: the listing above is
+that run, byte-identical to the run before the edit apart from its time. Every
+V2c rejection row fails only because the base gate lacks rules 1 through 5 or
+the metaprogramming anchor.
 `lake exe whatwg_citations` and `lake exe whatwg_vendorseal` pass at the freeze.
