@@ -386,7 +386,7 @@ theorem close_empty :
             s.readRequests.map (fun id ↦ .settled (.read id (.ok .done))) } := by
   intro α ε s hg hq
   have hs := (canCloseOrEnqueue_iff s).mp hg
-  simp [close, streamClose, hg, hq, hs.1]
+  simp [close, streamClose, settleReadCells, hg, hq, hs.1]
 
 /--
 `op.readable-stream-default-controller-error`.
@@ -414,7 +414,7 @@ theorem error_readable :
         trace := s.trace ++ [.settled (.closed (.error e))] ++
           s.readRequests.map (fun id ↦ .settled (.read id (.error e))) } := by
   intros
-  simp_all [error]
+  simp_all [error, settleReadCells]
 
 /--
 `op.readable-stream-default-reader-read`.
@@ -428,7 +428,7 @@ theorem read_closed :
         readPromises := s.readPromises ++ [(s.nextRead, .fulfilled .done)],
         trace := s.trace ++ [.settled (.read s.nextRead (.ok .done))] } := by
   intros
-  simp_all [read]
+  simp_all [read, freshReadCell]
 
 /--
 `op.readable-stream-default-reader-read`.
@@ -442,7 +442,7 @@ theorem read_errored :
         readPromises := s.readPromises ++ [(s.nextRead, .rejected e)],
         trace := s.trace ++ [.settled (.read s.nextRead (.error e))] } := by
   intros
-  simp_all [read]
+  simp_all [read, freshReadCell]
 
 /--
 `op.readable-stream-default-reader-read`.
@@ -457,7 +457,7 @@ theorem read_empty :
           readPromises := s.readPromises ++ [(s.nextRead, .pending)],
           readRequests := s.readRequests ++ [s.nextRead] } := by
   intros
-  simp_all [read, Data.dequeueValue]
+  simp_all [read, freshReadCell, Data.dequeueValue]
 
 /--
 `op.readable-stream-default-controller-enqueue`.
@@ -487,7 +487,7 @@ theorem beginEnqueue_pending :
             trace := s.trace ++ [.settled (.read id (.ok (.chunk chunk)))] }
           (.returnEnqueue s.nextEnqueue) := by
   intros
-  simp_all [beginEnqueue]
+  simp_all [beginEnqueue, settleReadCell]
 
 /--
 `op.readable-stream-default-controller-enqueue`.
@@ -794,7 +794,7 @@ theorem streamClose_readable :
         trace := s.trace ++ [.settled (.closed (.ok ()))] ++
           s.readRequests.map (fun id ↦ .settled (.read id (.ok .done))) } := by
   intros
-  simp_all [streamClose]
+  simp_all [streamClose, settleReadCells]
 
 /--
 `op.readable-stream-close`.
@@ -826,7 +826,7 @@ theorem read_queued_eq :
             (.settleRead s.nextRead chunk)
         else callPullIfNeededWith t (.settleRead s.nextRead chunk) := by
   intros
-  simp_all [read, Data.dequeueValue]
+  simp_all [read, freshReadCell, Data.dequeueValue]
 
 /--
 `op.readable-stream-default-controller-enqueue`.
@@ -837,7 +837,7 @@ theorem finishEnqueue_thrown_nextError :
     (e : Boundary.Exception ε),
     (finishEnqueue s call chunk (.thrown e)).nextError = s.nextError := by
   intro α ε s call chunk e
-  cases hs : s.status <;> simp [finishEnqueue, error, hs]
+  cases hs : s.status <;> simp [finishEnqueue, error, settleReadCells, hs]
 
 /--
 `op.readable-stream-default-controller-enqueue`.
@@ -922,7 +922,7 @@ private theorem callPullIfNeededWith_nextRead {α ε : Type} (s : State α ε)
 
 private theorem streamClose_nextRead {α ε : Type} (s : State α ε) :
     (streamClose s).nextRead = s.nextRead := by
-  cases hs : s.status <;> simp [streamClose, hs]
+  cases hs : s.status <;> simp [streamClose, settleReadCells, hs]
 
 /--
 `op.readable-stream-default-reader-read`: allocate one read ID before suspension.
@@ -990,7 +990,7 @@ theorem readTable_freshReadCell {α ε : Type} (s : State α ε)
     (outcome : PromiseState (ReadResult α) ε) :
     (readTable (freshReadCell s outcome).1, (freshReadCell s outcome).2) =
       Whatwg.Ecma262.Promise.Table.fresh (readTable s) outcome := by
-  simp [readTable, Whatwg.Ecma262.Promise.Table.fresh]
+  simp [readTable, freshReadCell, Whatwg.Ecma262.Promise.Table.fresh]
 
 /-- `E-22` (Q4): overwriting one pending read cell is the landed guarded settle
 read through the view. The pending hypothesis is where the unguarded Streams
@@ -1007,7 +1007,7 @@ theorem readTable_settleReadCell {α ε : Type} (s : State α ε) (id : Nat)
   congr 1
   apply List.map_congr_left
   intro p _
-  cases result <;> by_cases hb : p.1 = id <;> simp [hb]
+  cases result <;> by_cases hb : p.1 = id <;> simp [hb, -BEq.rfl, beq_self_eq_true']
 
 /-! The three facts the set-shaped bridge needs: settling one identity leaves
 every lookup at a different identity alone, and two successive keyed updates
@@ -1018,9 +1018,9 @@ private theorem table_get_settle_other {value reason : Type}
     (r : Except reason value) (hne : ¬ i = a) :
     Whatwg.Ecma262.Promise.Table.get (Whatwg.Ecma262.Promise.Table.settle t a r) i =
       Whatwg.Ecma262.Promise.Table.get t i := by
-  by_cases hp :
-      Whatwg.Ecma262.Promise.Table.get t a = some Whatwg.Ecma262.Promise.State.pending
-  · have key : ∀ (g : Whatwg.Ecma262.Promise.Cell value reason →
+  by_cases hpb : Whatwg.Ecma262.Promise.Table.isPending t a = true
+  · have hp := (Whatwg.Ecma262.Promise.Table.isPending_iff t a).mp hpb
+    have key : ∀ (g : Whatwg.Ecma262.Promise.Cell value reason →
           Whatwg.Ecma262.Promise.Cell value reason)
         (l : List (Nat × Whatwg.Ecma262.Promise.Cell value reason)),
         List.find? (fun e => e.1 == i) (l.map (fun e => if e.1 == a then (e.1, g e.2) else e)) =
@@ -1049,7 +1049,8 @@ private theorem table_get_settle_other {value reason : Type}
           (match r with
             | .ok v => Whatwg.Ecma262.Promise.State.fulfilled v
             | .error x => Whatwg.Ecma262.Promise.State.rejected x) c.handled) t.entries))
-  · rw [Whatwg.Ecma262.Promise.Table.settle_other t a r hp]
+  · rw [Whatwg.Ecma262.Promise.Table.settle_other t a r
+      (fun hp => hpb ((Whatwg.Ecma262.Promise.Table.isPending_iff t a).mpr hp))]
 
 private theorem map_settle_cons {α ε : Type} (a : Nat) (ids : List Nat)
     (V : PromiseState (ReadResult α) ε)
@@ -1104,7 +1105,7 @@ private theorem foldl_settle_readTable {α ε : Type}
         congr 1
         apply List.map_congr_left
         intro p _
-        by_cases hb : p.1 = a <;> simp [hb]
+        by_cases hb : p.1 = a <;> simp [hb, -BEq.rfl, beq_self_eq_true']
       have hrest : ∀ i ∈ rest, Whatwg.Ecma262.Promise.Table.get
           (Whatwg.Ecma262.Promise.Table.mk
             ((l.map (fun p => if p.1 = a then (p.1, V) else p)).map

@@ -1549,9 +1549,10 @@ theorem settle_bridge {α ε : Type} (s : State α ε) (id : Nat)
     promiseTable (settle s id result) =
       Whatwg.Ecma262.Promise.Table.settle (promiseTable s) id result := by
   have hbridge := lookupPromise_bridge s id
-  by_cases hp : lookupPromise s id = some Whatwg.Ecma262.Promise.State.pending
-  · rw [settle_pending s id result hp,
-      Whatwg.Ecma262.Promise.Table.settle_pending (promiseTable s) id result (hbridge ▸ hp)]
+  by_cases hpb : Whatwg.Ecma262.Promise.Table.isPending (promiseTable s) id = true
+  · have hp' := (Whatwg.Ecma262.Promise.Table.isPending_iff (promiseTable s) id).mp hpb
+    rw [settle_pending s id result (hbridge.trans hp'),
+      Whatwg.Ecma262.Promise.Table.settle_pending (promiseTable s) id result hp']
     simp only [promiseTable, List.map_map]
     congr 1
     apply List.map_congr_left
@@ -1559,8 +1560,11 @@ theorem settle_bridge {α ε : Type} (s : State α ε) (id : Nat)
     by_cases hb : q.1 = id
     · subst hb; cases result <;> simp
     · simp [hb]
-  · rw [settle_other s id result hp,
-      Whatwg.Ecma262.Promise.Table.settle_other (promiseTable s) id result (hbridge ▸ hp)]
+  · have hp' : Whatwg.Ecma262.Promise.Table.get (promiseTable s) id ≠
+        some Whatwg.Ecma262.Promise.State.pending :=
+      fun h => hpb ((Whatwg.Ecma262.Promise.Table.isPending_iff (promiseTable s) id).mpr h)
+    rw [settle_other s id result (fun h => hp' (hbridge.symm.trans h)),
+      Whatwg.Ecma262.Promise.Table.settle_other (promiseTable s) id result hp']
 
 /-- `E-21`: marking handled is `Table.markHandled` through the view. Mask M1. -/
 theorem markHandled_bridge {α ε : Type} (s : State α ε) (id : Nat) :

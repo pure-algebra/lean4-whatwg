@@ -23,6 +23,7 @@ attribute [local simp] initial withReadable withWritable lookupPromise freshInte
   Readable.shouldCallPull Readable.canCloseOrEnqueue Readable.callPullIfNeeded
   Readable.callPullIfNeededWith Readable.continuePull Readable.observeM1 Readable.settlementTrace
   Readable.chunksOfSettlements Readable.acceptPullAnswer Readable.reactPull Readable.runPullJob
+  Readable.freshReadCell Readable.settleReadCell Readable.settleReadCells
   Writable.initial Writable.tick Writable.decide Writable.externalFrontier Writable.operationPhase
   Writable.operationKind Writable.operationRequest Writable.setOperationPhase Writable.attachSink
   Writable.invokeSink Writable.acceptAnswer Writable.sizes Writable.sizeNonPositive
@@ -36,6 +37,14 @@ attribute [local simp] initial withReadable withWritable lookupPromise freshInte
   Data.DyadicSize.isNaN Data.DyadicSize.isNegative Data.DyadicSize.isInfinite
   Data.DyadicSize.add Data.DyadicSize.sub Data.DyadicSize.neg
   Boundary.Exception.ofRangeError
+
+/-- Choice-free forms of core's `Nat.add_eq_left` and `Nat.left_eq_add`, whose
+proofs reach `Classical.choice`; the closing `simp` calls below use these. -/
+private theorem add_eq_left_cf {a b : Nat} : a + b = a ↔ b = 0 :=
+  ⟨fun h => Nat.add_left_cancel (h.trans (Nat.add_zero a).symm), fun h => by subst h; rfl⟩
+
+private theorem left_eq_add_cf {a b : Nat} : a = a + b ↔ b = 0 :=
+  ⟨fun h => (Nat.add_left_cancel ((Nat.add_zero a).trans h)).symm, fun h => by subst h; rfl⟩
 
 /--
 `op.transform-stream-default-sink-write-algorithm`, `op.transform-stream-default-source-pull`,
@@ -76,9 +85,12 @@ theorem coupled_write_read_enqueue :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }) [Nat.add_assoc])
+    | (unfold Step; simp (config := { zetaDelta := true })
+        [Nat.add_assoc, -BEq.rfl, beq_self_eq_true', -Nat.add_eq_left, -Nat.left_eq_add,
+          add_eq_left_cf, left_eq_add_cf])
     | rfl
-    | (simp (config := { zetaDelta := true }))⟩
+    | (simp (config := { zetaDelta := true })
+        [-BEq.rfl, beq_self_eq_true', -Nat.left_eq_add, left_eq_add_cf])⟩
 
 /--
 `op.transform-stream-default-sink-write-algorithm`, `op.transform-stream-default-source-pull`,
@@ -120,9 +132,12 @@ theorem coupled_error_during_transform :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }) [Nat.add_assoc])
+    | (unfold Step; simp (config := { zetaDelta := true })
+        [Nat.add_assoc, -BEq.rfl, beq_self_eq_true', -Nat.add_eq_left, -Nat.left_eq_add,
+          add_eq_left_cf, left_eq_add_cf])
     | rfl
-    | (simp (config := { zetaDelta := true }))⟩
+    | (simp (config := { zetaDelta := true })
+        [-BEq.rfl, beq_self_eq_true', -Nat.left_eq_add, left_eq_add_cf])⟩
 
 /--
 `op.transform-stream-default-sink-write-algorithm`, `op.transform-stream-default-source-pull`,
@@ -164,8 +179,11 @@ theorem coupled_positive_readable_capacity :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }) [Nat.add_assoc])
+    | (unfold Step; simp (config := { zetaDelta := true })
+        [Nat.add_assoc, -BEq.rfl, beq_self_eq_true', -Nat.add_eq_left, -Nat.left_eq_add,
+          left_eq_add_cf])
     | rfl
-    | (simp (config := { zetaDelta := true }))⟩
+    | (simp (config := { zetaDelta := true })
+        [-BEq.rfl, beq_self_eq_true', -Nat.left_eq_add, left_eq_add_cf])⟩
 
 end Whatwg.Streams.Transform

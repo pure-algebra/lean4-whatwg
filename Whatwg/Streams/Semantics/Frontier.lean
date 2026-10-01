@@ -118,7 +118,7 @@ private theorem suspensions_sink_count {α ε : Type} {control : List (Writable.
   | sinkIntrinsic _ _ => simp [sinkMarkerCount]
   | sinkCall _ _ _ _ _ hcount ih =>
       simp only [sinkMarkerCount, List.filter_cons] at hcount ⊢
-      simp_all
+      simp [hcount]
 
 /-- Class [A]. Mask M1. -/
 theorem successfulControl_advance_staged_empty {α ε : Type}

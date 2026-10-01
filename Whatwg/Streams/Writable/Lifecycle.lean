@@ -64,7 +64,7 @@ theorem lifecycle_write_close :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }))
+    | (unfold Step; simp (config := { zetaDelta := true }) [-BEq.rfl, beq_self_eq_true'])
     | rfl⟩
 
 /--
@@ -112,7 +112,7 @@ theorem lifecycle_abort_rejection :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }))
+    | (unfold Step; simp (config := { zetaDelta := true }) [-BEq.rfl, beq_self_eq_true'])
     | rfl⟩
 
 end Whatwg.Streams.Writable

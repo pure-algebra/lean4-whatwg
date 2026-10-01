@@ -24,6 +24,7 @@ attribute [local simp] initial snapshot emit drainGuard nextUnwritten allWritten
   Readable.read Readable.error Readable.shouldCallPull Readable.canCloseOrEnqueue
   Readable.callPullIfNeeded Readable.callPullIfNeededWith Readable.continuePull
   Readable.chunksOfSettlements
+  Readable.freshReadCell Readable.settleReadCell Readable.settleReadCells
   Writable.initial Writable.tick Writable.decide Writable.externalFrontier Writable.operationPhase
   Writable.operationKind Writable.operationRequest Writable.setOperationPhase Writable.attachSink
   Writable.invokeSink Writable.acceptAnswer Writable.sizes Writable.sizeNonPositive
@@ -127,9 +128,9 @@ theorem lifecycle_two_writes_abort_rejection :
   | apply And.intro
   | exact Reaches.nil _
   | apply Reaches.cons
-  | (unfold Step; simp (config := { zetaDelta := true }))
+  | (unfold Step; simp (config := { zetaDelta := true }) [-BEq.rfl, beq_self_eq_true'])
   | rfl
-  | (simp (config := { zetaDelta := true }))
+  | (simp (config := { zetaDelta := true }) [-BEq.rfl, beq_self_eq_true'])
 
 /-- Frozen canonical prefix/run witness for write rejection with either prevention flag. -/
 theorem lifecycle_write_rejection_retains_source :
@@ -206,7 +207,7 @@ theorem lifecycle_write_rejection_retains_source :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }))
+    | (unfold Step; simp (config := { zetaDelta := true }) [-BEq.rfl, beq_self_eq_true'])
     | rfl
     | (simp (config := { zetaDelta := true }))
 
@@ -242,7 +243,7 @@ theorem lifecycle_write_rejection_retains_source :
     | apply And.intro
     | exact Reaches.nil _
     | apply Reaches.cons
-    | (unfold Step; simp (config := { zetaDelta := true }))
+    | (unfold Step; simp (config := { zetaDelta := true }) [-BEq.rfl, beq_self_eq_true'])
     | rfl
     | (simp (config := { zetaDelta := true }))
 

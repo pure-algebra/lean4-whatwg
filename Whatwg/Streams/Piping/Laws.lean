@@ -610,7 +610,7 @@ private theorem frame_decide {α ε : Type} (s t : State α ε)
     | sourceError reason =>
         cases h
         simp only [Frame, emit, deliveredReads_error]
-        cases hs : s.source.status <;> simp [Readable.error, hs]
+        cases hs : s.source.status <;> simp [Readable.error, Readable.settleReadCells, hs]
     | writable choice =>
         dsimp only at h
         split at h
@@ -812,7 +812,21 @@ private theorem refs_tick {α ε : Type} (s t : Writable.State α ε)
       returned_fold_settle] at *
     simp_all only [returned_fold_settle, List.mem_append, List.mem_cons,
       List.not_mem_nil, or_false, or_true, and_true,
-      Writable.Control.returnPromise.injEq, Writable.Event.returned.injEq] <;> grind
+      Writable.Control.returnPromise.injEq, Writable.Event.returned.injEq,
+      reduceCtorEq, false_or, false_implies, implies_true, or_imp, forall_and, and_imp,
+      true_and] <;>
+    first
+      | exact safe
+      | exact safe.1
+      | exact ⟨safe.1, safe.2.1⟩
+      | exact ⟨safe.1.2, safe.2.1⟩
+      | exact ⟨fun _ _ h => Or.inl (safe.1 _ _ h), fun _ _ h => Or.inl (safe.2 _ _ h)⟩
+      | refine ⟨fun _ _ h => Or.inl (safe.1 _ _ h), fun _ _ h => Or.inl (safe.2.1 _ _ h), ?_⟩
+        have ha := safe.2.2
+        revert ha
+        cases s.pendingAbort with
+        | none => exact fun _ => trivial
+        | some abort => cases abort <;> exact Or.inl
 
 private theorem refs_decide {α ε : Type} (s t : Writable.State α ε)
     (d : Writable.Decision α ε) (safe : ReturnRefs s)
@@ -824,7 +838,7 @@ private theorem refs_decide {α ε : Type} (s t : Writable.State α ε)
     | contradiction
     | split at step
     | cases step
-  all_goals simp_all [ReturnRefs, PromiseKeys] <;> grind
+  all_goals simp_all [ReturnRefs, PromiseKeys] <;> exact ⟨safe.1, safe.2.1⟩
 
 private theorem refs_step {α ε : Type} (s t : Writable.State α ε)
     (d : Option (Writable.Decision α ε)) (safe : ReturnRefs s)
@@ -938,7 +952,7 @@ private theorem prevention_step {α ε : Type} (s t : State α ε)
       | split at step
       | (simp only [Option.map_eq_some_iff] at step; obtain ⟨value, _, rfl⟩ := step)
       | cases step
-    all_goals simp_all [Prevention, emit] <;> grind
+    all_goals simp_all [Prevention, emit]
 
 /--
 Under preventAbort, a finalization request retains the selected source reason and no abort IDs.
@@ -974,9 +988,9 @@ private theorem lookup_map_other {ε : Type} (ps : List (Nat × Writable.UnitPro
       rcases p with ⟨key, value⟩
       by_cases ht : key = target
       · subst key
-        simpa [Ne.symm different] using ih
+        simpa [Ne.symm different, -BEq.rfl, beq_self_eq_true'] using ih
       · by_cases hi : key = id
-        · simp [hi, different]
+        · simp [hi, different, -BEq.rfl, beq_self_eq_true']
         · simpa [ht, hi] using ih
 
 private theorem lookup_settle_other {α ε : Type} (s : Writable.State α ε)
@@ -1211,7 +1225,9 @@ private theorem shape_stepWritable {α ε : Type} (s t : State α ε)
   simp only [stepWritable, Option.map_eq_some_iff] at step
   obtain ⟨w, hw, rfl⟩ := step
   have drain := writesSettled_destination (snapshot s) w d hw
-  cases hp : s.phase <;> simp_all [ProtocolShape, emit, snapshot] <;> grind
+  cases hp : s.phase <;> simp_all [ProtocolShape, emit, snapshot] <;>
+    obtain ⟨p, h1, h2, h3, h4, h5⟩ := safe <;>
+    exact ⟨p, h1, h2, h3, h4, h5.imp_right drain⟩
 
 private theorem shape_invokeWrite {α ε : Type} (s t : State α ε) (l : ReadWriteLink α)
     (safe : ProtocolShape s) (phase : s.phase = .running ∨ s.phase = .draining)
@@ -1349,8 +1365,14 @@ private theorem step_emits {α ε : Type} (s t : State α ε) (d : Option (Decis
       try contradiction
       first
       | refine ⟨_, rfl, rfl, nonfinal, safe.inventory, inventory, frame.2.2.2.1, frame.1, ?_⟩
-        simp_all [snapshot, emit, Writable.Step, foreignDecision_iff, drainGuard_true_iff] <;> grind
-      | exfalso; grind
+        simp_all [snapshot, emit, Writable.Step, foreignDecision_iff, drainGuard_true_iff] <;>
+        first
+        | obtain ⟨pre, ⟨rest, hlinks⟩, earlier, unwritten⟩ := next
+          exact ⟨pre, _, ⟨rest, hlinks⟩, earlier, rfl, rfl, unwritten⟩
+        | obtain ⟨_, _, _, abortCall, abortPromise, _⟩ := shape
+          exact ⟨abortCall, abortPromise⟩
+      | exfalso
+        simp only [Readable.Status.errored.injEq, true_implies, forall_eq'] at *
 
 private theorem chain_append {α ε : Type} (a b c : Snapshot α ε)
     (left right : List (ProtocolRecord α ε))
