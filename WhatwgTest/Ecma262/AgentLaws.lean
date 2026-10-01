@@ -29,11 +29,13 @@ program-level `run_adequate` over lean4-effect4's `Protocol` waits until that
 module is in the `effects` package (R-W3).
 
 Masks are DB-04's, written "DB-04 M1" and "DB-04 M2"; no Lean name here
-spells a mask. Every law of this module is DB-04 M1 except `Le.trace`'s
-prefix clause (DB-04 M2, the settlement order), `settle_trace`,
-`runOps_fifo` and `runOps_fifoRequirement` (DB-04 M2, settlement and job
-order), and the nine `*_implements` and `implements`, which carry DB-04 M2
-through `Le`'s trace clause.
+spells a mask. A law is DB-04 M2 when its statement observes the order of the
+settlement trace or of the job queue, and DB-04 M1 otherwise. `Le`'s `trace`
+clause is a prefix of the settlement order, so every law that concludes `Le`
+is DB-04 M2: `Le.refl`, `Le.trans`, `Le.step`, `Implements_iff`, the nine
+`*_implements` and `implements`. The others that are DB-04 M2 are
+`runOps_cons`, `runOps_fifo` and `runOps_fifoRequirement` (start order) and
+`settle_trace` (settlement order). Every other law here is DB-04 M1.
 -/
 
 set_option autoImplicit false
