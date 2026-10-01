@@ -216,7 +216,9 @@ On success the command adds exactly one declaration and prints nothing:
 - kind: a safe definition with no universe parameters, of type the constant
   `WhatwgTest.Audit.Freeze.Entry`, added by `Lean.addDecl`, so the kernel
   checks it (no `skipKernelTC`, no `Environment.addDeclWithoutChecking`); its
-  reducibility hints are the builder's;
+  `ReducibilityHints` are the builder's, and it carries no reducibility
+  attribute, so that default transparency unfolds it (an `@[irreducible]`
+  entry would fail the battery's `rfl` read-backs);
 - value: the closed term `Entry.mk d a m an g ce`, each argument the
   `Lean.toExpr` form of its field at the pinned toolchain (`Name`, `Option`,
   `List`, `String`), the mask as `Option.none` or `Option.some` of one of the
