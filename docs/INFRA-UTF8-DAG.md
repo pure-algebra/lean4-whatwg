@@ -162,5 +162,5 @@ landing receipts; it may not weaken this packet.
 `docs/receipts/INFRA-PG-UTF8.md` holds this graph's history, moved there
 verbatim under ruling R-V4: the freeze-time edge table. The landing record of
 this packet is ruling R-U4 in `COORDINATION.md`, with debt D42 beside it, and
-R-U5 rules on the URL `encoding` obligation; the "Current state" section above
-transcribes them.
+R-U5 rules on the URL `encoding` obligation; the ledger entry that the
+"Current state" section above links to cites both rulings.

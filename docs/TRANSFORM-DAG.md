@@ -121,4 +121,4 @@ still owns that receipt and its exact commands and keeps it in that log, so
 references to them resolve there. The coordinator's integration and module
 allocation record stays above because it carries the module placement of the
 frozen names; its last sentence describes the edges during implementation, and
-the table in "Current state" supersedes it.
+the projection that "Current state" links to supersedes it.
