@@ -204,9 +204,10 @@ graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
 still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
 global `@[simp]` attributes R-P27 re-froze.
 
-**Review lane V landed, 2026-10-01** (rulings R-V6 to R-V8 in
+**Review lane V landed, 2026-10-01** (rulings R-V6 to R-V11 in
 `COORDINATION.md`). No theorem statement, definition body or disposition
-changed, and no coverage row moved.
+changed, and no coverage row moved. An independent reviewer re-derived
+statement identity and the strict-ceiling residue by its own method (R-V9).
 
 - V1 and V5: no declaration under `Whatwg.Ecma262`, `Whatwg.WebIdl`,
   `Whatwg.Url`, `Whatwg.Infra.Text.Utf8` or `Whatwg.Streams` reaches
@@ -219,8 +220,18 @@ changed, and no coverage row moved.
   refuses a declared axiom, `@[extern]`, `@[implemented_by]` and a bodyless
   `opaque`; and refuses the trust tokens of
   `test/contracts/trust-gate-hardening.contract.md` in any command, the
-  entry points included. `lake exe whatwg_trustselftest` passes 64 checks,
-  and it and a `leanchecker` kernel replay are CI steps.
+  entry points included.
+- V2c, after the independent review found three undeclared ways past the gate
+  and a breaker a fourth: audited code is object-level, with syntax, macro
+  and elaborator declarations and metaprograms allowed only in the ten
+  modules on the gate's exact list; non-core tokens must be unable to hide a
+  refused word; a `(config := …)` value is a literal brace group; the test
+  root holds only imports and the gate command, and linters check that the
+  gate's own elaborator ran it; and every audited module maps to a scanned
+  source. `lake exe whatwg_trustselftest` passes 81 checks, and it and a
+  `leanchecker` kernel replay are CI steps. The token rules are lexical: the
+  contract's claim-scope sections say what they do not catch, and debts D51,
+  D55 and D56 record the residue.
 - V3: the tooling library is `WhatwgGates`, the executable roots are
   `whatwgbin.*` and the executables are `whatwg_*`, with declaration
   namespaces unchanged; each standard has its own Lake library

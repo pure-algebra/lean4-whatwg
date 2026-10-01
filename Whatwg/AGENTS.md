@@ -84,7 +84,10 @@ and `Whatwg.Streams` at the lane V landing) the ceiling is `propext` and
 alike; an exact exception beside the list, with its reason, is the only
 admission. `sorry`, `admit`, `native_decide`, `bv_decide`, `partial`,
 `unsafe`, `@[extern]`, `@[implemented_by]`, a bodyless `opaque` and new
-axioms are rejected by the same gate, inside an `example` included.
+axioms are rejected by the same gate, inside an `example` included. Code in
+this tree is object-level (ruling R-V10): it declares no syntax, notation,
+macro or elaborator and runs no metaprogram, so `notation`, `macro`, `elab`,
+`run_cmd`, `#eval` and their siblings are refused here.
 
 What takes a proof over the strict ceiling, as lane V measured it: `by_cases`
 on a proposition with no `Decidable` instance; a `simp` that closes `n == n`

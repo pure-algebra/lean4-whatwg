@@ -30,7 +30,9 @@ profiles. Specification coverage is stated only by the blocks
 2026-10-01) changed no theorem statement: it made every declaration of
 `Whatwg.Ecma262`, `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Streams` and
 `Whatwg.Infra.Text.Utf8` reach at most `propext` and `Quot.sound`, a ceiling
-the axiom gate now enforces for those module prefixes, and hardened that gate;
+the axiom gate now enforces for those module prefixes, and hardened that gate
+(`test/contracts/trust-gate-hardening.contract.md` states what it refuses and
+what it does not catch);
 `PLAN.md` records its slices.
 
 ## Build and gates

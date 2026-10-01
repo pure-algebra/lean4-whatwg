@@ -150,9 +150,22 @@ inside an `example` included, it refuses every token that opens a trust
 channel no constant records (rulings R-V2 and R-V6; the word list is section
 4.2 and addendum V2b of `test/contracts/trust-gate-hardening.contract.md`).
 This forbids `native_decide`, `bv_decide`, `sorry` and `admit`, and switching
-`warningAsError` off in code. The gate's summary line reports, per tree, how
-many declarations reach `Classical.choice`. The gate code carries R-11 since
-commit `184d7fe`, and R-V1, R-V2 and R-V6 since the lane V landing.
+`warningAsError` off in code. Code in the audited trees is object-level
+(ruling R-V10, addendum V2c of the same contract): it declares no syntax,
+macro or elaborator and runs no metaprogram outside the modules named on the
+gate's exact `metaprogrammingModules` list. The gate refuses the keywords
+that do so, and any other module's registration of a token, parser, syntax
+category, macro, elaborator or initializer, however spelled. It also refuses
+a token of the final token table that could hide a refused word, a
+`(config := …)` whose value is not a literal brace group, any command of
+`WhatwgTest.lean` other than its imports and the gate command, which comes
+last, and an audited module that maps to no scanned source. Linters the gate
+module registers check that the gate's own elaborator ran the root's gate
+command, and run every pass when it did not. The gate's summary line reports,
+per tree, how many declarations reach `Classical.choice`. The token rules are
+lexical, and the contract's claim-scope sections (13, V2b.7 and V2c.7) list
+what they do not catch. The gate code carries R-11 since commit `184d7fe`,
+and R-V1, R-V2, R-V6 and R-V10 since the lane V landing.
 
 ## Generated facts and long-run continuity
 
