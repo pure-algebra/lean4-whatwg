@@ -20,12 +20,17 @@ Each standard is its own Lake library (ruling R-V3(d)): `WhatwgInfra`,
 `WhatwgEcma262`, `WhatwgWebIdl`, `WhatwgUrl`, `WhatwgHtml` and
 `WhatwgStreams`, each owning its root module `Whatwg.<Standard>` and every
 module under it, while the library `Whatwg` owns only the umbrella module
-`Whatwg`. No module belongs to two libraries, so `lake build WhatwgEcma262`
-builds that standard's import closure alone, and `lake build Whatwg` builds
-every production module through the umbrella's imports. Module names and
-namespaces are unchanged by the split. A module placed directly under
-`Whatwg/` outside those six directories has no owning library and cannot be
-imported, so a new standard needs its own library entry in `lakefile.toml`.
+`Whatwg`. The library `WhatwgSignatures` owns `Whatwg.Signatures` and every
+module under it in the same way (ruling R-W3); it is not a standard but the
+`Effects.Signature` faces of the stateful layers, and it is the one production
+library that imports the `effects` package, so no standard's library needs
+`effects` to build. No module belongs to two libraries, so
+`lake build WhatwgEcma262` builds that standard's import closure alone, and
+`lake build Whatwg` builds every production module through the umbrella's
+imports. Module names and namespaces are unchanged by the split. A module
+placed directly under `Whatwg/` outside those seven directories has no owning
+library and cannot be imported, so a new standard needs its own library entry
+in `lakefile.toml`.
 
 ## Planned source tree
 
@@ -33,6 +38,7 @@ imported, so a new standard needs its own library entry in `lakefile.toml`.
 | --- | --- |
 | `Whatwg/Ecma262` | ECMA-262 (ES2026), not a WHATWG standard: `Promise` (promise objects, reaction and capability records, resolving functions, `PerformPromiseThen`) and `Jobs` (job closures, `HostEnqueuePromiseJob`, the FIFO queue DB-03 makes state); beneath every Stratum S library, imports only `Whatwg/Infra` (ruling DB-11); bootstrapped 2026-09-06, declarations landed by the promise slices Q3 and Q3b (graph `PROMISE-PG-FIRST`, `docs/PROMISE-DAG.md`) |
 | `Whatwg/WebIdl` | Web IDL Standard: `Promise` (the spec-level verbs over `Ecma262.Promise`) and `Exceptions` (simple exceptions and `DOMException` names); imports `Whatwg/Ecma262` and `Whatwg/Infra` only; the binding layer stays `hostOnly`; bootstrapped 2026-09-06, declarations landed by the promise slices Q3 and Q3b (graph `PROMISE-PG-FIRST`, `docs/PROMISE-DAG.md`) |
+| `Whatwg/Signatures` | not a standard: the `Effects.Signature` faces of the stateful layers, each an adapter over its layer's step. `Ecma262` is the ECMAScript agent's (promise slice Q5, graph `PROMISE-PG-AGENT`, ruling R-W3): the signature, its canonical, lens and sum handlers, the step-fold `run` and the handler–step agreement laws. Imports `Whatwg/Ecma262` and, alone among the production trees, the `effects` package, through `Effects.Algebra.Sum` and never `Effects.Experimental`, `Effects.Trace`, `Effects.Flow` or `Effects.Family`; library `WhatwgSignatures` |
 | `Whatwg/Url` | URL Standard: `PercentEncoding`, `Host`, `Record`, `Parser`, `Serializer`, `Origin`, `Rendering`, `FormUrlEncoded`, `Api/Url`, `Api/UrlSearchParams`, `Boundary`; U1 scaffold, of which `PercentEncoding` and `Boundary` carry the U3 percent-encoding declarations (graph `URL-PG-PERCENT`, `docs/URL-PERCENT-ENCODING-DAG.md`) and the other modules are still declaration-free; packets scheduled by `docs/URL-PACKAGE-PLAN.md` |
 | `Whatwg/Infra` | the Infra Standard: the value universe every other standard is indexed by (Stratum V); byte, code-point, UTF-16 string and text helpers imported from its root; `docs/INFRA-PROOF-PLAN.md` tracks the wider census and assurance work |
 | `Whatwg/Html` | the HTML content model ported from TyXML's row types under the HTML Standard's authority: `Schema` (authored source since 2026-09-06, first transcribed from TyXML at H2: tag and attribute universes, every named content and attribute set as a constructor-dispatch membership function, element and attribute rows; data and derived instances only), `Content` (admission, transparency, lattice, divergence rows), `Node` (raw and typed trees, erasure, combinators) and `Print` (escaping and rendering), which carry declarations, and `Syntax`, `Bridge` (declaration-free stubs) |
