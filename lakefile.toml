@@ -5,7 +5,7 @@ keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
 defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
-                  "WhatwgUrl", "WhatwgHtml", "WhatwgStreams",
+                  "WhatwgUrl", "WhatwgHtml", "WhatwgStreams", "WhatwgSignatures",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus"]
@@ -59,6 +59,16 @@ globs = ["Whatwg.Html.*"]
 name = "WhatwgStreams"
 roots = ["Whatwg.Streams"]
 globs = ["Whatwg.Streams.*"]
+
+# The `Effects.Signature` faces (ruling R-W3), not a standard: the one
+# production library that imports the `effects` package, so that no standard's
+# library needs it to build. It owns `Whatwg.Signatures` and every module under
+# it. The tree is not `Whatwg.Effects`, which would shadow the root namespace
+# `Effects` inside its own modules.
+[[lean_lib]]
+name = "WhatwgSignatures"
+roots = ["Whatwg.Signatures"]
+globs = ["Whatwg.Signatures.*"]
 
 # Repository gates implemented in Lean. Tooling, not semantics; audited for
 # totality and forbidden axioms under ruling R-11's ceiling, like every tree.
@@ -127,7 +137,8 @@ rev = "c906b15dc3e94ebac0c10056270fbb345a1d2b6e"
 # ruled in lean4-effect4 docs/EFFECTS-SPLIT-PLAN.md, EP-9), with signature
 # morphisms, handler transport, families, and the generic first-order Flow.
 # Exact commit of tag v0.8.0 of pure-algebra/lean4-effects, the pin
-# lean4-effect4 uses (ruling R-V3(b)). Nothing imports it yet.
+# lean4-effect4 uses (ruling R-V3(b)). Only the library `WhatwgSignatures`
+# imports it (ruling R-W3).
 [[require]]
 name = "effects"
 git = "https://github.com/pure-algebra/lean4-effects"

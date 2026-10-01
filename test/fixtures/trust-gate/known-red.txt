@@ -548,3 +548,45 @@
 # and WhatwgTest.Audit.FreezeContract. The battery is green with no byte of it
 # changed: every #guard_msgs control matches and every rfl read-back holds.
 # The entry is removed. No entry remains.
+
+# Q5 agent packet, review lane W (ruling R-W3), frozen 2026-10-01 by the Q5
+# breaker seat on branch review/w9-q5-breaker from b0d35e2.
+# Packet: test/contracts/promise-agent-q5.contract.md. Graph: PROMISE-PG-AGENT,
+# docs/PROMISE-AGENT-DAG.md. Attacks: WS-PROM-CE-040..047.
+#
+# FOUR entries, one battery per builder slice, so that each entry leaves when
+# its own slice lands: B1 (record, operations, step, views, D46) turns
+# AgentContract green; B2 (WF lemmas, adequacy, lifted laws) AgentLaws; B3
+# (Web IDL verbs) WebIdl.AgentContract; B4 (the Effects face, the
+# WhatwgSignatures library and the umbrella import) Signatures.Ecma262Contract.
+# Each module is red only because the names it ascribes do not exist yet; the
+# contract's freeze receipt records the measured diagnostics. No axiom-report
+# module is written (R-W9). Under R-W9 the packet does not reach main while
+# red: each slice branches from the breaker's head and merges when its battery
+# is green and its entry is gone. Breakers do not edit WhatwgTest.lean; the
+# builder that turns a battery green adds its root import.
+#
+# 2026-10-01, Q5 builder slice B1 (branch review/w9-q5-b1 from 49d45e1, rulings
+# R-W3 and R-W13): Whatwg/Ecma262/Agent.lean landed and
+# WhatwgTest.Ecma262.AgentContract is green with no statement changed. Its entry
+# is removed and its root import added; three entries remain.
+#
+# 2026-10-01, Q5 builder slice B2 (branch review/w9-q5-b2 from 3f7ccc1, rulings
+# R-W3 and R-W13): Whatwg/Ecma262/AgentLaws.lean landed and
+# WhatwgTest.Ecma262.AgentLaws is green with no statement changed. Its entry is
+# removed and its root import added; the B3 and B4 entries are not this slice's.
+#
+# 2026-10-01, Q5 builder slice B3 (branch review/w9-q5-b34 from 3f7ccc1, rulings
+# R-W3 and R-W13): Whatwg/WebIdl/Agent.lean landed and
+# WhatwgTest.WebIdl.AgentContract is green with no statement changed. Its entry
+# is removed and its root import added.
+#
+# 2026-10-01, Q5 builder slice B4 (same branch, rulings R-W3 and R-W13):
+# Whatwg/Signatures.lean, Whatwg/Signatures/Ecma262.lean, the Lake library
+# WhatwgSignatures with its defaultTargets entry and the umbrella import landed,
+# and WhatwgTest.Signatures.Ecma262Contract is green with no statement changed.
+# Its entry is removed and its root import added; the strictCeilingPrefixes
+# entry for Whatwg.Signatures is the coordinator's, at the landing.
+#
+# 2026-10-01, coordinator, at the Q5 integration: all four Q5 entries are
+# removed. No entry remains.

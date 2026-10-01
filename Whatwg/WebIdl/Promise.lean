@@ -55,13 +55,23 @@ def Promise.rejectedWith {value reason : Type}
 
 /-! ## The two settling operations and the handled bit -/
 
-/-- `op.resolve` (349216..349783), 35 Streams invocations. `E-20` (generalize). -/
+/-- `op.resolve` (349216..349783), 35 Streams invocations. `E-20` (generalize).
+Store-level view; the agent operation is `Whatwg.WebIdl.Agent.resolve`. This
+form settles the table and nothing else, so it triggers no reaction (debt
+D46); for a capability whose resolving functions an agent stored, under that
+agent's `WF`, it is the agent operation's table
+(`Whatwg.WebIdl.Agent.resolve_view`). -/
 def Promise.resolve {value reason : Type}
     (t : Whatwg.Ecma262.Promise.Table value reason) (id : Nat) (v : value) :
     Whatwg.Ecma262.Promise.Table value reason :=
   Whatwg.Ecma262.Promise.Table.settle t id (Except.ok v)
 
-/-- `op.reject` (349785..350073), 23 Streams invocations. `E-20` (generalize). -/
+/-- `op.reject` (349785..350073), 23 Streams invocations. `E-20` (generalize).
+Store-level view; the agent operation is `Whatwg.WebIdl.Agent.reject`. This
+form settles the table and nothing else, so it triggers no reaction (debt
+D46); for a capability whose resolving functions an agent stored, under that
+agent's `WF`, it is the agent operation's table
+(`Whatwg.WebIdl.Agent.reject_view`). -/
 def Promise.reject {value reason : Type}
     (t : Whatwg.Ecma262.Promise.Table value reason) (id : Nat) (r : reason) :
     Whatwg.Ecma262.Promise.Table value reason :=
