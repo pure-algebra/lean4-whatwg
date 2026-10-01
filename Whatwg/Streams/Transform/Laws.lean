@@ -74,7 +74,8 @@ theorem freshInternal_new :
   cases hf : s.writable.promises.find? (fun p => p.1 == s.writable.nextPromise) with
   | none =>
       simp [freshInternal, withWritable, lookupPromise, Writable.freshPromise,
-        Writable.lookupPromise, List.find?_append, hf, Writable.unitPromiseToShared]
+        Writable.lookupPromise, List.find?_append, hf, Writable.unitPromiseToShared,
+        -BEq.rfl, beq_self_eq_true']
   | some p => simp [hf] at h
 
 /-- `op.transform-stream-set-backpressure`: the frozen local equation. -/
@@ -1383,6 +1384,19 @@ theorem settle_jobQueue_order {α β ε : Type} (s : State α β ε) (id : Nat)
   simp only [jobQueue, Whatwg.Ecma262.Jobs.Queue.enqueueAll,
     (foldlM_notify_effect answer _ _ t hs).1, withWritable]
 
+/-- A filter that keeps nothing is empty; the converse half of core's
+`List.filter_eq_nil_iff`, proved by induction. -/
+private theorem filter_eq_nil_of_forall {γ : Type} (p : γ → Bool) :
+    ∀ (l : List γ), (∀ a, a ∈ l → ¬ p a = true) → l.filter p = []
+  | [], _ => rfl
+  | a :: rest, h => by
+      have ha : p a = false := by
+        cases hpa : p a with
+        | false => rfl
+        | true => exact absurd hpa (h a (List.Mem.head _))
+      simp only [List.filter, ha]
+      exact filter_eq_nil_of_forall p rest (fun b hb => h b (List.Mem.tail _ hb))
+
 /-- Row 15 (`E-33`, generalize, Q4): the once-only half, the instance of
 `triggerReactions_once` at this state — no subscription on the settled identity
 is left waiting. Mask M1. -/
@@ -1397,7 +1411,7 @@ theorem settle_waiting_once {α β ε : Type} (s : State α β ε) (id : Nat)
     (foldlM_notify_effect answer _ _ t hs).2.2
   have hprom := reactions_promises t
   simp only [Whatwg.Ecma262.Promise.Reactions.registered] at hprom
-  apply List.filter_eq_nil_iff.mpr
+  apply filter_eq_nil_of_forall
   intro r hr
   have hmem : Whatwg.Ecma262.Promise.Reaction.promise r ∈
       (reactions t).fulfill.map Whatwg.Ecma262.Promise.Reaction.promise :=

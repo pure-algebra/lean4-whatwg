@@ -605,7 +605,7 @@ private theorem kindsOk_filter (q : Nat → Bool) (t : List (Nat × Nat))
     refine List.filter_congr ?_
     intro x _
     by_cases hx : x.2 = i
-    · simp [hx, hqi]
+    · simp [hx, hqi, -BEq.rfl, beq_self_eq_true']
     · simp [hx]
   rw [hfilter]
   exact h i hmem

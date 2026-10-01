@@ -1007,7 +1007,7 @@ theorem readTable_settleReadCell {α ε : Type} (s : State α ε) (id : Nat)
   congr 1
   apply List.map_congr_left
   intro p _
-  cases result <;> by_cases hb : p.1 = id <;> simp [hb]
+  cases result <;> by_cases hb : p.1 = id <;> simp [hb, -BEq.rfl, beq_self_eq_true']
 
 /-! The three facts the set-shaped bridge needs: settling one identity leaves
 every lookup at a different identity alone, and two successive keyed updates
@@ -1018,9 +1018,9 @@ private theorem table_get_settle_other {value reason : Type}
     (r : Except reason value) (hne : ¬ i = a) :
     Whatwg.Ecma262.Promise.Table.get (Whatwg.Ecma262.Promise.Table.settle t a r) i =
       Whatwg.Ecma262.Promise.Table.get t i := by
-  by_cases hp :
-      Whatwg.Ecma262.Promise.Table.get t a = some Whatwg.Ecma262.Promise.State.pending
-  · have key : ∀ (g : Whatwg.Ecma262.Promise.Cell value reason →
+  by_cases hpb : Whatwg.Ecma262.Promise.Table.isPending t a = true
+  · have hp := (Whatwg.Ecma262.Promise.Table.isPending_iff t a).mp hpb
+    have key : ∀ (g : Whatwg.Ecma262.Promise.Cell value reason →
           Whatwg.Ecma262.Promise.Cell value reason)
         (l : List (Nat × Whatwg.Ecma262.Promise.Cell value reason)),
         List.find? (fun e => e.1 == i) (l.map (fun e => if e.1 == a then (e.1, g e.2) else e)) =
@@ -1049,7 +1049,8 @@ private theorem table_get_settle_other {value reason : Type}
           (match r with
             | .ok v => Whatwg.Ecma262.Promise.State.fulfilled v
             | .error x => Whatwg.Ecma262.Promise.State.rejected x) c.handled) t.entries))
-  · rw [Whatwg.Ecma262.Promise.Table.settle_other t a r hp]
+  · rw [Whatwg.Ecma262.Promise.Table.settle_other t a r
+      (fun hp => hpb ((Whatwg.Ecma262.Promise.Table.isPending_iff t a).mpr hp))]
 
 private theorem map_settle_cons {α ε : Type} (a : Nat) (ids : List Nat)
     (V : PromiseState (ReadResult α) ε)
@@ -1104,7 +1105,7 @@ private theorem foldl_settle_readTable {α ε : Type}
         congr 1
         apply List.map_congr_left
         intro p _
-        by_cases hb : p.1 = a <;> simp [hb]
+        by_cases hb : p.1 = a <;> simp [hb, -BEq.rfl, beq_self_eq_true']
       have hrest : ∀ i ∈ rest, Whatwg.Ecma262.Promise.Table.get
           (Whatwg.Ecma262.Promise.Table.mk
             ((l.map (fun p => if p.1 = a then (p.1, V) else p)).map

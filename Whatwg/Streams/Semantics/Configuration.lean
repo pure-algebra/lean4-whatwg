@@ -544,7 +544,7 @@ private theorem notifyStep_erased {α ε : Type} (id : Nat) (acc : Config α ε)
           acc.registrations.map
             (fun y => if y.id == r.id then
               { y with phase := .queued acc.nextJob } else y) := by
-        simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob]
+        simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob, -BEq.rfl, beq_self_eq_true']
       rw [hstep, List.map_map]
       refine List.map_congr_left ?_
       intro y _
@@ -605,7 +605,7 @@ private theorem eraseStep_single (id : Nat) :
   | a :: l, x, y, hyx, hnd, hx => by
       simp only [List.map_cons, List.nodup_cons] at hnd
       obtain ⟨hnot, hndl⟩ := hnd
-      by_cases hxa : x = a
+      rcases List.mem_cons.mp hx with hxa | hxl
       · subst hxa
         have hrest : ∀ r ∈ l, r.id ≠ (eraseStep id x y).id := by
           intro r hr
@@ -618,8 +618,7 @@ private theorem eraseStep_single (id : Nat) :
         simp only [List.foldl_cons]
         rw [eraseStep_noop id l _ hrest]
         simp only [eraseStep, hyx, and_true]
-      · have hxl : x ∈ l := (List.mem_cons.mp hx).resolve_left hxa
-        have hax : a.id ≠ y.id := by
+      · have hax : a.id ≠ y.id := by
           rw [hyx]
           intro heq
           exact hnot (heq ▸ List.mem_map_of_mem hxl)
@@ -658,7 +657,7 @@ theorem notifySettled_reactions_bridge {α ε : Type} (c : Config α ε) (id : N
     eraseStep_single id c.registrations x (reactionErase x) rfl hnd hx]
   by_cases hw : x.phase = Whatwg.Ecma262.Promise.ReactionPhase.waiting
   · by_cases hp : x.promise = id
-    · simp [hw, hp, reactionErase, phaseErase]
+    · simp [hw, hp, reactionErase, phaseErase, -BEq.rfl, beq_self_eq_true']
     · simp [hw, hp, reactionErase, phaseErase]
   · cases hcase : x.phase <;> simp_all [reactionErase, phaseErase]
 
@@ -673,11 +672,10 @@ private theorem find?_id_of_nodup :
   | a :: l, r, hnd, hr => by
       simp only [List.map_cons, List.nodup_cons] at hnd
       obtain ⟨hnot, hndl⟩ := hnd
-      by_cases hra : r = a
+      rcases List.mem_cons.mp hr with hra | hrl
       · subst hra
-        simp only [List.find?_cons, beq_self_eq_true]
-      · have hrl : r ∈ l := (List.mem_cons.mp hr).resolve_left hra
-        have hne : (a.id == r.id) = false := by
+        simp only [List.find?_cons, beq_self_eq_true']
+      · have hne : (a.id == r.id) = false := by
           simp only [beq_eq_false_iff_ne, ne_eq]
           intro h
           exact hnot (h ▸ List.mem_map_of_mem hrl)
@@ -705,7 +703,7 @@ private theorem find?_setPhaseMap (L : List (Whatwg.Ecma262.Promise.Reaction Nat
       (fun x : Whatwg.Ecma262.Promise.Reaction Nat => x.id == k) := by
     funext y
     simp only [Function.comp_apply]
-    by_cases hy : y.id = rid <;> simp [hy]
+    by_cases hy : y.id = rid <;> simp [hy, -BEq.rfl, beq_self_eq_true']
   rw [List.find?_map, hcomp]
 
 /-- A phase advance at one identity is invisible at every other identity. -/
@@ -741,7 +739,7 @@ private theorem notifyStep_jobs {α ε : Type} (id : Nat) (acc : Config α ε)
   by_cases hw : r.phase = Whatwg.Ecma262.Promise.ReactionPhase.waiting
   · by_cases hp : r.promise = id
     · exact ⟨[⟨acc.nextJob, .observer r.id⟩], by
-        simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob]⟩
+        simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob, -BEq.rfl, beq_self_eq_true']⟩
     · exact ⟨[], by simp [notifyStep, hw, hp]⟩
   · refine ⟨[], ?_⟩
     have hstep : notifyStep id acc r = acc := by
@@ -764,7 +762,7 @@ private theorem notifyStep_nextJob {α ε : Type} (id : Nat) (acc : Config α ε
     acc.nextJob ≤ (notifyStep id acc r).nextJob := by
   by_cases hw : r.phase = Whatwg.Ecma262.Promise.ReactionPhase.waiting
   · by_cases hp : r.promise = id
-    · simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob]
+    · simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob, -BEq.rfl, beq_self_eq_true']
     · simp [notifyStep, hw, hp]
   · have hstep : notifyStep id acc r = acc := by
       cases hcase : r.phase <;> simp_all [notifyStep]
@@ -789,7 +787,7 @@ private theorem notifyStep_lookup_other {α ε : Type} (id : Nat) (acc : Config 
           acc.registrations.map
             (fun y => if y.id == r.id then
               { y with phase := .queued acc.nextJob } else y) := by
-        simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob]
+        simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob, -BEq.rfl, beq_self_eq_true']
       simp only [lookupRegistration, hstep]
       exact find?_setPhase_other acc.registrations r.id k _ h
     · have hstep : notifyStep id acc r = acc := by simp [notifyStep, hw, hp]
@@ -826,7 +824,7 @@ private theorem notify_fold_serial {α ε : Type} (id : Nat) :
   | a :: l, acc, r, hnd, hr, hp, hw, hlook => by
       simp only [List.map_cons, List.nodup_cons] at hnd
       obtain ⟨hnot, hndl⟩ := hnd
-      by_cases hra : r = a
+      rcases List.mem_cons.mp hr with hra | hrl
       · subst hra
         have hrest : ∀ b ∈ l, b.id ≠ r.id := by
           intro b hb heq
@@ -835,10 +833,10 @@ private theorem notify_fold_serial {α ε : Type} (id : Nat) :
             acc.registrations.map
               (fun y => if y.id == r.id then
                 { y with phase := .queued acc.nextJob } else y) := by
-          simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob]
+          simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob, -BEq.rfl, beq_self_eq_true']
         have hstepj : (notifyStep id acc r).jobs =
             acc.jobs ++ [⟨acc.nextJob, .observer r.id⟩] := by
-          simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob]
+          simp [notifyStep, hw, hp, setRegistrationPhase, enqueueJob, -BEq.rfl, beq_self_eq_true']
         refine ⟨acc.nextJob, Nat.le_refl _, ?_, ?_⟩
         · simp only [List.foldl_cons]
           rw [notify_fold_lookup_other id r.id l (notifyStep id acc r) hrest]
@@ -849,8 +847,7 @@ private theorem notify_fold_serial {α ε : Type} (id : Nat) :
         · obtain ⟨ext, hext⟩ := notify_fold_jobs id l (notifyStep id acc r)
           simp only [List.foldl_cons, hext, hstepj]
           simp
-      · have hrl : r ∈ l := (List.mem_cons.mp hr).resolve_left hra
-        have hane : a.id ≠ r.id := by
+      · have hane : a.id ≠ r.id := by
           intro heq
           exact hnot (heq ▸ List.mem_map_of_mem hrl)
         have hlook' : lookupRegistration (notifyStep id acc a) r.id = some r := by
