@@ -991,21 +991,33 @@ set_option linter.unusedVariables false
   ∀ {σ : Type u} (byteLengthName : σ), Whatwg.Streams.Data.ByteLengthQueuingStrategy.sizeAlgorithm byteLengthName = Whatwg.Streams.Data.SizeAlgorithm.foreign byteLengthName)
 #check (@Whatwg.Streams.Data.ByteLengthQueuingStrategy.toQueuingStrategy_size :
   ∀ {σ Size : Type u} (byteLengthName : σ) (self : Whatwg.Streams.Data.ByteLengthQueuingStrategy Size), (Whatwg.Streams.Data.ByteLengthQueuingStrategy.toQueuingStrategy byteLengthName self).size = some byteLengthName)
+-- R-W5, 2026-10-01: the argument is ascribed `ByteLengthAnswer Size ε`, as the
+-- declaration states it. Unascribed, `ε` was a hole `#check` filled by
+-- unification, so any error type passed (FREEZE-CE-001).
 #check (@Whatwg.Streams.Data.byteLengthSize_number :
-  ∀ {ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size) (n : Size), Whatwg.Streams.Data.byteLengthSize sizes (Whatwg.Streams.Data.ByteLengthAnswer.number n) = Whatwg.Streams.Data.SizeAnswer.value n)
+  ∀ {ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size) (n : Size), Whatwg.Streams.Data.byteLengthSize sizes (Whatwg.Streams.Data.ByteLengthAnswer.number n : Whatwg.Streams.Data.ByteLengthAnswer Size ε) = Whatwg.Streams.Data.SizeAnswer.value n)
+-- R-W5, 2026-10-01: the argument is ascribed `ByteLengthAnswer Size ε`, as the
+-- declaration states it. Unascribed, `ε` was a hole `#check` filled by
+-- unification, so any error type passed (FREEZE-CE-001).
 #check (@Whatwg.Streams.Data.byteLengthSize_undefined :
-  ∀ {ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size), Whatwg.Streams.Data.byteLengthSize sizes Whatwg.Streams.Data.ByteLengthAnswer.undefined = Whatwg.Streams.Data.SizeAnswer.value sizes.nan)
+  ∀ {ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size), Whatwg.Streams.Data.byteLengthSize sizes (Whatwg.Streams.Data.ByteLengthAnswer.undefined : Whatwg.Streams.Data.ByteLengthAnswer Size ε) = Whatwg.Streams.Data.SizeAnswer.value sizes.nan)
 #check (@Whatwg.Streams.Data.byteLengthSize_thrown :
   ∀ {ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size) (reason : ε), Whatwg.Streams.Data.byteLengthSize sizes (Whatwg.Streams.Data.ByteLengthAnswer.thrown reason) = Whatwg.Streams.Data.SizeAnswer.thrown reason)
 #check (@Whatwg.Streams.Data.ByteLengthQueuingStrategy.size_eq_byteLength :
   ∀ {α σ ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size) (byteLengthName : σ) (byteLength : α → Whatwg.Streams.Data.ByteLengthAnswer Size ε) (oracle : σ → α → Whatwg.Streams.Data.SizeAnswer Size ε), Whatwg.Streams.Data.ByteLengthSizeProfile sizes byteLengthName byteLength oracle → ∀ (chunk : α), Whatwg.Streams.Data.SizeAlgorithm.invoke sizes oracle (Whatwg.Streams.Data.ByteLengthQueuingStrategy.sizeAlgorithm byteLengthName) chunk = Whatwg.Streams.Data.byteLengthSize sizes (byteLength chunk))
 #check (@Whatwg.Streams.Data.ByteLengthQueuingStrategy.undefined_byteLength_refused :
   ∀ {α σ ε Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size) (byteLengthName : σ) (byteLength : α → Whatwg.Streams.Data.ByteLengthAnswer Size ε) (oracle : σ → α → Whatwg.Streams.Data.SizeAnswer Size ε) (chunk : α) (q : Whatwg.Streams.Data.Queue α Size) (value : α), Whatwg.Streams.Data.ByteLengthSizeProfile sizes byteLengthName byteLength oracle → sizes.Classified → byteLength chunk = Whatwg.Streams.Data.ByteLengthAnswer.undefined → Whatwg.Streams.Data.SizeAlgorithm.invoke sizes oracle (Whatwg.Streams.Data.ByteLengthQueuingStrategy.sizeAlgorithm byteLengthName) chunk = Whatwg.Streams.Data.SizeAnswer.value sizes.nan ∧ Whatwg.Streams.Data.enqueueValueWithSize sizes q value sizes.nan = Except.error Whatwg.Streams.Data.RangeError.rangeError)
+-- R-W5, 2026-10-01: the queue is ascribed `Queue α Size`, as the declaration
+-- states it. Unascribed, `α` was a hole `#check` filled by unification, so
+-- any element type passed (FREEZE-CE-001).
 #check (@Whatwg.Streams.Data.Queue.empty_entries :
-  ∀ {α Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size), (Whatwg.Streams.Data.Queue.empty sizes).entries = [])
+  ∀ {α Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size), (Whatwg.Streams.Data.Queue.empty sizes : Whatwg.Streams.Data.Queue α Size).entries = [])
 #check (@Whatwg.Streams.Data.Queue.WF_iff :
   ∀ {α Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size) (q : Whatwg.Streams.Data.Queue α Size), Whatwg.Streams.Data.Queue.WF sizes q ↔ q.totalSize = Whatwg.Streams.Data.sizeSum sizes q.entries)
+-- R-W5, 2026-10-01: the queue is ascribed `Queue α Size`, as the declaration
+-- states it. Unascribed, `α` was a hole `#check` filled by unification, so
+-- any element type passed (FREEZE-CE-001).
 #check (@Whatwg.Streams.Data.Queue.empty_totalSize :
-  ∀ {α Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size), (Whatwg.Streams.Data.Queue.empty sizes).totalSize = sizes.zero)
+  ∀ {α Size : Type u} (sizes : Whatwg.Streams.Data.SizeClass Size), (Whatwg.Streams.Data.Queue.empty sizes : Whatwg.Streams.Data.Queue α Size).totalSize = sizes.zero)
 
 end StatementSnapshot

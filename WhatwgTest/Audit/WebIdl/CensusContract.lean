@@ -91,8 +91,12 @@ carry zero `rule` rows, so the extension is byte-neutral for them. -/
 #check (@Gates.Census.RuleInput.name : Gates.Census.RuleInput → String)
 #check (@Gates.Census.RuleInput.locator : Gates.Census.RuleInput → String)
 #check (@Gates.Census.RuleInput.endLocator : Gates.Census.RuleInput → Option String)
+-- R-W5, 2026-10-01: the second parameter is written `optParam String
+-- Gates.Census.rulesRelativePath`, as the declaration states it. Written
+-- `String`, it passed only because `optParam` unfolds (FREEZE-CE-002).
 #check (@Gates.Census.parseRules :
-  String → String → Except String (Array Gates.Census.RuleInput))
+  String → optParam String Gates.Census.rulesRelativePath →
+    Except String (Array Gates.Census.RuleInput))
 #check (@Gates.Census.scanRules :
   ByteArray → Array Gates.Census.RuleInput → Except String (Array Gates.Census.Row))
 

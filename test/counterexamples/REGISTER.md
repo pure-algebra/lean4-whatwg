@@ -300,3 +300,22 @@ battery's three `sourceCheck … = false` ascriptions in
 R-P26). They carry no `WS-CONFIG` ids yet: §12.3 of
 `test/contracts/configuration-ordering.contract.md` puts their register rows on
 P8, which is where they will be minted.
+
+## Freeze registry witnesses
+
+`FREEZE-CE-001` to `FREEZE-CE-004`, frozen 2026-10-01 by the W6 breaker seat
+on branch `review/w6-freeze-breaker` (ruling R-W5). They attack receipt forms
+of the test tree, not WHATWG statements: each can change the cutover decision
+of R-W5's conversion. Packet: `test/contracts/freeze-registry.contract.md`,
+section 11. Battery: `WhatwgTest/Audit/FreezeContract.lean`, red until the
+command `#whatwg_freeze` lands; its section 5 pins, under `#guard_msgs`, the
+`#check` output each witness rests on. Evidence command:
+`lake build WhatwgTest.Audit.FreezeContract`. Mask: none; these are tooling
+rows. No host was run.
+
+| ID | Status | Attacked statement | Witness / evidence | Forced repair |
+| --- | --- | --- | --- | --- |
+| `FREEZE-CE-001` | `SEEDED` | hole vacuity: `#check (@n : T)` pins the statement `T` | `WhatwgTest/Audit/FreezeContract.lean`: one ascription text, `∀ {ε : Type} (n : Nat), Except.ok n = Except.ok n`, is accepted by `#check` for `Fixture.exceptPhantom` (`Except ε Nat`) and for `Fixture.exceptUnit` (`Except Unit Nat`), two different statements, because `#check` fills the hole by unification; refusals R1 (expression hole) and R2 (universe hole) are the repair's controls. At the base, the four ascriptions of `byteLengthSize_number`, `byteLengthSize_undefined`, `Queue.empty_entries` and `Queue.empty_totalSize` in `WhatwgTest/Audit/SpecCoverage.lean` were holes | the command elaborates `T` alone and refuses a leftover expression or universe metavariable (diagnostics F2 and F3); the four ascriptions are amended to the declared form under R-W5, each with a dated comment |
+| `FREEZE-CE-002` | `SEEDED` | function swap: an ascription `#check` accepts names the functions the declaration names | `WhatwgTest/Audit/FreezeContract.lean`: `#check` accepts `Fixture.lengthCons`, stated with `List.length`, ascribed with `Fixture.myLength`; refusals R4 and R5 (an omitted `optParam`). At the base, the seven `(encodeScalar s).length`-style ascriptions of `WhatwgTest/Infra/Utf8Laws.lean` (elaborating to `Whatwg.Infra.ByteSequence.length`) and the `parseRules` ascription of `WhatwgTest/Audit/WebIdl/CensusContract.lean` | `sameStatement`: `Expr.eqv` with the `let`/`have` and auxiliary-matcher allowances and nothing unfolded (diagnostic F4); the eight ascriptions are amended to the declared form under R-W5 |
+| `FREEZE-CE-003` | `SEEDED` | unpinned receipt: a `#print axioms n` line pins the axioms `n` reaches | `WhatwgTest/Audit/FreezeContract.lean`, refusals R8 (an axiom reached and not listed) and R9 (an axiom listed and not reached). At the base, every line of the 12 `*AxiomReport.lean` modules elaborates whatever set its declaration reaches; the line pins only that the name resolves | the `axioms` clause compares the exact `Lean.collectAxioms` set, required for a theorem (diagnostics F5 and F6); R-W5's conversion retires the 12 report modules. The 74 witness receipts in counterexample modules keep this weakness until slice W6b |
+| `FREEZE-CE-004` | `SEEDED` | cached replay: a green `lake build` means the root's elaboration-time gate checked every audited module | no Lean witness: the attack is a property of Lake's trace, not of any declaration. Measured in section 2.6 of `docs/research/2026-10-01-w6-freeze-registry-design.md`: with two modules present under `WhatwgTest/` and not imported by `WhatwgTest.lean`, `lake build` printed "Replayed WhatwgTest" and passed, so the gate's module-closure check never ran | an executable over the built `.olean` files, which loads every audited module on every run and is never replayed: `whatwg_declsnapshot` (packet `test/contracts/declaration-snapshot.contract.md`) for the registry, and the trust-gate executable of R-W7(a) for the gate's own passes |

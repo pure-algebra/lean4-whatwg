@@ -247,8 +247,11 @@ bytes 0x80 | (temp & 0x3F). Decrease count by one." The byte at shift
     Whatwg.Infra.Utf8.encoderTail v (n + 1) =
       UInt8.ofNat (0x80 ||| ((v >>> (6 * n)) &&& 0x3F)) :: Whatwg.Infra.Utf8.encoderTail v n)
 
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.encoderTail_length :
-  (v : Nat) → (n : Nat) → (Whatwg.Infra.Utf8.encoderTail v n).length = n)
+  (v : Nat) → (n : Nat) → List.length (Whatwg.Infra.Utf8.encoderTail v n) = n)
 
 /-! Every byte step 5 appends is a continuation byte. -/
 #check (@Whatwg.Infra.Utf8.encoderTail_continuation :
@@ -272,26 +275,41 @@ is codePoint." -/
     Whatwg.Infra.Utf8.encodeScalar s = [UInt8.ofNat s.val.val])
 
 /-! The four-length shape, one law per row of step 3's switch. -/
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.encodeScalar_length_one :
   (s : Whatwg.Infra.ScalarValue) → s.val.val ≤ 0x7F →
-    (Whatwg.Infra.Utf8.encodeScalar s).length = 1)
+    List.length (Whatwg.Infra.Utf8.encodeScalar s) = 1)
 
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.encodeScalar_length_two :
   (s : Whatwg.Infra.ScalarValue) → 0x80 ≤ s.val.val → s.val.val ≤ 0x7FF →
-    (Whatwg.Infra.Utf8.encodeScalar s).length = 2)
+    List.length (Whatwg.Infra.Utf8.encodeScalar s) = 2)
 
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.encodeScalar_length_three :
   (s : Whatwg.Infra.ScalarValue) → 0x800 ≤ s.val.val → s.val.val ≤ 0xFFFF →
-    (Whatwg.Infra.Utf8.encodeScalar s).length = 3)
+    List.length (Whatwg.Infra.Utf8.encodeScalar s) = 3)
 
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.encodeScalar_length_four :
   (s : Whatwg.Infra.ScalarValue) → 0x10000 ≤ s.val.val →
-    (Whatwg.Infra.Utf8.encodeScalar s).length = 4)
+    List.length (Whatwg.Infra.Utf8.encodeScalar s) = 4)
 
 /-! The shape is exactly four lengths and never zero: there is no fifth row in
 step 3's switch, and step 4 always emits a first byte. -/
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.encodeScalar_length_mem :
-  (s : Whatwg.Infra.ScalarValue) → (Whatwg.Infra.Utf8.encodeScalar s).length ∈ [1, 2, 3, 4])
+  (s : Whatwg.Infra.ScalarValue) → List.length (Whatwg.Infra.Utf8.encodeScalar s) ∈ [1, 2, 3, 4])
 
 #check (@Whatwg.Infra.Utf8.encodeScalar_ne_nil :
   (s : Whatwg.Infra.ScalarValue) → Whatwg.Infra.Utf8.encodeScalar s ≠ [])
@@ -771,9 +789,12 @@ leads) and 0xF5 upward (above U+10FFFF) — is one error. -/
 byte: step 1 of `op.utf-8-decoder` [86515,90406) fires once on `end-of-queue`.
 Every proper nonempty prefix of one scalar value's encoding decodes to exactly
 one U+FFFD. -/
+-- R-W5, 2026-10-01: `List.length`, as the declaration states it. Written
+-- `(…).length`, it elaborated to `Whatwg.Infra.ByteSequence.length`, another
+-- function, which `#check` unfolded to accept (FREEZE-CE-002).
 #check (@Whatwg.Infra.Utf8.decodeWithoutBom_truncated_one :
   (s : Whatwg.Infra.ScalarValue) → (n : Nat) → 0 < n →
-    n < (Whatwg.Infra.Utf8.encodeScalar s).length →
+    n < List.length (Whatwg.Infra.Utf8.encodeScalar s) →
       Whatwg.Infra.Utf8.decodeWithoutBom ((Whatwg.Infra.Utf8.encodeScalar s).take n) =
         [Whatwg.Infra.replacementCharacter.val])
 
