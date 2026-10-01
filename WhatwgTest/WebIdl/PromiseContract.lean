@@ -1,4 +1,5 @@
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3 exact-signature and law battery for `Whatwg.WebIdl.Promise`.
@@ -36,32 +37,32 @@ invocations; `op.a-promise-resolved-with`, 347948..348631, digest
 `op.a-promise-rejected-with`, 348633..349214, digest
 `3f6d84e5da374f56e56aebba956939b54dbefb219a67137a37128ecce58f20f8`, 46. -/
 
-#check (@Whatwg.WebIdl.Promise.newPromise :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.newPromise :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Table value reason × Nat)
 
-#check (@Whatwg.WebIdl.Promise.resolvedWith :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.resolvedWith :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → value →
     Whatwg.Ecma262.Promise.Table value reason × Nat)
 
-#check (@Whatwg.WebIdl.Promise.rejectedWith :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.rejectedWith :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → reason →
     Whatwg.Ecma262.Promise.Table value reason × Nat)
 
-#check (@Whatwg.WebIdl.Promise.newPromise_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.newPromise_eq :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason),
     Whatwg.WebIdl.Promise.newPromise t =
-      Whatwg.Ecma262.Promise.Table.fresh t Whatwg.Ecma262.Promise.State.pending)
+      Whatwg.Ecma262.Promise.Table.fresh t Whatwg.Ecma262.Promise.State.pending) axioms []
 
-#check (@Whatwg.WebIdl.Promise.resolvedWith_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.resolvedWith_eq :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (v : value),
     Whatwg.WebIdl.Promise.resolvedWith t v =
-      Whatwg.Ecma262.Promise.Table.fresh t (Whatwg.Ecma262.Promise.State.fulfilled v))
+      Whatwg.Ecma262.Promise.Table.fresh t (Whatwg.Ecma262.Promise.State.fulfilled v)) axioms []
 
-#check (@Whatwg.WebIdl.Promise.rejectedWith_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.rejectedWith_eq :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (r : reason),
     Whatwg.WebIdl.Promise.rejectedWith t r =
-      Whatwg.Ecma262.Promise.Table.fresh t (Whatwg.Ecma262.Promise.State.rejected r))
+      Whatwg.Ecma262.Promise.Table.fresh t (Whatwg.Ecma262.Promise.State.rejected r)) axioms []
 
 /-! ## The two settling operations and the handled bit
 
@@ -76,33 +77,33 @@ source invocations under R-P4 but two call sites in the Streams *model*
 packet must not present it as absent from Streams. Its census row stays
 `absent`; this declaration is not a coverage witness. -/
 
-#check (@Whatwg.WebIdl.Promise.resolve :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.resolve :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat → value →
     Whatwg.Ecma262.Promise.Table value reason)
 
-#check (@Whatwg.WebIdl.Promise.reject :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.reject :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat → reason →
     Whatwg.Ecma262.Promise.Table value reason)
 
-#check (@Whatwg.WebIdl.Promise.markAsHandled :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.markAsHandled :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat →
     Whatwg.Ecma262.Promise.Table value reason)
 
-#check (@Whatwg.WebIdl.Promise.resolve_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.resolve_eq :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (id : Nat)
     (v : value),
     Whatwg.WebIdl.Promise.resolve t id v =
-      Whatwg.Ecma262.Promise.Table.settle t id (Except.ok v))
+      Whatwg.Ecma262.Promise.Table.settle t id (Except.ok v)) axioms [propext]
 
-#check (@Whatwg.WebIdl.Promise.reject_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.reject_eq :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (id : Nat)
     (r : reason),
     Whatwg.WebIdl.Promise.reject t id r =
-      Whatwg.Ecma262.Promise.Table.settle t id (Except.error r))
+      Whatwg.Ecma262.Promise.Table.settle t id (Except.error r)) axioms [propext]
 
-#check (@Whatwg.WebIdl.Promise.markAsHandled_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.markAsHandled_eq :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (id : Nat),
-    Whatwg.WebIdl.Promise.markAsHandled t id = Whatwg.Ecma262.Promise.Table.markHandled t id)
+    Whatwg.WebIdl.Promise.markAsHandled t id = Whatwg.Ecma262.Promise.Table.markHandled t id) axioms []
 
 /-! ## `react` and the two one-sided wrappers
 
@@ -147,7 +148,7 @@ handler. §4.6's citation of this operation as the justification for
 handler comes from `op.performpromisethen` steps 3 and 5, the `IsCallable`
 test (WS-PROM-CE-036). -/
 
-#check (@Whatwg.WebIdl.Promise.react :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.react :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
@@ -157,7 +158,7 @@ test (WS-PROM-CE-036). -/
       Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
       Option (Whatwg.Ecma262.Promise.Reaction body)))
 
-#check (@Whatwg.WebIdl.Promise.uponFulfillment :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.uponFulfillment :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
@@ -167,7 +168,7 @@ test (WS-PROM-CE-036). -/
       Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) ×
       Option (Whatwg.Ecma262.Promise.Reaction body)))
 
-#check (@Whatwg.WebIdl.Promise.uponRejection :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.uponRejection :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
@@ -185,7 +186,7 @@ WS-PROM-CE-023): the superseded ascription's right-hand side was
 performs `PerformPromiseThen`, whose step 12 marks the promise handled on every
 branch, and `add` gains the capability argument of finding F4, which `react`
 supplies as `none` (step 6's `newCapability` is `G-11`'s remainder). -/
-#check (@Whatwg.WebIdl.Promise.react_pending :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.react_pending :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
@@ -194,7 +195,7 @@ supplies as `none` (step 6's `newCapability` is `G-11`'s remainder). -/
       Whatwg.WebIdl.Promise.react t rs q promise onFulfilled onRejected =
         some (Whatwg.Ecma262.Promise.Table.markHandled t promise,
           (Whatwg.Ecma262.Promise.Reactions.add rs promise onFulfilled onRejected none).1,
-          q, none))
+          q, none)) axioms [propext]
 
 /-! Mask M2: the statement observes the reaction job entering the queue. The
 generalization of `Transform.subscribe_fulfilled`.
@@ -207,7 +208,7 @@ ReactionType.fulfill rs.next (ReactionPhase.queued rs.next), Queue.enqueue q
 where the pinned text appends to neither, and left the reject-side entry
 waiting on a promise that had already fulfilled. The enqueued job is unchanged,
 so the M2 content of the law is exactly what it was. -/
-#check (@Whatwg.WebIdl.Promise.react_fulfilled :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.react_fulfilled :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
@@ -221,13 +222,13 @@ so the M2 content of the law is exactly what it was. -/
           Whatwg.Ecma262.Jobs.Queue.enqueue q
             (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.ok v)),
           some (Whatwg.Ecma262.Promise.Reactions.mint rs promise
-            Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled none).2))
+            Whatwg.Ecma262.Promise.ReactionType.fulfill onFulfilled none).2)) axioms [propext]
 
 /-! Mask M2. The generalization of `Transform.subscribe_rejected`.
 
 **Amended by the Q3b fidelity addendum, 2026-09-07**, for the same two findings
 and the same reason as the fulfilled branch. -/
-#check (@Whatwg.WebIdl.Promise.react_rejected :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.react_rejected :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
@@ -241,34 +242,34 @@ and the same reason as the fulfilled branch. -/
           Whatwg.Ecma262.Jobs.Queue.enqueue q
             (Whatwg.Ecma262.Jobs.ReactionJob.mk rs.next (Except.error r)),
           some (Whatwg.Ecma262.Promise.Reactions.mint rs promise
-            Whatwg.Ecma262.Promise.ReactionType.reject onRejected none).2))
+            Whatwg.Ecma262.Promise.ReactionType.reject onRejected none).2)) axioms [propext]
 
 /-! Mask M1. The generalization of `Transform.subscribe_missing`. `E-31` risk:
 `PerformPromiseThen` is total where this is partial; the packet keeps the
 Streams `Option` and records the difference rather than smoothing it. -/
-#check (@Whatwg.WebIdl.Promise.react_missing :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.react_missing :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
     (promise : Nat) (onFulfilled onRejected : Option body),
     Whatwg.Ecma262.Promise.Table.get t promise = none →
-      Whatwg.WebIdl.Promise.react t rs q promise onFulfilled onRejected = none)
+      Whatwg.WebIdl.Promise.react t rs q promise onFulfilled onRejected = none) axioms [propext]
 
-#check (@Whatwg.WebIdl.Promise.uponFulfillment_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.uponFulfillment_eq :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
     (promise : Nat) (steps : body),
     Whatwg.WebIdl.Promise.uponFulfillment t rs q promise steps =
-      Whatwg.WebIdl.Promise.react t rs q promise (some steps) none)
+      Whatwg.WebIdl.Promise.react t rs q promise (some steps) none) axioms []
 
-#check (@Whatwg.WebIdl.Promise.uponRejection_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.uponRejection_eq :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
     (promise : Nat) (steps : body),
     Whatwg.WebIdl.Promise.uponRejection t rs q promise steps =
-      Whatwg.WebIdl.Promise.react t rs q promise none (some steps))
+      Whatwg.WebIdl.Promise.react t rs q promise none (some steps)) axioms []
 
 /-! ## `wait for all`: the predicate `E-55`/`E-56` already are, and the
 operation `G-06` still needs
@@ -286,47 +287,47 @@ this packet, and no ordering claim about it is made here.
 Anchor: `op.wait-for-all`, 353239..354879, digest
 `518fae182417ff76e800ed67df039a512d35b6af29ee11251b684172e703d930`. -/
 
-#check (@Whatwg.WebIdl.Promise.AllSettled :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.AllSettled :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → List Nat → Prop)
 
-#check (@Whatwg.WebIdl.Promise.allSettled :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.allSettled :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → List Nat → Bool)
 
-#check (@Whatwg.WebIdl.Promise.WaitResult :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.WaitResult :
   Type → Type → Type)
 
-#check (@Whatwg.WebIdl.Promise.WaitResult.pending :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.WaitResult.pending :
   ∀ {value reason : Type}, Whatwg.WebIdl.Promise.WaitResult value reason)
 
-#check (@Whatwg.WebIdl.Promise.WaitResult.success :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.WaitResult.success :
   ∀ {value reason : Type}, List value → Whatwg.WebIdl.Promise.WaitResult value reason)
 
-#check (@Whatwg.WebIdl.Promise.WaitResult.failure :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.WaitResult.failure :
   ∀ {value reason : Type}, reason → Whatwg.WebIdl.Promise.WaitResult value reason)
 
-#check (@Whatwg.WebIdl.Promise.waitForAll :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.waitForAll :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → List Nat →
     Whatwg.WebIdl.Promise.WaitResult value reason)
 
 /-! Mask M1. -/
-#check (@Whatwg.WebIdl.Promise.AllSettled_iff :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.AllSettled_iff :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (ids : List Nat),
     Whatwg.WebIdl.Promise.AllSettled t ids ↔
       ∀ id ∈ ids, (∃ v : value, Whatwg.Ecma262.Promise.Table.get t id =
           some (Whatwg.Ecma262.Promise.State.fulfilled v)) ∨
         (∃ r : reason, Whatwg.Ecma262.Promise.Table.get t id =
-          some (Whatwg.Ecma262.Promise.State.rejected r)))
+          some (Whatwg.Ecma262.Promise.State.rejected r))) axioms []
 
 /-! The `Prop`/`Bool` agreement `E-56` records as absent today. Mask M1. -/
-#check (@Whatwg.WebIdl.Promise.allSettled_iff :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.allSettled_iff :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (ids : List Nat),
-    Whatwg.WebIdl.Promise.allSettled t ids = true ↔ Whatwg.WebIdl.Promise.AllSettled t ids)
+    Whatwg.WebIdl.Promise.allSettled t ids = true ↔ Whatwg.WebIdl.Promise.AllSettled t ids) axioms [propext, Quot.sound]
 
 /-! Mask M1. -/
-#check (@Whatwg.WebIdl.Promise.waitForAll_pending :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.waitForAll_pending :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (ids : List Nat),
     ¬ Whatwg.WebIdl.Promise.AllSettled t ids →
-      Whatwg.WebIdl.Promise.waitForAll t ids = Whatwg.WebIdl.Promise.WaitResult.pending)
+      Whatwg.WebIdl.Promise.waitForAll t ids = Whatwg.WebIdl.Promise.WaitResult.pending) axioms [propext, Quot.sound]
 
 /-! Mask **M1**, relabelled from M2 by the Q3b fidelity addendum, 2026-09-07
 (finding F6's minor, WS-PROM-CE-037). The statement is unchanged and stays
@@ -338,14 +339,14 @@ under M2, and the rule governs the table. The genuinely M2 companion is
 `waitForAllTraced_failure` in `WhatwgTest/WebIdl/PromiseFidelityContract.lean`.
 Offered for coordinator ratification alongside the relabel R-P20 names
 explicitly, which is the one below. -/
-#check (@Whatwg.WebIdl.Promise.waitForAll_success :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.waitForAll_success :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (ids : List Nat)
     (values : List value),
     ids.length = values.length →
     (∀ p ∈ ids.zip values, Whatwg.Ecma262.Promise.Table.get t p.1 =
         some (Whatwg.Ecma262.Promise.State.fulfilled p.2)) →
       Whatwg.WebIdl.Promise.waitForAll t ids =
-        Whatwg.WebIdl.Promise.WaitResult.success values)
+        Whatwg.WebIdl.Promise.WaitResult.success values) axioms [propext]
 
 /-! Mask **M1**, relabelled from M2 by the Q3b fidelity addendum, 2026-09-07
 (finding F6, WS-PROM-CE-030, and ruling R-P20's "`waitForAll_failure`'s M2
@@ -363,7 +364,7 @@ express, and it is stated — under a genuine M2 — as
 `Whatwg.Ecma262.Promise.SettlementTrace`. This ascription keeps its place
 because `waitForAll` keeps its signature: `E-55` and `E-56` own the predicate
 half and eleven Streams call sites reach it. -/
-#check (@Whatwg.WebIdl.Promise.waitForAll_failure :
+#whatwg_freeze (@Whatwg.WebIdl.Promise.waitForAll_failure :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (before : List Nat) (id : Nat) (after : List Nat) (r : reason),
     Whatwg.WebIdl.Promise.AllSettled t (before ++ id :: after) →
@@ -371,4 +372,4 @@ half and eleven Streams call sites reach it. -/
         some (Whatwg.Ecma262.Promise.State.fulfilled v)) →
     Whatwg.Ecma262.Promise.Table.get t id = some (Whatwg.Ecma262.Promise.State.rejected r) →
       Whatwg.WebIdl.Promise.waitForAll t (before ++ id :: after) =
-        Whatwg.WebIdl.Promise.WaitResult.failure r)
+        Whatwg.WebIdl.Promise.WaitResult.failure r) axioms [propext, Quot.sound]

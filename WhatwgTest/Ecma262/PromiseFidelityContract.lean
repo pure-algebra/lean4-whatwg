@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3b exact-signature battery for the fidelity addendum to the
@@ -46,7 +47,7 @@ constrains the repair: the new field must not force `DecidableEq` on
 `Reaction`, or the general record stops being instantiable at the transform's
 job payload. The `inferInstance` check below is that row's receipt. -/
 
-#check (@Whatwg.Ecma262.Promise.Reaction.capability :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.capability :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body →
     Option Whatwg.Ecma262.Promise.Capability)
 
@@ -68,7 +69,7 @@ collide with, and it leaves both lists exactly as they were, so no entry is
 left `waiting` on a promise that has already settled (WS-PROM-CE-024).
 `G-01`; `E-29` (generalize) supplies the record. -/
 
-#check (@Whatwg.Ecma262.Promise.Reactions.mint :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat →
     Whatwg.Ecma262.Promise.ReactionType → Option body →
     Option Whatwg.Ecma262.Promise.Capability →
@@ -95,7 +96,7 @@ Both ES2026 step numberings are measured from the pinned bytes: the two
 operations agree at steps 4 and 5, and ruling R-P20's "RejectPromise steps 3-4"
 is corrected here in the spirit of the base packet's §11. -/
 
-#check (@Whatwg.Ecma262.Promise.Reactions.clear :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.clear :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat →
     Whatwg.Ecma262.Promise.Reactions body)
 
@@ -125,14 +126,14 @@ step is total.
 the base packet deferred: this is the promise half of "run one job", and the
 component dispatch stays in Streams. -/
 
-#check (@Whatwg.Ecma262.Promise.reactionHandlerResult :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.reactionHandlerResult :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Reaction body →
     Except reason value → Except reason value → Except reason value)
 
 /-! `[[Resolve]]` or `[[Reject]]` selected by the completion, through the same
 one-shot marker. `G-03`; `op.createresolvingfunctions`, 2692679..2695411,
 digest `8227712c5eaa66d17942e1b7c13a8d6f7c29f24a03a591df81ce9868a90c8944`. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.ResolvingFunctions →
     Whatwg.Ecma262.Promise.Table value reason → Except reason value →
     Whatwg.Ecma262.Promise.ResolvingFunctions ×
@@ -143,7 +144,7 @@ resolving functions of the capability's promise rather than minting them,
 because the one-shot marker is state the configuration owns (`G-08` remainder,
 P8) and a freshly minted pair would re-arm it. `G-07`, `G-03`; `E-51`
 (generalize). -/
-#check (@Whatwg.Ecma262.Promise.runReactionJob :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.runReactionJob :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.ResolvingFunctions →
     Whatwg.Ecma262.Promise.Reaction body →
@@ -163,7 +164,7 @@ is one value among others is `G-04` and adoption is `G-05` (WS-PROM-CE-033).
 host supplies the resolution's promise identity. Off the self branch it answers
 `none` — the `G-04`/`G-05` frontier — rather than guessing. `G-03`. -/
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.ResolvingFunctions →
     Whatwg.Ecma262.Promise.Table value reason → Nat → reason →
     Option (Whatwg.Ecma262.Promise.ResolvingFunctions ×
@@ -188,10 +189,10 @@ the readable-side counterpart and its bridge is deferred with the reason the
 addendum states, because the readable alphabet's `closed` entry carries no
 identity. Neither Streams declaration changes in content. -/
 
-#check (@Whatwg.Ecma262.Promise.SettlementTrace :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.SettlementTrace :
   Type → Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.Table.settleTraced :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settleTraced :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.SettlementTrace value reason → Nat →
     Except reason value →
@@ -201,6 +202,6 @@ identity. Neither Streams declaration changes in content. -/
 /-! The first rejection **to settle** among a list of argument identities, which
 is what `op.wait-for-all`'s rejection handler fires on. `G-06`; `E-56`
 (generalize) is the settled predicate that cannot express it. -/
-#check (@Whatwg.Ecma262.Promise.SettlementTrace.firstRejection :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.SettlementTrace.firstRejection :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.SettlementTrace value reason →
     List Nat → Option reason)

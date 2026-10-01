@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3 exact-signature battery for `Whatwg.Ecma262.Jobs`.
@@ -30,30 +31,30 @@ parameter stays out of this packet.
 Anchor: `hook.hostenqueuepromisejob`, bytes 633447..635836 of
 `vendor/ecma262-0248456c/spec.html`. -/
 
-#check (@Whatwg.Ecma262.Jobs.Queue :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue :
   Type → Type)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.mk :
   ∀ {payload : Type}, List payload → Whatwg.Ecma262.Jobs.Queue payload)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.pending :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.pending :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload → List payload)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.empty :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.empty :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.enqueue :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.enqueue :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload → payload →
     Whatwg.Ecma262.Jobs.Queue payload)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.enqueueAll :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.enqueueAll :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload → List payload →
     Whatwg.Ecma262.Jobs.Queue payload)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.oldest :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.oldest :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload → Option payload)
 
-#check (@Whatwg.Ecma262.Jobs.Queue.dequeue :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.dequeue :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload →
     Option (payload × Whatwg.Ecma262.Jobs.Queue payload))
 
@@ -73,19 +74,19 @@ list, kept payload-polymorphic in the argument so that
 Anchors: `op.newpromisereactionjob`, 2702885..2705591;
 `record.jobcallback-records`, 628436..630247. -/
 
-#check (@Whatwg.Ecma262.Jobs.ReactionJob :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.ReactionJob :
   Type → Type)
 
-#check (@Whatwg.Ecma262.Jobs.ReactionJob.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.ReactionJob.mk :
   ∀ {arg : Type}, Nat → arg → Whatwg.Ecma262.Jobs.ReactionJob arg)
 
-#check (@Whatwg.Ecma262.Jobs.ReactionJob.reaction :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.ReactionJob.reaction :
   ∀ {arg : Type}, Whatwg.Ecma262.Jobs.ReactionJob arg → Nat)
 
-#check (@Whatwg.Ecma262.Jobs.ReactionJob.argument :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.ReactionJob.argument :
   ∀ {arg : Type}, Whatwg.Ecma262.Jobs.ReactionJob arg → arg)
 
-#check (@Whatwg.Ecma262.Jobs.newReactionJob :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.newReactionJob :
   ∀ {arg : Type}, Nat → arg → Whatwg.Ecma262.Jobs.ReactionJob arg)
 
 /-! ## The activation state and the run condition
@@ -100,28 +101,28 @@ equation. Anchors: `requirement.jobs.1`, 625769..626250, digest
 `c1afc33fed819c64bf74bbdfda723687b449fc135daaa0bb9dd9b73d0f5954e2`;
 `requirement.jobs.2`, 626257..626350; `requirement.jobs.3`, 626357..626479. -/
 
-#check (@Whatwg.Ecma262.Jobs.Active :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Active :
   Type)
 
-#check (@Whatwg.Ecma262.Jobs.Active.script :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Active.script :
   Whatwg.Ecma262.Jobs.Active)
 
-#check (@Whatwg.Ecma262.Jobs.Active.intrinsic :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Active.intrinsic :
   Nat → Whatwg.Ecma262.Jobs.Active)
 
-#check (@Whatwg.Ecma262.Jobs.Active.job :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Active.job :
   Nat → Whatwg.Ecma262.Jobs.Active)
 
-#check (@Whatwg.Ecma262.Jobs.Active.checkpoint :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Active.checkpoint :
   Whatwg.Ecma262.Jobs.Active)
 
 #check (inferInstance :
   DecidableEq Whatwg.Ecma262.Jobs.Active)
 
-#check (@Whatwg.Ecma262.Jobs.mayRun :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.mayRun :
   Whatwg.Ecma262.Jobs.Active → Bool)
 
-#check (@Whatwg.Ecma262.Jobs.RunCondition :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.RunCondition :
   Whatwg.Ecma262.Jobs.Active → Prop)
 
 /-! ## The specification and its realizer (DB-03, DB-05, R-P5)
@@ -133,17 +134,17 @@ equation. Anchors: `requirement.jobs.1`, 625769..626250, digest
 scheduled them." `step` and `run` are the deterministic FIFO realizer
 `E-46`, `E-49`, `E-53` extract from three places. -/
 
-#check (@Whatwg.Ecma262.Jobs.FifoRequirement :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.FifoRequirement :
   ∀ {payload : Type}, List payload → List payload → Prop)
 
-#check (@Whatwg.Ecma262.Jobs.step :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.step :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Active → Whatwg.Ecma262.Jobs.Queue payload →
     Option (payload × Whatwg.Ecma262.Jobs.Queue payload))
 
-#check (@Whatwg.Ecma262.Jobs.run :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run :
   ∀ {payload : Type}, Nat → Whatwg.Ecma262.Jobs.Queue payload →
     List payload × Whatwg.Ecma262.Jobs.Queue payload)
 
-#check (@Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Queue payload → payload →
     Whatwg.Ecma262.Jobs.Queue payload)

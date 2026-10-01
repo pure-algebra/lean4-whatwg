@@ -1,5 +1,6 @@
 import Whatwg.Ecma262
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3b law battery for the fidelity addendum to the first promise
@@ -45,16 +46,16 @@ records that nothing reads the bit in this lane, and
 bit was *false* — stays out. -/
 
 /-! Mask M1. `E-21` (generalize), `G-02`. -/
-#check (@Whatwg.Ecma262.Promise.Table.markHandled_marked :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.markHandled_marked :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason) (id : Nat),
     (Whatwg.Ecma262.Promise.Table.getCell t id).isSome = true →
       (Whatwg.Ecma262.Promise.Table.getCell
           (Whatwg.Ecma262.Promise.Table.markHandled t id) id).map
-        Whatwg.Ecma262.Promise.Cell.handled = some true)
+        Whatwg.Ecma262.Promise.Cell.handled = some true) axioms [propext, Quot.sound]
 
 /-! Mask M1. `G-11`, step 12: every branch that returns at all leaves the
 promise handled, the pending branch included. -/
-#check (@Whatwg.Ecma262.Promise.performPromiseThen_handled :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.performPromiseThen_handled :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
@@ -67,7 +68,7 @@ promise handled, the pending branch included. -/
     Whatwg.Ecma262.Promise.performPromiseThen t rs q promise onFulfilled onRejected
         capability = some res →
       (Whatwg.Ecma262.Promise.Table.getCell res.1 promise).map
-        Whatwg.Ecma262.Promise.Cell.handled = some true)
+        Whatwg.Ecma262.Promise.Cell.handled = some true) axioms [propext, Quot.sound]
 
 /-! ## F2 — the settled branches append to no list
 
@@ -81,64 +82,64 @@ never has (WS-PROM-CE-024).
 `G-01`; `E-29`, `E-31`, `E-37` (generalize). Anchor as above. -/
 
 /-! Mask M1. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_eq :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability),
     Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability =
       (Whatwg.Ecma262.Promise.Reactions.mk rs.fulfill rs.reject (rs.next + 1),
         Whatwg.Ecma262.Promise.Reaction.mk rs.next promise kind handler capability
-          (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next)))
+          (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next))) axioms []
 
 /-! Mask M1: the fulfil list is not appended to. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_fulfill :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_fulfill :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability),
     (Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability).1.fulfill =
-      rs.fulfill)
+      rs.fulfill) axioms []
 
 /-! Mask M1: the reject list is not appended to. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_reject :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability),
     (Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability).1.reject =
-      rs.reject)
+      rs.reject) axioms []
 
 /-! Mask M1: the shared registration cursor is still consumed, so the job the
 settled branch enqueues carries an identity no registered reaction can reuse. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_next :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_next :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability),
     (Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability).1.next =
-      rs.next + 1)
+      rs.next + 1) axioms []
 
 /-! Mask M1: the record steps 7 and 8 create, at the settled promise's
 `[[Type]]`, already queued because step 10 or 11 enqueued its job. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_reaction :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_reaction :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability),
     (Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability).2 =
       Whatwg.Ecma262.Promise.Reaction.mk rs.next promise kind handler capability
-        (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next))
+        (Whatwg.Ecma262.Promise.ReactionPhase.queued rs.next)) axioms []
 
 /-! Mask M1. F4: the unappended record carries `[[Capability]]` too, which is
 what `op.newpromisereactionjob` reads to resolve or reject the derived
 promise. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_capability :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_capability :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability),
     (Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability).2.capability =
-      capability)
+      capability) axioms []
 
 /-! Mask M1: the whole of F2. Minting leaves the waiting set of **every**
 promise and **both** lists exactly as it was, so a settled branch can never
 leave an entry waiting on a promise that has already settled. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.mint_no_waiting :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mint_no_waiting :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType) (handler : Option body)
     (capability : Option Whatwg.Ecma262.Promise.Capability) (other : Nat)
@@ -146,7 +147,7 @@ leave an entry waiting on a promise that has already settled. -/
     Whatwg.Ecma262.Promise.Reactions.waitingOn
         (Whatwg.Ecma262.Promise.Reactions.mint rs promise kind handler capability).1
         other otherKind =
-      Whatwg.Ecma262.Promise.Reactions.waitingOn rs other otherKind)
+      Whatwg.Ecma262.Promise.Reactions.waitingOn rs other otherKind) axioms []
 
 /-! ## F3 — `FulfillPromise` and `RejectPromise` clear both lists
 
@@ -166,7 +167,7 @@ Anchors: `op.fulfillpromise`, 2695419..2696230, digest
 `G-01`; `E-33` (generalize). -/
 
 /-! Mask M1. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.clear_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.clear_eq :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat),
     Whatwg.Ecma262.Promise.Reactions.clear rs promise =
       Whatwg.Ecma262.Promise.Reactions.mk
@@ -180,35 +181,35 @@ Anchors: `op.fulfillpromise`, 2695419..2696230, digest
               r.phase == Whatwg.Ecma262.Promise.ReactionPhase.waiting then
             { r with phase := Whatwg.Ecma262.Promise.ReactionPhase.done }
           else r))
-        rs.next)
+        rs.next) axioms []
 
 /-! Mask M1: "set to *undefined*" for **both** lists, quantified over the kind
 so neither side is exempt. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.clear_waiting :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.clear_waiting :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType),
     Whatwg.Ecma262.Promise.Reactions.waitingOn
-      (Whatwg.Ecma262.Promise.Reactions.clear rs promise) promise kind = [])
+      (Whatwg.Ecma262.Promise.Reactions.clear rs promise) promise kind = []) axioms [propext, Quot.sound]
 
 /-! Mask M1: clearing one promise's registrations leaves every other promise's
 alone, in both lists. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.clear_other_promise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.clear_other_promise :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise other : Nat)
     (kind : Whatwg.Ecma262.Promise.ReactionType),
     other ≠ promise →
       Whatwg.Ecma262.Promise.Reactions.waitingOn
           (Whatwg.Ecma262.Promise.Reactions.clear rs promise) other kind =
-        Whatwg.Ecma262.Promise.Reactions.waitingOn rs other kind)
+        Whatwg.Ecma262.Promise.Reactions.waitingOn rs other kind) axioms [propext, Quot.sound]
 
 /-! Mask M1: clearing consumes no registration cursor. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.clear_next :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.clear_next :
   ∀ {body : Type} (rs : Whatwg.Ecma262.Promise.Reactions body) (promise : Nat),
-    (Whatwg.Ecma262.Promise.Reactions.clear rs promise).next = rs.next)
+    (Whatwg.Ecma262.Promise.Reactions.clear rs promise).next = rs.next) axioms []
 
 /-! Mask M1: the F3 law at the caller. After `FulfillPromise` or
 `RejectPromise` no registration on the settled promise is waiting, in either
 list. The amended `Table.settleAndTrigger_pending` gives the exact equation. -/
-#check (@Whatwg.Ecma262.Promise.Table.settleAndTrigger_cleared :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settleAndTrigger_cleared :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (rs : Whatwg.Ecma262.Promise.Reactions body)
     (q : Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
@@ -216,7 +217,7 @@ list. The amended `Table.settleAndTrigger_pending` gives the exact equation. -/
     (kind : Whatwg.Ecma262.Promise.ReactionType),
     Whatwg.Ecma262.Promise.Table.get t id = some Whatwg.Ecma262.Promise.State.pending →
       Whatwg.Ecma262.Promise.Reactions.waitingOn
-        (Whatwg.Ecma262.Promise.Table.settleAndTrigger t rs q id result).2.1 id kind = [])
+        (Whatwg.Ecma262.Promise.Table.settleAndTrigger t rs q id result).2.1 id kind = []) axioms [propext, Quot.sound]
 
 /-! ## F4 — the reaction job, its capability and the handler as a decision
 
@@ -233,46 +234,46 @@ is the promise half of. -/
 /-! Mask M1: inner steps 4a and 4b. With an empty handler the result is the
 argument, which already carries the `~fulfill~`/`~reject~` tag `triggerReactions`
 put on it, so `NormalCompletion` and `ThrowCompletion` are that tag. -/
-#check (@Whatwg.Ecma262.Promise.reactionHandlerResult_empty :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.reactionHandlerResult_empty :
   ∀ {value reason body : Type} (reaction : Whatwg.Ecma262.Promise.Reaction body)
     (argument decision : Except reason value),
     reaction.handler = none →
-      Whatwg.Ecma262.Promise.reactionHandlerResult reaction argument decision = argument)
+      Whatwg.Ecma262.Promise.reactionHandlerResult reaction argument decision = argument) axioms [propext]
 
 /-! Mask M1: inner step 5. With a handler the result is the host's decision,
 returned unexamined; nothing here models a body. -/
-#check (@Whatwg.Ecma262.Promise.reactionHandlerResult_handler :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.reactionHandlerResult_handler :
   ∀ {value reason body : Type} (reaction : Whatwg.Ecma262.Promise.Reaction body)
     (argument decision : Except reason value) (h : body),
     reaction.handler = some h →
-      Whatwg.Ecma262.Promise.reactionHandlerResult reaction argument decision = decision)
+      Whatwg.Ecma262.Promise.reactionHandlerResult reaction argument decision = decision) axioms [propext]
 
 /-! Mask M1: a normal completion calls `[[Resolve]]`. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle_ok :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle_ok :
   ∀ {value reason : Type} (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (t : Whatwg.Ecma262.Promise.Table value reason) (v : value),
     Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle f t (Except.ok v) =
-      Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v)
+      Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v) axioms [propext]
 
 /-! Mask M1: an abrupt completion calls `[[Reject]]`. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle_error :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle_error :
   ∀ {value reason : Type} (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (t : Whatwg.Ecma262.Promise.Table value reason) (r : reason),
     Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle f t (Except.error r) =
-      Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r)
+      Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r) axioms [propext]
 
 /-! Mask M1: inner step 6. With `[[Capability]]` *undefined* the job returns
 `~empty~` and settles nothing. -/
-#check (@Whatwg.Ecma262.Promise.runReactionJob_no_capability :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.runReactionJob_no_capability :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (reaction : Whatwg.Ecma262.Promise.Reaction body)
     (argument decision : Except reason value),
     reaction.capability = none →
-      Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision = (f, t))
+      Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision = (f, t)) axioms [propext]
 
 /-! Mask M1: an empty handler settles the capability with the argument. -/
-#check (@Whatwg.Ecma262.Promise.runReactionJob_empty_handler :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.runReactionJob_empty_handler :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (reaction : Whatwg.Ecma262.Promise.Reaction body)
@@ -280,11 +281,11 @@ returned unexamined; nothing here models a body. -/
     (cap : Whatwg.Ecma262.Promise.Capability),
     reaction.capability = some cap → reaction.handler = none →
       Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision =
-        Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle f t argument)
+        Whatwg.Ecma262.Promise.ResolvingFunctions.callSettle f t argument) axioms [propext]
 
 /-! Mask M1: inner step 9. `G-03`'s resolving functions are wired to something
 at last: a normal handler result resolves the capability's promise. -/
-#check (@Whatwg.Ecma262.Promise.runReactionJob_resolve :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.runReactionJob_resolve :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (reaction : Whatwg.Ecma262.Promise.Reaction body)
@@ -294,10 +295,10 @@ at last: a normal handler result resolves the capability's promise. -/
     f.alreadyResolved = false → decision = Except.ok v →
       Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision =
         ({ f with alreadyResolved := true },
-          Whatwg.Ecma262.Promise.Table.settle t f.promise (Except.ok v)))
+          Whatwg.Ecma262.Promise.Table.settle t f.promise (Except.ok v))) axioms [propext]
 
 /-! Mask M1: inner step 8. An abrupt handler result rejects it. -/
-#check (@Whatwg.Ecma262.Promise.runReactionJob_reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.runReactionJob_reject :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (reaction : Whatwg.Ecma262.Promise.Reaction body)
@@ -307,18 +308,18 @@ at last: a normal handler result resolves the capability's promise. -/
     f.alreadyResolved = false → decision = Except.error r →
       Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision =
         ({ f with alreadyResolved := true },
-          Whatwg.Ecma262.Promise.Table.settle t f.promise (Except.error r)))
+          Whatwg.Ecma262.Promise.Table.settle t f.promise (Except.error r))) axioms [propext]
 
 /-! Mask M1: the one-shot marker survives the job. A second reaction job that
 reaches the same already-resolved functions settles nothing. -/
-#check (@Whatwg.Ecma262.Promise.runReactionJob_once :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.runReactionJob_once :
   ∀ {value reason body : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (reaction : Whatwg.Ecma262.Promise.Reaction body)
     (argument decision : Except reason value)
     (cap : Whatwg.Ecma262.Promise.Capability),
     reaction.capability = some cap → f.alreadyResolved = true →
-      Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision = (f, t))
+      Whatwg.Ecma262.Promise.runReactionJob t f reaction argument decision = (f, t)) axioms [propext]
 
 /-! ## Minor — the one-shot marker is shared, not per function
 
@@ -333,7 +334,7 @@ would break four frozen ascriptions for a citation defect — and the addendum
 records the anachronism against the pinned steps. `G-03`. -/
 
 /-! Mask M1. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve_disables_reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve_disables_reject :
   ∀ {value reason : Type} (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (t : Whatwg.Ecma262.Promise.Table value reason) (v : value) (r : reason),
     f.alreadyResolved = false →
@@ -341,10 +342,10 @@ records the anachronism against the pinned steps. `G-03`. -/
           (Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v).1
           (Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v).2 r =
         ((Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v).1,
-          (Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v).2))
+          (Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve f t v).2)) axioms [propext]
 
 /-! Mask M1. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callReject_disables_resolve :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callReject_disables_resolve :
   ∀ {value reason : Type} (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (t : Whatwg.Ecma262.Promise.Table value reason) (r : reason) (v : value),
     f.alreadyResolved = false →
@@ -352,7 +353,7 @@ records the anachronism against the pinned steps. `G-03`. -/
           (Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r).1
           (Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r).2 v =
         ((Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r).1,
-          (Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r).2))
+          (Whatwg.Ecma262.Promise.ResolvingFunctions.callReject f t r).2)) axioms [propext]
 
 /-! ## Minor — the self-resolution branch
 
@@ -361,22 +362,22 @@ with the `G-04` value universe and the `G-05` adoption branch still out. -/
 
 /-! Mask M1: resolving a promise with itself rejects it, with the reason the
 host allocated for the *TypeError* the step creates. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf_self :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf_self :
   ∀ {value reason : Type} (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (t : Whatwg.Ecma262.Promise.Table value reason) (selfError : reason),
     f.alreadyResolved = false →
       Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf f t f.promise selfError =
         some ({ f with alreadyResolved := true },
-          Whatwg.Ecma262.Promise.Table.settle t f.promise (Except.error selfError)))
+          Whatwg.Ecma262.Promise.Table.settle t f.promise (Except.error selfError))) axioms [propext, Quot.sound]
 
 /-! Mask M1: off the self branch the operation answers `none` — the `G-04` and
 `G-05` frontier — rather than guessing at a resolution it cannot inspect. -/
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf_other :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf_other :
   ∀ {value reason : Type} (f : Whatwg.Ecma262.Promise.ResolvingFunctions)
     (t : Whatwg.Ecma262.Promise.Table value reason) (resolution : Nat) (selfError : reason),
     resolution ≠ f.promise →
       Whatwg.Ecma262.Promise.ResolvingFunctions.callResolveSelf f t resolution selfError =
-        none)
+        none) axioms [propext, Quot.sound]
 
 /-! ## F6 — the settlement trace
 
@@ -387,33 +388,33 @@ table, which is the R-P12 receipt that no shadow table was introduced
 `op.rejectpromise` as above; `E-20` (generalize). -/
 
 /-! Mask M1: **the** no-second-table receipt. -/
-#check (@Whatwg.Ecma262.Promise.Table.settleTraced_table :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settleTraced_table :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (tr : Whatwg.Ecma262.Promise.SettlementTrace value reason) (id : Nat)
     (result : Except reason value),
     (Whatwg.Ecma262.Promise.Table.settleTraced t tr id result).1 =
-      Whatwg.Ecma262.Promise.Table.settle t id result)
+      Whatwg.Ecma262.Promise.Table.settle t id result) axioms [propext]
 
 /-! Mask M2: the statement observes the order in which settlements happen. A
 settling settle appends exactly one entry, at the tail. -/
-#check (@Whatwg.Ecma262.Promise.Table.settleTraced_pending :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settleTraced_pending :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (tr : Whatwg.Ecma262.Promise.SettlementTrace value reason) (id : Nat)
     (result : Except reason value),
     Whatwg.Ecma262.Promise.Table.get t id = some Whatwg.Ecma262.Promise.State.pending →
-      (Whatwg.Ecma262.Promise.Table.settleTraced t tr id result).2 = tr ++ [(id, result)])
+      (Whatwg.Ecma262.Promise.Table.settleTraced t tr id result).2 = tr ++ [(id, result)]) axioms [propext]
 
 /-! Mask M1: decision 7's guard propagates to the trace. A non-pending settle
 is the identity on both components, so no identity is recorded twice. -/
-#check (@Whatwg.Ecma262.Promise.Table.settleTraced_other :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settleTraced_other :
   ∀ {value reason : Type} (t : Whatwg.Ecma262.Promise.Table value reason)
     (tr : Whatwg.Ecma262.Promise.SettlementTrace value reason) (id : Nat)
     (result : Except reason value),
     Whatwg.Ecma262.Promise.Table.get t id ≠ some Whatwg.Ecma262.Promise.State.pending →
-      Whatwg.Ecma262.Promise.Table.settleTraced t tr id result = (t, tr))
+      Whatwg.Ecma262.Promise.Table.settleTraced t tr id result = (t, tr)) axioms [propext]
 
 /-! Mask M1: the defining equation. -/
-#check (@Whatwg.Ecma262.Promise.SettlementTrace.firstRejection_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.SettlementTrace.firstRejection_eq :
   ∀ {value reason : Type} (tr : Whatwg.Ecma262.Promise.SettlementTrace value reason)
     (ids : List Nat),
     Whatwg.Ecma262.Promise.SettlementTrace.firstRejection tr ids =
@@ -422,20 +423,20 @@ is the identity on both components, so no identity is recorded twice. -/
           match e.2 with
           | Except.error r => some r
           | Except.ok _ => none
-        else none) tr)
+        else none) tr) axioms []
 
 /-! Mask M2: the statement observes the settlement order and nothing else. The
 answer is the reason of the earliest *trace* entry that is a rejection of an
 argument identity, which is `op.wait-for-all`'s "first rejection to settle" and
 not the first rejection in argument order (WS-PROM-CE-030). -/
-#check (@Whatwg.Ecma262.Promise.SettlementTrace.firstRejection_hit :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.SettlementTrace.firstRejection_hit :
   ∀ {value reason : Type}
     (before after : Whatwg.Ecma262.Promise.SettlementTrace value reason)
     (id : Nat) (r : reason) (ids : List Nat),
     List.contains ids id = true →
     (∀ e ∈ before, List.contains ids e.1 = false ∨ ∃ v : value, e.2 = Except.ok v) →
       Whatwg.Ecma262.Promise.SettlementTrace.firstRejection
-        (before ++ (id, Except.error r) :: after) ids = some r)
+        (before ++ (id, Except.error r) :: after) ids = some r) axioms []
 
 /-! ## F6 — the bridge to the Streams settlement order
 
@@ -451,10 +452,10 @@ bridge is **deferred with a stated reason**: the readable settlement alphabet's
 not total over it, and supplying one would change `Readable.Settlement`, which
 is a `keep` row. Mask M2. -/
 
-#check (@Whatwg.Streams.Writable.settlementTrace_bridge :
+#whatwg_freeze (@Whatwg.Streams.Writable.settlementTrace_bridge :
   ∀ {α ε : Type} (s : Whatwg.Streams.Writable.State α ε) (ids : List Nat)
     (r : Whatwg.Streams.Boundary.Exception ε),
     Whatwg.Ecma262.Promise.SettlementTrace.firstRejection
         (Whatwg.Streams.Writable.settlementTrace s) ids = some r →
       ∃ id : Nat, List.contains ids id = true ∧
-        (id, Except.error r) ∈ Whatwg.Streams.Writable.settlementTrace s)
+        (id, Except.error r) ∈ Whatwg.Streams.Writable.settlementTrace s) axioms [propext, Quot.sound]

@@ -1,6 +1,7 @@
 import Whatwg.Streams
 import Whatwg.Ecma262
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q4 battery for the four generalizations slice Q3 deferred.
@@ -48,15 +49,15 @@ hypothesis is where `Table.settle_pending` puts them in agreement, and it is
 carried explicitly by `readTable_settleReadCell` below. Silently adopting the
 guard would change the meaning of four landed Streams bodies. -/
 
-#check (@Whatwg.Streams.Readable.freshReadCell :
+#whatwg_freeze (@Whatwg.Streams.Readable.freshReadCell :
   ∀ {α ε : Type}, Readable.State α ε →
     Readable.PromiseState (Readable.ReadResult α) ε → Readable.State α ε × Nat)
 
-#check (@Whatwg.Streams.Readable.settleReadCell :
+#whatwg_freeze (@Whatwg.Streams.Readable.settleReadCell :
   ∀ {α ε : Type}, Readable.State α ε → Nat →
     Except (Boundary.Exception ε) (Readable.ReadResult α) → Readable.State α ε)
 
-#check (@Whatwg.Streams.Readable.settleReadCells :
+#whatwg_freeze (@Whatwg.Streams.Readable.settleReadCells :
   ∀ {α ε : Type}, Readable.State α ε → List Nat →
     Except (Boundary.Exception ε) (Readable.ReadResult α) → Readable.State α ε)
 
@@ -69,22 +70,22 @@ it, at `value := Readable.ReadResult α`. Anchors: `op.newpromisecapability`
 `op.rejectpromise` (2699323..2700252) for `settle`. Mask M1: none of the three
 observes a settlement order. -/
 
-#check (@Whatwg.Streams.Readable.readTable_freshReadCell :
+#whatwg_freeze (@Whatwg.Streams.Readable.readTable_freshReadCell :
   ∀ {α ε : Type} (s : Readable.State α ε)
     (outcome : Readable.PromiseState (Readable.ReadResult α) ε),
     (Readable.readTable (Readable.freshReadCell s outcome).1,
         (Readable.freshReadCell s outcome).2) =
-      Whatwg.Ecma262.Promise.Table.fresh (Readable.readTable s) outcome)
+      Whatwg.Ecma262.Promise.Table.fresh (Readable.readTable s) outcome) axioms [propext]
 
-#check (@Whatwg.Streams.Readable.readTable_settleReadCell :
+#whatwg_freeze (@Whatwg.Streams.Readable.readTable_settleReadCell :
   ∀ {α ε : Type} (s : Readable.State α ε) (id : Nat)
     (result : Except (Boundary.Exception ε) (Readable.ReadResult α)),
     Whatwg.Ecma262.Promise.Table.get (Readable.readTable s) id =
         some Whatwg.Ecma262.Promise.State.pending →
       Readable.readTable (Readable.settleReadCell s id result) =
-        Whatwg.Ecma262.Promise.Table.settle (Readable.readTable s) id result)
+        Whatwg.Ecma262.Promise.Table.settle (Readable.readTable s) id result) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Readable.readTable_settleReadCells :
+#whatwg_freeze (@Whatwg.Streams.Readable.readTable_settleReadCells :
   ∀ {α ε : Type} (s : Readable.State α ε) (ids : List Nat)
     (result : Except (Boundary.Exception ε) (Readable.ReadResult α)),
     ids.Nodup →
@@ -92,7 +93,7 @@ observes a settlement order. -/
         some Whatwg.Ecma262.Promise.State.pending) →
       Readable.readTable (Readable.settleReadCells s ids result) =
         ids.foldl (fun t id => Whatwg.Ecma262.Promise.Table.settle t id result)
-          (Readable.readTable s))
+          (Readable.readTable s)) axioms [propext, Quot.sound]
 
 /-! ## `E-22` — the five equation lemmas that keep every dependent proof
 
@@ -102,15 +103,15 @@ the meaning of a Streams definition and is refused: the point of the
 generalization is that the *body* is re-expressed, not that it computes
 something else. Mask M1. -/
 
-#check (@Whatwg.Streams.Readable.continuePull_settleRead_body :
+#whatwg_freeze (@Whatwg.Streams.Readable.continuePull_settleRead_body :
   ∀ {α ε : Type} (s : Readable.State α ε) (id : Nat) (chunk : α),
     Readable.continuePull s (.settleRead id chunk) =
       { s with
         readPromises := s.readPromises.map fun p =>
           if p.1 = id then (p.1, .fulfilled (.chunk chunk)) else p
-        trace := s.trace ++ [.settled (.read id (.ok (.chunk chunk)))] })
+        trace := s.trace ++ [.settled (.read id (.ok (.chunk chunk)))] }) axioms []
 
-#check (@Whatwg.Streams.Readable.streamClose_body :
+#whatwg_freeze (@Whatwg.Streams.Readable.streamClose_body :
   ∀ {α ε : Type} (s : Readable.State α ε),
     s.status = .readable →
       Readable.streamClose s =
@@ -119,9 +120,9 @@ something else. Mask M1. -/
           readPromises := s.readPromises.map fun p =>
             if p.1 ∈ s.readRequests then (p.1, .fulfilled .done) else p
           trace := s.trace ++ [.settled (.closed (.ok ()))] ++
-            s.readRequests.map (fun id => .settled (.read id (.ok .done))) })
+            s.readRequests.map (fun id => .settled (.read id (.ok .done))) }) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Readable.error_body :
+#whatwg_freeze (@Whatwg.Streams.Readable.error_body :
   ∀ {α ε : Type} (s : Readable.State α ε) (e : Boundary.Exception ε),
     s.status = .readable →
       Readable.error s e =
@@ -131,9 +132,9 @@ something else. Mask M1. -/
           readPromises := s.readPromises.map fun p =>
             if p.1 ∈ s.readRequests then (p.1, .rejected e) else p
           trace := s.trace ++ [.settled (.closed (.error e))] ++
-            s.readRequests.map (fun id => .settled (.read id (.error e))) })
+            s.readRequests.map (fun id => .settled (.read id (.error e))) }) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Readable.beginEnqueue_settle_body :
+#whatwg_freeze (@Whatwg.Streams.Readable.beginEnqueue_settle_body :
   ∀ {α ε : Type} (s : Readable.State α ε) (chunk : α) (id : Nat) (rest : List Nat),
     Readable.canCloseOrEnqueue s = true → s.readRequests = id :: rest →
       Readable.beginEnqueue s chunk =
@@ -143,9 +144,9 @@ something else. Mask M1. -/
             readPromises := s.readPromises.map fun p =>
               if p.1 = id then (p.1, .fulfilled (.chunk chunk)) else p
             trace := s.trace ++ [.settled (.read id (.ok (.chunk chunk)))] }
-          (.returnEnqueue s.nextEnqueue))
+          (.returnEnqueue s.nextEnqueue)) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Readable.read_body :
+#whatwg_freeze (@Whatwg.Streams.Readable.read_body :
   ∀ {α ε : Type} (s : Readable.State α ε),
     Readable.read s =
       (match s.status with
@@ -175,7 +176,7 @@ something else. Mask M1. -/
               if s.closeRequested = true ∧ q.entries = [] then
                 Readable.continuePull (Readable.streamClose { t with algorithms := none })
                   (.settleRead s.nextRead chunk)
-              else Readable.callPullIfNeededWith t (.settleRead s.nextRead chunk)))
+              else Readable.callPullIfNeededWith t (.settleRead s.nextRead chunk))) axioms [propext, Quot.sound]
 
 /-! ## Row 14 — `Transform.notify` (`E-32`, generalize)
 
@@ -194,16 +195,16 @@ carries three component tags of which only one is a reaction, and
 supplies the payload. Mask M2: the statement observes the job entering the
 queue. -/
 
-#check (@Whatwg.Streams.Transform.notifyJob :
+#whatwg_freeze (@Whatwg.Streams.Transform.notifyJob :
   ∀ {α ε : Type}, Transform.Subscription α → Readable.PullAnswer ε → Transform.Job α ε)
 
-#check (@Whatwg.Streams.Transform.notify_jobQueue_bridge :
+#whatwg_freeze (@Whatwg.Streams.Transform.notify_jobQueue_bridge :
   ∀ {α β ε : Type} (s : Transform.State α β ε) (sub : Transform.Subscription α)
     (answer : Readable.PullAnswer ε) (t : Transform.State α β ε),
     Transform.notify s sub answer = some t →
       Transform.jobQueue t =
         Whatwg.Ecma262.Jobs.Queue.enqueue (Transform.jobQueue s)
-          (Transform.notifyJob sub answer))
+          (Transform.notifyJob sub answer)) axioms [propext, Quot.sound]
 
 /-! ## Row 15 — `Transform.settle` (`E-33`, generalize)
 
@@ -222,7 +223,7 @@ registration order, and no subscription on that identity is left waiting.
 Anchors: `op.fulfillpromise` (2695419..2696230), `op.rejectpromise`
 (2699323..2700252), `op.triggerpromisereactions` (2700260..2701212). -/
 
-#check (@Whatwg.Streams.Transform.settle_table_bridge :
+#whatwg_freeze (@Whatwg.Streams.Transform.settle_table_bridge :
   ∀ {α β ε : Type} (s : Transform.State α β ε) (id : Nat)
     (answer : Readable.PullAnswer ε) (t : Transform.State α β ε),
     Transform.lookupPromise s id = some .pending → Transform.settle s id answer = some t →
@@ -230,22 +231,22 @@ Anchors: `op.fulfillpromise` (2695419..2696230), `op.rejectpromise`
         Whatwg.Ecma262.Promise.Table.settle (Writable.promiseTable s.writable) id
           (match answer with
             | .fulfilled => Except.ok ()
-            | .rejected e => Except.error e))
+            | .rejected e => Except.error e)) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Transform.settle_jobQueue_order :
+#whatwg_freeze (@Whatwg.Streams.Transform.settle_jobQueue_order :
   ∀ {α β ε : Type} (s : Transform.State α β ε) (id : Nat)
     (answer : Readable.PullAnswer ε) (t : Transform.State α β ε),
     Transform.lookupPromise s id = some .pending → Transform.settle s id answer = some t →
       Transform.jobQueue t =
         Whatwg.Ecma262.Jobs.Queue.enqueueAll (Transform.jobQueue s)
           ((s.subscriptions.filter (fun sub => Transform.subscriptionPromise sub == id)).map
-            (fun sub => Transform.notifyJob sub answer)))
+            (fun sub => Transform.notifyJob sub answer))) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Transform.settle_waiting_once :
+#whatwg_freeze (@Whatwg.Streams.Transform.settle_waiting_once :
   ∀ {α β ε : Type} (s : Transform.State α β ε) (id : Nat)
     (answer : Readable.PullAnswer ε) (t : Transform.State α β ε),
     Transform.lookupPromise s id = some .pending → Transform.settle s id answer = some t →
-      Whatwg.Ecma262.Promise.Reactions.waitingOn (Transform.reactions t) id .fulfill = [])
+      Whatwg.Ecma262.Promise.Reactions.waitingOn (Transform.reactions t) id .fulfill = []) axioms [propext, Quot.sound]
 
 /-! ## Row 16 — `Transform.runJob` (`E-51`, generalize)
 
@@ -262,7 +263,7 @@ Anchors: `hook.hostenqueuepromisejob` (633447..635836) and its ordering bullet
 condition `requirement.jobs.1` (625769..626250). Mask M2 for the first, M1 for
 the second. -/
 
-#check (@Whatwg.Streams.Transform.runJob_writable_dequeue :
+#whatwg_freeze (@Whatwg.Streams.Transform.runJob_writable_dequeue :
   ∀ {α β ε : Type} (s : Transform.State α β ε) (request : Nat)
     (first : Writable.SinkJob α ε) (rest : List (Writable.SinkJob α ε)),
     s.writable.control = [] →
@@ -270,12 +271,12 @@ the second. -/
         some (first, Whatwg.Ecma262.Jobs.Queue.mk rest) →
     first.kind = Writable.SinkKind.write → first.request = request →
       Transform.runJob s (.writable request) =
-        (Writable.tick s.writable).map (Transform.withWritable s))
+        (Writable.tick s.writable).map (Transform.withWritable s)) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Streams.Transform.runJob_writable_blocked :
+#whatwg_freeze (@Whatwg.Streams.Transform.runJob_writable_blocked :
   ∀ {α β ε : Type} (s : Transform.State α β ε) (request : Nat),
     Whatwg.Ecma262.Jobs.Queue.dequeue (Writable.jobQueue s.writable) = none →
-      Transform.runJob s (.writable request) = none)
+      Transform.runJob s (.writable request) = none) axioms [propext, Quot.sound]
 
 /-! ## The view conversions, `E-07`..`E-12` — green today, and they must stay green
 
@@ -298,48 +299,48 @@ Anchors: PROCESSWRITE (`op.writable-stream-default-controller-process-write`,
 fused with `slot.PromiseResult` (2745263..2745619) for the shared owner. All
 mask M1. -/
 
-#check (@Whatwg.Streams.Writable.unitPromiseToShared :
+#whatwg_freeze (@Whatwg.Streams.Writable.unitPromiseToShared :
   ∀ {ε : Type}, Writable.UnitPromise ε → Readable.PromiseState Unit ε)
-#check (@Whatwg.Streams.Writable.unitPromiseFromShared :
+#whatwg_freeze (@Whatwg.Streams.Writable.unitPromiseFromShared :
   ∀ {ε : Type}, Readable.PromiseState Unit ε → Writable.UnitPromise ε)
-#check (@Whatwg.Streams.Writable.sinkAnswerToShared :
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkAnswerToShared :
   ∀ {ε : Type}, Writable.SinkAnswer ε → Readable.PullAnswer ε)
-#check (@Whatwg.Streams.Writable.sinkAnswerFromShared :
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkAnswerFromShared :
   ∀ {ε : Type}, Readable.PullAnswer ε → Writable.SinkAnswer ε)
-#check (@Whatwg.Streams.Writable.sinkReturnToShared :
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkReturnToShared :
   ∀ {ε : Type}, Writable.SinkReturn ε → Readable.PullReturn ε)
-#check (@Whatwg.Streams.Writable.sinkReturnFromShared :
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkReturnFromShared :
   ∀ {ε : Type}, Readable.PullReturn ε → Writable.SinkReturn ε)
 
-#check (@Whatwg.Streams.Writable.unitPromise_eq :
-  ∀ {ε : Type}, Writable.UnitPromise ε = Readable.PromiseState Unit ε)
-#check (@Whatwg.Streams.Writable.unitPromiseToShared_eq :
-  ∀ {ε : Type} (a : Writable.UnitPromise ε), Writable.unitPromiseToShared a = a)
-#check (@Whatwg.Streams.Writable.unitPromiseFromShared_eq :
-  ∀ {ε : Type} (a : Readable.PromiseState Unit ε), Writable.unitPromiseFromShared a = a)
-#check (@Whatwg.Streams.Writable.unitPromise_roundtrip :
+#whatwg_freeze (@Whatwg.Streams.Writable.unitPromise_eq :
+  ∀ {ε : Type}, Writable.UnitPromise ε = Readable.PromiseState Unit ε) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.unitPromiseToShared_eq :
+  ∀ {ε : Type} (a : Writable.UnitPromise ε), Writable.unitPromiseToShared a = a) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.unitPromiseFromShared_eq :
+  ∀ {ε : Type} (a : Readable.PromiseState Unit ε), Writable.unitPromiseFromShared a = a) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.unitPromise_roundtrip :
   ∀ {ε : Type} (a : Writable.UnitPromise ε),
-    Writable.unitPromiseFromShared (Writable.unitPromiseToShared a) = a)
+    Writable.unitPromiseFromShared (Writable.unitPromiseToShared a) = a) axioms []
 
-#check (@Whatwg.Streams.Writable.sinkAnswer_eq :
-  ∀ {ε : Type}, Writable.SinkAnswer ε = Readable.PullAnswer ε)
-#check (@Whatwg.Streams.Writable.sinkAnswerToShared_eq :
-  ∀ {ε : Type} (a : Writable.SinkAnswer ε), Writable.sinkAnswerToShared a = a)
-#check (@Whatwg.Streams.Writable.sinkAnswerFromShared_eq :
-  ∀ {ε : Type} (a : Readable.PullAnswer ε), Writable.sinkAnswerFromShared a = a)
-#check (@Whatwg.Streams.Writable.sinkAnswer_roundtrip :
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkAnswer_eq :
+  ∀ {ε : Type}, Writable.SinkAnswer ε = Readable.PullAnswer ε) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkAnswerToShared_eq :
+  ∀ {ε : Type} (a : Writable.SinkAnswer ε), Writable.sinkAnswerToShared a = a) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkAnswerFromShared_eq :
+  ∀ {ε : Type} (a : Readable.PullAnswer ε), Writable.sinkAnswerFromShared a = a) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkAnswer_roundtrip :
   ∀ {ε : Type} (a : Writable.SinkAnswer ε),
-    Writable.sinkAnswerFromShared (Writable.sinkAnswerToShared a) = a)
+    Writable.sinkAnswerFromShared (Writable.sinkAnswerToShared a) = a) axioms []
 
-#check (@Whatwg.Streams.Writable.sinkReturn_eq :
-  ∀ {ε : Type}, Writable.SinkReturn ε = Readable.PullReturn ε)
-#check (@Whatwg.Streams.Writable.sinkReturnToShared_eq :
-  ∀ {ε : Type} (a : Writable.SinkReturn ε), Writable.sinkReturnToShared a = a)
-#check (@Whatwg.Streams.Writable.sinkReturnFromShared_eq :
-  ∀ {ε : Type} (a : Readable.PullReturn ε), Writable.sinkReturnFromShared a = a)
-#check (@Whatwg.Streams.Writable.sinkReturn_roundtrip :
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkReturn_eq :
+  ∀ {ε : Type}, Writable.SinkReturn ε = Readable.PullReturn ε) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkReturnToShared_eq :
+  ∀ {ε : Type} (a : Writable.SinkReturn ε), Writable.sinkReturnToShared a = a) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkReturnFromShared_eq :
+  ∀ {ε : Type} (a : Readable.PullReturn ε), Writable.sinkReturnFromShared a = a) axioms []
+#whatwg_freeze (@Whatwg.Streams.Writable.sinkReturn_roundtrip :
   ∀ {ε : Type} (a : Writable.SinkReturn ε),
-    Writable.sinkReturnFromShared (Writable.sinkReturnToShared a) = a)
+    Writable.sinkReturnFromShared (Writable.sinkReturnToShared a) = a) axioms []
 
 /-! ## The two landed table views the `view` record rows name
 
@@ -347,9 +348,9 @@ mask M1. -/
 declarations the amended duplicate-prevention rows point at as the shared
 owner, so they are ascribed here too and must keep elaborating. Mask M1. -/
 
-#check (@Whatwg.Streams.Writable.promiseTable :
+#whatwg_freeze (@Whatwg.Streams.Writable.promiseTable :
   ∀ {α ε : Type}, Writable.State α ε →
     Whatwg.Ecma262.Promise.Table Unit (Boundary.Exception ε))
-#check (@Whatwg.Streams.Readable.readTable :
+#whatwg_freeze (@Whatwg.Streams.Readable.readTable :
   ∀ {α ε : Type}, Readable.State α ε →
     Whatwg.Ecma262.Promise.Table (Readable.ReadResult α) (Boundary.Exception ε))

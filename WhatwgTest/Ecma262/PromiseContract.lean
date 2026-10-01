@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3 exact-signature battery for `Whatwg.Ecma262.Promise`.
@@ -35,16 +36,16 @@ Anchors: `slot.PromiseState`, 2744957..2745252, digest
 `slot.PromiseResult`, 2745263..2745619, digest
 `c0c3b1b3c19902cdec5971211ec6f5cce01d5a5696f5728c480c61013cbb9a2f`. -/
 
-#check (@Whatwg.Ecma262.Promise.State :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.State :
   Type → Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.State.pending :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.State.pending :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.State value reason)
 
-#check (@Whatwg.Ecma262.Promise.State.fulfilled :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.State.fulfilled :
   ∀ {value reason : Type}, value → Whatwg.Ecma262.Promise.State value reason)
 
-#check (@Whatwg.Ecma262.Promise.State.rejected :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.State.rejected :
   ∀ {value reason : Type}, reason → Whatwg.Ecma262.Promise.State value reason)
 
 /-! `E-01` risk: `deriving DecidableEq, Repr` must survive as instances found
@@ -67,13 +68,13 @@ Anchors: `op.fulfillpromise`, 2695419..2696230, digest
 `op.rejectpromise`, 2699323..2700252, digest
 `1006df0c95f76cd0a9edadadb8f68bf85446b0e8778485cfd8b913fb169fc056`. -/
 
-#check (@Whatwg.Ecma262.Promise.Outcome :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Outcome :
   Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.Outcome.fulfilled :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Outcome.fulfilled :
   ∀ {reason : Type}, Whatwg.Ecma262.Promise.Outcome reason)
 
-#check (@Whatwg.Ecma262.Promise.Outcome.rejected :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Outcome.rejected :
   ∀ {reason : Type}, reason → Whatwg.Ecma262.Promise.Outcome reason)
 
 #check (inferInstance :
@@ -88,13 +89,13 @@ the `[[PromiseState]]` of a returned promise observed at callback-return time,
 before any reaction runs. Decision 6 keeps all three carriers distinct; their
 isomorphisms are bridging lemmas, not identifications. -/
 
-#check (@Whatwg.Ecma262.Promise.Returned :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Returned :
   Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.Returned.pending :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Returned.pending :
   ∀ {reason : Type}, Whatwg.Ecma262.Promise.Returned reason)
 
-#check (@Whatwg.Ecma262.Promise.Returned.settled :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Returned.settled :
   ∀ {reason : Type}, Whatwg.Ecma262.Promise.Outcome reason →
     Whatwg.Ecma262.Promise.Returned reason)
 
@@ -113,16 +114,16 @@ class "rename only"); `PromiseRef.local` is renamed `Ref.cell` because `local`
 is a Lean 4 keyword and cannot be a field name. Streams keeps bare `Nat` under
 a single-owner view until P8. -/
 
-#check (@Whatwg.Ecma262.Promise.Ref :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref :
   Type)
 
-#check (@Whatwg.Ecma262.Promise.Ref.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref.mk :
   Nat → Nat → Whatwg.Ecma262.Promise.Ref)
 
-#check (@Whatwg.Ecma262.Promise.Ref.owner :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref.owner :
   Whatwg.Ecma262.Promise.Ref → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Ref.cell :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref.cell :
   Whatwg.Ecma262.Promise.Ref → Nat)
 
 #check (inferInstance :
@@ -140,63 +141,63 @@ Anchors: `table-internal-slots-of-promise-instances`, the clause row
 `slot.PromiseIsHandled`, 2746322..2746637, digest
 `c5e0730a73986eb475cb399584433d21e4aadecc069e3b2d61517937d39ed652`. -/
 
-#check (@Whatwg.Ecma262.Promise.Cell :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Cell :
   Type → Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.Cell.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Cell.mk :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.State value reason → Bool →
     Whatwg.Ecma262.Promise.Cell value reason)
 
-#check (@Whatwg.Ecma262.Promise.Cell.state :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Cell.state :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Cell value reason →
     Whatwg.Ecma262.Promise.State value reason)
 
-#check (@Whatwg.Ecma262.Promise.Cell.handled :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Cell.handled :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Cell value reason → Bool)
 
-#check (@Whatwg.Ecma262.Promise.Table :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table :
   Type → Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.Table.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.mk :
   ∀ {value reason : Type}, List (Nat × Whatwg.Ecma262.Promise.Cell value reason) → Nat →
     Whatwg.Ecma262.Promise.Table value reason)
 
-#check (@Whatwg.Ecma262.Promise.Table.entries :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.entries :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason →
     List (Nat × Whatwg.Ecma262.Promise.Cell value reason))
 
-#check (@Whatwg.Ecma262.Promise.Table.next :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.next :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat)
 
 #check (inferInstance :
   DecidableEq (Whatwg.Ecma262.Promise.Table Unit Nat))
 
-#check (@Whatwg.Ecma262.Promise.Table.empty :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.empty :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason)
 
 /-! `E-18` (generalize): the target of `Writable.lookupPromise`, which is named
 in all four `attribute [local simp]` sets. -/
-#check (@Whatwg.Ecma262.Promise.Table.getCell :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.getCell :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat →
     Option (Whatwg.Ecma262.Promise.Cell value reason))
 
-#check (@Whatwg.Ecma262.Promise.Table.get :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.get :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat →
     Option (Whatwg.Ecma262.Promise.State value reason))
 
-#check (@Whatwg.Ecma262.Promise.Table.isPending :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.isPending :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat → Bool)
 
 /-! `E-19` (generalize): the target of `Writable.freshPromise`. The Streams
 instance additionally appends a `.settled` trace event in two of its three
 branches; the trace stays in Streams, so the general function allocates only. -/
-#check (@Whatwg.Ecma262.Promise.Table.fresh :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.fresh :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.State value reason →
     Whatwg.Ecma262.Promise.Table value reason × Nat)
 
 /-! `E-20` (generalize) and decision 7: the total guarded function. -/
-#check (@Whatwg.Ecma262.Promise.Table.settle :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settle :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat →
     Except reason value → Whatwg.Ecma262.Promise.Table value reason)
 
@@ -204,7 +205,7 @@ branches; the trace stays in Streams, so the general function allocates only. -/
 `op.mark-a-promise-as-handled` an uncovered denominator row because the pinned
 Streams *source* invokes it zero times; the Streams *model* already implements
 it at two call sites, so this packet must not declare it absent. -/
-#check (@Whatwg.Ecma262.Promise.Table.markHandled :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.markHandled :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat →
     Whatwg.Ecma262.Promise.Table value reason)
 
@@ -223,13 +224,13 @@ Anchors: `record.promisereaction-records`, 2690445..2692671, digest
 `slot.PromiseFulfillReactions`, 2745630..2745966;
 `slot.PromiseRejectReactions`, 2745977..2746311. -/
 
-#check (@Whatwg.Ecma262.Promise.ReactionType :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionType :
   Type)
 
-#check (@Whatwg.Ecma262.Promise.ReactionType.fulfill :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionType.fulfill :
   Whatwg.Ecma262.Promise.ReactionType)
 
-#check (@Whatwg.Ecma262.Promise.ReactionType.reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionType.reject :
   Whatwg.Ecma262.Promise.ReactionType)
 
 #check (inferInstance :
@@ -239,19 +240,19 @@ Anchors: `record.promisereaction-records`, 2690445..2692671, digest
 `Whatwg.Ecma262.Promise.ReactionPhase` with its four constructors unchanged.
 `E-36` (keep) fixes that `Writable.OperationPhase` is *not* unified with it in
 this packet: its fourteen receipts guard `acceptAnswer` and `attachSink`. -/
-#check (@Whatwg.Ecma262.Promise.ReactionPhase :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase :
   Type)
 
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.waiting :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.waiting :
   Whatwg.Ecma262.Promise.ReactionPhase)
 
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.queued :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.queued :
   Nat → Whatwg.Ecma262.Promise.ReactionPhase)
 
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.running :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.running :
   Nat → Whatwg.Ecma262.Promise.ReactionPhase)
 
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.done :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.done :
   Whatwg.Ecma262.Promise.ReactionPhase)
 
 #check (inferInstance :
@@ -263,7 +264,7 @@ handler, which is what Web IDL's one-sided "upon fulfillment" and "upon
 rejection" register. `E-29` risk: `deriving Repr` only — the general record
 must not gain `DecidableEq`, or `Transform.State` stops being `Repr`-only in
 the same way. -/
-#check (@Whatwg.Ecma262.Promise.Reaction :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction :
   Type → Type)
 
 /-! **Amended by the Q3b fidelity addendum, 2026-09-07**
@@ -286,27 +287,27 @@ argument is stored nowhere and `G-03`'s resolving functions settle nothing. The
 field sits between `handler` and `phase`, so the record still reads in the
 order the two source tables give. `E-50` (generalize) constrains the repair:
 `Reaction` must stay `Repr`-only. -/
-#check (@Whatwg.Ecma262.Promise.Reaction.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.mk :
   ∀ {body : Type}, Nat → Nat → Whatwg.Ecma262.Promise.ReactionType → Option body →
     Option Whatwg.Ecma262.Promise.Capability →
     Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reaction body)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.id :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.id :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Nat)
 
 /-! `E-30` (generalize): the target of `Transform.subscriptionPromise`, the
 identity captured at registration, independent of later slot replacement. -/
-#check (@Whatwg.Ecma262.Promise.Reaction.promise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.promise :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.kind :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.kind :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body →
     Whatwg.Ecma262.Promise.ReactionType)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.handler :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.handler :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Option body)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.phase :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.phase :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body →
     Whatwg.Ecma262.Promise.ReactionPhase)
 
@@ -314,31 +315,31 @@ identity captured at registration, independent of later slot replacement. -/
   Repr (Whatwg.Ecma262.Promise.Reaction Nat))
 
 /-! `G-01`: the two reaction lists Streams does not have. -/
-#check (@Whatwg.Ecma262.Promise.Reactions :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions :
   Type → Type)
 
-#check (@Whatwg.Ecma262.Promise.Reactions.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.mk :
   ∀ {body : Type}, List (Whatwg.Ecma262.Promise.Reaction body) →
     List (Whatwg.Ecma262.Promise.Reaction body) → Nat →
     Whatwg.Ecma262.Promise.Reactions body)
 
-#check (@Whatwg.Ecma262.Promise.Reactions.fulfill :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.fulfill :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body →
     List (Whatwg.Ecma262.Promise.Reaction body))
 
-#check (@Whatwg.Ecma262.Promise.Reactions.reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.reject :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body →
     List (Whatwg.Ecma262.Promise.Reaction body))
 
-#check (@Whatwg.Ecma262.Promise.Reactions.next :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.next :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Reactions.empty :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.empty :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body)
 
 /-! Keyed by list *and* id: `Reactions.add` gives the two paired entries one
 shared id, so an id alone does not name a reaction. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.get :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.get :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Promise.ReactionType → Nat →
     Option (Whatwg.Ecma262.Promise.Reaction body))
@@ -356,24 +357,24 @@ Reason: `op.performpromisethen` steps 7 and 8 give **both** records the same
 `_resultCapability_`, so the registering operation must take it. Streams
 supplies `none`: a transform subscription has no result capability, which is
 `G-11`'s remainder and is recorded as such rather than smoothed. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.add :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.add :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat → Option body → Option body →
     Option Whatwg.Ecma262.Promise.Capability →
     Whatwg.Ecma262.Promise.Reactions body × Nat)
 
-#check (@Whatwg.Ecma262.Promise.Reactions.setPhase :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.setPhase :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Promise.ReactionType → Nat →
     Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reactions body)
 
-#check (@Whatwg.Ecma262.Promise.Reactions.waitingOn :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.waitingOn :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat →
     Whatwg.Ecma262.Promise.ReactionType → List (Whatwg.Ecma262.Promise.Reaction body))
 
 /-! Decision 8's one-list view: a registration made by `WebIdl.Promise.react`
 contributes one entry to each list under one id, so the fulfil list alone is
 the registration order `Transform.State.subscriptions` records. -/
-#check (@Whatwg.Ecma262.Promise.Reactions.registered :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reactions.registered :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reactions body →
     List (Whatwg.Ecma262.Promise.Reaction body))
 
@@ -383,14 +384,14 @@ the registration order `Transform.State.subscriptions` records. -/
 Anchor: `op.triggerpromisereactions`, 2700260..2701212, digest
 `ba03acae7a5640e794655f0fcb6e085859ce91eb4a8f899472ff01dc122c1839`. -/
 
-#check (@Whatwg.Ecma262.Promise.triggerReactions :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.triggerReactions :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Reactions body → Nat →
     Whatwg.Ecma262.Promise.ReactionType → Except reason value →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
     Whatwg.Ecma262.Promise.Reactions body ×
       Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
 
-#check (@Whatwg.Ecma262.Promise.Table.settleAndTrigger :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Table.settleAndTrigger :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
@@ -398,7 +399,7 @@ Anchor: `op.triggerpromisereactions`, 2700260..2701212, digest
     Whatwg.Ecma262.Promise.Table value reason × Whatwg.Ecma262.Promise.Reactions body ×
       Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
 
-#check (@Whatwg.Ecma262.Promise.fulfillPromise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.fulfillPromise :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
@@ -406,7 +407,7 @@ Anchor: `op.triggerpromisereactions`, 2700260..2701212, digest
     Whatwg.Ecma262.Promise.Table value reason × Whatwg.Ecma262.Promise.Reactions body ×
       Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)))
 
-#check (@Whatwg.Ecma262.Promise.rejectPromise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.rejectPromise :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
@@ -430,58 +431,58 @@ Anchors: `record.promisecapability-records`, 2687751..2690437, digest
 `op.createresolvingfunctions`, 2692679..2695411, digest
 `8227712c5eaa66d17942e1b7c13a8d6f7c29f24a03a591df81ce9868a90c8944`. -/
 
-#check (@Whatwg.Ecma262.Promise.Capability :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Capability :
   Type)
 
-#check (@Whatwg.Ecma262.Promise.Capability.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Capability.mk :
   Nat → Nat → Nat → Whatwg.Ecma262.Promise.Capability)
 
-#check (@Whatwg.Ecma262.Promise.Capability.promise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Capability.promise :
   Whatwg.Ecma262.Promise.Capability → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Capability.resolve :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Capability.resolve :
   Whatwg.Ecma262.Promise.Capability → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Capability.reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Capability.reject :
   Whatwg.Ecma262.Promise.Capability → Nat)
 
 #check (inferInstance :
   DecidableEq Whatwg.Ecma262.Promise.Capability)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions :
   Type)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.mk :
   Nat → Nat → Nat → Bool → Whatwg.Ecma262.Promise.ResolvingFunctions)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.promise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.promise :
   Whatwg.Ecma262.Promise.ResolvingFunctions → Nat)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.resolve :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.resolve :
   Whatwg.Ecma262.Promise.ResolvingFunctions → Nat)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.reject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.reject :
   Whatwg.Ecma262.Promise.ResolvingFunctions → Nat)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.alreadyResolved :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.alreadyResolved :
   Whatwg.Ecma262.Promise.ResolvingFunctions → Bool)
 
 #check (inferInstance :
   DecidableEq Whatwg.Ecma262.Promise.ResolvingFunctions)
 
-#check (@Whatwg.Ecma262.Promise.newPromiseCapability :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.newPromiseCapability :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.Table value reason → Nat →
     Whatwg.Ecma262.Promise.Table value reason × Whatwg.Ecma262.Promise.Capability)
 
-#check (@Whatwg.Ecma262.Promise.createResolvingFunctions :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.createResolvingFunctions :
   Nat → Nat → Whatwg.Ecma262.Promise.ResolvingFunctions)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callResolve :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.ResolvingFunctions →
     Whatwg.Ecma262.Promise.Table value reason → value →
     Whatwg.Ecma262.Promise.ResolvingFunctions × Whatwg.Ecma262.Promise.Table value reason)
 
-#check (@Whatwg.Ecma262.Promise.ResolvingFunctions.callReject :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ResolvingFunctions.callReject :
   ∀ {value reason : Type}, Whatwg.Ecma262.Promise.ResolvingFunctions →
     Whatwg.Ecma262.Promise.Table value reason → reason →
     Whatwg.Ecma262.Promise.ResolvingFunctions × Whatwg.Ecma262.Promise.Table value reason)
@@ -518,7 +519,7 @@ result capability is still `Option Capability`, and the returned `Option Nat`
 is still steps 13 and 14. Holding the capture is the caller's, which is the
 honest reading of "captures _reaction_ and _argument_" and leaves the
 identity's resolution to the P8 configuration. -/
-#check (@Whatwg.Ecma262.Promise.performPromiseThen :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.performPromiseThen :
   ∀ {value reason body : Type}, Whatwg.Ecma262.Promise.Table value reason →
     Whatwg.Ecma262.Promise.Reactions body →
     Whatwg.Ecma262.Jobs.Queue (Whatwg.Ecma262.Jobs.ReactionJob (Except reason value)) →
