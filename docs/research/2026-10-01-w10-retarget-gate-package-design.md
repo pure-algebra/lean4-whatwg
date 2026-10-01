@@ -36,17 +36,19 @@ Channel, Sink or Pull module; Flow archived), and becomes the
 `Effects.Signature` face of the Streams calculi beside W9's agent face, plus
 the Node bridge it already names.
 
-Part B. The structural repair of debt D56 is a gate executable over the
-built `.olean` files. The prototype imports with `Lean.importModules
-(loadExts := false)`, so no audited initializer, parser or elaborator runs,
-and reproduces the in-tree gate's counts exactly (16,723 declarations; 84,
-122 and 176 reaching `Classical.choice`) in 3.9 s. Its own axiom traversal
-agrees with `Lean.collectAxioms` on every declaration; registrations and
-the token table rebuilt from raw entries equal the loaded ones; it reads all
-222 sources. It also sees what the in-tree command cannot: whether each
-`.olean` is current (Lake's trace hash) and the options each module was
-compiled with (`-DwarningAsError=true` on all 216), closing D51 for every
-option Lake traces.
+Part B. D56 is real at the base: a module that removes the gate's linters in
+an initializer and replaces its command builds green with no pass run. The
+repair is a gate executable over the built `.olean` files. The prototype
+imports them with `importModules (loadExts := false)`, so no audited
+initializer, parser or elaborator runs, and reproduces the in-tree gate's
+counts exactly (16,723 declarations; 84, 122 and 176 reaching
+`Classical.choice`) in 4.3 s. Its own axiom traversal
+agrees with `Lean.collectAxioms` on every declaration; registrations,
+attribute reads and the token table from raw entries equal the loaded ones;
+it reads all 222 sources. It also sees what the in-tree command cannot:
+whether each `.olean` is current (Lake's trace hash) and the options each
+module was compiled with (`-DwarningAsError=true` on all 216), closing D51
+for every option Lake traces.
 
 First step, in this repository alone and useful if no package ever ships:
 `whatwg_trustgate` under a breaker addendum V2d, the passes factored into a
@@ -178,7 +180,7 @@ implementing declaration.
 | configuration shape | `configShapeFindings` | none | none | none |
 | root rule and linters | `rootFindings`, `checkRootGateCommand`, `checkRootCommands` | none | none | none |
 | reverse closure | `closureFindings` | forward closure and a library-layering check (`moduleImportClosure`) | forward only | forward only |
-| self-test | `whatwg_trustselftest`: 75 plants, narrow runs, 81 checks, in CI | shell script over private lists; its fixture names constants deleted since (`[S]`, likely stale) | `hash_trustselftest`, 9 plants | shell, 7 plants and 10 tokenizer cases |
+| self-test | `WhatwgGates/TrustSelfTest.lean` (`whatwg_trustselftest`): 75 plants, narrow runs, 81 checks, in CI | `scripts/test-trust-boundaries.sh` over the private lists; its fixture names constants deleted since (`[S]`, likely stale) | `HashGates/TrustSelfTest.lean` (`hash_trustselftest`), 9 plants | `scripts/test-trust-gate.sh` and `scripts/test-source-trust-tokenizer.sh`: 7 plants, 10 tokenizer cases |
 | kernel replay | `lake env leanchecker Whatwg WhatwgTest WhatwgGates` in CI | none | `leanchecker --fresh Hash.Verified` | none |
 | reporting | every finding, summary only when clean | first error | first error | first error |
 | `warningAsError` | package `leanOptions` | `-DwarningAsError=true` in every library's `moreLeanArgs` | package `leanOptions` | none anywhere |
@@ -214,15 +216,17 @@ Both files were removed before the final commit. Every number is `[C]`.
 | Measurement | Command | Result |
 | --- | --- | --- |
 | axiom pass, extensions not loaded | `lake exe w10_proto` | PASS; 16,723 declarations of 2,564 environment modules; choice reached by 84 of 12,766 in Whatwg, 122 of 2,360 in WhatwgTest, 176 of 1,597 in WhatwgGates: the in-tree gate's numbers; 28,147 constants traversed |
-| time | the same | import 1.16 s, axiom traversal 1.24 s, token scan 0.96 s; 3.9 s wall including `lake exe` |
+| time | the same, three runs | import 1.2 s, axiom traversal 1.3 to 1.4 s, token scan 1.0 s; 4.3 s wall including `lake exe` and the attribute reads below (5.7 s on the first, cold run) |
 | agreement with `Lean.collectAxioms` | `lake exe w10_proto --compare` | 0 of 16,723 declarations differ |
-| the table route | the same, `importModules (loadExts := true)` | 1.6 s, but it requires `enableInitializersExecution`, which is `unsafe`, and runs the imported modules' initializers in the interpreter: without `supportInterpreter` it stopped on an interpreted call to `IO.getRandomBytes` |
+| the table route | an earlier revision's `--tables` mode, `importModules (loadExts := true)` and `Lean.collectAxioms` | 1.6 s, but it requires `enableInitializersExecution`, which is `unsafe`, and runs the imported modules' initializers in the interpreter: without `supportInterpreter` it stopped on an interpreted call to `IO.getRandomBytes` |
 | registrations from raw entries | `lake exe w10_proto`, `--compare` | 8 token, 8 parser, 8 command-elaborator and 2 initializer entries in audited modules; the same with extensions loaded |
+| environment-pass reads | `lake exe w10_proto`, `--compare` | over every constant of the environment, Lean's included: 963 `@[extern]`, 324 `@[implemented_by]`, 15 axioms, 3,622 `unsafe` or `partial`; the same with extensions loaded, since a parametric attribute answers for an imported declaration from raw module entries |
 | token table | `--compare` | rebuilt from the builtin table and raw `.token` entries: 511 tokens; `Parser.getTokenTable` with extensions loaded: 511; no token in one and not the other |
 | source scan | `lake exe w10_proto` | 222 sources, 415,600 tokens of code, 0 tokenization failures; 416 `#guard`, 35 `config`, 2 `run_cmd`: the contract's counts (V2c.4, V2c.7) |
 | freshness | the same | 216 of 216 audited modules match the source hash their Lake `.trace` records; after appending a comment to `Whatwg.lean` without rebuilding, 215 and `stale [Whatwg]` |
 | recorded options | the same | `-DwarningAsError=true`, `-DautoImplicit=false`, `-DrelaxedAutoImplicit=false` on all 216 |
 | extension inventory | `lake exe w10_proto --extensions` | 51 environment extensions hold entries from audited modules, read from `ModuleData.entries` by name with no extension registered |
+| the residual of V2c.7 | a temporary module `WhatwgTest/W10Plant.lean`, imported first by `WhatwgTest.lean`: an `initialize` that filters `rootGateCommandCheck` out of `lintersRef` and `rootCommandsCheck` out of `moduleLintersRef`, and a `macro_rules` that expands the gate command to `#check 1`; then `lake build` and `lake exe w10_proto --extensions`; both files removed and the tree rebuilt | `lake build` exit 0, 387 jobs, the root printing `1 : Nat` and no gate line: the gate replaced and its post-command check removed, accepted. The executable's raw reads recorded the plant: initializer entries 2 to 4, one `Lean.Elab.macroAttribute` entry (52 extensions), 223 sources scanned. The prototype does not run rule 1 as a refusal, so this is the input a ported pass refuses, not its verdict |
 
 ## 3. Part A: retarget P11 and P12
 
@@ -391,7 +395,7 @@ library's `Config` module, so no other audited code runs in its process.
 | Channel | In-tree command | Executable |
 | --- | --- | --- |
 | gate replaced by a `macro_rules` or `@[command_elab]` | caught by the V2c.5 linters, which an initializer can remove | not applicable: nothing audited elaborates or runs in its process; the registration is still refused by rule 1 from raw entries |
-| linters removed by an initializer | caught only by the self-test (V2c.7) | not applicable; the `initialize` is refused by rule 1 from the init attribute's raw entries |
+| linters removed by an initializer | accepted by `lake build` (measured, 2.5), caught only by the self-test (V2c.7) | not applicable; the `initialize` and the macro are in the raw entries the executable reads (measured), and rule 1 refuses them |
 | root with extra commands or constants | root rule and `map₂` check | root rule ported as a lexical check of `WhatwgTest.lean`; the root module's constants audited like any module's when its `.olean` is current |
 | registration channels outside the six kinds (`unif_hint`, simprocs by attribute, code actions) | not refused (D56) | refusable by an allowlist of extensions by name: 51 today, each with a reason; an unknown extension with an audited entry is refused |
 | options set in `lakefile.toml` (`leanOptions`, `moreLeanArgs`) | invisible (section 13, V2c.7) | visible in each module's trace; the gate can require `-DwarningAsError=true` and refuse a `debug.*` option on every audited module (D51's lakefile half). `weakLeanArgs` stay invisible: Lake keeps them out of the trace by design, so a `-Ddebug.skipKernelTC=true` passed that way is caught only by `leanchecker`, unless the gate also refuses a non-empty `weakLeanArgs` in `lakefile.toml` |
@@ -426,7 +430,7 @@ Recommendation: keep both through one lane, with both calling the same
 `WhatwgGates/Trust/` library so no pass is written twice; then the
 coordinator decides retirement on the evidence that the executable refused
 every row the command refused. The command costs about 7.6 s per root
-re-elaboration; the executable 3.9 s per run.
+re-elaboration; the executable 4.3 s per run.
 
 ### 4.4 Lake, CI and D49
 
@@ -435,7 +439,9 @@ re-elaboration; the executable 3.9 s per run.
   accepts a `lintDriver` naming an executable, in this package or as
   `<package>/<name>` in a dependency (`lake lint`); that is an alias worth
   adding, not a substitute, because building a driver builds its own
-  imports, not the audited libraries.
+  imports, not the audited libraries. `testDriver` (`lake test`), which
+  lean4-hash points at its `HashVerified` library, fits a library of
+  checks better than a gate over the built tree.
 - Freshness: the executable cannot make Lake build the audited libraries
   first `[H]` (not checked whether `lake exe` can be made to); it refuses a
   missing or stale `.olean` instead, so a forgotten `lake build` fails
@@ -530,6 +536,13 @@ Proposed beyond the prototype `[H]` (not elaborated):
 
 with `def run (config : Config) (args : List String) : IO UInt32` as the
 executable body and the in-tree command calling the same passes.
+
+Declaration record for these names: owner `WhatwgGates/Trust/` here, the
+`TrustGate` package after extraction; disposition tooling, with no
+specification anchor; reuse mode move (R-P12), since each replaces a
+`private` declaration of `WhatwgTest/Audit/AxiomGate.lean` and nothing is
+duplicated; assurance route the contract and the trust self-test, as for
+the gate in lane V, with no proof graph.
 
 In this repository the data would be `WhatwgGates/TrustConfig.lean`
 (`Gates.TrustConfig.config`), holding the three lists below their frozen
@@ -726,19 +739,24 @@ For the operator:
 6. The compiler pin of the P11 harness. Options: share lean4-effect4's
    `harness/schema-host` pins; own pins under `harness/`. Recommend own pins
    recorded in `docs/PROVENANCE.md`, equal to lean4-effect4's at first.
-7. Nothing is pushed by this seat; every push above is the operator's.
+
+This seat pushed nothing and wrote nothing outside its worktree; every push
+and every change to another repository above is the operator's.
 
 ## 8. Not checked
 
 - No WPT run, no TypeScript compiler run, no Node or Bun run; Part A's host
   claims are design, not observation.
-- The prototype covers the axiom pass, registrations by count, the token
-  table, the tokenizer over every source, freshness, options and the
-  extension inventory. It does not port the environment refusals, rule 1's
+- The prototype runs the axiom pass and the tokenizer, and measures the
+  inputs of the other passes: the attribute reads of the environment pass,
+  registrations by count, the token table, freshness, options and the
+  extension inventory. It does not run the environment refusals, rule 1's
   per-module attribution, hygiene, the configuration shape, the root rule or
-  the closures; those are the in-tree code run on the same inputs, which 2.5
-  shows are identical, but no ported pass was run.
-- The four extra executable-only plants of section 5 were not planted.
+  the closures as passes; those are the in-tree code over inputs 2.5 shows
+  identical, and no planted violation was put to the prototype.
+- Of the executable-only plants of section 5, only the V2c.7 residual was
+  built (against `lake build` and the prototype's raw reads); the others
+  were not planted.
 - lean4-effect4, lean4-hash and lean4-effects were read, not built; the
   matrix rests on a helper's reading (`[S]`) spot-checked on their lakefiles,
   CI files and lean4-effect4's design documents.
@@ -749,7 +767,8 @@ For the operator:
   packages pin different commits.
 - The cost of the executable column in the self-test (about 81 extra runs of
   4 s each, `[H]`).
-- `upstream ls-remote` was run by a helper; no tag was created anywhere.
+- `git ls-remote` against lean4-typescript was run by a helper; no tag was
+  created anywhere.
 
 ## Appendix A: proposed text
 
@@ -1139,6 +1158,22 @@ def registrationCounts (config : Config) (environment : Environment) :
       (regularInitAttr.ext.getModuleIREntries environment index).size
   return (tokens, parsers, commandElaborators, initializers)
 
+/-- The environment pass's attribute reads over every constant of the
+environment (Lean's own included): `@[extern]`, `@[implemented_by]`, declared
+axioms, and `unsafe` or `partial` constants. Parametric attributes answer
+for an imported declaration from its module's raw entries, so the counts
+must not depend on whether extensions were loaded. -/
+def environmentCounts (environment : Environment) : Nat × Nat × Nat × Nat := Id.run do
+  let mut externs := 0
+  let mut implemented := 0
+  let mut axioms := 0
+  let mut unsafeOrPartial := 0
+  for (name, info) in environment.constants.map₁.toList do
+    if isExtern environment name then externs := externs + 1
+    if (Compiler.getImplementedBy? environment name).isSome then implemented := implemented + 1
+    if info matches .axiomInfo _ then axioms := axioms + 1
+    if info.isUnsafe || info.isPartial then unsafeOrPartial := unsafeOrPartial + 1
+  return (externs, implemented, axioms, unsafeOrPartial)
 /-- Measurement only: load the extensions, which runs the imported modules'
 initializers, and compare with `Lean.collectAxioms` and the loaded token table. -/
 unsafe def compareWithLoadedExtensions (config : Config) (imports : Array Import)
@@ -1160,6 +1195,9 @@ unsafe def compareWithLoadedExtensions (config : Config) (imports : Array Import
   let onlyLoaded := loadedSet.toArray.filter (!rebuiltSet.contains ·)
   IO.println s!"compare: token table rebuilt from raw entries {rebuiltSet.size} tokens, \
     loaded {loadedSet.size}; only rebuilt {onlyRebuilt.size}, only loaded {onlyLoaded.size}"
+  let (externs, implemented, axioms, unsafeOrPartial) := environmentCounts loaded
+  IO.println s!"compare: with extensions loaded, over every constant: {externs} extern, \
+    {implemented} implemented_by, {axioms} axioms, {unsafeOrPartial} unsafe or partial"
   let (tokens, parsers, commandElaborators, initializers) := registrationCounts config loaded
   IO.println s!"compare: with extensions loaded, {tokens} token, {parsers} parser, \
     {commandElaborators} command-elaborator, {initializers} initializer entries"
@@ -1202,6 +1240,9 @@ unsafe def main (args : List String) : IO UInt32 := do
     registrationCounts config environment
   IO.println s!"raw registrations in audited modules: {tokens} token, {parsers} parser, \
     {commandElaborators} command-elaborator, {initializers} initializer entries"
+  let (externs, implemented, axioms, unsafeOrPartial) := environmentCounts environment
+  IO.println s!"environment reads, extensions not loaded, over every constant: {externs} \
+    extern, {implemented} implemented_by, {axioms} axioms, {unsafeOrPartial} unsafe or partial"
   -- The source passes' input.
   let tokenTable ← tokenTableFromEntries environment
   let isLean (path : System.FilePath) : Bool :=
@@ -1260,4 +1301,25 @@ unsafe def main (args : List String) : IO UInt32 := do
   if args.contains "--compare" then
     compareWithLoadedExtensions config imports declarations axiomTable tokenTable
   return if report.findings.isEmpty && failures.isEmpty && stale.isEmpty then 0 else 1
+```
+
+The plant of the V2c.7 measurement, `WhatwgTest/W10Plant.lean`, with the
+line `import WhatwgTest.W10Plant` put first in `WhatwgTest.lean`; both were
+removed and the tree rebuilt to the base's gate line afterwards:
+
+```lean
+-- W10 design seat, uncommitted measurement: the residual of contract V2c.7.
+-- An initializer removes the gate module's two post-command linters, and a
+-- macro replaces the gate command, so no pass runs.
+import WhatwgTest.Audit.AxiomGate
+
+open Lean Elab Command
+
+initialize
+  lintersRef.modify fun linters =>
+    linters.filter (·.name != `WhatwgTest.Audit.rootGateCommandCheck)
+  moduleLintersRef.modify fun linters =>
+    linters.filter (·.name != `WhatwgTest.Audit.rootCommandsCheck)
+
+macro_rules | `(#whatwg_streams_axiom_gate) => `(#check 1)
 ```
