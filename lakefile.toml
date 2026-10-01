@@ -8,7 +8,7 @@ defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
                   "WhatwgUrl", "WhatwgHtml", "WhatwgStreams",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
-                  "whatwg_urlinventory", "whatwg_urlcensus"]
+                  "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_ledger"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -112,6 +112,15 @@ root = "whatwgbin.TrustSelfTest"
 [[lean_exe]]
 name = "whatwg_census"
 root = "whatwgbin.Census"
+
+# The W7 graph ledger (test/contracts/graph-ledger.contract.md, ruling R-W6).
+# No `needs`: it reads the built environment through the shared loader, which
+# refuses a missing or stale `.olean`, so it runs after `lake build`. Its link
+# closure is the ledger data, the tooling modules and the loader, never a
+# production module.
+[[lean_exe]]
+name = "whatwg_ledger"
+root = "whatwgbin.Ledger"
 
 # The proved hash functions the gates compute every digest with. Exact commit
 # of pure-algebra/lean4-hash `main`, the pin lean4-effect4 uses (ruling

@@ -1,6 +1,8 @@
+import Lean.Environment
 import WhatwgGates.Common
 import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render
+import WhatwgGates.Trust.Load
 
 /-!
 # Gates.Ledger.Check
@@ -9,9 +11,17 @@ The reference pass and the drift check of the graph ledger
 (`test/contracts/graph-ledger.contract.md`, sections 5 to 9, ruling R-W6), as
 pure functions over a `World`: the facts of the built environment (the kind
 of each constant, the module table) and the text of the authored files the
-gate reads at run time, held as data. Nothing here does IO, declares syntax
-or reads the environment itself, so a battery decides every finding on a
+gate reads at run time, held as data. No check does IO, declares syntax or
+reads the environment itself, so a battery decides every finding on a
 planted `World`.
+
+`cli` (contract section 10) is the one function that does IO. It loads the
+built environment of the roots `Whatwg`, `WhatwgTest` and `WhatwgGates`
+through the shared loader `WhatwgGates/Trust/Load.lean`, with no environment
+extension loaded, and refuses the run when a module source's `.olean` is
+missing or stale against its source; it then reads exactly the run-time file
+set (`Ledger.files`, section 11) and the listing of `generated/graphs/`,
+builds the `World` of the run, and acts on `outcome`.
 
 The reference pass resolves every ground, item and recorded debt of every
 cell, leaf and unrouted prefix: theorem and declaration names against the
@@ -566,5 +576,150 @@ def outcome (w : World) (l : Ledger) (write : Bool) : Outcome :=
       output := ("FAIL whatwg_ledger: " ++ toString findings.length ++ " finding(s)") ::
         findings.map ("  " ++ ·)
       writes := [] }
+
+/-! ## The executable (contract sections 10 and 11) -/
+
+/-- The library roots whose built environment a run loads, the set
+`leanchecker` replays (contract section 10, step 2; addendum V2e.4, item 2 of
+`test/contracts/trust-gate-hardening.contract.md`). -/
+private def loadedRoots : List Lean.Name := [`Whatwg, `WhatwgTest, `WhatwgGates]
+
+/-- The usage line, printed on standard error for any argument list other
+than none or `--write`. -/
+private def usage : String := "usage: lake exe whatwg_ledger [--write]"
+
+/-- The file at a forward-slash path relative to the repository root, joined
+one component at a time. -/
+private def underRoot (root : System.FilePath) (path : String) : System.FilePath :=
+  (path.splitOn "/").foldl
+    (fun (directory : System.FilePath) (component : String) => directory / component) root
+
+/-- The refusals before import, in the order of `modules`: a module whose
+`.olean` is missing, and otherwise a module whose Lake trace is not fresh
+(missing, unparsable, naming another module, or not recording the current hash
+of its source), as `Gates.Trust.traceOf` decides. -/
+private def freshnessRefusals (root : System.FilePath) (modules : Array Lean.Name) :
+    IO (Array String) := do
+  let buildDirectory := Gates.Trust.leanBuildDir root
+  let mut refusals : Array String := #[]
+  for m in modules do
+    if !(← (Lean.modToFilePath buildDirectory m "olean").pathExists) then
+      refusals := refusals.push
+        s!"module {m} has no built .olean; run lake build before lake exe whatwg_ledger"
+    else
+      let (fresh, _) ← Gates.Trust.traceOf buildDirectory root m
+      unless fresh do
+        refusals := refusals.push
+          (s!"module {m} is stale: its Lake trace does not record the current hash of " ++
+            s!"{sourcePath m}; run lake build before lake exe whatwg_ledger")
+  return refusals
+
+/-- The built environment of `loadedRoots` through the shared loader, or the
+refusals that stop the run: the freshness refusals over every module source of
+the three trees; a failed import; and a module of the imported environment
+under one of the trees that has no source, whose `.olean` is therefore stale
+against a source that no longer exists. -/
+private def loadEnvironment (root : System.FilePath) :
+    IO (Except (Array String) Lean.Environment) := do
+  Gates.Trust.initLoaderSearchPath root
+  let modules ← Gates.Trust.sourceModules root loadedRoots
+  let refusals ← freshnessRefusals root modules
+  unless refusals.isEmpty do
+    return .error refusals
+  match ← (Gates.Trust.importBuilt loadedRoots.toArray).toBaseIO with
+  | .error e => return .error #[s!"could not import the built environment: {e}"]
+  | .ok environment =>
+    let unsourced := environment.header.moduleNames.filter fun m =>
+      loadedRoots.any (·.isPrefixOf m) && !modules.contains m
+    if unsourced.isEmpty then
+      return .ok environment
+    return .error <| unsourced.map fun m =>
+      s!"module {m} is in the built environment and has no source {sourcePath m}; " ++
+        "run lake build before lake exe whatwg_ledger"
+
+/-- The text of each file of the run-time file set, in order: `none` for a
+file that does not exist. Throws when an existing file cannot be read. -/
+private def readFileSet (root : System.FilePath) (paths : List String) :
+    IO (List (String × Option String)) :=
+  paths.mapM fun path => do
+    let file := underRoot root path
+    if ← file.pathExists then
+      return (path, some (← IO.FS.readFile file))
+    return (path, none)
+
+/-- The forward-slash relative path of every regular file under
+`generated/graphs/`, sorted; empty when the directory does not exist. -/
+private def projectionListing (root : System.FilePath) : IO (List String) := do
+  let directory := root / "generated" / "graphs"
+  if !(← directory.isDir) then
+    return []
+  let files ← Gates.Common.regularFilesBelow directory
+  let relative ← files.mapM (Gates.Common.relativeTo root)
+  return (relative.qsort (· < ·)).toList
+
+/-- The world of one run: the kind of each constant and the module table of
+the loaded environment, the run-time file set as read, and the listing of
+`generated/graphs/`. A path outside the file set reads as absent. -/
+private def worldOf (environment : Lean.Environment) (files : List (String × Option String))
+    (projections : List String) : World where
+  constantKind? n :=
+    match environment.find? n with
+    | some (.thmInfo _) => some .thm
+    | some _ => some .other
+    | none => none
+  moduleBuilt m := (environment.getModuleIdx? m).isSome
+  file? path :=
+    match files.lookup path with
+    | some text => text
+    | none => none
+  projectionFiles := projections
+
+/-- One run, comparing or, with `write`, writing: load, refuse or read the
+run-time file set and the listing, decide the `outcome`, write what it says to
+write, print its lines, and return its exit code. -/
+private def run (l : Ledger) (write : Bool) : IO UInt32 := do
+  let root ← Gates.Common.projectRoot
+  match ← loadEnvironment root with
+  | .error refusals =>
+    for refusal in refusals do
+      IO.println s!"FAIL whatwg_ledger: {refusal}"
+    return 1
+  | .ok environment =>
+    let files ← readFileSet root l.files
+    let projections ← projectionListing root
+    let decided := outcome (worldOf environment files projections) l write
+    for (path, text) in decided.writes do
+      let file := underRoot root path
+      if let some parent := file.parent then
+        IO.FS.createDirAll parent
+      IO.FS.writeFile file text
+    for line in decided.output do
+      IO.println line
+    return decided.exitCode
+
+/-- `run`, with every exception it raises (an unreadable file, a failed
+listing, write or root search) printed as a `FAIL whatwg_ledger:` line and
+exit code 1. -/
+private def runGuarded (l : Ledger) (write : Bool) : IO UInt32 := do
+  try
+    run l write
+  catch e =>
+    IO.println s!"FAIL whatwg_ledger: {e}"
+    return 1
+
+/-- The executable `lake exe whatwg_ledger` (contract section 10). With no
+argument it compares every projection with a fresh rendering; with `--write`
+it writes every projection when there is no reference finding; any other
+argument list prints the usage line on standard error and returns 2 having
+read nothing. A refusal of the built environment, or a file that exists and
+cannot be read, prints a `FAIL whatwg_ledger:` line carrying the diagnostic,
+writes nothing and returns 1. -/
+def cli (l : Ledger) (args : List String) : IO UInt32 := do
+  match args with
+  | [] => runGuarded l false
+  | ["--write"] => runGuarded l true
+  | _ =>
+    IO.eprintln usage
+    return 2
 
 end Gates.Ledger

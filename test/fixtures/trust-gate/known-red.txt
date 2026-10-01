@@ -541,4 +541,10 @@
 # battery is green. Until then a default lake build at this packet's head also
 # stops at the root's module-closure gate, which refuses the unreachable
 # battery; that is the state R-W9 describes, not a second defect.
-WhatwgTest.Audit.LedgerContract
+#
+# The slice A2 builder seat of review lane W landed Gates.Ledger.cli,
+# whatwgbin/Ledger.lean and the whatwg_ledger executable on branch
+# review/w7-ledger-a2, from 2a9caf6 (slice A1 merged), on 2026-10-01. The
+# battery is green with no ascription, plant, finding text, count or rendered
+# byte changed, and WhatwgTest.lean imports it with WhatwgTest.Ledger. The
+# entry is removed; no entry of the W7 packet remains.
