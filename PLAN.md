@@ -222,7 +222,7 @@ builders, then an independent review. No phase gate P4 to P11 changes.
   enabled request, a later well-formed agent whose answer lies in the post);
   the `Effects.Signature` face is its own library `WhatwgSignatures` under a
   sixth strict prefix. P8 builds its configuration on this record.
-- W8a (R-W4): `Whatwg.Streams.Kernel`, a generic labelled-path closure, with
+- W8a (R-W4), landed 2026-10-01 as `37ef936` (R-W14): `Whatwg.Streams.Kernel`, a generic labelled-path closure, with
   every per-calculus inductive kept and bridged, and three invariants carried
   (the Readable and Writable queue invariants, registration-identity
   freshness). W8b, the store views onto the agent record, opens after Q5.
