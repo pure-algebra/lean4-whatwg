@@ -672,3 +672,32 @@
 # law interpret_sumHandler_inr in Whatwg/Signatures/Ecma262.lean. Both
 # batteries are green with no byte of them changed, and WhatwgTest.lean
 # imports both. Both entries are removed. No entry remains.
+
+# W7 ledger slice D, module routing and the index, frozen RED 2026-10-01 by the
+# slice D breaker seat of review lane W on branch review/w7-ledger-d-breaker,
+# based on fc0b9fb (rulings R-W6, R-W9, R-W11 and R-W18).
+# Packet: test/contracts/graph-ledger.contract.md, addendum D.
+# Counterexamples: LEDGER-CE-006..009 in test/counterexamples/REGISTER.md.
+# Implementation fence (addendum D.10): WhatwgGates/Ledger/{Render,Check}.lean;
+# the unrouted field of WhatwgTest/Ledger.lean; the fence of
+# WhatwgTest/Ledger/ConfigurationOrdering.lean, and the two fence or claim
+# edits D.10 names conditionally; generated/graphs/INDEX.md and each
+# projection whose Fence line changes; the battery's root import once green.
+#
+# One entry. Measured with lake env lean -DmaxErrors=5000 against fc0b9fb: 174
+# errors and no warning. 172 follow from the 14 names of addendum D.8 not
+# existing yet (64 unknown identifiers or constants, 37 invalid field
+# notations, 52 #guard rows that cannot evaluate, 19 anonymous-constructor or
+# implicit-argument errors on the missing ModuleTable); the other 2 are the
+# two data rows of battery section 2, false until the builder adds the D57
+# unrouted entries and the six fence entries. No parse, import, type-mismatch
+# or instance-synthesis failure. Every row elaborated and passed against the
+# breaker's uncommitted prototype (addendum D.12).
+#
+# Per ruling R-W9 the battery is not imported by WhatwgTest.lean during its
+# red phase, so a default lake build fails exactly this target while the root
+# replays from the cache (debt D61), and a fresh elaboration of the root stops
+# at its module-closure gate. The slice D builder adds the import and removes
+# this entry the moment the battery is green. Turning it green by editing the
+# battery is a refusal, not a landing.
+WhatwgTest.Audit.LedgerRoutingContract
