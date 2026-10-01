@@ -191,13 +191,8 @@ private def continuesCommand (line : String) : Bool :=
   | [] => true
   | c :: _ => c == ' ' || c == '\t'
 
-/-- The text after the first `(`, or `none`. -/
-private def afterOpen : List Char → Option (List Char)
-  | [] => none
-  | c :: rest => if c == '(' then some rest else afterOpen rest
-
-/-- The text after the `)` that closes a `(` already read at `depth` open
-parentheses beyond the first, or `none` when it is never closed. -/
+/-- The text after the `)` that closes a `(` already read, with `depth` further
+parentheses open, or `none` when it is never closed. -/
 private def afterClose (depth : Nat) : List Char → Option (List Char)
   | [] => none
   | c :: rest =>
@@ -208,25 +203,23 @@ private def afterClose (depth : Nat) : List Char → Option (List Char)
       | d + 1 => afterClose d rest
     else afterClose depth rest
 
-/-- Whether a freeze command's code text carries an `axioms` clause: after the
-parenthesis that closes the first `(` following `#whatwg_freeze `, and after
-any whitespace, the text begins with `axioms` followed by a character that is
-not an identifier character, or by nothing. -/
-private def carriesAxiomsClause (command : List Char) : Bool :=
-  match afterOpen command with
+/-- Whether the code text of a freeze command after its `(` carries an `axioms`
+clause: after the parenthesis that closes that `(`, and after any whitespace,
+the text begins with `axioms` followed by a character that is not an
+identifier character, or by nothing. -/
+private def carriesAxiomsClause (afterParen : List Char) : Bool :=
+  match afterClose 0 afterParen with
   | none => false
-  | some inner =>
-    match afterClose 0 inner with
-    | none => false
-    | some tail =>
-      let tail := tail.dropWhile fun c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
-      "axioms".toList.isPrefixOf tail &&
-        match tail.drop 6 with
-        | [] => true
-        | c :: _ => !isIdentChar c
+  | some tail =>
+    let tail := tail.dropWhile fun c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
+    "axioms".toList.isPrefixOf tail &&
+      match tail.drop 6 with
+      | [] => true
+      | c :: _ => !isIdentChar c
 
-/-- The freeze-command spelling a receipt or an ascription begins with. -/
-private def freezeLead : String := "#whatwg_freeze "
+/-- The start of a freeze command whose clause the receipt rule reads: the
+command and the `(` that follows it. -/
+private def freezeLead : String := "#whatwg_freeze ("
 
 /-- The receipts among code lines: a line beginning `#print axioms`, or a
 freeze command, with its continuation lines, carrying an `axioms` clause. -/
@@ -243,7 +236,7 @@ private def countReceipts : List String → Nat
     here + countReceipts rest
 
 /-- The count of receipt commands in a module source: the `#print axioms`
-commands and the `#whatwg_freeze` commands with an `axioms` clause, each
+commands and the `#whatwg_freeze (…)` commands with an `axioms` clause, each
 beginning its line of code text. -/
 def receiptCount (source : String) : Nat :=
   countReceipts (codeLines source)
