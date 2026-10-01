@@ -1968,9 +1968,12 @@ Why each plant is shaped as it is:
 Both rows are red until the freeze command's builder lands
 `WhatwgTest/Audit/Freeze.lean` with its list entry: each fixture's first line
 is `import WhatwgTest.Audit.Freeze`, a module that does not exist at the
-freeze, so Lake fails the plant module before the gate runs. V2d-A1 is then
-reported "unexpectedly rejected" and V2d-E1 "rejected for an unexpected
-reason". Neither row reaches the gate, so neither depends on any other builder.
+freeze, so Lake fails the plant module before the gate runs (measured: Lake
+lists `WhatwgTest.Audit.Freeze` and `WhatwgTest.TrustSelfTestPlant` among the
+failed targets and reports "bad import 'WhatwgTest.TrustSelfTestPlant'" for
+the root). V2d-A1 is then reported "unexpectedly rejected" and V2d-E1
+"rejected for an unexpected reason". Neither row reaches the gate, so neither
+depends on any other builder.
 Their executable twins are red until the executable lands, for the reason of
 V2e.10. No module is red, so `test/fixtures/trust-gate/known-red.txt` gains no
 entry for this addendum.
@@ -2143,7 +2146,7 @@ V2-X1, V2-X2, V2c-L1, V2c-L2 and V2c-L3 take the target `trustConfigSource`,
 `WhatwgGates/TrustConfig.lean` in the probe, in place of `auditSource`; their
 anchors, fixtures, further edits and fragments are unchanged. Until the factor
 lands the config module does not exist, so each of the nine is red, "could not
-plant", with the probe path of the missing file in the line. They are the only
+plant: no such file or directory" (measured, V2e.11). They are the only
 existing rows these addenda make red in-tree.
 
 ### V2e.4 The loader
@@ -2342,9 +2345,10 @@ Per row, every row of `acceptancePlants` and `rejectionPlants` has an
 executable twin judged after the in-tree judgement, with the plant still in
 place (V2e.9):
 
-- Acceptance rows, the step-0 control, the restored-tree control and V2d-A1:
-  accepted, and the summary line from `checked` to its end equal to the
-  in-tree summary line the same build printed.
+- Acceptance rows, the step-0 control, the restored-tree control, the control
+  after the executable-only rows (V2e.9) and V2d-A1: accepted, and the summary
+  line from `checked` to its end equal to the in-tree summary line the same
+  build printed.
 - Rejection rows, by default: refused, with at least one of the row's in-tree
   fragments. This covers every row not named below. Two rows admit an in-tree
   fragment the executable cannot print, and are satisfied by another they
@@ -2479,7 +2483,8 @@ An expectation is *accepts* (accepted, with the summary equal from `checked`
 to its end to the in-tree summary of the same build when that build printed
 one), *refuses any* (refused, with at least one fragment) or *refuses all*
 (refused, with every fragment). A row's twin prints `PASS executable gate
-accepted <label>`, `PASS executable gate refused <label> with the expected
+accepted <label>` (followed by ` with the in-tree summary's counts` when it
+compared them), `PASS executable gate refused <label> with the expected
 diagnostic: <fragment>` or `… with every expected diagnostic: [<fragments>]`,
 or one `FAIL` line naming the label. A row whose plant cannot be made prints
 only its "could not plant" line.
@@ -2520,7 +2525,8 @@ Why each plant is shaped as it is:
 - V2e-G1 is debt D56's first item, the W10 design's measured plant: an
   `initialize` that removes the gate module's two post-command linters and a
   `macro_rules` that replaces the gate command. `lake build` accepts it (design
-  2.5: exit 0, no gate line). The executable runs neither and refuses both
+  2.5: exit 0, no gate line; again in V2e.11). The executable runs neither and
+  refuses both
   registrations from raw entries. Its token half also refuses the keywords
   `initialize` and `macro_rules`; the row requires the two registrations,
   which no lexical rule makes.
@@ -2563,11 +2569,76 @@ their plants cannot be made. No module is red in this packet, so
 `known-red.txt` gains no entry here; the second packet adds one (V2e.4).
 
 Validation (ruling R-W9's labels "run against the prototype", "probed",
-"unprobed"): recorded per row in V2e.11 after the freeze run.
+"unprobed") is recorded per row in V2e.11.
 
-### V2e.11 Freeze run
+### V2e.11 Validation and freeze run
 
-Recorded after the run.
+Validation. The seat built, in its worktree and uncommitted, a prototype of
+the freeze module (the W6 design's appendix A with R-W5's mask constructors),
+listed in the in-tree gate's list and imported by the root, and a prototype of
+the executable: the loader of V2e.4, a config module holding the three lists
+and an allowlist of the 51 extensions that hold audited entries on that tree,
+the in-tree passes ported to read the loaded environment, the steps of V2e.5
+(K2, O4 and L1 included), and the entry point under a temporary
+`[[lean_exe]]`. The in-tree gate accepted that tree (228 sources), and
+`lake exe whatwg_trustgate` printed `PASS whatwg_trustgate: ` and the in-tree
+summary line, equal from `checked` to its end, in about ten seconds. Of the 51
+extensions, 15 are private names with a numeric component, which is why
+V2e.3 names allowlist entries by strings; `Lean.Meta.unificationHintExtension`
+is not among them. Then `lake exe whatwg_trustselftest` ran on that tree in
+1,121 s (the executable twins about double the run): 168 checks passed and 9
+failed, exactly the in-tree halves of the nine retargeted rows, because no
+factor prototype moved the in-tree command's lists, so the in-tree command
+never saw those plants; their executable twins passed. Every prototype and its
+build outputs were removed before the commits that freeze this packet.
+
+| Row or part | Validation |
+| --- | --- |
+| V2d-A1, V2d-E1, in-tree and executable | run against the prototype |
+| the executable twin of every existing row and control, the five fail-closed rows included | run against the prototype |
+| the nine retargeted rows, executable twin | run against the prototype (planted into the prototype's config module) |
+| the nine retargeted rows, in-tree half once the factor lands | unprobed: no factor prototype; their fragments are lane V's, unchanged |
+| V2e-F1 to V2e-F3, V2e-G1, V2e-U1, V2e-O1 to V2e-O3, V2e-K1, V2e-X1 to V2e-X3 | run against the prototype |
+| the in-tree build of V2e-F3, V2e-G1 and V2e-U1 | run: `lake build` succeeded on each, the holes of debts D61 and D56 reproduced |
+| the loader's signatures and the second packet's `#guard` rows | run against the prototype loader |
+| `sourceModules` with `importBuilt` | probed: 221 modules listed and imported |
+| steps K2, O4 and L1 of V2e.5 | run on the unmodified tree only (no finding); not planted (R-E4 to R-E6) |
+| R-E7 | run against the prototype |
+| R-E2 | in part: the per-tree counts agree on the tree; the per-declaration comparison is the design's (0 of 16,723 differ), not rerun |
+| R-E1, R-E3, R-E8 | unprobed |
+
+Freeze run. Recorded on Windows 11, Lean 4.33.1, at this packet's tree with
+every prototype and its build outputs removed: `lake build` exit 0, 386 jobs,
+its gate line `checked 222 source files and 16827 declarations;
+Classical.choice is reached by 84 of 12766 declarations in Whatwg, 122 of 2360
+in WhatwgTest and 188 of 1701 in WhatwgGates; … 0 source-token exemption(s)`
+(the harness's additions are the 104 new WhatwgGates declarations); then `lake
+exe whatwg_trustselftest` exit 1 in 607 s. Its result lines: 73 PASS, 95 FAIL,
+the final `FAIL trust self-test`, and twelve `NOTE` lines (the probe's three,
+and the nine executable-only rows that could be planted, each "lake build
+succeeded"). The PASS lines are the 81 checks the base passes (ruling R-V11),
+less the nine retargeted rows, each worded as at the base, and
+
+```text
+PASS trust gate accepted the restored source tree after the executable-only rows
+```
+
+The FAIL lines, by kind, each exactly as declared in V2e.10:
+
+```text
+FAIL could not plant V2-S3 a strict-ceiling exception naming no declaration: no such file or directory (error code: 4294963238)
+… the same for V2-S4, V2-S5, V2-S6, V2-X1, V2-X2, V2c-L1, V2c-L2, V2c-L3, V2e-X1, V2e-X2 and V2e-X3 (12 lines)
+FAIL trust gate unexpectedly rejected V2d-A1 a module that only uses the freeze command #whatwg_freeze, not a listed metaprogramming module
+FAIL trust gate rejected V2d-E1 a second command elaborator for WhatwgTest.Audit.Freeze.freezeCommand in an unlisted module for an unexpected reason; expected one of: [module WhatwgTest.TrustSelfTestPlant registers an elaborator but is not a listed metaprogramming module]
+FAIL could not run the executable gate for the unmodified source tree: `lake exe whatwg_trustgate` exited with code 1 and printed no verdict line
+error: unknown executable whatwg_trustgate
+… the same for the twin of every other row and control whose plant was made (72 lines in all) and for the nine executable-only rows V2e-F3, V2e-G1, V2e-U1, V2e-O1, V2e-O2, V2e-O3, V2e-K1, V2e-F1 and V2e-F2 (81 lines)
+FAIL trust self-test
+```
+
+The 81 checks of the base keep their verdicts apart from the nine retargeted
+rows; every new check is red for its declared reason; nothing else fails.
+`lake exe whatwg_citations` passes at the freeze.
 
 ### V2e.12 Changes to earlier sections
 
@@ -2588,14 +2659,21 @@ Recorded after the run.
   while the factor has not landed; the root import of the new module; the
   documentation of `metaprogrammingModules` that counts ten (design section
   4).
-- Loader: the signatures of V2e.4 exactly; `traceOf` never throws for a
-  missing trace; the battery's root import and the removal of its
-  `known-red.txt` entry when it turns green. W6's snapshot and W7's ledger
-  import it; whichever lands first does not redefine it.
+- Loader: the signatures of V2e.4 exactly, `sourceModules` included;
+  `traceOf` never throws for a missing trace; the loader imports `Lake` for
+  `Lake.computeTextFileHash` (the prototype's `import Lake.Build.Trace` added
+  no token the in-tree gate refused); the battery's root import and the
+  removal of its `known-red.txt` entry when it turns green. W6's snapshot and
+  W7's ledger import it; whichever lands first does not redefine it.
 - Factor: the config module's import constraints of V2e.3, which are what let
   the nine retargeted rows run in the probe; the in-tree command's every line
-  unchanged; `WhatwgTest.Audit.AxiomGate` stays listed while the command exists.
+  unchanged; `WhatwgTest.Audit.AxiomGate` stays listed while the command
+  exists. The library takes the config's data as an argument (the prototype's
+  `GateData`), so that no library module imports the config module.
 - Executable: V2e.5's order and fragments; the allowlist's initial content
-  rule; the verdict line; it must accept every acceptance plant of the
-  self-test, so a benign plant that writes an extension no audited module
-  writes on the unmodified tree is reported to the coordinator, not listed.
+  rule, its entries as strings (15 of the 51 measured names are private); the
+  verdict line; `lake exe` relinks the executable after every after-anchor
+  plant, since it links the config module. It must accept every acceptance
+  plant of the self-test: in the validation run none wrote an extension the
+  unmodified tree does not, and a later benign plant that does is reported to
+  the coordinator, not listed.
