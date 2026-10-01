@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, plant V2-E5: the escaped attribute name
+-- resolves to the same `implemented_by` attribute as the plain spelling.
+def plantedEscapedImplementation : Nat := 1
+
+@[«implemented_by» plantedEscapedImplementation]
+def plantedEscapedTarget : Nat := 0

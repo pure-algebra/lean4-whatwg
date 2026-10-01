@@ -22,6 +22,15 @@ their builder lands. This self-test therefore:
 Run `lake exe trustselftest` from anywhere inside the checkout. It invokes
 `lake build` in the throwaway copy through the same toolchain.
 
+The plants whose labels begin `V2-` are frozen by
+`test/contracts/trust-gate-hardening.contract.md` (rulings R-V1 and R-V2). A
+plant is a list of edits to the probe copy, undone together after its build:
+append a fixture to a file (every older plant), insert one after an anchor line
+the gate source carries, write one as a new module that the test root imports,
+or append a comment so that Lake re-elaborates a file. After the final control
+the narrow runs elaborate one file with `lake env lean` and a relative file
+name, and require exit code 0 and the frozen summary text.
+
 ## Cost
 
 The probe is seeded with the checkout's own `.lake/build` and
@@ -66,6 +75,42 @@ def productionRoot (probe : System.FilePath) : System.FilePath :=
 
 def testRoot (probe : System.FilePath) : System.FilePath :=
   probe / "WhatwgTest.lean"
+
+/-- A new tooling module, module `Gates.TrustSelfTestToolingPlant`. A plant in
+an existing `Gates` module would make the probe re-elaborate every census
+battery that imports `Gates`, and those read `vendor/` and `docs/`, which the
+probe does not copy. -/
+def toolingPlantModule (probe : System.FilePath) : System.FilePath :=
+  probe / "Gates" / "TrustSelfTestToolingPlant.lean"
+
+/-- A new production module under the strict prefix `Whatwg.Ecma262` of
+ruling R-V1. A new leaf module is used rather than `Whatwg/Ecma262/Jobs.lean`:
+the module decides strictness either way, and a plant in `Jobs.lean` would
+rebuild all of `Whatwg.Streams` twice, since `Whatwg.Streams.Readable.State`
+imports `Whatwg.Ecma262.Promise`, which imports `Jobs`. -/
+def strictPlantModule (probe : System.FilePath) : System.FilePath :=
+  probe / "Whatwg" / "Ecma262" / "TrustSelfTestPlant.lean"
+
+/-- A new test module, module `WhatwgTest.TrustSelfTestPlant`, under no strict
+prefix and under no source-token exemption. -/
+def testPlantModule (probe : System.FilePath) : System.FilePath :=
+  probe / "WhatwgTest" / "TrustSelfTestPlant.lean"
+
+/-- An executable entry point under `bin/`, which no audit root imports. -/
+def binEntryPoint (probe : System.FilePath) : System.FilePath :=
+  probe / "bin" / "Citations.lean"
+
+/-- The line of `WhatwgTest/Audit/AxiomGate.lean`, trimmed, after which a
+strict-ceiling exception entry `⟨`Name, "reason"⟩ ::` is inserted. Frozen by
+the contract; the gate carries it exactly once. -/
+def strictExceptionAnchor : String :=
+  "-- trust-selftest: strict-ceiling exception entries are inserted below this line"
+
+/-- The line of `WhatwgTest/Audit/AxiomGate.lean`, trimmed, after which a
+source-token exemption entry `⟨`Module, "reason"⟩ ::` is inserted. Frozen by
+the contract; the gate carries it exactly once. -/
+def tokenExemptionAnchor : String :=
+  "-- trust-selftest: source-token exemption entries are inserted below this line"
 
 def copyTree (source destination : System.FilePath) : IO Unit := do
   for file in ← regularFilesBelow source do
@@ -146,16 +191,110 @@ def excise (probe : System.FilePath) (modules : List String) : IO Unit := do
 def tail (output : String) (count : Nat) : String :=
   String.intercalate "\n" ((lines output).reverse.take count).reverse
 
-/-- Append a fixture to a file, run the block, and restore the file. -/
-def withPlanted (target : System.FilePath) (fixturePath : System.FilePath)
+/-- How a fixture enters its target file. -/
+inductive Placement where
+  /-- Append the fixture after a newline: the mechanism of every older plant. -/
+  | append
+  /-- Insert the fixture's lines after the one line whose trimmed text is the
+  anchor. The edit fails, and so does its plant, when that line is absent or
+  occurs more than once. -/
+  | afterAnchor (anchor : String)
+  /-- Write the fixture as a new module file, which must not exist yet, and put
+  an `import` of it first in the test root `WhatwgTest.lean`, so that the
+  module-closure gate admits it. -/
+  | newModule
+  /-- Append one comment line and no fixture, so that Lake re-elaborates the
+  file. A plant under `bin/` needs this on the test root: the gate reads `bin/`
+  at elaboration time, Lake does not track that read (debt D49), and a cached
+  build would otherwise replay the earlier verdict. -/
+  | reelaborate
+  deriving BEq
+
+/-- One edit of one probe file. -/
+structure Edit where
+  target : System.FilePath → System.FilePath
+  /-- Ignored by `Placement.reelaborate`. -/
+  fixtureName : String
+  placement : Placement := .append
+
+/-- Re-elaborate `target`; see `Placement.reelaborate`. -/
+def reelaborate (target : System.FilePath → System.FilePath) : Edit :=
+  { target, fixtureName := "", placement := .reelaborate }
+
+/-- Every probe file an edit writes, so that it can be restored. -/
+def Edit.touched (probe : System.FilePath) (edit : Edit) : List System.FilePath :=
+  if edit.placement == .newModule then [edit.target probe, testRoot probe]
+  else [edit.target probe]
+
+/-- `text` with `planted`'s lines inserted after the one line whose trimmed
+text is `anchor`. Lines are rejoined with LF and a final LF. -/
+def insertAfterAnchor (text anchor planted : String) : Except String String :=
+  let all := lines text
+  let hits := (all.filter fun line => trimmed line == anchor).length
+  if hits != 1 then
+    .error s!"the anchor line `{anchor}` occurs {hits} time(s); exactly one is required"
+  else
+    let plantedLines := lines planted
+    let joined := all.foldr
+      (fun line rest => if trimmed line == anchor then line :: plantedLines ++ rest else line :: rest) []
+    .ok (String.intercalate "\n" joined ++ "\n")
+
+/-- The module a source file under the probe defines: its relative path with
+`/` read as `.` and the `.lean` extension dropped. -/
+def moduleNameOf (probe path : System.FilePath) : IO String := do
+  let relative ← relativeTo probe path
+  unless relative.endsWith ".lean" do
+    throw <| IO.userError s!"{relative} is not a Lean source"
+  return String.intercalate "." ((dropLastChars relative 5).splitOn "/")
+
+def Edit.apply (root probe : System.FilePath) (edit : Edit) : IO Unit := do
+  let path := edit.target probe
+  match edit.placement with
+  | .append =>
+    let original ← IO.FS.readBinFile path
+    let planted ← IO.FS.readFile (fixture root edit.fixtureName)
+    IO.FS.writeFile path (String.fromUTF8! original ++ "\n" ++ planted)
+  | .afterAnchor anchor =>
+    let original ← IO.FS.readFile path
+    let planted ← IO.FS.readFile (fixture root edit.fixtureName)
+    match insertAfterAnchor original anchor planted with
+    | .ok text => IO.FS.writeFile path text
+    | .error message => throw <| IO.userError s!"{path}: {message}"
+  | .newModule =>
+    if (← path.pathExists) then
+      throw <| IO.userError s!"{path} already exists; a planted module must be new"
+    IO.FS.writeFile path (← IO.FS.readFile (fixture root edit.fixtureName))
+    let moduleName ← moduleNameOf probe path
+    let rootText ← IO.FS.readFile (testRoot probe)
+    IO.FS.writeFile (testRoot probe) (s!"import {moduleName}\n" ++ rootText)
+  | .reelaborate =>
+    let original ← IO.FS.readBinFile path
+    IO.FS.writeFile path
+      (String.fromUTF8! original ++ "\n-- trust self-test: re-elaborate this module\n")
+
+/-- Make `edits` in order, run the block, and restore every file they wrote:
+rewrite its original bytes, or remove it when it did not exist. -/
+def withEdits (root probe : System.FilePath) (edits : List Edit)
     (body : IO Bool) : IO Bool := do
-  let original ← IO.FS.readBinFile target
-  let planted ← IO.FS.readFile fixturePath
-  IO.FS.writeFile target (String.fromUTF8! original ++ "\n" ++ planted)
+  let paths := (edits.flatMap (·.touched probe)).eraseDups
+  let mut saved : List (System.FilePath × Option ByteArray) := []
+  for path in paths do
+    let original : Option ByteArray ←
+      if (← path.pathExists) then do
+        let bytes ← IO.FS.readBinFile path
+        pure (some bytes)
+      else
+        pure none
+    saved := saved ++ [(path, original)]
   try
+    for edit in edits do
+      edit.apply root probe
     body
   finally
-    IO.FS.writeBinFile target original
+    for (path, original) in saved do
+      match original with
+      | some bytes => IO.FS.writeBinFile path bytes
+      | none => if (← path.pathExists) then IO.FS.removeFile path
 
 def expectAcceptance (probe : System.FilePath) (label : String) : IO Bool := do
   let (ok, output) ← build probe
@@ -198,10 +337,37 @@ structure Plant where
   /-- Diagnostics any one of which proves the rejection is for the stated
   reason; empty means any rejection passes. -/
   expected : List String
+  /-- How the fixture enters `target`. -/
+  placement : Placement := .append
+  /-- Further edits made with the fixture and undone with it. -/
+  alsoEdits : List Edit := []
+
+/-- The plant's edits: its own fixture first, then `alsoEdits`. -/
+def Plant.edits (plant : Plant) : List Edit :=
+  { target := plant.target, fixtureName := plant.fixtureName, placement := plant.placement } ::
+    plant.alsoEdits
+
+/-- Make a plant's edits and judge the build with `judge`. An edit that cannot
+be made (a missing anchor, a module that already exists) fails the plant, and
+the line names the plant and the reason. -/
+def checkPlant (root probe : System.FilePath) (plant : Plant) (judge : IO Bool) : IO Bool := do
+  try
+    withEdits root probe plant.edits judge
+  catch error =>
+    IO.eprintln s!"FAIL could not plant {plant.label}: {error}"
+    return false
 
 def acceptancePlants : List Plant :=
   [{ label := "comments, strings, and numeric projections", fixtureName := "benign.lean.txt",
-     target := auditSource, expected := [] }]
+     target := auditSource, expected := [] },
+   -- Rulings R-V1 and R-V2; test/contracts/trust-gate-hardening.contract.md.
+   { label := "V2-A1 refused trust words in comments, documentation, strings and name literals, and identifiers that only contain them",
+     fixtureName := "benign-trust-tokens.lean.txt", target := productionRoot, expected := [] },
+   { label := "V2-A2 an opaque with an authored body in the production tree",
+     fixtureName := "env-authored-opaque.lean.txt", target := productionRoot, expected := [] },
+   { label := "V2-S2 a theorem reaching Classical.choice in a new module under WhatwgTest",
+     fixtureName := "strict-choice.lean.txt", target := testPlantModule, expected := [],
+     placement := .newModule }]
 
 /-- Under the package-wide `warningAsError = true` (ruling R-6 in
 `docs/SHA256-DAG.md`), Lean's own "declaration uses `sorry`" warning is
@@ -226,7 +392,206 @@ def rejectionPlants : List Plant :=
    { label := "malformed decimal literal", fixtureName := "malformed-decimal.lean.txt",
      target := productionRoot, expected := [] },
    { label := "unterminated comment", fixtureName := "malformed-comment.lean.txt",
-     target := productionRoot, expected := [] }]
+     target := productionRoot, expected := [] },
+   -- Rulings R-V1 and R-V2; test/contracts/trust-gate-hardening.contract.md.
+   -- Each row below names exactly one fragment: the contract freezes which
+   -- layer reports each plant, so no second layer's wording is admitted.
+   -- The environment pass, in every audited tree.
+   { label := "V2-E1 an axiom added through Lean.addDecl in a new test module",
+     fixtureName := "env-declared-axiom.lean.txt", target := testPlantModule,
+     placement := .newModule,
+     expected := ["declaration plantedDeclaredAxiom is an axiom; no audited tree declares one"] },
+   { label := "V2-E2 a declared axiom in the production tree",
+     fixtureName := "env-production-axiom.lean.txt", target := productionRoot,
+     expected := ["declaration plantedProductionAxiom is an axiom; no audited tree declares one"] },
+   { label := "V2-E3 @[extern] attached through the attribute API in a new test module",
+     fixtureName := "env-extern.lean.txt", target := testPlantModule, placement := .newModule,
+     expected := ["declaration plantedExternTarget is `@[extern]`"] },
+   { label := "V2-E4 @[implemented_by] attached through the attribute API in a new test module",
+     fixtureName := "env-implemented-by.lean.txt", target := testPlantModule,
+     placement := .newModule,
+     expected := ["declaration plantedImplementedTarget is `@[implemented_by]`"] },
+   { label := "V2-E5 @[implemented_by] under its escaped name in the production tree",
+     fixtureName := "env-escaped-implemented-by.lean.txt", target := productionRoot,
+     expected := ["declaration plantedEscapedTarget is `@[implemented_by]`"] },
+   { label := "V2-E6 an opaque with no body in the production tree",
+     fixtureName := "env-bodyless-opaque.lean.txt", target := productionRoot,
+     expected := ["declaration plantedBodylessOpaque is an `opaque` with no authored body"] },
+   { label := "V2-E7 a parameterised opaque with no body in a new tooling module",
+     fixtureName := "env-bodyless-opaque-parameterised.lean.txt", target := toolingPlantModule,
+     placement := .newModule,
+     expected := ["declaration plantedParameterisedOpaque is an `opaque` with no authored body"] },
+   -- The source-token pass, in commands that leave no constant behind.
+   { label := "V2-T01 native_decide inside an example in the production tree",
+     fixtureName := "token-native-decide.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `native_decide` trust token"] },
+   { label := "V2-T02 bv_decide inside an example in a new test module",
+     fixtureName := "token-bv-decide.lean.txt", target := testPlantModule,
+     placement := .newModule,
+     expected := ["TrustSelfTestPlant.lean contains an authored `bv_decide` trust token"] },
+   { label := "V2-T03 bv_decide? inside a tactic quotation in a new test module",
+     fixtureName := "token-bv-decide-query.lean.txt", target := testPlantModule,
+     placement := .newModule,
+     expected := ["TrustSelfTestPlant.lean contains an authored `bv_decide?` trust token"] },
+   { label := "V2-T04 bv_check inside a tactic quotation in a new test module",
+     fixtureName := "token-bv-check.lean.txt", target := testPlantModule,
+     placement := .newModule,
+     expected := ["TrustSelfTestPlant.lean contains an authored `bv_check` trust token"] },
+   { label := "V2-T05 decide +native inside an example in the production tree",
+     fixtureName := "token-native-flag.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `native` trust token"] },
+   { label := "V2-T06 decide (native := true) inside an example in the production tree",
+     fixtureName := "token-native-config.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `native` trust token"] },
+   { label := "V2-T07 sorry inside an example with warningAsError switched off",
+     fixtureName := "token-sorry.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `sorry` trust token"] },
+   { label := "V2-T08 axiom inside a command quotation in the production tree",
+     fixtureName := "token-axiom.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `axiom` trust token"] },
+   { label := "V2-T09 extern inside a command quotation in the production tree",
+     fixtureName := "token-extern.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `extern` trust token"] },
+   { label := "V2-T10 implemented_by inside a command quotation in the production tree",
+     fixtureName := "token-implemented-by.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `implemented_by` trust token"] },
+   { label := "V2-T11 debug.skipKernelTC on a theorem in the production tree",
+     fixtureName := "token-skip-kernel-tc.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `debug.skipKernelTC` trust token"] },
+   { label := "V2-T12 the escaped spelling of debug.skipKernelTC in the production tree",
+     fixtureName := "token-skip-kernel-tc-escaped.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `debug.skipKernelTC` trust token"] },
+   { label := "V2-T13 the qualified spelling Lean.ofReduceBool in the production tree",
+     fixtureName := "token-of-reduce-bool.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `Lean.ofReduceBool` trust token"] },
+   { label := "V2-T14 the short spelling ofReduceNat under open Lean in the production tree",
+     fixtureName := "token-of-reduce-nat.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `Lean.ofReduceNat` trust token"] },
+   { label := "V2-T15 the spelling _root_.Lean.trustCompiler in the production tree",
+     fixtureName := "token-trust-compiler.lean.txt", target := productionRoot,
+     expected := ["Whatwg.lean contains an authored `Lean.trustCompiler` trust token"] },
+   { label := "V2-T16 native_decide inside an example in a new tooling module",
+     fixtureName := "token-native-decide.lean.txt", target := toolingPlantModule,
+     placement := .newModule,
+     expected := ["TrustSelfTestToolingPlant.lean contains an authored `native_decide` trust token"] },
+   { label := "V2-T17 native_decide inside an example in an entry point under bin/",
+     fixtureName := "token-native-decide.lean.txt", target := binEntryPoint,
+     alsoEdits := [reelaborate testRoot],
+     expected := ["Citations.lean contains an authored `native_decide` trust token"] },
+   -- The strict ceiling of R-V1 and its exact exceptions.
+   { label := "V2-S1 a theorem reaching Classical.choice in a new module under Whatwg.Ecma262",
+     fixtureName := "strict-choice.lean.txt", target := strictPlantModule,
+     placement := .newModule,
+     expected := ["declaration TrustSelfTestPlant.plantedChoice reaches Classical.choice under the strict ceiling of Whatwg.Ecma262"] },
+   { label := "V2-S3 a strict-ceiling exception naming no declaration",
+     fixtureName := "strict-exception-missing.lean.txt", target := auditSource,
+     placement := .afterAnchor strictExceptionAnchor,
+     expected := ["strict-ceiling exception names missing declaration TrustSelfTestPlant.plantedMissing"] },
+   { label := "V2-S4 a strict-ceiling exception naming a declaration that reaches no Classical.choice",
+     fixtureName := "strict-exception-stale.lean.txt", target := auditSource,
+     placement := .afterAnchor strictExceptionAnchor,
+     alsoEdits := [{ target := strictPlantModule, fixtureName := "strict-choice-free.lean.txt",
+                     placement := .newModule }],
+     expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoiceFree; it does not reach Classical.choice"] },
+   { label := "V2-S5 a strict-ceiling exception naming a declaration under no strict prefix",
+     fixtureName := "strict-exception-nonstrict.lean.txt", target := auditSource,
+     placement := .afterAnchor strictExceptionAnchor,
+     alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
+                     placement := .newModule }],
+     expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoice; its module WhatwgTest.TrustSelfTestPlant is under no strict prefix"] },
+   { label := "V2-S6 a strict-ceiling exception whose reason is blank",
+     fixtureName := "strict-exception-unreasoned.lean.txt", target := auditSource,
+     placement := .afterAnchor strictExceptionAnchor,
+     alsoEdits := [{ target := strictPlantModule, fixtureName := "strict-choice.lean.txt",
+                     placement := .newModule }],
+     expected := ["strict-ceiling exception for TrustSelfTestPlant.plantedChoice carries no reason"] },
+   -- The source-token exemption list and its staleness check.
+   { label := "V2-X1 a source-token exemption for a module that names no refused token",
+     fixtureName := "token-exemption-stale.lean.txt", target := auditSource,
+     placement := .afterAnchor tokenExemptionAnchor,
+     alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
+                     placement := .newModule }],
+     expected := ["stale source-token exemption for WhatwgTest.TrustSelfTestPlant; its source contains no refused token"] },
+   { label := "V2-X2 a source-token exemption naming no module",
+     fixtureName := "token-exemption-missing.lean.txt", target := auditSource,
+     placement := .afterAnchor tokenExemptionAnchor,
+     expected := ["source-token exemption names missing module WhatwgTest.TrustSelfTestPlantMissing"] }]
+
+/-- One narrow run: `lake env lean <file>` in the probe root, with `file`
+spelled as a person types it there, relative and without a leading `./`. -/
+structure NarrowRun where
+  label : String
+  file : String
+  /-- Every template must match within one line of the output; see
+  `templateMatches`. -/
+  templates : List String
+
+/-- The placeholder for a decimal numeral in a template. -/
+def numeralPlaceholder : String := "<n>"
+
+/-- The summary line of the gate frozen by the contract, counts left open. -/
+def gateSummaryTemplate : String :=
+  "Whatwg module and axiom gate: checked <n> source files and <n> declarations; " ++
+  "Classical.choice is reached by <n> of <n> declarations in Whatwg, <n> of <n> in WhatwgTest " ++
+  "and <n> of <n> in Gates; strict ceiling propext and Quot.sound over <n> module prefix(es) " ++
+  "with <n> exact exception(s); <n> source-token exemption(s)"
+
+def narrowRuns : List NarrowRun :=
+  [{ label := "V2-N1 the axiom gate run narrowly as `lake env lean WhatwgTest.lean`",
+     file := "WhatwgTest.lean", templates := [gateSummaryTemplate] },
+   { label := "V2-N2 the spec coverage gate run narrowly by its relative file name",
+     file := "WhatwgTest/Audit/SpecCoverage.lean",
+     templates := ["Whatwg spec coverage gate: <n> frozen rows agree with "] }]
+
+/-- `text` with `pattern` removed from its front, if it starts with it. -/
+def stripPrefixChars : List Char → List Char → Option (List Char)
+  | [], rest => some rest
+  | _ :: _, [] => none
+  | p :: ps, c :: cs => if p == c then stripPrefixChars ps cs else none
+
+/-- Whether `text` starts with the template whose literal pieces, between
+numeral placeholders, are `pieces`. A placeholder matches one or more ASCII
+digits, taken greedily; every piece after the first starts with a non-digit. -/
+def matchPieces : List (List Char) → List Char → Bool
+  | [], _ => true
+  | [piece], text => (stripPrefixChars piece text).isSome
+  | piece :: rest, text =>
+    match stripPrefixChars piece text with
+    | none => false
+    | some after =>
+      let digits := after.takeWhile Char.isDigit
+      !digits.isEmpty && matchPieces rest (after.drop digits.length)
+
+/-- Whether the template matches starting at some position of `text`. -/
+def matchesSomewhere (pieces : List (List Char)) : List Char → Bool
+  | [] => matchPieces pieces []
+  | c :: cs => matchPieces pieces (c :: cs) || matchesSomewhere pieces cs
+
+/-- Whether `template` matches within some line of `output`. -/
+def templateMatches (template output : String) : Bool :=
+  let pieces := (template.splitOn numeralPlaceholder).map String.toList
+  (lines output).any fun line => matchesSomewhere pieces line.toList
+
+/-- Lines of `output` that carry a Lean or Lake error message, all of them. -/
+def errorLines (output : String) : List String :=
+  (lines output).filter fun line => (line.splitOn "error:").length > 1
+
+def expectNarrowRun (probe : System.FilePath) (narrow : NarrowRun) : IO Bool := do
+  let output ← IO.Process.output
+    { cmd := lakeCommand, args := #["env", "lean", narrow.file], cwd := some probe }
+  let text := output.stdout ++ output.stderr
+  if output.exitCode != 0 then
+    IO.eprintln s!"FAIL {narrow.label}: `lake env lean {narrow.file}` exited with code {output.exitCode}"
+    for line in errorLines text do IO.eprintln s!"  {line}"
+    return false
+  let missing := narrow.templates.filter fun template => !(templateMatches template text)
+  if missing.isEmpty then
+    IO.println s!"PASS {narrow.label}: exit code 0 and a line matching each of {narrow.templates}"
+    return true
+  IO.eprintln s!"FAIL {narrow.label}: exit code 0, but no line matches:"
+  for template in missing do IO.eprintln s!"  {template}"
+  IO.eprintln (tail text 60)
+  return false
 
 def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
   -- 0. The declared red set must be exactly the failing set.
@@ -256,13 +621,11 @@ def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
     else
       expectAcceptance probe "the unmodified source tree"
   for plant in acceptancePlants do
-    let ok ← withPlanted (plant.target probe) (fixture root plant.fixtureName)
-      (expectAcceptance probe plant.label)
+    let ok ← checkPlant root probe plant (expectAcceptance probe plant.label)
     allOk := allOk && ok
   -- 3. Planted rejections.
   for plant in rejectionPlants do
-    let ok ← withPlanted (plant.target probe) (fixture root plant.fixtureName)
-      (expectRejection probe plant.label plant.expected)
+    let ok ← checkPlant root probe plant (expectRejection probe plant.label plant.expected)
     allOk := allOk && ok
   -- 4. Module closure: a source file not reachable from the test root.
   let unreachable := probe / "WhatwgTest" / "Planted" / "Unreachable.lean"
@@ -277,6 +640,10 @@ def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
   -- 5. Final green control after every restoration.
   let ok ← expectAcceptance probe "the restored source tree"
   allOk := allOk && ok
+  -- 6. Narrow runs over the restored, fully built tree.
+  for narrow in narrowRuns do
+    let ok ← expectNarrowRun probe narrow
+    allOk := allOk && ok
   return allOk
 
 /-- Command-line entry, invoked by `bin/TrustSelfTest.lean`. -/
@@ -292,7 +659,7 @@ def cli (args : List String) : IO UInt32 := do
     finally
       IO.FS.removeDirAll probe
   if ok then
-    IO.println "PASS trust self-test: every planted declaration was rejected for its stated reason and every control was accepted"
+    IO.println "PASS trust self-test: every planted declaration was rejected for its stated reason, every control was accepted, and every narrow run exited 0 with its frozen summary"
     return 0
   IO.eprintln "FAIL trust self-test"
   return 1

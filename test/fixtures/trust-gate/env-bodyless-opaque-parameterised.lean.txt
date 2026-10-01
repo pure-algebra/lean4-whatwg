@@ -1,0 +1,3 @@
+-- Planted by the trust self-test, plant V2-E7: a parameterised `opaque` with no
+-- body, as a new module of the tooling tree; Lean synthesises `fun n => default`.
+opaque plantedParameterisedOpaque (n : Nat) : Nat

@@ -1,0 +1,11 @@
+/-!
+Planted by the trust self-test, plant V2-S4: a theorem under the strict prefix
+`Whatwg.Ecma262` that reaches no axiom, named by a strict-ceiling exception
+that therefore admits nothing.
+-/
+
+namespace TrustSelfTestPlant
+
+theorem plantedChoiceFree : True := trivial
+
+end TrustSelfTestPlant

@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2-T14: the short spelling of a
+-- forbidden axiom under `open Lean`.
+set_option linter.deprecated false in
+open Lean in #check @ofReduceNat

@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, acceptance plant V2-A2: an `opaque` with an
+-- authored body is admitted. The kernel checks the body and the constant
+-- denotes it; only a body Lean synthesised is refused.
+opaque plantedAuthoredOpaque : Nat := 42
+
+opaque plantedAuthoredParameterisedOpaque (n : Nat) : Nat := n + 1

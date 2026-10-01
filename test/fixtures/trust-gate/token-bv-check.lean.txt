@@ -1,0 +1,10 @@
+import Std.Tactic.BVDecide
+
+/-!
+Planted by the trust self-test, plant V2-T04: `bv_check` inside a tactic
+quotation. The macro is never expanded here, so no constant records it; its
+expansion anywhere would replay an LRAT certificate through the same trusted
+evaluation `bv_decide` uses.
+-/
+
+macro "planted_bv_check" : tactic => `(tactic| bv_check "planted.lrat")

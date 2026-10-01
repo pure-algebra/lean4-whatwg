@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2-T12: the same option with an escaped
+-- name component, which Lean resolves to the same option.
+set_option «debug».skipKernelTC true in
+theorem plantedUncheckedEscapedTheorem : (1 : Nat) + 1 = 2 := rfl

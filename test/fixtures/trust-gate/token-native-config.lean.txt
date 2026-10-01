@@ -1,0 +1,3 @@
+-- Planted by the trust self-test, plant V2-T06: the long form of the same
+-- configuration flag, `(native := true)`, inside an `example`.
+example : (2 : Nat) + 2 = 4 := by decide (native := true)

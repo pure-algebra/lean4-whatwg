@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, plant V2-T07: `sorry` inside an `example`,
+-- with the package's warning-as-error option switched off for that one command,
+-- so Lean's own "declaration uses `sorry`" stays a warning and no constant is
+-- left for the axiom pass.
+set_option warningAsError false in
+example : (1 : Nat) = 2 := sorry

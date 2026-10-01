@@ -1,0 +1,43 @@
+-- Planted by the trust self-test, acceptance plant V2-A1. Trust-policy prose
+-- may name native_decide, bv_decide, bv_decide?, bv_check, decide +native,
+-- (native := true), sorry, axiom, implemented_by, extern, debug.skipKernelTC,
+-- ofReduceBool, Lean.ofReduceNat and Lean.trustCompiler.
+/- Block comments may too: /- native_decide sorry axiom extern native -/ nested. -/
+/-- Documentation may name `native_decide`, `bv_decide`, `+native`, `sorry`,
+`axiom`, `@[implemented_by]`, `@[extern]`, `debug.skipKernelTC` and
+`Lean.ofReduceBool`. -/
+private def plantedTrustTokenProse : String :=
+  "native_decide bv_decide bv_decide? bv_check +native sorry axiom implemented_by extern"
+/-! Module documentation may name `native_decide`, `sorry` and `axiom`. -/
+private def plantedRawTrustTokenProse : String :=
+  r#"debug.skipKernelTC "Lean.ofReduceBool" ofReduceNat Lean.trustCompiler"#
+private def plantedInterpolatedTrustTokenProse : String :=
+  s!"native {1} sorry {2} axiom {3} extern"
+private def plantedTrustTokenCharacter : Char := 's'
+
+-- Name literals are data, like strings: they name a constant without using it.
+private def plantedTrustTokenNames : List Lean.Name :=
+  [`native_decide, `sorry, `debug.skipKernelTC, `Lean.ofReduceBool,
+   ``Lean.ofReduceNat, ``Lean.trustCompiler]
+
+-- Identifiers that merely contain a refused word, or carry one as a component
+-- of a longer name, are names.
+private def axioms : Nat := 0
+private def externals : Nat := 0
+private def my_native_decide_note : Nat := 0
+private def partialSum : Nat := 0
+private def sorryCount : Nat := 0
+private def axiomatic : Nat := 0
+private def implementedByNote : Nat := 0
+private def nativeFlag : Nat := 0
+private def skipKernelTCNote : Nat := 0
+private def ofReduceBoolNote : Nat := 0
+private def bv_decide_count : Nat := 0
+private def plantedTrustVocabulary.native_decide : Nat := 0
+private def plantedTrustVocabulary.extern : Nat := 0
+private def plantedTrustVocabulary.implemented_by : Nat := 0
+private def plantedTrustVocabulary.native : Nat := 0
+private def plantedTrustVocabulary.debug.skipKernelTC : Nat := 0
+
+-- The receipts command spells `axioms`, never `axiom`.
+#print axioms Nat.add_comm

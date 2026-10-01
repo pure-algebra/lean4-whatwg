@@ -1,0 +1,3 @@
+-- Planted by the trust self-test, plant V2-E2: a declared axiom in the
+-- production tree, written the ordinary way. Its type is `True`.
+axiom plantedProductionAxiom : True

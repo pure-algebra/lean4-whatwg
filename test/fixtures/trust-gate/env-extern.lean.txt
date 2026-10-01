@@ -1,0 +1,15 @@
+import Lean
+
+/-!
+Planted by the trust self-test, plant V2-E3: `@[extern]` data attached through
+the attribute API, so that no source token spells the attribute. Only the
+environment pass of the gate can see it.
+-/
+
+def plantedExternTarget : Nat := 0
+
+run_cmd Lean.Elab.Command.liftCoreM do
+  match Lean.externAttr.setParam (← Lean.getEnv) `plantedExternTarget
+      { entries := [Lean.ExternEntry.adhoc `all] } with
+  | .ok environment => Lean.setEnv environment
+  | .error message => throwError message
