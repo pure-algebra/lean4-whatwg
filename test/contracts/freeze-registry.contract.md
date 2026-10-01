@@ -428,9 +428,13 @@ Receipt, three checks, each reproduced by the reviewer:
    identical before and after, except the twelve of section 9, which are
    identical to their amended text at this packet's head;
 2. the multiset of (recording module, declaration) pairs of the old
-   `#check (@n : T)` commands equals that of the new entries, the new side
-   read by `whatwg_declsnapshot` (packet 2) and the old side by the
-   conversion pass at its base; and
+   `#check (@n : T)` commands equals that of the new entries, the old side
+   read by the conversion pass at its base and the new side read from the
+   built `.olean` files of every test module with packet 2's
+   `Gates.DeclSnapshot.entryDeclaration?` and `decodeEntry`. The snapshot's
+   `frozen-by` column alone does not suffice: it shows the pairs only for
+   declarations under `Whatwg`, and 104 of the 2,272 ascriptions name
+   `Gates.*` or `WhatwgTest.*` declarations; and
 3. the R-V6 fingerprint (name, kind, universe parameters, type hash, and
    value hash for non-theorems) of every constant under `Whatwg` is unchanged
    between the conversion's base and its head.
