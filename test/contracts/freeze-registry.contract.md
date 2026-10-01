@@ -106,8 +106,9 @@ syntax (name := freezeCommand) "#whatwg_freeze " "(" "@" ident " : " term ")"
   `Lean.ParserDescr`; its one elaborator is
   `WhatwgTest.Audit.Freeze.elabFreeze`, registered by `@[command_elab]` in
   the same module.
-- The command adds exactly one token to the final token table,
-  `#whatwg_freeze`. The clause words `axioms`, `mask`, `anchor`, `graph` and
+- Of the tokens the syntax registers, the only one that is not already a
+  base token is `#whatwg_freeze` (the design measured it inert under rule 2 of
+  addendum V2c). The clause words `axioms`, `mask`, `anchor`, `graph` and
   `counterexamples` are non-reserved symbols (`&"…"`) and add no token; a
   reserved `mask` or `axioms` would turn every identifier of that spelling in
   every audited source into a keyword. `M1`, `M2` and `none` are read as
@@ -523,13 +524,89 @@ Narrow command:
 lake build WhatwgTest.Audit.FreezeContract
 ```
 
-At the freeze it fails because `WhatwgTest.Audit.Freeze` does not exist;
-section 15 records the exact output. The default `lake build` fails on this
-module and on nothing else; `WhatwgTest.lean` does not import it (R-W9), so
-the root gate's closure check does not see it until builder 1 adds the
-imports, and Lake replays the root (that is `FREEZE-CE-004` at work, and the
-reason builder 1 runs the root build after adding the imports).
+At the freeze it fails because `WhatwgTest.Audit.Freeze` does not exist, and
+for no other reason. Measured at this packet's head:
+
+```text
+✖ [2/3] Running WhatwgTest.Audit.Freeze
+error: no such file or directory (error code: 4294963238)
+  file: …\WhatwgTest\Audit\Freeze.lean
+✖ [3/3] Running WhatwgTest.Audit.FreezeContract
+error: WhatwgTest\Audit\FreezeContract.lean: bad import 'WhatwgTest.Audit.Freeze'
+Some required targets logged failures:
+- WhatwgTest.Audit.Freeze
+- WhatwgTest.Audit.FreezeContract
+```
+
+and `lake env lean WhatwgTest/Audit/FreezeContract.lean` reports the one
+error ``object file '…\WhatwgTest\Audit\Freeze.olean' of module
+WhatwgTest.Audit.Freeze does not exist``.
+
+The default `lake build` fails on exactly the same two targets and on the
+root `WhatwgTest`, whose module-closure gate refuses
+`WhatwgTest/Audit/FreezeContract.lean` as "not reachable from the WhatwgTest
+audit root", since breakers do not add root imports (R-W9). With the battery
+file moved aside, the same tree builds 386 jobs with exit 0 and the gate line
+of the base, "checked 222 source files and 16723 declarations".
+
+Lake names the missing module `WhatwgTest.Audit.Freeze` as a failing target
+of its own. `test/fixtures/trust-gate/known-red.txt` declares only the
+battery: the trust self-test requires the declared set to equal the failing
+set (so it would report `WhatwgTest.Audit.Freeze` as undeclared), and its
+excise step refuses a declared module with no source file (so declaring
+`WhatwgTest.Audit.Freeze` would stop it one step later). Either way
+`lake exe whatwg_trustselftest` cannot pass on this branch until builder 1
+creates the module, which R-W9 already requires before the slice merges.
+Every packet whose battery imports a module that does not yet exist meets
+this; it is reported to the coordinator, and this packet does not edit the
+self-test.
 
 ## 15. Freeze run
 
-Recorded in the commits that follow this one on the same branch.
+All on Lean 4.33.1, Windows x64, in the breaker's worktree at this packet's
+base `b0d35e2` plus this packet.
+
+Prototype. Appendix A of the design, adapted as this contract states (R-W5's
+constructor names, the grammar of section 3, the diagnostics of section 7,
+metadata compared and never dropped), was placed uncommitted at
+`WhatwgTest/Audit/Freeze.lean` and built with
+`lake build WhatwgTest.Audit.Freeze`. `lake env lean
+WhatwgTest/Audit/FreezeContract.lean` then exited 0: every `#guard_msgs`
+matched, every `rfl` read-back and `#guard` held. The prototype and its build
+products were then removed, and the battery fails as section 14 records.
+Validation status: run in scratch.
+
+Mutants. The battery was run against six mutants of the prototype; each
+fails the controls named, and the unmutated prototype fails none:
+
+| Mutant | Failing controls |
+| --- | --- |
+| metadata dropped on either side (the design's prototype) | R15 |
+| `Expr.eqv` alone, no allowance | A4, A5 |
+| the `let`/`have` flag compared | A4 |
+| no auxiliary-constant allowance | A5 |
+| auxiliary constants accepted without comparing bodies | R6 |
+| default-transparency `isDefEq` accepted after `Expr.eqv` | R4, R5, R6, R15 |
+
+Tree measurement. A scratch probe command classified every
+`#check (@n : T)` command of the 46 battery files, each copy elaborated with
+`lake env lean`. At the base: 2,272 commands; 1,007 `Expr.equal`; 1,128
+`Expr.eqv` only; 125 accepted by section 5 and not by `Expr.eqv` (5 of them
+carrying `save_info` metadata on both sides with equal entries); none needing
+metadata dropped; and exactly the twelve of section 9 refused (4 expression
+holes, 7 needing default unfolding, 1 needing reducible unfolding). After the
+twelve amendments: 2,272 commands, 1,013 `Expr.equal`, 1,134 `Expr.eqv` only,
+125 by section 5, and no refusal. By kind: 1,065 theorems, 692 definitions,
+377 constructors, 138 inductive types. Validation status: run in scratch.
+
+Amendments. `lake env lean` on each of the three amended files exits 0, the
+gates inside them included ("Whatwg spec coverage gate: 450 frozen rows …
+55 witness theorem(s)"; "webidl census contract: 124 rows, 121 frozen anchor
+rows verified …"). With the battery moved aside, `lake build` passes as
+section 14 states, and `lake exe whatwg_vendorseal`, `whatwg_urlinventory`,
+`whatwg_urlcensus` and `whatwg_census` for all four standards, with
+`--report` for the three that have a numerator, print PASS with the coverage
+blocks unchanged (Streams owned-with-green 12/410), and
+`lake env leanchecker Whatwg WhatwgTest WhatwgGates` exits 0 in 89 s. No
+file pins the bytes of the three amended files. The trust self-test was not
+run (section 14).

@@ -456,4 +456,9 @@
 # packet's section 15 records that run. The builder removes this entry the
 # moment the battery is green. Turning it green by editing the battery is a
 # refusal, not a landing.
+#
+# Lake also names the missing module WhatwgTest.Audit.Freeze as a failing
+# target. It is not declared here: the self-test's excise step refuses a
+# declared module with no source file. Until builder 1 creates the module,
+# lake exe whatwg_trustselftest reports it as undeclared (packet section 14).
 WhatwgTest.Audit.FreezeContract
