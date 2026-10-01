@@ -520,3 +520,25 @@
 # control build is all green again; its executable rows stay red until
 # whatwg_trustgate lands (V2e.10). This block's lines, which the breaker's
 # commit wrote with LF endings, are CRLF again like the rest of the file.
+
+# W7 graph ledger packet, frozen RED 2026-10-01 by the W7 breaker seat of
+# review lane W on branch review/w7-ledger-breaker, based on b0d35e2
+# (ruling R-W6).
+# Packet: test/contracts/graph-ledger.contract.md.
+# Counterexamples: LEDGER-CE-001..005 in test/counterexamples/REGISTER.md.
+# Implementation fence (slice A, contract section 12):
+# WhatwgGates/Ledger/{Model,Render,Check}.lean, whatwgbin/Ledger.lean,
+# WhatwgTest/Ledger.lean, WhatwgTest/Ledger/{DataQueue,PromiseFirst,
+# ConfigurationOrdering}.lean, one import line in each of WhatwgGates.lean and
+# WhatwgTest.lean, the whatwg_ledger lakefile entry, generated/graphs/ for the
+# three graphs, and one sentence in each of their three graph documents.
+#
+# One entry. It is red only because the four modules it imports,
+# WhatwgGates.Ledger.Model, WhatwgGates.Ledger.Render,
+# WhatwgGates.Ledger.Check and WhatwgTest.Ledger, do not exist yet. Per ruling
+# R-W9 the battery is not imported by WhatwgTest.lean during its red phase;
+# the slice A builder adds that import and removes this entry the moment the
+# battery is green. Until then a default lake build at this packet's head also
+# stops at the root's module-closure gate, which refuses the unreachable
+# battery; that is the state R-W9 describes, not a second defect.
+WhatwgTest.Audit.LedgerContract
