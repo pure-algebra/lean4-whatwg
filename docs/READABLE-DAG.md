@@ -7,25 +7,11 @@ default-readable representative. It owns no coverage count.
 
 ## Current state
 
-This table describes commit `325d5d5` on 2026-09-30. P4a landed on
-2026-09-05 with implementation `5121268`, closing laws, counterexamples and
-trust; full P4 stays open. Ruling R-V4 sets the rule: an edge is
-`required-closed` only when every ground this document or a ruling in
-`COORDINATION.md` states for keeping it open is discharged by something named
-in the ground cell.
-
-| Edge | Status | Ground |
-| --- | --- | --- |
-| identity | `required-open` | The generated declaration snapshot and its joins to the declaration table, which has no generator (debt D47). The exact ascriptions, constructor census and shared-reason retraction landed with the 94 receipts (P4a landing receipt) |
-| construction | `required-open` | Reachable-state and fresh-ID invariants (P4a landing receipt) |
-| semantics | `required-open` | The full-state, shared-allocation, global-job and promise-object embeddings. `Steps` composes external decisions only; it does not interleave internal jobs or prove a global run law (P4a landing receipt) |
-| laws | `required-closed` | Every quantified equation of `WhatwgTest/Streams/Readable/DefaultContract.lean` is proved: the 94 named theorems of `WhatwgTest/Streams/Readable/DefaultAxiomReport.lean` (P4a landing receipt) |
-| representation | `required-open` | The full-state, shared-allocation, global-job, promise-object and host-profile embeddings (P4a landing receipt). Since Q3, `Readable.PromiseState` is a view of `Whatwg.Ecma262.Promise.State` (`E-01`), as the declaration table records |
-| counterexamples | `required-closed` | `WS-READ-CE-001` to `WS-READ-CE-017` are `CLOSED` in `test/counterexamples/REGISTER.md` for this local projection only. Debt D50 records that the witness module `WhatwgTest/Streams/Counterexamples/Readable/Default.lean` imports no production module, so the attack-to-statement link is stated in the register rather than checked in Lean |
-| bridges | `required-open` | The full-state projection and the host-profile relation, including exact arithmetic against binary64 and promise-reaction registration; P4a asserts no host relation |
-| targets | `not-applicable` | P4a has no lowering or generated code; P11 owns that obligation |
-| trust | `required-closed` | The 94 named receipts print inside the R-11 ceiling and none reaches `Classical.choice`; the exhaustive root audit, the builds, the gates and independent review passed (P4a landing receipt). The two public theorems of `Whatwg/Streams/Readable/Laws.lean` that reached `Classical.choice` at `325d5d5`, `readTable_settleReadCell` and `readTable_settleReadCells`, with the two private helpers beneath them, are Q4 receipts of `CONFIGURATION-PG-ORDERING`; slice V5 of lane V repaired them (R-V6) |
-| coverage | `required-open` | The clause map below and the test-side numerator witnesses for its rows (P4a landing receipt) |
+The status of every edge of this graph is recorded in the ledger module
+`WhatwgTest/Ledger/ReadableDefault.lean`, rendered to
+`generated/graphs/READABLE-PG-DEFAULT.md` by `lake exe whatwg_ledger --write`, and
+checked by `lake exe whatwg_ledger`. The table this section held before the
+ledger is in `docs/receipts/READABLE-PG-DEFAULT.md`.
 
 ## Authority anchors
 

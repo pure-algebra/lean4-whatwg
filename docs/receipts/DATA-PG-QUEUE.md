@@ -79,3 +79,31 @@ sentence lives in the queue-with-sizes section; the state is unaffected.
 The coverage edge closes. The block at this landing:
 `denominator 410; owned-with-green 12/410; green 12, partial 6, absent 392;
 census 450 rows, 40 excluded`.
+
+## Current-state table as hand-written before the ledger, 2026-10-01
+
+Moved verbatim from the "Current state" section of `docs/DATA-DAG.md` at `5999363`; the ledger entry `WhatwgTest/Ledger/DataQueue.lean` and its projection `generated/graphs/DATA-PG-QUEUE.md` supersede it.
+
+This table describes commit `325d5d5` on 2026-09-30. It follows the P3
+landing of 2026-09-02, which closed every applicable edge; no later ruling in
+`COORDINATION.md` reopens one. Ruling R-V4 sets the rule: an edge is
+`required-closed` only when every ground this document or a ruling states for
+keeping it open is discharged by something named in the ground cell.
+
+| Edge | Status | Ground |
+| --- | --- | --- |
+| identity | `required-closed` | Closed at the freeze: every row of section 3 names its census row id and that row's span digest from `generated/spec-algorithm-census.tsv`. The landing added the twelfth row, `Whatwg.Streams.Data.DyadicSize`, routed to the representation edge. This document states no generated-snapshot ground for the edge and no ruling adds one |
+| construction | `required-closed` | The 99 frozen theorems are proved with no battery edit, the D0 to D8 declarations are in `Whatwg/Streams/Data/Queue.lean` and `Whatwg/Streams/Data/Strategy.lean`, and the `P3-R1` instance is `Whatwg/Streams/Data/DyadicSize.lean` with `DyadicSize.classified`, `ordered`, `exact` and `admissible_iff` (receipt "Landing") |
+| semantics | `required-closed` | The six apex statements `enqueueValueWithSize_error_iff_not_admissible`, `dequeueValue_cons`, `peekQueueValue_agrees_dequeueValue`, `resetQueue_eq`, `extractHighWaterMark_error_iff` and `extractSizeAlgorithm_present` are among the 99 proved theorems (receipt "Landing") |
+| laws | `required-closed` | `P3-R1` chose option (i), the exact carrier, so the edge closes on `enqueueValueWithSize_wf` together with `sizeSum_cons`, `dequeueValue_wf` and `dequeueValue_clamp_unreachable_of_exact`, all proved (receipt "Landing") |
+| representation | `required-closed` | The four frozen representation decisions of the freeze, each forced by a counterexample row, and the `DyadicSize` carrier row (receipt "Landing") |
+| counterexamples | `required-closed` | `WS-DATA-CE-001` to `WS-DATA-CE-010` are `CLOSED` in `test/counterexamples/REGISTER.md`. Debt D50 records that the witness module `WhatwgTest/Streams/Counterexamples/Data/Queue.lean` imports no production module, so the link from each attack to the rejecting statement is stated in the register rather than checked in Lean |
+| bridges | `not-applicable` | The packet claims no relation to a host implementation. `DATA-FB-ROUNDING` is where a bridge would live, and it is refused at this stratum |
+| targets | `not-applicable` | No generated code. Lowering is `RS-5` of `docs/REIFICATION-STRATEGY.md` and P11 |
+| trust | `required-closed` | The 99 named receipts of `WhatwgTest/Streams/Data/QueueAxiomReport.lean` print inside the R-11 ceiling, and the declared red set of `test/fixtures/trust-gate/known-red.txt` is empty (receipt "Landing"). No declaration in `Whatwg.Streams.Data` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md` |
+| coverage | `required-closed` | The section 6 rows landed in the numerator `WhatwgTest/Audit/SpecCoverage.lean` (receipt "Coverage landed"); `lake exe whatwg_census --report` prints the Streams block |
+
+The ledger entry of this graph in `WhatwgTest/Ledger.lean` is projected to
+`generated/graphs/DATA-PG-QUEUE.md` by `lake exe whatwg_ledger --write`, and
+`lake exe whatwg_ledger` checks that projection and the entry's references,
+not this table.

@@ -146,3 +146,26 @@ The next breadth representative is the independently frozen P6a packet
 `03547f1feb938d65898c47b4061faeb3f4bd9edf`, built on the P4/P5 canonical
 states and shared P5 promise table. Its integration and implementation do
 not close any of these remaining global obligations.
+
+## Current-state table as hand-written before the ledger, 2026-10-01
+
+Moved verbatim from the "Current state" section of `docs/WRITABLE-DAG.md` at `5999363`; the ledger entry `WhatwgTest/Ledger/WritableDefault.lean` and its projection `generated/graphs/WRITABLE-PG-DEFAULT.md` supersede it.
+
+This table describes commit `325d5d5` on 2026-09-30, with the trust row brought to the lane V landing of 2026-10-01 (R-V6). The P5a landing closed
+laws, counterexamples and trust; full P5 stays open. Ruling R-V4 sets the
+rule: an edge is `required-closed` only when every ground this document or a
+ruling in `COORDINATION.md` states for keeping it open is discharged by
+something named in the ground cell.
+
+| Edge | Status | Ground |
+| --- | --- | --- |
+| identity | `required-open` | The generated public-declaration snapshot and its joins, which have no generator (debt D47) (P5a landing receipt) |
+| construction | `required-open` | The valid initial and full-state projection, the queue/request and close-sentinel invariants, in-flight disjointness on reachable states, and shared fresh allocation. Setup/start and writer acquire/release/reacquire are later full-P5 work (P5a landing receipt) |
+| semantics | `required-open` | The global call-stack and job order, ECMAScript promises and reaction registration, the full-stream and host embeddings, and the DB-04 M1/M2 relations (P5a landing receipt) |
+| laws | `required-closed` | The 109 local law signatures (the 108 frozen stage/view laws and `hasInFlight_exact`) and the two composed lifecycle statements are proved in `Whatwg/Streams/Writable/Laws.lean` and `Lifecycle.lean`; the 111 named receipts print (P5a landing receipt) |
+| representation | `required-open` | The global call-stack and job order, ECMAScript promises and reaction registration, the full-stream and host embeddings, and the DB-04 M1/M2 relations (P5a landing receipt). Since Q3, `UnitPromise`, `SinkAnswer`, `SinkReturn` and the promise slots of `State` are views of `Whatwg.Ecma262.Promise`, as the declaration table records |
+| counterexamples | `required-closed` | `WS-WRITE-CE-001` to `WS-WRITE-CE-017` are `CLOSED` in `test/counterexamples/REGISTER.md` for this local projection, each through its linked production law (P5a landing receipt) |
+| bridges | `required-open` | The full writer, global scheduler, shared supply and host-profile embeddings and the DB-04 M1/M2 relations; P5a asserts no host relation (P5a landing receipt) |
+| targets | `not-applicable` | This packet has no lowering; P11 owns target obligations |
+| trust | `required-closed` | The 111 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent source review passed (P5a landing receipt). Two of the receipts, `lifecycle_write_close` and `lifecycle_abort_rejection`, reached `Classical.choice` at `325d5d5`; slice V5 of lane V repaired them with no statement changed, and since that landing the axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1, R-V6) |
+| coverage | `required-open` | The full clause map and the test-side numerator witnesses; the packet claims no changed coverage state (P5a landing receipt) |

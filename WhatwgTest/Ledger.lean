@@ -1,6 +1,15 @@
 import WhatwgTest.Ledger.DataQueue
 import WhatwgTest.Ledger.PromiseFirst
 import WhatwgTest.Ledger.ConfigurationOrdering
+import WhatwgTest.Ledger.ReadableDefault
+import WhatwgTest.Ledger.WritableDefault
+import WhatwgTest.Ledger.TransformBackpressure
+import WhatwgTest.Ledger.PipingForwardShutdown
+import WhatwgTest.Ledger.InfraUtf8
+import WhatwgTest.Ledger.InfraScalar
+import WhatwgTest.Ledger.UrlPercent
+import WhatwgTest.Ledger.UrlCensus
+import WhatwgTest.Ledger.PromiseAgent
 
 /-!
 # WhatwgTest.Ledger
@@ -14,10 +23,12 @@ and the kernel-checked statement that the ledger has no structural finding.
 elaborator is declared. A structural defect fails `lake build` here with no
 name, and `lake exe whatwg_ledger` prints the same findings, named.
 
-Slice A holds `DATA-PG-QUEUE`, `PROMISE-PG-FIRST`,
-`CONFIGURATION-PG-ORDERING` and the leaf `INFRA-LF-INTEGER`; slice B seeds the
-other graphs, and slice D the unrouted prefixes of debt D57. The coordinator
-owns this tree: a cell changes with the ruling that carries its edge token.
+Slice A seeded `DATA-PG-QUEUE`, `PROMISE-PG-FIRST`,
+`CONFIGURATION-PG-ORDERING` and the leaf `INFRA-LF-INTEGER`; slice B seeded the
+graphs of the other nine graph documents, `PROMISE-PG-AGENT` among them, so
+every graph document but the pointer `docs/SHA256-DAG.md` has an entry; slice D
+adds the unrouted prefixes of debt D57. The coordinator owns this tree: a cell
+changes with the ruling that carries its edge token.
 -/
 
 namespace WhatwgTest.Ledger
@@ -41,9 +52,11 @@ def infraInteger : Leaf where
     .ascriptions `WhatwgTest.Infra.IntegerConstructiveContract 9,
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
-/-- The ledger: the three slice A graphs and the one leaf record. -/
+/-- The ledger: the twelve graphs of slices A and B and the one leaf record. -/
 def ledger : Ledger where
-  graphs := [dataQueue, promiseFirst, configurationOrdering]
+  graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
+    transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,
+    promiseAgent]
   leaves := [infraInteger]
 
 /-- The ledger has no structural finding (contract section 4). -/

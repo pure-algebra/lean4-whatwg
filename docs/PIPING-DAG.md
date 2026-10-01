@@ -6,25 +6,11 @@ representative passes; full P7 and the named remaining embeddings stay open.
 
 ## Current state
 
-This table describes commit `325d5d5` on 2026-09-30, with the trust row brought to the lane V landing of 2026-10-01 (R-V6). P7a landed on
-2026-09-05 with implementation `6bb79d2`, closing laws, counterexamples and
-trust; full P7 stays open. Ruling R-V4 sets the rule: an edge is
-`required-closed` only when every ground this document or a ruling in
-`COORDINATION.md` states for keeping it open is discharged by something named
-in the ground cell.
-
-| Edge | Status | Ground |
-| --- | --- | --- |
-| identity | `required-open` | The unique ownership joins of the generated declaration snapshot, which has no generator (debt D47) (P7a landing receipt) |
-| construction | `required-open` | Arbitrary-start construction: arbitrary prior checkpoints, full canonical source reachability and global freshness. Admitted read inventory, returned-reference retention and reachable candidate phase invariants are proved (P7a landing receipt) |
-| semantics | `required-open` | Global semantics and scheduling (P7a landing receipt). The rows of "Full P7 residual map" below still apply, among them backward error and close, forward close, the whole read pump, canonical cancellation and releases, signal actions and pipe-promise settlement |
-| laws | `required-closed` | The 44 frozen stage and requirements laws in `Whatwg/Streams/Piping/Laws.lean` and the two composed runs in `Runs.lean` are proved; the 46 named receipts print (P7a landing receipt) |
-| representation | `required-open` | Full component and host representations (P7a landing receipt) |
-| counterexamples | `required-closed` | `WS-PIPE-CE-001` to `WS-PIPE-CE-016` are `CLOSED` in `test/counterexamples/REGISTER.md` with their named production repair laws, for the local scope the register records (P7a landing receipt) |
-| bridges | `required-open` | `forwardShutdown_realizes` proves `ForwardShutdownSpec` under `observeShutdown` for every admitted finite candidate run. The full lock, release, cancel, pipe-promise, M1 and global-scheduler bridge remains; neither the finite safety theorem nor the two fixed shapes establish progress or eventual shutdown (P7a landing receipt) |
-| targets | `not-applicable` | No target generation; P11 owns lowering |
-| trust | `required-closed` | The 46 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent source, proof and landing review passed (P7a landing receipt). Three of the receipts, `forwardShutdown_realizes`, `lifecycle_two_writes_abort_rejection` and `lifecycle_write_rejection_retains_source`, reached `Classical.choice` at `325d5d5`; slice V5 of lane V repaired them with no statement changed, and since that landing the axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1, R-V6) |
-| coverage | `required-open` | The coverage join for the full residual clause map and its numerator witnesses (P7a landing receipt) |
+The status of every edge of this graph is recorded in the ledger module
+`WhatwgTest/Ledger/PipingForwardShutdown.lean`, rendered to
+`generated/graphs/PIPING-PG-FORWARD-SHUTDOWN.md` by `lake exe whatwg_ledger --write`, and
+checked by `lake exe whatwg_ledger`. The table this section held before the
+ledger is in `docs/receipts/PIPING-PG-FORWARD-SHUTDOWN.md`.
 
 ## Source owners
 
