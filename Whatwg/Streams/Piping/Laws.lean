@@ -610,7 +610,7 @@ private theorem frame_decide {α ε : Type} (s t : State α ε)
     | sourceError reason =>
         cases h
         simp only [Frame, emit, deliveredReads_error]
-        cases hs : s.source.status <;> simp [Readable.error, hs]
+        cases hs : s.source.status <;> simp [Readable.error, Readable.settleReadCells, hs]
     | writable choice =>
         dsimp only at h
         split at h

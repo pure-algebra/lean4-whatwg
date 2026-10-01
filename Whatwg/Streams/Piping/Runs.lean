@@ -24,6 +24,7 @@ attribute [local simp] initial snapshot emit drainGuard nextUnwritten allWritten
   Readable.read Readable.error Readable.shouldCallPull Readable.canCloseOrEnqueue
   Readable.callPullIfNeeded Readable.callPullIfNeededWith Readable.continuePull
   Readable.chunksOfSettlements
+  Readable.freshReadCell Readable.settleReadCell Readable.settleReadCells
   Writable.initial Writable.tick Writable.decide Writable.externalFrontier Writable.operationPhase
   Writable.operationKind Writable.operationRequest Writable.setOperationPhase Writable.attachSink
   Writable.invokeSink Writable.acceptAnswer Writable.sizes Writable.sizeNonPositive

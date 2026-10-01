@@ -186,7 +186,7 @@ def readTable {α ε : Type} (s : State α ε) :
 /-- `E-22` (generalize, Q4): allocate a read cell at the cursor. The Streams
 instance of `Whatwg.Ecma262.Promise.Table.fresh` at value parameter
 `ReadResult α`. -/
-@[simp] def freshReadCell {α ε : Type} (s : State α ε)
+def freshReadCell {α ε : Type} (s : State α ε)
     (outcome : PromiseState (ReadResult α) ε) : State α ε × Nat :=
   ({ s with
       nextRead := s.nextRead + 1,
@@ -199,7 +199,7 @@ guarded by `isPending` and a non-pending settle is the identity (decision 7),
 so the two agree only under the pending hypothesis, which is where
 `Table.settle_pending` puts them. Adopting the guard here would change the
 meaning of four landed Streams bodies. -/
-@[simp] def settleReadCell {α ε : Type} (s : State α ε) (id : Nat)
+def settleReadCell {α ε : Type} (s : State α ε) (id : Nat)
     (result : Except (Boundary.Exception ε) (ReadResult α)) : State α ε :=
   { s with
     readPromises := s.readPromises.map (fun p =>
@@ -210,7 +210,7 @@ meaning of four landed Streams bodies. -/
 /-- `E-22` (generalize, Q4): overwrite every read cell whose identity is in
 `ids`. The two set-shaped updates of `streamClose` and `error` are its
 instances. -/
-@[simp] def settleReadCells {α ε : Type} (s : State α ε) (ids : List Nat)
+def settleReadCells {α ε : Type} (s : State α ε) (ids : List Nat)
     (result : Except (Boundary.Exception ε) (ReadResult α)) : State α ε :=
   { s with
     readPromises := s.readPromises.map (fun p =>

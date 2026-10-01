@@ -15,6 +15,7 @@ set_option exponentiation.threshold 2048
 attribute [local simp] initial sizes sizePositive beginEnqueue finishEnqueue resumeSize
   returnPull read close streamClose error shouldCallPull canCloseOrEnqueue callPullIfNeeded
   callPullIfNeededWith continuePull observeM1 settlementTrace chunksOfSettlements
+  freshReadCell settleReadCell settleReadCells
   Data.Queue.empty Data.enqueueValueWithSize Data.dequeueValue Data.resetQueue
   Data.SizeClass.isNonNegativeNumber Data.SizeClass.isPositiveInfinity
   Data.SizeClass.clampNonNegative Data.DyadicSize.sizes Data.DyadicSize.oneUnits

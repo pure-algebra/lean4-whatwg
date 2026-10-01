@@ -23,6 +23,7 @@ attribute [local simp] initial withReadable withWritable lookupPromise freshInte
   Readable.shouldCallPull Readable.canCloseOrEnqueue Readable.callPullIfNeeded
   Readable.callPullIfNeededWith Readable.continuePull Readable.observeM1 Readable.settlementTrace
   Readable.chunksOfSettlements Readable.acceptPullAnswer Readable.reactPull Readable.runPullJob
+  Readable.freshReadCell Readable.settleReadCell Readable.settleReadCells
   Writable.initial Writable.tick Writable.decide Writable.externalFrontier Writable.operationPhase
   Writable.operationKind Writable.operationRequest Writable.setOperationPhase Writable.attachSink
   Writable.invokeSink Writable.acceptAnswer Writable.sizes Writable.sizeNonPositive
