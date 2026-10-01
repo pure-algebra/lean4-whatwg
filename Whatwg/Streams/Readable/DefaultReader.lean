@@ -12,8 +12,9 @@ Spec anchors: `default-reader-class`, `default-reader-internal-slots`,
 
 Opens in P4.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares `read`, the P4a default-reader read in the fixed-reader
+projection frozen by `test/contracts/readable-default.contract.md`. Graph
+`READABLE-PG-DEFAULT` (`docs/READABLE-DAG.md`) owns its record.
 -/
 
 /-! The frozen P4a packet now supplies the post-start, fixed-reader implementation below. -/

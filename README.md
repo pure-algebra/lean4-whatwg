@@ -1,6 +1,6 @@
 # lean4-whatwg
 
-WHATWG standards reified in Lean 4, one library per standard: `Whatwg.Streams`, the Streams Standard; `Whatwg.Infra`, the Infra Standard (pinned, empty); and `Whatwg.Html`, the HTML content model under the HTML Standard's authority, whose schema was bootstrapped from OCaml TyXML's row types and is authored source since 2026-09-06 (`docs/HTML-PACKAGE-PLAN.md`). The Streams library: the specification's
+WHATWG standards reified in Lean 4, one library per standard: `Whatwg.Streams`, the Streams Standard; `Whatwg.Infra`, the Infra Standard's value universe (bytes, code points, strings and text helpers, with the Encoding Standard's UTF-8 codec in `Whatwg/Infra/Text/Utf8.lean`); `Whatwg.Ecma262` and `Whatwg.WebIdl`, the ECMA-262 promise objects and job queue and the Web IDL promise and exception vocabulary beneath Streams (ruling DB-11); `Whatwg.Url`, the URL Standard, whose percent-encoding packet is its first semantic declaration set; and `Whatwg.Html`, the HTML content model under the HTML Standard's authority, whose schema was bootstrapped from OCaml TyXML's row types and is authored source since 2026-09-06 (`docs/HTML-PACKAGE-PLAN.md`). The Streams library: the specification's
 algorithms and internal state as first-order Lean data with proved laws, a
 relational semantics over explicit decisions, an EffHOL-style logic layer
 above it, and, later, a checked lowering of a closed combinator alphabet to
@@ -11,19 +11,37 @@ commit. The specification's own reference implementation is second-tier
 evidence. Web Platform Tests are the host conformance corpus, replayed against
 named host profiles. No host defines the model.
 
-Current state: **P0 bootstrap complete, pre-release.** The package builds, the
-Lean-implemented gates run, the pinned sources are sealed, and no semantic
-declaration exists yet. Nothing here claims that any stream behaviour has been
-modelled or proved.
+Current state at commit `325d5d5`, 2026-09-30: pre-release. The package
+builds, the Lean-implemented gates run, the pinned sources are sealed, and the
+libraries hold first-order models with proved laws for one bounded
+representative per area: queue-with-sizes and the queuing strategies (P3), a
+default readable stream after successful start (P4a), a default writable stream
+with one attached writer (P5a), transform backpressure coupling (P6a), a
+forward-error pipe shutdown fragment (P7a), the ECMA-262 promise objects and job
+queue with the Web IDL promise and exception vocabulary (promise slices Q3 and
+Q3b), the configuration-ordering restatement of P8a (Q4), the Infra text helpers
+with the UTF-8 codec, URL percent-encoding (U3), and the HTML content model
+(H1 to H4). Each representative is part of its phase, not the whole of it:
+the "Current state" table of each proof-graph document under `docs/` names the
+graph's open edges, and `PLAN.md` keeps P4 to P12 open. No host conformance is
+claimed; the harness fixtures are finite observations under named host
+profiles. Specification coverage is stated only by the blocks
+`lake exe census --report` prints. Review lane V, opened 2026-09-30, is in
+progress; `PLAN.md` records its slices.
 
 ## Build and gates
 
 The toolchain is pinned by `lean-toolchain` to exactly
-`leanprover/lean4:v4.33.1`. Two Lake dependencies, each at an exact commit:
-`hash` ([lean4-hash](https://github.com/pure-algebra/lean4-hash)), the proved
-SHA-256 every gate computes digests with, and `effects`
-([lean4-effects](https://github.com/pure-algebra/lean4-effects)), the generic
-effect algebra the Stratum S packets build against from P4. Every proof receipt in this
+`leanprover/lean4:v4.33.1`. Three Lake dependencies, each at an exact commit:
+`hash` ([lean4-hash](https://github.com/pure-algebra/lean4-hash)) at
+`0168306`, the proved SHA-256 every gate computes digests with; `effects`
+([lean4-effects](https://github.com/pure-algebra/lean4-effects)) at `c28833b`
+(tag `v0.5.0`), the generic effect algebra the reification strategy builds the
+stateful standards against; and `typescript`
+([lean4-typescript](https://github.com/pure-algebra/lean4-typescript)) at
+`fcbc05a` (tag `v0.2.0`), the TypeScript syntax P11 lowers through. The `Gates`
+tooling imports `hash`; nothing under `Whatwg/` imports `effects` or
+`typescript` yet. Every proof receipt in this
 repository is stated against that kernel. Everything below runs from any directory inside the
 checkout.
 
@@ -34,6 +52,7 @@ lake exe citations               # no line-numbered citation into a protected au
 lake exe urlinventory            # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
 lake exe urlcensus               # the authored URL census and its source assignments against a regeneration
 lake exe census                  # the Streams census and coverage emit
+lake exe census --report         # the Streams coverage block from the Lean emit
 lake exe census --standard infra # the Infra definition census
 lake exe census --standard webidl # the Web IDL promise and exception census
 lake exe census --standard webidl --report  # the Web IDL coverage block, all-absent
@@ -43,9 +62,9 @@ lake exe census --standard ecma262 --report # the ES2026 coverage block, all-abs
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
 
-`lake exe trustselftest` (not a default target, not in CI) plants known
-violations in a throwaway copy and checks that the axiom gate rejects each;
-run it after changing the gate itself. The WP-7 rename-parity receipt was
+`lake exe trustselftest` (not a default target, and not a CI step at this
+commit) plants known violations in a throwaway copy and checks that the axiom
+gate rejects each; run it after changing the gate itself. The WP-7 rename-parity receipt was
 retired on 2026-09-03: it had proved what it was written to prove.
 
 ## Where to start

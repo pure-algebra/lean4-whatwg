@@ -13,8 +13,14 @@ Spec anchors: `rs-default-controller-class`,
 
 Opens in P4.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares the P4a default-controller operations frozen by
+`test/contracts/readable-default.contract.md`: `desiredSize`,
+`canCloseOrEnqueue`, `shouldCallPull`, the staged pull (`continuePull`,
+`callPullIfNeededWith`, `callPullIfNeeded`, `returnPull`, `acceptPullAnswer`,
+`reactPull`, `runPullJob`), the staged enqueue (`beginEnqueue`,
+`finishEnqueue`, `resumeSize`), `close`, `streamClose`, `error` and
+`queryDesiredSize`. Graph `READABLE-PG-DEFAULT` (`docs/READABLE-DAG.md`) owns
+their records.
 -/
 
 /-!

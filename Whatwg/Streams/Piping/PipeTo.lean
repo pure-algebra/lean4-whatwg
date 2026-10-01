@@ -15,8 +15,12 @@ The requirements it realizes are owned by
 `Whatwg/Streams/Piping/Requirements.lean`; realizability is a claim about the
 pair, under a named observation mask.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares the P7a candidate realizer frozen by
+`test/contracts/piping-shutdown.contract.md`, among them `Phase`, `State`,
+`initial`, the admission predicate `Admitted`, the observation
+`observeShutdown` and the shutdown stages from `enterForwardShutdown` to
+`requestFinalize`. Graph
+`PIPING-PG-FORWARD-SHUTDOWN` (`docs/PIPING-DAG.md`) owns their records.
 -/
 
 /-!

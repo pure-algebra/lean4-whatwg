@@ -12,8 +12,9 @@ Spec anchors: `default-writer-class`, `default-writer-internal-slots`,
 
 Opens in P5.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares `decide`, the P5a dispatcher that admits external calls
+and returns, frozen by `test/contracts/writable-default.contract.md`. Graph
+`WRITABLE-PG-DEFAULT` (`docs/WRITABLE-DAG.md`) owns its record.
 -/
 
 /-!

@@ -21,20 +21,23 @@ imports only `Whatwg.Infra`. `Whatwg.WebIdl` wraps its operations in the
 vocabulary WHATWG algorithms use.
 
 Landed surface, frozen by `PROMISE-PG-FIRST`
-(`test/contracts/promise-first-packet.contract.md`) and built by the Q3
-builder seat:
+(`test/contracts/promise-first-packet.contract.md` and its Q3b addendum
+`test/contracts/promise-first-packet-q3b.contract.md`) and built by the Q3 and
+Q3b builder seats:
 
 - `Whatwg/Ecma262/Jobs.lean` — the payload-polymorphic FIFO job queue, the
-  reaction-job record, the activation state and run condition, and the DB-05
-  specification/realizer pair for `requirement.hostenqueuepromisejob.3`
-  (3 types, 12 functions, 20 theorems). It imports only `Whatwg.Infra`.
+  reaction-job record, the activation state and run condition, the DB-05
+  specification/realizer pair for `requirement.hostenqueuepromisejob.3`, and
+  the `Active`-threaded `startJob` and `completeJob` with the run-to-completion
+  specification `RunToCompletion` for `requirement.jobs.3`. It imports only
+  `Whatwg.Infra`.
 - `Whatwg/Ecma262/Promise.lean` — the promise state, settled-outcome and
   callback-return carriers, promise identity, the general promise table with
   its allocation, lookup, settle and mark-handled operations, the reaction
-  records and the two reaction lists, `TriggerPromiseReactions`, the
-  capability record and the resolving functions, and `PerformPromiseThen`
-  (12 types, 22 functions, 44 theorems). It imports `Whatwg.Ecma262.Jobs` and
-  `Whatwg.Infra`.
+  records with their capability field and the two reaction lists,
+  `TriggerPromiseReactions`, the capability record and the resolving
+  functions, `PerformPromiseThen`, the reaction job's handler step and the
+  settlement trace. It imports `Whatwg.Ecma262.Jobs` and `Whatwg.Infra`.
 
 Still open, with their gap ids from the packet: `G-02` remainder (the
 handled-bit consumer and `HostPromiseRejectionTracker`), `G-04` (`IsPromise`

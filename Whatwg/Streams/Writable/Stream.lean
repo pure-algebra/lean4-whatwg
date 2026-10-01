@@ -11,8 +11,14 @@ Spec anchors: `ws-class`, `ws-internal-slots`, `ws-abstract-ops`.
 
 Opens in P5.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares the P5a passive writable shapes, promise-table
+primitives and observation views frozen by
+`test/contracts/writable-default.contract.md`, among them `State`, `Decision`,
+`Control`, `Event`, `initial`, `lookupPromise`, `freshPromise`, `settle`,
+`markHandled`, `observeSink` and `observeOrdered`. Graph `WRITABLE-PG-DEFAULT`
+(`docs/WRITABLE-DAG.md`) owns their records; the bridging views
+`promiseTable` and `jobQueue` belong to `PROMISE-PG-FIRST`
+(`docs/PROMISE-DAG.md`).
 -/
 
 /-!
