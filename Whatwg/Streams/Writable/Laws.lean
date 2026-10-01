@@ -1375,9 +1375,7 @@ reaches nil for the local candidate observations.
 theorem reaches_nil :
   ∀ {α ε : Type} (s : State α ε) (t : State α ε), Reaches s [] t ↔ s = t := by
   intro α ε s t
-  constructor
-  · intro h; cases h; rfl
-  · intro h; cases h; exact .nil s
+  exact reaches_iff_path.trans Kernel.Path.nil_iff
 
 /--
 `op.writable-stream-default-controller-advance-queue-if-needed`:
@@ -1388,9 +1386,8 @@ theorem reaches_cons :
     (t : State α ε), Reaches s (d :: ds) t ↔
       ∃ u, Step s d u ∧ Reaches u ds t := by
   intro α ε s d ds t
-  constructor
-  · intro h; cases h with | cons first rest => exact ⟨_, first, rest⟩
-  · rintro ⟨u, first, rest⟩; exact .cons first rest
+  exact reaches_iff_path.trans <| Kernel.Path.cons_iff.trans <|
+    exists_congr fun _ => and_congr_right fun _ => reaches_iff_path.symm
 
 /--
 `op.writable-stream-default-controller-advance-queue-if-needed`:
@@ -1400,15 +1397,8 @@ theorem reaches_append_iff :
   ∀ {α ε : Type} (s : State α ε) (ds es : List (Option (Decision α ε))) (t : State α ε),
     Reaches s (ds ++ es) t ↔ ∃ u, Reaches s ds u ∧ Reaches u es t := by
   intro α ε s ds es t
-  induction ds generalizing s with
-  | nil => simp [reaches_nil]
-  | cons d ds ih =>
-      simp only [List.cons_append, reaches_cons, ih]
-      constructor
-      · rintro ⟨mid, first, endpoint, before, after⟩
-        exact ⟨endpoint, ⟨mid, first, before⟩, after⟩
-      · rintro ⟨endpoint, ⟨mid, first, before⟩, after⟩
-        exact ⟨mid, first, endpoint, before, after⟩
+  exact reaches_iff_path.trans <| Kernel.Path.append_iff.trans <|
+    exists_congr fun _ => and_congr reaches_iff_path.symm reaches_iff_path.symm
 
 /--
 `op.writable-stream-default-controller-advance-queue-if-needed`:
@@ -1418,7 +1408,8 @@ theorem step_deterministic :
   ∀ {α ε : Type} (s : State α ε) (d : Option (Decision α ε)) (t u : State α ε),
     Step s d t → Step s d u → t = u := by
   intro α ε s d t u ht hu
-  exact Option.some.inj (ht.symm.trans hu)
+  exact Kernel.graph_deterministic (Kernel.stage tick decide) s d t u
+    ((step_iff_stage s d t).mp ht) ((step_iff_stage s d u).mp hu)
 
 /--
 `op.writable-stream-default-controller-process-write`:

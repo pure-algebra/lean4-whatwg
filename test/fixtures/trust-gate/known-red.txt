@@ -472,7 +472,13 @@
 # with no token changed, exit 0 and no diagnostic; every kernel declaration
 # reaches propext and Quot.sound at most. Both entries are removed and both
 # modules are imported from WhatwgTest.lean.
-WhatwgTest.Streams.Kernel.BridgeContract
+#
+# W8a.2 LANDED, 2026-10-01, same seat and branch: the twelve bridges of
+# section 4 in the five Step.lean files and Semantics/Runs.lean, the fifteen
+# corollaries of section 6 re-derived from kernel laws, and the five private
+# helpers of Semantics/Runs.lean deleted. BridgeContract elaborates with no
+# token changed, exit 0 and no diagnostic, and every root-imported battery
+# still builds. Its entry is removed and it is imported from WhatwgTest.lean.
 WhatwgTest.Streams.Readable.InvariantContract
 WhatwgTest.Streams.Writable.InvariantContract
 WhatwgTest.Streams.Semantics.InvariantContract

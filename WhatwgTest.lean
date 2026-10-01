@@ -61,6 +61,7 @@ import WhatwgTest.Streams.Semantics.OrderingSource
 import WhatwgTest.Streams.Semantics.OrderingAxiomReport
 import WhatwgTest.Streams.Counterexamples.Kernel.Path
 import WhatwgTest.Streams.Kernel.PathContract
+import WhatwgTest.Streams.Kernel.BridgeContract
 import WhatwgTest.Html.DecideBenchmark
 import WhatwgTest.Html.Lattice
 import WhatwgTest.Html.Builders

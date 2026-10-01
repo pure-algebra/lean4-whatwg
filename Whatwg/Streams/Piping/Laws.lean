@@ -464,13 +464,7 @@ theorem reaches_nil_iff :
   ∀ {α ε : Type} (s t : State α ε),
   Reaches s [] t ↔ s = t := by
   intro α ε s t
-  constructor
-  · intro h
-    cases h
-    rfl
-  · intro h
-    subst t
-    exact Reaches.nil s
+  exact reaches_iff_path.trans Kernel.Path.nil_iff
 
 /-- Frozen local receipt under PIPING-PG-FORWARD-SHUTDOWN; no global mask claim. -/
 theorem reaches_cons_iff :
@@ -478,12 +472,8 @@ theorem reaches_cons_iff :
   (d : Option (Decision α ε)) (ds : List (Option (Decision α ε))),
   Reaches s (d :: ds) t ↔ ∃ mid, Step s d mid ∧ Reaches mid ds t := by
   intro α ε s t d ds
-  constructor
-  · intro h
-    cases h with
-    | cons step tail => exact ⟨_, step, tail⟩
-  · rintro ⟨mid, step, tail⟩
-    exact Reaches.cons step tail
+  exact reaches_iff_path.trans <| Kernel.Path.cons_iff.trans <|
+    exists_congr fun _ => and_congr_right fun _ => reaches_iff_path.symm
 
 /-- Frozen local receipt under PIPING-PG-FORWARD-SHUTDOWN; no global mask claim. -/
 theorem reaches_append_iff :
@@ -491,19 +481,9 @@ theorem reaches_append_iff :
   (left right : List (Option (Decision α ε))),
   Reaches s (left ++ right) t ↔
     ∃ mid, Reaches s left mid ∧ Reaches mid right t := by
-  intro α ε s t left
-  induction left generalizing s with
-  | nil =>
-      intro right
-      simp [reaches_nil_iff]
-  | cons d ds ih =>
-      intro right
-      simp only [List.cons_append, reaches_cons_iff, ih]
-      constructor
-      · rintro ⟨first, hstep, mid, hleft, hright⟩
-        exact ⟨mid, ⟨first, hstep, hleft⟩, hright⟩
-      · rintro ⟨mid, ⟨first, hstep, hleft⟩, hright⟩
-        exact ⟨first, hstep, mid, hleft, hright⟩
+  intro α ε s t left right
+  exact reaches_iff_path.trans <| Kernel.Path.append_iff.trans <|
+    exists_congr fun _ => and_congr reaches_iff_path.symm reaches_iff_path.symm
 
 /-- Frozen local receipt under PIPING-PG-FORWARD-SHUTDOWN; no global mask claim. -/
 theorem admitted_iff :
@@ -628,11 +608,9 @@ private theorem frame_step {α ε : Type} (s t : State α ε)
 theorem reaches_no_new_read :
   ∀ {α ε : Type} (s t : State α ε) (tape : List (Option (Decision α ε))),
   Admitted s → Reaches s tape t → t.source.nextRead = s.source.nextRead := by
-  intro α ε s t tape admitted run
-  clear admitted
-  induction run with
-  | nil => rfl
-  | cons step _ ih => exact ih.trans (frame_step _ _ _ step).1
+  intro α ε s t tape _ run
+  exact Kernel.Path.invariant (P := fun u => u.source.nextRead = s.source.nextRead)
+    (fun _ _ _ same step => (frame_step _ _ _ step).1.trans same) (reaches_iff_path.mp run) rfl
 
 /-- Once selected, the exact shutdown plan survives every finite candidate run. -/
 theorem reaches_selection_stable :
@@ -640,9 +618,9 @@ theorem reaches_selection_stable :
     (p : ShutdownPlan ε),
   s.selection = some p → Reaches s tape t → t.selection = some p := by
   intro α ε s t tape p selected run
-  induction run with
-  | nil => exact selected
-  | cons step _ ih => exact ih ((frame_step _ _ _ step).2.2.2.2 p selected)
+  exact Kernel.Path.invariant (P := fun u => u.selection = some p)
+    (fun _ _ _ kept step => (frame_step _ _ _ step).2.2.2.2 p kept) (reaches_iff_path.mp run)
+    selected
 
 private def PromiseKeys {α ε : Type} (s : Writable.State α ε) : List Nat :=
   s.promises.map Prod.fst
