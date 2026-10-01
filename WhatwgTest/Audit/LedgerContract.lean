@@ -396,31 +396,26 @@ private def constantKindIndex : Gates.Ledger.ConstantKind → Nat
   ["WS-PROM-CE-036", "WS-PROM-CE-037", "WS-PROM-CE-038"]
 #guard (RowRange.mk "LEDGER-CE" 5 5).ids == ["LEDGER-CE-005"]
 #guard (RowRange.mk "LEDGER-CE" 5 4).ids == []
-#guard Graph.receiptsLog { id := "G-PG-X", document := "d", fence := [],
-  edges := { identity := ⟨.notApplicable, [], [], [], "n"⟩,
-             construction := ⟨.notApplicable, [], [], [], "n"⟩,
-             semantics := ⟨.notApplicable, [], [], [], "n"⟩,
-             laws := ⟨.notApplicable, [], [], [], "n"⟩,
-             representation := ⟨.notApplicable, [], [], [], "n"⟩,
-             counterexamples := ⟨.notApplicable, [], [], [], "n"⟩,
-             bridges := ⟨.notApplicable, [], [], [], "n"⟩,
-             targets := ⟨.notApplicable, [], [], [], "n"⟩,
-             trust := ⟨.notApplicable, [], [], [], "n"⟩,
-             coverage := ⟨.notApplicable, [], [], [], "n"⟩ } } ==
-  "docs/receipts/G-PG-X.md"
+private def naEdges : Edges :=
+  let c : Cell := ⟨.notApplicable, [], [], [], "n"⟩
+  ⟨c, c, c, c, c, c, c, c, c, c⟩
+
+#guard (Graph.mk "G-PG-X" "d" [] [] [] naEdges).receiptsLog == "docs/receipts/G-PG-X.md"
+#guard (Graph.mk "G-PG-X" "d" [] [] [] naEdges).projection == "generated/graphs/G-PG-X.md"
+#guard Edge.all.all fun e => naEdges.get e == ⟨.notApplicable, [], [], [], "n"⟩
 
 /-! ### 1.8 Field names and defaults -/
 
 #guard ({ status := .notApplicable } : Cell) == ⟨.notApplicable, [], [], [], ""⟩
 #guard ({ status := .requiredOpen, grounds := [.ruling "R"], remaining := [.named "x"],
-  debts := ["D1"], note := "n" } : Cell) ==
+          debts := ["D1"], note := "n" } : Cell) ==
   ⟨.requiredOpen, [.ruling "R"], [.named "x"], ["D1"], "n"⟩
 #guard ({ family := "F", first := 1, last := 2 } : RowRange) == ⟨"F", 1, 2⟩
 #guard ({ modulePrefix := `Whatwg.Html, recordedBy := "D57" } : Unrouted) ==
   ⟨`Whatwg.Html, "D57"⟩
 #guard ({ graphs := [] } : Ledger) == ⟨[], [], []⟩
 #guard ({ id := "L", document := "d", declarations := [], parent := none,
-  receipts := [] } : Leaf) == ⟨"L", "d", [], none, []⟩
+          receipts := [] } : Leaf) == ⟨"L", "d", [], none, []⟩
 
 /-! ## 2. Exactly ten edges
 
@@ -434,24 +429,21 @@ example : Gates.Ledger.Edges :=
     representation := oc, counterexamples := oc, bridges := oc, targets := oc,
     trust := oc, coverage := oc }
 
-/--
-info: Fields missing: `coverage`
----
-info: { identity := oc, construction := oc, semantics := oc, laws := oc, representation := oc, counterexamples := oc,
-  bridges := oc, targets := oc, trust := oc, coverage := sorryAx Cell true } : Edges
--/
-#guard_msgs in
+-- The `coverage` field omitted. The message also carries a hint and the
+-- elaborator's recovery term, which are not pinned; `substring := true`
+-- pins the reason.
+/-- info: Fields missing: `coverage` -/
+#guard_msgs (substring := true) in
 #check_failure ({ identity := oc, construction := oc, semantics := oc, laws := oc,
-    representation := oc, counterexamples := oc, bridges := oc, targets := oc,
-    trust := oc } : Gates.Ledger.Edges)
+                  representation := oc, counterexamples := oc, bridges := oc, targets := oc,
+                  trust := oc } : Gates.Ledger.Edges)
 
-/--
-info: field 'identity' has already been specified
--/
-#guard_msgs in
+-- The `identity` field given twice.
+/-- info: field `identity` has already been specified -/
+#guard_msgs (substring := true) in
 #check_failure ({ identity := oc, identity := oc, construction := oc, semantics := oc,
-    laws := oc, representation := oc, counterexamples := oc, bridges := oc,
-    targets := oc, trust := oc, coverage := oc } : Gates.Ledger.Edges)
+                  laws := oc, representation := oc, counterexamples := oc, bridges := oc,
+                  targets := oc, trust := oc, coverage := oc } : Gates.Ledger.Edges)
 
 /-! ## 3. Structural plants, decided in the kernel
 
@@ -460,6 +452,18 @@ the theorem is checked by `decide +kernel`, and the `#guard` after it pins
 the exact finding, so a plant refused for another reason fails this file. -/
 
 private def cc : Cell := { status := .requiredClosed, grounds := [.receipt "Landing"] }
+
+private def closedOn (gs : List Ground) (debts : List String := []) : Cell :=
+  { status := .requiredClosed, grounds := gs, debts }
+
+private def openOn (items : List Item) (gs : List Ground := []) : Cell :=
+  { status := .requiredOpen, grounds := gs, remaining := items }
+
+private def naOn (note : String) (gs : List Ground := []) : Cell :=
+  { status := .notApplicable, grounds := gs, note }
+
+private def leafOf (id : String) (parent : Option (String × Edge) := none) : Leaf :=
+  { id, document := "docs/L.md", declarations := [], parent, receipts := [] }
 
 private def setCell (es : Edges) : Edge → Cell → Edges
   | .identity, c => { es with identity := c }
@@ -501,8 +505,7 @@ theorem plant_closedNoGround : plantClosedNoGround.wellFormed = false := by
 
 -- P3: an open cell with nothing named.
 private def plantOpenNothingNamed : Ledger :=
-  { graphs := [withCell "G1" .semantics { status := .requiredOpen,
-      grounds := [.receipt "Landing"] }] }
+  { graphs := [withCell "G1" .semantics (openOn [] [.receipt "Landing"])] }
 theorem plant_openNothingNamed : plantOpenNothingNamed.wellFormed = false := by
   decide +kernel
 #guard plantOpenNothingNamed.findings == ["G1 semantics: open with no remaining item named"]
@@ -531,7 +534,7 @@ theorem plant_unknownDependency : plantUnknownDependency.wellFormed = false := b
 -- P7: a closed cell citing another graph's open edge (LEDGER-CE-005).
 private def plantClosedOnOpenEdge : Ledger :=
   { graphs := [graphOf "G1",
-      withCell "G2" .identity { cc with grounds := [.edge "G1" .laws, .receipt "Landing"] }] }
+      withCell "G2" .identity (closedOn [.edge "G1" .laws, .receipt "Landing"])] }
 theorem plant_closedOnOpenEdge : plantClosedOnOpenEdge.wellFormed = false := by
   decide +kernel
 #guard plantClosedOnOpenEdge.findings ==
@@ -539,8 +542,8 @@ theorem plant_closedOnOpenEdge : plantClosedOnOpenEdge.wellFormed = false := by
 
 -- P8: a closed cell on register rows cited `SEEDED`.
 private def plantClosedOnSeededRows : Ledger :=
-  { graphs := [withCell "G1" .counterexamples { status := .requiredClosed,
-      grounds := [.rows ⟨"F-CE", 1, 2⟩ .seeded, .receipt "Landing"] }] }
+  { graphs := [withCell "G1" .counterexamples
+      (closedOn [.rows ⟨"F-CE", 1, 2⟩ .seeded, .receipt "Landing"])] }
 theorem plant_closedOnSeededRows : plantClosedOnSeededRows.wellFormed = false := by
   decide +kernel
 #guard plantClosedOnSeededRows.findings ==
@@ -563,18 +566,14 @@ theorem plant_mutualDependency : plantMutualDependency.wellFormed = false := by
 
 -- P11: a leaf whose parent graph is unknown.
 private def plantLeafUnknownParent : Ledger :=
-  { graphs := [graphOf "G1"],
-    leaves := [{ id := "L1", document := "docs/L.md", declarations := [],
-      parent := some ("G9", .laws), receipts := [] }] }
+  { graphs := [graphOf "G1"], leaves := [leafOf "L1" (some ("G9", .laws))] }
 theorem plant_leafUnknownParent : plantLeafUnknownParent.wellFormed = false := by
   decide +kernel
 #guard plantLeafUnknownParent.findings == ["leaf L1: unknown parent graph G9"]
 
 -- P12: a leaf sharing a graph's identifier.
 private def plantLeafSharesId : Ledger :=
-  { graphs := [graphOf "G1"],
-    leaves := [{ id := "G1", document := "docs/L.md", declarations := [],
-      parent := none, receipts := [] }] }
+  { graphs := [graphOf "G1"], leaves := [leafOf "G1"] }
 theorem plant_leafSharesId : plantLeafSharesId.wellFormed = false := by
   decide +kernel
 #guard plantLeafSharesId.findings == ["a leaf shares an identifier"]
@@ -582,10 +581,10 @@ theorem plant_leafSharesId : plantLeafSharesId.wellFormed = false := by
 -- P13 (R-W6): a closed cell that cites no ruling, no receipts-log heading
 -- and no `CLOSED` rows, on theorem names alone.
 private def plantClosedUnattested : Ledger :=
-  { graphs := [withCell "G1" .laws { status := .requiredClosed,
-      grounds := [.theorems [`Whatwg.Streams.Data.sizeSum_cons],
+  { graphs := [withCell "G1" .laws
+      (closedOn [.theorems [`Whatwg.Streams.Data.sizeSum_cons],
         .receipts `WhatwgTest.Streams.Data.QueueAxiomReport 99, .gate .build,
-        .edge "G2" .laws] },
+        .edge "G2" .laws]),
       graphOf "G2" [] (setCell allOpen .laws cc)] }
 theorem plant_closedUnattested : plantClosedUnattested.wellFormed = false := by
   decide +kernel
@@ -594,8 +593,7 @@ theorem plant_closedUnattested : plantClosedUnattested.wellFormed = false := by
 
 -- P14: a not-applicable cell with a ground other than a ruling.
 private def plantNotApplicableWithGround : Ledger :=
-  { graphs := [withCell "G1" .bridges { status := .notApplicable,
-      grounds := [.receipt "Landing"], note := "no host" }] }
+  { graphs := [withCell "G1" .bridges (naOn "no host" [.receipt "Landing"])] }
 theorem plant_notApplicableWithGround : plantNotApplicableWithGround.wellFormed = false := by
   decide +kernel
 #guard plantNotApplicableWithGround.findings ==
@@ -604,7 +602,7 @@ theorem plant_notApplicableWithGround : plantNotApplicableWithGround.wellFormed 
 -- P15: an open item citing another graph's edge that is closed.
 private def plantOpenOnClosedEdge : Ledger :=
   { graphs := [graphOf "G1" [] (setCell allOpen .trust cc),
-      withCell "G2" .coverage { status := .requiredOpen, remaining := [.edge "G1" .trust] }] }
+      withCell "G2" .coverage (openOn [.edge "G1" .trust])] }
 theorem plant_openOnClosedEdge : plantOpenOnClosedEdge.wellFormed = false := by
   decide +kernel
 #guard plantOpenOnClosedEdge.findings ==
@@ -612,19 +610,14 @@ theorem plant_openOnClosedEdge : plantOpenOnClosedEdge.wellFormed = false := by
 
 -- P16: a cross-graph reference to an unknown graph.
 private def plantUnknownCrossGraph : Ledger :=
-  { graphs := [withCell "G1" .bridges { status := .requiredOpen,
-      remaining := [.edge "G9" .bridges] }] }
+  { graphs := [withCell "G1" .bridges (openOn [.edge "G9" .bridges])] }
 theorem plant_unknownCrossGraph : plantUnknownCrossGraph.wellFormed = false := by
   decide +kernel
 #guard plantUnknownCrossGraph.findings == ["G1 bridges: unknown graph G9"]
 
 -- P17: two leaves with one identifier.
 private def plantDuplicateLeaf : Ledger :=
-  { graphs := [graphOf "G1"],
-    leaves := [{ id := "L1", document := "docs/L.md", declarations := [],
-        parent := none, receipts := [] },
-      { id := "L1", document := "docs/M.md", declarations := [],
-        parent := some ("G1", .laws), receipts := [] }] }
+  { graphs := [graphOf "G1"], leaves := [leafOf "L1", leafOf "L1" (some ("G1", .laws))] }
 theorem plant_duplicateLeaf : plantDuplicateLeaf.wellFormed = false := by
   decide +kernel
 #guard plantDuplicateLeaf.findings == ["a leaf shares an identifier"]
@@ -640,9 +633,9 @@ theorem control_oneGraph : controlOneGraph.wellFormed = true := by
 private def controlDependentGraphs : Ledger :=
   { graphs := [graphOf "G1" [] (setCell allOpen .trust cc),
       graphOf "G2" ["G1"]
-        (setCell (setCell allOpen .trust
-          { cc with grounds := [.edge "G1" .trust, .ruling "R-X1"] })
-          .laws { status := .requiredOpen, remaining := [.edge "G1" .laws] })] }
+        (setCell (setCell allOpen
+          .trust (closedOn [.edge "G1" .trust, .ruling "R-X1"]))
+          .laws (openOn [.edge "G1" .laws]))] }
 theorem control_dependentGraphs : controlDependentGraphs.wellFormed = true := by
   decide +kernel
 #guard controlDependentGraphs.findings == []
@@ -652,14 +645,11 @@ theorem control_dependentGraphs : controlDependentGraphs.wellFormed = true := by
 private def controlAttestations : Ledger :=
   { graphs := [graphOf "G1" []
       (setCell (setCell (setCell (setCell allOpen
-        .identity { status := .requiredClosed, grounds := [.ruling "R-X1"] })
-        .laws { status := .requiredClosed, grounds := [.receipt "Landing"] })
-        .counterexamples { status := .requiredClosed,
-          grounds := [.rows ⟨"F-CE", 1, 3⟩ .closed] })
-        .targets { status := .notApplicable, grounds := [.ruling "R-X2"],
-          note := "No generated code." })],
-    leaves := [{ id := "L1", document := "docs/L.md", declarations := [],
-      parent := some ("G1", .laws), receipts := [] }] }
+        .identity (closedOn [.ruling "R-X1"]))
+        .laws (closedOn [.receipt "Landing"]))
+        .counterexamples (closedOn [.rows ⟨"F-CE", 1, 3⟩ .closed]))
+        .targets (naOn "No generated code." [.ruling "R-X2"]))],
+    leaves := [leafOf "L1" (some ("G1", .laws))] }
 theorem control_attestations : controlAttestations.wellFormed = true := by
   decide +kernel
 #guard controlAttestations.findings == []
@@ -688,14 +678,12 @@ theorem control_attestations : controlAttestations.wellFormed = true := by
 #guard Cell.problem? cc == none
 #guard Cell.problem? { status := .notApplicable, note := "n" } == none
 #guard Cell.problem? { status := .notApplicable, note := "n",
-  remaining := [.named "x"] } ==
+                       remaining := [.named "x"] } ==
   some "not-applicable with an item or a ground other than a ruling"
 #guard controlDependentGraphs.statusOf? "G1" .trust == some .requiredClosed
 #guard controlDependentGraphs.statusOf? "G1" .laws == some .requiredOpen
 #guard controlDependentGraphs.statusOf? "G9" .laws == none
-#guard Cell.crossReferences { status := .requiredOpen,
-  grounds := [.edge "A" .trust, .receipt "Landing"],
-  remaining := [.named "x", .edge "B" .laws] } ==
+#guard Cell.crossReferences (openOn [.named "x", .edge "B" .laws] [.edge "A" .trust, .receipt "Landing"]) ==
   [("A", .trust, .requiredClosed), ("B", .laws, .requiredOpen)]
 #guard Ledger.dependenciesAcyclic
   { graphs := [graphOf "C" ["B"], graphOf "B" ["A"], graphOf "A"] }
@@ -823,25 +811,28 @@ private def fixGraph : Graph where
   document := "docs/ONE-DAG.md"
   fence := [`Fix.Mod]
   edges := {
-    identity := { status := .requiredClosed,
-      grounds := [.theorems [`Fix.thm1], .receipt "Landing"] }
-    construction := { status := .requiredClosed,
-      grounds := [.receipts `Fix.Report 2, .ruling "R-T1"] }
-    semantics := { status := .requiredClosed,
-      grounds := [.declarations [`Fix.def1], .modules [`Fix.Mod], .receipt "Landing"] }
-    laws := { status := .requiredClosed,
-      grounds := [.ascriptions `Fix.Battery 2, .gate .citations, .receipt "Landing"] }
-    representation := { status := .requiredOpen,
-      remaining := [.named "a stable address", .debt "D1", .rows ⟨"FIX-CE", 3, 3⟩ .seeded,
-        .wanted `Fix.later],
-      grounds := [.receipt "Landing"] }
-    counterexamples := { status := .requiredClosed,
-      grounds := [.rows ⟨"FIX-CE", 1, 2⟩ .closed] }
+    identity :=
+      { status := .requiredClosed, grounds := [.theorems [`Fix.thm1], .receipt "Landing"] }
+    construction :=
+      { status := .requiredClosed, grounds := [.receipts `Fix.Report 2, .ruling "R-T1"] }
+    semantics :=
+     
+    (closedOn [.declarations [`Fix.def1], .modules [`Fix.Mod], .receipt "Landing"])
+    laws :=
+     
+    (closedOn [.ascriptions `Fix.Battery 2, .gate .citations, .receipt "Landing"])
+    representation :=
+      { status := .requiredOpen, grounds := [.receipt "Landing"],
+        remaining := [.named "a stable address", .debt "D1",
+          .rows ⟨"FIX-CE", 3, 3⟩ .seeded, .wanted `Fix.later] }
+    counterexamples :=
+      { status := .requiredClosed, grounds := [.rows ⟨"FIX-CE", 1, 2⟩ .closed] }
     bridges := { status := .notApplicable, note := "No host relation is claimed." }
-    targets := { status := .notApplicable, grounds := [.ruling "R-T1"],
-      note := "No generated code." }
-    trust := { status := .requiredClosed, grounds := [.gate .build, .receipt "Landing"],
-      debts := ["D1"] }
+    targets :=
+      { status := .notApplicable, grounds := [.ruling "R-T1"], note := "No generated code." }
+    trust :=
+      { status := .requiredClosed, grounds := [.gate .build, .receipt "Landing"],
+        debts := ["D1"] }
     coverage := { status := .requiredOpen, remaining := [.named "the coverage rows"] } }
 
 private def fixLeaf : Leaf where
@@ -911,8 +902,8 @@ theorem fixture_wellFormed : fixLedger.wellFormed = true := by
 #guard referenceFindings
   (withFile fixWorld "COORDINATION.md"
     (coordinationWith ["- R-T9 sets `TEST-PG-ONE/laws=required-closed`."]))
-  (ledgerWith (withEdge .laws { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Battery 2, .gate .citations, .ruling "R-T9"] })) == []
+  (ledgerWith (withEdge .laws
+    (closedOn [.ascriptions `Fix.Battery 2, .gate .citations, .ruling "R-T9"]))) == []
 
 -- A token naming a graph the ledger does not hold.
 #guard referenceFindings
@@ -922,13 +913,13 @@ theorem fixture_wellFormed : fixLedger.wellFormed = true := by
 
 -- Latest wins: R-T9 supersedes R-T8 for the same edge.
 #guard tokenFindings
-  (ledgerWith (withEdge .laws { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Battery 2, .ruling "R-T9"] }))
+  (ledgerWith (withEdge .laws
+    (closedOn [.ascriptions `Fix.Battery 2, .ruling "R-T9"])))
   (edgeTokens ["- R-T8 sets `TEST-PG-ONE/laws=required-open`.",
                "- R-T9 sets `TEST-PG-ONE/laws=required-closed`."]) == []
 #guard tokenFindings
-  (ledgerWith (withEdge .laws { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Battery 2, .ruling "R-T9"] }))
+  (ledgerWith (withEdge .laws
+    (closedOn [.ascriptions `Fix.Battery 2, .ruling "R-T9"])))
   (edgeTokens ["- R-T9 sets `TEST-PG-ONE/laws=required-closed`.",
                "- R-T8 sets `TEST-PG-ONE/laws=required-open`."]) ==
   ["ruling R-T8 records TEST-PG-ONE/laws=required-open; the ledger says required-closed",
@@ -969,20 +960,20 @@ theorem fixture_wellFormed : fixLedger.wellFormed = true := by
 
 -- A receipt count off by one, `#print axioms` spelling.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .construction { status := .requiredClosed,
-    grounds := [.receipts `Fix.Report 3, .ruling "R-T1"] })) ==
+  (ledgerWith (withEdge .construction
+    (closedOn [.receipts `Fix.Report 3, .ruling "R-T1"]))) ==
   ["TEST-PG-ONE construction: Fix.Report holds 2 receipts, not 3"]
 
 -- A receipt count off by one, `#whatwg_freeze … axioms` spelling.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .construction { status := .requiredClosed,
-    grounds := [.receipts `Fix.Battery 2, .ruling "R-T1"] })) ==
+  (ledgerWith (withEdge .construction
+    (closedOn [.receipts `Fix.Battery 2, .ruling "R-T1"]))) ==
   ["TEST-PG-ONE construction: Fix.Battery holds 1 receipts, not 2"]
 
 -- An ascription count off by one, both spellings in one module.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .laws { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Battery 3, .receipt "Landing"] })) ==
+  (ledgerWith (withEdge .laws
+    (closedOn [.ascriptions `Fix.Battery 3, .receipt "Landing"]))) ==
   ["TEST-PG-ONE laws: Fix.Battery holds 2 ascriptions, not 3"]
 
 -- An ascription count off by one, `#whatwg_freeze` spelling alone.
@@ -990,84 +981,83 @@ theorem fixture_wellFormed : fixLedger.wellFormed = true := by
   (withModule (withFile fixWorld "Fix/Freezes.lean"
     "#whatwg_freeze (@Fix.thm1 : True) axioms []\n#whatwg_freeze (@Fix.thm2 : True)\n")
     `Fix.Freezes)
-  (ledgerWith (withEdge .laws { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Freezes 1, .receipts `Fix.Freezes 1,
-      .receipt "Landing"] })) ==
+  (ledgerWith (withEdge .laws
+    (closedOn [.ascriptions `Fix.Freezes 1, .receipts `Fix.Freezes 1, .receipt "Landing"]))) ==
   ["TEST-PG-ONE laws: Fix.Freezes holds 2 ascriptions, not 1"]
 
 -- A count on a module that is not built, and on a built module with no source.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .construction { status := .requiredClosed,
-    grounds := [.receipts `Fix.Gone 1, .ruling "R-T1"] })) ==
+  (ledgerWith (withEdge .construction
+    (closedOn [.receipts `Fix.Gone 1, .ruling "R-T1"]))) ==
   ["TEST-PG-ONE construction: Fix.Gone is not a built module"]
 #guard referenceFindings (withModule fixWorld `Fix.Nosource)
-  (ledgerWith (withEdge .construction { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Nosource 1, .ruling "R-T1"] })) ==
+  (ledgerWith (withEdge .construction
+    (closedOn [.ascriptions `Fix.Nosource 1, .ruling "R-T1"]))) ==
   ["TEST-PG-ONE construction: Fix.Nosource has no source Fix/Nosource.lean"]
 
 -- A ruling that is recorded nowhere.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .construction { status := .requiredClosed,
-    grounds := [.receipts `Fix.Report 2, .ruling "R-T7"] })) ==
+  (ledgerWith (withEdge .construction
+    (closedOn [.receipts `Fix.Report 2, .ruling "R-T7"]))) ==
   ["TEST-PG-ONE construction: ruling R-T7 is not recorded"]
 
 -- A ruling recorded in the graph document's rulings table.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .construction { status := .requiredClosed,
-    grounds := [.receipts `Fix.Report 2, .ruling "P9-R1"] })) == []
+  (ledgerWith (withEdge .construction
+    (closedOn [.receipts `Fix.Report 2, .ruling "P9-R1"]))) == []
 
 -- A theorem ground naming no constant (LEDGER-CE-002), and one naming a
 -- constant that is not a theorem.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.gone], .receipt "Landing"] })) ==
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.gone], .receipt "Landing"]))) ==
   ["TEST-PG-ONE identity: Fix.gone names no constant"]
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.def1], .receipt "Landing"] })) ==
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.def1], .receipt "Landing"]))) ==
   ["TEST-PG-ONE identity: Fix.def1 is not a theorem"]
 
 -- A declaration ground naming no constant; a module ground naming no module.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .semantics { status := .requiredClosed,
-    grounds := [.declarations [`Fix.gone], .modules [`Fix.Gone], .receipt "Landing"] })) ==
+  (ledgerWith (withEdge .semantics
+    (closedOn [.declarations [`Fix.gone], .modules [`Fix.Gone], .receipt "Landing"]))) ==
   ["TEST-PG-ONE semantics: Fix.gone names no constant",
    "TEST-PG-ONE semantics: Fix.Gone is not a built module"]
 
 -- Register rows: one with another status, one that does not exist.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .counterexamples { status := .requiredClosed,
-    grounds := [.rows ⟨"FIX-CE", 1, 4⟩ .closed] })) ==
+  (ledgerWith (withEdge .counterexamples
+    (closedOn [.rows ⟨"FIX-CE", 1, 4⟩ .closed]))) ==
   ["TEST-PG-ONE counterexamples: register row FIX-CE-003 is SEEDED, not CLOSED",
    "TEST-PG-ONE counterexamples: register row FIX-CE-004 does not exist"]
 
 -- A receipts-log heading that does not exist; one at level three, which
 -- resolves; and the log's title, which is not a heading the rule reads.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.thm1], .receipt "Second landing"] })) ==
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.thm1], .receipt "Second landing"]))) ==
   ["TEST-PG-ONE identity: receipts log has no heading \"Second landing\""]
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.thm1], .receipt "Verification"] })) == []
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.thm1], .receipt "Verification"]))) == []
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.thm1], .receipt "Receipts log"] })) ==
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.thm1], .receipt "Receipts log"]))) ==
   ["TEST-PG-ONE identity: receipts log has no heading \"Receipts log\""]
 
 -- A gate whose executable `lakefile.toml` does not declare (LEDGER-CE-003),
 -- and the two gates that need no executable.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .laws { status := .requiredClosed,
-    grounds := [.ascriptions `Fix.Battery 2, .gate .urlcensus,
-      .gate (.census "streams"), .gate .leanchecker, .gate .build, .receipt "Landing"] })) ==
+  (ledgerWith (withEdge .laws
+    (closedOn [.ascriptions `Fix.Battery 2, .gate .urlcensus, .gate (.census "streams"),
+      .gate .leanchecker, .gate .build, .receipt "Landing"]))) ==
   ["TEST-PG-ONE laws: executable whatwg_urlcensus is not declared in lakefile.toml",
    "TEST-PG-ONE laws: executable whatwg_census is not declared in lakefile.toml"]
 
 -- R-W6's attestation rule, as the executable reports it.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.thm1]] })) ==
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.thm1]]))) ==
   ["TEST-PG-ONE identity: closed with no ruling, receipts-log heading or CLOSED rows"]
 
 /-! ### 6.4 Item kinds and recorded debts -/
@@ -1080,21 +1070,19 @@ theorem fixture_wellFormed : fixLedger.wellFormed = true := by
 
 -- A debt item and a recorded debt that `COORDINATION.md` does not carry.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .representation { status := .requiredOpen,
-    remaining := [.debt "D99"], grounds := [.receipt "Landing"] })) ==
+  (ledgerWith (withEdge .representation (openOn [.debt "D99"] [.receipt "Landing"]))) ==
   ["TEST-PG-ONE representation: debt D99 is not recorded"]
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .trust { status := .requiredClosed,
-    grounds := [.gate .build, .receipt "Landing"], debts := ["D98"] })) ==
+  (ledgerWith (withEdge .trust
+    (closedOn [.gate .build, .receipt "Landing"] ["D98"]))) ==
   ["TEST-PG-ONE trust: debt D98 is not recorded"]
 
 -- Open register rows with another status; an open item with no name.
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .representation { status := .requiredOpen,
-    remaining := [.rows ⟨"FIX-CE", 1, 1⟩ .seeded] })) ==
+  (ledgerWith (withEdge .representation (openOn [.rows ⟨"FIX-CE", 1, 1⟩ .seeded]))) ==
   ["TEST-PG-ONE representation: register row FIX-CE-001 is CLOSED, not SEEDED"]
 #guard referenceFindings fixWorld
-  (ledgerWith (withEdge .coverage { status := .requiredOpen, remaining := [.named ""] })) ==
+  (ledgerWith (withEdge .coverage (openOn [.named ""]))) ==
   ["TEST-PG-ONE coverage: an open item has no name"]
 
 /-! ### 6.5 The graph's own files -/
@@ -1206,17 +1194,21 @@ private def renderGraph : Graph where
   fence := [`A.B]
   dependsOn := ["TEST-PG-Q"]
   edges := {
-    identity := { status := .requiredClosed, note := "Note.",
-      grounds := [.theorems [`A.t], .receipts `A.R 3, .rows ⟨"X-CE", 1, 2⟩ .closed,
-        .gate (.census "streams"), .ruling "R-1", .receipt "Landing"],
-      debts := ["D1", "D2"] }
-    construction := { status := .requiredOpen,
-      remaining := [.named "x", .debt "D3", .wanted `A.w, .edge "TEST-PG-Q" .laws],
-      grounds := [.receipt "Landing"] }
-    semantics := naCell, laws := naCell, representation := naCell,
-    counterexamples := naCell, bridges := naCell,
-    targets := { status := .notApplicable, grounds := [.ruling "R-2"], note := "n" },
-    trust := naCell, coverage := naCell }
+    identity :=
+      { status := .requiredClosed, note := "Note.", debts := ["D1", "D2"],
+        grounds := [.theorems [`A.t], .receipts `A.R 3, .rows ⟨"X-CE", 1, 2⟩ .closed,
+          .gate (.census "streams"), .ruling "R-1", .receipt "Landing"] }
+    construction :=
+      { status := .requiredOpen, grounds := [.receipt "Landing"],
+        remaining := [.named "x", .debt "D3", .wanted `A.w, .edge "TEST-PG-Q" .laws] }
+    semantics := naCell
+    laws := naCell
+    representation := naCell
+    counterexamples := naCell
+    bridges := naCell
+    targets := { status := .notApplicable, grounds := [.ruling "R-2"], note := "n" }
+    trust := naCell
+    coverage := naCell }
 
 #guard renderGraph.render ledgerInput == String.intercalate "\n"
   ["<!-- GENERATED by `lake exe whatwg_ledger --write` (Gates.Ledger, format 1) from `WhatwgTest/Ledger.lean`; do not edit. -->",
@@ -1240,7 +1232,7 @@ private def renderGraph : Graph where
    "| trust | `not-applicable` | n |",
    "| coverage | `not-applicable` | n |"] ++ "\n"
 
-#guard (graphOf "TEST-PG-E").render ledgerInput |>.splitOn "\n" |>.take 7 ==
+#guard (((graphOf "TEST-PG-E").render ledgerInput).splitOn "\n").take 7 ==
   ["<!-- GENERATED by `lake exe whatwg_ledger --write` (Gates.Ledger, format 1) from `WhatwgTest/Ledger.lean`; do not edit. -->",
    "", "# Current state of `TEST-PG-E`", "",
    "Graph document: `docs/X.md`. Receipts log: `docs/receipts/TEST-PG-E.md`.",
@@ -1264,8 +1256,7 @@ private def renderGraph : Graph where
   ["generated/graphs/OLD-PG-GONE.md is not the projection of a ledger graph"]
 -- A graph whose cell changed is drift until the projection is regenerated.
 #guard projectionFindings fixWorld
-  (ledgerWith (withEdge .coverage { status := .requiredOpen,
-    remaining := [.named "the coverage rows", .named "a second item"] })) ==
+  (ledgerWith (withEdge .coverage (openOn [.named "the coverage rows", .named "a second item"]))) ==
   ["generated/graphs/TEST-PG-ONE.md differs from a fresh rendering"]
 
 /-! ### 7.1 The run-time file set -/
@@ -1300,8 +1291,8 @@ private def passLine : String :=
        "  TEST-LF-ONE: document docs/ONE-LEAF.md does not exist",
        "  unrouted Fix.Gone: not a built module"], []⟩
 #guard outcome (withoutFile fixWorld "generated/graphs/TEST-PG-ONE.md")
-  (ledgerWith (withEdge .identity { status := .requiredClosed,
-    grounds := [.theorems [`Fix.thm1]] })) false ==
+  (ledgerWith (withEdge .identity
+    (closedOn [.theorems [`Fix.thm1]]))) false ==
   ⟨1, ["FAIL whatwg_ledger: 2 finding(s)",
        "  TEST-PG-ONE identity: closed with no ruling, receipts-log heading or CLOSED rows",
        "  generated/graphs/TEST-PG-ONE.md does not exist"], []⟩
