@@ -203,10 +203,14 @@ def register {α ε : Type} (c : Config α ε) (p : Whatwg.Ecma262.Promise.Ref) 
           some (setRegistrationPhase queued.1 id (.queued queued.2.serial))
 
 /-- Class [B]: `op.triggerpromisereactions` (2700260..2701212) at this
-configuration. The draft's owner conjunct is discharged by `CellsWellFormed`'s
-registration-owner clause rather than restated per entry, which is what makes
-this a true instance of the landed operation, whose `Reactions.waitingOn`
-filter is `r.promise == promise && r.phase == waiting`. -/
+configuration. The draft's owner conjunct holds by representation rather than
+being restated per entry: `Reaction.promise` is a bare cell of the one
+`Config.owner`, and `register` admits a registration only after `lookup`,
+which answers `none` unless `c.owner = p.owner`. That is what makes this a
+true instance of the landed operation, whose `Reactions.waitingOn` filter is
+`r.promise == promise && r.phase == waiting`. No `CellsWellFormed` clause is
+needed for it; the held P8a draft's other `CellsWellFormed` clauses stay P8's
+(CFG-CELLS), and debt D38 is read with this sentence. -/
 def notifySettled {α ε : Type} (c : Config α ε) (id : Nat) : Config α ε :=
   match Writable.lookupPromise c.writable id with
   | none => c
