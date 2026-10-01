@@ -47,8 +47,10 @@ stateful standards against; and `typescript`
 ([lean4-typescript](https://github.com/pure-algebra/lean4-typescript)) at
 `6afc9b8` (version 0.6.0, untagged), the TypeScript syntax P11 lowers through.
 These are lean4-effect4's pins (ruling R-V3(b)). The `WhatwgGates`
-tooling imports `hash`; nothing under `Whatwg/` imports `effects` or
-`typescript` yet. Every proof receipt in this
+tooling imports `hash`; under `Whatwg/`, only the `Effects.Signature` face of
+the ECMAScript agent, `Whatwg/Signatures/Ecma262.lean` in the library
+`WhatwgSignatures`, imports `effects` (`Effects.Algebra.Sum`), and nothing
+imports `typescript` yet. Every proof receipt in this
 repository is stated against that kernel. Everything below runs from any directory inside the
 checkout.
 
