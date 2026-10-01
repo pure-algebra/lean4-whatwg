@@ -1822,3 +1822,759 @@ that run, byte-identical to the run before the edit apart from its time. Every
 V2c rejection row fails only because the base gate lacks rules 1 through 5 or
 the metaprogramming anchor.
 `lake exe whatwg_citations` and `lake exe whatwg_vendorseal` pass at the freeze.
+
+## Addendum V2d (2026-10-01)
+
+Status: FROZEN / RED, W10 trust-gate breaker seat of review lane W,
+2026-10-01, on branch `review/w10-trust-breaker`, based on `b0d35e2` (the
+commit that lands ruling R-W9). The addendum is appended; no earlier sentence
+of this file is changed. Where it and an earlier section differ, the addendum
+governs, and V2d.2 names each place.
+
+Authority: rulings R-W5 (the freeze registry), R-W7(b) (addenda V2d and V2e,
+frozen by one breaker seat so that one process edits this file), R-W8 and R-W9
+at the end of `COORDINATION.md`. Design:
+`docs/research/2026-10-01-w6-freeze-registry-design.md`, sections 2.5, 4 and 5
+and its appendix A. Where that design and R-W5 differ (the mask constructors),
+R-W5 governs; nothing in this addendum depends on the difference.
+
+### V2d.1 The eleventh entry of `metaprogrammingModules`
+
+The freeze command `#whatwg_freeze` of R-W5 is declared in one new module,
+`WhatwgTest/Audit/Freeze.lean` (module `WhatwgTest.Audit.Freeze`, namespace
+`WhatwgTest.Audit.Freeze`, syntax kind `WhatwgTest.Audit.Freeze.freezeCommand`).
+It declares syntax and a command elaborator, so rule 1 of V2c.2 admits it only
+as a listed metaprogramming module. Its entry, on its own line below the anchor
+of V2c.2, is exactly:
+
+```lean
+  ⟨`WhatwgTest.Audit.Freeze, "declares the registry command #whatwg_freeze with syntax and command_elab"⟩ ::
+```
+
+The freeze command's builder adds the line to the list where the list lives
+when that builder lands: in `WhatwgTest/Audit/AxiomGate.lean` before the factor
+of V2e.3, in `WhatwgGates/TrustConfig.lean` after it. The factor moves the line
+with the other ten entries and changes neither its module name nor its reason.
+
+### V2d.2 Sentences superseded
+
+From the landing of the freeze command the list holds eleven modules. Each
+sentence below counts the listed modules, or measures the tree's registrations
+as the ten modules made them, and is superseded by the text after the arrow.
+The earlier sentences are not edited.
+
+- V2c.2, "Tree measurement", the sentence beginning "Over the 222 audited
+  sources": its measurement stands for the V2c freeze. At the freeze command's
+  landing the code occurrences of the keywords are those, and in addition the
+  keyword `syntax` in `WhatwgTest/Audit/Freeze.lean`.
+- V2c.2, the sentence beginning "The environment half's registrations agree":
+  → the audited trees register the eight gate-command parsers, the parser of
+  `WhatwgTest.Audit.Freeze.freezeCommand` with the tokens its syntax declares,
+  and one command elaborator for that kind, besides the gate module's own
+  elaborator and initializers; every one in a listed module.
+- V2c.2, "So the list holds exactly those ten modules." → the list holds those
+  ten modules and `WhatwgTest.Audit.Freeze`, eleven modules.
+- V2c.2, "At the freeze the list holds the ten modules above, each with its
+  reason; it has no missing, stale, blank, duplicate or `whatwgbin/` entry." →
+  the list holds the eleven modules, each with its reason, and has no missing,
+  stale, blank, duplicate or `whatwgbin/` entry.
+- V2c.7, the bullet "A listed metaprogramming module misusing the Meta API",
+  its sentence beginning "The ten listed modules may run" → the eleven listed
+  modules. The rest of the bullet stands, and applies to the freeze module as
+  to the others.
+- V2c.8 R-C1, the acceptance text "The ten listed modules are the live
+  witnesses: the gate accepts the unmodified tree, in which `elab` and
+  `run_cmd` appear only there." → the eleven listed modules are the live
+  witnesses: the gate accepts the unmodified tree, in which every
+  metaprogramming keyword of V2c.2 appears only in them.
+- V2c.8 R-C5, "the unmodified tree's only registrations are the eight
+  gate-command parser descriptors, in listed modules" → every registration of
+  the unmodified tree is in a listed module (V2d.3 lists the freeze module's).
+
+The sentence of V2c.10 that names "the eight gate-command modules and two
+`run_cmd` batteries" as the measured reason the V2c tree passed counts no
+listed module at a later date and is not superseded. Outside this file the
+same count stands in `PLAN.md`, in `WhatwgTest/AGENTS.md` and in the
+documentation of `metaprogrammingModules`; the coordinator and the freeze
+command's builder repair those (design section 4).
+
+### V2d.3 What the freeze module may do, and what stays refused
+
+The entry relaxes rule 1 for `WhatwgTest.Audit.Freeze` and nothing else. The
+module, as R-W5 and the design's appendix A describe it:
+
+- registers one syntax kind, `WhatwgTest.Audit.Freeze.freezeCommand`, with one
+  parser in the category `command`, and the tokens that syntax declares. Of
+  those tokens exactly one is non-base, `#whatwg_freeze`, which is inert under
+  T1 to T3 of V2c.3 (the identifier read after `#` is `whatwg_freeze`, no
+  refused word and no prefix of one). The clause keywords (`axioms`, `mask`,
+  `M1`, `M2`, `none`, `anchor`, `graph`, `counterexamples`) are non-reserved
+  symbols (`&"…"`) and add no token: a reserved `axioms` or `mask` would turn
+  every identifier of that spelling in every audited source into a keyword;
+- registers one command elaborator, for that kind, and no other elaborator, no
+  macro, no syntax category and no initializer, and declares no environment
+  extension (an `initialize` that declares one is an `opaque` with a
+  synthesised value, which the environment pass refuses: design 2.5);
+- adds, per command, one declaration `<recording module>.frozen.<n> : Entry`
+  through `Lean.addDecl`, which runs the kernel check; it never adds one with
+  the check off (`addDeclCore … (doCheck := false)` or `debug.skipKernelTC`),
+  so debt D55 does not widen and `leanchecker` replays every entry;
+- stays bound by every trust word of sections 4.2 and V2b.3, the modifier
+  pass, the environment pass and the axiom pass, as every listed module does.
+
+A battery that only uses `#whatwg_freeze` declares no syntax, registers
+nothing and adds `Entry` declarations through the listed module's elaborator,
+which the environment and axiom passes audit like any other: it needs no entry
+(design 2.5, measured over a converted battery; plant V2d-A1).
+
+### V2d.4 Plants
+
+Breaker-owned and frozen by this addendum, beside the files of section 1,
+V2b.7 and V2c.9: this addendum; the fixtures
+`test/fixtures/trust-gate/v2d-freeze-use.lean.txt` and
+`test/fixtures/trust-gate/v2d-freeze-second-elaborator.lean.txt`; and the
+rows of `acceptancePlants` and `rejectionPlants` in
+`WhatwgGates/TrustSelfTest.lean` whose labels begin `V2d-`, appended to each
+table with `++`. Placement as in section 9. The `V2d-` labels are stable
+identifiers, never reused, and not registered in
+`test/counterexamples/REGISTER.md` (section 1). Each row also has an executable
+expectation (V2e.6): the same as its in-tree expectation.
+
+| ID | Fixture | Target, placement | Expected |
+| --- | --- | --- | --- |
+| V2d-A1 | `v2d-freeze-use.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | accepted |
+| V2d-E1 | `v2d-freeze-second-elaborator.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | `module WhatwgTest.TrustSelfTestPlant registers an elaborator but is not a listed metaprogramming module` |
+
+Why each plant is shaped as it is:
+
+- V2d-A1 is the acceptance control of R-W5 and design section 5: a new module,
+  not listed, that imports `WhatwgTest.Audit.Freeze` and uses the command
+  twice, on a definition with no clause and on a theorem with the
+  `axioms [propext]` clause R-W5 requires for a theorem. It uses only the head
+  form `#whatwg_freeze (@n : T)` and the `axioms` clause that R-W5 itself
+  spells, so a grammar the freeze contract adds beyond them cannot turn the row
+  red. The theorem's proof is `propext h`, whose axiom set is exactly
+  `[propext]`.
+- V2d-E1 is the refusal of design section 5: an unlisted module that registers
+  a second command elaborator for `WhatwgTest.Audit.Freeze.freezeCommand`
+  through `@[command_elab …]` on a no-op `CommandElab`. `command_elab` is an
+  identifier, so rule 1's token half does not see it, as in V2c-E01, and the
+  environment half refuses it for the frozen reason of V2c.2 with the
+  recording module named. The module never runs the command, so it builds and
+  perturbs nothing; no battery imports it.
+
+### V2d.5 Red state
+
+Both rows are red until the freeze command's builder lands
+`WhatwgTest/Audit/Freeze.lean` with its list entry: each fixture's first line
+is `import WhatwgTest.Audit.Freeze`, a module that does not exist at the
+freeze, so Lake fails the plant module before the gate runs. V2d-A1 is then
+reported "unexpectedly rejected" and V2d-E1 "rejected for an unexpected
+reason". Neither row reaches the gate, so neither depends on any other builder.
+Their executable twins are red until the executable lands, for the reason of
+V2e.10. No module is red, so `test/fixtures/trust-gate/known-red.txt` gains no
+entry for this addendum.
+
+## Addendum V2e (2026-10-01)
+
+Status: FROZEN / RED, the same seat, branch and base as addendum V2d. The
+addendum is appended; no earlier sentence of this file is changed. Where it
+and an earlier section differ, the addendum governs, and V2e.12 names each
+place.
+
+Authority: ruling R-W7 (the executable trust gate, the moved lists, the shared
+loader; its (b) names this addendum), with R-W1(c), R-W8 and R-W9, at the end
+of `COORDINATION.md`; debts D49, D51, D55, D56 and D61 there. Design:
+`docs/research/2026-10-01-w10-retarget-gate-package-design.md`, sections 2.5,
+4, 5 and 6 and its appendix B (the executable prototype). That design calls
+this addendum "V2d"; R-W7 numbers it V2e, and R-W7 governs.
+
+The subject is a second judge of the same tree: an executable that reads the
+built `.olean` files after `lake build`, runs in a process in which no audited
+code runs, and makes every refusal of sections 4, 6 and V2c that can be made
+from the built files and the sources, plus the refusals of V2e.5 that the
+in-tree command cannot make. The in-tree command `#whatwg_streams_axiom_gate`
+stays for this lane (R-W7(a)); both call one library.
+
+### V2e.1 Terms
+
+The terms of sections 2 and V2c.1 stand. Added:
+
+- *Executable*: `lake exe whatwg_trustgate`, entry point
+  `whatwgbin/TrustGate.lean`, one `[[lean_exe]]` in `lakefile.toml`.
+- *Gate library*: the modules `WhatwgGates.Trust.*` in
+  `WhatwgGates/Trust/*.lean`, declarations in namespace `Gates.Trust` (R-V3(c);
+  R-W7(a) resolves debt D53 by rule).
+- *Config module*: `WhatwgGates/TrustConfig.lean`, module
+  `WhatwgGates.TrustConfig`, namespace `Gates.TrustConfig`: this repository's
+  data for the library.
+- *Loader*: the module `WhatwgGates.Trust.Load`, `WhatwgGates/Trust/Load.lean`,
+  shared with `whatwg_declsnapshot` (R-W5) and `whatwg_ledger` (R-W6).
+- *In-tree command*: `#whatwg_streams_axiom_gate`, run by the root.
+- *Import set*: the modules the root's `import` lines name, read with the
+  gate's tokenizer from `WhatwgTest.lean` as the leading pairs of the atom
+  `import` and an identifier. The executable never imports the root itself.
+- *Module source*: an audited source of section 2 other than the root
+  `WhatwgTest.lean` and the entry points under `whatwgbin/`; its module is its
+  path below the project root read as a module name.
+- *Build directory*: `<project root>/.lake/build/lib/lean`. Module `m`'s built
+  file and trace are `Lean.modToFilePath <build directory> m "olean"` and
+  `Lean.modToFilePath <build directory> m "trace"`.
+- *Source hash*: the hash `Lake.computeTextFileHash` gives a source file,
+  printed as Lake prints it in a trace, sixteen lowercase hexadecimal digits.
+- *Fresh*: a module whose built file exists and whose trace parses (V2e.4),
+  names the module in its `Module.name: <m>` input, and records as its source's
+  hash the source hash of the module source today.
+- *Recorded options*: of one trace, the first components of its `options`
+  input in order (the package's and the library's `leanOptions`, as `-D`
+  arguments), then every argument of its `Module.leanArgs: #[…]` input (the
+  library's `moreLeanArgs`) that begins `-D`.
+- *Verdict line*: the executable's last line of standard output, either
+  `PASS whatwg_trustgate: ` followed by the summary line of section 7, or
+  `FAIL whatwg_trustgate: <n> finding(s)`.
+
+Measured at the base by this seat (V2e.11 for the validation of this
+addendum's rows): a trace is JSON with `inputs`, an array of
+`[label, value]` pairs; the source's input is labelled with the source's
+absolute path at build time and valued with its source hash; the `options`
+input is valued with `[option, hash]` pairs; `Module.leanArgs: #[]` is a label
+whose text after `#[` lists the arguments separated by `, `; the `libs` input
+holds four pairs, `import dynlibs`, `package external libraries`,
+`module dynlibs` and `module plugins`, each valued `00000000000006bb`, Lake's
+empty hash. Every audited module records `-DwarningAsError=true`,
+`-DrelaxedAutoImplicit=false` and `-DautoImplicit=false` and empty leanArgs.
+When Lean fails a module, Lake leaves no built file for it and keeps the trace
+of its last successful build (measured: `sorry.lean.txt` appended to
+`Whatwg.lean`).
+
+### V2e.2 Files, fences and owners
+
+Breaker-owned and frozen by this addendum, beside the files of sections 1,
+V2b.7, V2c.9 and V2d.4: this addendum; the fixtures
+`test/fixtures/trust-gate/v2e-*.lean.txt` and `v2e-*.toml.txt` of V2e.9; and in
+`WhatwgGates/TrustSelfTest.lean` the rows whose labels begin `V2e-`, the
+`target` of the nine rows V2e.3 retargets, the `executable` field of the five
+rows V2e.6 names, the selectors `trustConfigSource`, `lakefileSource` and
+`builtOlean`, the anchors `extensionAllowlistAnchor`, `lakefilePackageAnchor`
+and `lakefileUmbrellaAnchor`, and the mechanism of V2e.9
+(`ExecutableExpectation`, `ExecutablePlant`, `Placement.newFile`,
+`Placement.remove`, the executable judge and the verdict reading). The second
+packet, on branch `review/w10-load-breaker` stacked on this one, adds
+`WhatwgTest/Audit/TrustLoadContract.lean` and its block of
+`test/fixtures/trust-gate/known-red.txt` (V2e.4).
+
+The builders, in the waves of R-W8, each in its own fence:
+
+| Builder | Wave | Fence | Exit |
+| --- | --- | --- | --- |
+| freeze command | 2a | `WhatwgTest/Audit/Freeze.lean` (new), its list entry, its root import (W6 contract) | V2d-A1 and V2d-E1 green in-tree |
+| loader | 2a | `WhatwgGates/Trust/Load.lean` (new), the root import of the packet 2 battery, its `known-red.txt` entry | `WhatwgTest.Audit.TrustLoadContract` green and imported by the root |
+| factor | 2b | `WhatwgTest/Audit/AxiomGate.lean`, `WhatwgGates/Trust/*.lean` other than `Load.lean` (new), `WhatwgGates/TrustConfig.lean` (new), `WhatwgGates.lean`, `WhatwgGates/AGENTS.md`, `WhatwgTest/AGENTS.md` | the nine rows of V2e.3 green in-tree; every other in-tree line of the self-test as before |
+| executable | 2c | `whatwgbin/TrustGate.lean` (new), `WhatwgGates/Trust/*.lean`, the extension allowlist and its anchor in `WhatwgGates/TrustConfig.lean`, one `[[lean_exe]]` in `lakefile.toml`, `.github/workflows/ci.yml`, the two tree routers | every executable expectation of V2e.6 and V2e.9 green |
+
+No builder edits a breaker-owned file. A row that cannot be satisfied as
+frozen is reported to the coordinator, not repaired by the builder.
+
+### V2e.3 The moved lists and the config module
+
+The three anchored lists, `strictCeilingExceptions` (section 10),
+`sourceTokenExemptions` (section 10) and `metaprogrammingModules` (V2c.2),
+move from `WhatwgTest/Audit/AxiomGate.lean` to `WhatwgGates/TrustConfig.lean`.
+Their anchor lines move with them, text unchanged:
+
+```text
+-- trust-selftest: strict-ceiling exception entries are inserted below this line
+-- trust-selftest: source-token exemption entries are inserted below this line
+-- trust-selftest: metaprogramming-module entries are inserted below this line
+```
+
+Section 10's shape holds in the new file: each list is a top-level
+definition whose body is the list expression; its anchor stands on its own
+line immediately before that body and occurs exactly once in the config
+module; the element type is a structure whose anonymous constructor takes the
+full `Name` and then the reason `String`, the name a single-backtick literal;
+so inserting a line `` ⟨`Some.Name, "reason"⟩ :: `` after the anchor
+prepends that entry. The definitions are public, since the in-tree command
+and the executable both read them. After the factor,
+`WhatwgTest/Audit/AxiomGate.lean` carries none of the three anchor lines and
+defines none of the three lists; the in-tree command reads the config
+module's, and every check of sections 6, 4.3 and V2c.2 on them is unchanged.
+
+A fourth anchored list joins the config module with the executable (V2e.5):
+the extension allowlist, under the anchor
+
+```text
+-- trust-selftest: extension-allowlist entries are inserted below this line
+```
+
+in the same shape, an entry naming one environment extension by its full name
+with a reason.
+
+The config module:
+
+- imports only modules under `WhatwgGates.Trust` (and `Init`), declares data
+  only (no syntax, no command, no `IO`), and is not a listed metaprogramming
+  module;
+- is imported by `WhatwgTest.Audit.AxiomGate`, which keeps it in the root's
+  import closure (section 3's module closure) and in the import set;
+- is imported by no module under `WhatwgGates.Trust`, and by no module that a
+  census battery imports directly or through others: today that means the
+  umbrella `WhatwgGates.lean` must not import it or any module that does. An
+  after-anchor plant rebuilds every module that imports the config module;
+  every census battery imports `WhatwgGates` and reads `vendor/` and `docs/`
+  at elaboration time, which the self-test's probe does not copy, so a census
+  battery rebuilt in the probe fails for a missing file and the row fails for
+  a reason that is not the gate's (the existing `toolingPlantModule`
+  documentation records the same constraint for the tooling tree).
+
+Where the other per-repository data lives (the strict prefixes, the private
+exceptions, the ceilings) is the factor builder's choice, provided the in-tree
+command and the executable read one copy of it.
+
+Retargeted rows. The nine after-anchor rows V2-S3, V2-S4, V2-S5, V2-S6,
+V2-X1, V2-X2, V2c-L1, V2c-L2 and V2c-L3 take the target `trustConfigSource`,
+`WhatwgGates/TrustConfig.lean` in the probe, in place of `auditSource`; their
+anchors, fixtures, further edits and fragments are unchanged. Until the factor
+lands the config module does not exist, so each of the nine is red, "could not
+plant", with the probe path of the missing file in the line. They are the only
+existing rows these addenda make red in-tree.
+
+### V2e.4 The loader
+
+One module, `WhatwgGates/Trust/Load.lean`, owns loading for the three
+executables of lane W. Its behaviour:
+
+1. Search path. `initLoaderSearchPath root` sets `Lean.searchPathRef` to
+   exactly `loaderSearchPath root (← Lean.findSysroot)`: the package's build
+   directory; then the build directory `<d>/.lake/build/lib/lean` of every
+   directory `<d>` under `<root>/.lake/packages`, in ascending order of
+   directory name, each only if it exists; then `<sysroot>/lib/lean`. It does
+   not read `LEAN_PATH`, so an audited module resolves to the built file the
+   freshness check reads, whoever launched the process.
+2. Import. `importBuilt modules` is
+   `Lean.importModules (modules.map ({ module := · })) {} (loadExts := false)`:
+   no environment extension's import hook runs, no parser descriptor is
+   evaluated and no initializer of an imported module runs. The loader never
+   calls `Lean.enableInitializersExecution`, `Lean.Environment.evalConst` or
+   any other `unsafe` function, and declares nothing `unsafe` or `partial`.
+3. Declarations. `moduleDeclarations env i` is the module data's `constNames`
+   for module index `i`, in order, keeping exactly the names that
+   `Environment.getModuleIdxFor?` attributes to `i` (the in-tree gate's read);
+   empty for an index out of range.
+4. Raw entries. `rawEntries env i ext` is the entry array that module `i`'s
+   `ModuleData.entries` records under the extension name `ext`, empty when it
+   records none; `extensionsWithEntries env i` lists every extension name with
+   a non-empty array in that module, with the array's size, in the order of
+   `ModuleData.entries`. Neither registers nor loads an extension.
+5. Trace. `parseTrace text` reads the JSON of V2e.1 and returns a
+   `TraceRecord` from the elements of its top-level `inputs` array:
+   `moduleName` from the element whose label begins `Module.name: `, the rest
+   of the label read as a `Name`; `sourceHash` from the one element whose label
+   ends in `.lean` and whose value is a string; `options` from the element
+   labelled `options`, the first component of each pair, in order; `leanArgs`
+   from the element whose label begins `Module.leanArgs: #[`, the text between
+   `#[` and the final `]` split at `, ` (empty for `#[]`); `libs` from the
+   element labelled `libs`, each pair as label and value. It is an error when
+   the text is not JSON, has no `inputs` array, or has no module-name element,
+   no source element or more than one, or an `options` or `libs` element that
+   is not an array of pairs of strings. `recordedOptions` is `options`
+   followed by the `leanArgs` that begin `-D`.
+6. Freshness. `sourceHash file` is the source hash of V2e.1. `traceOf
+   buildRoot sourceRoot m` (the prototype's signature) returns
+   `(fresh, recordedOptions)`: `(false, #[])` when the trace is missing or does
+   not parse; otherwise `fresh` holds when the record names `m` and records the
+   source hash of `Lean.modToFilePath sourceRoot m "lean"` (false when that
+   source is missing). It never throws for a missing or malformed trace.
+
+Frozen public signatures. Each is ascribed exactly, with `#check (@n : T)`, by
+the red battery `WhatwgTest/Audit/TrustLoadContract.lean` of the second packet;
+the names and types come from the design's appendix B, `traceOf` with its
+signature unchanged and the rest naming the prototype's inline steps:
+
+| Declaration | Type |
+| --- | --- |
+| `Gates.Trust.leanBuildDir` | `System.FilePath → System.FilePath` |
+| `Gates.Trust.loaderSearchPath` | `System.FilePath → System.FilePath → IO System.SearchPath` |
+| `Gates.Trust.initLoaderSearchPath` | `System.FilePath → IO Unit` |
+| `Gates.Trust.importBuilt` | `Array Lean.Name → IO Lean.Environment` |
+| `Gates.Trust.moduleDeclarations` | `Lean.Environment → Nat → Array Lean.Name` |
+| `Gates.Trust.rawEntries` | `Lean.Environment → Nat → Lean.Name → Array Lean.EnvExtensionEntry` |
+| `Gates.Trust.extensionsWithEntries` | `Lean.Environment → Nat → Array (Lean.Name × Nat)` |
+| `Gates.Trust.TraceRecord.mk` | `Lean.Name → String → Array String → Array String → Array (String × String) → Gates.Trust.TraceRecord` |
+| `Gates.Trust.parseTrace` | `String → Except String Gates.Trust.TraceRecord` |
+| `Gates.Trust.TraceRecord.recordedOptions` | `Gates.Trust.TraceRecord → Array String` |
+| `Gates.Trust.sourceHash` | `System.FilePath → IO String` |
+| `Gates.Trust.traceOf` | `System.FilePath → System.FilePath → Lean.Name → IO (Bool × Array String)` |
+
+`TraceRecord` is a structure whose fields, in order, are `moduleName`,
+`sourceHash`, `options`, `leanArgs` and `libs`; `leanBuildDir root` is
+`root / ".lake" / "build" / "lib" / "lean"`. The battery's `#guard` rows fix
+the pure parts on measured traces: a trace of the base's `Whatwg` module, the
+same module built with `moreLeanArgs`, and malformed texts. The loader declares
+nothing else public that the battery names; what else it declares is the
+builder's.
+
+### V2e.5 The executable
+
+`lake exe whatwg_trustgate` takes no argument; any argument is a usage error.
+It finds the project root as every gate does (`Gates.Common.findProjectRoot`
+from the working directory), reads its data from the config module it links,
+and runs these steps in order. It reports every finding of a step, each as one
+line `FAIL <message>`, and then: after step 1 or step 3 with a finding it
+stops, since what follows would read an environment that is not the source's;
+otherwise it runs every step. Its last line of standard output is the verdict
+line. Exit code 0 with `PASS whatwg_trustgate: <summary>`; exit code 1 with
+`FAIL whatwg_trustgate: <n> finding(s)`; exit code 2 for a usage error or an
+internal failure, with no verdict line.
+
+0. *Build configuration*, read lexically from the project root:
+   `lakefile.toml` sets `weakLeanArgs` (the word outside a `#` comment, unless
+   that line sets it to `[]`); and a `lakefile.lean` exists, which Lake reads in
+   place of `lakefile.toml`.
+1. *Freshness*, over every module source: its built file exists, and its
+   trace is fresh (V2e.1).
+2. *Recorded options*, over every module source's trace: `-DwarningAsError=true`
+   is recorded; no recorded option names `warningAsError` with another value,
+   names `warn.sorry`, or has a name that begins `debug.`; every `leanArgs`
+   argument has the form `-D<name>=<value>`; and every entry of the `libs`
+   input carries Lake's empty hash.
+3. *Import* of the import set through the loader (V2e.4).
+4. *The in-tree passes*, from the gate library, in the order of section 3 as
+   V2c.1 extends it: the root pass's lexical half; module closure in both
+   directions; the modifier pass; token-table hygiene; the environment pass and
+   rule 1's environment half; the axiom pass with both ceilings and the
+   strict-exception checks; the trust-token pass with its exemptions, rule 1's
+   token half with the checks of its list, and rule 3. Each reads what the
+   in-tree pass reads, from the loaded environment: the final token table is
+   rebuilt from `Lean.Parser.builtinTokenTable` and every module's raw global
+   `.token` parser entries, and the hygiene set adds every raw scoped `.token`
+   entry; registrations and the parametric attributes come from raw module
+   entries; axioms come from the executable's own traversal of each constant's
+   kernel type and value (no `Lean.collectAxioms`, no table an audited module
+   wrote at its own elaboration), bounded by fuel.
+5. *Extension allowlist*: every extension that holds an entry from an audited
+   module of the import set's environment is on the allowlist, and the
+   allowlist's own checks.
+6. *Link closure*: the import closure of the entry point's `import` lines, read
+   lexically from `whatwgbin/TrustGate.lean` and closed over the imported
+   modules' headers, holds no listed metaprogramming module, whose code and
+   initializers would run in the executable's process at its start.
+7. *Verdict*. With no finding, the summary line of section 7 with the counts
+   the in-tree command computes, after `PASS whatwg_trustgate: `.
+
+Diagnostic fragments, verbatim; a reason or a position may follow each:
+
+| Step | Condition | Fragment |
+| --- | --- | --- |
+| 0 | `weakLeanArgs` set | `Whatwg trust gate: lakefile.toml sets weakLeanArgs, which Lake keeps out of every trace` |
+| 0 | `lakefile.lean` present | `Whatwg trust gate: lakefile.lean exists, and Lake reads it in place of lakefile.toml` |
+| 1 | no built file | `Whatwg trust gate: module <m> has no built .olean` |
+| 1 | trace missing, unparsable, naming another module, or recording another source hash | `Whatwg trust gate: module <m> is stale` |
+| 2 | no `-DwarningAsError=true` | `Whatwg trust gate: module <m> was not compiled with -DwarningAsError=true` |
+| 2 | a refused option, printed as recorded | `Whatwg trust gate: module <m> was compiled with the refused option <opt>` |
+| 2 | a `leanArgs` argument not of the form `-D<name>=<value>` | `Whatwg trust gate: module <m> was compiled with the argument <arg>; only -D options are admitted` |
+| 2 | a `libs` entry with another hash | `Whatwg trust gate: module <m> was compiled with a native library or plugin loaded into lean` |
+| 3 | the import fails | `Whatwg trust gate: could not import the built environment` |
+| 4 | each in-tree finding | the in-tree fragment, verbatim (V2e.6) |
+| 4 | fuel exhausted | `Whatwg axiom gate: the axiom traversal of <d> exhausted its fuel` |
+| 5 | an extension off the allowlist | `Whatwg trust gate: module <m> has entries in environment extension <e>, which is not on the extension allowlist` |
+| 5 | blank reason | `Whatwg trust gate: extension-allowlist entry for <e> carries no reason` |
+| 5 | no audited module has entries in it | `Whatwg trust gate: stale extension-allowlist entry for <e>; no audited module has entries in it` |
+| 5 | listed twice | `Whatwg trust gate: extension-allowlist entry for <e> is listed more than once` |
+| 6 | a listed module in the link closure | `Whatwg trust gate: the executable's entry point whatwgbin/TrustGate.lean reaches the listed metaprogramming module <m>` |
+
+The extension allowlist's initial content. At the executable's landing the
+allowlist holds exactly the extensions that hold at least one entry from an
+audited module on the unmodified tree, as step 5 reads them, each with a
+non-blank reason that says what its entries are and which pass, if any, reads
+them, or why they open no channel of trust. The builder measures the names
+(the design measured 51 at the base, `Lean.Meta.unificationHintExtension` not
+among them); the reviewer checks each reason; a later entry needs a reason the
+coordinator accepts, as an exemption does. The stale check keeps the list
+exact.
+
+The root's constants. The executable never imports the root, so it does not
+make the half of rule 4 that reads the root module's own constants. A constant
+can enter the root only through a command, which the root pass's lexical half
+refuses, or through a replaced gate command, whose registration rule 1 refuses
+from the raw entries of the module that made it (V2e-G1). The in-tree command
+still makes that half whenever it runs.
+
+### V2e.6 What the executable decides for every existing row
+
+Per pass:
+
+| Pass | Executable |
+| --- | --- |
+| root pass, lexical half (V2c.5) | the same fragments, from `WhatwgTest.lean` read at run time |
+| root pass, the root module's constants | not made (V2e.5) |
+| gate run outside the root, post-command check (V2c.5) | not applicable: no command runs; no fragment |
+| module closure, both directions (section 3, V2c.6) | the same fragments |
+| modifier pass and tokenization failures | the same fragments |
+| token-table hygiene (V2c.3) | the same fragments, from the rebuilt table |
+| environment pass (4.1) and rule 1's environment half (V2c.2) | the same fragments, from raw entries |
+| axiom pass and strict exceptions (section 6) | the same fragments, from the own traversal |
+| trust-token pass, exemptions, rule 1's token half and list checks, rule 3 | the same fragments |
+| summary line (section 7) | the same template and counts, after `PASS whatwg_trustgate: ` |
+
+Per row, every row of `acceptancePlants` and `rejectionPlants` has an
+executable twin judged after the in-tree judgement, with the plant still in
+place (V2e.9):
+
+- Acceptance rows, the step-0 control, the restored-tree control and V2d-A1:
+  accepted, and the summary line from `checked` to its end equal to the
+  in-tree summary line the same build printed.
+- Rejection rows, by default: refused, with at least one of the row's in-tree
+  fragments. This covers every row not named below. Two rows admit an in-tree
+  fragment the executable cannot print, and are satisfied by another they
+  admit: V2c-M03's "the gate command of WhatwgTest.lean did not run the gate"
+  (no linter runs; the executable prints the row's keyword and macro
+  fragments) and V2c-R1's "the root module WhatwgTest has declared a constant
+  when the gate runs" (the root is not imported; the executable prints the
+  row's lexical fragment).
+- The unreachable-module check: the same fragment.
+- Fail closed. Five rows plant text that Lean itself refuses in `Whatwg.lean`,
+  so Lake leaves no built `Whatwg` module and the executable stops at step 1.
+  Their executable expectation is refused with one of
+  `Whatwg trust gate: module Whatwg has no built .olean` (measured) and
+  `Whatwg trust gate: module Whatwg is stale`: "sorry in the production tree",
+  "malformed string literal", "malformed raw string literal", "malformed
+  decimal literal" and "unterminated comment". Each carries the expectation in
+  its `executable` field.
+- The nine retargeted rows of V2e.3: the same fragments, from the config
+  module the executable links (an after-anchor plant rebuilds and relinks it).
+
+### V2e.7 Claim scope (extends sections 13, V2b.6 and V2c.7)
+
+A green `lake exe whatwg_trustselftest` with the V2d and V2e rows says that
+each plant is refused or accepted for its stated reason by the in-tree command
+and by the executable on Lean 4.33.1 and Lake 5.0.0, and that the executable
+accepts the unmodified tree with the in-tree command's counts. In addition to
+sections 13, V2b.6 and V2c.7, it says and does not say the following.
+
+What the executable closes:
+
+- Gate replacement and linter removal, debt D56's first item. No audited
+  initializer, parser, macro or elaborator runs in the executable's process
+  (V2e.4 step 2), so nothing audited can replace its passes or remove a check;
+  the module that replaced the in-tree command or removed its linters is
+  refused by rule 1 from the raw entries it recorded (V2e-G1). V2c.7's bullet
+  "An initializer that removes the post-command check" is superseded for the
+  executable's verdict; it still describes the in-tree command.
+- Registration channels outside rule 1's six kinds (D56): every environment
+  extension that records an entry in an audited module's `.olean` is on an
+  exact allowlist with a reason or refused (V2e-U1 plants `unif_hint`). A
+  channel that leaves no entry in any extension is not covered; none is known.
+- Debt D51 for every option Lake traces: `leanOptions` and `moreLeanArgs`, at
+  package or library level, reach the trace and step 2 refuses
+  `warningAsError` off, `warn.sorry` and every `debug.*` option there (V2e-O1
+  to V2e-O3), and `weakLeanArgs`, which Lake keeps out of the trace, is refused
+  in `lakefile.toml` (V2e-K1). D51's statement that the gate does not check
+  `warningAsError`'s effective value is closed for every option Lake traces;
+  its token half (`stop` and `#guard_msgs` are no refused words) is unchanged.
+- The cached replay of the in-tree verdict, debt D61: the executable reads
+  every source, trace and built file when it runs and refuses a missing or
+  stale built file (V2e-F1, V2e-F2), so its verdict is never a replay; a source
+  the root does not import is refused even when `lake build` replayed the root
+  (V2e-F3). Debt D49 stays open for the census batteries and
+  `WhatwgTest/Audit/SpecCoverage.lean`.
+
+What stays lexical: the source passes are the same code (V2e.5 step 4), so
+every lexical limit of sections 13, V2b.6 and V2c.7 stands: a name built by
+metaprogramming, code inside interpolated-string holes, a word hidden across
+inert tokens of a listed module, `stop`, `#guard_msgs`, `#guard`, the scoped
+`#'`. `example`, `#guard`, `set_option … in` and every other token leave no
+trace in a built file.
+
+What stays with `leanchecker`: a declaration added with the kernel check off
+(debt D55), and a false statement admitted through `debug.skipKernelTC` set by
+`withOptions` in a listed module. The executable's traversal reads the kernel
+declarations as the built files hold them and re-checks none; `lake env
+leanchecker Whatwg WhatwgTest WhatwgGates` stays a separate CI step.
+
+What stays trusted: the pinned dependencies' syntax, macros and options and the
+toolchain's base tokens (as in V2c.7); the toolchain itself, `lean`, Lake and
+Lake's trace hashing, the `.olean` format and the build directory Lake wrote (a
+trace and a built file forged together are not detected); the executable's own
+linked code, which is the gate library, the config module, `Lean`, `Lake` and
+`Init`; `withOptions` and `modifyScope` in a listed module; options passed to a
+`lean` run outside Lake; and the root's own constants, which the executable
+does not read (V2e.5).
+
+The in-tree command remains for this lane and runs inside `lake build`; it is
+no longer the deciding trust check in CI. The deciding check is `lake exe
+whatwg_trustgate` run after `lake build`; the self-test judges both. Retiring
+the in-tree command is ruled later, on the evidence that the executable
+refused every row the command refused (R-W7(a)).
+
+### V2e.8 Review clauses (not planted)
+
+- R-E1. The executable and the loader import with `loadExts := false`, call no
+  `Lean.enableInitializersExecution` and no `evalConst`, and declare nothing
+  `unsafe` or `partial`; the modifier pass refuses the keywords in their
+  sources, so the clause is mostly structural.
+- R-E2. On the unmodified tree the executable's per-declaration axiom sets
+  equal `Lean.collectAxioms` over an environment loaded with its extensions,
+  and its rebuilt final table equals the loaded one (rerun the comparison of
+  the design's appendix B in a scratch program outside the tree, since loading
+  the extensions needs `unsafe`).
+- R-E3. Each reason of the extension allowlist says what the entries are and
+  why the passes see the channel they open, or why they open none.
+- R-E4. `lakefile.lean` refused and `LEAN_PATH` ignored: not planted, because a
+  `lakefile.lean` in the probe changes how `lake exe` itself runs and `lake
+  exe` sets `LEAN_PATH`.
+- R-E5. The link-closure step: not planted, because importing a listed module
+  into the entry point makes Lake compile the whole production tree to C.
+- R-E6. A `libs` entry other than Lake's empty hash, and a `leanArgs`
+  argument that is not a `-D` option, are refused (V2e-O2 plants the second);
+  the first is not planted, because it needs a native library target.
+- R-E7. The executable's summary counts equal the in-tree command's on the
+  unmodified tree. The step-0 and restored-tree twins check it on each run.
+- R-E8. The factor's cutover: with the config module in place the self-test's
+  in-tree lines are those of the base run apart from the nine retargeted rows
+  turning green, the summary's Whatwg count is unchanged, and the WhatwgTest
+  and WhatwgGates counts move only by the constants the factor moves or adds.
+
+### V2e.9 Plants and the executable judge
+
+Placement as in sections 9 and V2c.9, plus two: *new file* writes the fixture
+as a new file that must not exist, and imports it from nowhere; *remove*
+removes the target file, which must exist, and writes no fixture. Every edit
+is undone with its plant, a removed file restored byte for byte.
+
+The executable judge. After each row's in-tree judgement, with the plant still
+in place, the harness runs `lake exe whatwg_trustgate` in the probe and reads
+its combined output:
+
+- *accepted*: exit code 0 and a line beginning `PASS whatwg_trustgate: ` that
+  matches the summary template of section 7;
+- *refused*: exit code 1 and a line beginning `FAIL whatwg_trustgate: ` and
+  ending ` finding(s)`;
+- otherwise *could not run*, the one frozen reason while no executable is
+  built: the line reads `FAIL could not run the executable gate for <label>`,
+  followed by the exit code and the output's tail.
+
+An expectation is *accepts* (accepted, with the summary equal from `checked`
+to its end to the in-tree summary of the same build when that build printed
+one), *refuses any* (refused, with at least one fragment) or *refuses all*
+(refused, with every fragment). A row's twin prints `PASS executable gate
+accepted <label>`, `PASS executable gate refused <label> with the expected
+diagnostic: <fragment>` or `… with every expected diagnostic: [<fragments>]`,
+or one `FAIL` line naming the label. A row whose plant cannot be made prints
+only its "could not plant" line.
+
+Executable-only rows. They run after the restored-tree control, in the order
+below; then a control of the restored tree, labelled "the restored source tree
+after the executable-only rows", is judged in-tree and by the executable,
+before the narrow runs. Two rows edit `lakefile.toml` after an existing line,
+`name = "whatwg"` (the package) or `name = "Whatwg"` (the umbrella library);
+each must stay exactly one line of the file, or the rows that use it cannot be
+planted. Each row makes its edits,
+runs `lake build` without judging it (a `NOTE` line records its exit code),
+makes its after-build edits, then runs and judges the executable. The `V2e-`
+labels are stable identifiers, never reused, and not registered in
+`test/counterexamples/REGISTER.md`.
+
+| ID | Edits before the build | Edits after the build | Executable expectation |
+| --- | --- | --- | --- |
+| V2e-F3 | new file `WhatwgTest/TrustSelfTestUnimported.lean` from `v2e-unimported.lean.txt` | none | refuses any: `TrustSelfTestUnimported.lean is not reachable from the WhatwgTest audit root` |
+| V2e-G1 | new module `WhatwgTest/TrustSelfTestPlant.lean` from `v2e-gate-replaced.lean.txt` | none | refuses all: `module WhatwgTest.TrustSelfTestPlant registers a macro but is not a listed metaprogramming module`, `module WhatwgTest.TrustSelfTestPlant registers an initializer but is not a listed metaprogramming module` |
+| V2e-U1 | new module `WhatwgTest/TrustSelfTestPlant.lean` from `v2e-unif-hint.lean.txt` | none | refuses any: `module WhatwgTest.TrustSelfTestPlant has entries in environment extension Lean.Meta.unificationHintExtension, which is not on the extension allowlist` |
+| V2e-O1 | `lakefile.toml`, after the line `name = "Whatwg"`, from `v2e-more-lean-args-warning.toml.txt` | none | refuses any: `module Whatwg was compiled with the refused option -DwarningAsError=false` |
+| V2e-O2 | `lakefile.toml`, after the line `name = "Whatwg"`, from `v2e-more-lean-args-debug.toml.txt` | none | refuses all: `module Whatwg was compiled with the refused option -Ddebug.skipKernelTC=true`, `module Whatwg was compiled with the refused option -Dwarn.sorry=false`, `module Whatwg was compiled with the argument -j1` |
+| V2e-O3 | `lakefile.toml`, after the line `name = "Whatwg"`, from `v2e-lean-options-warning.toml.txt` | none | refuses all: `module Whatwg was not compiled with -DwarningAsError=true`, `module Whatwg was compiled with the refused option -DwarningAsError=false` |
+| V2e-K1 | `lakefile.toml`, after the line `name = "whatwg"`, from `v2e-weak-lean-args.toml.txt` | none | refuses any: `lakefile.toml sets weakLeanArgs, which Lake keeps out of every trace` |
+| V2e-F1 | none | comment appended to `Whatwg.lean` | refuses any: `module Whatwg is stale` |
+| V2e-F2 | none | remove `.lake/build/lib/lean/Whatwg.olean` | refuses any: `module Whatwg has no built .olean` |
+| V2e-X1 | `WhatwgGates/TrustConfig.lean`, after the allowlist anchor, from `v2e-allowlist-stale.lean.txt` | none | refuses any: `stale extension-allowlist entry for TrustSelfTestPlant.noSuchExtension; no audited module has entries in it` |
+| V2e-X2 | the same anchor, from `v2e-allowlist-blank.lean.txt` | none | refuses any: `extension-allowlist entry for TrustSelfTestPlant.blankExtension carries no reason` |
+| V2e-X3 | the same anchor, from `v2e-allowlist-duplicate.lean.txt` | none | refuses any: `extension-allowlist entry for TrustSelfTestPlant.repeatedExtension is listed more than once` |
+
+Why each plant is shaped as it is:
+
+- V2e-F3 is debt D61: a module source the root does not import, on a tree the
+  previous control built green, so `lake build` compiles the new module (the
+  `WhatwgTest` library's glob) and replays the root, whose inputs did not
+  change. The in-tree command never runs; the executable reads the source.
+- V2e-G1 is debt D56's first item, the W10 design's measured plant: an
+  `initialize` that removes the gate module's two post-command linters and a
+  `macro_rules` that replaces the gate command. `lake build` accepts it (design
+  2.5: exit 0, no gate line). The executable runs neither and refuses both
+  registrations from raw entries. Its token half also refuses the keywords
+  `initialize` and `macro_rules`; the row requires the two registrations,
+  which no lexical rule makes.
+- V2e-U1 is D56's `unif_hint`, measured as accepted by the in-tree command at
+  the V2c delta review: a hint registers no token, parser, macro or
+  elaborator, and `unif_hint` is no keyword of V2c.2. Only the allowlist sees
+  its entry in `Lean.Meta.unificationHintExtension`.
+- V2e-O1 and V2e-O2 set `moreLeanArgs` on the library `Whatwg`, which owns the
+  one umbrella module; V2e-O3 sets the library's `leanOptions`, which replaces
+  the package's `warningAsError` in the trace's `options` input (measured).
+  Rebuilding the umbrella is about one second, and its built file does not
+  change, so no dependent rebuilds (measured: the root replayed). `-j1`, a
+  thread count, stands for any argument that is not a `-D` option.
+- V2e-K1 sets the package's `weakLeanArgs` to a harmless option; Lake rebuilds
+  nothing, which is why only a lexical rule sees it.
+- V2e-F1 and V2e-F2 make the built tree disagree with the sources after the
+  build, as a forgotten `lake build` does, in a module outside the
+  executable's own link closure so that `lake exe` does not rebuild it.
+- V2e-X1 to V2e-X3 exercise the allowlist's checks, as V2-S3, V2-X2 and V2c-L1
+  do for the other lists, with names that are not extensions, so that the
+  rows depend on no measured extension name.
+
+### V2e.10 Red state at the freeze, and validation
+
+`lake build` is green on the base tree with this packet: it adds fixtures,
+harness rows and mechanism, and no module. `lake exe whatwg_trustselftest`
+fails, and fails exactly on these lines:
+
+| Rows | At the freeze | Turned green by |
+| --- | --- | --- |
+| the nine retargeted rows of V2e.3 | could not plant: `WhatwgGates/TrustConfig.lean` does not exist | the factor |
+| V2d-A1, V2d-E1 | unexpectedly rejected, and rejected for an unexpected reason: `WhatwgTest.Audit.Freeze` does not exist | the freeze command |
+| every executable twin, V2e-F1 to V2e-F3, V2e-G1, V2e-U1, V2e-O1 to V2e-O3, V2e-K1 | could not run: `whatwg_trustgate` is no executable of the package | the executable |
+| V2e-X1 to V2e-X3 | could not plant: `WhatwgGates/TrustConfig.lean` does not exist | the factor and the executable |
+
+Every other in-tree line passes: the 72 existing checks that are not
+retargeted, and the new in-tree control after the executable-only rows. The
+executable twins of the nine retargeted rows print no line of their own while
+their plants cannot be made. No module is red in this packet, so
+`known-red.txt` gains no entry here; the second packet adds one (V2e.4).
+
+Validation (ruling R-W9's labels "run against the prototype", "probed",
+"unprobed"): recorded per row in V2e.11 after the freeze run.
+
+### V2e.11 Freeze run
+
+Recorded after the run.
+
+### V2e.12 Changes to earlier sections
+
+- Section 10, V2c.2 and V2c.9: the three anchors and lists move to the config
+  module (V2e.3); the selector `auditSource` stays for the rows that append to
+  the in-tree command's module.
+- Section 3: the executable's order is V2e.5's; the in-tree command's is
+  unchanged.
+- Sections 13, V2b.6 and V2c.7: V2e.7 says which of their items the executable
+  closes; each stays true of the in-tree command.
+- Sections 8, V2b.5 and V2c.10 hold for every row that predates this addendum,
+  apart from the nine retargets of V2e.3 and the `executable` field of the five
+  rows of V2e.6, which change no in-tree expectation.
+
+### V2e.13 Builder notes
+
+- Freeze command: the list entry of V2d.1, in `WhatwgTest/Audit/AxiomGate.lean`
+  while the factor has not landed; the root import of the new module; the
+  documentation of `metaprogrammingModules` that counts ten (design section
+  4).
+- Loader: the signatures of V2e.4 exactly; `traceOf` never throws for a
+  missing trace; the battery's root import and the removal of its
+  `known-red.txt` entry when it turns green. W6's snapshot and W7's ledger
+  import it; whichever lands first does not redefine it.
+- Factor: the config module's import constraints of V2e.3, which are what let
+  the nine retargeted rows run in the probe; the in-tree command's every line
+  unchanged; `WhatwgTest.Audit.AxiomGate` stays listed while the command exists.
+- Executable: V2e.5's order and fragments; the allowlist's initial content
+  rule; the verdict line; it must accept every acceptance plant of the
+  self-test, so a benign plant that writes an extension no audited module
+  writes on the unmodified tree is reported to the coordinator, not listed.
