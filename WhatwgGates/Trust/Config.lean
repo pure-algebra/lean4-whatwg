@@ -44,6 +44,15 @@ structure MetaprogrammingModule where
   moduleName : Name
   reason : String
 
+/-- An exact admission of one environment extension to the audited modules'
+built files (addendum V2e.5, step 5), with the reason its entries open no
+channel of trust the passes do not see. The extension is named by its printed
+name, `toString` of the name a module's `ModuleData.entries` records, because a
+private extension's name has a numeric component no name literal spells. -/
+structure ExtensionAllowlistEntry where
+  extension : String
+  reason : String
+
 /-- One repository's data for the trust gate: what it audits, the two
 ceilings, and the exact lists, every entry with its reason. Nothing here is
 code; every check the data feeds is the library's. -/
@@ -66,5 +75,9 @@ structure Config where
   sourceTokenExemptions : List SourceTokenExemption
   /-- Metaprogramming modules by exact module name (ruling R-V10). -/
   metaprogrammingModules : List MetaprogrammingModule
+  /-- The environment extensions an audited module may hold entries in, by
+  printed name (addendum V2e.5, step 5). Only the executable gate reads it: the
+  in-tree command's passes never do. -/
+  extensionAllowlist : List ExtensionAllowlistEntry
 
 end Gates.Trust

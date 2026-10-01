@@ -73,6 +73,21 @@ prefixes and the three exact lists below, lives in
 frozen anchor comment. A list entry is therefore added there, and a change to a
 pass is a change to the library.
 
+The same passes run a second time, outside the tree they audit, in the
+executable gate `lake exe whatwg_trustgate` (addendum V2e.5): after `lake
+build`, it reads the built `.olean` files with no extension loaded, so no audited
+initializer, macro or elaborator runs in its process and none can replace or
+silence it (debt D56); it refuses a missing or stale `.olean`, so its verdict is
+never a cached replay (debt D61), a module compiled with `warningAsError` off, a
+`debug.*` or `warn.sorry` option or a non-`-D` argument, a `weakLeanArgs` in
+`lakefile.toml`, and an audited entry in an environment extension that the
+fourth list, `extensionAllowlist`, does not name with its reason. It judges this
+root lexically and never imports it, so it does not read the root's own
+constants; the in-tree command still does. On the unmodified tree it prints the
+in-tree summary line after `PASS whatwg_trustgate: `. The in-tree command stays
+for this lane (ruling R-W7(a)); addendum V2e.7 makes the executable, run after
+`lake build`, the deciding trust check in CI.
+
 The gate admits no module by name to a wider ceiling: the implementation
 ceiling and its audit-module list are gone (ruling R-V1). R-11's ceiling binds every audited tree, this one and the gate itself
 included, so an audit module that reaches `Classical.choice` through `MetaM`

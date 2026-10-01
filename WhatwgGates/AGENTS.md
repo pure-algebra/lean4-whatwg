@@ -2,8 +2,8 @@
 
 This boundary contains the repository's gates implemented in Lean: the digest
 face of the required `hash` package, the vendor seal, the internal-citation
-gate, the trust gate's library and configuration, the trust self-test, the
-census, and the URL inventory and census. It is
+gate, the trust gate's library, configuration and executable, the trust
+self-test, the census, and the URL inventory and census. It is
 the sixth authored router because this tree has a distinct trust boundary
 from the other five: it is tooling that reads files, spawns processes, and
 produces projections. The axiom gate audits it like every other tree, under
@@ -51,21 +51,32 @@ they decide nothing.
   calls; it declares no syntax of its own.
 - The trust gate's passes live here, in the gate library
   `WhatwgGates/Trust/*.lean`, namespace `Gates.Trust` (addendum V2e.3 of
-  `test/contracts/trust-gate-hardening.contract.md`, ruling R-W7(a)). The
-  in-tree command `#whatwg_streams_axiom_gate` of
-  `WhatwgTest/Audit/AxiomGate.lean` calls `Gates.Trust.runPasses` with the reads
-  only an elaborating process can make, and the executable gate is to call the
-  same passes over built `.olean` files read through `WhatwgGates/Trust/Load.lean`.
-  The library takes the configuration as an argument and reads no elaboration
+  `test/contracts/trust-gate-hardening.contract.md`, ruling R-W7(a)). Two judges
+  call `Gates.Trust.runPasses`: the in-tree command `#whatwg_streams_axiom_gate`
+  of `WhatwgTest/Audit/AxiomGate.lean`, with the reads only an elaborating
+  process can make, and the executable gate `lake exe whatwg_trustgate`
+  (addendum V2e.5), whose host `WhatwgGates/Trust/Main.lean` reads the built
+  `.olean` files through `WhatwgGates/Trust/Load.lean` with no extension loaded,
+  so that no audited initializer, parser or elaborator runs in its process. The
+  library takes the configuration as an argument and reads no elaboration
   state. This repository's data, the audited trees, the two ceilings, the strict
-  prefixes and the three anchored lists `strictCeilingExceptions`,
-  `sourceTokenExemptions` and `metaprogrammingModules`, lives in
+  prefixes and the four anchored lists `strictCeilingExceptions`,
+  `sourceTokenExemptions`, `metaprogrammingModules` and `extensionAllowlist`
+  (the last read by the executable alone), lives in
   `WhatwgGates/TrustConfig.lean` (`Gates.TrustConfig.config`). That module
   imports only `WhatwgGates.Trust.Config` and is imported only by the gate
-  module and, once it lands, the executable gate's entry point: never by the
-  umbrella `WhatwgGates`, by a `WhatwgGates.Trust` module or by anything a
+  module and the executable's entry point `whatwgbin/TrustGate.lean`: never by
+  the umbrella `WhatwgGates`, by a `WhatwgGates.Trust` module or by anything a
   census battery imports (ruling R-W14(b)), so a plant after one of its anchors
-  rebuilds no census battery.
+  rebuilds no census battery and relinks the executable.
+- The executable gate links the gate library, the loader and the config module
+  and no other audited module, declares nothing `unsafe` or `partial`, never
+  loads an extension or evaluates an imported constant, and has no
+  `supportInterpreter`; it refuses a listed metaprogramming module in its own
+  link closure. An import added to `WhatwgGates/Trust/Main.lean`, to a library
+  module or to the entry point must keep that closure: it finds the project root
+  with the library's `Gates.Trust.findProjectRoot`, not `Gates.Common`'s, for
+  that reason.
 - A gate reports a stable `PASS` or `FAIL` line stating exactly what was
   checked and, on failure, every offending item. It never truncates the
   failure list.
@@ -96,7 +107,8 @@ they decide nothing.
 | `lake exe whatwg_vendorseal` | `vendor/` against `generated/vendor-manifest.tsv` in both directions; Windows path validity | nothing |
 | `lake exe whatwg_vendorseal --write` | Windows path validity | `generated/vendor-manifest.tsv` |
 | `lake exe whatwg_citations` | no line-numbered citation into a protected authored document | nothing |
-| `lake exe whatwg_trustselftest` (not a default target; in CI again since ruling R-V2, after the full build) | the declared red set; then planted `partial`, `unsafe`, `sorry`, `native_decide`, malformed literals, and an unreachable module are each rejected for the stated reason; then the `V2-` plants of `test/contracts/trust-gate-hardening.contract.md`: the environment pass (declared axioms, `@[extern]`, `@[implemented_by]`, bodyless `opaque`), trust tokens in commands that leave no constant (`native_decide`, `bv_decide`, `bv_decide?`, `bv_check`, the `native` flag, `sorry`, `axiom`, `extern`, `implemented_by`, `debug.skipKernelTC`, the three forbidden axiom names) in the production, test and tooling trees and under `whatwgbin/`, the strict ceiling of ruling R-V1 with its four exception checks, and the source-token exemption checks, each rejected for its frozen reason; then the `V2b-` plants of addendum V2b (ruling R-V6): the goal-admitting spellings and message switches `sorryAx` (also as `_root_.sorryAx`), `admit`, `impossible`, `apply?`, `try?`, `grind?`, `debug.byAsSorry`, `debug.terminalTacticsAsSorry`, `warn.sorry`, `warningAsError`, `Lean.reduceBool` and `reduceNat`; then the `V2c-` plants of addendum V2c (ruling R-V10): metaprogramming keywords outside the metaprogramming-module list (`notation` in the production tree, `run_cmd`, a `macro_rules` that replaces the gate command), an elaborator registered through `@[command_elab]`, non-inert tokens of the final token table (a shadow token, a cut word, a comment opener, a hidden word), non-literal `config` values (an anonymous constructor, `{ v with }`, the escaped key `«config»`), a command before and a declaration after the gate in `WhatwgTest.lean`, and a missing, a stale and a blank metaprogramming-module entry, each rejected for its frozen reason; benign spellings of each addendum, an authored `opaque`, a `Classical.choice` theorem under `WhatwgTest` and the one configuration shape the tree uses accepted; and the gate and the coverage numerator run narrowly by relative file name | a throwaway copy outside the tree, seeded from `.lake`, removed afterwards |
+| `lake exe whatwg_trustgate` (a default target; run after `lake build`, which it does not replay) | addendum V2e.5 of `test/contracts/trust-gate-hardening.contract.md`, in order: `lakefile.toml` sets no `weakLeanArgs` and no `lakefile.lean` exists; every module source has a built `.olean` and a fresh Lake trace that records that `.olean`, and stops otherwise; every trace records `-DwarningAsError=true`, no `warningAsError` off, `warn.sorry` or `debug.*` option, only `-D` arguments and no native library; the root's import set imports with no extension loaded, and stops otherwise; every pass of the in-tree command, with the token table rebuilt from raw parser entries and axioms from its own traversal; every environment extension holding an audited entry is on the extension allowlist, whose entries are each needed, reasoned and single; its own link closure holds no listed metaprogramming module. Prints `PASS whatwg_trustgate: ` and the in-tree summary line, exit 0; or `FAIL whatwg_trustgate: <n> finding(s)` after one `FAIL` line per finding, exit 1; exit 2 for an argument or an internal failure | nothing |
+| `lake exe whatwg_trustselftest` (not a default target; in CI again since ruling R-V2, after the full build) | the declared red set; then planted `partial`, `unsafe`, `sorry`, `native_decide`, malformed literals, and an unreachable module are each rejected for the stated reason; then the `V2-` plants of `test/contracts/trust-gate-hardening.contract.md`: the environment pass (declared axioms, `@[extern]`, `@[implemented_by]`, bodyless `opaque`), trust tokens in commands that leave no constant (`native_decide`, `bv_decide`, `bv_decide?`, `bv_check`, the `native` flag, `sorry`, `axiom`, `extern`, `implemented_by`, `debug.skipKernelTC`, the three forbidden axiom names) in the production, test and tooling trees and under `whatwgbin/`, the strict ceiling of ruling R-V1 with its four exception checks, and the source-token exemption checks, each rejected for its frozen reason; then the `V2b-` plants of addendum V2b (ruling R-V6): the goal-admitting spellings and message switches `sorryAx` (also as `_root_.sorryAx`), `admit`, `impossible`, `apply?`, `try?`, `grind?`, `debug.byAsSorry`, `debug.terminalTacticsAsSorry`, `warn.sorry`, `warningAsError`, `Lean.reduceBool` and `reduceNat`; then the `V2c-` plants of addendum V2c (ruling R-V10): metaprogramming keywords outside the metaprogramming-module list (`notation` in the production tree, `run_cmd`, a `macro_rules` that replaces the gate command), an elaborator registered through `@[command_elab]`, non-inert tokens of the final token table (a shadow token, a cut word, a comment opener, a hidden word), non-literal `config` values (an anonymous constructor, `{ v with }`, the escaped key `«config»`), a command before and a declaration after the gate in `WhatwgTest.lean`, and a missing, a stale and a blank metaprogramming-module entry, each rejected for its frozen reason; benign spellings of each addendum, an authored `opaque`, a `Classical.choice` theorem under `WhatwgTest` and the one configuration shape the tree uses accepted; and the gate and the coverage numerator run narrowly by relative file name; since addendum V2e every row and control is judged a second time by `lake exe whatwg_trustgate` in the probe, with the plant in place, and the `V2e-` rows the executable alone judges (an unimported source, a replaced gate command, `unif_hint`, `moreLeanArgs`, `leanOptions` and `weakLeanArgs` in `lakefile.toml`, a stale source, a removed `.olean`, and a stale, blank and repeated allowlist entry) are each refused for their frozen reason | a throwaway copy outside the tree, seeded from `.lake`, removed afterwards |
 | `lake exe whatwg_census` | the pinned `index.bs` digest; every census anchor occurs exactly once at its span start; every span digest recomputes; every row has exactly one disposition from the authored inputs under `census/`, with no unused entry; both projections are byte-identical to a fresh regeneration; and the numerator's coverage emit carries the same ids, order and dispositions as that regeneration, with no witness on an absent row and none on a row outside the denominator | nothing |
 | `lake exe whatwg_census --write` | the same, apart from the emit, before writing | `generated/spec-algorithm-census.tsv` and `WhatwgTest/Audit/SpecCoverageRows.lean` |
 | `lake exe whatwg_census --report` | the emit against a fresh regeneration, as above; then prints the coverage block of `docs/SPEC-COVERAGE.md` from the emit's states | nothing |

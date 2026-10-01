@@ -12,6 +12,7 @@ import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render
 import WhatwgGates.Ledger.Check
 import WhatwgGates.DeclSnapshot
+import WhatwgGates.Trust.Main
 
 /-!
 # WhatwgGates
