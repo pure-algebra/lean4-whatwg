@@ -1,5 +1,6 @@
 import Lean
 import WhatwgGates
+import WhatwgTest.Audit.Freeze
 
 /-!
 # ECMA-262 census Q2 addendum battery
@@ -46,15 +47,15 @@ carry three. It is ascribed again here because
 `lake build WhatwgTest.Audit.Ecma262.CensusQ2Contract` is a narrow command
 that has to stand on its own. -/
 
-#check (@Gates.Census.CoverageRow : Type)
+#whatwg_freeze (@Gates.Census.CoverageRow : Type)
 #check (Gates.Census.CoverageState.absent : Gates.Census.CoverageState)
-#check (@Gates.Census.verifyEmit :
+#whatwg_freeze (@Gates.Census.verifyEmit :
   Gates.Census.Built → Array Gates.Census.CoverageRow → Array String)
-#check (@Gates.Census.report :
+#whatwg_freeze (@Gates.Census.report :
   System.FilePath → Gates.Census.Standard → Array Gates.Census.CoverageRow → IO UInt32)
 
 -- The one signature this slice changes.
-#check (@Gates.Census.cli :
+#whatwg_freeze (@Gates.Census.cli :
   List (String × Array Gates.Census.CoverageRow) → List String → IO UInt32)
 
 /-! ## 2. The amended totals

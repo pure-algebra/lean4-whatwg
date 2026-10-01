@@ -1,5 +1,6 @@
 import Lean
 import WhatwgGates
+import WhatwgTest.Audit.Freeze
 
 /-!
 # ECMA-262 promise census contract battery
@@ -74,7 +75,7 @@ seven new ones in the order R-P2 writes them. -/
 
 /-! ## 2. The `ecma262` standard and the ecmarkup scanner -/
 
-#check (@Gates.Census.ecma262 : Gates.Census.Standard)
+#whatwg_freeze (@Gates.Census.ecma262 : Gates.Census.Standard)
 #check (Gates.Census.Profile.ecmarkup : Gates.Census.Profile)
 
 #guard Gates.Census.ecma262.key == "ecma262"
@@ -103,33 +104,33 @@ pinned source. It never reads a file, never decides a disposition, and
 refuses rather than skipping: every rejection is `Except.error` whose message
 contains the decimal byte offset of the construct it refuses. -/
 
-#check (@Gates.Ecmarkup.Clause : Type)
-#check (@Gates.Ecmarkup.Clause.id : Gates.Ecmarkup.Clause → String)
-#check (@Gates.Ecmarkup.Clause.kindAttr : Gates.Ecmarkup.Clause → String)
-#check (@Gates.Ecmarkup.Clause.aoid : Gates.Ecmarkup.Clause → String)
-#check (@Gates.Ecmarkup.Clause.title : Gates.Ecmarkup.Clause → String)
-#check (@Gates.Ecmarkup.Clause.depth : Gates.Ecmarkup.Clause → Nat)
-#check (@Gates.Ecmarkup.Clause.b : Gates.Ecmarkup.Clause → Nat)
-#check (@Gates.Ecmarkup.Clause.e : Gates.Ecmarkup.Clause → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.Clause : Type)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.id : Gates.Ecmarkup.Clause → String)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.kindAttr : Gates.Ecmarkup.Clause → String)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.aoid : Gates.Ecmarkup.Clause → String)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.title : Gates.Ecmarkup.Clause → String)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.depth : Gates.Ecmarkup.Clause → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.b : Gates.Ecmarkup.Clause → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.Clause.e : Gates.Ecmarkup.Clause → Nat)
 
-#check (@Gates.Ecmarkup.Step : Type)
-#check (@Gates.Ecmarkup.Step.level : Gates.Ecmarkup.Step → Nat)
-#check (@Gates.Ecmarkup.Step.b : Gates.Ecmarkup.Step → Nat)
-#check (@Gates.Ecmarkup.Step.e : Gates.Ecmarkup.Step → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.Step : Type)
+#whatwg_freeze (@Gates.Ecmarkup.Step.level : Gates.Ecmarkup.Step → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.Step.b : Gates.Ecmarkup.Step → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.Step.e : Gates.Ecmarkup.Step → Nat)
 
-#check (@Gates.Ecmarkup.TableRow : Type)
-#check (@Gates.Ecmarkup.TableRow.cells : Gates.Ecmarkup.TableRow → Array (Nat × Nat))
-#check (@Gates.Ecmarkup.TableRow.b : Gates.Ecmarkup.TableRow → Nat)
-#check (@Gates.Ecmarkup.TableRow.e : Gates.Ecmarkup.TableRow → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.TableRow : Type)
+#whatwg_freeze (@Gates.Ecmarkup.TableRow.cells : Gates.Ecmarkup.TableRow → Array (Nat × Nat))
+#whatwg_freeze (@Gates.Ecmarkup.TableRow.b : Gates.Ecmarkup.TableRow → Nat)
+#whatwg_freeze (@Gates.Ecmarkup.TableRow.e : Gates.Ecmarkup.TableRow → Nat)
 
-#check (@Gates.Ecmarkup.scanClauses :
+#whatwg_freeze (@Gates.Ecmarkup.scanClauses :
   ByteArray → Nat → Nat → Except String (Array Gates.Ecmarkup.Clause))
-#check (@Gates.Ecmarkup.scanSteps :
+#whatwg_freeze (@Gates.Ecmarkup.scanSteps :
   ByteArray → Nat → Nat → Except String (Array Gates.Ecmarkup.Step))
-#check (@Gates.Ecmarkup.scanTableRows :
+#whatwg_freeze (@Gates.Ecmarkup.scanTableRows :
   ByteArray → Nat → Nat → Except String (Array Gates.Ecmarkup.TableRow))
-#check (@Gates.Ecmarkup.escapeId : String → String)
-#check (@Gates.Ecmarkup.unescapeId : String → Option String)
+#whatwg_freeze (@Gates.Ecmarkup.escapeId : String → String)
+#whatwg_freeze (@Gates.Ecmarkup.unescapeId : String → Option String)
 
 /-! ### The R-P3 escaping
 
