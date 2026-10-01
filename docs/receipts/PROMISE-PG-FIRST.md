@@ -246,3 +246,34 @@ landing does to `PROMISE-PG-FIRST`.
 | coverage | required-open | **required-open**, unchanged | Both promise censuses stay all-`absent`, no Streams number moved, and the Q1 identity pin amendment A7 (32012 bytes, digest `247f9909…a63c`, ruling R-P26) is a disposition fact, not a coverage fact |
 
 **Edges closed at this landing: none. Edges reopened: none.**
+
+## Current-state table as hand-written before the ledger, 2026-10-01
+
+Moved verbatim from the "Current state" section of `docs/PROMISE-DAG.md` at `5999363`; the ledger entry `WhatwgTest/Ledger/PromiseFirst.lean` and its projection `generated/graphs/PROMISE-PG-FIRST.md` supersede it.
+
+This table describes commit `325d5d5` on 2026-09-30, with the trust row
+brought to the lane V landing of 2026-10-01 (R-V6, R-V8). Its landing records are
+the Q3, Q3b and Q4 sections of the receipts log, as rulings R-P20, R-P24 and
+R-P27 accepted them. Ruling R-V4 sets the rule: an edge is `required-closed`
+only when every ground this document or a ruling in `COORDINATION.md` states
+for keeping it open is discharged by something named in the ground cell.
+Where a document and a later ruling disagree, the ruling wins and the cell
+names it.
+
+| Edge | Status | Ground |
+| --- | --- | --- |
+| identity | `required-open` | The generated declaration snapshot that joins each public declaration to exactly one declaration record below, which has no generator (debt D47). The six statement batteries' exact ascriptions and the constructor and instance census through the Streams `abbrev`s are delivered (Q3 landing), and all 15 class [R] ascriptions of the Q4 battery elaborate since amendment A1 (Q4 landing, second pass) |
+| construction | `required-open` | Reachable-state and cross-owner freshness invariants. The `E-22` item is discharged by `Readable.freshReadCell`, `settleReadCell` and `settleReadCells` with the bridges `readTable_freshReadCell`, `readTable_settleReadCell` and `readTable_settleReadCells` (Q4 landing) |
+| semantics | `required-open` | R-P20 reopened the edge for COMPLETE (`requirement.jobs.3`); the Q3b landing closed that reopening with `Jobs.run_to_completion` and `Jobs.run_to_completion_nonvacuous`, and R-P24 keeps the edge open: `startJob` and `completeJob` are reachable only inside the laws of `Whatwg/Ecma262/Jobs.lean` and `run` never consults the activation, so the global configuration that threads it (the `G-08` remainder), the M2 mask projection and the bounded runner stay P8 work. Debt D46 records that `WebIdl.Promise.resolve` and `reject` are `Table.settle` and trigger no reaction |
+| laws | `required-closed` | 182 named receipts are proved: the 125 of `WhatwgTest/Ecma262/PromiseAxiomReport.lean` (Q3 landing, accepted by R-P20) and the 57 of `WhatwgTest/Ecma262/PromiseFidelityAxiomReport.lean` (Q3b landing, accepted by R-P24) |
+| representation | `required-closed` | `Nat` identities with monotone cursors, first-order reactions and jobs, the two reaction lists with their one-list view, the per-cell handled bit with its identity-list bridge, and the exception universe with allocation identity, each by named theorems (Q3 landing, accepted by R-P20); `Reaction.capability` added and still `Repr`-only (Q3b landing); the P4 to P7 record rows name `Whatwg.Ecma262.Promise` the shared owner with receipts `E-07` to `E-12` (Q4 landing) |
+| counterexamples | `required-open` | Six rows of `test/counterexamples/REGISTER.md` stand `SEEDED`: `WS-PROM-CE-015` (no witness pins the absent `DecidableEq`), `WS-PROM-CE-026` (the capability is stored and never read; debt D17), `WS-PROM-CE-033`, `WS-PROM-CE-036`, `WS-PROM-CE-037` and `WS-PROM-CE-038` (R-P24). The other 33 `WS-PROM-CE` rows are `CLOSED` |
+| bridges | `required-closed` | The 29 Q3 bridging lemmas with the preservation half of `WhatwgTest/Streams/PromiseBridge.lean` green (Q3 landing, accepted by R-P20), `Writable.settlementTrace_bridge` (Q3b landing), and the bridges that rows 14 to 16 of §4.4 of the Q3 contract deferred, `notify_jobQueue_bridge`, `settle_table_bridge`, `settle_jobQueue_order`, `settle_waiting_once`, `runJob_writable_dequeue` and `runJob_writable_blocked`, with `WhatwgTest/Streams/PromiseBridgeQ4.lean` green (Q4 landing). Deferred with stated reasons, outside this edge's obligation: `E-63`'s readable settlement-trace bridge, and the host profiles and WPT settlement-order replay of P8 |
+| targets | `not-applicable` | Q3, Q3b and Q4 land no lowering and no generated code; P11 owns the TypeScript target |
+| trust | `required-closed` | The 182 named receipts print inside the R-11 ceiling, and `lake exe trustselftest` passed at the Q3b landing (Q3 landing, Q3b landing; R-P20, R-P24). At `325d5d5` seven of them reached `Classical.choice`: `Table.fresh_get`, `Table.settle_handled`, `Table.markHandled_idem`, `ResolvingFunctions.callResolveSelf_self`, `WebIdl.Promise.waitForAll_success`, `waitForAllTraced_success` and `Streams.Writable.settle_bridge`. Lane V repaired all seven with no statement changed (slices V1 and V5, R-V6), and since that landing the axiom gate holds `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1) |
+| coverage | `required-open` | Ruling R-P20 set the edge `required-open` because both numerator modules, `WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and `WhatwgTest/Audit/Ecma262/SpecCoverage.lean`, exist; every row of both censuses is `absent`. The later sentence of the Q3 landing section that says coverage stays `not-applicable` disagrees with R-P20, and R-P20 wins |
+
+The ledger entry of this graph in `WhatwgTest/Ledger.lean` is projected to
+`generated/graphs/PROMISE-PG-FIRST.md` by `lake exe whatwg_ledger --write`,
+and `lake exe whatwg_ledger` checks that projection and the entry's
+references, not this table.
