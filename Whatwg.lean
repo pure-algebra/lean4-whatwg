@@ -4,6 +4,7 @@ import Whatwg.WebIdl
 import Whatwg.Streams
 import Whatwg.Html
 import Whatwg.Url
+import Whatwg.Signatures
 
 /-!
 # Whatwg
@@ -20,6 +21,9 @@ declarations landed with the promise slices Q3 and Q3b, graph
 Standard's authority (scaffolded at H1 of `docs/HTML-PACKAGE-PLAN.md`);
 `Whatwg.Url` is the URL Standard, whose percent-encoding packet (slice U3,
 graph `URL-PG-PERCENT`) is its first set of declarations
-(`docs/URL-PACKAGE-PLAN.md`). A
+(`docs/URL-PACKAGE-PLAN.md`);
+`Whatwg.Signatures` is not a standard but the `Effects.Signature` faces of the
+stateful layers, of which the ECMAScript agent's is the first (promise slice
+Q5, graph `PROMISE-PG-AGENT`), and the one library that imports `effects`. A
 consumer imports a standard's root, or this module for all of them.
 -/

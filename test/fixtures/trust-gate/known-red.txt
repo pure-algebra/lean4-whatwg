@@ -467,5 +467,11 @@
 # R-W3 and R-W13): Whatwg/WebIdl/Agent.lean landed and
 # WhatwgTest.WebIdl.AgentContract is green with no statement changed. Its entry
 # is removed and its root import added.
+#
+# 2026-10-01, Q5 builder slice B4 (same branch, rulings R-W3 and R-W13):
+# Whatwg/Signatures.lean, Whatwg/Signatures/Ecma262.lean, the Lake library
+# WhatwgSignatures with its defaultTargets entry and the umbrella import landed,
+# and WhatwgTest.Signatures.Ecma262Contract is green with no statement changed.
+# Its entry is removed and its root import added; the strictCeilingPrefixes
+# entry for Whatwg.Signatures is the coordinator's, at the landing.
 WhatwgTest.Ecma262.AgentLaws
-WhatwgTest.Signatures.Ecma262Contract
