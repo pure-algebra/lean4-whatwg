@@ -461,4 +461,10 @@
 # target. It is not declared here: the self-test's excise step refuses a
 # declared module with no source file. Until builder 1 creates the module,
 # lake exe whatwg_trustselftest reports it as undeclared (packet section 14).
-WhatwgTest.Audit.FreezeContract
+#
+# The W6 builder 1 seat landed the command on branch review/w6-freeze-builder
+# on 2026-10-01: the new module WhatwgTest/Audit/Freeze.lean, its
+# metaprogrammingModules entry, and the root imports of WhatwgTest.Audit.Freeze
+# and WhatwgTest.Audit.FreezeContract. The battery is green with no byte of it
+# changed: every #guard_msgs control matches and every rfl read-back holds.
+# The entry is removed. No entry remains.

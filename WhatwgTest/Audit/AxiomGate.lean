@@ -246,11 +246,15 @@ comment, where `lake exe whatwg_trustselftest` plants its entries too. The gate
 refuses an entry that names no audited module source, one whose source spells no
 metaprogramming keyword and whose module registers nothing, one with a blank
 reason, one listed twice, and one that names an entry point under `whatwgbin/`.
-At the V2c landing it holds exactly the eight modules that declare a `#…` gate
-command and the two constructive-contract batteries that run a receipt in
-`run_cmd`. -/
+It holds eleven modules: the eight that declare a `#…` gate command, the two
+constructive-contract batteries that run a receipt in `run_cmd` (both groups
+since the V2c landing), and, since the W6 landing (ruling R-W7(b), addendum
+V2d), `WhatwgTest.Audit.Freeze`, which declares the registry command
+`#whatwg_freeze`. A battery that only uses that command registers nothing and
+needs no entry. -/
 private def metaprogrammingModules : List MetaprogrammingModule :=
   -- trust-selftest: metaprogramming-module entries are inserted below this line
+  ⟨`WhatwgTest.Audit.Freeze, "declares the registry command #whatwg_freeze with syntax and command_elab"⟩ ::
   ⟨`WhatwgTest.Audit.AxiomGate, "declares this gate's command and elaborator, and its post-command linters with initialize (V2c.5)"⟩ ::
   ⟨`WhatwgTest.Audit.SpecCoverage, "declares the gate command #spec_coverage_gate with elab"⟩ ::
   ⟨`WhatwgTest.Audit.CensusProfileIdentity, "declares the gate command #census_profile_identity_gate with elab"⟩ ::
