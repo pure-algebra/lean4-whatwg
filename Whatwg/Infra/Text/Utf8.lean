@@ -715,7 +715,7 @@ theorem encoderTail_continuation (v : Nat) (n : Nat) (b : Byte)
     rcases hb with rfl | hb
     · have hlt : (v >>> (6 * n)) % 64 < 64 := Nat.mod_lt _ (by decide)
       rw [land_six, lor_continuation _ hlt, toNat_ofNat_lt (by omega)]
-      omega
+      exact ⟨by omega, by omega⟩
     · exact ih hb
 
 /-- ENCODER [90407,91744) steps 4 to 6 assembled. -/
@@ -837,16 +837,18 @@ theorem encodeScalar_head_range (s : ScalarValue) (b : Byte)
     · rw [encodeScalar_two_eq s h1 (by omega)] at h
       rw [List.head?_cons, Option.some.injEq] at h
       subst h
-      exact Or.inr (Or.inl (by rw [toNat_ofNat_lt (by omega)]; omega))
+      exact Or.inr (Or.inl (by rw [toNat_ofNat_lt (by omega)]; exact ⟨by omega, by omega⟩))
     · rcases Nat.lt_or_ge s.val.val 0x10000 with h3 | h3
       · rw [encodeScalar_three_eq s h2 (by omega)] at h
         rw [List.head?_cons, Option.some.injEq] at h
         subst h
-        exact Or.inr (Or.inr (Or.inl (by rw [toNat_ofNat_lt (by omega)]; omega)))
+        exact Or.inr (Or.inr (Or.inl
+          (by rw [toNat_ofNat_lt (by omega)]; exact ⟨by omega, by omega⟩)))
       · rw [encodeScalar_four_eq s h3] at h
         rw [List.head?_cons, Option.some.injEq] at h
         subst h
-        exact Or.inr (Or.inr (Or.inr (by rw [toNat_ofNat_lt (by omega)]; omega)))
+        exact Or.inr (Or.inr (Or.inr
+          (by rw [toNat_ofNat_lt (by omega)]; exact ⟨by omega, by omega⟩)))
 
 /-- Every byte after the first is a continuation byte, so no encoded scalar
 value contains a lead byte anywhere but at its head. -/
@@ -1096,7 +1098,8 @@ theorem encode_startsWith_bom_iff (input : JsString)
     constructor
     · intro hp
       rcases (startsWith_bom_iff []).mp hp with ⟨t, ht⟩
-      exact absurd (congrArg List.length ht) (by simp [bom])
+      exact absurd (congrArg List.length ht)
+        (by simp only [bom, List.length_nil, List.length_append, List.length_cons]; omega)
     · rintro ⟨c, hc, _⟩
       exact absurd hc (by simp)
   | s :: rest =>
@@ -1644,6 +1647,22 @@ theorem decoderHandler_complete (st : DecoderState) (q : IoQueue Byte) (b : Byte
     complete_le st b hzero hout hcomp⟩, ?_, rfl⟩
   simp only [decoderHandler, dif_neg hzero, dif_neg hout, dif_pos hcomp]
 
+/-- DECODER [86515,90406) step 3's "Otherwise" row, reached from the four rows
+the byte is not in. Proved by comparisons on the byte: `omega` given the negated
+ranges would split them through `Classical.propDecidable`. -/
+private theorem lead_error_of_not (n : Nat) (hA : ¬ n ≤ 0x7F)
+    (h2 : ¬ (0xC2 ≤ n ∧ n ≤ 0xDF)) (h3 : ¬ (0xE0 ≤ n ∧ n ≤ 0xEF))
+    (h4 : ¬ (0xF0 ≤ n ∧ n ≤ 0xF4)) : (0x80 ≤ n ∧ n ≤ 0xC1) ∨ 0xF5 ≤ n := by
+  rcases Nat.lt_or_ge n 0xC2 with hB | hB
+  · exact Or.inl ⟨Nat.lt_of_not_le hA, Nat.le_of_lt_succ hB⟩
+  · rcases Nat.lt_or_ge n 0xF5 with hE | hE
+    · rcases Nat.lt_or_ge n 0xE0 with hC | hC
+      · exact absurd ⟨hB, Nat.le_of_lt_succ hC⟩ h2
+      · rcases Nat.lt_or_ge n 0xF0 with hD | hD
+        · exact absurd ⟨hC, Nat.le_of_lt_succ hD⟩ h3
+        · exact absurd ⟨hD, Nat.le_of_lt_succ hE⟩ h4
+    · exact Or.inr hE
+
 /-- The decoder never supplies a code point with its error: only an encoder
 does, for step 7's "html" arm of PROCI [15509,17620) and step 3 of ORFAILENC
 [51167,53203). -/
@@ -1666,7 +1685,7 @@ theorem decoderHandler_error_none (st : DecoderState) (q : IoQueue Byte) (item :
           · rw [decoderHandler_lead_three st q b hzero h3.1 h3.2]; exact fun hc => by cases hc
           · by_cases h4 : 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4
             · rw [decoderHandler_lead_four st q b hzero h4.1 h4.2]; exact fun hc => by cases hc
-            · rw [decoderHandler_lead_error st q b hzero (by omega)]
+            · rw [decoderHandler_lead_error st q b hzero (lead_error_of_not _ hA h2 h3 h4)]
               exact fun hc => by cases hc
     · by_cases hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat
       · rw [decoderHandler_out_of_boundary st q b hzero hout]; exact fun hc => by cases hc
@@ -1713,7 +1732,7 @@ private theorem handler_items_scalar (st : DecoderState) (q : IoQueue Byte)
           · by_cases h4 : 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4
             · rw [decoderHandler_lead_four st q b hzero h4.1 h4.2] at h
               exact absurd h (by simp)
-            · rw [decoderHandler_lead_error st q b hzero (by omega)] at h
+            · rw [decoderHandler_lead_error st q b hzero (lead_error_of_not _ hA h2 h3 h4)] at h
               exact absurd h (by simp)
     · by_cases hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat
       · rw [decoderHandler_out_of_boundary st q b hzero hout] at h; exact absurd h (by simp)
@@ -1871,7 +1890,8 @@ private theorem handler_value_progress (st : DecoderState) (q : IoQueue Byte) (b
         · exact Or.inl (by rw [decoderHandler_lead_three st q b hzero h3.1 h3.2])
         · by_cases h4 : 0xF0 ≤ b.toNat ∧ b.toNat ≤ 0xF4
           · exact Or.inl (by rw [decoderHandler_lead_four st q b hzero h4.1 h4.2])
-          · exact Or.inl (by rw [decoderHandler_lead_error st q b hzero (by omega)])
+          · exact Or.inl
+              (by rw [decoderHandler_lead_error st q b hzero (lead_error_of_not _ hA h2 h3 h4)])
   · by_cases hout : b.toNat < st.lowerBoundary.toNat ∨ st.upperBoundary.toNat < b.toNat
     · refine Or.inr ⟨hzero, ?_, ?_⟩
       · rw [decoderHandler_out_of_boundary st q b hzero hout]
@@ -2437,7 +2457,7 @@ private theorem modes_agree : ∀ (fuel : Nat) (st : DecoderState) (input : IoQu
         exact modes_agree fuel _ _ _ h
       | error c =>
         rw [errorCountLoop_of_error st input fuel item input' c hread hh] at h
-        omega
+        exact absurd h (by omega)
 
 private theorem decodeWithoutBomOrFailQueue_eq_none_iff (q : IoQueue Byte) :
     decodeWithoutBomOrFailQueue q = none ↔
@@ -2568,6 +2588,19 @@ private theorem initial_bytesSeen : DecoderState.initial.bytesSeen = 0 := rfl
 private theorem initial_lower : DecoderState.initial.lowerBoundary = (0x80 : Byte) := rfl
 private theorem initial_upper : DecoderState.initial.upperBoundary = (0xBF : Byte) := rfl
 
+/-- Outside both surrogate halves is outside the surrogate range. Proved by
+comparisons: `omega` given the negated ranges would split them through
+`Classical.propDecidable`. -/
+private theorem not_surrogate_of_not_halves {n : Nat} (h1 : ¬ (0xD800 ≤ n ∧ n ≤ 0xDBFF))
+    (h2 : ¬ (0xDC00 ≤ n ∧ n ≤ 0xDFFF)) : n < 0xD800 ∨ 0xDFFF < n := by
+  rcases Nat.lt_or_ge n 0xD800 with ha | ha
+  · exact Or.inl ha
+  · rcases Nat.lt_or_ge 0xDFFF n with hb | hb
+    · exact Or.inr hb
+    · rcases Nat.lt_or_ge n 0xDC00 with hc | hc
+      · exact absurd ⟨ha, Nat.le_of_lt_succ hc⟩ h1
+      · exact absurd ⟨hc, hb⟩ h2
+
 private theorem scalar_not_surrogate (s : ScalarValue) :
     s.val.val < 0xD800 ∨ 0xDFFF < s.val.val := by
   have hp : CodePoint.isSurrogate s.val = false := s.property
@@ -2575,7 +2608,7 @@ private theorem scalar_not_surrogate (s : ScalarValue) :
     CodePoint.inRange, CodePoint.inRange, Bool.or_eq_false_iff] at hp
   have h1 := of_decide_eq_false hp.1
   have h2 := of_decide_eq_false hp.2
-  omega
+  exact not_surrogate_of_not_halves h1 h2
 
 private theorem processQueueFuel_convertTo (l : ByteSequence) :
     processQueueFuel (IoQueue.convertTo l) = 2 * List.length l + 3 := by
@@ -3434,7 +3467,11 @@ private theorem inv_accumulate (st : DecoderState) (b : Byte) (hne : st.bytesNee
     rw [hmod]
     have hcase : (st.bytesSeen = 0 ∧ st.bytesNeeded = 2) ∨
         (st.bytesSeen = 0 ∧ st.bytesNeeded = 3) ∨ (st.bytesSeen = 1 ∧ st.bytesNeeded = 3) := by
-      omega
+      rcases Nat.lt_or_ge st.bytesSeen 1 with hs0 | hs1
+      · rcases Nat.lt_or_ge st.bytesNeeded 3 with hn2 | hn3
+        · exact Or.inl ⟨by omega, by omega⟩
+        · exact Or.inr (Or.inl ⟨by omega, by omega⟩)
+      · exact Or.inr (Or.inr ⟨by omega, by omega⟩)
     rcases hcase with ⟨hsn, hnn⟩ | ⟨hsn, hnn⟩ | ⟨hsn, hnn⟩
     · rw [hsn, hnn] at hmax hsur ⊢
       rw [show (2 : Nat) - 0 - 1 = 1 from rfl, Nat.pow_one] at hmax hsur
@@ -3674,8 +3711,8 @@ private theorem exists_scalar_three (b0 b1 b2 : Byte) (h1 : 0xE0 ≤ b0.toNat)
   have hrange : 0x800 ≤ (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) ∧
       (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) ≤ 0xFFFF := by
     by_cases he : b0.toNat = 0xE0
-    · have := hlo' he; omega
-    · omega
+    · have := hlo' he; exact ⟨by omega, by omega⟩
+    · exact ⟨by omega, by omega⟩
   have hns : (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) < 0xD800 ∨
       0xDFFF < (b0.toNat - 0xE0) * 4096 + (b1.toNat - 0x80) * 64 + (b2.toNat - 0x80) := by
     by_cases he : b0.toNat = 0xED
@@ -3747,6 +3784,17 @@ private theorem exists_scalar_four (b0 b1 b2 b3 : Byte) (h1 : 0xF0 ≤ b0.toNat)
       (b3.toNat - 0x80)) % 64 = b3.toNat by omega,
     UInt8.ofNat_toNat, UInt8.ofNat_toNat, UInt8.ofNat_toNat, UInt8.ofNat_toNat]
 
+/-- DECODER [86515,90406) step 4's "not in the range … inclusive", from the
+negated range. Proved by comparisons: `omega` given the negated range would
+split it through `Classical.propDecidable`. -/
+private theorem lt_or_lt_of_not_range {lo hi n : Nat} (h : ¬ (lo ≤ n ∧ n ≤ hi)) :
+    n < lo ∨ hi < n := by
+  rcases Nat.lt_or_ge n lo with h1 | h1
+  · exact Or.inl h1
+  · rcases Nat.lt_or_ge hi n with h2 | h2
+    · exact Or.inr h2
+    · exact absurd ⟨h1, h2⟩ h
+
 /-- Every byte sequence either begins with a whole encoded scalar value or is
 refused by the fatal mode. This is the case analysis of DECODER [86515,90406)
 step 3 read as a parser. -/
@@ -3789,7 +3837,7 @@ private theorem head_step (b0 : Byte) (rest : ByteSequence) :
             refine step_out_error_fatal _ b1 rest' [] _ (by rw [hneed]; omega) ?_
             rw [hlo, hhi]
             show b1.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b1.toNat
-            omega
+            exact lt_or_lt_of_not_range hin
       · rcases Nat.lt_or_ge b0.toNat 0xF0 with hD | hD
         · -- 0xE0 to 0xEF: two continuation bytes
           have hinv := inv_lead_three b0 hC (by omega)
@@ -3834,13 +3882,13 @@ private theorem head_step (b0 : Byte) (rest : ByteSequence) :
                   refine step_out_error_fatal _ b2 rest'' [] _ (by rw [hneed2]; omega) ?_
                   rw [hlo2, hhi2]
                   show b2.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b2.toNat
-                  omega
+                  exact lt_or_lt_of_not_range hin2
             · right
               refine not_wellFormed_of_fatal_error _ none ?_
               rw [hfuel, step_lead_three _ b0 hC (by omega) (b1 :: rest') [] _]
               refine step_out_error_fatal _ b1 rest' [] _ (by rw [hneed1]; omega) ?_
               rw [hlo1, hhi1]
-              omega
+              exact lt_or_lt_of_not_range hin
         · rcases Nat.lt_or_ge b0.toNat 0xF5 with hE | hE
           · -- 0xF0 to 0xF4: three continuation bytes
             have hinv := inv_lead_four b0 hD (by omega)
@@ -3907,7 +3955,7 @@ private theorem head_step (b0 : Byte) (rest : ByteSequence) :
                           (by rw [hneed3]; omega) ?_
                         rw [hlo3, hhi3]
                         show b3.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b3.toNat
-                        omega
+                        exact lt_or_lt_of_not_range hin3
                   · right
                     refine not_wellFormed_of_fatal_error _ none ?_
                     rw [hfuel, step_lead_four _ b0 hD (by omega) (b1 :: b2 :: rest'') [] _,
@@ -3915,13 +3963,13 @@ private theorem head_step (b0 : Byte) (rest : ByteSequence) :
                     refine step_out_error_fatal _ b2 rest'' [] _ (by rw [hneed2]; omega) ?_
                     rw [hlo2, hhi2]
                     show b2.toNat < ((0x80 : Byte)).toNat ∨ ((0xBF : Byte)).toNat < b2.toNat
-                    omega
+                    exact lt_or_lt_of_not_range hin2
               · right
                 refine not_wellFormed_of_fatal_error _ none ?_
                 rw [hfuel, step_lead_four _ b0 hD (by omega) (b1 :: rest') [] _]
                 refine step_out_error_fatal _ b1 rest' [] _ (by rw [hneed1]; omega) ?_
                 rw [hlo1, hhi1]
-                omega
+                exact lt_or_lt_of_not_range hin
           · right
             refine not_wellFormed_of_fatal_error (b0 :: rest) none ?_
             rw [hfuel]
@@ -4438,7 +4486,7 @@ private theorem codePoints_ofCodePoints : ∀ (cs : List CodePoint),
       rw [Bool.or_eq_false_iff] at hc
       have h1 := of_decide_eq_false hc.1
       have h2 := of_decide_eq_false hc.2
-      omega
+      exact not_surrogate_of_not_halves h1 h2
     have hle : c.val ≤ 0x10FFFF := c.isLe
     have hih := codePoints_ofCodePoints t (fun x hx => h x (List.mem_cons_of_mem _ hx))
     rw [JsString.ofCodePoints, List.flatMap_cons, ← JsString.ofCodePoints,
@@ -4461,10 +4509,10 @@ private theorem codePoints_ofCodePoints : ∀ (cs : List CodePoint),
       rw [List.cons_append, List.cons_append, List.nil_append, codePoints_cons₂,
         dif_pos (show 0xD800 ≤ (UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat ∧
           (UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat ≤ 0xDBFF by
-            rw [hlead]; omega),
+            rw [hlead]; exact ⟨by omega, by omega⟩),
         dif_pos (show 0xDC00 ≤ (UInt16.ofNat (0xDC00 + (c.val - 0x10000) % 0x400)).toNat ∧
           (UInt16.ofNat (0xDC00 + (c.val - 0x10000) % 0x400)).toNat ≤ 0xDFFF by
-            rw [htrail]; omega),
+            rw [htrail]; exact ⟨by omega, by omega⟩),
         hih]
       refine congrArg (fun x => x :: t) (CodePoint.ext ?_)
       show ((UInt16.ofNat (0xD800 + (c.val - 0x10000) / 0x400)).toNat - 0xD800) * 0x400 +
