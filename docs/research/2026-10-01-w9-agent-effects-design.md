@@ -74,6 +74,8 @@ are DB-04's unless a sentence says `Effects.Trace.Mask.m1` or `m2`.
 | core `Except` | `DecidableEq (Except Nat Nat)` fails to synthesize, so `Jobs.ReactionJob (Except reason value)`, the landed reaction-job queue and `SettlementTrace` have no `DecidableEq` | `#synth` probe `[C]` |
 | landed instances | `ResolvingFunctions` and `Jobs.Active` derive `DecidableEq` only, `Reaction` derives `Repr` only, and `Reactions` derives nothing; positive ascriptions only in `WhatwgTest/Ecma262/PromiseContract.lean`, `JobsContract.lean`, `PromiseFidelityContract.lean` | grep `[C]` |
 | namespace hazard | inside `namespace Whatwg.Effects.X`, `Effects.Handler` resolves to `Whatwg.Effects.Handler` once that exists | `lake env lean Shadow.lean` `[C]` |
+| D46 witness | at the agent after one `newPromise` from `Agent.empty`: store-level `react` then `resolve` leaves 0 jobs; agent-level leaves `[⟨0, .ok ()⟩]`; the hypotheses of `react_resolve_enqueues_wf` hold there; all by `rfl`, inside `propext`, `Quot.sound` | `lake env lean Witness040.lean` (appendix B) `[C]` |
+| `WF.settle` | `settle` keeps the seven prototype clauses: 185 non-blank lines with five reusable helpers, inside `propext`, `Quot.sound` | `lake env lean WFSettle.lean` (appendix B) `[C]` |
 | choice traps | `rw [beq_self_eq_true]` at `Nat` reaches `Classical.choice`; `decide_eq_true rfl` reaches nothing; a `simp` that rewrites an `if` condition reached choice in `waitingOn_add_fulfill` until replaced by `List.filter_cons_of_pos` | probes `[C]` |
 
 The prototype took the face first as `Whatwg.Effects.Ecma262`, measured it,
@@ -322,7 +324,8 @@ They are builder-owned, so no breaker amendment is needed.
 Seed row, `WS-PROM-CE-040`: "Web IDL `react` followed by `resolve` enqueues
 no reaction job, because `WebIdl.Promise.resolve` is `Table.settle` and its
 signature carries no reaction store or queue (D46)." The witness, finite and
-decidable over `Nat` and `Unit`, runs in two parts.
+decidable over `Nat` and `Unit`, runs in two parts; both elaborated by `rfl`
+`[C]`.
 
 1. Store level. From `Agent.empty`, call `newPromise`, then
    `WebIdl.Promise.react` on the table, reactions and queue. Call
@@ -424,7 +427,7 @@ DB-04 M2". `[H]`: not prototyped.
 | `callResolve_disables_reject` | agent `resolve` then `reject` is inert | new short proof `[H]` |
 | `triggerReactions_order` | `react_resolve_enqueues` (D46) | new proof `[C]` |
 | D20 (no coherence of trace and table) | `WF.settlementsCoherent` | new proof `[H]` |
-| `WF` kept by every operation | 9 operations by 14 clauses | new; `WF.empty`, `WF.newPromise`, `WF.markHandled` proved for the 7 prototype clauses `[C]`; `settle`, `perform`, `finishJob` carry the work, about 600 to 900 lines `[H]` |
+| `WF` kept by every operation | 9 operations by 14 clauses | new; `WF.empty`, `WF.newPromise`, `WF.markHandled` and `WF.settle` proved for the 7 prototype clauses `[C]`; `WF.settle` took 185 lines with helpers that `callFunctions` and `finishJob` reuse; the rest, about 900 to 1,200 lines in all `[H]` |
 | Q4 bridges (`register_reactions_bridge`, `notifySettled_*`) | not lifted here | W8's cutover embeds `Agent` in `Config` |
 
 Proof style that stayed under the strict ceiling `[C]`:
@@ -780,7 +783,7 @@ it. If W7's ledger lands first, the graph is born there.
 | Slice | Fence | Depends on | Size |
 | --- | --- | --- | --- |
 | B1 record, operations, step, views, D46 | `Whatwg/Ecma262/Agent.lean`; the import and docstring of `Whatwg/Ecma262.lean`; the two `Promise.Reaction`/`Capability` docstrings in `Whatwg/Ecma262/Promise.lean` | breaker packet | about 500 lines; the prototype has 360 |
-| B2 invariant and lifted laws | `Whatwg/Ecma262/AgentLaws.lean` (new module, so B3 and B4 do not wait) | B1 | 600 to 900 lines `[H]` |
+| B2 invariant and lifted laws | `Whatwg/Ecma262/AgentLaws.lean` (new module, so B3 and B4 do not wait) | B1 | 900 to 1,200 lines `[H]`, from the measured `WF.settle` |
 | B3 Web IDL verbs | `Whatwg/WebIdl/Agent.lean`; `Whatwg/WebIdl.lean`; two docstrings in `Whatwg/WebIdl/Promise.lean` | B1 | about 200 lines |
 | B4 face | `Whatwg/Signatures.lean`, `Whatwg/Signatures/Ecma262.lean`; one `[[lean_lib]]` block and `defaultTargets` in `lakefile.toml`; one import in `Whatwg.lean`. The `strictCeilingPrefixes` entry is applied by the coordinator, as R-V7 did for the word list | B1 | about 200 lines |
 
@@ -912,9 +915,10 @@ and not P8. W9's face is the template.
 
 ## 8. Not checked
 
-- No breaker or builder work. That `settle`, `perform`, `callFunctions`,
-  `startJob` and `finishJob` keep `WF`, and the seven further clauses with
-  their lemmas, are estimates `[H]`.
+- No breaker or builder work. That `perform`, `callFunctions`, `startJob`,
+  `finishJob` and the script operations keep `WF`, and the seven further
+  clauses with their lemmas, are estimates `[H]`; `settle`, `newPromise`
+  and `markHandled` were proved for the seven prototype clauses.
 - No statement compared step by step against the sealed `spec.html` and
   `index.bs` beyond the anchors the landed docstrings already carry. The
   coverage candidates of 3.2 are `[H]`.
@@ -1948,4 +1952,291 @@ def Whatwg.Effects.Handler : Type := Nat
 namespace Whatwg.Effects.Probe
 #check (Effects.Handler : Type)
 end Whatwg.Effects.Probe
+```
+
+### B.5 `Witness040.lean` (the `WS-PROM-CE-040` seed)
+
+```lean
+import Whatwg.Ecma262.Agent
+import Whatwg.WebIdl.Agent
+
+/-! WS-PROM-CE-040 seed witness (W9 design seat, scratch only). -/
+
+open Whatwg.Ecma262
+
+/-- One pending promise with its capability, from the empty agent. -/
+def start : Agent.Agent Unit Nat Nat × Promise.Capability := Agent.newPromise Agent.empty
+
+/-- Store level: `WebIdl.Promise.react`, then `WebIdl.Promise.resolve` on the
+table. `resolve` takes no queue, so the queue the caller holds after `react`
+is the only queue there is. -/
+def storeLevelJobs : Nat :=
+  match Whatwg.WebIdl.Promise.react start.1.table start.1.reactions start.1.queue
+      start.2.promise (some 7) none with
+  | none => 99
+  | some res => res.2.2.1.pending.length
+
+theorem storeLevel_noJob : storeLevelJobs = 0 := rfl
+
+/-- The store-level table after `resolve` does settle the promise: the job is
+what is missing, not the settlement. -/
+theorem storeLevel_settled :
+    (match Whatwg.WebIdl.Promise.react start.1.table start.1.reactions start.1.queue
+        start.2.promise (some 7) none with
+      | none => none
+      | some res => Promise.Table.get (Whatwg.WebIdl.Promise.resolve res.1 start.2.promise ())
+          start.2.promise) = some (Promise.State.fulfilled ()) := rfl
+
+/-- Agent level: the same two verbs enqueue exactly the reaction's job. -/
+theorem agentLevel_oneJob :
+    (Whatwg.WebIdl.Agent.resolve (Whatwg.WebIdl.Agent.react start.1 start.2 (some 7) none).1
+        start.2 ()).queue.pending =
+      [Jobs.ReactionJob.mk 0 (Except.ok ())] := rfl
+
+/-- The hypotheses of `react_resolve_enqueues_wf` hold here, so the D46 law is
+not vacuous. -/
+theorem hypotheses_hold :
+    Agent.WF start.1 ∧
+      start.1.table.get start.2.promise = some Promise.State.pending ∧
+      start.1.functions.find? (fun g => g.resolve == start.2.resolve) =
+        some (Promise.createResolvingFunctions 0 0) ∧
+      (Promise.createResolvingFunctions 0 0).alreadyResolved = false ∧
+      (Promise.createResolvingFunctions 0 0).promise = start.2.promise :=
+  ⟨Agent.WF.newPromise Agent.WF.empty, rfl, rfl, rfl, rfl⟩
+
+/-- The law's right side at this point is the one job. -/
+theorem law_instance :
+    (Whatwg.WebIdl.Agent.resolve (Whatwg.WebIdl.Agent.react start.1 start.2 (some 7) none).1
+        start.2 ()).queue.pending =
+      start.1.queue.pending ++
+        ((Promise.Reactions.waitingOn start.1.reactions start.2.promise
+            Promise.ReactionType.fulfill).map
+          (fun r => Jobs.ReactionJob.mk r.id (Except.ok ())) ++
+        [Jobs.ReactionJob.mk start.1.reactions.next (Except.ok ())]) :=
+  Whatwg.WebIdl.Agent.react_resolve start.1 start.2 _ 7 () hypotheses_hold.1
+    hypotheses_hold.2.1 hypotheses_hold.2.2.1 hypotheses_hold.2.2.2.1 hypotheses_hold.2.2.2.2
+
+#print axioms storeLevel_noJob
+#print axioms storeLevel_settled
+#print axioms agentLevel_oneJob
+#print axioms hypotheses_hold
+#print axioms law_instance
+```
+
+### B.6 `WFSettle.lean`
+
+```lean
+import Whatwg.Ecma262.Agent
+
+/-! W9 measurement: `settle` keeps the seven prototype `WF` clauses. Scratch only. -/
+
+namespace Whatwg.Ecma262.Agent
+
+open Whatwg.Ecma262
+
+/-- Lookup by identity commutes with an identity-keeping map. -/
+theorem find?_map_fst {α : Type} (l : List (Nat × α)) (g : Nat × α → Nat × α)
+    (hg : ∀ e, (g e).1 = e.1) (q : Nat) :
+    List.find? (fun e => e.1 == q) (l.map g) = (List.find? (fun e => e.1 == q) l).map g := by
+  rw [List.find?_map]
+  have : ((fun e : Nat × α => e.1 == q) ∘ g) = (fun e => e.1 == q) := by
+    funext e
+    show ((g e).1 == q) = (e.1 == q)
+    rw [hg e]
+  rw [this]
+
+/-- Settling keeps the identity list and the cursor. -/
+theorem settle_ids {value reason : Type} (t : Promise.Table value reason) (id : Nat)
+    (result : Except reason value) :
+    (Promise.Table.settle t id result).entries.map Prod.fst = t.entries.map Prod.fst ∧
+      (Promise.Table.settle t id result).next = t.next := by
+  unfold Promise.Table.settle
+  cases Promise.Table.isPending t id with
+  | false => exact ⟨rfl, rfl⟩
+  | true =>
+      refine ⟨?_, rfl⟩
+      show (t.entries.map _).map Prod.fst = _
+      rw [List.map_map]
+      apply List.map_congr_left
+      intro e _
+      show (if _ then _ else e).1 = e.1
+      split <;> rfl
+
+/-- Settling one identity leaves every other identity's state alone. -/
+theorem settle_get_other {value reason : Type} (t : Promise.Table value reason) (id q : Nat)
+    (result : Except reason value) (hne : q ≠ id) :
+    Promise.Table.get (Promise.Table.settle t id result) q = Promise.Table.get t q := by
+  unfold Promise.Table.settle
+  cases Promise.Table.isPending t id with
+  | false => rfl
+  | true =>
+      show Option.map Promise.Cell.state (Option.map Prod.snd
+        (List.find? (fun e => e.1 == q) (t.entries.map _))) =
+          Option.map Promise.Cell.state (Option.map Prod.snd
+            (List.find? (fun e => e.1 == q) t.entries))
+      rw [find?_map_fst t.entries]
+      · cases hf : List.find? (fun (e : Nat × Promise.Cell value reason) => e.1 == q)
+            t.entries with
+        | none => rfl
+        | some e =>
+            have hq : e.1 = q := beq_iff_eq.mp
+              (List.find?_some (p := fun (x : Nat × Promise.Cell value reason) => x.1 == q) hf)
+            have hid : (e.1 == id) = false := by
+              cases hb : (e.1 == id) with
+              | false => rfl
+              | true => exact absurd ((beq_iff_eq.mp hb).symm.trans hq).symm hne
+            show some (if _ then _ else e).2.state = some e.2.state
+            rw [if_neg (by rw [hid]; exact Bool.false_ne_true)]
+      · intro e
+        show (if _ then _ else e).1 = e.1
+        split <;> rfl
+
+/-- A promise that is not pending stays not pending. -/
+theorem settle_notPending {value reason : Type} (t : Promise.Table value reason) (id q : Nat)
+    (result : Except reason value) (h : Promise.Table.isPending t q = false) :
+    Promise.Table.isPending (Promise.Table.settle t id result) q = false := by
+  cases hq : decide (q = id) with
+  | true =>
+      have hqe : q = id := of_decide_eq_true hq
+      subst hqe
+      have hnp : Promise.Table.get t q ≠ some Promise.State.pending := fun hp =>
+        Bool.false_ne_true (h.symm.trans ((Promise.Table.isPending_iff t q).mpr hp))
+      rw [Promise.Table.settle_other t q result hnp]
+      exact h
+  | false =>
+      have hne : q ≠ id := of_decide_eq_false hq
+      unfold Promise.Table.isPending
+      rw [settle_get_other t id q result hne]
+      exact h
+
+/-- Trigger then clear change phases only: the fulfil list keeps its
+identities, whichever list was triggered. -/
+theorem trigger_clear_fulfill_ids {value reason body : Type} (rs : Promise.Reactions body)
+    (p : Nat) (k : Promise.ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    (Promise.Reactions.clear (Promise.triggerReactions rs p k argument q).1 p).fulfill.map
+        Promise.Reaction.id = rs.fulfill.map Promise.Reaction.id := by
+  cases k with
+  | fulfill =>
+      show List.map Promise.Reaction.id (List.map _ (List.map _ rs.fulfill)) = _
+      rw [List.map_map, List.map_map]
+      apply List.map_congr_left
+      intro r _
+      show (if _ then _ else (if _ then _ else r)).id = r.id
+      split <;> (show (if _ then _ else r).id = r.id; split <;> rfl)
+  | reject =>
+      show List.map Promise.Reaction.id (List.map _ rs.fulfill) = _
+      rw [List.map_map]
+      apply List.map_congr_left
+      intro r _
+      show (if _ then _ else r).id = r.id
+      split <;> rfl
+
+/-- The same for the reject list. -/
+theorem trigger_clear_reject_ids {value reason body : Type} (rs : Promise.Reactions body)
+    (p : Nat) (k : Promise.ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    (Promise.Reactions.clear (Promise.triggerReactions rs p k argument q).1 p).reject.map
+        Promise.Reaction.id = rs.reject.map Promise.Reaction.id := by
+  cases k with
+  | reject =>
+      show List.map Promise.Reaction.id (List.map _ (List.map _ rs.reject)) = _
+      rw [List.map_map, List.map_map]
+      apply List.map_congr_left
+      intro r _
+      show (if _ then _ else (if _ then _ else r)).id = r.id
+      split <;> (show (if _ then _ else r).id = r.id; split <;> rfl)
+  | fulfill =>
+      show List.map Promise.Reaction.id (List.map _ rs.reject) = _
+      rw [List.map_map]
+      apply List.map_congr_left
+      intro r _
+      show (if _ then _ else r).id = r.id
+      split <;> rfl
+
+/-- Trigger then clear consume no registration cursor. -/
+theorem trigger_clear_next {value reason body : Type} (rs : Promise.Reactions body)
+    (p : Nat) (k : Promise.ReactionType) (argument : Except reason value)
+    (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
+    (Promise.Reactions.clear (Promise.triggerReactions rs p k argument q).1 p).next = rs.next := by
+  cases k <;> rfl
+
+/-- Membership through an identity-keeping list. -/
+theorem lt_of_ids {body : Type} (l l' : List (Promise.Reaction body)) (n : Nat)
+    (h : l'.map Promise.Reaction.id = l.map Promise.Reaction.id)
+    (hl : ∀ r ∈ l, r.id < n) : ∀ r ∈ l', r.id < n := by
+  intro r hr
+  have hm : r.id ∈ l.map Promise.Reaction.id := h ▸ List.mem_map_of_mem hr
+  obtain ⟨r0, hr0, he⟩ := List.mem_map.mp hm
+  rw [← he]
+  exact hl r0 hr0
+
+/-- **`settle` keeps the seven prototype clauses.** -/
+theorem WF.settle {value reason body : Type} {a : Agent value reason body} (hw : WF a)
+    (p : Nat) (result : Except reason value) : WF (settle a p result) := by
+  have hF : ∀ r ∈ a.reactions.fulfill, r.id < a.reactions.next := fun r hr =>
+    hw.reactionsBelow r (List.mem_append_left _ (List.mem_append_left _ hr))
+  have hR : ∀ r ∈ a.reactions.reject, r.id < a.reactions.next := fun r hr =>
+    hw.reactionsBelow r (List.mem_append_left _ (List.mem_append_right _ hr))
+  have hH : ∀ r ∈ a.held, r.id < a.reactions.next := fun r hr =>
+    hw.reactionsBelow r (List.mem_append_right _ hr)
+  have hids := settle_ids a.table p result
+  have htab : (Agent.settle a p result).table = Promise.Table.settle a.table p result :=
+    settleAndTrigger_table a.table a.reactions a.queue p result
+  refine ⟨?_, ?_, hw.functionsBelow, ?_, ?_, ?_, ?_⟩
+  · rw [htab, hids.1]
+    exact hw.tableNodup
+  · intro e he
+    rw [htab] at he
+    rw [htab, hids.2]
+    have hmem : e.1 ∈ (Promise.Table.settle a.table p result).entries.map Prod.fst :=
+      List.mem_map_of_mem he
+    rw [hids.1] at hmem
+    obtain ⟨e0, he0, h0⟩ := List.mem_map.mp hmem
+    rw [← h0]
+    exact hw.tableBelow e0 he0
+  · intro f hf
+    rw [htab, hids.2]
+    exact hw.functionsAllocated f hf
+  · intro f hf hres
+    rw [htab]
+    exact settle_notPending a.table p f.promise result (hw.resolvedSettled f hf hres)
+  · -- the reaction lists: either unchanged, or trigger then clear
+    unfold Agent.settle Promise.Table.settleAndTrigger
+    cases Promise.Table.isPending a.table p with
+    | false => exact hw.reactionsBelow
+    | true =>
+        intro r hr
+        rcases List.mem_append.mp hr with hfr | hheld
+        · rcases List.mem_append.mp hfr with hful | hrej
+          · exact Nat.lt_of_lt_of_eq (lt_of_ids a.reactions.fulfill _ _
+              (trigger_clear_fulfill_ids _ _ _ _ _) hF r hful) (trigger_clear_next _ _ _ _ _).symm
+          · exact Nat.lt_of_lt_of_eq (lt_of_ids a.reactions.reject _ _
+              (trigger_clear_reject_ids _ _ _ _ _) hR r hrej) (trigger_clear_next _ _ _ _ _).symm
+        · exact Nat.lt_of_lt_of_eq (hH r hheld) (trigger_clear_next _ _ _ _ _).symm
+  · -- the queue: unchanged, or the old jobs then the waiting reactions' jobs
+    unfold Agent.settle Promise.Table.settleAndTrigger
+    cases Promise.Table.isPending a.table p with
+    | false => exact hw.queueBelow
+    | true =>
+        intro j hj
+        change j ∈ (Promise.triggerReactions a.reactions p _ result a.queue).2.pending at hj
+        rw [Promise.triggerReactions_order] at hj
+        rcases List.mem_append.mp hj with hold | hnew
+        · exact Nat.lt_of_lt_of_eq (hw.queueBelow j hold) (trigger_clear_next _ _ _ _ _).symm
+        · obtain ⟨r, hr, hjr⟩ := List.mem_map.mp hnew
+          rw [← hjr]
+          have hr' := (List.mem_filter.mp hr).1
+          refine Nat.lt_of_lt_of_eq ?_ (trigger_clear_next _ _ _ _ _).symm
+          revert hr'
+          cases result with
+          | ok _ => exact hF r
+          | error _ => exact hR r
+end Whatwg.Ecma262.Agent
+
+#print axioms Whatwg.Ecma262.Agent.settle_ids
+#print axioms Whatwg.Ecma262.Agent.settle_get_other
+#print axioms Whatwg.Ecma262.Agent.settle_notPending
+#print axioms Whatwg.Ecma262.Agent.trigger_clear_fulfill_ids
+#print axioms Whatwg.Ecma262.Agent.WF.settle
 ```
