@@ -43,6 +43,11 @@ wins and the cell names it.
 | trust | `required-closed` | The document held the edge open on independent review alone (Q4 landing, second pass); ruling R-P27 records that review of `1d400b4` as done, so the edge closes on R-P27. The 93 named receipts print inside the R-11 ceiling and `lake exe trustselftest` passes against an empty declared red set (Q4 landing, second pass). At `325d5d5` nine receipts reached `Classical.choice`: `readTable_settleReadCell`, `readTable_settleReadCells`, `Transform.settle_table_bridge`, `Transform.settle_waiting_once`, `notifySettled_queued_serial`, `notifySettled_reactions_bridge`, `successfulControl_sink_at_most_one`, `Source.erases_prefix_selected_order` and `Source.erasure_preserves_selected_order`. Slice V5 of lane V repaired all nine with no statement changed and removed the three global `@[simp]` attributes on `freshReadCell`, `settleReadCell` and `settleReadCells` that R-P27 had re-frozen as debt D43; since that landing the axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1, R-V6). D43 is closed |
 | coverage | `required-open` | The exact clause and numerator joins. The R-P5 re-disposition of `slot.promise-state` and `slot.promise-is-handled` to `owned` moved no coverage state (Q4 landing, second pass) |
 
+The ledger entry of this graph in `WhatwgTest/Ledger.lean` is projected to
+`generated/graphs/CONFIGURATION-PG-ORDERING.md` by
+`lake exe whatwg_ledger --write`, and `lake exe whatwg_ledger` checks that
+projection and the entry's references, not this table.
+
 ## Source anchors
 
 The semantic owner is `vendor/whatwg-streams-b9ba9f49/index.bs` at Streams
