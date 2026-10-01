@@ -2,6 +2,7 @@ import Lean
 import Lean.Util.CollectAxioms
 import Whatwg
 import WhatwgGates
+import WhatwgGates.TrustConfig
 
 /-!
 # Whatwg trust and axiom gate
@@ -150,122 +151,18 @@ open Lean
 
 namespace WhatwgTest.Audit
 
-/-! ## Ceilings and their lists -/
+/-! ## Ceilings and their lists
 
-/-- Ruling R-11's ceiling, Lean's standard base, binding every audited tree. -/
-private def repositoryCeiling : List Name :=
-  [``propext, ``Quot.sound, ``Classical.choice]
+The audited trees, both ceilings, the strict prefixes and the three anchored
+lists are this repository's data, held by `Gates.TrustConfig.config` in
+`WhatwgGates/TrustConfig.lean` below their frozen anchor comments (addendum
+V2e.3, ruling R-W7(a)); the gate reads them from there. -/
 
-/-- Ruling R-V1's strict ceiling, binding every constant whose module is under a
-prefix of `strictCeilingPrefixes`. -/
-private def strictCeiling : List Name :=
-  [``propext, ``Quot.sound]
+open Gates.TrustConfig (config)
 
 /-- A ceiling as its diagnostics spell it, on one line. -/
 private def ceilingText (separator : String) (ceiling : List Name) : String :=
   separator.intercalate (ceiling.map toString)
-
-/-- Module prefixes under the strict ceiling (ruling R-V1). A prefix joins when
-its measured residue, the constants under it that reach `Classical.choice`, is
-zero or wholly covered by exact exceptions the coordinator accepts as debts.
-Adding a prefix is one line; the build then fails with one error per residue
-declaration, which is the measurement.
-
-The five prefixes below have zero residue at the lane V landing; `Whatwg.Streams`
-joined at integration, with the R-V5 repair. `Whatwg.Html.Print` and the
-`String`-borne definitions of `Whatwg.Infra.{Namespaces,Text.Scalar,Text.String}`
-stay under R-11: they reach `Classical.choice` through core's `String` API. A
-prefix must lie inside the `Whatwg` tree, since R-V1 keeps `WhatwgTest` and
-`WhatwgGates` under R-11, and must cover at least one audited module, so that a
-misspelt prefix cannot make the strict ceiling vacuous. -/
-private def strictCeilingPrefixes : List Name :=
-  [ `Whatwg.Ecma262
-  , `Whatwg.WebIdl
-  , `Whatwg.Url
-  , `Whatwg.Infra.Text.Utf8
-  , `Whatwg.Streams
-  ]
-
-/-- An exact admission of one declaration under the strict ceiling to
-`Classical.choice`, with the reason the coordinator accepted it as a debt. -/
-private structure StrictCeilingException where
-  declaration : Name
-  reason : String
-
-/-- Exact strict-ceiling exceptions, one declaration each, written
-`` ⟨`Full.Name, "reason"⟩ :: `` on its own line below the anchor comment, where
-`lake exe whatwg_trustselftest` plants its entries too. The gate refuses an
-entry that names no declaration, one whose module is under no strict prefix,
-one whose declaration does not reach `Classical.choice`, one with a blank
-reason, and one listed twice. Empty at the V2 landing. -/
-private def strictCeilingExceptions : List StrictCeilingException :=
-  -- trust-selftest: strict-ceiling exception entries are inserted below this line
-  []
-
-/-- A strict-ceiling exception for a private declaration, identified by its
-exact owning module and its original spelling, never by Lean's private-name
-counter. -/
-private structure PrivateStrictCeilingException where
-  owner : Name
-  original : Name
-  reason : String
-
-/-- Private strict-ceiling exceptions. Each must resolve to exactly one audited
-declaration and then passes the same checks as `strictCeilingExceptions`.
-Empty at the V2 landing. -/
-private def privateStrictCeilingExceptions : List PrivateStrictCeilingException :=
-  []
-
-/-- An exact admission of one module's source to the trust-token pass, and to
-no other check, with the reason it must name a refused word in code. -/
-private structure SourceTokenExemption where
-  moduleName : Name
-  reason : String
-
-/-- Source-token exemptions by exact module name, written
-`` ⟨`Full.Module, "reason"⟩ :: `` on its own line below the anchor comment. The
-gate refuses an entry that names no audited module source, one that names an
-entry point under `whatwgbin/` (none can be exempted), one whose source carries
-no refused word in code, one with a blank reason, and one listed twice. Empty at
-the V2 landing: this module spells its word lists as literals. -/
-private def sourceTokenExemptions : List SourceTokenExemption :=
-  -- trust-selftest: source-token exemption entries are inserted below this line
-  []
-
-/-- An exact admission of one audited module to rule 1 of addendum V2c, with
-the reason it declares syntax, a macro or an elaborator, or runs a metaprogram.
-It relaxes the metaprogramming-keyword refusal and the registration refusal for
-that module and nothing else: a listed module stays bound by every trust word. -/
-private structure MetaprogrammingModule where
-  moduleName : Name
-  reason : String
-
-/-- Metaprogramming modules by exact module name (ruling R-V10, addendum V2c.2),
-written `` ⟨`Full.Module, "reason"⟩ :: `` on its own line below the anchor
-comment, where `lake exe whatwg_trustselftest` plants its entries too. The gate
-refuses an entry that names no audited module source, one whose source spells no
-metaprogramming keyword and whose module registers nothing, one with a blank
-reason, one listed twice, and one that names an entry point under `whatwgbin/`.
-It holds eleven modules: the eight that declare a `#…` gate command, the two
-constructive-contract batteries that run a receipt in `run_cmd` (both groups
-since the V2c landing), and, since the W6 landing (ruling R-W7(b), addendum
-V2d), `WhatwgTest.Audit.Freeze`, which declares the registry command
-`#whatwg_freeze`. A battery that only uses that command registers nothing and
-needs no entry. -/
-private def metaprogrammingModules : List MetaprogrammingModule :=
-  -- trust-selftest: metaprogramming-module entries are inserted below this line
-  ⟨`WhatwgTest.Audit.Freeze, "declares the registry command #whatwg_freeze with syntax and command_elab"⟩ ::
-  ⟨`WhatwgTest.Audit.AxiomGate, "declares this gate's command and elaborator, and its post-command linters with initialize (V2c.5)"⟩ ::
-  ⟨`WhatwgTest.Audit.SpecCoverage, "declares the gate command #spec_coverage_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Audit.CensusProfileIdentity, "declares the gate command #census_profile_identity_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Audit.WebIdl.CensusContract, "declares the gate command #webidl_census_contract_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Audit.WebIdl.CensusQ2Contract, "declares the gate command #webidl_census_q2_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Audit.Ecma262.CensusContract, "declares the gate command #ecma262_census_contract_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Audit.Ecma262.CensusQ2Contract, "declares the gate command #ecma262_census_q2_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Audit.Ecma262.EcmarkupScanner, "declares the gate command #ecmarkup_scanner_gate with elab"⟩ ::
-  ⟨`WhatwgTest.Infra.IntegerConstructiveContract, "runs receipt INFRA-INTEGER-CE-001 in run_cmd: Lean.collectAxioms over nine range proofs"⟩ ::
-  ⟨`WhatwgTest.Infra.ScalarConstructiveContract, "runs receipt INFRA-SCALAR-CE-001 in run_cmd: Lean.collectAxioms over nine declarations"⟩ ::
-  []
 
 /-- The three compiler-trust axioms. With `sorryAx` they are the axioms no
 audited constant may reach, and the trust-token pass refuses all four by name. -/
@@ -290,15 +187,8 @@ private def synthesizedOpaqueBodies : List Name :=
 
 /-! ## Trees, modules and declarations -/
 
-/-- The audited trees, disjoint under `Name.isPrefixOf`, which compares whole
-components. The SHA-256 lane that used to be a fourth is the required `hash`
-package since step 6 of `docs/HASH-PACKAGE-PLAN.md`; its own gate audits it
-there, and nothing under a dependency is inspected here. -/
-private def auditedTrees : List Name :=
-  [`Whatwg, `WhatwgTest, `WhatwgGates] -- R-V3(c), 2026-10-01
-
 private def treeOf? (moduleName : Name) : Option Name :=
-  auditedTrees.find? (·.isPrefixOf moduleName)
+  config.auditedTrees.find? (·.isPrefixOf moduleName)
 
 private def moduleOf? (environment : Environment) (declaration : Name) : Option Name := do
   let index ← environment.getModuleIdxFor? declaration
@@ -306,7 +196,7 @@ private def moduleOf? (environment : Environment) (declaration : Name) : Option 
 
 /-- The strict prefix a module is under: the longest that matches, if any. -/
 private def strictPrefixOf? (moduleName : Name) : Option Name :=
-  strictCeilingPrefixes.foldl (init := none) fun best candidate =>
+  config.strictCeilingPrefixes.foldl (init := none) fun best candidate =>
     if candidate.isPrefixOf moduleName then
       match best with
       | some current => if current.getNumParts < candidate.getNumParts then some candidate else best
@@ -1184,7 +1074,7 @@ private def environmentFindings (environment : Environment)
 
 /-- The modules `metaprogrammingModules` lists. -/
 private def listedMetaprogrammingModules : NameSet :=
-  metaprogrammingModules.foldl (init := {}) fun listed entry => listed.insert entry.moduleName
+  config.metaprogrammingModules.foldl (init := {}) fun listed entry => listed.insert entry.moduleName
 
 /-- Pass 3, the environment half of rule 1 (addendum V2c.2): a registration is
 attributed to the module whose entries record it and, when the registered
@@ -1225,7 +1115,7 @@ private def strictCeilingFindings (environment : Environment)
     (declarations : Array AuditedDeclaration) :
     CommandElabM (Array MessageData × Array Name) := do
   let mut findings : Array MessageData := #[]
-  for strictPrefix in strictCeilingPrefixes do
+  for strictPrefix in config.strictCeilingPrefixes do
     if !(`Whatwg).isPrefixOf strictPrefix then
       findings := findings.push
         m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} is outside the Whatwg tree; ruling R-V1 keeps WhatwgTest and WhatwgGates under R-11" -- R-V3(c), 2026-10-01
@@ -1233,13 +1123,13 @@ private def strictCeilingFindings (environment : Environment)
       findings := findings.push
         m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} covers no audited module"
   let mut excepted : Array Name := #[]
-  for entry in strictCeilingExceptions do
+  for entry in config.strictCeilingExceptions do
     if isBlank entry.reason then
       findings := findings.push
         m!"Whatwg axiom gate: strict-ceiling exception for {entry.declaration} carries no reason"
     findings := findings ++ (← strictExceptionTargetFindings environment entry.declaration)
     excepted := excepted.push entry.declaration
-  for entry in privateStrictCeilingExceptions do
+  for entry in config.privateStrictCeilingExceptions do
     if isBlank entry.reason then
       findings := findings.push
         m!"Whatwg axiom gate: strict-ceiling exception for {entry.original} (private to {entry.owner}) carries no reason"
@@ -1276,7 +1166,7 @@ private def trustTokenFindings (projectRoot : System.FilePath) (sources : Audite
   let entryPaths := sources.entryPoints.map (·.normalize)
   let mut exempted : Array (System.FilePath × Name) := #[]
   let mut listed : Array Name := #[]
-  for exemption in sourceTokenExemptions do
+  for exemption in config.sourceTokenExemptions do
     let moduleName := exemption.moduleName
     if isBlank exemption.reason then
       findings := findings.push
@@ -1319,7 +1209,7 @@ private def metaprogrammingListFindings (environment : Environment)
   let modulePaths := sources.modules.map pathKey
   let entryPaths := sources.entryPoints.map pathKey
   let mut listed : Array Name := #[]
-  for entry in metaprogrammingModules do
+  for entry in config.metaprogrammingModules do
     let moduleName := entry.moduleName
     if isBlank entry.reason then
       findings := findings.push
@@ -1354,7 +1244,7 @@ configuration site that fails the shape, in every audited source. -/
 private def keywordAndShapeFindings (projectRoot : System.FilePath) (sources : AuditedSources)
     (scans : Array SourceScan) : Array MessageData := Id.run do
   let modulePaths := sources.modules.map pathKey
-  let listedPaths := (metaprogrammingModules.map fun entry =>
+  let listedPaths := (config.metaprogrammingModules.map fun entry =>
     pathKey (Lean.modToFilePath projectRoot entry.moduleName "lean")).filter modulePaths.contains
   let mut findings : Array MessageData := #[]
   for scan in scans do
@@ -1410,8 +1300,8 @@ private def runGate (sourceFile : System.FilePath) (sourceText : String) : Comma
       registrationFindings environment registrations)) && clean
 
   -- 4. The axiom pass: R-11 everywhere, the strict ceiling under its prefixes.
-  let repositoryCeilingText := ceilingText ", " repositoryCeiling
-  let strictCeilingText := ceilingText " and " strictCeiling
+  let repositoryCeilingText := ceilingText ", " config.repositoryCeiling
+  let strictCeilingText := ceilingText " and " config.strictCeiling
   let (exceptionFindings, excepted) ← strictCeilingFindings environment declarations
   let mut axiomFindings := exceptionFindings
   let mut choiceReachers : Array AuditedDeclaration := #[]
@@ -1425,7 +1315,7 @@ private def runGate (sourceFile : System.FilePath) (sourceText : String) : Comma
       else if forbiddenAxioms.contains axiomName then
         axiomFindings := axiomFindings.push
           m!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName}"
-      else if !repositoryCeiling.contains axiomName then
+      else if !config.repositoryCeiling.contains axiomName then
         axiomFindings := axiomFindings.push
           m!"Whatwg axiom gate: declaration {name} reaches unexpected axiom {axiomName}; the ceiling is {repositoryCeilingText}"
     if axioms.contains ``Classical.choice then
@@ -1456,10 +1346,10 @@ private def runGate (sourceFile : System.FilePath) (sourceText : String) : Comma
   let testTotal := inTree `WhatwgTest declarations
   let gatesReached := inTree `WhatwgGates choiceReachers -- R-V3(c), 2026-10-01
   let gatesTotal := inTree `WhatwgGates declarations -- R-V3(c), 2026-10-01
-  let prefixCount := strictCeilingPrefixes.length
+  let prefixCount := config.strictCeilingPrefixes.length
   let exceptionCount :=
-    strictCeilingExceptions.length + privateStrictCeilingExceptions.length
-  let exemptionCount := sourceTokenExemptions.length
+    config.strictCeilingExceptions.length + config.privateStrictCeilingExceptions.length
+  let exemptionCount := config.sourceTokenExemptions.length
   logInfo m!"Whatwg module and axiom gate: checked {sourceCount} source files and {declarations.size} declarations; Classical.choice is reached by {whatwgReached} of {whatwgTotal} declarations in Whatwg, {testReached} of {testTotal} in WhatwgTest and {gatesReached} of {gatesTotal} in WhatwgGates; strict ceiling propext and Quot.sound over {prefixCount} module prefix(es) with {exceptionCount} exact exception(s); {exemptionCount} source-token exemption(s)" -- R-V3(c), 2026-10-01
 
 /-! ## The gate command and the post-command check -/
