@@ -1248,8 +1248,21 @@ exits 1 with 174 errors, no warning, no parse error and no import error:
 | anonymous constructor or implicit argument of the missing `ModuleTable` | 19 |
 | `#guard` that evaluates to `false`: the two data rows of battery section 2, because the slice D data is not in the ledger yet | 2 |
 
+Under the package's options, as `lake build` passes them
+(`-DautoImplicit=false -DrelaxedAutoImplicit=false -DwarningAsError=true`,
+with `-DmaxErrors=5000`), the same file gives 170 errors and no warning: 69
+unknown identifiers or constants, 52 `cannot evaluate code`, 27 invalid field
+notations, 9 anonymous constructors whose type is unknown, 6 `declaration
+uses sorry`, 2 stuck instance problems, 3 universe-level or expression
+metavariables left by a term that did not elaborate, and the same 2 data
+rows. Every one but the data rows follows from the missing names; there is
+still no parse, import or type-mismatch error. The difference from the count
+above is `autoImplicit`: with it on, an unknown `ModuleTable` in a binder is
+bound as an implicit variable instead of being reported.
+
 `lake build` finishes 480 jobs and fails exactly the target
-`WhatwgTest.Audit.LedgerRoutingContract`; the root `WhatwgTest` is replayed
+`WhatwgTest.Audit.LedgerRoutingContract`, whose log stops at Lean's default
+100 errors; the root `WhatwgTest` is replayed
 from the cache (debt D61). A fresh `lake env lean WhatwgTest.lean` reports one
 error, `Whatwg module-closure gate: …\WhatwgTest\Audit\LedgerRoutingContract.lean
 is not reachable from the WhatwgTest audit root`, because R-W9 keeps the
