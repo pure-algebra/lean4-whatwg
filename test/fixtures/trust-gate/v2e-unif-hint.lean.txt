@@ -1,0 +1,19 @@
+-- Planted by the trust self-test, plant V2e-U1 (addendum V2e, debt D56): a
+-- unification hint in a module that is not a listed metaprogramming module.
+-- unif_hint is no keyword of addendum V2c.2, and a hint registers no token,
+-- parser, macro or elaborator, so the in-tree command accepts the module. The
+-- hint is an entry in Lean.Meta.unificationHintExtension, which no audited
+-- module writes on the unmodified tree, so the executable refuses it through
+-- the extension allowlist.
+
+namespace TrustSelfTestPlant
+
+structure PlantedCarrier where
+  carrier : Type
+
+def plantedNatCarrier : PlantedCarrier := ⟨Nat⟩
+
+unif_hint (c : PlantedCarrier) where
+  c =?= plantedNatCarrier ⊢ PlantedCarrier.carrier c =?= Nat
+
+end TrustSelfTestPlant

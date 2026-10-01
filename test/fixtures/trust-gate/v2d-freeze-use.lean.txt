@@ -1,0 +1,21 @@
+-- Planted by the trust self-test, plant V2d-A1 (addendum V2d, ruling R-W5): a
+-- module that only uses the freeze command. It declares no syntax, macro or
+-- elaborator and registers nothing; each command adds one kernel-checked entry
+-- declaration through the listed module WhatwgTest.Audit.Freeze. The module is
+-- not a listed metaprogramming module, and both gates must accept it. It uses
+-- only the head form of R-W5 and, for the theorem, the axioms clause R-W5
+-- requires; propext h reaches exactly propext.
+import WhatwgTest.Audit.Freeze
+
+namespace TrustSelfTestPlant
+
+def plantedFrozenValue : Nat := 4
+
+theorem plantedFrozenTheorem (a b : Prop) (h : a ↔ b) : a = b := propext h
+
+end TrustSelfTestPlant
+
+#whatwg_freeze (@TrustSelfTestPlant.plantedFrozenValue : Nat)
+
+#whatwg_freeze (@TrustSelfTestPlant.plantedFrozenTheorem : ∀ (a b : Prop), (a ↔ b) → a = b)
+  axioms [propext]

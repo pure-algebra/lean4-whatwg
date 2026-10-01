@@ -1,0 +1,3 @@
+# Planted by the trust self-test, plant V2e-K1 (addendum V2e): package-level
+# weakLeanArgs, which Lake keeps out of every trace, set to a harmless option.
+weakLeanArgs = ["-DmaxRecDepth=1024"]

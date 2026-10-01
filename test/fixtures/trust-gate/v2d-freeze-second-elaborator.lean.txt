@@ -1,0 +1,11 @@
+-- Planted by the trust self-test, plant V2d-E1 (addendum V2d, ruling R-W5): a
+-- second command elaborator for the freeze command's syntax kind, attached with
+-- @[command_elab ...] in a module that is not a listed metaprogramming module.
+-- command_elab is an identifier, not a keyword, so rule 1's token half does not
+-- see it; the environment half refuses the elaborator it registers. The module
+-- never runs the command, so it builds and perturbs nothing.
+import WhatwgTest.Audit.Freeze
+
+open Lean Elab Command in
+@[command_elab WhatwgTest.Audit.Freeze.freezeCommand]
+def plantedSecondFreezeElaborator : CommandElab := fun _ => pure ()

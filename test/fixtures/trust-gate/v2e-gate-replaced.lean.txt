@@ -1,0 +1,17 @@
+-- Planted by the trust self-test, plant V2e-G1 (addendum V2e, debt D56): the
+-- residual of addendum V2c.7, measured by the W10 design seat. An initializer
+-- removes the gate module's two post-command linters, and a macro replaces the
+-- gate command with #check 1, so no in-tree pass runs and lake build passes.
+-- The executable runs neither and refuses the initializer and the macro from
+-- the raw entries this module records.
+import WhatwgTest.Audit.AxiomGate
+
+open Lean Elab Command
+
+initialize
+  lintersRef.modify fun linters =>
+    linters.filter (·.name != `WhatwgTest.Audit.rootGateCommandCheck)
+  moduleLintersRef.modify fun linters =>
+    linters.filter (·.name != `WhatwgTest.Audit.rootCommandsCheck)
+
+macro_rules | `(#whatwg_streams_axiom_gate) => `(#check 1)

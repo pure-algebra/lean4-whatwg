@@ -1,0 +1,5 @@
+/-- Planted by the trust self-test, plant V2e-F3 (addendum V2e, debt D61): a test
+module that the root does not import. The WhatwgTest library's glob builds it,
+and Lake replays the root, whose inputs did not change, so the in-tree command
+never runs; the executable reads the source and refuses it as unreachable. -/
+def plantedUnimported : Nat := 0

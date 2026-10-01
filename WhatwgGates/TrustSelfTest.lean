@@ -31,6 +31,16 @@ or append a comment so that Lake re-elaborates a file. After the final control
 the narrow runs elaborate one file with `lake env lean` and a relative file
 name, and require exit code 0 and the frozen summary text.
 
+Addenda V2d and V2e of the same contract (rulings R-W5 and R-W7) add a second
+judge. After each row's in-tree judgement, with the plant still in place, the
+harness runs `lake exe whatwg_trustgate` in the probe and checks the row's
+executable expectation: the same verdict and fragment as the in-tree command
+unless the row says otherwise. While no such executable exists, every such
+check fails for the one frozen reason "could not run". The rows whose labels
+begin `V2e-` are judged by the executable alone: some edit the probe after the
+build (a stale source, a removed `.olean`), some edit `lakefile.toml`, and one
+adds a source the root does not import while Lake replays the root.
+
 ## Cost
 
 The probe is seeded with the checkout's own `.lake/build` and
@@ -122,6 +132,44 @@ def metaprogrammingModuleAnchor : String :=
 inserts a fixture (addendum V2c, rule 4). -/
 def rootGateCommand : String :=
   "#whatwg_streams_axiom_gate"
+
+/-- The config module of addendum V2e, `WhatwgGates/TrustConfig.lean`, which
+holds the anchored lists once the factor lands (V2e.3). The nine after-anchor
+rows of sections 9 and V2c.9 target it. -/
+def trustConfigSource (probe : System.FilePath) : System.FilePath :=
+  probe / "WhatwgGates" / "TrustConfig.lean"
+
+/-- The probe's `lakefile.toml`, which rows V2e-O1 to V2e-O3 and V2e-K1 edit. -/
+def lakefileSource (probe : System.FilePath) : System.FilePath :=
+  probe / "lakefile.toml"
+
+/-- The built file of the production umbrella module `Whatwg`, which row V2e-F2
+removes after the build. The module is outside the executable's own import
+closure, so `lake exe` does not rebuild it. -/
+def builtOlean (probe : System.FilePath) : System.FilePath :=
+  probe / ".lake" / "build" / "lib" / "lean" / "Whatwg.olean"
+
+/-- A new test module that the root does not import (row V2e-F3, debt D61). -/
+def unimportedPlantModule (probe : System.FilePath) : System.FilePath :=
+  probe / "WhatwgTest" / "TrustSelfTestUnimported.lean"
+
+/-- The line of `WhatwgGates/TrustConfig.lean`, trimmed, after which an
+extension-allowlist entry `⟨"Extension.Name", "reason"⟩ ::` is inserted, the
+extension named by its printed name (addendum V2e.3). Frozen by the contract;
+the config module carries it exactly once. -/
+def extensionAllowlistAnchor : String :=
+  "-- trust-selftest: extension-allowlist entries are inserted below this line"
+
+/-- The line of `lakefile.toml`, trimmed, that names the package: a key inserted
+after it is a package-level key (row V2e-K1). -/
+def lakefilePackageAnchor : String :=
+  "name = \"whatwg\""
+
+/-- The line of `lakefile.toml`, trimmed, that names the library `Whatwg`, which
+owns the one umbrella module: a key inserted after it belongs to that library
+(rows V2e-O1 to V2e-O3). -/
+def lakefileUmbrellaAnchor : String :=
+  "name = \"Whatwg\""
 
 def copyTree (source destination : System.FilePath) : IO Unit := do
   for file in ← regularFilesBelow source do
@@ -224,6 +272,12 @@ inductive Placement where
   fails, and so does its plant, when that line is absent or occurs more than
   once. The target is the root `WhatwgTest.lean`. -/
   | beforeRootGate
+  /-- Write the fixture as a new file, which must not exist yet, and import it
+  from nowhere (addendum V2e, row V2e-F3). -/
+  | newFile
+  /-- Remove the target file, which must exist, and write no fixture (addendum
+  V2e, row V2e-F2). `withEdits` restores it byte for byte. -/
+  | remove
   deriving BEq
 
 /-- One edit of one probe file. -/
@@ -306,6 +360,14 @@ def Edit.apply (root probe : System.FilePath) (edit : Edit) : IO Unit := do
     match insertBeforeLine original rootGateCommand planted with
     | .ok text => IO.FS.writeFile path text
     | .error message => throw <| IO.userError s!"{path}: {message}"
+  | .newFile =>
+    if (← path.pathExists) then
+      throw <| IO.userError s!"{path} already exists; a planted file must be new"
+    IO.FS.writeFile path (← IO.FS.readFile (fixture root edit.fixtureName))
+  | .remove =>
+    unless (← path.pathExists) do
+      throw <| IO.userError s!"{path} does not exist; a removed file must exist"
+    IO.FS.removeFile path
 
 /-- Make `edits` in order, run the block, and restore every file they wrote:
 rewrite its original bytes, or remove it when it did not exist. -/
@@ -331,14 +393,19 @@ def withEdits (root probe : System.FilePath) (edits : List Edit)
       | some bytes => IO.FS.writeBinFile path bytes
       | none => if (← path.pathExists) then IO.FS.removeFile path
 
-def expectAcceptance (probe : System.FilePath) (label : String) : IO Bool := do
+/-- Build the probe and judge acceptance; return the verdict and the build's
+output, from which the executable judge reads the in-tree summary line. -/
+def expectAcceptanceOutput (probe : System.FilePath) (label : String) : IO (Bool × String) := do
   let (ok, output) ← build probe
   if ok then
     IO.println s!"PASS trust gate accepted {label}"
-    return true
+    return (true, output)
   IO.eprintln s!"FAIL trust gate unexpectedly rejected {label}"
   IO.eprintln (tail output 60)
-  return false
+  return (false, output)
+
+def expectAcceptance (probe : System.FilePath) (label : String) : IO Bool := do
+  return (← expectAcceptanceOutput probe label).1
 
 /-- A rejection passes when the build fails and, if `expectedFragments` is
 nonempty, at least one of the fragments appears in the output. More than one
@@ -364,6 +431,26 @@ def expectRejection (probe : System.FilePath) (label : String)
       IO.eprintln (tail output 60)
       return false
 
+/-- What `lake exe whatwg_trustgate` must report after a plant's build, the
+plant still in place (addendum V2e.9). -/
+inductive ExecutableExpectation where
+  /-- Exit code 0 and a `PASS whatwg_trustgate: ` line that matches the summary
+  template of section 7, equal from `checked` to its end to the in-tree
+  summary line of the same build when that build printed one. -/
+  | accepts
+  /-- Exit code 1, a `FAIL whatwg_trustgate: <n> finding(s)` verdict line, and
+  at least one of the fragments in the output; empty means any refusal. -/
+  | refusesAny (fragments : List String)
+  /-- Exit code 1, the verdict line, and every fragment in the output. -/
+  | refusesAll (fragments : List String)
+
+/-- The executable expectation of the five rows whose plant Lean itself refuses
+in `Whatwg.lean` (addendum V2e.6): Lake leaves no built `Whatwg` module, so the
+executable stops at its freshness step. The first fragment is the measured one. -/
+def failClosedUmbrella : ExecutableExpectation :=
+  .refusesAny ["Whatwg trust gate: module Whatwg has no built .olean",
+               "Whatwg trust gate: module Whatwg is stale"]
+
 structure Plant where
   label : String
   fixtureName : String
@@ -376,6 +463,10 @@ structure Plant where
   placement : Placement := .append
   /-- Further edits made with the fixture and undone with it. -/
   alsoEdits : List Edit := []
+  /-- The executable's expectation (addendum V2e.6). `none` takes the in-tree
+  one: acceptance for a row of `acceptancePlants`, refusal with `expected` for
+  a row of `rejectionPlants`. -/
+  executable : Option ExecutableExpectation := none
 
 /-- The plant's edits: its own fixture first, then `alsoEdits`. -/
 def Plant.edits (plant : Plant) : List Edit :=
@@ -411,6 +502,10 @@ def acceptancePlants : List Plant :=
         fixtureName := "v2c-config-control.lean.txt", target := productionRoot, expected := [] },
       { label := "V2c-A2 the new keywords and the identifier config in comments, strings, longer identifiers and an ordinary parameter",
         fixtureName := "v2c-benign.lean.txt", target := productionRoot, expected := [] }]
+  -- Addendum V2d of test/contracts/trust-gate-hardening.contract.md (ruling R-W5).
+  ++ [{ label := "V2d-A1 a module that only uses the freeze command #whatwg_freeze, not a listed metaprogramming module",
+        fixtureName := "v2d-freeze-use.lean.txt", target := testPlantModule, expected := [],
+        placement := .newModule }]
 
 /-- Under the package-wide `warningAsError = true` (ruling R-6 in
 `docs/SHA256-DAG.md`), Lean's own "declaration uses `sorry`" warning is
@@ -425,17 +520,22 @@ def rejectionPlants : List Plant :=
      expected := ["contains an authored `unsafe` declaration modifier"] },
    { label := "sorry in the production tree", fixtureName := "sorry.lean.txt",
      target := productionRoot,
-     expected := ["reaches forbidden axiom sorryAx", "declaration uses `sorry`"] },
+     expected := ["reaches forbidden axiom sorryAx", "declaration uses `sorry`"],
+     executable := some failClosedUmbrella }, -- addendum V2e.6
    { label := "native_decide in the production tree", fixtureName := "native-decide.lean.txt",
      target := productionRoot, expected := ["(native_decide auxiliary)"] },
    { label := "malformed string literal", fixtureName := "malformed-string.lean.txt",
-     target := productionRoot, expected := [] },
+     target := productionRoot, expected := [],
+     executable := some failClosedUmbrella }, -- addendum V2e.6
    { label := "malformed raw string literal", fixtureName := "malformed-raw-string.lean.txt",
-     target := productionRoot, expected := [] },
+     target := productionRoot, expected := [],
+     executable := some failClosedUmbrella }, -- addendum V2e.6
    { label := "malformed decimal literal", fixtureName := "malformed-decimal.lean.txt",
-     target := productionRoot, expected := [] },
+     target := productionRoot, expected := [],
+     executable := some failClosedUmbrella }, -- addendum V2e.6
    { label := "unterminated comment", fixtureName := "malformed-comment.lean.txt",
-     target := productionRoot, expected := [] },
+     target := productionRoot, expected := [],
+     executable := some failClosedUmbrella }, -- addendum V2e.6
    -- Rulings R-V1 and R-V2; test/contracts/trust-gate-hardening.contract.md.
    -- Each row below names exactly one fragment: the contract freezes which
    -- layer reports each plant, so no second layer's wording is admitted.
@@ -527,36 +627,36 @@ def rejectionPlants : List Plant :=
      placement := .newModule,
      expected := ["declaration TrustSelfTestPlant.plantedChoice reaches Classical.choice under the strict ceiling of Whatwg.Ecma262"] },
    { label := "V2-S3 a strict-ceiling exception naming no declaration",
-     fixtureName := "strict-exception-missing.lean.txt", target := auditSource,
+     fixtureName := "strict-exception-missing.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
      expected := ["strict-ceiling exception names missing declaration TrustSelfTestPlant.plantedMissing"] },
    { label := "V2-S4 a strict-ceiling exception naming a declaration that reaches no Classical.choice",
-     fixtureName := "strict-exception-stale.lean.txt", target := auditSource,
+     fixtureName := "strict-exception-stale.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
      alsoEdits := [{ target := strictPlantModule, fixtureName := "strict-choice-free.lean.txt",
                      placement := .newModule }],
      expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoiceFree; it does not reach Classical.choice"] },
    { label := "V2-S5 a strict-ceiling exception naming a declaration under no strict prefix",
-     fixtureName := "strict-exception-nonstrict.lean.txt", target := auditSource,
+     fixtureName := "strict-exception-nonstrict.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
      alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                      placement := .newModule }],
      expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoice; its module WhatwgTest.TrustSelfTestPlant is under no strict prefix"] },
    { label := "V2-S6 a strict-ceiling exception whose reason is blank",
-     fixtureName := "strict-exception-unreasoned.lean.txt", target := auditSource,
+     fixtureName := "strict-exception-unreasoned.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
      alsoEdits := [{ target := strictPlantModule, fixtureName := "strict-choice.lean.txt",
                      placement := .newModule }],
      expected := ["strict-ceiling exception for TrustSelfTestPlant.plantedChoice carries no reason"] },
    -- The source-token exemption list and its staleness check.
    { label := "V2-X1 a source-token exemption for a module that names no refused token",
-     fixtureName := "token-exemption-stale.lean.txt", target := auditSource,
+     fixtureName := "token-exemption-stale.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor tokenExemptionAnchor,
      alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                      placement := .newModule }],
      expected := ["stale source-token exemption for WhatwgTest.TrustSelfTestPlant; its source contains no refused token"] },
    { label := "V2-X2 a source-token exemption naming no module",
-     fixtureName := "token-exemption-missing.lean.txt", target := auditSource,
+     fixtureName := "token-exemption-missing.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor tokenExemptionAnchor,
      expected := ["source-token exemption names missing module WhatwgTest.TrustSelfTestPlantMissing"] }]
   -- Addendum V2b of test/contracts/trust-gate-hardening.contract.md (ruling R-V6):
@@ -667,21 +767,100 @@ def rejectionPlants : List Plant :=
         expected := ["#whatwg_streams_axiom_gate is not the last command of the root",
                      "the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate"] },
       { label := "V2c-L1 a metaprogramming-module entry naming no module",
-        fixtureName := "v2c-meta-module-missing.lean.txt", target := auditSource,
+        fixtureName := "v2c-meta-module-missing.lean.txt", target := trustConfigSource, -- addendum V2e.3
         placement := .afterAnchor metaprogrammingModuleAnchor,
         expected := ["metaprogramming-module entry names missing module WhatwgTest.TrustSelfTestPlantMissing"] },
       { label := "V2c-L2 a metaprogramming-module entry whose module declares no metaprogramming",
-        fixtureName := "v2c-meta-module-stale.lean.txt", target := auditSource,
+        fixtureName := "v2c-meta-module-stale.lean.txt", target := trustConfigSource, -- addendum V2e.3
         placement := .afterAnchor metaprogrammingModuleAnchor,
         alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                         placement := .newModule }],
         expected := ["stale metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant; its source declares no syntax, macro or elaborator and registers nothing"] },
       { label := "V2c-L3 a metaprogramming-module entry whose reason is blank",
-        fixtureName := "v2c-meta-module-blank.lean.txt", target := auditSource,
+        fixtureName := "v2c-meta-module-blank.lean.txt", target := trustConfigSource, -- addendum V2e.3
         placement := .afterAnchor metaprogrammingModuleAnchor,
         alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                         placement := .newModule }],
         expected := ["metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant carries no reason"] }]
+  -- Addendum V2d of test/contracts/trust-gate-hardening.contract.md (ruling R-W5).
+  ++ [{ label := "V2d-E1 a second command elaborator for WhatwgTest.Audit.Freeze.freezeCommand in an unlisted module",
+        fixtureName := "v2d-freeze-second-elaborator.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["module WhatwgTest.TrustSelfTestPlant registers an elaborator but is not a listed metaprogramming module"] }]
+
+/-- A row the executable alone judges (addendum V2e.9). Its `edits` are made
+before `lake build`, whose result is recorded and not judged; its `afterBuild`
+edits are made after the build, as a forgotten rebuild leaves the tree; then
+the executable runs. Every edit is undone with the row. -/
+structure ExecutablePlant where
+  label : String
+  edits : List Edit := []
+  afterBuild : List Edit := []
+  expectation : ExecutableExpectation
+
+/-- The executable-only rows of addendum V2e.9, in their frozen order. The first
+runs right after a green build, so that Lake replays the root. -/
+def executablePlants : List ExecutablePlant :=
+  [{ label := "V2e-F3 a module source the root does not import, on a tree whose root Lake replays (debt D61)",
+     edits := [{ target := unimportedPlantModule, fixtureName := "v2e-unimported.lean.txt",
+                 placement := .newFile }],
+     expectation := .refusesAny
+       ["TrustSelfTestUnimported.lean is not reachable from the WhatwgTest audit root"] },
+   { label := "V2e-G1 an initializer that removes the gate's linters and a macro_rules that replaces the gate command (debt D56)",
+     edits := [{ target := testPlantModule, fixtureName := "v2e-gate-replaced.lean.txt",
+                 placement := .newModule }],
+     expectation := .refusesAll
+       ["module WhatwgTest.TrustSelfTestPlant registers a macro but is not a listed metaprogramming module",
+        "module WhatwgTest.TrustSelfTestPlant registers an initializer but is not a listed metaprogramming module"] },
+   { label := "V2e-U1 unif_hint in an unlisted module, an environment extension off the allowlist (debt D56)",
+     edits := [{ target := testPlantModule, fixtureName := "v2e-unif-hint.lean.txt",
+                 placement := .newModule }],
+     expectation := .refusesAny
+       ["module WhatwgTest.TrustSelfTestPlant has entries in environment extension Lean.Meta.unificationHintExtension, which is not on the extension allowlist"] },
+   { label := "V2e-O1 moreLeanArgs with -DwarningAsError=false on the library Whatwg (debt D51)",
+     edits := [{ target := lakefileSource, fixtureName := "v2e-more-lean-args-warning.toml.txt",
+                 placement := .afterAnchor lakefileUmbrellaAnchor }],
+     expectation := .refusesAny
+       ["module Whatwg was compiled with the refused option -DwarningAsError=false"] },
+   { label := "V2e-O2 moreLeanArgs with a debug option, warn.sorry and a non-option argument on the library Whatwg (debt D51)",
+     edits := [{ target := lakefileSource, fixtureName := "v2e-more-lean-args-debug.toml.txt",
+                 placement := .afterAnchor lakefileUmbrellaAnchor }],
+     expectation := .refusesAll
+       ["module Whatwg was compiled with the refused option -Ddebug.skipKernelTC=true",
+        "module Whatwg was compiled with the refused option -Dwarn.sorry=false",
+        "module Whatwg was compiled with the argument -j1"] },
+   { label := "V2e-O3 leanOptions with warningAsError = false on the library Whatwg (debt D51)",
+     edits := [{ target := lakefileSource, fixtureName := "v2e-lean-options-warning.toml.txt",
+                 placement := .afterAnchor lakefileUmbrellaAnchor }],
+     expectation := .refusesAll
+       ["module Whatwg was not compiled with -DwarningAsError=true",
+        "module Whatwg was compiled with the refused option -DwarningAsError=false"] },
+   { label := "V2e-K1 a non-empty weakLeanArgs in lakefile.toml, which Lake keeps out of every trace",
+     edits := [{ target := lakefileSource, fixtureName := "v2e-weak-lean-args.toml.txt",
+                 placement := .afterAnchor lakefilePackageAnchor }],
+     expectation := .refusesAny
+       ["lakefile.toml sets weakLeanArgs, which Lake keeps out of every trace"] },
+   { label := "V2e-F1 a source edited after the build (a stale module)",
+     afterBuild := [reelaborate productionRoot],
+     expectation := .refusesAny ["module Whatwg is stale"] },
+   { label := "V2e-F2 a built .olean removed after the build",
+     afterBuild := [{ target := builtOlean, fixtureName := "", placement := .remove }],
+     expectation := .refusesAny ["module Whatwg has no built .olean"] },
+   { label := "V2e-X1 an extension-allowlist entry naming no extension any audited module writes",
+     edits := [{ target := trustConfigSource, fixtureName := "v2e-allowlist-stale.lean.txt",
+                 placement := .afterAnchor extensionAllowlistAnchor }],
+     expectation := .refusesAny
+       ["stale extension-allowlist entry for TrustSelfTestPlant.noSuchExtension; no audited module has entries in it"] },
+   { label := "V2e-X2 an extension-allowlist entry whose reason is blank",
+     edits := [{ target := trustConfigSource, fixtureName := "v2e-allowlist-blank.lean.txt",
+                 placement := .afterAnchor extensionAllowlistAnchor }],
+     expectation := .refusesAny
+       ["extension-allowlist entry for TrustSelfTestPlant.blankExtension carries no reason"] },
+   { label := "V2e-X3 an extension-allowlist entry listed twice",
+     edits := [{ target := trustConfigSource, fixtureName := "v2e-allowlist-duplicate.lean.txt",
+                 placement := .afterAnchor extensionAllowlistAnchor }],
+     expectation := .refusesAny
+       ["extension-allowlist entry for TrustSelfTestPlant.repeatedExtension is listed more than once"] }]
 
 /-- One narrow run: `lake env lean <file>` in the probe root, with `file`
 spelled as a person types it there, relative and without a leading `./`. -/
@@ -759,6 +938,130 @@ def expectNarrowRun (probe : System.FilePath) (narrow : NarrowRun) : IO Bool := 
   IO.eprintln (tail text 60)
   return false
 
+/-! ## The executable judge (addendum V2e.9) -/
+
+/-- The executable gate's name in `lakefile.toml`. -/
+def executableGate : String := "whatwg_trustgate"
+
+/-- The verdict line of an accepting run, followed by the summary of section 7. -/
+def executablePassPrefix : String := "PASS whatwg_trustgate: "
+
+/-- The verdict line of a refusing run, followed by `<n> finding(s)`. -/
+def executableFailPrefix : String := "FAIL whatwg_trustgate: "
+
+/-- How one run of the executable ended. -/
+inductive ExecutableVerdict where
+  /-- Exit code 0 and an accepting verdict line, which is kept. -/
+  | accepted (verdictLine : String)
+  /-- Exit code 1 and a refusing verdict line. -/
+  | refused
+  /-- Anything else: no executable, a usage error, an internal failure. -/
+  | couldNotRun
+
+/-- Read the verdict from the exit code and the combined output. -/
+def readExecutableVerdict (exitCode : UInt32) (text : String) : ExecutableVerdict :=
+  let all := lines text
+  if exitCode == 0 then
+    match all.find? (·.startsWith executablePassPrefix) with
+    | some line => .accepted line
+    | none => .couldNotRun
+  else if exitCode == 1 &&
+      all.any (fun line => line.startsWith executableFailPrefix && line.endsWith " finding(s)") then
+    .refused
+  else
+    .couldNotRun
+
+/-- The text after `Whatwg module and axiom gate: ` on the first line that holds
+it: the part of the summary line, from `checked` to its end, that both gates
+must print alike. -/
+def summaryOf? (output : String) : Option String :=
+  (lines output).findSome? fun line =>
+    match line.splitOn "Whatwg module and axiom gate: " with
+    | [_, rest] => some rest
+    | _ => none
+
+/-- Run `lake exe whatwg_trustgate` in the probe and judge it against one
+expectation. `inTreeSummary?` is the summary the in-tree command printed in the
+same build, if it printed one. -/
+def expectExecutable (probe : System.FilePath) (label : String)
+    (expectation : ExecutableExpectation) (inTreeSummary? : Option String) : IO Bool := do
+  let output ← IO.Process.output
+    { cmd := lakeCommand, args := #["exe", executableGate], cwd := some probe }
+  let text := output.stdout ++ output.stderr
+  let holds (fragment : String) : Bool := (text.splitOn fragment).length > 1
+  match readExecutableVerdict output.exitCode text, expectation with
+  | .couldNotRun, _ =>
+    IO.eprintln s!"FAIL could not run the executable gate for {label}: `lake exe {executableGate}` exited with code {output.exitCode} and printed no verdict line"
+    IO.eprintln (tail text 20)
+    return false
+  | .accepted verdictLine, .accepts =>
+    unless templateMatches gateSummaryTemplate verdictLine do
+      IO.eprintln s!"FAIL executable gate accepted {label}, but its verdict line does not match the summary template: {verdictLine}"
+      return false
+    match inTreeSummary?, summaryOf? verdictLine with
+    | some inTree, some own =>
+      if inTree == own then
+        IO.println s!"PASS executable gate accepted {label} with the in-tree summary's counts"
+        return true
+      IO.eprintln s!"FAIL executable gate accepted {label}, but its summary differs from the in-tree gate's: executable [{own}], in-tree [{inTree}]"
+      return false
+    | _, _ =>
+      IO.println s!"PASS executable gate accepted {label}"
+      return true
+  | .accepted _, _ =>
+    IO.eprintln s!"FAIL executable gate unexpectedly accepted {label}"
+    return false
+  | .refused, .accepts =>
+    IO.eprintln s!"FAIL executable gate unexpectedly refused {label}"
+    IO.eprintln (tail text 60)
+    return false
+  | .refused, .refusesAny [] =>
+    IO.println s!"PASS executable gate refused {label}"
+    return true
+  | .refused, .refusesAny fragments =>
+    match fragments.find? holds with
+    | some fragment =>
+      IO.println s!"PASS executable gate refused {label} with the expected diagnostic: {fragment}"
+      return true
+    | none =>
+      IO.eprintln s!"FAIL executable gate refused {label} for an unexpected reason; expected one of: {fragments}"
+      IO.eprintln (tail text 60)
+      return false
+  | .refused, .refusesAll fragments =>
+    let missing := fragments.filter (!holds ·)
+    if missing.isEmpty then
+      IO.println s!"PASS executable gate refused {label} with every expected diagnostic: {fragments}"
+      return true
+    IO.eprintln s!"FAIL executable gate refused {label} for an unexpected reason; expected every one of: {fragments}; missing: {missing}"
+    IO.eprintln (tail text 60)
+    return false
+
+/-- An acceptance row: the in-tree judgement, then its executable twin. -/
+def judgeAcceptance (probe : System.FilePath) (plant : Plant) : IO Bool := do
+  let (ok, output) ← expectAcceptanceOutput probe plant.label
+  let twin ← expectExecutable probe plant.label (plant.executable.getD .accepts) (summaryOf? output)
+  return ok && twin
+
+/-- A rejection row: the in-tree judgement, then its executable twin. -/
+def judgeRejection (probe : System.FilePath) (plant : Plant) : IO Bool := do
+  let ok ← expectRejection probe plant.label plant.expected
+  let twin ← expectExecutable probe plant.label
+    (plant.executable.getD (.refusesAny plant.expected)) none
+  return ok && twin
+
+/-- Make an executable-only row's edits, build without judging, make its
+after-build edits, and judge the executable. -/
+def checkExecutablePlant (root probe : System.FilePath) (plant : ExecutablePlant) : IO Bool := do
+  try
+    withEdits root probe plant.edits do
+      let (ok, _) ← build probe
+      IO.println s!"NOTE {plant.label}: lake build {if ok then "succeeded" else "failed"}; the in-tree command is not judged on this row (addendum V2e.9)"
+      withEdits root probe plant.afterBuild
+        (expectExecutable probe plant.label plant.expectation none)
+  catch error =>
+    IO.eprintln s!"FAIL could not plant {plant.label}: {error}"
+    return false
+
 def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
   -- 0. The declared red set must be exactly the failing set.
   let declared ← knownRed root
@@ -780,32 +1083,50 @@ def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
   excise probe declared
   -- 2. Green control. With nothing declared red, the build in step 0 already
   -- accepted the unmodified tree, so it is not repeated.
-  let mut allOk ←
+  let (controlOk, controlOutput) ←
     if declared.isEmpty then
       IO.println "PASS trust gate accepted the unmodified source tree (the step-0 build)"
-      pure true
+      pure (true, output)
     else
-      expectAcceptance probe "the unmodified source tree"
+      expectAcceptanceOutput probe "the unmodified source tree"
+  -- Addendum V2e: the executable accepts the same tree with the same counts.
+  let twin ← expectExecutable probe "the unmodified source tree" .accepts
+    (summaryOf? controlOutput)
+  let mut allOk := controlOk && twin
   for plant in acceptancePlants do
-    let ok ← checkPlant root probe plant (expectAcceptance probe plant.label)
+    let ok ← checkPlant root probe plant (judgeAcceptance probe plant)
     allOk := allOk && ok
   -- 3. Planted rejections.
   for plant in rejectionPlants do
-    let ok ← checkPlant root probe plant (expectRejection probe plant.label plant.expected)
+    let ok ← checkPlant root probe plant (judgeRejection probe plant)
     allOk := allOk && ok
   -- 4. Module closure: a source file not reachable from the test root.
   let unreachable := probe / "WhatwgTest" / "Planted" / "Unreachable.lean"
   IO.FS.createDirAll (probe / "WhatwgTest" / "Planted")
   IO.FS.writeFile unreachable (← IO.FS.readFile (fixture root "unreachable.lean.txt"))
   let ok ← try
-      expectRejection probe "unreachable test module"
-        ["is not reachable from the WhatwgTest audit root"]
+      let closureFragments := ["is not reachable from the WhatwgTest audit root"]
+      let inTree ← expectRejection probe "unreachable test module" closureFragments
+      let twin ← expectExecutable probe "unreachable test module"
+        (.refusesAny closureFragments) none
+      pure (inTree && twin)
     finally
       IO.FS.removeDirAll (probe / "WhatwgTest" / "Planted")
   allOk := allOk && ok
   -- 5. Final green control after every restoration.
-  let ok ← expectAcceptance probe "the restored source tree"
-  allOk := allOk && ok
+  let (ok, restoredOutput) ← expectAcceptanceOutput probe "the restored source tree"
+  let twin ← expectExecutable probe "the restored source tree" .accepts
+    (summaryOf? restoredOutput)
+  allOk := allOk && ok && twin
+  -- Addendum V2e.9: the executable-only rows, the first right after that green
+  -- build, then a control of the tree they leave.
+  for plant in executablePlants do
+    let ok ← checkExecutablePlant root probe plant
+    allOk := allOk && ok
+  let afterLabel := "the restored source tree after the executable-only rows"
+  let (ok, afterOutput) ← expectAcceptanceOutput probe afterLabel
+  let twin ← expectExecutable probe afterLabel .accepts (summaryOf? afterOutput)
+  allOk := allOk && ok && twin
   -- 6. Narrow runs over the restored, fully built tree.
   for narrow in narrowRuns do
     let ok ← expectNarrowRun probe narrow
@@ -825,7 +1146,7 @@ def cli (args : List String) : IO UInt32 := do
     finally
       IO.FS.removeDirAll probe
   if ok then
-    IO.println "PASS trust self-test: every planted declaration was rejected for its stated reason, every control was accepted, and every narrow run exited 0 with its frozen summary"
+    IO.println "PASS trust self-test: every planted declaration was rejected for its stated reason, every control was accepted, the executable gate met every row's expectation, and every narrow run exited 0 with its frozen summary"
     return 0
   IO.eprintln "FAIL trust self-test"
   return 1
