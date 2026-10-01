@@ -1,6 +1,7 @@
 import Whatwg.Streams
 import Whatwg.Ecma262
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q4 battery for the CFG-WPT source/certificate seam.
@@ -81,36 +82,36 @@ First-order source data only: byte-interval-anchored occurrence roles, handler
 attachments, and return classifications. No callback body is stored, which is
 the representation rule of `AGENTS.md`. -/
 
-#check (@Semantics.Ordering.Source.OccurrenceRole : Type)
-#check (@Semantics.Ordering.Source.OccurrenceRole.sizeLog :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.sizeLog :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.positiveGuard :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.positiveGuard :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.nestedWriterCall :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.nestedWriterCall :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.nestedObserverAttachment :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.nestedObserverAttachment :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.sizeReturn :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.sizeReturn :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.writableConstruction :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.writableConstruction :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.sinkLog :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.sinkLog :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.writerAcquisition :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.writerAcquisition :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.outerWriterCall :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.outerWriterCall :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.outerObserverAttachment :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.outerObserverAttachment :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.flushAttachment :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.flushAttachment :
   Semantics.Ordering.Source.OccurrenceRole)
-#check (@Semantics.Ordering.Source.OccurrenceRole.assertionCall :
+#whatwg_freeze (@Semantics.Ordering.Source.OccurrenceRole.assertionCall :
   Semantics.Ordering.Source.OccurrenceRole)
 
 /-! The pinned byte interval of each occurrence role, as an authored total
 table; §6.2 of the contract carries the twelve intervals. Ends are exclusive
 and offsets are into the whole WPT file, as everywhere in this repository. -/
-#check (@Semantics.Ordering.Source.occurrenceSpan :
+#whatwg_freeze (@Semantics.Ordering.Source.occurrenceSpan :
   Semantics.Ordering.Source.OccurrenceRole → Nat × Nat)
 
 /-! **Amendment A5, addition.** The SHA-256 of each occurrence's exact UTF-8
@@ -119,10 +120,10 @@ are *data*, not a proof: they are the input to the transcription gate P8 owes,
 because a Lean definition cannot read `vendor/`. Freezing them here is what
 lets that gate be written against a named constant instead of a re-transcribed
 literal. -/
-#check (@Semantics.Ordering.Source.occurrenceDigest :
+#whatwg_freeze (@Semantics.Ordering.Source.occurrenceDigest :
   Semantics.Ordering.Source.OccurrenceRole → String)
-#check (@Semantics.Ordering.Source.blockSpan : Nat × Nat)
-#check (@Semantics.Ordering.Source.blockDigest : String)
+#whatwg_freeze (@Semantics.Ordering.Source.blockSpan : Nat × Nat)
+#whatwg_freeze (@Semantics.Ordering.Source.blockDigest : String)
 
 /-! ## §B Return classification
 
@@ -130,10 +131,10 @@ Whether the callback at an occurrence returns a primitive or a promise. The
 prefix restriction must not classify every WPT callback as primitive: the flush
 callback returns a promise, and the certificate records that. -/
 
-#check (@Semantics.Ordering.Source.ReturnProfile : Type)
-#check (@Semantics.Ordering.Source.ReturnProfile.primitive :
+#whatwg_freeze (@Semantics.Ordering.Source.ReturnProfile : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.ReturnProfile.primitive :
   Semantics.Ordering.Source.ReturnProfile)
-#check (@Semantics.Ordering.Source.ReturnProfile.promise :
+#whatwg_freeze (@Semantics.Ordering.Source.ReturnProfile.promise :
   Semantics.Ordering.Source.ReturnProfile)
 
 /-! ## §C The finite first-order boundary script
@@ -147,29 +148,29 @@ symbol is a fresh `Nat` naming a source-level result (`W0`, `W1`, `W2`, `D0`,
 `D1`, `D2`, `F`, `A` of §6.2); it is never a runtime address, and the two are
 related only by a `Binding` (§E). -/
 
-#check (@Semantics.Ordering.Source.Symbol : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.Symbol : Type)
 
-#check (@Semantics.Ordering.Source.ScriptAction : Type)
-#check (@Semantics.Ordering.Source.ScriptAction.construct :
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction.construct :
   Semantics.Ordering.Source.ScriptAction)
-#check (@Semantics.Ordering.Source.ScriptAction.acquireWriter :
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction.acquireWriter :
   Semantics.Ordering.Source.ScriptAction)
-#check (@Semantics.Ordering.Source.ScriptAction.write :
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction.write :
   Semantics.Ordering.Source.OccurrenceRole → Semantics.Ordering.Source.Symbol →
     Semantics.Ordering.Source.ScriptAction)
-#check (@Semantics.Ordering.Source.ScriptAction.attach :
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction.attach :
   Nat → Semantics.Ordering.Source.ScriptAction)
-#check (@Semantics.Ordering.Source.ScriptAction.callbackReturn :
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction.callbackReturn :
   Semantics.Ordering.Source.OccurrenceRole → Semantics.Ordering.Source.ReturnProfile →
     Semantics.Ordering.Source.ScriptAction)
-#check (@Semantics.Ordering.Source.ScriptAction.scriptReturn :
+#whatwg_freeze (@Semantics.Ordering.Source.ScriptAction.scriptReturn :
   Semantics.Ordering.Source.ScriptAction)
 
 /-! The pinned script of the selected case, as one authored constant. It is the
 only script this packet admits, and `SourceProfileCompatible` is checked
 against `Certificate.script`, never against this name directly, so a later
 packet can pin a second case without amending the judgment. -/
-#check (@Semantics.Ordering.Source.wptScript :
+#whatwg_freeze (@Semantics.Ordering.Source.wptScript :
   List Semantics.Ordering.Source.ScriptAction)
 
 /-! ## §D The source-occurrence, binding and use certificate
@@ -183,25 +184,25 @@ the occurrence leads, and the `Certificate` components are exactly the four its
 frozen docstring names: the script, the attachment list, the return
 classifications and the selected-log occurrences. -/
 
-#check (@Semantics.Ordering.Source.Attachment : Type)
-#check (@Semantics.Ordering.Source.Attachment.mk :
+#whatwg_freeze (@Semantics.Ordering.Source.Attachment : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.Attachment.mk :
   Semantics.Ordering.Source.OccurrenceRole → Semantics.Ordering.Source.Symbol →
     Semantics.Ordering.Source.Symbol → Semantics.Ordering.Source.Symbol →
     Option Semantics.Ordering.Source.Symbol → Semantics.Ordering.Source.Attachment)
 
-#check (@Semantics.Ordering.Source.Certificate : Type)
-#check (@Semantics.Ordering.Source.Certificate.mk :
+#whatwg_freeze (@Semantics.Ordering.Source.Certificate : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.Certificate.mk :
   List Semantics.Ordering.Source.ScriptAction → List Semantics.Ordering.Source.Attachment →
     List (Semantics.Ordering.Source.Symbol × Semantics.Ordering.Source.ReturnProfile) →
     List Nat → Semantics.Ordering.Source.Certificate)
-#check (@Semantics.Ordering.Source.Certificate.script :
+#whatwg_freeze (@Semantics.Ordering.Source.Certificate.script :
   Semantics.Ordering.Source.Certificate → List Semantics.Ordering.Source.ScriptAction)
-#check (@Semantics.Ordering.Source.Certificate.attachments :
+#whatwg_freeze (@Semantics.Ordering.Source.Certificate.attachments :
   Semantics.Ordering.Source.Certificate → List Semantics.Ordering.Source.Attachment)
-#check (@Semantics.Ordering.Source.Certificate.returns :
+#whatwg_freeze (@Semantics.Ordering.Source.Certificate.returns :
   Semantics.Ordering.Source.Certificate →
     List (Semantics.Ordering.Source.Symbol × Semantics.Ordering.Source.ReturnProfile))
-#check (@Semantics.Ordering.Source.Certificate.selected :
+#whatwg_freeze (@Semantics.Ordering.Source.Certificate.selected :
   Semantics.Ordering.Source.Certificate → List Nat)
 
 /-! ## §E The symbol-to-address binding
@@ -217,8 +218,8 @@ component: the certificate is source-only and must stay checkable without any
 run. Its two tables are the write-result symbols to write-request identities
 and the attachment indices to registration identities. -/
 
-#check (@Semantics.Ordering.Source.Binding : Type)
-#check (@Semantics.Ordering.Source.Binding.mk :
+#whatwg_freeze (@Semantics.Ordering.Source.Binding : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.Binding.mk :
   List (Semantics.Ordering.Source.Symbol × Nat) → List (Nat × Nat) →
     Semantics.Ordering.Source.Binding)
 
@@ -238,14 +239,14 @@ return classified `promise`. It is checked against source occurrences and use
 edges alone: the expected event array is not an argument to it, and neither is
 a runtime decision tape or a configuration trace. -/
 
-#check (@Semantics.Ordering.Source.sourceCheck :
+#whatwg_freeze (@Semantics.Ordering.Source.sourceCheck :
   Semantics.Ordering.Source.Certificate → Bool)
-#check (@Semantics.Ordering.Source.SourceChecked :
+#whatwg_freeze (@Semantics.Ordering.Source.SourceChecked :
   Semantics.Ordering.Source.Certificate → Prop)
-#check (@Semantics.Ordering.Source.sourceChecked_iff :
+#whatwg_freeze (@Semantics.Ordering.Source.sourceChecked_iff :
   ∀ certificate : Semantics.Ordering.Source.Certificate,
     Semantics.Ordering.Source.SourceChecked certificate ↔
-      Semantics.Ordering.Source.sourceCheck certificate = true)
+      Semantics.Ordering.Source.sourceCheck certificate = true) axioms [propext]
 
 /-! ## §G The reference alphabet
 
@@ -257,12 +258,12 @@ a mutant. `SelectedLog` carries the first-order identity the event already
 has — the size call, the sink write request, the registration — and the numeric
 chunk values stay outside the model (they are the host replay P8 owes). -/
 
-#check (@Semantics.Ordering.Source.SelectedLog : Type)
-#check (@Semantics.Ordering.Source.SelectedLog.size :
+#whatwg_freeze (@Semantics.Ordering.Source.SelectedLog : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.SelectedLog.size :
   Nat → Semantics.Ordering.Source.SelectedLog)
-#check (@Semantics.Ordering.Source.SelectedLog.sink :
+#whatwg_freeze (@Semantics.Ordering.Source.SelectedLog.sink :
   Nat → Semantics.Ordering.Source.SelectedLog)
-#check (@Semantics.Ordering.Source.SelectedLog.observer :
+#whatwg_freeze (@Semantics.Ordering.Source.SelectedLog.observer :
   Nat → Semantics.Ordering.Source.SelectedLog)
 
 /-! The immutable reference-trace alphabet: attachment, return, settlement, the
@@ -271,22 +272,22 @@ reaction identity is the index of the attachment whose callback it runs, which
 is fresh because attachment indices are. There is no promise table here, no
 queue object and no callback body. -/
 
-#check (@Semantics.Ordering.Source.ReferenceEvent : Type)
-#check (@Semantics.Ordering.Source.ReferenceEvent.attached :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent : Type)
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.attached :
   Nat → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.returned :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.returned :
   Nat → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.settled :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.settled :
   Semantics.Ordering.Source.Symbol → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.enqueued :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.enqueued :
   Nat → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.started :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.started :
   Nat → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.finished :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.finished :
   Nat → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.logged :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.logged :
   Semantics.Ordering.Source.SelectedLog → Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.ReferenceEvent.scriptReturned :
+#whatwg_freeze (@Semantics.Ordering.Source.ReferenceEvent.scriptReturned :
   Semantics.Ordering.Source.ReferenceEvent)
 
 /-! ## §H The reference judgment
@@ -323,24 +324,24 @@ executable scheduler. §6 of the contract carries the conjunct list
 erasure, and it is weaker than `CausalPrefix` precisely because the erased
 trace no longer mentions every attachment the certificate has. -/
 
-#check (@Semantics.Ordering.Source.causalCheck :
+#whatwg_freeze (@Semantics.Ordering.Source.causalCheck :
   Semantics.Ordering.Source.Certificate → List Semantics.Ordering.Source.ReferenceEvent → Bool)
-#check (@Semantics.Ordering.Source.CausalPrefix :
+#whatwg_freeze (@Semantics.Ordering.Source.CausalPrefix :
   Semantics.Ordering.Source.Certificate → List Semantics.Ordering.Source.ReferenceEvent → Prop)
-#check (@Semantics.Ordering.Source.causalPrefix_iff :
+#whatwg_freeze (@Semantics.Ordering.Source.causalPrefix_iff :
   ∀ (certificate : Semantics.Ordering.Source.Certificate)
     (reference : List Semantics.Ordering.Source.ReferenceEvent),
     Semantics.Ordering.Source.CausalPrefix certificate reference ↔
-      Semantics.Ordering.Source.causalCheck certificate reference = true)
+      Semantics.Ordering.Source.causalCheck certificate reference = true) axioms [propext]
 
-#check (@Semantics.Ordering.Source.retainedFifo :
+#whatwg_freeze (@Semantics.Ordering.Source.retainedFifo :
   List Semantics.Ordering.Source.ReferenceEvent → Bool)
-#check (@Semantics.Ordering.Source.RetainedFifo :
+#whatwg_freeze (@Semantics.Ordering.Source.RetainedFifo :
   List Semantics.Ordering.Source.ReferenceEvent → Prop)
-#check (@Semantics.Ordering.Source.retainedFifo_iff :
+#whatwg_freeze (@Semantics.Ordering.Source.retainedFifo_iff :
   ∀ reference : List Semantics.Ordering.Source.ReferenceEvent,
     Semantics.Ordering.Source.RetainedFifo reference ↔
-      Semantics.Ordering.Source.retainedFifo reference = true)
+      Semantics.Ordering.Source.retainedFifo reference = true) axioms [propext]
 
 /-! ## §I The erasure and its property
 
@@ -351,7 +352,7 @@ settlements, and the enqueue those settlements contribute — which at the prefi
 boundary is exactly the pending flush token the draft insists be erased
 explicitly. -/
 
-#check (@Semantics.Ordering.Source.referenceErase :
+#whatwg_freeze (@Semantics.Ordering.Source.referenceErase :
   Semantics.Ordering.Source.Certificate → List Semantics.Ordering.Source.ReferenceEvent →
     List Semantics.Ordering.Source.ReferenceEvent)
 
@@ -360,7 +361,7 @@ explicitly. -/
 took a certificate it could not use once the log alphabet carries its own
 identity. Selection is decided where it is checkable: clause 8 of
 `causalCheck`. This is now the plain projection. -/
-#check (@Semantics.Ordering.Source.referenceSelectedLogs :
+#whatwg_freeze (@Semantics.Ordering.Source.referenceSelectedLogs :
   List Semantics.Ordering.Source.ReferenceEvent → List Semantics.Ordering.Source.SelectedLog)
 
 /-! **Amendment A5, tightening T4.** The frozen
@@ -382,7 +383,7 @@ reference side, with no target and no `α`, `ε`:
   would satisfy the first conjunct and fail this one.
 
 Neither premise is the expected WPT array, and the array is not a premise. -/
-#check (@Semantics.Ordering.Source.erasure_preserves_selected_order :
+#whatwg_freeze (@Semantics.Ordering.Source.erasure_preserves_selected_order :
   ∀ (certificate : Semantics.Ordering.Source.Certificate)
     (reference : List Semantics.Ordering.Source.ReferenceEvent),
     Semantics.Ordering.Source.SourceChecked certificate →
@@ -391,7 +392,7 @@ Neither premise is the expected WPT array, and the array is not a premise. -/
           (Semantics.Ordering.Source.referenceErase certificate reference) ∧
         Semantics.Ordering.Source.referenceSelectedLogs
             (Semantics.Ordering.Source.referenceErase certificate reference) =
-          Semantics.Ordering.Source.referenceSelectedLogs reference)
+          Semantics.Ordering.Source.referenceSelectedLogs reference) axioms [propext, Quot.sound]
 
 /-! ## §J The target side
 
@@ -402,15 +403,15 @@ M2, and `observeWptOrdering` (decision 4) stays the separate diagnostic.
 indices to runtime identities through the binding, which is the only place the
 two vocabularies meet. -/
 
-#check (@Semantics.Ordering.Source.selectedLogs :
+#whatwg_freeze (@Semantics.Ordering.Source.selectedLogs :
   ∀ {α ε : Type}, List (Semantics.Ordering.Event α ε) →
     List Semantics.Ordering.Source.SelectedLog)
 
-#check (@Semantics.Ordering.Source.targetProject :
+#whatwg_freeze (@Semantics.Ordering.Source.targetProject :
   ∀ {α ε : Type}, List (Semantics.Ordering.Event α ε) →
     List Semantics.Ordering.Source.ReferenceEvent)
 
-#check (@Semantics.Ordering.Source.bindReference :
+#whatwg_freeze (@Semantics.Ordering.Source.bindReference :
   Semantics.Ordering.Source.Binding → List Semantics.Ordering.Source.ReferenceEvent →
     List Semantics.Ordering.Source.ReferenceEvent)
 
@@ -422,13 +423,13 @@ decidable, and the anti-vacuity weight sits where it belongs: on
 `CausalPrefix`, which the reference must independently satisfy. Producing a
 witness by projecting the target and calling it the reference is refused by
 that judgment, not by this one. -/
-#check (@Semantics.Ordering.Source.ErasesPrefix :
+#whatwg_freeze (@Semantics.Ordering.Source.ErasesPrefix :
   ∀ {α ε : Type}, Semantics.Ordering.Source.Certificate →
     Semantics.Ordering.Source.Binding →
     List Semantics.Ordering.Source.ReferenceEvent →
     List (Semantics.Ordering.Event α ε) → Prop)
 
-#check (@Semantics.Ordering.Source.erasesPrefix_iff :
+#whatwg_freeze (@Semantics.Ordering.Source.erasesPrefix_iff :
   ∀ {α ε : Type} (certificate : Semantics.Ordering.Source.Certificate)
     (binding : Semantics.Ordering.Source.Binding)
     (reference : List Semantics.Ordering.Source.ReferenceEvent)
@@ -436,7 +437,7 @@ that judgment, not by this one. -/
     Semantics.Ordering.Source.ErasesPrefix certificate binding reference target ↔
       Semantics.Ordering.Source.bindReference binding
           (Semantics.Ordering.Source.referenceErase certificate reference) =
-        Semantics.Ordering.Source.targetProject target)
+        Semantics.Ordering.Source.targetProject target) axioms [propext]
 
 /-! `SourceProfileCompatible` is checked against the consumed external decision
 word and the explicit binding, never against the expected output array and
@@ -445,20 +446,20 @@ never against `Semantics.Ordering.Reaches`. It compares the decision word with
 numeric chunk values are not modelled, for the reason the module docstring
 gives. Generic well-formed scripts, different writes, queries or observer
 bodies do not qualify merely because they use the same initializer. -/
-#check (@Semantics.Ordering.Source.profileCheck :
+#whatwg_freeze (@Semantics.Ordering.Source.profileCheck :
   ∀ {α ε : Type}, Semantics.Ordering.Source.Certificate →
     Semantics.Ordering.Source.Binding → List (Semantics.Ordering.Decision α ε) → Bool)
 
-#check (@Semantics.Ordering.Source.SourceProfileCompatible :
+#whatwg_freeze (@Semantics.Ordering.Source.SourceProfileCompatible :
   ∀ {α ε : Type}, Semantics.Ordering.Source.Certificate →
     Semantics.Ordering.Source.Binding → List (Semantics.Ordering.Decision α ε) → Prop)
 
-#check (@Semantics.Ordering.Source.sourceProfileCompatible_iff :
+#whatwg_freeze (@Semantics.Ordering.Source.sourceProfileCompatible_iff :
   ∀ {α ε : Type} (certificate : Semantics.Ordering.Source.Certificate)
     (binding : Semantics.Ordering.Source.Binding)
     (word : List (Semantics.Ordering.Decision α ε)),
     Semantics.Ordering.Source.SourceProfileCompatible certificate binding word ↔
-      Semantics.Ordering.Source.profileCheck certificate binding word = true)
+      Semantics.Ordering.Source.profileCheck certificate binding word = true) axioms [propext]
 
 /-! ## §K The relation to the selected WPT prefix, and non-vacuity
 
@@ -471,23 +472,23 @@ outer observer's reaction finishes and before the flush handler starts, so it
 covers the whole asserted array; the flush and assertion attachments and the
 derived results' settlements are the events `referenceErase` deletes. -/
 
-#check (@Semantics.Ordering.Source.wptCertificate :
+#whatwg_freeze (@Semantics.Ordering.Source.wptCertificate :
   Semantics.Ordering.Source.Certificate)
-#check (@Semantics.Ordering.Source.wptReference :
+#whatwg_freeze (@Semantics.Ordering.Source.wptReference :
   List Semantics.Ordering.Source.ReferenceEvent)
-#check (@Semantics.Ordering.Source.wptSelectedPrefix :
+#whatwg_freeze (@Semantics.Ordering.Source.wptSelectedPrefix :
   List Semantics.Ordering.Source.SelectedLog)
 
-#check (@Semantics.Ordering.Source.wptCertificate_checked :
-  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.wptCertificate = true)
-#check (@Semantics.Ordering.Source.wptReference_causal :
+#whatwg_freeze (@Semantics.Ordering.Source.wptCertificate_checked :
+  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.wptCertificate = true) axioms [propext]
+#whatwg_freeze (@Semantics.Ordering.Source.wptReference_causal :
   Semantics.Ordering.Source.causalCheck Semantics.Ordering.Source.wptCertificate
-    Semantics.Ordering.Source.wptReference = true)
-#check (@Semantics.Ordering.Source.wptReference_selected :
+    Semantics.Ordering.Source.wptReference = true) axioms [propext]
+#whatwg_freeze (@Semantics.Ordering.Source.wptReference_selected :
   Semantics.Ordering.Source.referenceSelectedLogs
       (Semantics.Ordering.Source.referenceErase Semantics.Ordering.Source.wptCertificate
         Semantics.Ordering.Source.wptReference) =
-    Semantics.Ordering.Source.wptSelectedPrefix)
+    Semantics.Ordering.Source.wptSelectedPrefix) axioms [propext]
 
 /-! ## §L The three certificate mutants
 
@@ -500,19 +501,19 @@ must be rejected **without consulting the expected WPT output array**, which
 landing: `test/counterexamples/REGISTER.md` is outside this packet's fence
 (contract §9) and no id is frozen here. -/
 
-#check (@Semantics.Ordering.Source.mutantSelectedD0 :
+#whatwg_freeze (@Semantics.Ordering.Source.mutantSelectedD0 :
   Semantics.Ordering.Source.Certificate)
-#check (@Semantics.Ordering.Source.mutantAliasedResults :
+#whatwg_freeze (@Semantics.Ordering.Source.mutantAliasedResults :
   Semantics.Ordering.Source.Certificate)
-#check (@Semantics.Ordering.Source.mutantFlushOnW0 :
+#whatwg_freeze (@Semantics.Ordering.Source.mutantFlushOnW0 :
   Semantics.Ordering.Source.Certificate)
 
-#check (@Semantics.Ordering.Source.sourceCheck_rejects_selectedD0 :
-  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.mutantSelectedD0 = false)
-#check (@Semantics.Ordering.Source.sourceCheck_rejects_aliasedResults :
-  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.mutantAliasedResults = false)
-#check (@Semantics.Ordering.Source.sourceCheck_rejects_flushOnW0 :
-  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.mutantFlushOnW0 = false)
+#whatwg_freeze (@Semantics.Ordering.Source.sourceCheck_rejects_selectedD0 :
+  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.mutantSelectedD0 = false) axioms [propext]
+#whatwg_freeze (@Semantics.Ordering.Source.sourceCheck_rejects_aliasedResults :
+  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.mutantAliasedResults = false) axioms [propext]
+#whatwg_freeze (@Semantics.Ordering.Source.sourceCheck_rejects_flushOnW0 :
+  Semantics.Ordering.Source.sourceCheck Semantics.Ordering.Source.mutantFlushOnW0 = false) axioms [propext]
 
 /-! ## §M The target-side consequence
 
@@ -524,7 +525,7 @@ content lives in `SourceChecked`, `CausalPrefix` and
 Stating it here is what makes `ErasesPrefix` worth having: an `ErasesPrefix`
 witness for a source-checked certificate and a causal reference is exactly the
 thing from which the ordering conclusion follows. -/
-#check (@Semantics.Ordering.Source.erases_prefix_selected_order :
+#whatwg_freeze (@Semantics.Ordering.Source.erases_prefix_selected_order :
   ∀ {α ε : Type} (certificate : Semantics.Ordering.Source.Certificate)
     (binding : Semantics.Ordering.Source.Binding)
     (reference : List Semantics.Ordering.Source.ReferenceEvent)
@@ -534,12 +535,12 @@ thing from which the ordering conclusion follows. -/
     Semantics.Ordering.Source.ErasesPrefix certificate binding reference target →
       Semantics.Ordering.Source.selectedLogs target =
         Semantics.Ordering.Source.bindLogs binding
-          (Semantics.Ordering.Source.referenceSelectedLogs reference))
+          (Semantics.Ordering.Source.referenceSelectedLogs reference)) axioms [propext, Quot.sound]
 
 /-! The log half of `bindReference`, named separately because the law above is
 the only statement that needs it and because a binding that renamed logs one
 way and FIFO identities another would be a defect. -/
-#check (@Semantics.Ordering.Source.bindLogs :
+#whatwg_freeze (@Semantics.Ordering.Source.bindLogs :
   Semantics.Ordering.Source.Binding → List Semantics.Ordering.Source.SelectedLog →
     List Semantics.Ordering.Source.SelectedLog)
 

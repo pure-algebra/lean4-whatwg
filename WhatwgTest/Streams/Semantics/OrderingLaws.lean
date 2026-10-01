@@ -1,6 +1,7 @@
 import Whatwg.Streams
 import Whatwg.Ecma262
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q4 law battery: the DB-11 restatement of the held P8a
@@ -37,14 +38,14 @@ open Whatwg.Streams
 
 /-! ## [A] Initialization -/
 
-#check (@Semantics.Ordering.initial_eq :
+#whatwg_freeze (@Semantics.Ordering.initial_eq :
   ∀ {α ε : Type} (owner : Nat) (hwm : Writable.Size) (alg : Writable.Algorithms)
     (promiseSeed errorSeed : Nat),
     Semantics.Ordering.initial (α := α) (ε := ε) owner hwm alg promiseSeed errorSeed =
       { owner := owner, writable := Writable.initial hwm alg promiseSeed errorSeed,
         startup := .pending, active := .script, registrations := [], nextObserver := 0,
         jobs := [⟨0, .startup⟩], nextJob := 1,
-        trace := [.scriptEntered, .jobQueued ⟨0, .startup⟩] })
+        trace := [.scriptEntered, .jobQueued ⟨0, .startup⟩] }) axioms [propext]
 
 /-! ## [B] The owner-guarded lookup
 
@@ -53,25 +54,25 @@ The reuse table calls `lookup` rename-only. It is not: its statement mentions
 Streams equation stays, and `lookup_bridge` below joins it to the landed
 `Whatwg.Ecma262.Promise.Table.get` over Q3's `Writable.promiseTable`. -/
 
-#check (@Semantics.Ordering.lookup_eq :
+#whatwg_freeze (@Semantics.Ordering.lookup_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref),
     Semantics.Ordering.lookup c p =
-      (if c.owner = p.owner then Writable.lookupPromise c.writable p.cell else none))
+      (if c.owner = p.owner then Writable.lookupPromise c.writable p.cell else none)) axioms []
 
 /-! ## [B] Registration lookup and phase advance -/
 
-#check (@Semantics.Ordering.lookupRegistration_eq :
+#whatwg_freeze (@Semantics.Ordering.lookupRegistration_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat),
     Semantics.Ordering.lookupRegistration c id =
-      c.registrations.find? (fun r ↦ r.id == id))
+      c.registrations.find? (fun r ↦ r.id == id)) axioms []
 
-#check (@Semantics.Ordering.setRegistrationPhase_eq :
+#whatwg_freeze (@Semantics.Ordering.setRegistrationPhase_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat)
     (phase : Whatwg.Ecma262.Promise.ReactionPhase),
     Semantics.Ordering.setRegistrationPhase c id phase =
       { c with
         registrations :=
-          c.registrations.map (fun r ↦ if r.id == id then { r with phase := phase } else r) })
+          c.registrations.map (fun r ↦ if r.id == id then { r with phase := phase } else r) }) axioms []
 
 /-! ## [B] Scheduling one token
 
@@ -81,16 +82,16 @@ this operation additionally allocates a serial from `nextJob`, advances that
 cursor and emits a `jobQueued` event. `enqueueJob_queue_bridge` below carries
 the queue half. -/
 
-#check (@Semantics.Ordering.enqueueJob_eq :
+#whatwg_freeze (@Semantics.Ordering.enqueueJob_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (kind : Semantics.Ordering.JobKind),
     Semantics.Ordering.enqueueJob c kind =
       ({ c with
           jobs := c.jobs ++ [⟨c.nextJob, kind⟩], nextJob := c.nextJob + 1,
-          trace := c.trace ++ [.jobQueued ⟨c.nextJob, kind⟩] }, ⟨c.nextJob, kind⟩))
+          trace := c.trace ++ [.jobQueued ⟨c.nextJob, kind⟩] }, ⟨c.nextJob, kind⟩)) axioms []
 
 /-! ## [A] The pre-start admission profile and the author frontier -/
 
-#check (@Semantics.Ordering.preStartAllowed_eq :
+#whatwg_freeze (@Semantics.Ordering.preStartAllowed_eq :
   ∀ {α ε : Type} (d : Writable.Decision α ε),
     Semantics.Ordering.preStartAllowed d =
       (match d with
@@ -98,9 +99,9 @@ the queue half. -/
       | .returnSize (.value size) =>
           !Writable.sizes.isNaN size && !Writable.sizes.isNegative size &&
             !Writable.sizes.isInfinite size
-      | _ => false))
+      | _ => false)) axioms [propext]
 
-#check (@Semantics.Ordering.authorFrontier_eq :
+#whatwg_freeze (@Semantics.Ordering.authorFrontier_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     Semantics.Ordering.authorFrontier c =
       (match c.active with
@@ -108,108 +109,108 @@ the queue half. -/
       | .intrinsic _ => match c.writable.control with
           | [] => false
           | _ => Writable.externalFrontier c.writable
-      | .checkpoint => false))
+      | .checkpoint => false)) axioms [propext]
 
 /-! ## [A] The four `tick` frontier equations -/
 
-#check (@Semantics.Ordering.tick_script_empty :
+#whatwg_freeze (@Semantics.Ordering.tick_script_empty :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
-    c.active = .script → c.writable.control = [] → Semantics.Ordering.tick c = none)
+    c.active = .script → c.writable.control = [] → Semantics.Ordering.tick c = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.tick_observer_empty :
+#whatwg_freeze (@Semantics.Ordering.tick_observer_empty :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (job : Semantics.Ordering.Job),
-    c.active = .observer job → c.writable.control = [] → Semantics.Ordering.tick c = none)
+    c.active = .observer job → c.writable.control = [] → Semantics.Ordering.tick c = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.tick_intrinsic_empty :
+#whatwg_freeze (@Semantics.Ordering.tick_intrinsic_empty :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (job : Semantics.Ordering.Job),
     c.active = .intrinsic job → c.writable.control = [] →
       Semantics.Ordering.tick c =
-        some { c with active := .checkpoint, trace := c.trace ++ [.jobFinished job] })
+        some { c with active := .checkpoint, trace := c.trace ++ [.jobFinished job] }) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.tick_nonempty_foreign :
+#whatwg_freeze (@Semantics.Ordering.tick_nonempty_foreign :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     c.writable.control ≠ [] → Writable.externalFrontier c.writable = true →
-      Semantics.Ordering.tick c = none)
+      Semantics.Ordering.tick c = none) axioms [propext, Quot.sound]
 
 /-! ## [A] The `decide` admission equations -/
 
-#check (@Semantics.Ordering.decide_intrinsic_gap :
+#whatwg_freeze (@Semantics.Ordering.decide_intrinsic_gap :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (job : Semantics.Ordering.Job)
     (d : Semantics.Ordering.Decision α ε),
     c.active = .intrinsic job → c.writable.control = [] →
-      Semantics.Ordering.decide c d = none)
+      Semantics.Ordering.decide c d = none) axioms [propext]
 
-#check (@Semantics.Ordering.decide_checkpoint_writable :
+#whatwg_freeze (@Semantics.Ordering.decide_checkpoint_writable :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (d : Writable.Decision α ε),
-    c.active = .checkpoint → Semantics.Ordering.decide c (.writable d) = none)
+    c.active = .checkpoint → Semantics.Ordering.decide c (.writable d) = none) axioms [propext]
 
-#check (@Semantics.Ordering.decide_checkpoint_observe :
+#whatwg_freeze (@Semantics.Ordering.decide_checkpoint_observe :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref)
     (callback : Nat),
-    c.active = .checkpoint → Semantics.Ordering.decide c (.observe p callback) = none)
+    c.active = .checkpoint → Semantics.Ordering.decide c (.observe p callback) = none) axioms [propext]
 
-#check (@Semantics.Ordering.decide_scriptReturn :
+#whatwg_freeze (@Semantics.Ordering.decide_scriptReturn :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     c.active = .script → c.writable.control = [] →
       Semantics.Ordering.decide c .scriptReturn =
-        some { c with active := .checkpoint, trace := c.trace ++ [.scriptReturned] })
+        some { c with active := .checkpoint, trace := c.trace ++ [.scriptReturned] }) axioms [propext]
 
-#check (@Semantics.Ordering.decide_scriptBegin :
+#whatwg_freeze (@Semantics.Ordering.decide_scriptBegin :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     c.active = .checkpoint → c.startup = .started → c.jobs = [] →
       c.writable.control = [] →
       Semantics.Ordering.decide c .scriptBegin =
-        some { c with active := .script, trace := c.trace ++ [.scriptEntered] })
+        some { c with active := .script, trace := c.trace ++ [.scriptEntered] }) axioms [propext]
 
 /-! ## [A] The relational face -/
 
-#check (@Semantics.Ordering.step_iff :
+#whatwg_freeze (@Semantics.Ordering.step_iff :
   ∀ {α ε : Type} (c t : Semantics.Ordering.Config α ε)
     (d : Option (Semantics.Ordering.Decision α ε)),
     Semantics.Ordering.Step c d t ↔
       (match d with
         | none => Semantics.Ordering.tick c
-        | some decision => Semantics.Ordering.decide c decision) = some t)
+        | some decision => Semantics.Ordering.decide c decision) = some t) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.reaches_append :
+#whatwg_freeze (@Semantics.Ordering.reaches_append :
   ∀ {α ε : Type} {c mid t : Semantics.Ordering.Config α ε}
     {left right : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.Reaches c left mid → Semantics.Ordering.Reaches mid right t →
-      Semantics.Ordering.Reaches c (left ++ right) t)
+      Semantics.Ordering.Reaches c (left ++ right) t) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.episodePrefix_reaches :
+#whatwg_freeze (@Semantics.Ordering.episodePrefix_reaches :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {labels : List (Option (Semantics.Ordering.Decision α ε))},
-    Semantics.Ordering.EpisodePrefix c labels t → Semantics.Ordering.Reaches c labels t)
+    Semantics.Ordering.EpisodePrefix c labels t → Semantics.Ordering.Reaches c labels t) axioms [propext, Quot.sound]
 
 /-! ## [A] The trace filter -/
 
-#check (@Semantics.Ordering.queuedJobs_eq :
+#whatwg_freeze (@Semantics.Ordering.queuedJobs_eq :
   ∀ {α ε : Type} (trace : List (Semantics.Ordering.Event α ε)),
     Semantics.Ordering.queuedJobs trace =
       trace.filterMap (fun event ↦ match event with
         | .jobQueued job => some job
-        | _ => none))
+        | _ => none)) axioms [propext]
 
 /-! ## [A] The live M2 view -/
 
-#check (@Semantics.Ordering.m2Allowed_eq :
+#whatwg_freeze (@Semantics.Ordering.m2Allowed_eq :
   ∀ {ε : Type} (event : Writable.VisibleEvent ε),
     Semantics.Ordering.m2Allowed event =
       (match event with
       | .settled _ _ | .readyRead _ _ | .closedRead _ _ | .desiredSizeRead _ _ => true
-      | .returned _ _ | .controllerReturned _ => false))
+      | .returned _ _ | .controllerReturned _ => false)) axioms []
 
-#check (@Semantics.Ordering.observeLive_writable :
+#whatwg_freeze (@Semantics.Ordering.observeLive_writable :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     c.writable.status = .writable →
       ∃ p : Semantics.Ordering.M2LivePrefix ε,
         Semantics.Ordering.observeLive c = some p ∧ p.owner = c.owner ∧
-          p.events = (Writable.visibleEvents c.writable).filter Semantics.Ordering.m2Allowed)
+          p.events = (Writable.visibleEvents c.writable).filter Semantics.Ordering.m2Allowed) axioms [propext]
 
-#check (@Semantics.Ordering.observeLive_outside_profile :
+#whatwg_freeze (@Semantics.Ordering.observeLive_outside_profile :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
-    c.writable.status ≠ .writable → Semantics.Ordering.observeLive c = none)
+    c.writable.status ≠ .writable → Semantics.Ordering.observeLive c = none) axioms [propext]
 
 /-! ## [B] Registration, and settlement notification
 
@@ -234,7 +235,7 @@ queue alone for the same kind of reason. -/
 -- five-field literal `⟨id, p.cell, .fulfill, some callback, .waiting⟩`.
 -- Reason: the same CAPFIELD of amendment A1. R-P25 rules that the anonymous
 -- constructor gains `none` in the fifth position and nothing else changes.
-#check (@Semantics.Ordering.register_eq :
+#whatwg_freeze (@Semantics.Ordering.register_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref)
     (callback : Nat),
     Semantics.Ordering.register c p callback =
@@ -251,9 +252,9 @@ queue alone for the same kind of reason. -/
           | .pending => some b
           | .fulfilled _ | .rejected _ =>
               let queued := Semantics.Ordering.enqueueJob b (.observer id)
-              some (Semantics.Ordering.setRegistrationPhase queued.1 id (.queued queued.2.serial))))
+              some (Semantics.Ordering.setRegistrationPhase queued.1 id (.queued queued.2.serial)))) axioms []
 
-#check (@Semantics.Ordering.notifySettled_eq :
+#whatwg_freeze (@Semantics.Ordering.notifySettled_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat),
     Semantics.Ordering.notifySettled c id =
       (match Writable.lookupPromise c.writable id with
@@ -268,11 +269,11 @@ queue alone for the same kind of reason. -/
                     let queued := Semantics.Ordering.enqueueJob acc (.observer r.id)
                     Semantics.Ordering.setRegistrationPhase queued.1 r.id (.queued queued.2.serial)
                   else acc
-              | _ => acc) c))
+              | _ => acc) c)) axioms [propext]
 
 /-! ## [A] Lifting a canonical writable transition -/
 
-#check (@Semantics.Ordering.liftWritable_eq :
+#whatwg_freeze (@Semantics.Ordering.liftWritable_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (w : Writable.State α ε),
     Semantics.Ordering.liftWritable c w =
       (let b : Semantics.Ordering.Config α ε := { c with writable := w }
@@ -285,11 +286,11 @@ queue alone for the same kind of reason. -/
            | _ => logged) b
        (w.jobs.drop c.writable.jobs.length).foldl
          (fun (acc : Semantics.Ordering.Config α ε) (job : Writable.SinkJob α ε) ↦
-           (Semantics.Ordering.enqueueJob acc (.sink job.kind job.request)).1) observed))
+           (Semantics.Ordering.enqueueJob acc (.sink job.kind job.request)).1) observed)) axioms [propext]
 
 /-! ## [A] The dedicated checkpoint dequeue: nine receipts -/
 
-#check (@Semantics.Ordering.takeSinkHead_matching :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_matching :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job)
     (tokens : List Semantics.Ordering.Job) (payload : Writable.SinkJob α ε)
     (mailbox : List (Writable.SinkJob α ε)),
@@ -298,83 +299,83 @@ queue alone for the same kind of reason. -/
       Semantics.Ordering.takeSinkHead c token =
         some { c with
           writable := { c.writable with control := [.react payload], jobs := mailbox },
-          jobs := tokens, active := .intrinsic token, trace := c.trace ++ [.jobStarted token] })
+          jobs := tokens, active := .intrinsic token, trace := c.trace ++ [.jobStarted token] }) axioms [propext]
 
-#check (@Semantics.Ordering.takeSinkHead_active :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_active :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job),
-    c.active ≠ .checkpoint → Semantics.Ordering.takeSinkHead c token = none)
+    c.active ≠ .checkpoint → Semantics.Ordering.takeSinkHead c token = none) axioms [propext]
 
-#check (@Semantics.Ordering.takeSinkHead_control :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_control :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job),
-    c.writable.control ≠ [] → Semantics.Ordering.takeSinkHead c token = none)
+    c.writable.control ≠ [] → Semantics.Ordering.takeSinkHead c token = none) axioms [propext]
 
-#check (@Semantics.Ordering.takeSinkHead_empty :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_empty :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job),
-    c.jobs = [] → Semantics.Ordering.takeSinkHead c token = none)
+    c.jobs = [] → Semantics.Ordering.takeSinkHead c token = none) axioms [propext]
 
-#check (@Semantics.Ordering.takeSinkHead_not_head :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_not_head :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token head : Semantics.Ordering.Job)
     (tail : List Semantics.Ordering.Job),
-    c.jobs = head :: tail → token ≠ head → Semantics.Ordering.takeSinkHead c token = none)
+    c.jobs = head :: tail → token ≠ head → Semantics.Ordering.takeSinkHead c token = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.takeSinkHead_empty_mailbox :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_empty_mailbox :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job),
-    c.writable.jobs = [] → Semantics.Ordering.takeSinkHead c token = none)
+    c.writable.jobs = [] → Semantics.Ordering.takeSinkHead c token = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.takeSinkHead_not_sink :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_not_sink :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job),
     (∀ (kind : Writable.SinkKind) (request : Nat), token.kind ≠ .sink kind request) →
-      Semantics.Ordering.takeSinkHead c token = none)
+      Semantics.Ordering.takeSinkHead c token = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.takeSinkHead_wrong_key :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_wrong_key :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job)
     (payload : Writable.SinkJob α ε) (tail : List (Writable.SinkJob α ε)),
     c.writable.jobs = payload :: tail → token.kind ≠ .sink payload.kind payload.request →
-      Semantics.Ordering.takeSinkHead c token = none)
+      Semantics.Ordering.takeSinkHead c token = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.takeSinkHead_canonical_tick :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead_canonical_tick :
   ∀ {α ε : Type} (c t : Semantics.Ordering.Config α ε) (token : Semantics.Ordering.Job),
     Semantics.Ordering.takeSinkHead c token = some t →
-      Writable.tick c.writable = some t.writable ∧ t.writable.trace = c.writable.trace)
+      Writable.tick c.writable = some t.writable ∧ t.writable.trace = c.writable.trace) axioms [propext, Quot.sound]
 
 /-! ## [A] The successful-control grammar -/
 
-#check (@Semantics.Ordering.stagedRequests_nil :
-  ∀ {α ε : Type}, Semantics.Ordering.stagedRequests (α := α) (ε := ε) [] = [])
+#whatwg_freeze (@Semantics.Ordering.stagedRequests_nil :
+  ∀ {α ε : Type}, Semantics.Ordering.stagedRequests (α := α) (ε := ε) [] = []) axioms [propext]
 
-#check (@Semantics.Ordering.stagedRequests_pair :
+#whatwg_freeze (@Semantics.Ordering.stagedRequests_pair :
   ∀ {α ε : Type} (chunk : α) (size : Writable.Size) (call id : Nat)
     (rest : List (Writable.Control α ε)),
     Semantics.Ordering.stagedRequests
         (.enqueueWrite chunk size :: .returnPromise call id :: rest) =
-      id :: Semantics.Ordering.stagedRequests rest)
+      id :: Semantics.Ordering.stagedRequests rest) axioms [propext]
 
-#check (@Semantics.Ordering.stagedRequests_other :
+#whatwg_freeze (@Semantics.Ordering.stagedRequests_other :
   ∀ {α ε : Type} (head : Writable.Control α ε) (rest : List (Writable.Control α ε)),
     (∀ (chunk : α) (size : Writable.Size) (call id : Nat)
       (tail : List (Writable.Control α ε)),
       head :: rest ≠ .enqueueWrite chunk size :: .returnPromise call id :: tail) →
-      Semantics.Ordering.stagedRequests (head :: rest) = Semantics.Ordering.stagedRequests rest)
+      Semantics.Ordering.stagedRequests (head :: rest) = Semantics.Ordering.stagedRequests rest) axioms [propext]
 
-#check (@Semantics.Ordering.sinkMarkerCount_eq :
+#whatwg_freeze (@Semantics.Ordering.sinkMarkerCount_eq :
   ∀ {α ε : Type} (control : List (Writable.Control α ε)),
     Semantics.Ordering.sinkMarkerCount control =
-      (control.filter (fun frame ↦ match frame with | .awaitSink _ => true | _ => false)).length)
+      (control.filter (fun frame ↦ match frame with | .awaitSink _ => true | _ => false)).length) axioms [propext]
 
-#check (@Semantics.Ordering.suspensions_staged_empty :
+#whatwg_freeze (@Semantics.Ordering.suspensions_staged_empty :
   ∀ {α ε : Type} {rest : List (Writable.Control α ε)},
-    Semantics.Ordering.Suspensions rest → Semantics.Ordering.stagedRequests rest = [])
+    Semantics.Ordering.Suspensions rest → Semantics.Ordering.stagedRequests rest = []) axioms [propext]
 
-#check (@Semantics.Ordering.successfulControl_advance_staged_empty :
+#whatwg_freeze (@Semantics.Ordering.successfulControl_advance_staged_empty :
   ∀ {α ε : Type} {rest : List (Writable.Control α ε)},
     Semantics.Ordering.SuccessfulControl (.advance :: rest) →
-      Semantics.Ordering.stagedRequests (.advance :: rest) = [])
+      Semantics.Ordering.stagedRequests (.advance :: rest) = []) axioms [propext]
 
-#check (@Semantics.Ordering.successfulControl_sink_at_most_one :
+#whatwg_freeze (@Semantics.Ordering.successfulControl_sink_at_most_one :
   ∀ {α ε : Type} {control : List (Writable.Control α ε)},
-    Semantics.Ordering.SuccessfulControl control → Semantics.Ordering.sinkMarkerCount control ≤ 1)
+    Semantics.Ordering.SuccessfulControl control → Semantics.Ordering.sinkMarkerCount control ≤ 1) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.suspensions_iff :
+#whatwg_freeze (@Semantics.Ordering.suspensions_iff :
   ∀ {α ε : Type} (control : List (Writable.Control α ε)),
     Semantics.Ordering.Suspensions control ↔
       control = [] ∨
@@ -383,9 +384,9 @@ queue alone for the same kind of reason. -/
       (∃ (request : Nat) (chunk : α), control = [.awaitSink (.write request chunk)]) ∨
       (∃ (request : Nat) (chunk : α) (call id : Nat) (rest : List (Writable.Control α ε)),
         control = .awaitSink (.write request chunk) :: .returnPromise call id :: rest ∧
-          Semantics.Ordering.Suspensions rest ∧ Semantics.Ordering.sinkMarkerCount rest = 0))
+          Semantics.Ordering.Suspensions rest ∧ Semantics.Ordering.sinkMarkerCount rest = 0)) axioms [propext]
 
-#check (@Semantics.Ordering.successfulControl_iff :
+#whatwg_freeze (@Semantics.Ordering.successfulControl_iff :
   ∀ {α ε : Type} (control : List (Writable.Control α ε)),
     Semantics.Ordering.SuccessfulControl control ↔
       Semantics.Ordering.Suspensions control ∨
@@ -403,38 +404,38 @@ queue alone for the same kind of reason. -/
       (∃ (call id : Nat) (rest : List (Writable.Control α ε)),
         control = .returnPromise call id :: rest ∧ Semantics.Ordering.Suspensions rest) ∨
       control = [.advance] ∨
-      (∃ job : Writable.SinkJob α ε, control = [.react job]))
+      (∃ job : Writable.SinkJob α ε, control = [.react job])) axioms [propext]
 
 /-! ## [A] Replay helpers and determinism -/
 
-#check (@Semantics.Ordering.externalWord_eq :
+#whatwg_freeze (@Semantics.Ordering.externalWord_eq :
   ∀ {α ε : Type} (labels : List (Option (Semantics.Ordering.Decision α ε))),
-    Semantics.Ordering.externalWord labels = labels.filterMap id)
+    Semantics.Ordering.externalWord labels = labels.filterMap id) axioms []
 
-#check (@Semantics.Ordering.normalized_iff :
+#whatwg_freeze (@Semantics.Ordering.normalized_iff :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
-    Semantics.Ordering.Normalized c ↔ Semantics.Ordering.tick c = none)
+    Semantics.Ordering.Normalized c ↔ Semantics.Ordering.tick c = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.step_deterministic :
+#whatwg_freeze (@Semantics.Ordering.step_deterministic :
   ∀ {α ε : Type} {c t u : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)},
-    Semantics.Ordering.Step c d t → Semantics.Ordering.Step c d u → t = u)
+    Semantics.Ordering.Step c d t → Semantics.Ordering.Step c d u → t = u) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.tick_decide_exclusive :
+#whatwg_freeze (@Semantics.Ordering.tick_decide_exclusive :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     (d : Semantics.Ordering.Decision α ε),
-    Semantics.Ordering.tick c = some t → Semantics.Ordering.decide c d = none)
+    Semantics.Ordering.tick c = some t → Semantics.Ordering.decide c d = none) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.step_owner :
+#whatwg_freeze (@Semantics.Ordering.step_owner :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)},
-    Semantics.Ordering.Step c d t → t.owner = c.owner)
+    Semantics.Ordering.Step c d t → t.owner = c.owner) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.step_trace_extends :
+#whatwg_freeze (@Semantics.Ordering.step_trace_extends :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)},
     Semantics.Ordering.Step c d t →
-      ∃ suffix : List (Semantics.Ordering.Event α ε), t.trace = c.trace ++ suffix)
+      ∃ suffix : List (Semantics.Ordering.Event α ε), t.trace = c.trace ++ suffix) axioms [propext, Quot.sound]
 
 /-! ## [B] The two FIFO-suffix laws
 
@@ -443,34 +444,34 @@ The `Jobs.Queue` form R-P12 requires is `episodePrefix_jobQueue_eq` below; this
 pair is the draft's own `List` shape, retained so that no adapter law that
 mentions `c.jobs` has to be restated. -/
 
-#check (@Semantics.Ordering.step_active_jobs_eq :
+#whatwg_freeze (@Semantics.Ordering.step_active_jobs_eq :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)},
     Semantics.Ordering.Step c d t → c.active ≠ .checkpoint →
-      t.jobs = c.jobs ++ Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length))
+      t.jobs = c.jobs ++ Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length)) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.episodePrefix_jobs_eq :
+#whatwg_freeze (@Semantics.Ordering.episodePrefix_jobs_eq :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {labels : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.EpisodePrefix c labels t →
-      t.jobs = c.jobs ++ Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length))
+      t.jobs = c.jobs ++ Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length)) axioms [propext, Quot.sound]
 
 /-! ## [A] The two fixed-external-word run laws -/
 
-#check (@Semantics.Ordering.fixed_external_word_prefix_comparable :
+#whatwg_freeze (@Semantics.Ordering.fixed_external_word_prefix_comparable :
   ∀ {α ε : Type} {c t u : Semantics.Ordering.Config α ε}
     {left right : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.Reaches c left t → Semantics.Ordering.Reaches c right u →
       Semantics.Ordering.externalWord left = Semantics.Ordering.externalWord right →
       (∃ n : Nat, Semantics.Ordering.Reaches t (List.replicate n none) u) ∨
-        (∃ n : Nat, Semantics.Ordering.Reaches u (List.replicate n none) t))
+        (∃ n : Nat, Semantics.Ordering.Reaches u (List.replicate n none) t)) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.fixed_external_word_normalized_unique :
+#whatwg_freeze (@Semantics.Ordering.fixed_external_word_normalized_unique :
   ∀ {α ε : Type} {c t u : Semantics.Ordering.Config α ε}
     {left right : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.Reaches c left t → Semantics.Ordering.Reaches c right u →
       Semantics.Ordering.externalWord left = Semantics.Ordering.externalWord right →
-      Semantics.Ordering.Normalized t → Semantics.Ordering.Normalized u → t = u)
+      Semantics.Ordering.Normalized t → Semantics.Ordering.Normalized u → t = u) axioms [propext, Quot.sound]
 
 /-! ## Q4-owned bridging receipts
 
@@ -480,67 +481,67 @@ predicts, in the shape Q3 established for `Writable`, `Readable` and
 `Transform`. None of them changes a class [A] statement. -/
 
 /-! The configuration's token FIFO read as the landed queue. -/
-#check (@Semantics.Ordering.jobQueue_eq :
+#whatwg_freeze (@Semantics.Ordering.jobQueue_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
-    Semantics.Ordering.jobQueue c = Whatwg.Ecma262.Jobs.Queue.mk c.jobs)
+    Semantics.Ordering.jobQueue c = Whatwg.Ecma262.Jobs.Queue.mk c.jobs) axioms []
 
 /-! Decision 8's one-list view, inverted: the draft's single registration list is
 the fulfil list, and the reject list is its handler-free image. -/
-#check (@Semantics.Ordering.reactions_eq :
+#whatwg_freeze (@Semantics.Ordering.reactions_eq :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     Semantics.Ordering.reactions c =
       Whatwg.Ecma262.Promise.Reactions.mk c.registrations
         (c.registrations.map (fun r ↦ { r with kind := .reject, handler := none }))
-        c.nextObserver)
+        c.nextObserver) axioms []
 
 /-! The erasure onto `Whatwg.Ecma262.Jobs.Active`: the landed constructors take
 a serial where this one takes the whole token, and `observer` is landed as
 `job`. -/
-#check (@Semantics.Ordering.activeErase_eq :
+#whatwg_freeze (@Semantics.Ordering.activeErase_eq :
   ∀ (a : Semantics.Ordering.Active),
     Semantics.Ordering.activeErase a =
       (match a with
       | .script => .script
       | .intrinsic job => .intrinsic job.serial
       | .observer job => .job job.serial
-      | .checkpoint => .checkpoint))
+      | .checkpoint => .checkpoint)) axioms []
 
 /-! `requirement.jobs.1` (625769..626250) and `requirement.jobs.2`
 (626257..626350) reach this configuration only through the erasure. -/
-#check (@Semantics.Ordering.runCondition_iff :
+#whatwg_freeze (@Semantics.Ordering.runCondition_iff :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε),
     Whatwg.Ecma262.Jobs.RunCondition (Semantics.Ordering.activeErase c.active) ↔
-      c.active = .checkpoint)
+      c.active = .checkpoint) axioms [propext]
 
 /-! `lookup` is the landed table read under the owner guard. Uses Q3's
 `Writable.promiseTable` and, through it, `Writable.lookupPromise_bridge`. -/
-#check (@Semantics.Ordering.lookup_bridge :
+#whatwg_freeze (@Semantics.Ordering.lookup_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref),
     Semantics.Ordering.lookup c p =
       (if c.owner = p.owner then
         Whatwg.Ecma262.Promise.Table.get (Writable.promiseTable c.writable) p.cell
-       else none))
+       else none)) axioms [propext, Quot.sound]
 
 /-! Registration lookup is `Reactions.get` at the fulfil list. -/
-#check (@Semantics.Ordering.lookupRegistration_bridge :
+#whatwg_freeze (@Semantics.Ordering.lookupRegistration_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat),
     Semantics.Ordering.lookupRegistration c id =
-      Whatwg.Ecma262.Promise.Reactions.get (Semantics.Ordering.reactions c) .fulfill id)
+      Whatwg.Ecma262.Promise.Reactions.get (Semantics.Ordering.reactions c) .fulfill id) axioms []
 
 /-! Phase advance is `Reactions.setPhase` at the fulfil list. -/
-#check (@Semantics.Ordering.setRegistrationPhase_bridge :
+#whatwg_freeze (@Semantics.Ordering.setRegistrationPhase_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat)
     (phase : Whatwg.Ecma262.Promise.ReactionPhase),
     (Semantics.Ordering.setRegistrationPhase c id phase).registrations =
       (Whatwg.Ecma262.Promise.Reactions.setPhase (Semantics.Ordering.reactions c)
-        .fulfill id phase).fulfill)
+        .fulfill id phase).fulfill) axioms []
 
 /-! Scheduling one token is the landed tail append. -/
-#check (@Semantics.Ordering.enqueueJob_queue_bridge :
+#whatwg_freeze (@Semantics.Ordering.enqueueJob_queue_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (kind : Semantics.Ordering.JobKind),
     Semantics.Ordering.jobQueue (Semantics.Ordering.enqueueJob c kind).1 =
       Whatwg.Ecma262.Jobs.Queue.enqueue (Semantics.Ordering.jobQueue c)
-        (Semantics.Ordering.enqueueJob c kind).2)
+        (Semantics.Ordering.enqueueJob c kind).2) axioms []
 
 /-! The reaction half of `register` is Web IDL `react`'s pending branch. -/
 -- Q4 amendment A3, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
@@ -553,7 +554,7 @@ a serial where this one takes the whole token, and `observer` is landed as
 -- component, which is what this ascription's name and docstring say it is.
 -- This defect is independent of Q3b: the same projection was wrong against
 -- the slice Q3 surface.
-#check (@Semantics.Ordering.register_reactions_bridge :
+#whatwg_freeze (@Semantics.Ordering.register_reactions_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (p : Whatwg.Ecma262.Promise.Ref)
     (callback : Nat),
     c.owner = p.owner →
@@ -562,7 +563,7 @@ a serial where this one takes the whole token, and `observer` is landed as
       (Semantics.Ordering.register c p callback).map Semantics.Ordering.reactions =
         ((Whatwg.WebIdl.Promise.react (Writable.promiseTable c.writable)
           (Semantics.Ordering.reactions c) Whatwg.Ecma262.Jobs.Queue.empty
-          p.cell (some callback) none).map (fun x => x.2.1)))
+          p.cell (some callback) none).map (fun x => x.2.1))) axioms [propext, Quot.sound]
 
 /-! ## [Q4-owned] The reaction half of `notifySettled`, and the two cursors
 
@@ -608,22 +609,22 @@ avoids assuming an invariant it has not proved. -/
 
 /-! The erasure itself, frozen as an equation so the builder cannot widen it.
 Mask M1. -/
-#check (@Semantics.Ordering.phaseErase_eq :
+#whatwg_freeze (@Semantics.Ordering.phaseErase_eq :
   ∀ phase : Whatwg.Ecma262.Promise.ReactionPhase,
     Semantics.Ordering.phaseErase phase =
       (match phase with
       | .waiting => .waiting
       | .queued _ => .queued 0
       | .running _ => .running 0
-      | .done => .done))
+      | .done => .done)) axioms []
 
 /-! Mask M1. -/
-#check (@Semantics.Ordering.reactionErase_eq :
+#whatwg_freeze (@Semantics.Ordering.reactionErase_eq :
   ∀ {body : Type} (r : Whatwg.Ecma262.Promise.Reaction body),
     Semantics.Ordering.reactionErase r =
-      { r with phase := Semantics.Ordering.phaseErase r.phase })
+      { r with phase := Semantics.Ordering.phaseErase r.phase }) axioms []
 
-#check (@Semantics.Ordering.notifySettled_reactions_bridge :
+#whatwg_freeze (@Semantics.Ordering.notifySettled_reactions_bridge :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat),
     (c.registrations.map (fun r => r.id)).Nodup →
     Writable.lookupPromise c.writable id = some (.fulfilled ()) →
@@ -631,7 +632,7 @@ Mask M1. -/
           Semantics.Ordering.reactionErase =
         ((Whatwg.Ecma262.Promise.triggerReactions (Semantics.Ordering.reactions c) id
           .fulfill (Except.ok () : Except (Boundary.Exception ε) Unit)
-          Whatwg.Ecma262.Jobs.Queue.empty).1.fulfill).map Semantics.Ordering.reactionErase)
+          Whatwg.Ecma262.Jobs.Queue.empty).1.fulfill).map Semantics.Ordering.reactionErase) axioms [propext, Quot.sound]
 
 /-! The payload the erasure drops, recovered: every registration this
 notification triggers is left `.queued s` for exactly the serial of the
@@ -640,7 +641,7 @@ and that serial is drawn at or after `c.nextJob`. Mask M2: the statement
 observes the token entering the queue. This is the "separate lemma" the
 erasure owes, and together with the bridge above it is what the false equality
 was reaching for. -/
-#check (@Semantics.Ordering.notifySettled_queued_serial :
+#whatwg_freeze (@Semantics.Ordering.notifySettled_queued_serial :
   ∀ {α ε : Type} (c : Semantics.Ordering.Config α ε) (id : Nat)
     (r : Whatwg.Ecma262.Promise.Reaction Nat),
     (c.registrations.map (fun x => x.id)).Nodup →
@@ -650,28 +651,28 @@ was reaching for. -/
         Semantics.Ordering.lookupRegistration (Semantics.Ordering.notifySettled c id) r.id =
           some { r with phase := .queued serial } ∧
         Semantics.Ordering.Job.mk serial (.observer r.id) ∈
-          (Semantics.Ordering.jobQueue (Semantics.Ordering.notifySettled c id)).pending)
+          (Semantics.Ordering.jobQueue (Semantics.Ordering.notifySettled c id)).pending) axioms [propext, Quot.sound]
 
 /-! One non-checkpoint step schedules at the tail, over the landed queue. -/
-#check (@Semantics.Ordering.step_active_jobQueue_eq :
+#whatwg_freeze (@Semantics.Ordering.step_active_jobQueue_eq :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)},
     Semantics.Ordering.Step c d t → c.active ≠ .checkpoint →
       Semantics.Ordering.jobQueue t =
         Whatwg.Ecma262.Jobs.Queue.enqueueAll (Semantics.Ordering.jobQueue c)
-          (Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length)))
+          (Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length))) axioms [propext, Quot.sound]
 
 /-! R-P12's `active_episode_fifo_suffix`, stated over
 `Whatwg.Ecma262.Jobs.Queue`: an old tail stays in front of everything the
 episode schedules, in source order. This is the `Jobs.Queue` form of
 `episodePrefix_jobs_eq` above, and it is the form the ruling requires. -/
-#check (@Semantics.Ordering.episodePrefix_jobQueue_eq :
+#whatwg_freeze (@Semantics.Ordering.episodePrefix_jobQueue_eq :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {labels : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.EpisodePrefix c labels t →
       Semantics.Ordering.jobQueue t =
         Whatwg.Ecma262.Jobs.Queue.enqueueAll (Semantics.Ordering.jobQueue c)
-          (Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length)))
+          (Semantics.Ordering.queuedJobs (t.trace.drop c.trace.length))) axioms [propext, Quot.sound]
 
 /-!
 Still required, unchanged from the draft: registration/notification order and

@@ -2,6 +2,7 @@ import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render
 import WhatwgGates.Ledger.Check
 import WhatwgTest.Ledger
+import WhatwgTest.Audit.Freeze
 
 /-!
 # WhatwgTest.Audit.LedgerContract
@@ -40,231 +41,231 @@ open Gates.Ledger
 
 /-! ### 1.1 `WhatwgGates.Ledger.Model` -/
 
-#check (@Gates.Ledger.Edge : Type)
-#check (@Gates.Ledger.Edge.identity : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.construction : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.semantics : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.laws : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.representation : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.counterexamples : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.bridges : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.targets : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.trust : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.coverage : Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.all : List Gates.Ledger.Edge)
-#check (@Gates.Ledger.Edge.label : Gates.Ledger.Edge → String)
+#whatwg_freeze (@Gates.Ledger.Edge : Type)
+#whatwg_freeze (@Gates.Ledger.Edge.identity : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.construction : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.semantics : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.laws : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.representation : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.counterexamples : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.bridges : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.targets : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.trust : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.coverage : Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.all : List Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.Edge.label : Gates.Ledger.Edge → String)
 
-#check (@Gates.Ledger.Gate : Type)
-#check (@Gates.Ledger.Gate.build : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.vendorseal : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.citations : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.trustselftest : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.leanchecker : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.census : String → Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.censusReport : String → Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.urlinventory : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.urlcensus : Gates.Ledger.Gate)
-#check (@Gates.Ledger.Gate.command : Gates.Ledger.Gate → String)
-#check (@Gates.Ledger.Gate.executable? : Gates.Ledger.Gate → Option String)
+#whatwg_freeze (@Gates.Ledger.Gate : Type)
+#whatwg_freeze (@Gates.Ledger.Gate.build : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.vendorseal : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.citations : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.trustselftest : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.leanchecker : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.census : String → Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.censusReport : String → Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.urlinventory : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.urlcensus : Gates.Ledger.Gate)
+#whatwg_freeze (@Gates.Ledger.Gate.command : Gates.Ledger.Gate → String)
+#whatwg_freeze (@Gates.Ledger.Gate.executable? : Gates.Ledger.Gate → Option String)
 
-#check (@Gates.Ledger.RowStatus : Type)
-#check (@Gates.Ledger.RowStatus.closed : Gates.Ledger.RowStatus)
-#check (@Gates.Ledger.RowStatus.seeded : Gates.Ledger.RowStatus)
-#check (@Gates.Ledger.RowStatus.text : Gates.Ledger.RowStatus → String)
+#whatwg_freeze (@Gates.Ledger.RowStatus : Type)
+#whatwg_freeze (@Gates.Ledger.RowStatus.closed : Gates.Ledger.RowStatus)
+#whatwg_freeze (@Gates.Ledger.RowStatus.seeded : Gates.Ledger.RowStatus)
+#whatwg_freeze (@Gates.Ledger.RowStatus.text : Gates.Ledger.RowStatus → String)
 
-#check (@Gates.Ledger.RowRange : Type)
-#check (@Gates.Ledger.RowRange.mk : String → Nat → Nat → Gates.Ledger.RowRange)
-#check (@Gates.Ledger.RowRange.family : Gates.Ledger.RowRange → String)
-#check (@Gates.Ledger.RowRange.first : Gates.Ledger.RowRange → Nat)
-#check (@Gates.Ledger.RowRange.last : Gates.Ledger.RowRange → Nat)
-#check (@Gates.Ledger.RowRange.ids : Gates.Ledger.RowRange → List String)
-#check (@Gates.Ledger.threeDigits : Nat → String)
+#whatwg_freeze (@Gates.Ledger.RowRange : Type)
+#whatwg_freeze (@Gates.Ledger.RowRange.mk : String → Nat → Nat → Gates.Ledger.RowRange)
+#whatwg_freeze (@Gates.Ledger.RowRange.family : Gates.Ledger.RowRange → String)
+#whatwg_freeze (@Gates.Ledger.RowRange.first : Gates.Ledger.RowRange → Nat)
+#whatwg_freeze (@Gates.Ledger.RowRange.last : Gates.Ledger.RowRange → Nat)
+#whatwg_freeze (@Gates.Ledger.RowRange.ids : Gates.Ledger.RowRange → List String)
+#whatwg_freeze (@Gates.Ledger.threeDigits : Nat → String)
 
-#check (@Gates.Ledger.Ground : Type)
-#check (@Gates.Ledger.Ground.theorems : List Lean.Name → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.declarations : List Lean.Name → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.receipts : Lean.Name → Nat → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.ascriptions : Lean.Name → Nat → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.modules : List Lean.Name → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.gate : Gates.Ledger.Gate → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.ruling : String → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.receipt : String → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.rows :
+#whatwg_freeze (@Gates.Ledger.Ground : Type)
+#whatwg_freeze (@Gates.Ledger.Ground.theorems : List Lean.Name → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.declarations : List Lean.Name → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.receipts : Lean.Name → Nat → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.ascriptions : Lean.Name → Nat → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.modules : List Lean.Name → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.gate : Gates.Ledger.Gate → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.ruling : String → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.receipt : String → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.rows :
   Gates.Ledger.RowRange → Gates.Ledger.RowStatus → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.edge : String → Gates.Ledger.Edge → Gates.Ledger.Ground)
-#check (@Gates.Ledger.Ground.discharges : Gates.Ledger.Ground → Bool)
-#check (@Gates.Ledger.Ground.attests : Gates.Ledger.Ground → Bool)
+#whatwg_freeze (@Gates.Ledger.Ground.edge : String → Gates.Ledger.Edge → Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Ground.discharges : Gates.Ledger.Ground → Bool)
+#whatwg_freeze (@Gates.Ledger.Ground.attests : Gates.Ledger.Ground → Bool)
 
-#check (@Gates.Ledger.Item : Type)
-#check (@Gates.Ledger.Item.named : String → Gates.Ledger.Item)
-#check (@Gates.Ledger.Item.debt : String → Gates.Ledger.Item)
-#check (@Gates.Ledger.Item.rows :
+#whatwg_freeze (@Gates.Ledger.Item : Type)
+#whatwg_freeze (@Gates.Ledger.Item.named : String → Gates.Ledger.Item)
+#whatwg_freeze (@Gates.Ledger.Item.debt : String → Gates.Ledger.Item)
+#whatwg_freeze (@Gates.Ledger.Item.rows :
   Gates.Ledger.RowRange → Gates.Ledger.RowStatus → Gates.Ledger.Item)
-#check (@Gates.Ledger.Item.wanted : Lean.Name → Gates.Ledger.Item)
-#check (@Gates.Ledger.Item.edge : String → Gates.Ledger.Edge → Gates.Ledger.Item)
+#whatwg_freeze (@Gates.Ledger.Item.wanted : Lean.Name → Gates.Ledger.Item)
+#whatwg_freeze (@Gates.Ledger.Item.edge : String → Gates.Ledger.Edge → Gates.Ledger.Item)
 
-#check (@Gates.Ledger.Status : Type)
-#check (@Gates.Ledger.Status.requiredOpen : Gates.Ledger.Status)
-#check (@Gates.Ledger.Status.requiredClosed : Gates.Ledger.Status)
-#check (@Gates.Ledger.Status.notApplicable : Gates.Ledger.Status)
-#check (@Gates.Ledger.Status.text : Gates.Ledger.Status → String)
+#whatwg_freeze (@Gates.Ledger.Status : Type)
+#whatwg_freeze (@Gates.Ledger.Status.requiredOpen : Gates.Ledger.Status)
+#whatwg_freeze (@Gates.Ledger.Status.requiredClosed : Gates.Ledger.Status)
+#whatwg_freeze (@Gates.Ledger.Status.notApplicable : Gates.Ledger.Status)
+#whatwg_freeze (@Gates.Ledger.Status.text : Gates.Ledger.Status → String)
 
-#check (@Gates.Ledger.Cell : Type)
-#check (@Gates.Ledger.Cell.mk : Gates.Ledger.Status → List Gates.Ledger.Ground →
+#whatwg_freeze (@Gates.Ledger.Cell : Type)
+#whatwg_freeze (@Gates.Ledger.Cell.mk : Gates.Ledger.Status → List Gates.Ledger.Ground →
   List Gates.Ledger.Item → List String → String → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Cell.status : Gates.Ledger.Cell → Gates.Ledger.Status)
-#check (@Gates.Ledger.Cell.grounds : Gates.Ledger.Cell → List Gates.Ledger.Ground)
-#check (@Gates.Ledger.Cell.remaining : Gates.Ledger.Cell → List Gates.Ledger.Item)
-#check (@Gates.Ledger.Cell.debts : Gates.Ledger.Cell → List String)
-#check (@Gates.Ledger.Cell.note : Gates.Ledger.Cell → String)
+#whatwg_freeze (@Gates.Ledger.Cell.status : Gates.Ledger.Cell → Gates.Ledger.Status)
+#whatwg_freeze (@Gates.Ledger.Cell.grounds : Gates.Ledger.Cell → List Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Cell.remaining : Gates.Ledger.Cell → List Gates.Ledger.Item)
+#whatwg_freeze (@Gates.Ledger.Cell.debts : Gates.Ledger.Cell → List String)
+#whatwg_freeze (@Gates.Ledger.Cell.note : Gates.Ledger.Cell → String)
 
-#check (@Gates.Ledger.Edges : Type)
-#check (@Gates.Ledger.Edges.mk : Gates.Ledger.Cell → Gates.Ledger.Cell →
+#whatwg_freeze (@Gates.Ledger.Edges : Type)
+#whatwg_freeze (@Gates.Ledger.Edges.mk : Gates.Ledger.Cell → Gates.Ledger.Cell →
   Gates.Ledger.Cell → Gates.Ledger.Cell → Gates.Ledger.Cell → Gates.Ledger.Cell →
   Gates.Ledger.Cell → Gates.Ledger.Cell → Gates.Ledger.Cell → Gates.Ledger.Cell →
   Gates.Ledger.Edges)
-#check (@Gates.Ledger.Edges.identity : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.construction : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.semantics : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.laws : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.representation : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.counterexamples : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.bridges : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.targets : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.trust : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.coverage : Gates.Ledger.Edges → Gates.Ledger.Cell)
-#check (@Gates.Ledger.Edges.get :
+#whatwg_freeze (@Gates.Ledger.Edges.identity : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.construction : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.semantics : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.laws : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.representation : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.counterexamples : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.bridges : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.targets : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.trust : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.coverage : Gates.Ledger.Edges → Gates.Ledger.Cell)
+#whatwg_freeze (@Gates.Ledger.Edges.get :
   Gates.Ledger.Edges → Gates.Ledger.Edge → Gates.Ledger.Cell)
 
-#check (@Gates.Ledger.Graph : Type)
-#check (@Gates.Ledger.Graph.mk : String → String → List Lean.Name → List String →
+#whatwg_freeze (@Gates.Ledger.Graph : Type)
+#whatwg_freeze (@Gates.Ledger.Graph.mk : String → String → List Lean.Name → List String →
   List String → Gates.Ledger.Edges → Gates.Ledger.Graph)
-#check (@Gates.Ledger.Graph.id : Gates.Ledger.Graph → String)
-#check (@Gates.Ledger.Graph.document : Gates.Ledger.Graph → String)
-#check (@Gates.Ledger.Graph.fence : Gates.Ledger.Graph → List Lean.Name)
-#check (@Gates.Ledger.Graph.dependsOn : Gates.Ledger.Graph → List String)
-#check (@Gates.Ledger.Graph.acknowledged : Gates.Ledger.Graph → List String)
-#check (@Gates.Ledger.Graph.edges : Gates.Ledger.Graph → Gates.Ledger.Edges)
-#check (@Gates.Ledger.Graph.receiptsLog : Gates.Ledger.Graph → String)
-#check (@Gates.Ledger.Graph.projection : Gates.Ledger.Graph → String)
+#whatwg_freeze (@Gates.Ledger.Graph.id : Gates.Ledger.Graph → String)
+#whatwg_freeze (@Gates.Ledger.Graph.document : Gates.Ledger.Graph → String)
+#whatwg_freeze (@Gates.Ledger.Graph.fence : Gates.Ledger.Graph → List Lean.Name)
+#whatwg_freeze (@Gates.Ledger.Graph.dependsOn : Gates.Ledger.Graph → List String)
+#whatwg_freeze (@Gates.Ledger.Graph.acknowledged : Gates.Ledger.Graph → List String)
+#whatwg_freeze (@Gates.Ledger.Graph.edges : Gates.Ledger.Graph → Gates.Ledger.Edges)
+#whatwg_freeze (@Gates.Ledger.Graph.receiptsLog : Gates.Ledger.Graph → String)
+#whatwg_freeze (@Gates.Ledger.Graph.projection : Gates.Ledger.Graph → String)
 
-#check (@Gates.Ledger.Leaf : Type)
-#check (@Gates.Ledger.Leaf.mk : String → String → List Lean.Name →
+#whatwg_freeze (@Gates.Ledger.Leaf : Type)
+#whatwg_freeze (@Gates.Ledger.Leaf.mk : String → String → List Lean.Name →
   Option (String × Gates.Ledger.Edge) → List Gates.Ledger.Ground → Gates.Ledger.Leaf)
-#check (@Gates.Ledger.Leaf.id : Gates.Ledger.Leaf → String)
-#check (@Gates.Ledger.Leaf.document : Gates.Ledger.Leaf → String)
-#check (@Gates.Ledger.Leaf.declarations : Gates.Ledger.Leaf → List Lean.Name)
-#check (@Gates.Ledger.Leaf.parent : Gates.Ledger.Leaf → Option (String × Gates.Ledger.Edge))
-#check (@Gates.Ledger.Leaf.receipts : Gates.Ledger.Leaf → List Gates.Ledger.Ground)
+#whatwg_freeze (@Gates.Ledger.Leaf.id : Gates.Ledger.Leaf → String)
+#whatwg_freeze (@Gates.Ledger.Leaf.document : Gates.Ledger.Leaf → String)
+#whatwg_freeze (@Gates.Ledger.Leaf.declarations : Gates.Ledger.Leaf → List Lean.Name)
+#whatwg_freeze (@Gates.Ledger.Leaf.parent : Gates.Ledger.Leaf → Option (String × Gates.Ledger.Edge))
+#whatwg_freeze (@Gates.Ledger.Leaf.receipts : Gates.Ledger.Leaf → List Gates.Ledger.Ground)
 
-#check (@Gates.Ledger.Unrouted : Type)
-#check (@Gates.Ledger.Unrouted.mk : Lean.Name → String → Gates.Ledger.Unrouted)
-#check (@Gates.Ledger.Unrouted.modulePrefix : Gates.Ledger.Unrouted → Lean.Name)
-#check (@Gates.Ledger.Unrouted.recordedBy : Gates.Ledger.Unrouted → String)
+#whatwg_freeze (@Gates.Ledger.Unrouted : Type)
+#whatwg_freeze (@Gates.Ledger.Unrouted.mk : Lean.Name → String → Gates.Ledger.Unrouted)
+#whatwg_freeze (@Gates.Ledger.Unrouted.modulePrefix : Gates.Ledger.Unrouted → Lean.Name)
+#whatwg_freeze (@Gates.Ledger.Unrouted.recordedBy : Gates.Ledger.Unrouted → String)
 
-#check (@Gates.Ledger.Ledger : Type)
-#check (@Gates.Ledger.Ledger.mk : List Gates.Ledger.Graph → List Gates.Ledger.Leaf →
+#whatwg_freeze (@Gates.Ledger.Ledger : Type)
+#whatwg_freeze (@Gates.Ledger.Ledger.mk : List Gates.Ledger.Graph → List Gates.Ledger.Leaf →
   List Gates.Ledger.Unrouted → Gates.Ledger.Ledger)
-#check (@Gates.Ledger.Ledger.graphs : Gates.Ledger.Ledger → List Gates.Ledger.Graph)
-#check (@Gates.Ledger.Ledger.leaves : Gates.Ledger.Ledger → List Gates.Ledger.Leaf)
-#check (@Gates.Ledger.Ledger.unrouted : Gates.Ledger.Ledger → List Gates.Ledger.Unrouted)
+#whatwg_freeze (@Gates.Ledger.Ledger.graphs : Gates.Ledger.Ledger → List Gates.Ledger.Graph)
+#whatwg_freeze (@Gates.Ledger.Ledger.leaves : Gates.Ledger.Ledger → List Gates.Ledger.Leaf)
+#whatwg_freeze (@Gates.Ledger.Ledger.unrouted : Gates.Ledger.Ledger → List Gates.Ledger.Unrouted)
 
-#check (@Gates.Ledger.distinct : {α : Type} → [DecidableEq α] → List α → Bool)
-#check (@Gates.Ledger.Cell.problem? : Gates.Ledger.Cell → Option String)
-#check (@Gates.Ledger.Ledger.statusOf? : Gates.Ledger.Ledger → String →
+#whatwg_freeze (@Gates.Ledger.distinct : {α : Type} → [DecidableEq α] → List α → Bool)
+#whatwg_freeze (@Gates.Ledger.Cell.problem? : Gates.Ledger.Cell → Option String)
+#whatwg_freeze (@Gates.Ledger.Ledger.statusOf? : Gates.Ledger.Ledger → String →
   Gates.Ledger.Edge → Option Gates.Ledger.Status)
-#check (@Gates.Ledger.Cell.crossReferences : Gates.Ledger.Cell →
+#whatwg_freeze (@Gates.Ledger.Cell.crossReferences : Gates.Ledger.Cell →
   List (String × Gates.Ledger.Edge × Gates.Ledger.Status))
-#check (@Gates.Ledger.Ledger.dependenciesAcyclic : Gates.Ledger.Ledger → Bool)
-#check (@Gates.Ledger.Ledger.findings : Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.Ledger.wellFormed : Gates.Ledger.Ledger → Bool)
+#whatwg_freeze (@Gates.Ledger.Ledger.dependenciesAcyclic : Gates.Ledger.Ledger → Bool)
+#whatwg_freeze (@Gates.Ledger.Ledger.findings : Gates.Ledger.Ledger → List String)
+#whatwg_freeze (@Gates.Ledger.Ledger.wellFormed : Gates.Ledger.Ledger → Bool)
 
 /-! ### 1.2 `WhatwgGates.Ledger.Render` -/
 
-#check (@Gates.Ledger.formatVersion : Nat)
-#check (@Gates.Ledger.code : String → String)
-#check (@Gates.Ledger.joinAnd : List String → String)
-#check (@Gates.Ledger.Ground.render : Gates.Ledger.Ground → String)
-#check (@Gates.Ledger.Item.render : Gates.Ledger.Item → String)
-#check (@Gates.Ledger.Cell.render : Gates.Ledger.Cell → String)
-#check (@Gates.Ledger.Graph.render : Gates.Ledger.Graph → String → String)
+#whatwg_freeze (@Gates.Ledger.formatVersion : Nat)
+#whatwg_freeze (@Gates.Ledger.code : String → String)
+#whatwg_freeze (@Gates.Ledger.joinAnd : List String → String)
+#whatwg_freeze (@Gates.Ledger.Ground.render : Gates.Ledger.Ground → String)
+#whatwg_freeze (@Gates.Ledger.Item.render : Gates.Ledger.Item → String)
+#whatwg_freeze (@Gates.Ledger.Cell.render : Gates.Ledger.Cell → String)
+#whatwg_freeze (@Gates.Ledger.Graph.render : Gates.Ledger.Graph → String → String)
 
 /-! ### 1.3 `WhatwgGates.Ledger.Check` -/
 
-#check (@Gates.Ledger.ConstantKind : Type)
-#check (@Gates.Ledger.ConstantKind.thm : Gates.Ledger.ConstantKind)
-#check (@Gates.Ledger.ConstantKind.other : Gates.Ledger.ConstantKind)
-#check (@Gates.Ledger.World : Type)
-#check (@Gates.Ledger.World.mk : (Lean.Name → Option Gates.Ledger.ConstantKind) →
+#whatwg_freeze (@Gates.Ledger.ConstantKind : Type)
+#whatwg_freeze (@Gates.Ledger.ConstantKind.thm : Gates.Ledger.ConstantKind)
+#whatwg_freeze (@Gates.Ledger.ConstantKind.other : Gates.Ledger.ConstantKind)
+#whatwg_freeze (@Gates.Ledger.World : Type)
+#whatwg_freeze (@Gates.Ledger.World.mk : (Lean.Name → Option Gates.Ledger.ConstantKind) →
   (Lean.Name → Bool) → (String → Option String) → List String → Gates.Ledger.World)
-#check (@Gates.Ledger.World.constantKind? :
+#whatwg_freeze (@Gates.Ledger.World.constantKind? :
   Gates.Ledger.World → Lean.Name → Option Gates.Ledger.ConstantKind)
-#check (@Gates.Ledger.World.moduleBuilt : Gates.Ledger.World → Lean.Name → Bool)
-#check (@Gates.Ledger.World.file? : Gates.Ledger.World → String → Option String)
-#check (@Gates.Ledger.World.projectionFiles : Gates.Ledger.World → List String)
-#check (@Gates.Ledger.World.linesOf : Gates.Ledger.World → String → List String)
-#check (@Gates.Ledger.sourcePath : Lean.Name → String)
-#check (@Gates.Ledger.codeLines : String → List String)
-#check (@Gates.Ledger.receiptCount : String → Nat)
-#check (@Gates.Ledger.ascriptionCount : String → Nat)
-#check (@Gates.Ledger.rulingPresent : Gates.Ledger.World → List String → String → Bool)
-#check (@Gates.Ledger.debtPresent : Gates.Ledger.World → String → Bool)
-#check (@Gates.Ledger.rowStatus? : Gates.Ledger.World → String → Option String)
-#check (@Gates.Ledger.rowFindings : Gates.Ledger.World → Gates.Ledger.RowRange →
+#whatwg_freeze (@Gates.Ledger.World.moduleBuilt : Gates.Ledger.World → Lean.Name → Bool)
+#whatwg_freeze (@Gates.Ledger.World.file? : Gates.Ledger.World → String → Option String)
+#whatwg_freeze (@Gates.Ledger.World.projectionFiles : Gates.Ledger.World → List String)
+#whatwg_freeze (@Gates.Ledger.World.linesOf : Gates.Ledger.World → String → List String)
+#whatwg_freeze (@Gates.Ledger.sourcePath : Lean.Name → String)
+#whatwg_freeze (@Gates.Ledger.codeLines : String → List String)
+#whatwg_freeze (@Gates.Ledger.receiptCount : String → Nat)
+#whatwg_freeze (@Gates.Ledger.ascriptionCount : String → Nat)
+#whatwg_freeze (@Gates.Ledger.rulingPresent : Gates.Ledger.World → List String → String → Bool)
+#whatwg_freeze (@Gates.Ledger.debtPresent : Gates.Ledger.World → String → Bool)
+#whatwg_freeze (@Gates.Ledger.rowStatus? : Gates.Ledger.World → String → Option String)
+#whatwg_freeze (@Gates.Ledger.rowFindings : Gates.Ledger.World → Gates.Ledger.RowRange →
   Gates.Ledger.RowStatus → List String)
-#check (@Gates.Ledger.groundFindings : Gates.Ledger.World → List String → List String →
+#whatwg_freeze (@Gates.Ledger.groundFindings : Gates.Ledger.World → List String → List String →
   Gates.Ledger.Ground → List String)
-#check (@Gates.Ledger.itemFindings :
+#whatwg_freeze (@Gates.Ledger.itemFindings :
   Gates.Ledger.World → Gates.Ledger.Item → List String)
-#check (@Gates.Ledger.rulingId? : String → Option String)
-#check (@Gates.Ledger.rulingMentions :
+#whatwg_freeze (@Gates.Ledger.rulingId? : String → Option String)
+#whatwg_freeze (@Gates.Ledger.rulingMentions :
   List String → List Gates.Ledger.Graph → List (String × String))
-#check (@Gates.Ledger.EdgeToken : Type)
-#check (@Gates.Ledger.EdgeToken.mk : String → String → Gates.Ledger.Edge →
+#whatwg_freeze (@Gates.Ledger.EdgeToken : Type)
+#whatwg_freeze (@Gates.Ledger.EdgeToken.mk : String → String → Gates.Ledger.Edge →
   Gates.Ledger.Status → Gates.Ledger.EdgeToken)
-#check (@Gates.Ledger.EdgeToken.ruling : Gates.Ledger.EdgeToken → String)
-#check (@Gates.Ledger.EdgeToken.graph : Gates.Ledger.EdgeToken → String)
-#check (@Gates.Ledger.EdgeToken.edge : Gates.Ledger.EdgeToken → Gates.Ledger.Edge)
-#check (@Gates.Ledger.EdgeToken.status : Gates.Ledger.EdgeToken → Gates.Ledger.Status)
-#check (@Gates.Ledger.codeSpans : String → List String)
-#check (@Gates.Ledger.parseStatus? : String → Option Gates.Ledger.Status)
-#check (@Gates.Ledger.edgeTokens : List String → List Gates.Ledger.EdgeToken)
-#check (@Gates.Ledger.latestTokens :
+#whatwg_freeze (@Gates.Ledger.EdgeToken.ruling : Gates.Ledger.EdgeToken → String)
+#whatwg_freeze (@Gates.Ledger.EdgeToken.graph : Gates.Ledger.EdgeToken → String)
+#whatwg_freeze (@Gates.Ledger.EdgeToken.edge : Gates.Ledger.EdgeToken → Gates.Ledger.Edge)
+#whatwg_freeze (@Gates.Ledger.EdgeToken.status : Gates.Ledger.EdgeToken → Gates.Ledger.Status)
+#whatwg_freeze (@Gates.Ledger.codeSpans : String → List String)
+#whatwg_freeze (@Gates.Ledger.parseStatus? : String → Option Gates.Ledger.Status)
+#whatwg_freeze (@Gates.Ledger.edgeTokens : List String → List Gates.Ledger.EdgeToken)
+#whatwg_freeze (@Gates.Ledger.latestTokens :
   List Gates.Ledger.EdgeToken → List Gates.Ledger.EdgeToken)
-#check (@Gates.Ledger.tokenFindings :
+#whatwg_freeze (@Gates.Ledger.tokenFindings :
   Gates.Ledger.Ledger → List Gates.Ledger.EdgeToken → List String)
-#check (@Gates.Ledger.Graph.citedRulings : Gates.Ledger.Graph → List String)
-#check (@Gates.Ledger.graphFindings :
+#whatwg_freeze (@Gates.Ledger.Graph.citedRulings : Gates.Ledger.Graph → List String)
+#whatwg_freeze (@Gates.Ledger.graphFindings :
   Gates.Ledger.World → Gates.Ledger.Ledger → Gates.Ledger.Graph → List String)
-#check (@Gates.Ledger.leafFindings :
+#whatwg_freeze (@Gates.Ledger.leafFindings :
   Gates.Ledger.World → Gates.Ledger.Leaf → List String)
-#check (@Gates.Ledger.unroutedFindings :
+#whatwg_freeze (@Gates.Ledger.unroutedFindings :
   Gates.Ledger.World → Gates.Ledger.Unrouted → List String)
-#check (@Gates.Ledger.ledgerInput : String)
-#check (@Gates.Ledger.Ledger.files : Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.referenceFindings :
+#whatwg_freeze (@Gates.Ledger.ledgerInput : String)
+#whatwg_freeze (@Gates.Ledger.Ledger.files : Gates.Ledger.Ledger → List String)
+#whatwg_freeze (@Gates.Ledger.referenceFindings :
   Gates.Ledger.World → Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.projectionFindings :
+#whatwg_freeze (@Gates.Ledger.projectionFindings :
   Gates.Ledger.World → Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.Outcome : Type)
-#check (@Gates.Ledger.Outcome.mk :
+#whatwg_freeze (@Gates.Ledger.Outcome : Type)
+#whatwg_freeze (@Gates.Ledger.Outcome.mk :
   UInt32 → List String → List (String × String) → Gates.Ledger.Outcome)
-#check (@Gates.Ledger.Outcome.exitCode : Gates.Ledger.Outcome → UInt32)
-#check (@Gates.Ledger.Outcome.output : Gates.Ledger.Outcome → List String)
-#check (@Gates.Ledger.Outcome.writes : Gates.Ledger.Outcome → List (String × String))
-#check (@Gates.Ledger.outcome :
+#whatwg_freeze (@Gates.Ledger.Outcome.exitCode : Gates.Ledger.Outcome → UInt32)
+#whatwg_freeze (@Gates.Ledger.Outcome.output : Gates.Ledger.Outcome → List String)
+#whatwg_freeze (@Gates.Ledger.Outcome.writes : Gates.Ledger.Outcome → List (String × String))
+#whatwg_freeze (@Gates.Ledger.outcome :
   Gates.Ledger.World → Gates.Ledger.Ledger → Bool → Gates.Ledger.Outcome)
-#check (@Gates.Ledger.cli : Gates.Ledger.Ledger → List String → IO UInt32)
+#whatwg_freeze (@Gates.Ledger.cli : Gates.Ledger.Ledger → List String → IO UInt32)
 
 /-! ### 1.4 Slice A data and the structural theorem -/
 
-#check (@WhatwgTest.Ledger.dataQueue : Gates.Ledger.Graph)
-#check (@WhatwgTest.Ledger.promiseFirst : Gates.Ledger.Graph)
-#check (@WhatwgTest.Ledger.configurationOrdering : Gates.Ledger.Graph)
-#check (@WhatwgTest.Ledger.infraInteger : Gates.Ledger.Leaf)
-#check (@WhatwgTest.Ledger.ledger : Gates.Ledger.Ledger)
-#check (@WhatwgTest.Ledger.ledger_wellFormed :
-  WhatwgTest.Ledger.ledger.wellFormed = true)
+#whatwg_freeze (@WhatwgTest.Ledger.dataQueue : Gates.Ledger.Graph)
+#whatwg_freeze (@WhatwgTest.Ledger.promiseFirst : Gates.Ledger.Graph)
+#whatwg_freeze (@WhatwgTest.Ledger.configurationOrdering : Gates.Ledger.Graph)
+#whatwg_freeze (@WhatwgTest.Ledger.infraInteger : Gates.Ledger.Leaf)
+#whatwg_freeze (@WhatwgTest.Ledger.ledger : Gates.Ledger.Ledger)
+#whatwg_freeze (@WhatwgTest.Ledger.ledger_wellFormed :
+  WhatwgTest.Ledger.ledger.wellFormed = true) axioms [propext]
 
 #guard WhatwgTest.Ledger.dataQueue.id == "DATA-PG-QUEUE"
 #guard WhatwgTest.Ledger.dataQueue.document == "docs/DATA-DAG.md"

@@ -1,5 +1,6 @@
 import Whatwg
 import Effects.Algebra.Sum
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q5b battery for builder slice B6: the face law
@@ -34,14 +35,14 @@ interpreted by the consumer's own handler `other` alone: the agent's lens
 handler takes no step, so the summed handler adds nothing to what `other`
 does. DB-04 M2. -/
 
-#check (@Whatwg.Signatures.Ecma262.interpret_sumHandler_inr :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.interpret_sumHandler_inr :
   ∀ {value reason body σ α : Type} {T : Effects.Signature.{0, 0}}
     (view : σ → Agent.Agent value reason body)
     (update : Agent.Agent value reason body → σ → σ) (other : Effects.Handler T (StateT σ Id))
     (p : Effects.Program T α),
     Effects.interpret (Whatwg.Signatures.Ecma262.sumHandler view update other)
         (Effects.Program.inr (S := Whatwg.Signatures.Ecma262.signature value reason body) p) =
-      Effects.interpret other p)
+      Effects.interpret other p) axioms [propext, Quot.sound]
 
 namespace WhatwgTest.Signatures.Ecma262SumContract
 

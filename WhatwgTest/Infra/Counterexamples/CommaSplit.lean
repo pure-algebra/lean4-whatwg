@@ -1,4 +1,5 @@
 import Whatwg.Infra.Text.Scan
+import WhatwgTest.Audit.Freeze
 
 /-!
 # Comma-splitting counterexample INFRA-TEXT-CE-001
@@ -36,15 +37,15 @@ theorem ce001_original_result_false :
 theorem ce001_empty_input : splitOnCommas (ofLiteral "") = [] := by
   decide +kernel
 
-#check (@ce001_correct_result :
+#whatwg_freeze (@ce001_correct_result :
   splitOnCommas (ofLiteral " a , ,b,") =
-    [ofLiteral "a", ofLiteral "", ofLiteral "b"])
+    [ofLiteral "a", ofLiteral "", ofLiteral "b"]) axioms [propext, Classical.choice, Quot.sound]
 
-#check (@ce001_original_result_false :
+#whatwg_freeze (@ce001_original_result_false :
   ¬ (splitOnCommas (ofLiteral " a , ,b,") =
-    [ofLiteral "a", ofLiteral "", ofLiteral "b", ofLiteral ""]))
+    [ofLiteral "a", ofLiteral "", ofLiteral "b", ofLiteral ""])) axioms [propext, Classical.choice, Quot.sound]
 
-#check (@ce001_empty_input : splitOnCommas (ofLiteral "") = [])
+#whatwg_freeze (@ce001_empty_input : splitOnCommas (ofLiteral "") = []) axioms [propext, Classical.choice, Quot.sound]
 
 #print axioms ce001_correct_result
 #print axioms ce001_original_result_false

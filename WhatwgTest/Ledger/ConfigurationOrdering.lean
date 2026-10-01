@@ -76,7 +76,9 @@ def configurationOrdering : Graph where
         .named "the ordered-effect receipts",
         .named "the token/mailbox correspondence",
         .named "the finite witness through the original start gate"]
-      grounds := [.receipts `WhatwgTest.Streams.Semantics.OrderingAxiomReport 93,
+      grounds := [.receipts `WhatwgTest.Streams.Semantics.OrderingLaws 69,
+        .receipts `WhatwgTest.Streams.Semantics.OrderingSource 13,
+        .receipts `WhatwgTest.Streams.PromiseBridgeQ4 26,
         .receipt "Q4 landing, second pass"]
       note := "All 54 restated law ascriptions, the 15 Q4-owned bridging receipts and the 18 deferred-generalization ascriptions are proved. The edge stays open on the obligations §3.3 of the contract lists and no landed law states." }
     representation := {
@@ -109,10 +111,12 @@ def configurationOrdering : Graph where
       note := "This graph generates no target program; P11 owns target lowering." }
     trust := {
       status := .requiredClosed
-      grounds := [.ruling "R-P27", .receipts `WhatwgTest.Streams.Semantics.OrderingAxiomReport 93,
+      grounds := [.ruling "R-P27", .receipts `WhatwgTest.Streams.Semantics.OrderingLaws 69,
+        .receipts `WhatwgTest.Streams.Semantics.OrderingSource 13,
+        .receipts `WhatwgTest.Streams.PromiseBridgeQ4 26,
         .gate .trustselftest, .receipt "Q4 landing, second pass", .ruling "R-V1", .ruling "R-V6",
         .ruling "R-V8", .gate .build]
-      note := "The graph document held the edge open on independent review alone; ruling R-P27 records that review of `1d400b4` as done, so the edge closes on R-P27. The 93 named receipts print inside the R-11 ceiling and the trust self-test passes against an empty declared red set. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
+      note := "The graph document held the edge open on independent review alone; ruling R-P27 records that review of `1d400b4` as done, so the edge closes on R-P27. The 93 named receipts are frozen inside the R-11 ceiling and the trust self-test passes against an empty declared red set. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "the exact clause and numerator joins"]

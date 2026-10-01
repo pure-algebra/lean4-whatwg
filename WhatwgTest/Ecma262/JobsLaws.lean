@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3 law battery for `Whatwg.Ecma262.Jobs`.
@@ -17,37 +18,37 @@ set_option autoImplicit false
 
 /-! ### Queue equations — mask M1 (no order is observed) -/
 
-#check (@Whatwg.Ecma262.Jobs.Queue.empty_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.empty_eq :
   ∀ {payload : Type},
     (Whatwg.Ecma262.Jobs.Queue.empty : Whatwg.Ecma262.Jobs.Queue payload) =
-      Whatwg.Ecma262.Jobs.Queue.mk [])
+      Whatwg.Ecma262.Jobs.Queue.mk []) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.Queue.enqueue_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.enqueue_eq :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload) (job : payload),
     Whatwg.Ecma262.Jobs.Queue.enqueue q job =
-      Whatwg.Ecma262.Jobs.Queue.mk (q.pending ++ [job]))
+      Whatwg.Ecma262.Jobs.Queue.mk (q.pending ++ [job])) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.Queue.enqueueAll_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.enqueueAll_eq :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload) (jobs : List payload),
     Whatwg.Ecma262.Jobs.Queue.enqueueAll q jobs =
-      Whatwg.Ecma262.Jobs.Queue.mk (q.pending ++ jobs))
+      Whatwg.Ecma262.Jobs.Queue.mk (q.pending ++ jobs)) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.Queue.oldest_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.oldest_eq :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload),
-    Whatwg.Ecma262.Jobs.Queue.oldest q = q.pending.head?)
+    Whatwg.Ecma262.Jobs.Queue.oldest q = q.pending.head?) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.Queue.dequeue_empty :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.dequeue_empty :
   ∀ {payload : Type},
     Whatwg.Ecma262.Jobs.Queue.dequeue
-        (Whatwg.Ecma262.Jobs.Queue.empty : Whatwg.Ecma262.Jobs.Queue payload) = none)
+        (Whatwg.Ecma262.Jobs.Queue.empty : Whatwg.Ecma262.Jobs.Queue payload) = none) axioms []
 
 /-! The branch equation both Streams corollaries instantiate: `E-46`'s
 `Writable.tick_job_fifo` and `E-53`'s `Transform.tick_job_fifo` are its
 consequences under their own empty-execution-context guards. Mask M2. -/
-#check (@Whatwg.Ecma262.Jobs.Queue.dequeue_cons :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.dequeue_cons :
   ∀ {payload : Type} (job : payload) (rest : List payload),
     Whatwg.Ecma262.Jobs.Queue.dequeue (Whatwg.Ecma262.Jobs.Queue.mk (job :: rest)) =
-      some (job, Whatwg.Ecma262.Jobs.Queue.mk rest))
+      some (job, Whatwg.Ecma262.Jobs.Queue.mk rest)) axioms []
 
 /-! ### The general FIFO law — mask M2
 
@@ -57,12 +58,12 @@ and `Transform.tick_job_fifo` are re-derived. Taking `later := []` gives
 the ordering content of `requirement.hostenqueuepromisejob.3`: a job scheduled
 after `oldest` never overtakes it. -/
 
-#check (@Whatwg.Ecma262.Jobs.Queue.dequeue_fifo :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.Queue.dequeue_fifo :
   ∀ {payload : Type} (oldest : payload) (queued later : List payload),
     Whatwg.Ecma262.Jobs.Queue.dequeue
         (Whatwg.Ecma262.Jobs.Queue.enqueueAll
           (Whatwg.Ecma262.Jobs.Queue.mk (oldest :: queued)) later) =
-      some (oldest, Whatwg.Ecma262.Jobs.Queue.mk (queued ++ later)))
+      some (oldest, Whatwg.Ecma262.Jobs.Queue.mk (queued ++ later))) axioms []
 
 /-! ### The run condition — mask M1
 
@@ -73,25 +74,25 @@ single condition `RunCondition active`, which the three Streams spellings
 (`Readable.State.frames = []`, `Writable.State.control = []`, and the
 transform's three-way guard) approximate per component (`G-08`). -/
 
-#check (@Whatwg.Ecma262.Jobs.mayRun_iff :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.mayRun_iff :
   ∀ (active : Whatwg.Ecma262.Jobs.Active),
-    Whatwg.Ecma262.Jobs.mayRun active = true ↔ active = Whatwg.Ecma262.Jobs.Active.checkpoint)
+    Whatwg.Ecma262.Jobs.mayRun active = true ↔ active = Whatwg.Ecma262.Jobs.Active.checkpoint) axioms [propext]
 
-#check (@Whatwg.Ecma262.Jobs.RunCondition_iff :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.RunCondition_iff :
   ∀ (active : Whatwg.Ecma262.Jobs.Active),
     Whatwg.Ecma262.Jobs.RunCondition active ↔
-      active = Whatwg.Ecma262.Jobs.Active.checkpoint)
+      active = Whatwg.Ecma262.Jobs.Active.checkpoint) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.step_checkpoint :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.step_checkpoint :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload),
     Whatwg.Ecma262.Jobs.step Whatwg.Ecma262.Jobs.Active.checkpoint q =
-      Whatwg.Ecma262.Jobs.Queue.dequeue q)
+      Whatwg.Ecma262.Jobs.Queue.dequeue q) axioms [propext]
 
-#check (@Whatwg.Ecma262.Jobs.step_blocked :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.step_blocked :
   ∀ {payload : Type} (active : Whatwg.Ecma262.Jobs.Active)
     (q : Whatwg.Ecma262.Jobs.Queue payload),
     active ≠ Whatwg.Ecma262.Jobs.Active.checkpoint →
-      Whatwg.Ecma262.Jobs.step active q = none)
+      Whatwg.Ecma262.Jobs.step active q = none) axioms [propext]
 
 /-! ### The realizer of `requirement.hostenqueuepromisejob.3` — mask M2
 
@@ -101,20 +102,20 @@ specification. This is the DB-05 pair R-P5 requires, in the same shape as
 states that whatever it did not run is still queued, so exhaustion is a live
 frontier and never a terminal outcome (DB-07). -/
 
-#check (@Whatwg.Ecma262.Jobs.FifoRequirement_iff :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.FifoRequirement_iff :
   ∀ {payload : Type} (scheduled executed : List payload),
     Whatwg.Ecma262.Jobs.FifoRequirement scheduled executed ↔
-      List.IsPrefix executed scheduled)
+      List.IsPrefix executed scheduled) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.run_zero :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_zero :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload),
-    Whatwg.Ecma262.Jobs.run 0 q = ([], q))
+    Whatwg.Ecma262.Jobs.run 0 q = ([], q)) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.run_nil :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_nil :
   ∀ {payload : Type} (fuel : Nat),
     Whatwg.Ecma262.Jobs.run fuel
         (Whatwg.Ecma262.Jobs.Queue.mk ([] : List payload)) =
-      ([], Whatwg.Ecma262.Jobs.Queue.mk []))
+      ([], Whatwg.Ecma262.Jobs.Queue.mk [])) axioms []
 
 /-! Mask **M2**, confirmed by the Q3b fidelity addendum, 2026-09-07
 (WS-PROM-CE-037). The statement is unchanged and stays frozen. §7 of the base
@@ -124,36 +125,36 @@ is an order over jobs. `Whatwg/Ecma262/Jobs.lean`'s docstring already says
 "Mask M2", so the divergence is in §7's table and not in the tree; the addendum
 amends that table to thirteen. `run_zero`, `run_nil` and `run_split` sit under
 the same block heading and remain M1, as their own docstrings say. -/
-#check (@Whatwg.Ecma262.Jobs.run_cons :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_cons :
   ∀ {payload : Type} (fuel : Nat) (job : payload) (rest : List payload),
     Whatwg.Ecma262.Jobs.run (fuel + 1) (Whatwg.Ecma262.Jobs.Queue.mk (job :: rest)) =
       (job :: (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.mk rest)).1,
-        (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.mk rest)).2))
+        (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.mk rest)).2)) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.run_split :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_split :
   ∀ {payload : Type} (fuel : Nat) (q : Whatwg.Ecma262.Jobs.Queue payload),
     (Whatwg.Ecma262.Jobs.run fuel q).1 ++ (Whatwg.Ecma262.Jobs.run fuel q).2.pending =
-      q.pending)
+      q.pending) axioms [propext]
 
 /-! The realizer theorem. Mask M2. -/
-#check (@Whatwg.Ecma262.Jobs.run_fifo :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_fifo :
   ∀ {payload : Type} (fuel : Nat) (q : Whatwg.Ecma262.Jobs.Queue payload),
-    Whatwg.Ecma262.Jobs.FifoRequirement q.pending (Whatwg.Ecma262.Jobs.run fuel q).1)
+    Whatwg.Ecma262.Jobs.FifoRequirement q.pending (Whatwg.Ecma262.Jobs.run fuel q).1) axioms [propext]
 
 /-! The realizer still satisfies the requirement when further jobs are
 scheduled before the run. Mask M2. -/
-#check (@Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob_order :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob_order :
   ∀ {payload : Type} (fuel : Nat) (q : Whatwg.Ecma262.Jobs.Queue payload)
     (later : List payload),
     Whatwg.Ecma262.Jobs.FifoRequirement (q.pending ++ later)
-      (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.enqueueAll q later)).1)
+      (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.enqueueAll q later)).1) axioms [propext]
 
-#check (@Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob_eq :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload) (job : payload),
     Whatwg.Ecma262.Jobs.hostEnqueuePromiseJob q job =
-      Whatwg.Ecma262.Jobs.Queue.enqueue q job)
+      Whatwg.Ecma262.Jobs.Queue.enqueue q job) axioms []
 
-#check (@Whatwg.Ecma262.Jobs.newReactionJob_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.newReactionJob_eq :
   ∀ {arg : Type} (reaction : Nat) (argument : arg),
     Whatwg.Ecma262.Jobs.newReactionJob reaction argument =
-      Whatwg.Ecma262.Jobs.ReactionJob.mk reaction argument)
+      Whatwg.Ecma262.Jobs.ReactionJob.mk reaction argument) axioms []

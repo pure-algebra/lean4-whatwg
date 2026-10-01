@@ -1,5 +1,6 @@
 import Lean
 import WhatwgGates
+import WhatwgTest.Audit.Freeze
 
 /-!
 # Web IDL census Q2 addendum battery
@@ -59,21 +60,21 @@ per-standard parameter into a signature whose only caller is `bin/Census.lean`.
 Everything downstream keeps its current signature, which is why the four
 ascriptions after it are green today and must stay green. -/
 
-#check (@Gates.Census.CoverageRow : Type)
-#check (@Gates.Census.CoverageRow.mk :
+#whatwg_freeze (@Gates.Census.CoverageRow : Type)
+#whatwg_freeze (@Gates.Census.CoverageRow.mk :
   String → Gates.Census.Disposition → Gates.Census.CoverageState → List String →
     Gates.Census.CoverageRow)
 #check (Gates.Census.CoverageState.absent : Gates.Census.CoverageState)
-#check (@Gates.Census.verifyEmit :
+#whatwg_freeze (@Gates.Census.verifyEmit :
   Gates.Census.Built → Array Gates.Census.CoverageRow → Array String)
-#check (@Gates.Census.check :
+#whatwg_freeze (@Gates.Census.check :
   System.FilePath → Gates.Census.Standard → Option (Array Gates.Census.CoverageRow) →
     IO UInt32)
-#check (@Gates.Census.report :
+#whatwg_freeze (@Gates.Census.report :
   System.FilePath → Gates.Census.Standard → Array Gates.Census.CoverageRow → IO UInt32)
 
 -- The one signature this slice changes.
-#check (@Gates.Census.cli :
+#whatwg_freeze (@Gates.Census.cli :
   List (String × Array Gates.Census.CoverageRow) → List String → IO UInt32)
 
 /-! ## 2. The three rows the addendum adds

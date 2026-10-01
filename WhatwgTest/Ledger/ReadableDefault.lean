@@ -36,7 +36,7 @@ def readableDefault : Graph where
       remaining := [
         .named "the generated declaration snapshot and its joins to the declaration table, which has no generator",
         .debt "D47"]
-      grounds := [.receipts `WhatwgTest.Streams.Readable.DefaultAxiomReport 94,
+      grounds := [.receipts `WhatwgTest.Streams.Readable.DefaultContract 94,
         .receipt "P4a landing receipt"]
       note := "The exact ascriptions, constructor census and shared-reason retraction landed with the 94 receipts." }
     construction := {
@@ -60,9 +60,9 @@ def readableDefault : Graph where
     laws := {
       status := .requiredClosed
       grounds := [.modules [`WhatwgTest.Streams.Readable.DefaultContract],
-        .receipts `WhatwgTest.Streams.Readable.DefaultAxiomReport 94,
+        .receipts `WhatwgTest.Streams.Readable.DefaultContract 94,
         .receipt "P4a landing receipt"]
-      note := "Every quantified equation of the contract battery is proved: the 94 named theorems of the axiom report." }
+      note := "Every quantified equation of the contract battery is proved: the 94 named theorems frozen with their axiom sets." }
     representation := {
       status := .requiredOpen
       remaining := [.named "the full-state embedding", .named "the shared-allocation embedding",
@@ -86,12 +86,12 @@ def readableDefault : Graph where
       note := "P4a has no lowering or generated code; P11 owns that obligation." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Streams.Readable.DefaultAxiomReport 94, .gate .build,
+      grounds := [.receipts `WhatwgTest.Streams.Readable.DefaultContract 94, .gate .build,
         .receipt "P4a landing receipt",
         .theorems [`Whatwg.Streams.Readable.readTable_settleReadCell,
           `Whatwg.Streams.Readable.readTable_settleReadCells],
         .edge "CONFIGURATION-PG-ORDERING" .trust, .ruling "R-V6"]
-      note := "The 94 named receipts print inside the R-11 ceiling and none reaches `Classical.choice`; the exhaustive root audit, the builds, the gates and independent review passed. The two public theorems of `Whatwg/Streams/Readable/Laws.lean`, `readTable_settleReadCell` and `readTable_settleReadCells`, with the two private helpers beneath them, are Q4 receipts of `CONFIGURATION-PG-ORDERING`, and no declaration under `Whatwg.Streams` reaches `Classical.choice` (R-V6)." }
+      note := "The 94 named receipts are frozen inside the R-11 ceiling and none reaches `Classical.choice`; the exhaustive root audit, the builds, the gates and independent review passed. The two public theorems of `Whatwg/Streams/Readable/Laws.lean`, `readTable_settleReadCell` and `readTable_settleReadCells`, with the two private helpers beneath them, are Q4 receipts of `CONFIGURATION-PG-ORDERING`, and no declaration under `Whatwg.Streams` reaches `Classical.choice` (R-V6)." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "the clause map of the graph document and the test-side numerator witnesses for its rows"]

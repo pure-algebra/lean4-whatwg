@@ -1,5 +1,6 @@
 import Lean
 import WhatwgGates
+import WhatwgTest.Audit.Freeze
 
 /-!
 # Web IDL promise and exception census contract battery
@@ -56,27 +57,27 @@ between the Bikeshed scanners and the ecmarkup scanner of `Gates/Ecmarkup.lean`.
 - `idlOpeners`      the (opening tag, closing tag) pairs of an IDL block.
 -/
 
-#check (@Gates.Census.Bikeshed : Type)
-#check (@Gates.Census.Bikeshed.mk :
+#whatwg_freeze (@Gates.Census.Bikeshed : Type)
+#whatwg_freeze (@Gates.Census.Bikeshed.mk :
   Bool → Bool → Bool → Bool → Option String → Bool → Nat × Nat →
     Array (String × String) → Gates.Census.Bikeshed)
-#check (@Gates.Census.Bikeshed.algorithmRows : Gates.Census.Bikeshed → Bool)
-#check (@Gates.Census.Bikeshed.definitionRows : Gates.Census.Bikeshed → Bool)
-#check (@Gates.Census.Bikeshed.idlRows : Gates.Census.Bikeshed → Bool)
-#check (@Gates.Census.Bikeshed.slotRows : Gates.Census.Bikeshed → Bool)
-#check (@Gates.Census.Bikeshed.requirementMarker : Gates.Census.Bikeshed → Option String)
-#check (@Gates.Census.Bikeshed.sectionScope : Gates.Census.Bikeshed → Bool)
-#check (@Gates.Census.Bikeshed.headingLevels : Gates.Census.Bikeshed → Nat × Nat)
-#check (@Gates.Census.Bikeshed.idlOpeners : Gates.Census.Bikeshed → Array (String × String))
+#whatwg_freeze (@Gates.Census.Bikeshed.algorithmRows : Gates.Census.Bikeshed → Bool)
+#whatwg_freeze (@Gates.Census.Bikeshed.definitionRows : Gates.Census.Bikeshed → Bool)
+#whatwg_freeze (@Gates.Census.Bikeshed.idlRows : Gates.Census.Bikeshed → Bool)
+#whatwg_freeze (@Gates.Census.Bikeshed.slotRows : Gates.Census.Bikeshed → Bool)
+#whatwg_freeze (@Gates.Census.Bikeshed.requirementMarker : Gates.Census.Bikeshed → Option String)
+#whatwg_freeze (@Gates.Census.Bikeshed.sectionScope : Gates.Census.Bikeshed → Bool)
+#whatwg_freeze (@Gates.Census.Bikeshed.headingLevels : Gates.Census.Bikeshed → Nat × Nat)
+#whatwg_freeze (@Gates.Census.Bikeshed.idlOpeners : Gates.Census.Bikeshed → Array (String × String))
 
-#check (@Gates.Census.Profile : Type)
-#check (@Gates.Census.Profile.bikeshed : Gates.Census.Bikeshed → Gates.Census.Profile)
+#whatwg_freeze (@Gates.Census.Profile : Type)
+#whatwg_freeze (@Gates.Census.Profile.bikeshed : Gates.Census.Bikeshed → Gates.Census.Profile)
 #check (Gates.Census.Profile.ecmarkup : Gates.Census.Profile)
 
-#check (@Gates.Census.Standard.profile : Gates.Census.Standard → Gates.Census.Profile)
-#check (@Gates.Census.Standard.sectionsRelativePath : Gates.Census.Standard → String)
-#check (@Gates.Census.Standard.dependenciesRelativePath : Gates.Census.Standard → String)
-#check (@Gates.Census.Standard.externalsRelativePath : Gates.Census.Standard → String)
+#whatwg_freeze (@Gates.Census.Standard.profile : Gates.Census.Standard → Gates.Census.Profile)
+#whatwg_freeze (@Gates.Census.Standard.sectionsRelativePath : Gates.Census.Standard → String)
+#whatwg_freeze (@Gates.Census.Standard.dependenciesRelativePath : Gates.Census.Standard → String)
+#whatwg_freeze (@Gates.Census.Standard.externalsRelativePath : Gates.Census.Standard → String)
 
 /-! ### The optional end locator of `rules.tsv`
 
@@ -87,17 +88,17 @@ start locator, with trailing ASCII whitespace trimmed. Both `census/rules.tsv`
 and `census/infra/rules.tsv` are entry-free at this pin and both projections
 carry zero `rule` rows, so the extension is byte-neutral for them. -/
 
-#check (@Gates.Census.RuleInput.mk : String → String → Option String → Gates.Census.RuleInput)
-#check (@Gates.Census.RuleInput.name : Gates.Census.RuleInput → String)
-#check (@Gates.Census.RuleInput.locator : Gates.Census.RuleInput → String)
-#check (@Gates.Census.RuleInput.endLocator : Gates.Census.RuleInput → Option String)
+#whatwg_freeze (@Gates.Census.RuleInput.mk : String → String → Option String → Gates.Census.RuleInput)
+#whatwg_freeze (@Gates.Census.RuleInput.name : Gates.Census.RuleInput → String)
+#whatwg_freeze (@Gates.Census.RuleInput.locator : Gates.Census.RuleInput → String)
+#whatwg_freeze (@Gates.Census.RuleInput.endLocator : Gates.Census.RuleInput → Option String)
 -- R-W5, 2026-10-01: the second parameter is written `optParam String
 -- Gates.Census.rulesRelativePath`, as the declaration states it. Written
 -- `String`, it passed only because `optParam` unfolds (FREEZE-CE-002).
-#check (@Gates.Census.parseRules :
+#whatwg_freeze (@Gates.Census.parseRules :
   String → optParam String Gates.Census.rulesRelativePath →
     Except String (Array Gates.Census.RuleInput))
-#check (@Gates.Census.scanRules :
+#whatwg_freeze (@Gates.Census.scanRules :
   ByteArray → Array Gates.Census.RuleInput → Except String (Array Gates.Census.Row))
 
 private def parsedRules (text : String) : Option (Array Gates.Census.RuleInput) :=
@@ -146,7 +147,7 @@ private def scannedRules (text : String) (rules : Array Gates.Census.RuleInput) 
 
 /-! ## 2. The `webidl` standard -/
 
-#check (@Gates.Census.webidl : Gates.Census.Standard)
+#whatwg_freeze (@Gates.Census.webidl : Gates.Census.Standard)
 
 #guard Gates.Census.webidl.key == "webidl"
 #guard Gates.Census.webidl.label == "WHATWG Web IDL (a652053f)"

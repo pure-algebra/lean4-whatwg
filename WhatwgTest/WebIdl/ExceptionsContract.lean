@@ -1,4 +1,5 @@
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3 part C battery for `Whatwg.WebIdl.Exceptions`.
@@ -42,22 +43,22 @@ records "five of the seven simple exception kinds" as absent; the pinned bytes
 have five kinds in total, of which Streams models two, so three are added here.
 The contract records the disagreement. -/
 
-#check (@Whatwg.WebIdl.Exceptions.Simple :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple :
   Type)
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.evalError :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.evalError :
   Whatwg.WebIdl.Exceptions.Simple)
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.rangeError :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.rangeError :
   Whatwg.WebIdl.Exceptions.Simple)
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.referenceError :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.referenceError :
   Whatwg.WebIdl.Exceptions.Simple)
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.typeError :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.typeError :
   Whatwg.WebIdl.Exceptions.Simple)
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.uriError :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.uriError :
   Whatwg.WebIdl.Exceptions.Simple)
 
 #check (inferInstance :
@@ -66,7 +67,7 @@ The contract records the disagreement. -/
 #check (inferInstance :
   Repr Whatwg.WebIdl.Exceptions.Simple)
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.all :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.all :
   List Whatwg.WebIdl.Exceptions.Simple)
 
 /-! ## The base `DOMException` error names
@@ -76,42 +77,42 @@ The contract records the disagreement. -/
 in specification order, by ascending byte offset of their `type.*` row, from
 `type.indexsizeerror` at 200596 to `type.optouterror` at 210922. -/
 
-#check (@Whatwg.WebIdl.Exceptions.Name :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name :
   Type)
 
-#check (@Whatwg.WebIdl.Exceptions.Name.indexSizeError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.hierarchyRequestError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.wrongDocumentError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.invalidCharacterError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.noModificationAllowedError :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.indexSizeError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.hierarchyRequestError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.wrongDocumentError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.invalidCharacterError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.noModificationAllowedError :
   Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.notFoundError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.notSupportedError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.inUseAttributeError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.invalidStateError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.syntaxError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.invalidModificationError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.namespaceError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.invalidAccessError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.typeMismatchError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.securityError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.networkError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.abortError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.urlMismatchError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.timeoutError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.invalidNodeTypeError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.dataCloneError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.encodingError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.notReadableError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.unknownError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.constraintError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.dataError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.transactionInactiveError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.readOnlyError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.versionError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.operationError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.notAllowedError : Whatwg.WebIdl.Exceptions.Name)
-#check (@Whatwg.WebIdl.Exceptions.Name.optOutError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.notFoundError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.notSupportedError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.inUseAttributeError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.invalidStateError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.syntaxError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.invalidModificationError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.namespaceError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.invalidAccessError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.typeMismatchError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.securityError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.networkError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.abortError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.urlMismatchError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.timeoutError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.invalidNodeTypeError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.dataCloneError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.encodingError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.notReadableError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.unknownError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.constraintError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.dataError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.transactionInactiveError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.readOnlyError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.versionError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.operationError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.notAllowedError : Whatwg.WebIdl.Exceptions.Name)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.optOutError : Whatwg.WebIdl.Exceptions.Name)
 
 #check (inferInstance :
   DecidableEq Whatwg.WebIdl.Exceptions.Name)
@@ -119,7 +120,7 @@ in specification order, by ascending byte offset of their `type.*` row, from
 #check (inferInstance :
   Repr Whatwg.WebIdl.Exceptions.Name)
 
-#check (@Whatwg.WebIdl.Exceptions.Name.all :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.all :
   List Whatwg.WebIdl.Exceptions.Name)
 
 /-! ## The exception carrier
@@ -138,18 +139,18 @@ Anchors: `op.dfn-exception`, 193998..194431, digest
 `op.to-create-a-simple-exception`, 664734..665486, digest
 `a685c4154d0f603eb41dfcc0b4cafcb2ffcfc201d1519963d63a1008d36351de`. -/
 
-#check (@Whatwg.WebIdl.Exceptions.Exception :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception :
   Type → Type)
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.simple :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.simple :
   ∀ {reason : Type}, Whatwg.WebIdl.Exceptions.Simple → Nat →
     Whatwg.WebIdl.Exceptions.Exception reason)
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.domException :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.domException :
   ∀ {reason : Type}, Whatwg.WebIdl.Exceptions.Name → Nat →
     Whatwg.WebIdl.Exceptions.Exception reason)
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.foreign :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.foreign :
   ∀ {reason : Type}, reason → Whatwg.WebIdl.Exceptions.Exception reason)
 
 #check (inferInstance :
@@ -158,14 +159,14 @@ Anchors: `op.dfn-exception`, 193998..194431, digest
 #check (inferInstance :
   Repr (Whatwg.WebIdl.Exceptions.Exception Nat))
 
-#check (@Whatwg.WebIdl.Exceptions.createSimple :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.createSimple :
   ∀ {reason : Type}, Whatwg.WebIdl.Exceptions.Simple → Nat →
     Whatwg.WebIdl.Exceptions.Exception reason)
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.identity :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.identity :
   ∀ {reason : Type}, Whatwg.WebIdl.Exceptions.Exception reason → Option Nat)
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.isSimple :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.isSimple :
   ∀ {reason : Type}, Whatwg.WebIdl.Exceptions.Exception reason →
     Option Whatwg.WebIdl.Exceptions.Simple)
 
@@ -175,71 +176,71 @@ Anchors: `op.dfn-exception`, 193998..194431, digest
 lengths are the 5 simple-exception rows and the 32 base error-name rows the
 contract lists, and neither may repeat a constructor. -/
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.all_length :
-  Whatwg.WebIdl.Exceptions.Simple.all.length = 5)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.all_length :
+  Whatwg.WebIdl.Exceptions.Simple.all.length = 5) axioms []
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.all_nodup :
-  Whatwg.WebIdl.Exceptions.Simple.all.Nodup)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.all_nodup :
+  Whatwg.WebIdl.Exceptions.Simple.all.Nodup) axioms [propext]
 
-#check (@Whatwg.WebIdl.Exceptions.Simple.all_complete :
-  ∀ (kind : Whatwg.WebIdl.Exceptions.Simple), kind ∈ Whatwg.WebIdl.Exceptions.Simple.all)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Simple.all_complete :
+  ∀ (kind : Whatwg.WebIdl.Exceptions.Simple), kind ∈ Whatwg.WebIdl.Exceptions.Simple.all) axioms [propext]
 
-#check (@Whatwg.WebIdl.Exceptions.Name.all_length :
-  Whatwg.WebIdl.Exceptions.Name.all.length = 32)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.all_length :
+  Whatwg.WebIdl.Exceptions.Name.all.length = 32) axioms []
 
-#check (@Whatwg.WebIdl.Exceptions.Name.all_nodup :
-  Whatwg.WebIdl.Exceptions.Name.all.Nodup)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.all_nodup :
+  Whatwg.WebIdl.Exceptions.Name.all.Nodup) axioms [propext]
 
-#check (@Whatwg.WebIdl.Exceptions.Name.all_complete :
-  ∀ (name : Whatwg.WebIdl.Exceptions.Name), name ∈ Whatwg.WebIdl.Exceptions.Name.all)
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Name.all_complete :
+  ∀ (name : Whatwg.WebIdl.Exceptions.Name), name ∈ Whatwg.WebIdl.Exceptions.Name.all) axioms [propext]
 
-#check (@Whatwg.WebIdl.Exceptions.createSimple_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.createSimple_eq :
   ∀ {reason : Type} (kind : Whatwg.WebIdl.Exceptions.Simple) (id : Nat),
     Whatwg.WebIdl.Exceptions.createSimple (reason := reason) kind id =
-      Whatwg.WebIdl.Exceptions.Exception.simple kind id)
+      Whatwg.WebIdl.Exceptions.Exception.simple kind id) axioms []
 
 /-! R-P14: distinct allocations remain distinct reasons, exactly as
 `Boundary.Exception.rangeError_eq_iff` and `typeError_eq_iff` require of the
 Streams type. -/
-#check (@Whatwg.WebIdl.Exceptions.Exception.simple_eq_iff :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.simple_eq_iff :
   ∀ {reason : Type} (kind : Whatwg.WebIdl.Exceptions.Simple) (left right : Nat),
     (Whatwg.WebIdl.Exceptions.Exception.simple (reason := reason) kind left =
-        Whatwg.WebIdl.Exceptions.Exception.simple kind right) ↔ left = right)
+        Whatwg.WebIdl.Exceptions.Exception.simple kind right) ↔ left = right) axioms [propext]
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.domException_eq_iff :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.domException_eq_iff :
   ∀ {reason : Type} (name : Whatwg.WebIdl.Exceptions.Name) (left right : Nat),
     (Whatwg.WebIdl.Exceptions.Exception.domException (reason := reason) name left =
-        Whatwg.WebIdl.Exceptions.Exception.domException name right) ↔ left = right)
+        Whatwg.WebIdl.Exceptions.Exception.domException name right) ↔ left = right) axioms [propext]
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.identity_simple :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.identity_simple :
   ∀ {reason : Type} (kind : Whatwg.WebIdl.Exceptions.Simple) (id : Nat),
     Whatwg.WebIdl.Exceptions.Exception.identity
-      (Whatwg.WebIdl.Exceptions.Exception.simple (reason := reason) kind id) = some id)
+      (Whatwg.WebIdl.Exceptions.Exception.simple (reason := reason) kind id) = some id) axioms []
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.identity_domException :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.identity_domException :
   ∀ {reason : Type} (name : Whatwg.WebIdl.Exceptions.Name) (id : Nat),
     Whatwg.WebIdl.Exceptions.Exception.identity
-      (Whatwg.WebIdl.Exceptions.Exception.domException (reason := reason) name id) = some id)
+      (Whatwg.WebIdl.Exceptions.Exception.domException (reason := reason) name id) = some id) axioms []
 
 /-! A foreign reason is not classified by its host spelling and carries no
 model allocation identity, exactly as `Boundary.Exception.toRangeError_foreign`
 records for the Streams type. -/
-#check (@Whatwg.WebIdl.Exceptions.Exception.identity_foreign :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.identity_foreign :
   ∀ {reason : Type} (r : reason),
     Whatwg.WebIdl.Exceptions.Exception.identity
-      (Whatwg.WebIdl.Exceptions.Exception.foreign r) = none)
+      (Whatwg.WebIdl.Exceptions.Exception.foreign r) = none) axioms []
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.isSimple_simple :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.isSimple_simple :
   ∀ {reason : Type} (kind : Whatwg.WebIdl.Exceptions.Simple) (id : Nat),
     Whatwg.WebIdl.Exceptions.Exception.isSimple
-      (Whatwg.WebIdl.Exceptions.Exception.simple (reason := reason) kind id) = some kind)
+      (Whatwg.WebIdl.Exceptions.Exception.simple (reason := reason) kind id) = some kind) axioms []
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.isSimple_domException :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.isSimple_domException :
   ∀ {reason : Type} (name : Whatwg.WebIdl.Exceptions.Name) (id : Nat),
     Whatwg.WebIdl.Exceptions.Exception.isSimple
-      (Whatwg.WebIdl.Exceptions.Exception.domException (reason := reason) name id) = none)
+      (Whatwg.WebIdl.Exceptions.Exception.domException (reason := reason) name id) = none) axioms []
 
-#check (@Whatwg.WebIdl.Exceptions.Exception.isSimple_foreign :
+#whatwg_freeze (@Whatwg.WebIdl.Exceptions.Exception.isSimple_foreign :
   ∀ {reason : Type} (r : reason),
     Whatwg.WebIdl.Exceptions.Exception.isSimple
-      (Whatwg.WebIdl.Exceptions.Exception.foreign r) = none)
+      (Whatwg.WebIdl.Exceptions.Exception.foreign r) = none) axioms []

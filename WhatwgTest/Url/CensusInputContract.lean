@@ -1,4 +1,5 @@
 import WhatwgGates.UrlCensusInput
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned U2c finite input/projection contract, frozen before implementation.
@@ -12,20 +13,20 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Url.CensusInputContract
 
-#check (@Gates.UrlCensusInput.Inputs : Type)
-#check (@Gates.UrlCensusInput.Inputs.mk :
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs : Type)
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.mk :
   String → String → String → String → String → String → Gates.UrlCensusInput.Inputs)
-#check (@Gates.UrlCensusInput.Inputs.spans : Gates.UrlCensusInput.Inputs → String)
-#check (@Gates.UrlCensusInput.Inputs.explanations : Gates.UrlCensusInput.Inputs → String)
-#check (@Gates.UrlCensusInput.Inputs.dispositions : Gates.UrlCensusInput.Inputs → String)
-#check (@Gates.UrlCensusInput.Inputs.overrides : Gates.UrlCensusInput.Inputs → String)
-#check (@Gates.UrlCensusInput.Inputs.dependencies : Gates.UrlCensusInput.Inputs → String)
-#check (@Gates.UrlCensusInput.Inputs.externals : Gates.UrlCensusInput.Inputs → String)
-#check (@Gates.UrlCensusInput.build : ByteArray → Gates.UrlCensusInput.Inputs →
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.spans : Gates.UrlCensusInput.Inputs → String)
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.explanations : Gates.UrlCensusInput.Inputs → String)
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.dispositions : Gates.UrlCensusInput.Inputs → String)
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.overrides : Gates.UrlCensusInput.Inputs → String)
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.dependencies : Gates.UrlCensusInput.Inputs → String)
+#whatwg_freeze (@Gates.UrlCensusInput.Inputs.externals : Gates.UrlCensusInput.Inputs → String)
+#whatwg_freeze (@Gates.UrlCensusInput.build : ByteArray → Gates.UrlCensusInput.Inputs →
   Except String (Array Gates.UrlCensus.SourceRow × Array Gates.UrlCensus.Assignment))
-#check (@Gates.UrlCensusInput.project :
+#whatwg_freeze (@Gates.UrlCensusInput.project :
   ByteArray → Gates.UrlCensusInput.Inputs → Except String (String × String))
-#check (@Gates.UrlCensusInput.cli : List String → IO UInt32)
+#whatwg_freeze (@Gates.UrlCensusInput.cli : List String → IO UInt32)
 
 open Gates.UrlCensusInput Gates.UrlCensus
 

@@ -1,4 +1,5 @@
 import WhatwgGates.Trust.Load
+import WhatwgTest.Audit.Freeze
 
 /-!
 # The trust-gate loader contract (addendum V2e.4)
@@ -37,32 +38,32 @@ namespace WhatwgTest.Audit.TrustLoadContract
 
 /-! ## Frozen public signatures -/
 
-#check (@Gates.Trust.leanBuildDir : System.FilePath → System.FilePath)
-#check (@Gates.Trust.loaderSearchPath :
+#whatwg_freeze (@Gates.Trust.leanBuildDir : System.FilePath → System.FilePath)
+#whatwg_freeze (@Gates.Trust.loaderSearchPath :
   System.FilePath → System.FilePath → IO System.SearchPath)
-#check (@Gates.Trust.initLoaderSearchPath : System.FilePath → IO Unit)
-#check (@Gates.Trust.sourceModules :
+#whatwg_freeze (@Gates.Trust.initLoaderSearchPath : System.FilePath → IO Unit)
+#whatwg_freeze (@Gates.Trust.sourceModules :
   System.FilePath → List Lean.Name → IO (Array Lean.Name))
-#check (@Gates.Trust.importBuilt : Array Lean.Name → IO Lean.Environment)
-#check (@Gates.Trust.moduleDeclarations : Lean.Environment → Nat → Array Lean.Name)
-#check (@Gates.Trust.rawEntries :
+#whatwg_freeze (@Gates.Trust.importBuilt : Array Lean.Name → IO Lean.Environment)
+#whatwg_freeze (@Gates.Trust.moduleDeclarations : Lean.Environment → Nat → Array Lean.Name)
+#whatwg_freeze (@Gates.Trust.rawEntries :
   Lean.Environment → Nat → Lean.Name → Array Lean.EnvExtensionEntry)
-#check (@Gates.Trust.extensionsWithEntries :
+#whatwg_freeze (@Gates.Trust.extensionsWithEntries :
   Lean.Environment → Nat → Array (Lean.Name × Nat))
-#check (@Gates.Trust.TraceRecord.mk :
+#whatwg_freeze (@Gates.Trust.TraceRecord.mk :
   Lean.Name → String → Array String → Array String → Array (String × String) →
     Gates.Trust.TraceRecord)
-#check (@Gates.Trust.TraceRecord.moduleName : Gates.Trust.TraceRecord → Lean.Name)
-#check (@Gates.Trust.TraceRecord.sourceHash : Gates.Trust.TraceRecord → String)
-#check (@Gates.Trust.TraceRecord.options : Gates.Trust.TraceRecord → Array String)
-#check (@Gates.Trust.TraceRecord.leanArgs : Gates.Trust.TraceRecord → Array String)
-#check (@Gates.Trust.TraceRecord.libs :
+#whatwg_freeze (@Gates.Trust.TraceRecord.moduleName : Gates.Trust.TraceRecord → Lean.Name)
+#whatwg_freeze (@Gates.Trust.TraceRecord.sourceHash : Gates.Trust.TraceRecord → String)
+#whatwg_freeze (@Gates.Trust.TraceRecord.options : Gates.Trust.TraceRecord → Array String)
+#whatwg_freeze (@Gates.Trust.TraceRecord.leanArgs : Gates.Trust.TraceRecord → Array String)
+#whatwg_freeze (@Gates.Trust.TraceRecord.libs :
   Gates.Trust.TraceRecord → Array (String × String))
-#check (@Gates.Trust.parseTrace : String → Except String Gates.Trust.TraceRecord)
-#check (@Gates.Trust.TraceRecord.recordedOptions :
+#whatwg_freeze (@Gates.Trust.parseTrace : String → Except String Gates.Trust.TraceRecord)
+#whatwg_freeze (@Gates.Trust.TraceRecord.recordedOptions :
   Gates.Trust.TraceRecord → Array String)
-#check (@Gates.Trust.sourceHash : System.FilePath → IO String)
-#check (@Gates.Trust.traceOf :
+#whatwg_freeze (@Gates.Trust.sourceHash : System.FilePath → IO String)
+#whatwg_freeze (@Gates.Trust.traceOf :
   System.FilePath → System.FilePath → Lean.Name → IO (Bool × Array String))
 
 /-! ## Measured traces -/

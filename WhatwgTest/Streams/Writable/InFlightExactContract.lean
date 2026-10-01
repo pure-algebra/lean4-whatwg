@@ -1,4 +1,5 @@
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-!
 P5a additive exact in-flight equation. Graph: WRITABLE-PG-DEFAULT.
@@ -9,8 +10,8 @@ an equality to the complete Boolean disjunction, avoiding Prop/Bool coercion.
 set_option autoImplicit false
 
 -- INFLIGHT: op.writable-stream-has-operation-marked-in-flight
-#check (@Whatwg.Streams.Writable.hasInFlight_exact :
+#whatwg_freeze (@Whatwg.Streams.Writable.hasInFlight_exact :
   ∀ {α ε : Type} (s : Whatwg.Streams.Writable.State α ε),
     Whatwg.Streams.Writable.hasInFlight s =
       (s.inFlightWrite.isSome ||
-        (match s.closeState with | .inFlight _ _ => true | _ => false)))
+        (match s.closeState with | .inFlight _ _ => true | _ => false))) axioms [propext]

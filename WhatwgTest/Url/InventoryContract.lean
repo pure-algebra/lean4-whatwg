@@ -1,4 +1,5 @@
 import WhatwgGates.UrlInventory
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned U2a finite executable probes, frozen before the scanner implementation.
@@ -14,10 +15,10 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Url.InventoryContract
 
-#check (@Gates.UrlInventory.tokenize :
+#whatwg_freeze (@Gates.UrlInventory.tokenize :
   ByteArray → Except String (Array Gates.UrlInventory.Token))
-#check (@Gates.UrlInventory.checkPartition : Nat → Array Gates.UrlInventory.Token → Bool)
-#check (@Gates.UrlInventory.scan : ByteArray → Except String (Array Gates.UrlInventory.Entry))
+#whatwg_freeze (@Gates.UrlInventory.checkPartition : Nat → Array Gates.UrlInventory.Token → Bool)
+#whatwg_freeze (@Gates.UrlInventory.scan : ByteArray → Except String (Array Gates.UrlInventory.Entry))
 
 open Gates.UrlInventory
 

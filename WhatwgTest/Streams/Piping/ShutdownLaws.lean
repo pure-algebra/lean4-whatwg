@@ -1,4 +1,5 @@
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-! P7a breaker requirements and candidate equations; freeze state: owning contract.
 Requirements inspect protocol snapshots and canonical component transitions;
@@ -8,37 +9,37 @@ All finite run claims use observeShutdown, not the full DB-04 masks. -/
 set_option autoImplicit false
 open Whatwg.Streams
 
-#check (@Piping.deliveredReads_eq :
+#whatwg_freeze (@Piping.deliveredReads_eq :
   ∀ {α ε : Type} (s : Readable.State α ε),
   Piping.deliveredReads s = s.trace.filterMap (fun e => match e with
     | .settled (.read id (.ok (.chunk chunk))) => some (id, chunk)
-    | _ => none))
+    | _ => none)) axioms [propext]
 
-#check (@Piping.markWrite_eq :
+#whatwg_freeze (@Piping.markWrite_eq :
   ∀ {α : Type} (ls : List (Piping.ReadWriteLink α)) (id : Nat) (stage : Piping.WriteStage),
   Piping.markWrite ls id stage =
-    ls.map (fun l => if l.readId = id then { l with write := stage } else l))
+    ls.map (fun l => if l.readId = id then { l with write := stage } else l)) axioms []
 
-#check (@Piping.writesSettled_iff :
+#whatwg_freeze (@Piping.writesSettled_iff :
   ∀ {α ε : Type} (s : Piping.Snapshot α ε),
   Piping.WritesSettled s ↔ ∀ l ∈ s.links, ∃ call request,
     l.write = .submitted call request ∧
       (Writable.lookupPromise s.destination request = some (.fulfilled ()) ∨
-        ∃ reason, Writable.lookupPromise s.destination request = some (.rejected reason)))
+        ∃ reason, Writable.lookupPromise s.destination request = some (.rejected reason))) axioms []
 
-#check (@Piping.bodyDecision_iff :
+#whatwg_freeze (@Piping.bodyDecision_iff :
   ∀ {α ε : Type} (d : Writable.Decision α ε),
   Piping.BodyDecision d ↔ (match d with
     | .controllerError _ | .answer _ _ _ | .returnSize _ | .returnSink _ | .returnSignal => True
-    | _ => False))
+    | _ => False)) axioms [propext]
 
-#check (@Piping.readInventory_iff :
+#whatwg_freeze (@Piping.readInventory_iff :
   ∀ {α ε : Type} (s : Piping.Snapshot α ε),
   Piping.ReadInventory s ↔
     s.links.map (fun l => (l.readId, l.chunk)) = Piping.deliveredReads s.source ∧
-    (s.links.map Piping.ReadWriteLink.readId).Nodup)
+    (s.links.map Piping.ReadWriteLink.readId).Nodup) axioms [propext]
 
-#check (@Piping.initialSnapshot_iff :
+#whatwg_freeze (@Piping.initialSnapshot_iff :
   ∀ {α ε : Type} (s : Piping.Snapshot α ε),
   Piping.InitialSnapshot s ↔
     Piping.ReadInventory s ∧ (∀ l ∈ s.links, l.write = .unwritten) ∧
@@ -47,9 +48,9 @@ open Whatwg.Streams
     s.source.pulling = false ∧ s.source.pullAwaiting = false ∧
     (s.source.status = .readable ∨ ∃ e, s.source.status = .errored e) ∧
     ∃ hwm algorithms promiseSeed,
-      s.destination = Writable.initial hwm algorithms promiseSeed s.source.nextError)
+      s.destination = Writable.initial hwm algorithms promiseSeed s.source.nextError) axioms [propext]
 
-#check (@Piping.recordAllowed_iff :
+#whatwg_freeze (@Piping.recordAllowed_iff :
   ∀ {α ε : Type} (r : Piping.ProtocolRecord α ε),
   Piping.RecordAllowed r ↔
     let b := r.before
@@ -111,153 +112,153 @@ open Whatwg.Streams
         a = { b with destination := a.destination }
     | .sourceError reason =>
         a = { b with source := Readable.error b.source reason }
-    | .administrative => a = b))
+    | .administrative => a = b)) axioms [propext, Quot.sound]
 
-#check (@Piping.observationChain_nil_iff :
+#whatwg_freeze (@Piping.observationChain_nil_iff :
   ∀ {α ε : Type} (a b : Piping.Snapshot α ε),
-  Piping.ObservationChain a [] b ↔ a = b)
+  Piping.ObservationChain a [] b ↔ a = b) axioms []
 
-#check (@Piping.observationChain_cons_iff :
+#whatwg_freeze (@Piping.observationChain_cons_iff :
   ∀ {α ε : Type} (a b : Piping.Snapshot α ε)
   (r : Piping.ProtocolRecord α ε) (rs : List (Piping.ProtocolRecord α ε)),
   Piping.ObservationChain a (r :: rs) b ↔
-    r.before = a ∧ Piping.ObservationChain r.after rs b)
+    r.before = a ∧ Piping.ObservationChain r.after rs b) axioms []
 
-#check (@Piping.forwardShutdownSpec_iff :
+#whatwg_freeze (@Piping.forwardShutdownSpec_iff :
   ∀ {α ε : Type} (o : Piping.ShutdownObservation α ε),
   Piping.ForwardShutdownSpec o ↔ Piping.InitialSnapshot o.initial ∧
     Piping.ObservationChain o.initial o.records o.current ∧
-    ∀ r ∈ o.records, Piping.RecordAllowed r)
+    ∀ r ∈ o.records, Piping.RecordAllowed r) axioms [propext, Quot.sound]
 
-#check (@Piping.snapshot_eq :
+#whatwg_freeze (@Piping.snapshot_eq :
   ∀ {α ε : Type} (s : Piping.State α ε),
   Piping.snapshot s = ⟨s.source, s.destination, s.links, s.preventAbort, s.selection,
     s.abortCall, s.abortPromise,
-    match s.phase with | .readyToFinalize reason => some reason | _ => none⟩)
+    match s.phase with | .readyToFinalize reason => some reason | _ => none⟩) axioms [propext]
 
-#check (@Piping.initial_eq :
+#whatwg_freeze (@Piping.initial_eq :
   ∀ {α ε : Type} (r : Readable.State α ε) (w : Writable.State α ε) (prevent : Bool),
   Piping.initial r w prevent =
     let links := (Piping.deliveredReads r).map (fun p => Piping.ReadWriteLink.mk p.1 p.2 .unwritten)
     {
       source := r, destination := w, links := links, preventAbort := prevent,
       selection := none, abortCall := none, abortPromise := none, phase := .running,
-      entry := ⟨r, w, links, prevent, none, none, none, none⟩, trace := [] })
+      entry := ⟨r, w, links, prevent, none, none, none, none⟩, trace := [] }) axioms [propext]
 
-#check (@Piping.observeShutdown_eq :
+#whatwg_freeze (@Piping.observeShutdown_eq :
   ∀ {α ε : Type} (s : Piping.State α ε),
-  Piping.observeShutdown s = ⟨s.entry, s.trace, Piping.snapshot s⟩)
+  Piping.observeShutdown s = ⟨s.entry, s.trace, Piping.snapshot s⟩) axioms [propext]
 
-#check (@Piping.emit_eq :
+#whatwg_freeze (@Piping.emit_eq :
   ∀ {α ε : Type} (s t : Piping.State α ε) (e : Piping.ProtocolEvent α ε),
   Piping.emit s e t =
     { t with
       entry := s.entry,
-      trace := s.trace ++ [⟨Piping.snapshot s, e, Piping.snapshot t⟩] })
+      trace := s.trace ++ [⟨Piping.snapshot s, e, Piping.snapshot t⟩] }) axioms [propext]
 
-#check (@Piping.drainGuard_eq :
+#whatwg_freeze (@Piping.drainGuard_eq :
   ∀ {α ε : Type} (w : Writable.State α ε),
   Piping.drainGuard w =
-    (match w.status with | .writable => !Writable.closeQueuedOrInFlight w | _ => false))
+    (match w.status with | .writable => !Writable.closeQueuedOrInFlight w | _ => false)) axioms [propext]
 
-#check (@Piping.drainGuard_true_iff :
+#whatwg_freeze (@Piping.drainGuard_true_iff :
   ∀ {α ε : Type} (w : Writable.State α ε),
-  Piping.drainGuard w = true ↔ w.status = .writable ∧ w.closeState = .none)
+  Piping.drainGuard w = true ↔ w.status = .writable ∧ w.closeState = .none) axioms [propext]
 
-#check (@Piping.nextUnwritten_nil :
+#whatwg_freeze (@Piping.nextUnwritten_nil :
   ∀ {α : Type},
-  Piping.nextUnwritten ([] : List (Piping.ReadWriteLink α)) = none)
+  Piping.nextUnwritten ([] : List (Piping.ReadWriteLink α)) = none) axioms [propext]
 
-#check (@Piping.nextUnwritten_cons :
+#whatwg_freeze (@Piping.nextUnwritten_cons :
   ∀ {α : Type} (l : Piping.ReadWriteLink α) (ls : List (Piping.ReadWriteLink α)),
   Piping.nextUnwritten (l :: ls) =
-    (match l.write with | .unwritten => some l | _ => Piping.nextUnwritten ls))
+    (match l.write with | .unwritten => some l | _ => Piping.nextUnwritten ls)) axioms [propext]
 
-#check (@Piping.allWrittenSettled_eq :
+#whatwg_freeze (@Piping.allWrittenSettled_eq :
   ∀ {α ε : Type} (w : Writable.State α ε) (ls : List (Piping.ReadWriteLink α)),
   Piping.allWrittenSettled w ls = ls.all (fun l =>
     match l.write with
     | .submitted _ request => match Writable.lookupPromise w request with
         | some (.fulfilled _) | some (.rejected _) => true
         | _ => false
-    | _ => false))
+    | _ => false)) axioms [propext]
 
-#check (@Piping.allWrittenSettled_iff :
+#whatwg_freeze (@Piping.allWrittenSettled_iff :
   ∀ {α ε : Type} (s : Piping.Snapshot α ε),
-  Piping.allWrittenSettled s.destination s.links = true ↔ Piping.WritesSettled s)
+  Piping.allWrittenSettled s.destination s.links = true ↔ Piping.WritesSettled s) axioms [propext, Quot.sound]
 
-#check (@Piping.lookupReturn_eq :
+#whatwg_freeze (@Piping.lookupReturn_eq :
   ∀ {α ε : Type} (w : Writable.State α ε) (call : Nat),
   Piping.lookupReturn w call = w.trace.findSome? (fun e => match e with
     | .returned c request => if c = call then some request else none
-    | _ => none))
+    | _ => none)) axioms [propext]
 
-#check (@Piping.foreignDecision_eq :
+#whatwg_freeze (@Piping.foreignDecision_eq :
   ∀ {α ε : Type} (d : Writable.Decision α ε),
   Piping.foreignDecision d = (match d with
     | .controllerError _ | .answer _ _ _ | .returnSize _ | .returnSink _ | .returnSignal => true
-    | _ => false))
+    | _ => false)) axioms [propext]
 
-#check (@Piping.foreignDecision_iff :
+#whatwg_freeze (@Piping.foreignDecision_iff :
   ∀ {α ε : Type} (d : Writable.Decision α ε),
-  Piping.foreignDecision d = true ↔ Piping.BodyDecision d)
+  Piping.foreignDecision d = true ↔ Piping.BodyDecision d) axioms [propext]
 
-#check (@Piping.enterForwardShutdown_eq :
+#whatwg_freeze (@Piping.enterForwardShutdown_eq :
   ∀ {α ε : Type} (s : Piping.State α ε),
   Piping.enterForwardShutdown s =
     (match s.selection, s.source.status with
     | none, .errored reason =>
         let p : Piping.ShutdownPlan ε := ⟨reason, Piping.drainGuard s.destination, s.preventAbort⟩
         Piping.emit s (.selected p) { s with selection := some p, phase := .draining }
-    | _, _ => s))
+    | _, _ => s)) axioms [propext]
 
-#check (@Piping.enterForwardShutdown_first_wins :
+#whatwg_freeze (@Piping.enterForwardShutdown_first_wins :
   ∀ {α ε : Type} (s : Piping.State α ε) (p : Piping.ShutdownPlan ε),
-  s.selection = some p → Piping.enterForwardShutdown s = s)
+  s.selection = some p → Piping.enterForwardShutdown s = s) axioms [propext]
 
-#check (@Piping.invokeWrite_eq :
+#whatwg_freeze (@Piping.invokeWrite_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (l : Piping.ReadWriteLink α),
   Piping.invokeWrite s l = (Writable.decide s.destination (.write l.chunk)).map (fun w =>
     Piping.emit s (.writeInvoked l.readId l.chunk s.destination.nextCall)
       { s with
         destination := w,
         links := Piping.markWrite s.links l.readId (.invoking s.destination.nextCall),
-        phase := .returningWrite l.readId s.destination.nextCall }))
+        phase := .returningWrite l.readId s.destination.nextCall })) axioms [propext]
 
-#check (@Piping.captureWrite_eq :
+#whatwg_freeze (@Piping.captureWrite_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (id call : Nat),
   Piping.captureWrite s id call = (Piping.lookupReturn s.destination call).map (fun request =>
     Piping.emit s (.writeReturned id call request)
       { s with
         links := Piping.markWrite s.links id (.submitted call request),
-        phase := match s.selection with | none => .running | some _ => .draining }))
+        phase := match s.selection with | none => .running | some _ => .draining })) axioms [propext]
 
-#check (@Piping.invokeAbort_eq :
+#whatwg_freeze (@Piping.invokeAbort_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (p : Piping.ShutdownPlan ε),
   Piping.invokeAbort s p = (Writable.decide s.destination (.abort p.reason)).map (fun w =>
     Piping.emit s (.abortInvoked s.destination.nextCall p.reason)
       { s with
         destination := w, abortCall := some s.destination.nextCall,
-        phase := .returningAbort s.destination.nextCall }))
+        phase := .returningAbort s.destination.nextCall })) axioms [propext]
 
-#check (@Piping.captureAbort_eq :
+#whatwg_freeze (@Piping.captureAbort_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (call : Nat),
   Piping.captureAbort s call = (Piping.lookupReturn s.destination call).map (fun request =>
     Piping.emit s (.abortReturned call request)
-      { s with abortPromise := some request, phase := .waitingAbort }))
+      { s with abortPromise := some request, phase := .waitingAbort })) axioms [propext]
 
-#check (@Piping.requestFinalize_eq :
+#whatwg_freeze (@Piping.requestFinalize_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (reason : Boundary.Exception ε),
   Piping.requestFinalize s reason =
-    Piping.emit s (.readyToFinalize reason) { s with phase := .readyToFinalize reason })
+    Piping.emit s (.readyToFinalize reason) { s with phase := .readyToFinalize reason }) axioms [propext]
 
-#check (@Piping.stepWritable_eq :
+#whatwg_freeze (@Piping.stepWritable_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (d : Option (Writable.Decision α ε)),
   Piping.stepWritable s d =
     (match d with | none => Writable.tick s.destination | some a => Writable.decide s.destination a).map
-      (fun w => Piping.emit s (.writable d) { s with destination := w }))
+      (fun w => Piping.emit s (.writable d) { s with destination := w })) axioms [propext, Quot.sound]
 
-#check (@Piping.externalFrontier_eq :
+#whatwg_freeze (@Piping.externalFrontier_eq :
   ∀ {α ε : Type} (s : Piping.State α ε),
   Piping.externalFrontier s = (match s.phase with
     | .readyToFinalize _ => false
@@ -267,17 +268,17 @@ open Whatwg.Streams
             | .running | .waitingWrites | .waitingAbort => true
             | _ => false
         | _ => true
-      else false))
+      else false)) axioms [propext]
 
-#check (@Piping.decide_eq :
+#whatwg_freeze (@Piping.decide_eq :
   ∀ {α ε : Type} (s : Piping.State α ε) (d : Piping.Decision α ε),
   Piping.decide s d = (if Piping.externalFrontier s then match d with
     | .sourceError e => some (Piping.emit s (.sourceError e)
         { s with source := Readable.error s.source e })
     | .writable a => if Piping.foreignDecision a then Piping.stepWritable s (some a) else none
-    else none))
+    else none)) axioms [propext, Quot.sound]
 
-#check (@Piping.tick_eq :
+#whatwg_freeze (@Piping.tick_eq :
   ∀ {α ε : Type} (s : Piping.State α ε),
   Piping.tick s =
     let action := fun p : Piping.ShutdownPlan ε =>
@@ -319,57 +320,57 @@ open Whatwg.Streams
               | some (.rejected reason) => some (Piping.requestFinalize s reason)
               | _ => Piping.stepWritable s none
           | _, _ => none
-      | .readyToFinalize _ => none)
+      | .readyToFinalize _ => none) axioms [propext, Quot.sound]
 
-#check (@Piping.step_iff :
+#whatwg_freeze (@Piping.step_iff :
   ∀ {α ε : Type} (s t : Piping.State α ε) (d : Option (Piping.Decision α ε)),
-  Piping.Step s d t ↔ (match d with | none => Piping.tick s | some a => Piping.decide s a) = some t)
+  Piping.Step s d t ↔ (match d with | none => Piping.tick s | some a => Piping.decide s a) = some t) axioms [propext, Quot.sound]
 
-#check (@Piping.reaches_nil_iff :
+#whatwg_freeze (@Piping.reaches_nil_iff :
   ∀ {α ε : Type} (s t : Piping.State α ε),
-  Piping.Reaches s [] t ↔ s = t)
+  Piping.Reaches s [] t ↔ s = t) axioms [propext, Quot.sound]
 
-#check (@Piping.reaches_cons_iff :
+#whatwg_freeze (@Piping.reaches_cons_iff :
   ∀ {α ε : Type} (s t : Piping.State α ε)
   (d : Option (Piping.Decision α ε)) (ds : List (Option (Piping.Decision α ε))),
-  Piping.Reaches s (d :: ds) t ↔ ∃ mid, Piping.Step s d mid ∧ Piping.Reaches mid ds t)
+  Piping.Reaches s (d :: ds) t ↔ ∃ mid, Piping.Step s d mid ∧ Piping.Reaches mid ds t) axioms [propext, Quot.sound]
 
-#check (@Piping.reaches_append_iff :
+#whatwg_freeze (@Piping.reaches_append_iff :
   ∀ {α ε : Type} (s t : Piping.State α ε)
   (left right : List (Option (Piping.Decision α ε))),
   Piping.Reaches s (left ++ right) t ↔
-    ∃ mid, Piping.Reaches s left mid ∧ Piping.Reaches mid right t)
+    ∃ mid, Piping.Reaches s left mid ∧ Piping.Reaches mid right t) axioms [propext, Quot.sound]
 
-#check (@Piping.admitted_iff :
+#whatwg_freeze (@Piping.admitted_iff :
   ∀ {α ε : Type} (s : Piping.State α ε),
   Piping.Admitted s ↔ Piping.InitialSnapshot (Piping.snapshot s) ∧
-    s.phase = .running ∧ s.entry = Piping.snapshot s ∧ s.trace = [])
+    s.phase = .running ∧ s.entry = Piping.snapshot s ∧ s.trace = []) axioms [propext]
 
-#check (@Piping.forwardShutdown_realizes :
+#whatwg_freeze (@Piping.forwardShutdown_realizes :
   ∀ {α ε : Type} (s t : Piping.State α ε)
   (tape : List (Option (Piping.Decision α ε))),
   Piping.Admitted s → Piping.Reaches s tape t →
-    Piping.ForwardShutdownSpec (Piping.observeShutdown t))
+    Piping.ForwardShutdownSpec (Piping.observeShutdown t)) axioms [propext, Quot.sound]
 
-#check (@Piping.reaches_no_new_read :
+#whatwg_freeze (@Piping.reaches_no_new_read :
   ∀ {α ε : Type} (s t : Piping.State α ε)
   (tape : List (Option (Piping.Decision α ε))),
-  Piping.Admitted s → Piping.Reaches s tape t → t.source.nextRead = s.source.nextRead)
+  Piping.Admitted s → Piping.Reaches s tape t → t.source.nextRead = s.source.nextRead) axioms [propext, Quot.sound]
 
-#check (@Piping.reaches_selection_stable :
+#whatwg_freeze (@Piping.reaches_selection_stable :
   ∀ {α ε : Type} (s t : Piping.State α ε)
   (tape : List (Option (Piping.Decision α ε))) (p : Piping.ShutdownPlan ε),
-  s.selection = some p → Piping.Reaches s tape t → t.selection = some p)
+  s.selection = some p → Piping.Reaches s tape t → t.selection = some p) axioms [propext, Quot.sound]
 
-#check (@Piping.ready_frontier :
+#whatwg_freeze (@Piping.ready_frontier :
   ∀ {α ε : Type} (s : Piping.State α ε) (e : Boundary.Exception ε),
   s.phase = .readyToFinalize e →
-    Piping.tick s = none ∧ ∀ d, Piping.decide s d = none)
+    Piping.tick s = none ∧ ∀ d, Piping.decide s d = none) axioms [propext, Quot.sound]
 
-#check (@Piping.preventAbort_write_rejection_no_override :
+#whatwg_freeze (@Piping.preventAbort_write_rejection_no_override :
   ∀ {α ε : Type} (s t : Piping.State α ε)
   (tape : List (Option (Piping.Decision α ε))) (reason : Boundary.Exception ε),
   Piping.Admitted s → s.preventAbort = true → Piping.Reaches s tape t →
     t.phase = .readyToFinalize reason →
       ∃ p, t.selection = some p ∧ p.reason = reason ∧
-        t.abortCall = none ∧ t.abortPromise = none)
+        t.abortCall = none ∧ t.abortPromise = none) axioms [propext, Quot.sound]

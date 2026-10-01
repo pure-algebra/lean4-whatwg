@@ -68,11 +68,11 @@ def writableDefault : Graph where
           `Whatwg.Streams.Writable.lifecycle_write_close,
           `Whatwg.Streams.Writable.lifecycle_abort_rejection],
         .modules [`Whatwg.Streams.Writable.Laws, `Whatwg.Streams.Writable.Lifecycle],
-        .receipts `WhatwgTest.Streams.Writable.DefaultAxiomReport 108,
-        .receipts `WhatwgTest.Streams.Writable.InFlightExactAxiomReport 1,
-        .receipts `WhatwgTest.Streams.Writable.LifecycleAxiomReport 2,
+        .receipts `WhatwgTest.Streams.Writable.DefaultLaws 108,
+        .receipts `WhatwgTest.Streams.Writable.InFlightExactContract 1,
+        .receipts `WhatwgTest.Streams.Writable.LifecycleContract 2,
         .receipt "P5a landing receipt"]
-      note := "The 109 local law signatures (the 108 frozen stage/view laws and `hasInFlight_exact`) and the two composed lifecycle statements are proved; the 111 named receipts print." }
+      note := "The 109 local law signatures (the 108 frozen stage/view laws and `hasInFlight_exact`) and the two composed lifecycle statements are proved; the 111 named receipts are frozen." }
     representation := {
       status := .requiredOpen
       remaining := [.named "the global call-stack and job order",
@@ -99,12 +99,12 @@ def writableDefault : Graph where
       note := "This packet has no lowering; P11 owns target obligations." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Streams.Writable.DefaultAxiomReport 108,
-        .receipts `WhatwgTest.Streams.Writable.InFlightExactAxiomReport 1,
-        .receipts `WhatwgTest.Streams.Writable.LifecycleAxiomReport 2,
+      grounds := [.receipts `WhatwgTest.Streams.Writable.DefaultLaws 108,
+        .receipts `WhatwgTest.Streams.Writable.InFlightExactContract 1,
+        .receipts `WhatwgTest.Streams.Writable.LifecycleContract 2,
         .gate .build, .receipt "P5a landing receipt", .ruling "R-V1", .ruling "R-V6",
         .ruling "R-V8"]
-      note := "The 111 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent source review passed. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
+      note := "The 111 named receipts are frozen inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent source review passed. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "the full clause map and the test-side numerator witnesses"]

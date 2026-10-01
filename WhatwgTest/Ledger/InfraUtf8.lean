@@ -80,7 +80,7 @@ def infraUtf8 : Graph where
       note := "This packet has no lowering and no generated code; P11 owns that obligation. The \"Implementation considerations\" section is `evidenceOnly`." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Infra.Utf8AxiomReport 119, .gate .build,
+      grounds := [.receipts `WhatwgTest.Infra.Utf8Laws 119, .gate .build,
         .ruling "R-V1", .ruling "R-V6", .ruling "R-V8"]
       note := "The axiom gate holds every declaration of `Whatwg.Infra.Text.Utf8` to `propext` and `Quot.sound`, the R-U3 target and the edge's one stated ground, with no exception. Debt D42 is closed." }
     coverage := {

@@ -98,9 +98,9 @@ def urlPercent : Graph where
       note := "U3 lowers nothing and introduces no generated-code relation; P11 owns the lowering machinery." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Url.PercentEncodingAxiomReport 95, .gate .build,
+      grounds := [.receipts `WhatwgTest.Url.PercentEncodingLaws 95, .gate .build,
         .receipt "Landing", .ruling "R-U2"]
-      note := "The 95 named receipts print inside the R-11 ceiling and none reaches `Classical.choice`; the root audit reaches both modules and `known-red.txt` holds no U3 entry. No declaration under `Whatwg.Url` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md`." }
+      note := "The 95 named receipts are frozen inside the R-11 ceiling and none reaches `Classical.choice`; the root audit reaches both modules and `known-red.txt` holds no U3 entry. No declaration under `Whatwg.Url` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md`." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "an admitted URL denominator, numerator and report"]

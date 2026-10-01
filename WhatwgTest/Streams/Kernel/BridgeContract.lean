@@ -1,4 +1,5 @@
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned W8a battery, part two: the twelve bridges that join each
@@ -33,68 +34,68 @@ open Whatwg.Streams
 
 /-! ## Readable (READABLE-PG-DEFAULT) -/
 
-#check (@Readable.step_eq_graph :
-  ∀ {α ε : Type}, @Readable.Step α ε = Kernel.Graph (@Readable.step α ε))
+#whatwg_freeze (@Readable.step_eq_graph :
+  ∀ {α ε : Type}, @Readable.Step α ε = Kernel.Graph (@Readable.step α ε)) axioms [propext, Quot.sound]
 
-#check (@Readable.steps_iff_path :
+#whatwg_freeze (@Readable.steps_iff_path :
   ∀ {α ε : Type} {s t : Readable.State α ε} {ds : List (Readable.Decision α ε)},
-    Readable.Steps s ds t ↔ Kernel.Path Readable.Step s ds t)
+    Readable.Steps s ds t ↔ Kernel.Path Readable.Step s ds t) axioms [propext, Quot.sound]
 
 /-! ## Writable (WRITABLE-PG-DEFAULT) -/
 
-#check (@Writable.step_iff_stage :
+#whatwg_freeze (@Writable.step_iff_stage :
   ∀ {α ε : Type} (s : Writable.State α ε) (d : Option (Writable.Decision α ε))
     (t : Writable.State α ε),
     Writable.Step s d t ↔
-      Kernel.Graph (Kernel.stage (@Writable.tick α ε) (@Writable.decide α ε)) s d t)
+      Kernel.Graph (Kernel.stage (@Writable.tick α ε) (@Writable.decide α ε)) s d t) axioms [propext, Quot.sound]
 
-#check (@Writable.reaches_iff_path :
+#whatwg_freeze (@Writable.reaches_iff_path :
   ∀ {α ε : Type} {s t : Writable.State α ε} {ds : List (Option (Writable.Decision α ε))},
-    Writable.Reaches s ds t ↔ Kernel.Path Writable.Step s ds t)
+    Writable.Reaches s ds t ↔ Kernel.Path Writable.Step s ds t) axioms [propext, Quot.sound]
 
 /-! ## Transform (TRANSFORM-PG-BACKPRESSURE) -/
 
-#check (@Transform.step_iff_stage :
+#whatwg_freeze (@Transform.step_iff_stage :
   ∀ {α β ε : Type} (s : Transform.State α β ε)
     (d : Option (Transform.Decision α β ε)) (t : Transform.State α β ε),
     Transform.Step s d t ↔
-      Kernel.Graph (Kernel.stage (@Transform.tick α β ε) (@Transform.decide α β ε)) s d t)
+      Kernel.Graph (Kernel.stage (@Transform.tick α β ε) (@Transform.decide α β ε)) s d t) axioms [propext, Quot.sound]
 
-#check (@Transform.reaches_iff_path :
+#whatwg_freeze (@Transform.reaches_iff_path :
   ∀ {α β ε : Type} {s t : Transform.State α β ε}
     {ds : List (Option (Transform.Decision α β ε))},
-    Transform.Reaches s ds t ↔ Kernel.Path Transform.Step s ds t)
+    Transform.Reaches s ds t ↔ Kernel.Path Transform.Step s ds t) axioms [propext, Quot.sound]
 
 /-! ## Piping (PIPING-PG-FORWARD-SHUTDOWN) -/
 
-#check (@Piping.step_iff_stage :
+#whatwg_freeze (@Piping.step_iff_stage :
   ∀ {α ε : Type} (s : Piping.State α ε) (d : Option (Piping.Decision α ε))
     (t : Piping.State α ε),
     Piping.Step s d t ↔
-      Kernel.Graph (Kernel.stage (@Piping.tick α ε) (@Piping.decide α ε)) s d t)
+      Kernel.Graph (Kernel.stage (@Piping.tick α ε) (@Piping.decide α ε)) s d t) axioms [propext, Quot.sound]
 
-#check (@Piping.reaches_iff_path :
+#whatwg_freeze (@Piping.reaches_iff_path :
   ∀ {α ε : Type} {s t : Piping.State α ε} {ds : List (Option (Piping.Decision α ε))},
-    Piping.Reaches s ds t ↔ Kernel.Path Piping.Step s ds t)
+    Piping.Reaches s ds t ↔ Kernel.Path Piping.Step s ds t) axioms [propext, Quot.sound]
 
 /-! ## The configuration (CONFIGURATION-PG-ORDERING) -/
 
-#check (@Semantics.Ordering.step_iff_stage :
+#whatwg_freeze (@Semantics.Ordering.step_iff_stage :
   ∀ {α ε : Type} (s : Semantics.Ordering.Config α ε)
     (d : Option (Semantics.Ordering.Decision α ε)) (t : Semantics.Ordering.Config α ε),
     Semantics.Ordering.Step s d t ↔
       Kernel.Graph
-        (Kernel.stage (@Semantics.Ordering.tick α ε) (@Semantics.Ordering.decide α ε)) s d t)
+        (Kernel.stage (@Semantics.Ordering.tick α ε) (@Semantics.Ordering.decide α ε)) s d t) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.reaches_iff_path :
+#whatwg_freeze (@Semantics.Ordering.reaches_iff_path :
   ∀ {α ε : Type} {s t : Semantics.Ordering.Config α ε}
     {ds : List (Option (Semantics.Ordering.Decision α ε))},
-    Semantics.Ordering.Reaches s ds t ↔ Kernel.Path Semantics.Ordering.Step s ds t)
+    Semantics.Ordering.Reaches s ds t ↔ Kernel.Path Semantics.Ordering.Step s ds t) axioms [propext, Quot.sound]
 
 -- An episode prefix is a kernel derivation of the one-step relation restricted
 -- to sources that are not a checkpoint: `EpisodePrefix.cons` takes the guard
 -- and the step as two hypotheses, so it stays an inductive under any route.
-#check (@Semantics.Ordering.episodePrefix_iff_path :
+#whatwg_freeze (@Semantics.Ordering.episodePrefix_iff_path :
   ∀ {α ε : Type} {s t : Semantics.Ordering.Config α ε}
     {ds : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.EpisodePrefix s ds t ↔
@@ -103,11 +104,11 @@ open Whatwg.Streams
             (d : Option (Semantics.Ordering.Decision α ε))
             (u : Semantics.Ordering.Config α ε) =>
           c.active ≠ Semantics.Ordering.Active.checkpoint ∧ Semantics.Ordering.Step c d u)
-        s ds t)
+        s ds t) axioms [propext, Quot.sound]
 
 -- Decision 7 of the configuration as the kernel's exclusivity; the hypothesis
 -- under which the two Decision-8 laws of `Semantics/Runs.lean` become
 -- corollaries of `Kernel.prefix_comparable` and `Kernel.normalized_unique`.
-#check (@Semantics.Ordering.exclusive :
+#whatwg_freeze (@Semantics.Ordering.exclusive :
   ∀ {α ε : Type},
-    Kernel.Exclusive (@Semantics.Ordering.tick α ε) (@Semantics.Ordering.decide α ε))
+    Kernel.Exclusive (@Semantics.Ordering.tick α ε) (@Semantics.Ordering.decide α ε)) axioms [propext, Quot.sound]

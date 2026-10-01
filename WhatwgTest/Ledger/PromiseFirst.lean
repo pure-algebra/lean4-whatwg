@@ -63,8 +63,14 @@ def promiseFirst : Graph where
     laws := {
       status := .requiredClosed
       grounds := [
-        .receipts `WhatwgTest.Ecma262.PromiseAxiomReport 125,
-        .receipts `WhatwgTest.Ecma262.PromiseFidelityAxiomReport 57,
+        .receipts `WhatwgTest.Ecma262.JobsLaws 20,
+        .receipts `WhatwgTest.Ecma262.PromiseLaws 44,
+        .receipts `WhatwgTest.WebIdl.PromiseContract 17,
+        .receipts `WhatwgTest.WebIdl.ExceptionsContract 15,
+        .receipts `WhatwgTest.Streams.PromiseBridge 42,
+        .receipts `WhatwgTest.Ecma262.PromiseFidelityLaws 33,
+        .receipts `WhatwgTest.Ecma262.JobsCompleteContract 11,
+        .receipts `WhatwgTest.WebIdl.PromiseFidelityContract 13,
         .receipt "Q3 landing", .ruling "R-P20", .receipt "Q3b landing", .ruling "R-P24"]
       note := "182 named receipts are proved: the 125 of the Q3 landing, accepted by R-P20, and the 57 of the Q3b landing, accepted by R-P24." }
     representation := {
@@ -102,12 +108,18 @@ def promiseFirst : Graph where
     trust := {
       status := .requiredClosed
       grounds := [
-        .receipts `WhatwgTest.Ecma262.PromiseAxiomReport 125,
-        .receipts `WhatwgTest.Ecma262.PromiseFidelityAxiomReport 57,
+        .receipts `WhatwgTest.Ecma262.JobsLaws 20,
+        .receipts `WhatwgTest.Ecma262.PromiseLaws 44,
+        .receipts `WhatwgTest.WebIdl.PromiseContract 17,
+        .receipts `WhatwgTest.WebIdl.ExceptionsContract 15,
+        .receipts `WhatwgTest.Streams.PromiseBridge 42,
+        .receipts `WhatwgTest.Ecma262.PromiseFidelityLaws 33,
+        .receipts `WhatwgTest.Ecma262.JobsCompleteContract 11,
+        .receipts `WhatwgTest.WebIdl.PromiseFidelityContract 13,
         .gate .trustselftest, .receipt "Q3 landing", .receipt "Q3b landing",
         .ruling "R-P20", .ruling "R-P24", .ruling "R-V6", .ruling "R-V8", .ruling "R-V1",
         .gate .build]
-      note := "The 182 named receipts print inside the R-11 ceiling, and the trust self-test passed at the Q3b landing. The axiom gate holds `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
+      note := "The 182 named receipts are frozen inside the R-11 ceiling, and the trust self-test passed at the Q3b landing. The axiom gate holds `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "a witness for any row of the Web IDL and ECMA-262 censuses"]

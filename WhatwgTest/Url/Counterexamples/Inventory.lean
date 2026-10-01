@@ -1,4 +1,5 @@
 import WhatwgGates.UrlInventory
+import WhatwgTest.Audit.Freeze
 
 /-!
 Independent URL inventory review regressions, frozen before repair.
@@ -13,7 +14,7 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Url.Counterexamples.Inventory
 
-#check (@Gates.UrlInventory.scan : ByteArray → Except String (Array Gates.UrlInventory.Entry))
+#whatwg_freeze (@Gates.UrlInventory.scan : ByteArray → Except String (Array Gates.UrlInventory.Entry))
 
 open Gates.UrlInventory
 

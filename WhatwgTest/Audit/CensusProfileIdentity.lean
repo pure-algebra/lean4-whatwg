@@ -1,5 +1,6 @@
 import Lean
 import WhatwgGates
+import WhatwgTest.Audit.Freeze
 
 /-!
 # Census profile-identity battery
@@ -34,11 +35,11 @@ open Lean Elab Command
 
 /-! ## 1. The profile, and what the two existing standards must say through it -/
 
-#check (@Gates.Census.Bikeshed : Type)
-#check (@Gates.Census.Profile : Type)
-#check (@Gates.Census.Profile.bikeshed : Gates.Census.Bikeshed → Gates.Census.Profile)
+#whatwg_freeze (@Gates.Census.Bikeshed : Type)
+#whatwg_freeze (@Gates.Census.Profile : Type)
+#whatwg_freeze (@Gates.Census.Profile.bikeshed : Gates.Census.Bikeshed → Gates.Census.Profile)
 #check (Gates.Census.Profile.ecmarkup : Gates.Census.Profile)
-#check (@Gates.Census.Standard.profile : Gates.Census.Standard → Gates.Census.Profile)
+#whatwg_freeze (@Gates.Census.Standard.profile : Gates.Census.Standard → Gates.Census.Profile)
 
 #guard (match Gates.Census.streams.profile with
         | .bikeshed switches =>

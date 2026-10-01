@@ -34,7 +34,7 @@ def dataQueue : Graph where
     construction := {
       status := .requiredClosed
       grounds := [
-        .receipts `WhatwgTest.Streams.Data.QueueAxiomReport 99,
+        .receipts `WhatwgTest.Streams.Data.QueueContract 105,
         .modules [`Whatwg.Streams.Data.Queue, `Whatwg.Streams.Data.Strategy,
           `Whatwg.Streams.Data.DyadicSize],
         .ruling "P3-R1",
@@ -82,9 +82,9 @@ def dataQueue : Graph where
       note := "No generated code. Lowering is `RS-5` of `docs/REIFICATION-STRATEGY.md` and P11." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Streams.Data.QueueAxiomReport 99, .gate .build,
+      grounds := [.receipts `WhatwgTest.Streams.Data.QueueContract 105, .gate .build,
         .receipt "Landing"]
-      note := "The 99 named receipts print inside the R-11 ceiling, and the declared red set of `test/fixtures/trust-gate/known-red.txt` is empty. No declaration in `Whatwg.Streams.Data` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md`." }
+      note := "The 99 named receipts are frozen inside the R-11 ceiling, and the declared red set of `test/fixtures/trust-gate/known-red.txt` is empty. No declaration in `Whatwg.Streams.Data` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md`." }
     coverage := {
       status := .requiredClosed
       grounds := [.modules [`WhatwgTest.Audit.SpecCoverage], .gate (.censusReport "streams"),

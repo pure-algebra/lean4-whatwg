@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q3b battery for `requirement.jobs.3`, the run-to-completion
@@ -59,11 +60,11 @@ one may be evaluating. The base packet states both as `RunCondition` and
 it dequeues the oldest job **and** enters `Active.job`, and `completeJob` is
 the only way back to a checkpoint. `G-08`; `E-51` (generalize). -/
 
-#check (@Whatwg.Ecma262.Jobs.startJob :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.startJob :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Active → Whatwg.Ecma262.Jobs.Queue payload →
     Nat → Option (payload × Whatwg.Ecma262.Jobs.Active × Whatwg.Ecma262.Jobs.Queue payload))
 
-#check (@Whatwg.Ecma262.Jobs.completeJob :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.completeJob :
   Whatwg.Ecma262.Jobs.Active → Whatwg.Ecma262.Jobs.Active)
 
 /-! `requirement.jobs.3` as the DB-05 specification half, in the shape R-P5
@@ -86,87 +87,87 @@ edit to a statement", so the repair is the narrowest available: one
 decision or acceptance condition changes, and the ascription must still
 elaborate at exactly the frozen type. -/
 set_option linter.unusedVariables false in
-#check (@Whatwg.Ecma262.Jobs.RunToCompletion :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.RunToCompletion :
   ∀ {payload : Type}, Whatwg.Ecma262.Jobs.Active → Prop)
 
 /-! ## The laws -/
 
 /-! Mask M2: the statement observes which job leaves the queue. `startJob` at a
 checkpoint is `Queue.dequeue` with the activation threaded through it. -/
-#check (@Whatwg.Ecma262.Jobs.startJob_checkpoint :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.startJob_checkpoint :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload) (serial : Nat),
     Whatwg.Ecma262.Jobs.startJob Whatwg.Ecma262.Jobs.Active.checkpoint q serial =
       (Whatwg.Ecma262.Jobs.Queue.dequeue q).map
-        (fun p => (p.1, Whatwg.Ecma262.Jobs.Active.job serial, p.2)))
+        (fun p => (p.1, Whatwg.Ecma262.Jobs.Active.job serial, p.2))) axioms [propext]
 
 /-! Mask M2: the oldest job is the one that starts, which is `requirement.jobs.1`
 composed with `requirement.hostenqueuepromisejob.3` (634739..634841). -/
-#check (@Whatwg.Ecma262.Jobs.startJob_queue :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.startJob_queue :
   ∀ {payload : Type} (job : payload) (rest : List payload) (serial : Nat),
     Whatwg.Ecma262.Jobs.startJob Whatwg.Ecma262.Jobs.Active.checkpoint
         (Whatwg.Ecma262.Jobs.Queue.mk (job :: rest)) serial =
       some (job, Whatwg.Ecma262.Jobs.Active.job serial,
-        Whatwg.Ecma262.Jobs.Queue.mk rest))
+        Whatwg.Ecma262.Jobs.Queue.mk rest)) axioms [propext]
 
 /-! Mask M1: `requirement.jobs.1` and `requirement.jobs.2`. No job starts in
 any activation but a checkpoint — the same content as `step_blocked`, now for
 the operation that actually enters a job. -/
-#check (@Whatwg.Ecma262.Jobs.startJob_blocked :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.startJob_blocked :
   ∀ {payload : Type} (active : Whatwg.Ecma262.Jobs.Active)
     (q : Whatwg.Ecma262.Jobs.Queue payload) (serial : Nat),
     active ≠ Whatwg.Ecma262.Jobs.Active.checkpoint →
-      Whatwg.Ecma262.Jobs.startJob active q serial = none)
+      Whatwg.Ecma262.Jobs.startJob active q serial = none) axioms [propext]
 
 /-! Mask M1: **the producer**. Starting a job leaves the agent in
 `Active.job`, so that constructor is no longer reachable by nothing. -/
-#check (@Whatwg.Ecma262.Jobs.startJob_active :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.startJob_active :
   ∀ {payload : Type} (active : Whatwg.Ecma262.Jobs.Active)
     (q : Whatwg.Ecma262.Jobs.Queue payload) (serial : Nat)
     (res : payload × Whatwg.Ecma262.Jobs.Active × Whatwg.Ecma262.Jobs.Queue payload),
     Whatwg.Ecma262.Jobs.startJob active q serial = some res →
-      res.2.1 = Whatwg.Ecma262.Jobs.Active.job serial)
+      res.2.1 = Whatwg.Ecma262.Jobs.Active.job serial) axioms [propext]
 
 /-! Mask M1: completion, and the only route back to a checkpoint. -/
-#check (@Whatwg.Ecma262.Jobs.completeJob_job :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.completeJob_job :
   ∀ (id : Nat),
     Whatwg.Ecma262.Jobs.completeJob (Whatwg.Ecma262.Jobs.Active.job id) =
-      Whatwg.Ecma262.Jobs.Active.checkpoint)
+      Whatwg.Ecma262.Jobs.Active.checkpoint) axioms [propext]
 
 /-! Mask M1: completing when no job is running changes nothing, so a script or
 intrinsic activation cannot be laundered into a checkpoint. -/
-#check (@Whatwg.Ecma262.Jobs.completeJob_other :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.completeJob_other :
   ∀ (active : Whatwg.Ecma262.Jobs.Active),
     (∀ id : Nat, active ≠ Whatwg.Ecma262.Jobs.Active.job id) →
-      Whatwg.Ecma262.Jobs.completeJob active = active)
+      Whatwg.Ecma262.Jobs.completeJob active = active) axioms [propext]
 
 /-! Mask M1: the specification unfolded, so the reader can check what is being
 claimed without reading the definition. -/
-#check (@Whatwg.Ecma262.Jobs.RunToCompletion_iff :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.RunToCompletion_iff :
   ∀ {payload : Type} (active : Whatwg.Ecma262.Jobs.Active),
     Whatwg.Ecma262.Jobs.RunToCompletion (payload := payload) active ↔
       ((∃ id : Nat, active = Whatwg.Ecma262.Jobs.Active.job id) →
         ∀ q : Whatwg.Ecma262.Jobs.Queue payload,
-          Whatwg.Ecma262.Jobs.step active q = none))
+          Whatwg.Ecma262.Jobs.step active q = none)) axioms [propext]
 
 /-! Mask M1: **the realizer theorem for `requirement.jobs.3`**. Once evaluation
 of a job has started — that is, once the agent's activation is `Active.job` —
 no job starts, in any queue and at any payload, until `completeJob` returns the
 agent to a checkpoint. `G-08`. -/
-#check (@Whatwg.Ecma262.Jobs.run_to_completion :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_to_completion :
   ∀ {payload : Type} (active : Whatwg.Ecma262.Jobs.Active),
-    Whatwg.Ecma262.Jobs.RunToCompletion (payload := payload) active)
+    Whatwg.Ecma262.Jobs.RunToCompletion (payload := payload) active) axioms [propext]
 
 /-! Mask M1: the receipt that the theorem above is not vacuous. The activation
 `startJob` produces is one in which `RunCondition` fails, so the requirement
 constrains a state the model can actually reach — which is exactly what the
 base packet could not say, because nothing produced `Active.job`. -/
-#check (@Whatwg.Ecma262.Jobs.run_to_completion_nonvacuous :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_to_completion_nonvacuous :
   ∀ {payload : Type} (job : payload) (rest : List payload) (serial : Nat),
     ∃ res : payload × Whatwg.Ecma262.Jobs.Active × Whatwg.Ecma262.Jobs.Queue payload,
       Whatwg.Ecma262.Jobs.startJob Whatwg.Ecma262.Jobs.Active.checkpoint
           (Whatwg.Ecma262.Jobs.Queue.mk (job :: rest)) serial = some res ∧
         res.2.1 = Whatwg.Ecma262.Jobs.Active.job serial ∧
-        ¬ Whatwg.Ecma262.Jobs.RunCondition res.2.1)
+        ¬ Whatwg.Ecma262.Jobs.RunCondition res.2.1) axioms [propext]
 
 /-! Mask M2: the typing half of the discharge, stated as §5 of the addendum
 requires it to be stated either way. `run` delivers exactly the oldest job and
@@ -174,19 +175,19 @@ then continues on the rest: there is no point at which a second job's
 evaluation could begin inside the first, because `run` has one recursive call
 and it is on the tail. Composition is `run_split`, which the base packet
 already froze. -/
-#check (@Whatwg.Ecma262.Jobs.run_one_job_per_step :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.run_one_job_per_step :
   ∀ {payload : Type} (fuel : Nat) (job : payload) (rest : List payload),
     (Whatwg.Ecma262.Jobs.run (fuel + 1)
         (Whatwg.Ecma262.Jobs.Queue.mk (job :: rest))).1 =
-      job :: (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.mk rest)).1)
+      job :: (Whatwg.Ecma262.Jobs.run fuel (Whatwg.Ecma262.Jobs.Queue.mk rest)).1) axioms []
 
 /-! Mask M2: threading the activation is conservative. Forgetting the
 activation from `startJob` at a checkpoint gives `Queue.dequeue` back exactly,
 so `Jobs.run_fifo`, `Jobs.run_split`, `Jobs.hostEnqueuePromiseJob_order`,
 `Writable.tick_job_fifo` and `Transform.tick_job_fifo` keep their statements
 and their proofs. This is the receipt that F5's repair is additive. -/
-#check (@Whatwg.Ecma262.Jobs.startJob_run_agree :
+#whatwg_freeze (@Whatwg.Ecma262.Jobs.startJob_run_agree :
   ∀ {payload : Type} (q : Whatwg.Ecma262.Jobs.Queue payload) (serial : Nat),
     (Whatwg.Ecma262.Jobs.startJob Whatwg.Ecma262.Jobs.Active.checkpoint q serial).map
         (fun p => (p.1, p.2.2)) =
-      Whatwg.Ecma262.Jobs.Queue.dequeue q)
+      Whatwg.Ecma262.Jobs.Queue.dequeue q) axioms [propext]

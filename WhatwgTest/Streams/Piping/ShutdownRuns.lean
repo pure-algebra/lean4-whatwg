@@ -1,4 +1,5 @@
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-! P7a breaker composed obligations; freeze state and receipts: owning contract.
 Chunks and reasons are quantified, while each explicit tape shape is finite.
@@ -8,7 +9,7 @@ The endpoint is the named readyToFinalize frontier, not a settled pipe result.
 set_option autoImplicit false
 open Whatwg.Streams
 
-#check (@Piping.lifecycle_two_writes_abort_rejection :
+#whatwg_freeze (@Piping.lifecycle_two_writes_abort_rejection :
   ∀ {α ε : Type} (first second : α) (sourceReason actionReason : Boundary.Exception ε),
     actionReason ≠ sourceReason →
     let r0 := Readable.initial (α := α) (ε := ε)
@@ -58,9 +59,9 @@ open Whatwg.Streams
         Writable.lookupPromise done.destination 5 = some (.rejected actionReason) ∧
         Writable.lookupPromise done.destination 1 = some (.rejected sourceReason) ∧
         Writable.sinkInput done.destination = [first, second] ∧
-        Piping.ForwardShutdownSpec (Piping.observeShutdown done))
+        Piping.ForwardShutdownSpec (Piping.observeShutdown done)) axioms [propext, Quot.sound]
 
-#check (@Piping.lifecycle_write_rejection_retains_source :
+#whatwg_freeze (@Piping.lifecycle_write_rejection_retains_source :
   ∀ {α ε : Type} (chunk : α) (sourceReason writeReason : Boundary.Exception ε) (prevent : Bool),
     writeReason ≠ sourceReason →
     let r0 := Readable.initial (α := α) (ε := ε)
@@ -99,4 +100,4 @@ open Whatwg.Streams
         Writable.sinkInput done.destination = [chunk] ∧
         (∀ name request reason,
           Writable.Event.sinkCalled name (.abort request reason) ∉ done.destination.trace) ∧
-        Piping.ForwardShutdownSpec (Piping.observeShutdown done))
+        Piping.ForwardShutdownSpec (Piping.observeShutdown done)) axioms [propext, Quot.sound]

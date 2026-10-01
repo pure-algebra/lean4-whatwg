@@ -1,4 +1,5 @@
 import WhatwgGates.UrlCensus
+import WhatwgTest.Audit.Freeze
 
 /-!
 Independent census review regression `URL-CEN-CE-001`, frozen before repair.
@@ -11,7 +12,7 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Url.Counterexamples.Census
 
-#check (@Gates.UrlCensus.assign : ByteArray → Array Gates.UrlCensus.SourceRow →
+#whatwg_freeze (@Gates.UrlCensus.assign : ByteArray → Array Gates.UrlCensus.SourceRow →
   Array Gates.UrlCensus.Explanation → Array String →
   Except String (Array Gates.UrlCensus.Assignment))
 

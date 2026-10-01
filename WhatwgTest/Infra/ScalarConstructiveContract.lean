@@ -1,6 +1,7 @@
 import Lean
 import Lean.Util.CollectAxioms
 import Whatwg.Infra.Text.Scalar
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned constructive scalar/Char contract, frozen before proof-term repair.
@@ -17,21 +18,21 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Infra.ScalarConstructiveContract
 
-#check (@Whatwg.Infra.CodePoint.char_toNat_le : (c : Char) → c.toNat ≤ 0x10FFFF)
-#check (@Whatwg.Infra.CodePoint.ofChar : Char → Whatwg.Infra.CodePoint)
-#check (@Whatwg.Infra.CodePoint.ofChar_isSurrogate :
-  (c : Char) → (Whatwg.Infra.CodePoint.ofChar c).isSurrogate = false)
-#check (@Whatwg.Infra.ScalarValue.isValidChar :
-  (s : Whatwg.Infra.ScalarValue) → Nat.isValidChar s.val.val)
-#check (@Whatwg.Infra.ScalarValue.toChar : Whatwg.Infra.ScalarValue → Char)
-#check (@Whatwg.Infra.ScalarValue.ofChar : Char → Whatwg.Infra.ScalarValue)
-#check (@Whatwg.Infra.ScalarValue.toNat_ofNatAux :
-  (n : Nat) → (h : Nat.isValidChar n) → (Char.ofNatAux n h).toNat = n)
-#check (@Whatwg.Infra.ScalarValue.ofChar_toChar :
+#whatwg_freeze (@Whatwg.Infra.CodePoint.char_toNat_le : (c : Char) → c.toNat ≤ 0x10FFFF) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Infra.CodePoint.ofChar : Char → Whatwg.Infra.CodePoint)
+#whatwg_freeze (@Whatwg.Infra.CodePoint.ofChar_isSurrogate :
+  (c : Char) → (Whatwg.Infra.CodePoint.ofChar c).isSurrogate = false) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Infra.ScalarValue.isValidChar :
+  (s : Whatwg.Infra.ScalarValue) → Nat.isValidChar s.val.val) axioms []
+#whatwg_freeze (@Whatwg.Infra.ScalarValue.toChar : Whatwg.Infra.ScalarValue → Char)
+#whatwg_freeze (@Whatwg.Infra.ScalarValue.ofChar : Char → Whatwg.Infra.ScalarValue)
+#whatwg_freeze (@Whatwg.Infra.ScalarValue.toNat_ofNatAux :
+  (n : Nat) → (h : Nat.isValidChar n) → (Char.ofNatAux n h).toNat = n) axioms [propext]
+#whatwg_freeze (@Whatwg.Infra.ScalarValue.ofChar_toChar :
   (s : Whatwg.Infra.ScalarValue) →
-    Whatwg.Infra.ScalarValue.ofChar (Whatwg.Infra.ScalarValue.toChar s) = s)
-#check (@Whatwg.Infra.ScalarValue.toChar_ofChar :
-  (c : Char) → Whatwg.Infra.ScalarValue.toChar (Whatwg.Infra.ScalarValue.ofChar c) = c)
+    Whatwg.Infra.ScalarValue.ofChar (Whatwg.Infra.ScalarValue.toChar s) = s) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Infra.ScalarValue.toChar_ofChar :
+  (c : Char) → Whatwg.Infra.ScalarValue.toChar (Whatwg.Infra.ScalarValue.ofChar c) = c) axioms [propext, Quot.sound]
 
 -- This command inspects the compiled declarations, including axioms reachable through their
 -- types and proof bodies. It prints every receipt before rejecting all offending names together.
