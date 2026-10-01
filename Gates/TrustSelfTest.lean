@@ -368,6 +368,9 @@ def acceptancePlants : List Plant :=
    { label := "V2-S2 a theorem reaching Classical.choice in a new module under WhatwgTest",
      fixtureName := "strict-choice.lean.txt", target := testPlantModule, expected := [],
      placement := .newModule }]
+  -- Addendum V2b of test/contracts/trust-gate-hardening.contract.md (ruling R-V6).
+  ++ [{ label := "V2b-A1 the added trust words in comments, documentation, strings and name literals, identifiers that only contain them, a local named stop, an ordinary set_option, and #guard_msgs around #check_failure",
+        fixtureName := "benign-trust-tokens-v2b.lean.txt", target := productionRoot, expected := [] }]
 
 /-- Under the package-wide `warningAsError = true` (ruling R-6 in
 `docs/SHA256-DAG.md`), Lean's own "declaration uses `sorry`" warning is
@@ -516,6 +519,52 @@ def rejectionPlants : List Plant :=
      fixtureName := "token-exemption-missing.lean.txt", target := auditSource,
      placement := .afterAnchor tokenExemptionAnchor,
      expected := ["source-token exemption names missing module WhatwgTest.TrustSelfTestPlantMissing"] }]
+  -- Addendum V2b of test/contracts/trust-gate-hardening.contract.md (ruling R-V6):
+  -- goal-admitting spellings and the two message switches, each fixture carrying
+  -- exactly one word of the extended list, so each row names one fragment.
+  ++ [{ label := "V2b-T01 sorryAx inside an example whose messages #guard_msgs drops, in the production tree",
+        fixtureName := "token-sorry-ax.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `sorryAx` trust token"] },
+      { label := "V2b-T02 the spelling _root_.sorryAx in the production tree",
+        fixtureName := "token-sorry-ax-root.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `sorryAx` trust token"] },
+      { label := "V2b-T03 the admit tactic inside an example in the production tree",
+        fixtureName := "token-admit.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `admit` trust token"] },
+      { label := "V2b-T04 the impossible tactic inside an example in the production tree",
+        fixtureName := "token-impossible.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `impossible` trust token"] },
+      { label := "V2b-T05 apply? inside an example in a new test module",
+        fixtureName := "token-apply-query.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestPlant.lean contains an authored `apply?` trust token"] },
+      { label := "V2b-T06 try? inside an example in a new test module",
+        fixtureName := "token-try-query.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestPlant.lean contains an authored `try?` trust token"] },
+      { label := "V2b-T07 grind? inside an example in a new tooling module",
+        fixtureName := "token-grind-query.lean.txt", target := toolingPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestToolingPlant.lean contains an authored `grind?` trust token"] },
+      { label := "V2b-T08 debug.byAsSorry on an example in the production tree",
+        fixtureName := "token-by-as-sorry.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `debug.byAsSorry` trust token"] },
+      { label := "V2b-T09 debug.terminalTacticsAsSorry on an example in the production tree",
+        fixtureName := "token-terminal-tactics-as-sorry.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `debug.terminalTacticsAsSorry` trust token"] },
+      { label := "V2b-T10 warn.sorry on an example closed by an elaborator in a new test module",
+        fixtureName := "token-warn-sorry.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestPlant.lean contains an authored `warn.sorry` trust token"] },
+      { label := "V2b-T11 warningAsError switched off for an example closed by grind +trace in the production tree",
+        fixtureName := "token-warning-as-error.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `warningAsError` trust token"] },
+      { label := "V2b-T12 the qualified spelling Lean.reduceBool inside an example in the production tree",
+        fixtureName := "token-reduce-bool.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `Lean.reduceBool` trust token"] },
+      { label := "V2b-T13 the short spelling reduceNat under open Lean in the production tree",
+        fixtureName := "token-reduce-nat.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `Lean.reduceNat` trust token"] }]
 
 /-- One narrow run: `lake env lean <file>` in the probe root, with `file`
 spelled as a person types it there, relative and without a leading `./`. -/

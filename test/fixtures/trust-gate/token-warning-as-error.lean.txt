@@ -1,0 +1,6 @@
+-- Planted by the trust self-test, plant V2b-T11: the package's warning-as-error
+-- option switched off for one command. `grind +trace` closes what it cannot
+-- prove with `sorry`; it warns twice ("generated tactic cannot close the goal",
+-- "declaration uses `sorry`"), and no word of the token pass spells it.
+set_option warningAsError false in
+example : (1 : Nat) = 2 := by grind +trace

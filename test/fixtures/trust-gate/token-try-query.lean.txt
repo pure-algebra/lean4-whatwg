@@ -1,0 +1,8 @@
+/-!
+Planted by the trust self-test, plant V2b-T06: `try?`. On this goal it finds and
+runs the suggestion `impossible by decide`, which closes the goal with `sorry`.
+The module imports nothing beyond `Init`.
+-/
+
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := by try?

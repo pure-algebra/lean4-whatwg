@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2b-T03: the `admit` tactic, core's
+-- second name for the `sorry` tactic, inside an `example` whose messages
+-- `#guard_msgs (drop all)` consumes.
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := by admit

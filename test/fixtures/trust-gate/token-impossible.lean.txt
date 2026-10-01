@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2b-T04: the `impossible` tactic. Its
+-- inner tactic proves the negation of the goal, and it then closes the goal
+-- "as if `sorry` was used", so the `example` passes while stating a falsehood.
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := by impossible by decide

@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2b-T02: the root-anchored spelling of
+-- the same axiom. Its name is not the word's name, so only the last-component
+-- rule of the forbidden axioms refuses it.
+#guard_msgs (drop all) in
+example : (1 : Nat) = 2 := _root_.sorryAx _ false

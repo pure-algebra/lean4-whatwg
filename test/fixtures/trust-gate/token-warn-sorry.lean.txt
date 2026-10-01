@@ -1,0 +1,18 @@
+import Lean
+
+/-!
+Planted by the trust self-test, plant V2b-T10: the option that silences Lean's
+"declaration uses `sorry`" warning. The goal is closed by an elaborator that
+builds the axiom behind `sorry` from a name literal, a route no word of the
+token pass can see. With the warning silenced, the package's warning-as-error
+option has nothing to raise, and the `example` passes without any message.
+-/
+
+open Lean Elab Tactic in
+elab "planted_close_by_name" : tactic => do
+  let goal ← getMainGoal
+  goal.assign (mkApp2 (mkConst ``sorryAx [Level.zero]) (← goal.getType) (toExpr false))
+  replaceMainGoal []
+
+set_option warn.sorry false in
+example : (1 : Nat) = 2 := by planted_close_by_name

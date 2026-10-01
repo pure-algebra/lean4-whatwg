@@ -1,0 +1,10 @@
+-- Planted by the trust self-test, plant V2b-T12: `Lean.reduceBool`, under which
+-- the kernel evaluates its argument with compiled code. In a theorem the axiom
+-- pass sees `Lean.trustCompiler`, which the opaque's body names; inside an
+-- `example` nothing records it. The kernel evaluates a constant only, so the
+-- input is a definition, which reaches no axiom. The deprecation linter is
+-- switched off for the one command.
+def plantedNativeInput : Bool := true
+
+set_option linter.deprecated false in
+example : plantedNativeInput = true := (rfl : Lean.reduceBool plantedNativeInput = true)
