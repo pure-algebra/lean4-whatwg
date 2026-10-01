@@ -463,4 +463,12 @@
 # The second has no source to excise, so it is not declared, and the trust
 # self-test is judged on main and on this branch once the battery is green, not
 # before (the coordinator's note to this seat, under R-W9).
-WhatwgTest.Audit.TrustLoadContract
+#
+# The loader builder seat landed WhatwgGates/Trust/Load.lean on branch
+# review/w10-load-builder, from ab02e9f, on 2026-10-01. The battery is green
+# with no ascription, sample trace or expected value changed: its 18
+# ascriptions and 19 #guard rows elaborate and pass, and WhatwgTest.lean
+# imports it. The entry is removed. No entry remains, so the self-test's
+# control build is all green again; its executable rows stay red until
+# whatwg_trustgate lands (V2e.10). This block's lines, which the breaker's
+# commit wrote with LF endings, are CRLF again like the rest of the file.
