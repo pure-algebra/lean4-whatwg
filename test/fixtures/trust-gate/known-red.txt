@@ -462,6 +462,10 @@
 # R-W3 and R-W13): Whatwg/Ecma262/Agent.lean landed and
 # WhatwgTest.Ecma262.AgentContract is green with no statement changed. Its entry
 # is removed and its root import added; three entries remain.
+#
+# 2026-10-01, Q5 builder slice B3 (branch review/w9-q5-b34 from 3f7ccc1, rulings
+# R-W3 and R-W13): Whatwg/WebIdl/Agent.lean landed and
+# WhatwgTest.WebIdl.AgentContract is green with no statement changed. Its entry
+# is removed and its root import added.
 WhatwgTest.Ecma262.AgentLaws
-WhatwgTest.WebIdl.AgentContract
 WhatwgTest.Signatures.Ecma262Contract

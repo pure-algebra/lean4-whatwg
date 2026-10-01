@@ -1,5 +1,6 @@
 import Whatwg.WebIdl.Promise
 import Whatwg.WebIdl.Exceptions
+import Whatwg.WebIdl.Agent
 
 /-!
 # Whatwg.WebIdl
@@ -38,6 +39,12 @@ Q3b builder seats:
   exception carrier `Whatwg.Streams.Boundary.Exception` embeds into. Part C of
   the packet, landed last per R-P14, so the allocation identity the Streams
   constructors carry is preserved rather than erased. It declares no import.
+- `Whatwg/WebIdl/Agent.lean` — promise slice Q5 (`PROMISE-PG-AGENT`,
+  `test/contracts/promise-agent-q5.contract.md`, ruling R-W3): the same
+  promise verbs over the ECMAScript agent record `Whatwg.Ecma262.Agent`, so
+  that "react" followed by "resolve" enqueues the reaction's job (debt D46),
+  with the store-level verbs above as their table views. It imports
+  `Whatwg.Ecma262.Agent` and `Whatwg.WebIdl.Promise` and nothing else.
 
 Still open, with their gap ids from the packet: `G-06` remainder ("get a
 promise to wait for all", `op.waiting-for-all-promise` 354881..356058, with
