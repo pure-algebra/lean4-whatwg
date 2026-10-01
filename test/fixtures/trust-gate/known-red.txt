@@ -662,5 +662,13 @@
 # the breaker's head and merges when its battery is green and its entry is
 # gone. Breakers do not edit WhatwgTest.lean; the builder that turns a battery
 # green adds its root import.
-WhatwgTest.Ecma262.AgentInvariantContract
-WhatwgTest.Signatures.Ecma262SumContract
+#
+# The Q5b builder seat of review lane W landed both slices on branch
+# review/w9-q5b-builder, from a6e2ddb (main at R-W20 merged with the
+# breaker's head 0da9675), on 2026-10-01 (ruling R-W20(d)). B5: the new module
+# Whatwg/Ecma262/AgentInvariant.lean, its import line and docstring bullet in
+# Whatwg/Ecma262.lean, and the keyword private removed from the seventeen
+# lemmas of Whatwg/Ecma262/AgentLaws.lean that R-W20(c) names. B6: the face
+# law interpret_sumHandler_inr in Whatwg/Signatures/Ecma262.lean. Both
+# batteries are green with no byte of them changed, and WhatwgTest.lean
+# imports both. Both entries are removed. No entry remains.
