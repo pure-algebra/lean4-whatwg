@@ -8,7 +8,8 @@ defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
                   "WhatwgUrl", "WhatwgHtml", "WhatwgStreams", "WhatwgSignatures",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
-                  "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_ledger"]
+                  "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_ledger",
+                  "whatwg_declsnapshot"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -131,6 +132,13 @@ root = "whatwgbin.Census"
 [[lean_exe]]
 name = "whatwg_ledger"
 root = "whatwgbin.Ledger"
+
+# The declaration snapshot of ruling R-W5 (test/contracts/declaration-snapshot.contract.md):
+# reads the built .olean files through the shared loader WhatwgGates/Trust/Load.lean
+# and writes or checks generated/declarations/<library>.tsv.
+[[lean_exe]]
+name = "whatwg_declsnapshot"
+root = "whatwgbin.DeclSnapshot"
 
 # The proved hash functions the gates compute every digest with. Exact commit
 # of pure-algebra/lean4-hash `main`, the pin lean4-effect4 uses (ruling

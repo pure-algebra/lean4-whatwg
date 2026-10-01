@@ -13,7 +13,11 @@ exclude every `AGENTS.md`; they may neither create nor replace instructions.
 - the specification algorithm census: one row per abstract operation,
   internal slot, and IDL member of the pinned `index.bs`, anchored by span
   digest (P1);
-- declaration and public-signature snapshots;
+- declaration and public-signature snapshots, among them the declaration
+  snapshot: one row per public declaration of each production library, with
+  its type digest, axiom set, freeze entries and covering record, in
+  `generated/declarations/<library>.tsv`, written by
+  `lake exe whatwg_declsnapshot --write`;
 - existing-type and spec-disposition snapshots;
 - graph-bearing owner obligation ledgers, leaf receipt indexes, and
   per-declaration assurance snapshots;

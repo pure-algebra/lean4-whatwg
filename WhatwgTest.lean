@@ -92,6 +92,7 @@ import WhatwgTest.Audit.Freeze
 import WhatwgTest.Audit.FreezeContract
 import WhatwgTest.Ledger
 import WhatwgTest.Audit.LedgerContract
+import WhatwgTest.Audit.DeclSnapshotContract
 import WhatwgTest.Audit.AxiomGate
 
 /-!

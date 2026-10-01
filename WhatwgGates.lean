@@ -11,6 +11,7 @@ import WhatwgGates.TrustSelfTest
 import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render
 import WhatwgGates.Ledger.Check
+import WhatwgGates.DeclSnapshot
 
 /-!
 # WhatwgGates
