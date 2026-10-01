@@ -1,4 +1,5 @@
 import Whatwg.Infra
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned exact-signature battery for the Infra UTF-8 codec packet.
@@ -46,16 +47,16 @@ of the same list, not a flag beside it.
 Every ascription below writes the type parameter explicitly under `@`; the
 builder may declare it implicit. -/
 
-#check (@Whatwg.Infra.Item :
+#whatwg_freeze (@Whatwg.Infra.Item :
   Type → Type)
 
-#check (@Whatwg.Infra.Item.value :
+#whatwg_freeze (@Whatwg.Infra.Item.value :
   (α : Type) → α → Whatwg.Infra.Item α)
 
-#check (@Whatwg.Infra.Item.endOfQueue :
+#whatwg_freeze (@Whatwg.Infra.Item.endOfQueue :
   (α : Type) → Whatwg.Infra.Item α)
 
-#check (@Whatwg.Infra.IoQueue :
+#whatwg_freeze (@Whatwg.Infra.IoQueue :
   Type → Type)
 
 /-! `op.io-queue-read` [6610,7078). Step 1 "wait until its size is at least 1"
@@ -63,12 +64,12 @@ is an unanswered decision, which `AGENTS.md`'s representation rules class as a
 live frontier and never as an error: `none`. Step 2 returns `end-of-queue`
 *without* step 3's removal, so the read is not a pop in that case; the returned
 queue is the input queue. -/
-#check (@Whatwg.Infra.IoQueue.read :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.read :
   (α : Type) → Whatwg.Infra.IoQueue α → Option (Whatwg.Infra.Item α × Whatwg.Infra.IoQueue α))
 
 /-! `op.io-queue-read-items` [7079,7650): "Perform the following step number
 times … Remove end-of-queue from readItems". -/
-#check (@Whatwg.Infra.IoQueue.readItems :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.readItems :
   (α : Type) → Whatwg.Infra.IoQueue α → Nat →
     Option (List α × Whatwg.Infra.IoQueue α))
 
@@ -78,7 +79,7 @@ append ioQueue[n] to prefix." Infra's indexing syntax is zero-based
 (`vendor/whatwg-infra-3f984adc/infra.bs` [67159,67540)), and Infra's "the range
 1 to number, inclusive" is the set {1,…,number}, so the literal reading skips
 `ioQueue[0]`. Ruling request INFRA-R15 in the contract. -/
-#check (@Whatwg.Infra.IoQueue.peek :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.peek :
   (α : Type) → Whatwg.Infra.IoQueue α → Nat → List α)
 
 /-! The zero-based reading of the same step, `ioQueue[0]` through
@@ -86,17 +87,17 @@ append ioQueue[n] to prefix." Infra's indexing syntax is zero-based
 2 needs for its byte-order-mark test to be a byte-order-mark test at all, and
 the one INFRA-R15 asks the operator to ratify. Both are frozen so the
 difference is a theorem and not a silent choice. -/
-#check (@Whatwg.Infra.IoQueue.peekPrefix :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.peekPrefix :
   (α : Type) → Whatwg.Infra.IoQueue α → Nat → List α)
 
 /-! `op.io-queue-push` [8448,9041): insert before a trailing `end-of-queue`,
 append otherwise, and do nothing when both are `end-of-queue`. -/
-#check (@Whatwg.Infra.IoQueue.push :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.push :
   (α : Type) → Whatwg.Infra.IoQueue α → Whatwg.Infra.Item α → Whatwg.Infra.IoQueue α)
 
 /-! `op.io-queue-push-items` [9042,9270): "push each item in the sequence to
 ioQueue, in the given order". -/
-#check (@Whatwg.Infra.IoQueue.pushItems :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.pushItems :
   (α : Type) → Whatwg.Infra.IoQueue α → List (Whatwg.Infra.Item α) →
     Whatwg.Infra.IoQueue α)
 
@@ -104,28 +105,28 @@ ioQueue, in the given order". -/
 end-of-queue to an I/O queue, perform the list prepend operation." The
 restriction is carried by the argument type `α`, which cannot be
 `end-of-queue`; the assertion is discharged by typing (INFRA-R3). -/
-#check (@Whatwg.Infra.IoQueue.restore :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.restore :
   (α : Type) → Whatwg.Infra.IoQueue α → α → Whatwg.Infra.IoQueue α)
 
-#check (@Whatwg.Infra.IoQueue.restoreItems :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.restoreItems :
   (α : Type) → Whatwg.Infra.IoQueue α → List α → Whatwg.Infra.IoQueue α)
 
 /-! `op.from-io-queue-convert` [9982,10285): "return the result of reading an
 indefinite number of items from ioQueue". -/
-#check (@Whatwg.Infra.IoQueue.convertFrom :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.convertFrom :
   (α : Type) → Whatwg.Infra.IoQueue α → List α)
 
 /-! `op.to-io-queue-convert` [10286,10769): "Return an I/O queue containing the
 items in input, in order, followed by end-of-queue." Its step 1 assertion,
 "input is not a list or it does not contain end-of-queue", is discharged by
 typing: the argument is a `List α`, not a `List (Item α)`. -/
-#check (@Whatwg.Infra.IoQueue.convertTo :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.convertTo :
   (α : Type) → List α → Whatwg.Infra.IoQueue α)
 
 /-! The decidable predicate the note of `op.io-queue-read` and the assertion of
 `op.to-io-queue-convert` [10286,10769) speak about: "Immediate queues have
 end-of-queue as their last item, whereas streaming queues need not have it". -/
-#check (@Whatwg.Infra.IoQueue.containsEndOfQueue :
+#whatwg_freeze (@Whatwg.Infra.IoQueue.containsEndOfQueue :
   (α : Type) → Whatwg.Infra.IoQueue α → Bool)
 
 
@@ -135,27 +136,27 @@ end-of-queue as their last item, whereas streaming queues need not have it". -/
 I/O queue and an item, and returns finished, one or more items, error
 optionally with a code point, or continue." -/
 
-#check (@Whatwg.Infra.Encoding.HandlerResult :
+#whatwg_freeze (@Whatwg.Infra.Encoding.HandlerResult :
   Type → Type)
 
-#check (@Whatwg.Infra.Encoding.HandlerResult.finished :
+#whatwg_freeze (@Whatwg.Infra.Encoding.HandlerResult.finished :
   (α : Type) → Whatwg.Infra.Encoding.HandlerResult α)
 
 /-! "one or more items". The nonemptiness is the text's own wording and is
 carried by the laws, not by the carrier: `op.process-an-item` [15509,17620)
 step 6 pushes the whole list and never inspects its length. -/
-#check (@Whatwg.Infra.Encoding.HandlerResult.items :
+#whatwg_freeze (@Whatwg.Infra.Encoding.HandlerResult.items :
   (α : Type) → List α → Whatwg.Infra.Encoding.HandlerResult α)
 
 /-! "error optionally with a code point". The code point is read only by the
 "html" error mode of `op.process-an-item` [15509,17620) and by step 3 of
 `op.encode-or-fail` [51167,53203); the UTF-8 decoder never supplies one. -/
-#check (@Whatwg.Infra.Encoding.HandlerResult.error :
+#whatwg_freeze (@Whatwg.Infra.Encoding.HandlerResult.error :
   (α : Type) → Option Whatwg.Infra.CodePoint → Whatwg.Infra.Encoding.HandlerResult α)
 
 /-! The text's `continue`. `continue` is a Lean keyword, so the constructor is
 spelled `continues`; the contract records the rename. -/
-#check (@Whatwg.Infra.Encoding.HandlerResult.continues :
+#whatwg_freeze (@Whatwg.Infra.Encoding.HandlerResult.continues :
   (α : Type) → Whatwg.Infra.Encoding.HandlerResult α)
 
 /-! `rule.encoders-and-decoders` [13366,14779): "An error mode as used below is
@@ -163,13 +164,13 @@ spelled `continues`; the contract records the rename. -/
 `html`, are not declared: `html` is reachable only through the legacy
 `op.encode` [50170,50822) hook, which this packet does not own, and
 `op.encode-or-fail` [51167,53203) fixes `fatal`. -/
-#check (@Whatwg.Infra.Encoding.DecoderErrorMode :
+#whatwg_freeze (@Whatwg.Infra.Encoding.DecoderErrorMode :
   Type)
 
-#check (@Whatwg.Infra.Encoding.DecoderErrorMode.replacement :
+#whatwg_freeze (@Whatwg.Infra.Encoding.DecoderErrorMode.replacement :
   Whatwg.Infra.Encoding.DecoderErrorMode)
 
-#check (@Whatwg.Infra.Encoding.DecoderErrorMode.fatal :
+#whatwg_freeze (@Whatwg.Infra.Encoding.DecoderErrorMode.fatal :
   Whatwg.Infra.Encoding.DecoderErrorMode)
 
 
@@ -183,34 +184,34 @@ a modelled body (DB-02). The three names `get an encoder` refuses —
 `op.get-an-encoder` [50829,51166) step 1, "Assert: encoding is not replacement
 or UTF-16BE/LE" — are distinguished so the assertion is statable. -/
 
-#check (@Whatwg.Infra.Encoding.Name :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name :
   Type)
 
-#check (@Whatwg.Infra.Encoding.Name.utf8 :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.utf8 :
   Whatwg.Infra.Encoding.Name)
 
-#check (@Whatwg.Infra.Encoding.Name.replacement :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.replacement :
   Whatwg.Infra.Encoding.Name)
 
-#check (@Whatwg.Infra.Encoding.Name.utf16be :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.utf16be :
   Whatwg.Infra.Encoding.Name)
 
-#check (@Whatwg.Infra.Encoding.Name.utf16le :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.utf16le :
   Whatwg.Infra.Encoding.Name)
 
 /-! The one encoder the pin names as stateful; see
 `rule.iso-2022-jp-encoder-stateful` [123264,124113). -/
-#check (@Whatwg.Infra.Encoding.Name.iso2022jp :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.iso2022jp :
   Whatwg.Infra.Encoding.Name)
 
 /-! Any other encoding, carried by its `name` [12179,13365). -/
-#check (@Whatwg.Infra.Encoding.Name.other :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.other :
   Whatwg.Infra.JsString → Whatwg.Infra.Encoding.Name)
 
 /-! `op.get-an-encoder` [50829,51166) step 1 as a decidable predicate, and the
 note of `rule.encoders-and-decoders` [13366,14779): "The replacement and
 UTF-16BE/LE encodings have no encoder." -/
-#check (@Whatwg.Infra.Encoding.Name.hasEncoder :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.hasEncoder :
   Whatwg.Infra.Encoding.Name → Bool)
 
 /-! Whether the encoder instance carries state across `encode or fail` calls.
@@ -219,12 +220,12 @@ an associated ISO-2022-JP encoder state which is ASCII, Roman, or jis0208,
 initially ASCII", and "The ISO-2022-JP encoder is the only encoder for which
 the concatenation of multiple outputs can result in an error when run through
 the corresponding decoder." -/
-#check (@Whatwg.Infra.Encoding.Name.isStateful :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.isStateful :
   Whatwg.Infra.Encoding.Name → Bool)
 
 /-! Whether this repository owns the encoder algorithm for the name, as opposed
 to holding a DB-02 profile for it. Exactly `utf8` today. -/
-#check (@Whatwg.Infra.Encoding.Name.isOwned :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Name.isOwned :
   Whatwg.Infra.Encoding.Name → Bool)
 
 /-! One answer of `op.encode-or-fail` [51167,53203) as its caller consumes it:
@@ -233,58 +234,58 @@ the number representing the code point that could not be encoded or null, if
 there was no error". Structurally the shape
 `Whatwg.Url.Boundary.EncodeAnswer` already carries on `url/u3-builder`; the
 contract records that the URL copy becomes a view onto this owner. -/
-#check (@Whatwg.Infra.Encoding.EncodeAnswer :
+#whatwg_freeze (@Whatwg.Infra.Encoding.EncodeAnswer :
   Type)
 
-#check (@Whatwg.Infra.Encoding.EncodeAnswer.mk :
+#whatwg_freeze (@Whatwg.Infra.Encoding.EncodeAnswer.mk :
   Whatwg.Infra.ByteSequence → Option Nat → Whatwg.Infra.Encoding.EncodeAnswer)
 
-#check (@Whatwg.Infra.Encoding.EncodeAnswer.output :
+#whatwg_freeze (@Whatwg.Infra.Encoding.EncodeAnswer.output :
   Whatwg.Infra.Encoding.EncodeAnswer → Whatwg.Infra.ByteSequence)
 
-#check (@Whatwg.Infra.Encoding.EncodeAnswer.potentialError :
+#whatwg_freeze (@Whatwg.Infra.Encoding.EncodeAnswer.potentialError :
   Whatwg.Infra.Encoding.EncodeAnswer → Option Nat)
 
 /-! The run of a retained foreign encoder instance: "When it returns non-null
 the caller will have to invoke it again, supplying the same encoder instance
 and a new output I/O queue", `op.encode-or-fail` [51167,53203). A short or
 empty tape is an unanswered decision and therefore a live frontier. -/
-#check (@Whatwg.Infra.Encoding.EncoderTape :
+#whatwg_freeze (@Whatwg.Infra.Encoding.EncoderTape :
   Type)
 
-#check (@Whatwg.Infra.Encoding.EncoderTape.terminated :
+#whatwg_freeze (@Whatwg.Infra.Encoding.EncoderTape.terminated :
   Whatwg.Infra.Encoding.EncoderTape → Bool)
 
 /-! The instance `op.get-an-encoder` [50829,51166) step 2 returns: "an instance
 of encoding's encoder". For UTF-8 it is the owned handler and carries no state;
 for every other name it is a DB-02 profile carrying the answers it will give. -/
-#check (@Whatwg.Infra.Encoding.Encoder :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Encoder :
   Type)
 
-#check (@Whatwg.Infra.Encoding.Encoder.utf8 :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Encoder.utf8 :
   Whatwg.Infra.Encoding.Encoder)
 
-#check (@Whatwg.Infra.Encoding.Encoder.foreign :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Encoder.foreign :
   Whatwg.Infra.Encoding.Name → Whatwg.Infra.Encoding.EncoderTape →
     Whatwg.Infra.Encoding.Encoder)
 
-#check (@Whatwg.Infra.Encoding.Encoder.name :
+#whatwg_freeze (@Whatwg.Infra.Encoding.Encoder.name :
   Whatwg.Infra.Encoding.Encoder → Whatwg.Infra.Encoding.Name)
 
 /-! `op.get-an-encoder` [50829,51166) with its assertion as a hypothesis
 argument (INFRA-R3), and with the assertion decided at run time. -/
-#check (@Whatwg.Infra.Encoding.getAnEncoder :
+#whatwg_freeze (@Whatwg.Infra.Encoding.getAnEncoder :
   (name : Whatwg.Infra.Encoding.Name) →
     Whatwg.Infra.Encoding.Name.hasEncoder name = true → Whatwg.Infra.Encoding.Encoder)
 
-#check (@Whatwg.Infra.Encoding.getAnEncoder? :
+#whatwg_freeze (@Whatwg.Infra.Encoding.getAnEncoder? :
   Whatwg.Infra.Encoding.Name → Option Whatwg.Infra.Encoding.Encoder)
 
 /-! `op.encode-or-fail` [51167,53203). The encoder instance is retained across
 the call and returned, which is exactly what makes ISO-2022-JP's statefulness
 observable. `none` is an unanswered decision on a foreign profile's exhausted
 tape: a live frontier, never an error. -/
-#check (@Whatwg.Infra.Encoding.encodeOrFail :
+#whatwg_freeze (@Whatwg.Infra.Encoding.encodeOrFail :
   Whatwg.Infra.Encoding.Encoder → Whatwg.Infra.IoQueue Whatwg.Infra.ScalarValue →
     Option (Whatwg.Infra.Encoding.EncodeAnswer × Whatwg.Infra.Encoding.Encoder))
 
@@ -296,29 +297,29 @@ point, UTF-8 bytes seen, UTF-8 bytes needed — each a number, initially 0; UTF-
 lower boundary — a byte, initially 0x80; UTF-8 upper boundary — a byte,
 initially 0xBF." -/
 
-#check (@Whatwg.Infra.Utf8.DecoderState :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState :
   Type)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.mk :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.mk :
   Nat → Nat → Nat → Whatwg.Infra.Byte → Whatwg.Infra.Byte →
     Whatwg.Infra.Utf8.DecoderState)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.codePoint :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.codePoint :
   Whatwg.Infra.Utf8.DecoderState → Nat)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.bytesSeen :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.bytesSeen :
   Whatwg.Infra.Utf8.DecoderState → Nat)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.bytesNeeded :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.bytesNeeded :
   Whatwg.Infra.Utf8.DecoderState → Nat)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.lowerBoundary :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.lowerBoundary :
   Whatwg.Infra.Utf8.DecoderState → Whatwg.Infra.Byte)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.upperBoundary :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.upperBoundary :
   Whatwg.Infra.Utf8.DecoderState → Whatwg.Infra.Byte)
 
-#check (@Whatwg.Infra.Utf8.DecoderState.initial :
+#whatwg_freeze (@Whatwg.Infra.Utf8.DecoderState.initial :
   Whatwg.Infra.Utf8.DecoderState)
 
 /-! "UTF-8's decoder's handler, given ioQueue and byte, runs these steps",
@@ -327,7 +328,7 @@ possibly-modified input queue because step 4.2 restores the byte to it. Its
 item type is `CodePoint` and not `ScalarValue`: step 11 returns "a code point
 whose value is codePoint", and that the value is never a surrogate is a
 theorem of the boundary tables, not a typing assumption. -/
-#check (@Whatwg.Infra.Utf8.decoderHandler :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decoderHandler :
   Whatwg.Infra.Utf8.DecoderState → Whatwg.Infra.IoQueue Whatwg.Infra.Byte →
     Whatwg.Infra.Item Whatwg.Infra.Byte →
       Whatwg.Infra.Encoding.HandlerResult Whatwg.Infra.CodePoint ×
@@ -339,7 +340,7 @@ assertions of steps 1 to 3 hold by construction (the mode is a
 never asked for "replacement" as an encoder; the surrogate assertion is an
 encoder-side assertion), step 5 pushes `end-of-queue`, step 6 pushes the items,
 and step 7 switches on the mode. -/
-#check (@Whatwg.Infra.Utf8.processItem :
+#whatwg_freeze (@Whatwg.Infra.Utf8.processItem :
   Whatwg.Infra.Encoding.DecoderErrorMode → Whatwg.Infra.Utf8.DecoderState →
     Whatwg.Infra.IoQueue Whatwg.Infra.Byte → Whatwg.Infra.IoQueue Whatwg.Infra.CodePoint →
       Whatwg.Infra.Item Whatwg.Infra.Byte →
@@ -353,7 +354,7 @@ continue, then return result." The `While true` is fuel-bounded exactly as
 `Whatwg.Infra.ByteSequence.isPrefixLoop` is, and the first component is `none`
 when the fuel runs out, which is a live frontier and never an error
 (`AGENTS.md`, representation rules; DB-07). -/
-#check (@Whatwg.Infra.Utf8.processQueue :
+#whatwg_freeze (@Whatwg.Infra.Utf8.processQueue :
   Whatwg.Infra.Encoding.DecoderErrorMode → Whatwg.Infra.Utf8.DecoderState →
     Whatwg.Infra.IoQueue Whatwg.Infra.Byte → Whatwg.Infra.IoQueue Whatwg.Infra.CodePoint →
       Nat →
@@ -366,7 +367,7 @@ when the fuel runs out, which is a live frontier and never an error
 measure; `2 * length + 1` is, because a restore happens only together with a
 reset of `UTF-8 bytes needed` to 0 and the restored byte is then consumed by the
 `bytesNeeded = 0` branch, which never restores. -/
-#check (@Whatwg.Infra.Utf8.processQueueFuel :
+#whatwg_freeze (@Whatwg.Infra.Utf8.processQueueFuel :
   Whatwg.Infra.IoQueue Whatwg.Infra.Byte → Nat)
 
 
@@ -377,16 +378,16 @@ decode, UTF-8 decode without BOM, UTF-8 decode without BOM or fail, and UTF-8
 encode) are intended for usage by other standards." -/
 
 /-! `op.utf-8-decode` [45059,45762). -/
-#check (@Whatwg.Infra.Utf8.decodeQueue :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeQueue :
   Whatwg.Infra.IoQueue Whatwg.Infra.Byte → Whatwg.Infra.IoQueue Whatwg.Infra.CodePoint)
 
 /-! `op.utf-8-decode-without-bom` [45763,46180). -/
-#check (@Whatwg.Infra.Utf8.decodeWithoutBomQueue :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeWithoutBomQueue :
   Whatwg.Infra.IoQueue Whatwg.Infra.Byte → Whatwg.Infra.IoQueue Whatwg.Infra.CodePoint)
 
 /-! `op.utf-8-decode-without-bom-or-fail` [46181,46905). "If potentialError is
 an error, then return failure": `none` (INFRA-R3). -/
-#check (@Whatwg.Infra.Utf8.decodeWithoutBomOrFailQueue :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeWithoutBomOrFailQueue :
   Whatwg.Infra.IoQueue Whatwg.Infra.Byte →
     Option (Whatwg.Infra.IoQueue Whatwg.Infra.CodePoint))
 
@@ -397,23 +398,23 @@ of `vendor/whatwg-url-55d66993/url.bs` [18464,18967) and
 [95081,95398) both hand over a byte sequence. Each is the queue form composed
 with `op.to-io-queue-convert` [10286,10769) and `op.from-io-queue-convert`
 [9982,10285). -/
-#check (@Whatwg.Infra.Utf8.decode :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decode :
   Whatwg.Infra.ByteSequence → List Whatwg.Infra.CodePoint)
 
-#check (@Whatwg.Infra.Utf8.decodeWithoutBom :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeWithoutBom :
   Whatwg.Infra.ByteSequence → List Whatwg.Infra.CodePoint)
 
-#check (@Whatwg.Infra.Utf8.decodeWithoutBomOrFail :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeWithoutBomOrFail :
   Whatwg.Infra.ByteSequence → Option (List Whatwg.Infra.CodePoint))
 
 /-! The `JsString` faces, through `Whatwg.Infra.JsString.ofCodePoints`. -/
-#check (@Whatwg.Infra.Utf8.decodeString :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeString :
   Whatwg.Infra.ByteSequence → Whatwg.Infra.JsString)
 
-#check (@Whatwg.Infra.Utf8.decodeWithoutBomString :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeWithoutBomString :
   Whatwg.Infra.ByteSequence → Whatwg.Infra.JsString)
 
-#check (@Whatwg.Infra.Utf8.decodeWithoutBomOrFailString :
+#whatwg_freeze (@Whatwg.Infra.Utf8.decodeWithoutBomOrFailString :
   Whatwg.Infra.ByteSequence → Option Whatwg.Infra.JsString)
 
 /-! How many `error` results the replacement-mode run of
@@ -421,17 +422,17 @@ with `op.to-io-queue-convert` [10286,10769) and `op.from-io-queue-convert`
 number of U+FFFD in the output: U+FFFD is itself a scalar value with a
 well-formed encoding, so `decodeWithoutBom [0xEF, 0xBF, 0xBD]` contains one
 U+FFFD and `errorCount` of it is 0. -/
-#check (@Whatwg.Infra.Utf8.errorCount :
+#whatwg_freeze (@Whatwg.Infra.Utf8.errorCount :
   Whatwg.Infra.ByteSequence → Nat)
 
 /-! Whether the byte sequence is in the image of the UTF-8 encoder, which is
 what `op.utf-8-decode-without-bom-or-fail` [46181,46905) succeeds on. -/
-#check (@Whatwg.Infra.Utf8.isWellFormed :
+#whatwg_freeze (@Whatwg.Infra.Utf8.isWellFormed :
   Whatwg.Infra.ByteSequence → Bool)
 
 /-! The byte order mark `op.utf-8-decode` [45059,45762) step 2 tests for,
 "0xEF 0xBB 0xBF". -/
-#check (@Whatwg.Infra.Utf8.bom :
+#whatwg_freeze (@Whatwg.Infra.Utf8.bom :
   Whatwg.Infra.ByteSequence)
 
 
@@ -442,40 +443,40 @@ what `op.utf-8-decode-without-bom-or-fail` [46181,46905) succeeds on. -/
 
 /-! Step 3's `count`, extended to the ASCII case of step 2 with the value 0, at
 which the step 4 and step 5 formulas reproduce step 2's single byte. -/
-#check (@Whatwg.Infra.Utf8.encoderCount :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encoderCount :
   Whatwg.Infra.CodePoint → Nat)
 
 /-! Step 3's `offset`, extended to the ASCII case with the value 0x00. -/
-#check (@Whatwg.Infra.Utf8.encoderOffset :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encoderOffset :
   Whatwg.Infra.CodePoint → Nat)
 
 /-! Step 5's loop: "While count is greater than 0: Set temp to codePoint >>
 (6 × (count − 1)). Append to bytes 0x80 | (temp & 0x3F). Decrease count by
 one." The loop is structural in `count`, which the caller supplies as
 `encoderCount`, so no fuel is needed. -/
-#check (@Whatwg.Infra.Utf8.encoderTail :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encoderTail :
   Nat → Nat → Whatwg.Infra.ByteSequence)
 
 /-! "UTF-8's encoder's handler, given unused and codePoint", steps 1 to 6. Its
 item type is `ScalarValue`: step 3 of `op.process-an-item` [15509,17620)
 asserts "encoderDecoder is not an encoder instance or item is not a surrogate",
 and INFRA-R3 turns that assertion into the carrier, discharged by typing. -/
-#check (@Whatwg.Infra.Utf8.encoderHandler :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encoderHandler :
   Whatwg.Infra.Item Whatwg.Infra.ScalarValue →
     Whatwg.Infra.Encoding.HandlerResult Whatwg.Infra.Byte)
 
 /-! Steps 2 to 6 as a total function from one scalar value to its bytes: the
 four-length shape. -/
-#check (@Whatwg.Infra.Utf8.encodeScalar :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encodeScalar :
   Whatwg.Infra.ScalarValue → Whatwg.Infra.ByteSequence)
 
-#check (@Whatwg.Infra.Utf8.encodeScalars :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encodeScalars :
   List Whatwg.Infra.ScalarValue → Whatwg.Infra.ByteSequence)
 
 /-! `op.utf-8-encode` [46912,47215): "return the result of encoding ioQueue with
 encoding UTF-8 and output", where `op.encode` [50170,50822) gets an encoder and
 processes the queue. -/
-#check (@Whatwg.Infra.Utf8.encodeQueue :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encodeQueue :
   Whatwg.Infra.IoQueue Whatwg.Infra.ScalarValue → Whatwg.Infra.IoQueue Whatwg.Infra.Byte)
 
 /-! The string form. `note.hooks-for-standards` [43782,45058): "Standards are to
@@ -484,18 +485,18 @@ I/O queues of scalar values, i.e., they contain no surrogates." That is the
 hypothesis argument, in the exact shape
 `Whatwg.Infra.JsString.isomorphicEncode` already uses for its own restriction
 (INFRA-R3). -/
-#check (@Whatwg.Infra.Utf8.encode :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encode :
   (input : Whatwg.Infra.JsString) →
     Whatwg.Infra.JsString.isScalarValueString input = true → Whatwg.Infra.ByteSequence)
 
 /-! `encode` with its hypothesis decided at run time, in the shape
 `Whatwg.Infra.JsString.isomorphicEncode?` and `asciiEncode?` already use. -/
-#check (@Whatwg.Infra.Utf8.encode? :
+#whatwg_freeze (@Whatwg.Infra.Utf8.encode? :
   Whatwg.Infra.JsString → Option Whatwg.Infra.ByteSequence)
 
 /-! The scalar values of a scalar value string, the bridge between
 `Whatwg.Infra.JsString.codePoints` and the encoder's item type. -/
-#check (@Whatwg.Infra.Utf8.scalars :
+#whatwg_freeze (@Whatwg.Infra.Utf8.scalars :
   (input : Whatwg.Infra.JsString) →
     Whatwg.Infra.JsString.isScalarValueString input = true →
       List Whatwg.Infra.ScalarValue)

@@ -1,6 +1,7 @@
 import Lean
 import Lean.Util.CollectAxioms
 import Whatwg.Infra.Primitive.Integer
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned integer constructive proof contract, frozen before proof-term repair.
@@ -28,25 +29,25 @@ namespace WhatwgTest.Infra.IntegerConstructiveContract
 #check (rfl : Whatwg.Infra.Signed32 = Int32)
 #check (rfl : Whatwg.Infra.Signed64 = Int64)
 
-#check (@Whatwg.Infra.Unsigned8.inRange :
-  (x : Whatwg.Infra.Unsigned8) → 0 ≤ x.toNat ∧ x.toNat ≤ 255)
-#check (@Whatwg.Infra.Unsigned16.inRange :
-  (x : Whatwg.Infra.Unsigned16) → 0 ≤ x.toNat ∧ x.toNat ≤ 65535)
-#check (@Whatwg.Infra.Unsigned32.inRange :
-  (x : Whatwg.Infra.Unsigned32) → 0 ≤ x.toNat ∧ x.toNat ≤ 4294967295)
-#check (@Whatwg.Infra.Unsigned64.inRange :
-  (x : Whatwg.Infra.Unsigned64) → 0 ≤ x.toNat ∧ x.toNat ≤ 18446744073709551615)
-#check (@Whatwg.Infra.Unsigned128.inRange :
+#whatwg_freeze (@Whatwg.Infra.Unsigned8.inRange :
+  (x : Whatwg.Infra.Unsigned8) → 0 ≤ x.toNat ∧ x.toNat ≤ 255) axioms []
+#whatwg_freeze (@Whatwg.Infra.Unsigned16.inRange :
+  (x : Whatwg.Infra.Unsigned16) → 0 ≤ x.toNat ∧ x.toNat ≤ 65535) axioms []
+#whatwg_freeze (@Whatwg.Infra.Unsigned32.inRange :
+  (x : Whatwg.Infra.Unsigned32) → 0 ≤ x.toNat ∧ x.toNat ≤ 4294967295) axioms []
+#whatwg_freeze (@Whatwg.Infra.Unsigned64.inRange :
+  (x : Whatwg.Infra.Unsigned64) → 0 ≤ x.toNat ∧ x.toNat ≤ 18446744073709551615) axioms []
+#whatwg_freeze (@Whatwg.Infra.Unsigned128.inRange :
   (x : Whatwg.Infra.Unsigned128) →
-    0 ≤ x.toNat ∧ x.toNat ≤ 340282366920938463463374607431768211455)
-#check (@Whatwg.Infra.Signed8.inRange :
-  (x : Whatwg.Infra.Signed8) → -128 ≤ x.toInt ∧ x.toInt ≤ 127)
-#check (@Whatwg.Infra.Signed16.inRange :
-  (x : Whatwg.Infra.Signed16) → -32768 ≤ x.toInt ∧ x.toInt ≤ 32767)
-#check (@Whatwg.Infra.Signed32.inRange :
-  (x : Whatwg.Infra.Signed32) → -2147483648 ≤ x.toInt ∧ x.toInt ≤ 2147483647)
-#check (@Whatwg.Infra.Signed64.inRange :
-  (x : Whatwg.Infra.Signed64) → -9223372036854775808 ≤ x.toInt ∧ x.toInt ≤ 9223372036854775807)
+    0 ≤ x.toNat ∧ x.toNat ≤ 340282366920938463463374607431768211455) axioms []
+#whatwg_freeze (@Whatwg.Infra.Signed8.inRange :
+  (x : Whatwg.Infra.Signed8) → -128 ≤ x.toInt ∧ x.toInt ≤ 127) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Infra.Signed16.inRange :
+  (x : Whatwg.Infra.Signed16) → -32768 ≤ x.toInt ∧ x.toInt ≤ 32767) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Infra.Signed32.inRange :
+  (x : Whatwg.Infra.Signed32) → -2147483648 ≤ x.toInt ∧ x.toInt ≤ 2147483647) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Infra.Signed64.inRange :
+  (x : Whatwg.Infra.Signed64) → -9223372036854775808 ≤ x.toInt ∧ x.toInt ≤ 9223372036854775807) axioms [propext, Quot.sound]
 
 -- Inspect actual compiled declarations, including their types and generated proof dependencies.
 -- Print every transitive receipt before rejecting all offending declaration/axiom pairs together.
