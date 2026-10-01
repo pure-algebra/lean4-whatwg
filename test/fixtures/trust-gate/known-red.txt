@@ -465,10 +465,15 @@
 # its module is green and adds the module's import to WhatwgTest.lean. A repair
 # that turns a module green by changing an ascription or a witness is a
 # refusal, not a landing.
-WhatwgTest.Streams.Kernel.PathContract
+#
+# W8a.1 LANDED, 2026-10-01, by the W8a builder seat on branch
+# review/w8a-kernel-builder: Whatwg/Streams/Kernel.lean, imported from
+# Whatwg/Streams.lean. PathContract and Counterexamples.Kernel.Path elaborate
+# with no token changed, exit 0 and no diagnostic; every kernel declaration
+# reaches propext and Quot.sound at most. Both entries are removed and both
+# modules are imported from WhatwgTest.lean.
 WhatwgTest.Streams.Kernel.BridgeContract
 WhatwgTest.Streams.Readable.InvariantContract
 WhatwgTest.Streams.Writable.InvariantContract
 WhatwgTest.Streams.Semantics.InvariantContract
-WhatwgTest.Streams.Counterexamples.Kernel.Path
 WhatwgTest.Streams.Counterexamples.Kernel.Invariants

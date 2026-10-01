@@ -5,6 +5,7 @@ import Whatwg.Streams.Data.DyadicSize
 import Whatwg.Streams.Strategy.CountQueuing
 import Whatwg.Streams.Strategy.ByteLengthQueuing
 import Whatwg.Streams.Strategy.Ops
+import Whatwg.Streams.Kernel
 import Whatwg.Streams.Readable.Stream
 import Whatwg.Streams.Readable.State
 import Whatwg.Streams.Readable.DefaultController
@@ -79,6 +80,8 @@ behind their frozen contracts and counterexample packets. P3, P4a, P5a, P6a
 and P7a contain declarations, and so does the configuration-ordering
 restatement of P8a under `Whatwg/Streams/Semantics/` (slice Q4, ruling R-P27);
 later categories remain declaration-free stubs until their own packets admit
-implementation. `PLAN.md` owns phase status
+implementation. `Whatwg/Streams/Kernel.lean` (slice W8a, ruling R-W4) holds
+the labelled derivations those calculi share and models no specification
+text. `PLAN.md` owns phase status
 and the category proof graphs own the remaining assurance obligations.
 -/
