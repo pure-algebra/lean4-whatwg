@@ -172,7 +172,8 @@ private def sourceTokenExemptions : List SourceTokenExemption :=
   -- trust-selftest: source-token exemption entries are inserted below this line
   []
 
-/-- The three forbidden axioms the trust-token pass also refuses by name. -/
+/-- The three compiler-trust axioms. With `sorryAx` they are the axioms no
+audited constant may reach, and the trust-token pass refuses all four by name. -/
 private def forbiddenTrustAxioms : List Name :=
   [``Lean.ofReduceBool, ``Lean.ofReduceNat, ``Lean.trustCompiler]
 
@@ -304,11 +305,23 @@ private def refusedAxiomWord (axiomName : Name) : RefusedWord :=
 refused as a keyword and as an identifier: compiler evaluation (`native_decide`,
 `bv_decide`, `bv_decide?`, `bv_check`, and the `native` configuration flag in
 every spelling), an admitted goal, an assumption, a replaced body, a
-declaration the kernel never checks, and the three forbidden axioms by name. -/
+declaration the kernel never checks, and the forbidden axioms by name.
+
+Addendum V2b (ruling R-V6) adds the spellings by which an `example` admits a
+goal once a warning switch is thrown, and the switches themselves: the tactics
+`admit`, `impossible`, `apply?`, `try?` and `grind?`; the options
+`debug.byAsSorry`, `debug.terminalTacticsAsSorry`, `warn.sorry` and
+`warningAsError`; `sorryAx` by name; and the compiler-evaluation functions
+`Lean.reduceBool` and `Lean.reduceNat`, each by its last component as the
+forbidden axioms are. `stop` is not refused: the tooling tree uses it as a
+local name, and Lean's own warning stops it while `warningAsError` cannot be
+switched off in code. -/
 private def refusedWords : List RefusedWord :=
   ["native_decide", "bv_decide", "bv_decide?", "bv_check", "native", "sorry", "axiom",
-    "implemented_by", "extern", "debug.skipKernelTC"].map refusedWord ++
-  forbiddenTrustAxioms.map refusedAxiomWord
+    "implemented_by", "extern", "debug.skipKernelTC", "admit", "impossible", "apply?", "try?",
+    "grind?", "debug.byAsSorry", "debug.terminalTacticsAsSorry", "warn.sorry",
+    "warningAsError"].map refusedWord ++
+  (forbiddenAxioms ++ [``Lean.reduceBool, ``Lean.reduceNat]).map refusedAxiomWord
 
 /-- Whether one token of code carries the word. -/
 private def RefusedWord.carriedBy (word : RefusedWord) : Syntax → Bool
