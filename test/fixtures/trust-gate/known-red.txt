@@ -440,3 +440,23 @@
 # green. Every receipt prints inside the R-11 ceiling; 17 reach
 # Classical.choice against the stricter R-U3 target, recorded as debt D42. All
 # three entries are removed. No entry remains.
+
+# W7 graph ledger packet, frozen RED 2026-10-01 by the W7 breaker seat of
+# review lane W on branch review/w7-ledger-breaker, based on b0d35e2
+# (ruling R-W6).
+# Packet: test/contracts/graph-ledger.contract.md.
+# Counterexamples: LEDGER-CE-001..005 in test/counterexamples/REGISTER.md.
+# Implementation fence (slice A, contract section 12):
+# WhatwgGates/Ledger/{Model,Render,Check}.lean, whatwgbin/Ledger.lean,
+# WhatwgTest/Ledger.lean, WhatwgTest/Ledger/{DataQueue,PromiseFirst,
+# ConfigurationOrdering}.lean, one import line in each of WhatwgGates.lean and
+# WhatwgTest.lean, the whatwg_ledger lakefile entry, generated/graphs/ for the
+# three graphs, and one sentence in each of their three graph documents.
+#
+# One entry. It is red only because the four modules it imports,
+# WhatwgGates.Ledger.Model, WhatwgGates.Ledger.Render,
+# WhatwgGates.Ledger.Check and WhatwgTest.Ledger, do not exist yet. Per ruling
+# R-W9 the battery is not imported by WhatwgTest.lean during its red phase;
+# the slice A builder adds that import and removes this entry the moment the
+# battery is green.
+WhatwgTest.Audit.LedgerContract
