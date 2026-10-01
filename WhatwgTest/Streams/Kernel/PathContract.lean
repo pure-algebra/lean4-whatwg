@@ -48,9 +48,8 @@ from `s` to `t` whose labels, in order, are `ds`. -/
     step s d mid → Kernel.Path step mid ds t → Kernel.Path step s (d :: ds) t)
 
 -- Kind pin: `Kernel.Path` is an inductive proposition with exactly the two
--- constructors above, eliminating into `Prop`. Route A of the design (an
--- `abbrev` over another closure) and a non-inductive definition both fail
--- here.
+-- constructors above, eliminating into `Prop`. A `Kernel.Path` that is a
+-- definition (an `abbrev` of some other closure, say) fails here.
 #check (@Kernel.Path.rec :
   ∀ {σ : Type u} {L : Type v} {step : σ → L → σ → Prop}
     {motive : (s : σ) → (ds : List L) → (t : σ) → Kernel.Path step s ds t → Prop},

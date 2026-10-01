@@ -66,5 +66,5 @@ lake env lean WhatwgTest/Streams/Counterexamples/Kernel/Invariants.lean
 ```
 
 Both exited 0, and the full `lake build` with both modules imported into the
-test root passed the axiom gate (section 12 of the contract). Against `main`
+test root passed the axiom gate (section 10 of the contract). Against `main`
 at `b0d35e2` both fail with unknown identifiers only, as declared.

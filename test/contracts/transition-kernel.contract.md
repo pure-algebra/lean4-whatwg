@@ -33,8 +33,10 @@ this document is a reading aid copied from them.
 
 This packet freezes statements. It proves nothing, admits no declaration,
 closes no graph edge, moves no coverage row and asserts no relation to any
-host. Every statement below was proved in the design seat's prototype, and
-section 10 records, statement by statement, what this seat re-established.
+host. Every declaration it freezes was proved in the design seat's prototype;
+the few checks this seat added (a kind pin, ten body pins, two corollary
+proofs, the witnesses) were proved by this seat against that prototype.
+Section 10 records the status statement by statement.
 
 What the packet does not claim:
 
@@ -94,12 +96,18 @@ over block identifiers only.
 
 **Ceiling.** The module is under the strict prefix `Whatwg.Streams` (R-V1):
 every declaration in it reaches `propext` and `Quot.sound` at most, with no
-exception added beside the strict list. The prototype reached `propext` only
-(`path_graph_iff`) and nothing else.
+exception added beside the strict list. The design measured every kernel
+theorem of the prototype axiom-free except `path_graph_iff`, which uses
+`propext`; section 10 records this seat's receipts.
 
 **Kind.** `Kernel.Path` is an inductive proposition with exactly the two
 constructors `nil` and `cons`; the battery pins this with an ascription of
-`Kernel.Path.rec`.
+`Kernel.Path.rec`. The kind of the six per-calculus inductives (Route B keeps
+them) is not pinned by an ascription: the existing batteries ascribe only
+`Semantics.Ordering.Reaches.nil`/`cons` and `EpisodePrefix.nil`/`cons` among
+their constructors, and the design measured that Route A with alias theorems
+passes them. Acceptance condition 7 (the fingerprint) is what refuses a
+changed kind.
 
 ## 3. Declaration record: the kernel
 
@@ -478,7 +486,12 @@ through `Kernel.graph_deterministic`; `Piping.reaches_no_new_read` and
 
 **Keep:** every other declaration of the five calculi, including the six
 derivation inductives, their constructors and generated companions, the five
-`Step` definitions, and `Semantics.Ordering.tick_decide_exclusive`.
+`Step` definitions, `Semantics.Ordering.tick_decide_exclusive`, and
+`Semantics.Ordering.externalWord` and `Normalized`. The configuration's
+`externalWord` and the kernel's are both `labels.filterMap id`, so at the
+configuration's decision type they agree by definition; that is what lets rows
+14 and 15 pass their external-word hypothesis to the kernel unchanged, and no
+bridge theorem between the two is frozen.
 
 ## 7. Assurance route
 
@@ -541,7 +554,50 @@ in its own worktree from the design's scratch copies and elaborated the
 battery statement against it; **scratch** — proved by this seat in scratch;
 **probed** — evaluated on concrete instances; **unprobed** — none of these.
 
-Filled in at the end of validation; see section 12.
+**What was reinstated.** In this seat's worktree, uncommitted and removed
+before the last commit: the design's `Kernel.final.lean` (appendix A; two
+docstrings differ from the appendix's `Kernel.lean`) as
+`Whatwg/Streams/Kernel.lean`; the design's `routeB-funcases-final.patch`,
+which applies cleanly to `b0d35e2` (`git apply --check` exit 0) and adds the
+bridges and re-proofs to the five `Step.lean` files, the three `Laws.lean`
+files and `Semantics/Runs.lean`; and the design's three invariant prototypes
+as `Whatwg/Streams/{Readable,Writable,Semantics}/Invariants.lean`, with their
+`import Whatwg.Streams` replaced by `Whatwg.Streams.Readable.Laws`,
+`Whatwg.Streams.Writable.Laws` and `Whatwg.Streams.Semantics.Runs` and their
+`#print axioms` lines dropped; four import lines in `Whatwg/Streams.lean`.
+`lake build WhatwgStreams`: 81 jobs, exit 0.
+
+| Statements | Status | Evidence against the reinstated prototype |
+| --- | --- | --- |
+| the 31 kernel declarations of section 3 | prototype; reinstated | `lake env lean WhatwgTest/Streams/Kernel/PathContract.lean`: exit 0, no diagnostic |
+| the kind pin `Kernel.Path.rec` and the six body pins of section 3 | reinstated (this packet's additions; not in the design) | same run |
+| the 12 bridges of section 4 | prototype; reinstated | `BridgeContract.lean`: exit 0 |
+| `Readable.QueueInv`, its 3 theorems and its body pin | prototype; reinstated | `Readable/InvariantContract.lean`: exit 0 |
+| `Writable.QueueInv`, its 5 theorems and its body pin | prototype; reinstated | `Writable/InvariantContract.lean`: exit 0 |
+| `registrationIds`, `RegistrationsFresh`, their 4 theorems and 2 body pins | prototype; reinstated | `Semantics/InvariantContract.lean`: exit 0 |
+| corollaries 1 to 6 and 9 to 15 of section 6 | prototype; reinstated | the reinstated tree builds with the new proofs, every P4 to Q4 battery unchanged and green |
+| corollaries 7 and 8 (`Transform.reaches_nil`, `Transform.reaches_cons` through the bridge) | scratch | this seat's scratch `Corollaries.lean`: both statements, verbatim, by `reaches_iff_path.mpr (Kernel.Path.nil s)` and `reaches_iff_path.mpr (Kernel.Path.cons first (reaches_iff_path.mp rest))`, exit 0 |
+| witnesses of `WS-KERNEL-CE-001` to `004` | reinstated; the toy half of 002 is this seat's (scratch) | `lake env lean WhatwgTest/Streams/Counterexamples/Kernel/Path.lean`: exit 0 |
+| witnesses of `WS-KERNEL-CE-005` and `006` | reinstated; probed (both mutants evaluated on concrete states by `decide` and `rfl`) | `.../Kernel/Invariants.lean`: exit 0 |
+
+No statement of this packet is **unprobed**.
+
+**Axioms.** One `#print axioms` per name in a scratch file over 75 names: the
+31 kernel declarations and `Kernel.Path.rec`, the 12 bridges, the 4 predicates
+and 12 invariant theorems, and the 15 corollaries of section 6. Result: 33 depend
+on no axiom, 7 on `propext`, 35 on `propext` and `Quot.sound`; none reaches
+`Classical.choice`, `sorryAx` or any forbidden axiom.
+
+**Gate and kernel replay.** With the prototype in place and the five batteries
+and two witness modules imported into `WhatwgTest.lean` (locally, not
+committed), `lake build`: 401 jobs, exit 0, gate line "checked 233 source
+files and 17339 declarations; Classical.choice is reached by 84 of 13341
+declarations in Whatwg, 122 of 2401 in WhatwgTest and 176 of 1597 in
+WhatwgGates; strict ceiling propext and Quot.sound over 5 module prefix(es)
+with 0 exact exception(s); 0 source-token exemption(s)". The `WhatwgTest`
+count of declarations reaching `Classical.choice` is 122, as on `main`: the
+packet's batteries and witnesses add none. `lake env leanchecker Whatwg
+WhatwgTest WhatwgGates`: exit 0 in 85 s.
 
 ## 11. Open items for the coordinator
 
@@ -565,6 +621,115 @@ Filled in at the end of validation; see section 12.
    ascription in a later breaker packet), or private in each of the two
    modules (two copies, which R-W4's "one" does not intend).
 
-## 12. Freeze receipt
+## 12. Acceptance conditions
 
-Recorded after validation.
+1. All 60 ascriptions and 10 `example`s of the five batteries elaborate with
+   no token changed. A repair that turns a battery green by changing an
+   ascription, an `example` or a witness is a refusal, not a landing; a builder
+   who finds a frozen statement false stops and reports (R-W9).
+2. Both witness modules elaborate unchanged: `Counterexamples/Kernel/Path`
+   once W8a.1 lands, `Counterexamples/Kernel/Invariants` once W8a.3 lands.
+3. Every ascription of the P4 to Q4 batteries elaborates unchanged. Under
+   `WhatwgTest/`, the slices change no file except the seven of this packet's
+   red set (which they do not edit either) and `WhatwgTest.lean`, which gains
+   one import per module as it turns green.
+4. The fifteen corollaries of section 6 are re-derived from the kernel laws
+   named there; none keeps an induction or case analysis on a derivation. The
+   five private helpers of `Semantics/Runs.lean` named in section 6 are gone.
+5. The gate reports 0 strict-ceiling exceptions, and the number of `Whatwg`
+   declarations reaching `Classical.choice` does not grow (84 at `b0d35e2`,
+   none under a strict prefix). `lake env leanchecker Whatwg WhatwgTest
+   WhatwgGates` passes.
+6. Section 9 holds in every touched file. In particular
+   `Whatwg/Streams/Piping/Runs.lean` elaborates inside its current limit.
+7. The fingerprint against the slice base shows only added authored lines, all
+   under `Whatwg.Streams.Kernel` or named in sections 4 and 5; the generated
+   lines that change are those of the deleted private helpers and the `_simp`
+   auxiliaries of re-proved lemmas (design section 6.3).
+8. Each entry of `test/fixtures/trust-gate/known-red.txt` from this packet is
+   removed the moment its module is green, and the packet's slices merge to
+   `main` only when all seven are gone and the root gate passes on the slice
+   branch (R-W9).
+
+## 13. Fence
+
+**This packet may be edited by no one but this breaker seat.** Its files: this
+contract; `WhatwgTest/Streams/Kernel/PathContract.lean`,
+`WhatwgTest/Streams/Kernel/BridgeContract.lean`,
+`WhatwgTest/Streams/{Readable,Writable,Semantics}/InvariantContract.lean`;
+`WhatwgTest/Streams/Counterexamples/Kernel/{Path,Invariants}.lean`;
+`test/counterexamples/kernel/ATTACKS.md`; the `WS-KERNEL-CE` block at the end
+of `test/counterexamples/REGISTER.md`; the W8a block at the end of
+`test/fixtures/trust-gate/known-red.txt` (from which builders remove entries
+as above); and the W8a amendment sections at the end of
+`readable-default.contract.md`, `writable-default.contract.md` and
+`configuration-ordering.contract.md`.
+
+The builder's fence is section 8 and nothing else. This seat edited nothing
+under `Whatwg/`, no existing battery, no graph document, neither
+`WhatwgTest.lean`, `COORDINATION.md`, `PLAN.md`, any `AGENTS.md` nor
+`lakefile.toml`, and no existing line of any existing file.
+
+## 14. Freeze receipt
+
+Frozen 2026-10-01 on branch `review/w8a-kernel-breaker`, based on `main` at
+`b0d35e2`. Toolchain `leanprover/lean4:v4.33.1`. After validation every
+production file was restored (`git restore Whatwg WhatwgTest.lean`, the four
+prototype modules deleted); `git diff b0d35e2 -- Whatwg WhatwgTest.lean` is
+empty.
+
+**Green.** `lake build WhatwgStreams`: 77 jobs, exit 0.
+
+**Red, in the declared modules only.**
+
+```text
+lake build
+✖ [349/393] Building WhatwgTest.Streams.Counterexamples.Kernel.Invariants
+✖ [350/393] Building WhatwgTest.Streams.Counterexamples.Kernel.Path
+✖ [375/393] Building WhatwgTest.Streams.Kernel.BridgeContract
+✖ [377/393] Building WhatwgTest.Streams.Kernel.PathContract
+✖ [378/393] Building WhatwgTest.Streams.Readable.InvariantContract
+✖ [380/393] Building WhatwgTest.Streams.Semantics.InvariantContract
+✖ [381/393] Building WhatwgTest.Streams.Writable.InvariantContract
+✖ [392/393] Building WhatwgTest
+Some required targets logged failures:
+- WhatwgTest.Streams.Counterexamples.Kernel.Invariants
+- WhatwgTest.Streams.Counterexamples.Kernel.Path
+- WhatwgTest.Streams.Kernel.BridgeContract
+- WhatwgTest.Streams.Kernel.PathContract
+- WhatwgTest.Streams.Readable.InvariantContract
+- WhatwgTest.Streams.Semantics.InvariantContract
+- WhatwgTest.Streams.Writable.InvariantContract
+- WhatwgTest
+error: build failed
+```
+
+The root `WhatwgTest` fails with exactly seven module-closure findings, one
+per module of the red set ("… is not reachable from the WhatwgTest audit
+root"), and no other gate finding: R-W9 leaves the root imports to the
+builder, and the trust self-test tolerates the root while `known-red.txt`
+declares any module.
+
+**Exact diagnostics**, from `lake env lean -DmaxErrors=10000 <file>`:
+
+| Module | Diagnostics | Kinds |
+| --- | ---: | --- |
+| `WhatwgTest/Streams/Kernel/PathContract.lean` | 92 | 92 `lean.unknownIdentifier` |
+| `WhatwgTest/Streams/Kernel/BridgeContract.lean` | 24 | 24 `lean.unknownIdentifier` |
+| `WhatwgTest/Streams/Readable/InvariantContract.lean` | 10 | 10 `lean.unknownIdentifier` |
+| `WhatwgTest/Streams/Writable/InvariantContract.lean` | 16 | 16 `lean.unknownIdentifier` |
+| `WhatwgTest/Streams/Semantics/InvariantContract.lean` | 15 | 15 `lean.unknownIdentifier` |
+| `WhatwgTest/Streams/Counterexamples/Kernel/Path.lean` | 42 | 34 `lean.unknownIdentifier`; 6 "Expected type must not contain metavariables" and 2 "unsolved goals", each in a `by` block of a theorem whose statement names an unknown kernel constant |
+| `WhatwgTest/Streams/Counterexamples/Kernel/Invariants.lean` | 10 | 9 `lean.unknownIdentifier`; 1 "unsolved goals" of the same kind |
+| **total** | **209** | |
+
+In the five batteries every diagnostic is an unknown identifier. There is no
+parse, import, type-mismatch or instance-synthesis failure in any of the seven
+modules. In `Counterexamples/Kernel/Invariants.lean` the two CE-005 `decide`
+witnesses `ce005_reference_wf` and `ce005_mutant_breaks_wf` and the two CE-006
+steps `ce006_config1_step` and `ce006_mutant_step` already elaborate against
+`main`: they name no new constant.
+
+**Gates.** `lake exe whatwg_citations`: PASS, 1281 files scanned, no
+line-numbered citation into a protected authored document. The trust
+self-test is recorded below.
