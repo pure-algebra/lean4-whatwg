@@ -31,7 +31,7 @@ The command elaborates the statement alone and refuses a leftover
 metavariable: a hole pins nothing. It compares the result with the declared
 type by `sameStatement`, which is `Expr.eqv` plus two allowances, the
 `let`/`have` flag and auxiliary `match` definitions compared by their bodies;
-nothing is unfolded. It compares the exact `Lean.collectAxioms` set with the
+nothing else is unfolded. It compares the exact `Lean.collectAxioms` set with the
 listed one, a clause required for theorems. Optional clauses carry the mask
 (`M1`, `M2`, `none "reason"`), a census row id, a graph edge and
 counterexample ids. On success it prints nothing and adds one kernel-checked
@@ -66,12 +66,12 @@ WhatwgTest | Select-String`, then re-counted by elaboration (2.2). `[C]`
 | Form | Lines | Files | What it pins today |
 | --- | ---: | ---: | --- |
 | `#check (@n : T)` | 2,278 text, 2,272 commands | 46 | `T` unifies with the type of `n` at default transparency |
-| `#check (e : T)` without `@` (`inferInstance`, `rfl`, constructors) | 50 | 9 | an instance or a definitional equation exists |
+| `#check (e : T)` without `@` (`inferInstance`, `rfl`, constructors) | 50 | 11 | an instance or a definitional equation exists |
 | `#print axioms n` | 1,031 | 19 | that `n` resolves; nothing else |
 | `example` | 105 | 6 | its own proof (Html probes, queue examples) |
 | `#guard_msgs` | 13 | 2 | exact messages (`Html/Breakers.lean`, the gate) |
-| `#guard` | 414 | many | a `Bool` evaluated by compiled code |
-| `#check_failure` | 11 | few | an elaboration failure |
+| `#guard` | 414 | 13 | a `Bool` evaluated by compiled code |
+| `#check_failure` | 11 | 2 | an elaboration failure |
 
 The review's 2,278 ascriptions are still 2,278 lines; six of them sit inside
 docstrings that quote superseded ascriptions, so 2,272 are commands. The
@@ -99,10 +99,8 @@ declared type of `n`. `[C]`
 | total | 2,272 | 2,102 distinct declarations, 164 frozen in two or more modules, none twice in one module |
 
 By kind: 1,065 theorems, 692 definitions, 377 constructors, 138 inductive
-types. 224 entries have universe parameters, each written with the
-declaration's own parameter names. By axiom set: 1,247 none, 529
-`[propext]`, 464 `[propext, Quot.sound]`, 32 with `Classical.choice` (29 of
-them definitions). `[C]`
+types. By axiom set: 1,247 none, 529 `[propext]`, 464 `[propext,
+Quot.sound]`, 32 with `Classical.choice` (29 of them definitions). `[C]`
 
 The four holes are in `WhatwgTest/Audit/SpecCoverage.lean`:
 `Whatwg.Streams.Data.byteLengthSize_number`, `byteLengthSize_undefined`,
@@ -110,9 +108,14 @@ The four holes are in `WhatwgTest/Audit/SpecCoverage.lean`:
 `α`) the body never mentions, so the implicit argument of
 `ByteLengthAnswer.number` or `Queue.empty` is a metavariable that `#check`
 fills from the declaration; a production change from `ByteLengthAnswer Size
-ε` to `ByteLengthAnswer Size Unit` would still pass that battery. The same
-experiment shows `#check (@n : _)` and `#check (@n : ∀ {ε : Type},
-SinkAnswer ε = _)` pass for any `n` of matching shape. `[C]`
+ε` to `ByteLengthAnswer Size Unit` would still pass that battery `[H]`.
+The same experiment shows `#check (@n : _)` and `#check (@n : ∀ {ε :
+Type}, SinkAnswer ε = _)` passing for any `n` of that shape. No ascription
+writes `_` as a hole (the 242 standalone underscores in `WhatwgTest` at
+the base are match arms, binders and gate code); every theorem ascription
+uses `@`, so none freezes a specialisation through an inserted implicit
+argument; and the 224 with universe parameters name the declaration's own.
+`[C]`
 
 A first-difference walk over the 137 ascriptions outside `Expr.eqv` found
 three causes. `[C]`
@@ -189,10 +192,8 @@ an entry). `[C]`
   declarations through a listed module's command. `[C]`
 - `lake exe whatwg_trustselftest` with the prototype listed and the battery
   converted: "every planted declaration was rejected for its stated reason,
-  every control was accepted, and every narrow run exited 0", exit 0, 603 s.
-  It ran on a revision with `Array` fields and a mandatory `axioms` clause;
-  the later revision changes neither the syntax kinds nor the registrations.
-  `[C]`
+  every control was accepted, and every narrow run exited 0", exit 0: 603 s
+  on an earlier revision, 571 s on the revision of appendix A. `[C]`
 - A revision that held the registry in a `SimplePersistentEnvExtension`
   registered by `initialize registry : … ← …` failed the environment pass:
   "declaration WhatwgTest.Audit.Freeze.registry is an `opaque` with no
@@ -225,9 +226,10 @@ axiom column is 23 of the 26 s: each `collectAxioms` call builds a fresh
 cache, and its per-module table does not make the exported path cheap here
 `[H]`. `leanchecker` over the three libraries takes 79 s (R-V6). The walk
 found 8,784 public constants under `Whatwg` (2,003 private, 2,128 internal):
-1,201 theorems, 3,276 definitions, 136 inductive types and 928 constructors
-with their own declaration range, and 2,116 theorems, 960 definitions and
-the rest without one (equation lemmas and other generated declarations).
+1,201 theorems, 3,276 definitions, 136 inductive types, 928 constructors and
+137 recursors with their own declaration range, and 2,116 theorems, 960
+definitions, 16 constructors, 7 recursors and 7 inductive types without one
+(equation lemmas and other generated declarations).
 `[C]`
 
 Of the 1,201 public theorems with a range, 982 have an ascription today:
@@ -278,6 +280,14 @@ object of a standard, so none has a specification anchor.
 | `elabFreeze` | `Lean.Elab.Command.CommandElab` | the command; admission and refusal | graph |
 | `freezeCommand` | syntax kind | the command's parser | helper of `elabFreeze` |
 
+An entry stores neither a type hash nor a printed type. The battery text is
+the authored statement and the command has just compared it with the
+declared type; the snapshot then pins the declared type by a SHA-256 of a
+canonical text (appendix B). `Expr.hash` is not a pin: `Expr.Data.hash` keeps
+32 bits (`c.toUInt32.toUInt64` in `Lean/Expr.lean`) `[S]`. A pretty-printed
+type hides implicit arguments and instances, so it serves the diff reader
+only, and the snapshot does not need it.
+
 `Entry` uses `List`, not `Array`, so the snapshot executable can decode an
 entry with `Lean.Meta.reduceEval`, whose instances cover `Name`, `String`,
 `Option` and `List` and not `Array` (`Lean/Meta/ReduceEval.lean`). `[S]`
@@ -312,9 +322,9 @@ its command word and, for the 1,065 theorems, gains an `axioms` clause;
 breaker addendum: the 4 holes of `SpecCoverage.lean` gain their implicit
 argument, the 7 of `Utf8Laws.lean` write `List.length`, the one of
 `WebIdl/CensusContract.lean` writes its `optParam`. Each battery gains one
-`import` line. The 12 production `*AxiomReport.lean` files (957 lines) are
-retired by the ruling; the 7 witness files keep their 74 receipts until the
-counterexample slice (6.5).
+`import` line; appendix C gives every count per file. The 12 production
+`*AxiomReport.lean` files (957 lines) are retired by the ruling; the 7
+witness files keep their 74 receipts until the counterexample slice (6.5).
 
 Sentences that count the metaprogramming list: in
 `test/contracts/trust-gate-hardening.contract.md`, section V2c.2 ("So the
@@ -485,10 +495,13 @@ replays the entries.
    module. (c) No stored registry; the snapshot reads battery sources.
    Recommend (a).
 2. The identity judgment. (a) `sameStatement`: 12 amendments. (b)
-   `Expr.eqv` alone: 137 refusals in 16 files. (c) Reducible `isDefEq`:
-   refuses the 88 `match` statements and accepts unfoldings of reducible
-   definitions. (d) Default `isDefEq`: today's check without holes; accepts
-   the function swap. Recommend (a).
+   `Expr.eqv` alone: 137 refusals in 15 files, and no battery text can name
+   the declaration's own auxiliary matcher, so a statement with a `match`
+   cannot be frozen at all. (c) Reducible `isDefEq`: 92 refusals (the 88 that
+   need default unfolding, most of them `match` statements, and the 4 holes),
+   and it accepts unfoldings of reducible definitions. (d) Default
+   `isDefEq`: today's check without holes; accepts the function swap.
+   Recommend (a).
 3. Receipts on non-theorems. (a) Required for theorems, optional otherwise:
    1,065 converted clauses. (b) Required for every entry: 2,272 clauses, and
    a body change of a definition becomes a battery change. Recommend (a).
@@ -528,8 +541,10 @@ replays the entries.
 - The stale-`.olean` refusal of 6.3 `[H]`.
 - `sameStatement` on a universe-polymorphic statement whose battery names
   its universes differently; none exists in the tree.
-- The trust self-test on the final prototype revision (it ran on the one
-  before, 2.5).
+- `leanchecker` over the entry declarations, and the gate's time with all
+  2,272 entries (108 were measured, 2.5).
+- The 50 ascriptions without `@` (`inferInstance`, `rfl`, constructors),
+  which stay `#check` and keep printing.
 - Batteries outside this repository.
 
 ## Appendix A: the prototype command
@@ -796,3 +811,77 @@ def main (args : List String) : IO UInt32 := do
     ("\n".intercalate (rows.qsort (· < ·)).toList ++ "\n")
   return 0
 ```
+
+## Appendix C: receipt forms per file
+
+Paths are relative to `WhatwgTest/`. Ascriptions are `#check (@n : T)`
+commands (2.2); theorems are those of them whose `#whatwg_freeze` needs an`
+axioms` clause; receipts are `#print axioms` lines; amendments are the`
+entries the prototype refused (2.3). `[C]`
+
+| File | Ascriptions | Theorems | Receipts | Amendments |
+| --- | ---: | ---: | ---: | ---: |
+| `Audit/CensusProfileIdentity.lean` | 4 | 0 | 0 | 0 |
+| `Audit/Ecma262/CensusContract.lean` | 22 | 0 | 0 | 0 |
+| `Audit/Ecma262/CensusQ2Contract.lean` | 4 | 0 | 0 | 0 |
+| `Audit/Ecma262/EcmarkupScanner.lean` | 23 | 0 | 0 | 0 |
+| `Audit/SpecCoverage.lean` | 55 | 55 | 0 | 4 |
+| `Audit/WebIdl/CensusContract.lean` | 23 | 0 | 0 | 1 |
+| `Audit/WebIdl/CensusQ2Contract.lean` | 6 | 0 | 0 | 0 |
+| `Ecma262/JobsCompleteContract.lean` | 14 | 11 | 0 | 0 |
+| `Ecma262/JobsContract.lean` | 24 | 0 | 0 | 0 |
+| `Ecma262/JobsLaws.lean` | 20 | 20 | 0 | 0 |
+| `Ecma262/PromiseAxiomReport.lean` | 0 | 0 | 125 | 0 |
+| `Ecma262/PromiseContract.lean` | 75 | 0 | 0 | 0 |
+| `Ecma262/PromiseFidelityAxiomReport.lean` | 0 | 0 | 57 | 0 |
+| `Ecma262/PromiseFidelityContract.lean` | 10 | 0 | 0 | 0 |
+| `Ecma262/PromiseFidelityLaws.lean` | 33 | 33 | 0 | 0 |
+| `Ecma262/PromiseLaws.lean` | 44 | 44 | 0 | 0 |
+| `Infra/Counterexamples/CommaSplit.lean` | 3 | 3 | 3 | 0 |
+| `Infra/IntegerConstructiveContract.lean` | 9 | 9 | 0 | 0 |
+| `Infra/ScalarConstructiveContract.lean` | 9 | 6 | 0 | 0 |
+| `Infra/Utf8AxiomReport.lean` | 0 | 0 | 119 | 0 |
+| `Infra/Utf8Contract.lean` | 80 | 0 | 0 | 0 |
+| `Infra/Utf8Laws.lean` | 119 | 119 | 0 | 7 |
+| `Streams/Counterexamples/Infra/Split.lean` | 0 | 0 | 6 | 0 |
+| `Streams/Counterexamples/Piping/Shutdown.lean` | 0 | 0 | 16 | 0 |
+| `Streams/Counterexamples/Readable/Default.lean` | 0 | 0 | 17 | 0 |
+| `Streams/Counterexamples/Transform/Backpressure.lean` | 0 | 0 | 14 | 0 |
+| `Streams/Counterexamples/Writable/Default.lean` | 0 | 0 | 16 | 0 |
+| `Streams/Counterexamples/Writable/InFlightPrecedence.lean` | 0 | 0 | 2 | 0 |
+| `Streams/Data/QueueAxiomReport.lean` | 0 | 0 | 99 | 0 |
+| `Streams/Data/QueueContract.lean` | 171 | 105 | 0 | 0 |
+| `Streams/Piping/ShutdownAxiomReport.lean` | 0 | 0 | 46 | 0 |
+| `Streams/Piping/ShutdownContract.lean` | 98 | 0 | 0 | 0 |
+| `Streams/Piping/ShutdownLaws.lean` | 44 | 44 | 0 | 0 |
+| `Streams/Piping/ShutdownRuns.lean` | 2 | 2 | 0 | 0 |
+| `Streams/PromiseBridge.lean` | 84 | 42 | 0 | 0 |
+| `Streams/PromiseBridgeQ4.lean` | 38 | 26 | 0 | 0 |
+| `Streams/Readable/DefaultAxiomReport.lean` | 0 | 0 | 94 | 0 |
+| `Streams/Readable/DefaultContract.lean` | 204 | 94 | 0 | 0 |
+| `Streams/Semantics/OrderingAxiomReport.lean` | 0 | 0 | 93 | 0 |
+| `Streams/Semantics/OrderingContract.lean` | 109 | 1 | 0 | 0 |
+| `Streams/Semantics/OrderingLaws.lean` | 69 | 69 | 0 | 0 |
+| `Streams/Semantics/OrderingSource.lean` | 86 | 13 | 0 | 0 |
+| `Streams/Transform/BackpressureAxiomReport.lean` | 0 | 0 | 118 | 0 |
+| `Streams/Transform/BackpressureContract.lean` | 112 | 0 | 0 | 0 |
+| `Streams/Transform/BackpressureLaws.lean` | 118 | 118 | 0 | 0 |
+| `Streams/Writable/DefaultAxiomReport.lean` | 0 | 0 | 108 | 0 |
+| `Streams/Writable/DefaultContract.lean` | 162 | 0 | 0 | 0 |
+| `Streams/Writable/DefaultLaws.lean` | 108 | 108 | 0 | 0 |
+| `Streams/Writable/InFlightExactAxiomReport.lean` | 0 | 0 | 1 | 0 |
+| `Streams/Writable/InFlightExactContract.lean` | 1 | 1 | 0 | 0 |
+| `Streams/Writable/LifecycleAxiomReport.lean` | 0 | 0 | 2 | 0 |
+| `Streams/Writable/LifecycleContract.lean` | 2 | 2 | 0 | 0 |
+| `Url/CensusContract.lean` | 1 | 0 | 0 | 0 |
+| `Url/CensusInputContract.lean` | 11 | 0 | 0 | 0 |
+| `Url/Counterexamples/Census.lean` | 1 | 0 | 0 | 0 |
+| `Url/Counterexamples/CensusInput.lean` | 2 | 0 | 0 | 0 |
+| `Url/Counterexamples/Inventory.lean` | 1 | 0 | 0 | 0 |
+| `Url/InventoryContract.lean` | 3 | 0 | 0 | 0 |
+| `Url/PercentEncodingAxiomReport.lean` | 0 | 0 | 95 | 0 |
+| `Url/PercentEncodingContract.lean` | 60 | 0 | 0 | 0 |
+| `Url/PercentEncodingLaws.lean` | 95 | 95 | 0 | 0 |
+| `WebIdl/ExceptionsContract.lean` | 63 | 15 | 0 | 0 |
+| `WebIdl/PromiseContract.lean` | 33 | 17 | 0 | 0 |
+| `WebIdl/PromiseFidelityContract.lean` | 17 | 13 | 0 | 0 |
