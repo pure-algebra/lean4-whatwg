@@ -91,7 +91,7 @@ Where they differ:
    Piping and Semantics re-prove invariant transport by induction at each use.
 5. Only Semantics has a comparability law; it rests on
    `tick_decide_exclusive`, and the local Writable machine is not exclusive
-   (2.6), so the law cannot be transferred to it.
+   (2.10), so the law cannot be transferred to it.
 6. Every `Step` is the graph of a partial function. For Readable the graph
    is definitional (`Readable.step_eq_graph : Step = Kernel.Graph step` is
    `rfl`). For the other four it is not: `Step` matches on the label inside
@@ -147,9 +147,9 @@ five calculi.
 | --- | --- |
 | `lake build` | 388 jobs, exit 0; gate "checked 223 source files and 16795 declarations", strict ceiling 0 exceptions `[C]` |
 | batteries | none edited; all green `[C]` |
-| fingerprint, authored lines | 50 added (the kernel and the 13 bridge theorems), 0 changed, 0 removed `[C]` |
+| fingerprint, authored lines | 50 added (38 for the kernel with its generated companions, 12 for the bridge theorems of 3.2), 0 changed, 0 removed `[C]` |
 | fingerprint, generated lines | 12 changed or removed: the deleted private `strip`, `reaches_nil_eq`, `reaches_cons_inv`, `externalWord_nil_replicate`, `reaches_silent_normalized` of `Semantics/Runs.lean`, `externalWord.eq_1`, and the `_simp` auxiliaries of three re-proved `append` lemmas `[C]` |
-| lines, existing files | +124, −174 (`git diff --numstat`); `Semantics/Runs.lean` alone −114 `[C]` |
+| lines, existing files | +124, −174 (`git diff --numstat`); `Semantics/Runs.lean` alone +15 −114 `[C]` |
 | lines, new module | +316 at this measurement, 334 with `Path.invariant` and `Path.lift` added later `[C]` |
 | choice | 0 strict-ceiling exceptions; the kernel reaches no axiom but `propext` `[C]` |
 
@@ -451,6 +451,7 @@ meaning differ. The constructor ascriptions survive a swap, but the frozen
 `tick` equation of `WhatwgTest/Streams/Writable/DefaultLaws.lean` that emits
 `.sizeCalled name call chunk` would assert a different event and fail, and
 the producing sites in `Writable/DefaultController.lean` would change. `[C]`
+for the six battery sites found by `Grep`; `[S]` for the consequence.
 Recommend: drop; record the order in the Writable docstring.
 
 Typed identifiers: 365 of the 1,414 frozen `#check` blocks under
@@ -476,11 +477,13 @@ The local Writable machine is not exclusive: `Writable.not_exclusive :
 ¬ Kernel.Exclusive (@tick Unit Unit) decide`, proved in `StatementsProbe.lean`
 at an empty control stack with one queued sink job, where `tick` runs the job
 and `decide` admits `queryReady`. `[C]` That is the reason the configuration
-exists, and why the comparability law does not transfer to Writable,
-Transform or Piping without a scheduler.
+exists, and why the comparability law does not transfer to Writable. `[H]`
+the same holds for Transform and Piping, which admit decisions at an empty
+Writable control stack where their `tick` can still run a job; not tested.
 
 A Readable machine that runs its own pull reactions is
-`Kernel.stage (fun s => runPullJob s) step` at no cost in the kernel, but
+`Kernel.stage runPullJob step` at no cost in the kernel `[H]` (not
+elaborated), but
 which reactions may run between which decisions is the global-queue
 question of P8 ("promise-job queue in the configuration", `PLAN.md`), not
 W8's.
@@ -569,6 +572,7 @@ WRITABLE-PG-DEFAULT and CONFIGURATION-PG-ORDERING; the last discharges the
 `Nodup` premise of two bridge theorems. `Ordering.CellsWellFormed` is a
 statement for P8 (CFG-CELLS) and is not in W8a unless the coordinator moves
 it (decision 5).
+
 ## 4. Effect on frozen surfaces
 
 Breaker owners: P4 `readable-default`, P5 `writable-default` and its
@@ -655,8 +659,8 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 
 ### 6.3 What the reviewer checks
 
-- `git diff --stat 97a8715` (or the slice base) shows no file under
-  `WhatwgTest/Streams/**` changed except new kernel battery files.
+- `git diff --stat` against the slice base shows no file under
+  `WhatwgTest/Streams/**` changed except the files the W8a packet adds.
 - The fingerprint against the slice base shows only `=>` authored lines, all
   under `Whatwg.Streams.Kernel` or named in 3.2 and 3.3, and no `<=`
   authored line; generated-line changes are limited to the deleted private
@@ -683,7 +687,7 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 ## 7. Decisions for the coordinator
 
 1. **Route.** (a) Route B; (b) Route A with aliases; (c) no kernel.
-   Recommend (a). Cost: (a) a 334-line kernel, −50 net lines elsewhere, 13
+   Recommend (a). Cost: (a) a 334-line kernel, −50 net lines elsewhere, 12
    bridges, no frozen change; (b) the same kernel, a ruling naming the kind
    change of 5 relations and 10 constructors and the loss of 45 generated
    companions; (c) the 65-line `strip` and the per-calculus lemmas stay
@@ -736,17 +740,21 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 
 - Preservation of `CellsWellFormed` (statement elaborated; initialisation
   proved only through a choice-reaching `simp`).
-- The `handled_bridge` and the four `Ecma262/Promise.lean` `find?` sites
-  rewritten; one site was.
-- `protected` on the four `decide` functions built; only counted.
+- Rewriting `handled_bridge` and the four `Ecma262/Promise.lean` `find?`
+  sites; one site was rewritten.
+- A build with the four `decide` functions `protected`; the short uses were
+  only counted.
+- Exclusivity of Transform and Piping (2.10).
 - Whether W9's agent wants a relational face (decision 2).
 - `leanchecker` over the Route A variants and over the invariant prototypes,
   which were elaborated as scratch files outside the tree, not inside it.
 - lean4-effect4 at `efcf1ae2` was searched for a labelled closure only.
+
 ## Appendix A: the prototype kernel module
 
 The module as it built in the prototype (`Whatwg/Streams/Kernel.lean`,
-uncommitted, 334 lines), verbatim.
+uncommitted, 334 lines), verbatim except two docstrings reworded after the
+build (`Path.congr`, `Path.invariant`).
 
 ```lean
 /-!
