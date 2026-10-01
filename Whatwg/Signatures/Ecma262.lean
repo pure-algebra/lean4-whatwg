@@ -36,9 +36,14 @@ answer to `op` is `Agent.Op.Answer op`:
 and the handler descriptors, all in `Type`. Every argument is data and every
 operation is total: a disabled one, such as a capability whose functions this
 agent never stored, an empty queue, or `finishJob` with no job running, leaves
-the agent unchanged and answers as the table says, a live frontier rather than
-a failure. The signature is an `abbrev`: as a `def` it blocks the unification
-`Effects.interpret_perform` needs.
+the agent unchanged and answers `()` or `none`, a live frontier rather than a
+failure.
+
+The signature is an `abbrev`: as a `def` it blocks the unification
+`Effects.interpret_perform` needs, and a consumer's own signature, summed with
+this one, wants the same. One operation is performed by
+`Effects.Program.perform (S := signature value reason body) op`; the signature
+is named because it cannot be recovered from the operation alone.
 
 ## Running a program
 
@@ -59,6 +64,12 @@ performed operation, through `Effects.interpret_perform`. `resolvedWith v` is
 Web IDL "a promise resolved with" as a two-operation program, and
 `run_resolvedWith` is its run.
 
+`run` is structural over `Effects.Program`, so a closed run reduces by `rfl`
+and `decide`, and it returns the plain pair. An interpretation's `.run s` has
+the type `Id (α × σ)`, for which no `Decidable` equality is found, so a
+consumer that decides an equation between whole interpreted runs wraps them in
+`Id.run`.
+
 ## Embedding the agent in a larger state
 
 `handlerAt view update` is the same handler into `StateT σ Id` for any state
@@ -77,7 +88,10 @@ reason body) T`, which `effects` also writes `signature value reason body ⊕ₛ
 into `StateT σ Id`: the agent's operations through `handlerAt view update` and
 `T`'s through the consumer's own `other`. A provider program injected by
 `Effects.Program.inl` is interpreted as through the lens handler alone
-(`interpret_sumHandler_inl`), and `Effects.interpret_inr` is the other side.
+(`interpret_sumHandler_inl`). For the consumer's side, injected by
+`Effects.Program.inr`, `Effects.interpret_inr (handlerAt view update) other p`
+proves the same equation with `other` by `exact`; `rw` does not see through
+`sumHandler`, so a rewrite with it unfolds `sumHandler` first.
 
 An example, the shape of lean4-effect4's `RSig = StoreSig ⊕ₛ FiberSig`: a
 consumer has a signature `Tick : Effects.Signature.{0, 0}` with one operation

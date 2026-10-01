@@ -30,12 +30,12 @@ trigger its reactions, and `react_resolve` is the law.
 
 Not modelled, with gap ids: the binding layer, every conversion between an IDL
 value and an ECMAScript value, which stays `hostOnly`, so every census row
-cited here stays `partial` at best; the realm of "a new promise" and of "react"
-step 5 (`G-07` remainder); thenable adoption (`G-05`), so "resolve" and "a
-promise resolved with" take the non-thenable branch; and the two built-in
-functions "react" steps 1 to 4 create (`G-11` remainder): a missing set of
-steps is an empty handler (`none`), as the landed `Promise.react` has it
-(`WS-PROM-CE-036`), and `react` names the consequence.
+cited here stays `partial` at best; the realm from which the allocating verbs
+and "react" take `%Promise%` (`G-07` remainder); thenable adoption (`G-05`), so
+"resolve" and "a promise resolved with" take the non-thenable branch; and the
+two built-in functions "react" steps 1 to 4 create (`G-11` remainder): a
+missing set of steps is an empty handler (`none`), as the landed
+`Promise.react` has it (`WS-PROM-CE-036`), and `react` names the consequence.
 
 Masks are DB-04's, written "DB-04 M1" and "DB-04 M2"; no declaration here
 spells a mask. Every Web IDL census row cited here, with its span into
@@ -68,8 +68,9 @@ def newPromise {value reason body : Type} (a : Agent.Agent value reason body) :
 /-- `op.resolve` (RESOLVE, 349216..349783, digest
 `071c11c45c5c1da04b86837e7911385b64880eaf3a013ff769676110af545cc3`): step 3,
 `Call(p.[[Resolve]], undefined, « value »)`, as the agent's `resolve`, which
-calls the stored resolving function of `p`'s `[[Resolve]]` identity, so the
-promise settles and its waiting reactions enqueue their jobs (debt D46). Step 1
+calls the stored resolving function of `p`'s `[[Resolve]]` identity on its
+non-thenable branch (`G-05`), so the promise settles and its waiting reactions
+enqueue their jobs (debt D46). Step 1
 is the caller's: `v` is always given, and a `Promise<undefined>` caller passes
 the value that stands for *undefined*. Step 2's conversion is the binding
 layer. A capability whose functions this agent never stored is inert
@@ -98,11 +99,13 @@ where the text has no such case (`E-31`'s `Option`).
 Steps 1 to 4 are not modelled (`G-11` remainder): the two sets of steps are
 first-order handler descriptors, never built-in functions, and a missing set is
 an empty handler (`none`, `PerformPromiseThen` steps 3 and 5). The text instead
-builds both functions, and its rejection function without steps returns "a
-promise rejected with" the reason, which the derived promise then adopts. Both
-end with the derived promise rejected with that reason (DB-04 M1); the text
-allocates one more promise and settles the derived one later, through thenable
-adoption (`G-05`), so DB-04 M2 is not claimed for a missing rejection handler
+builds both functions. Its fulfilment function without steps returns the value,
+as the empty handler passes it through; its rejection function without steps
+returns "a promise rejected with" the reason, which the derived promise then
+adopts. Read against the text, both leave the derived promise rejected with
+that reason, but the text allocates one more promise and settles the derived
+one later, through thenable adoption (`G-05`). That is a reading, not a
+theorem: nothing here claims DB-04 M2 agreement for a missing rejection handler
 (`WS-PROM-CE-036`). Adapter. -/
 def react {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (onFulfilled onRejected : Option body) :
