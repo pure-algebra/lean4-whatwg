@@ -1,0 +1,2 @@
+#declarations format=1 generator=Gates.DeclSnapshot library=Whatwg rows=0 regenerate=lake exe whatwg_declsnapshot --write
+#name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
