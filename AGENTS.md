@@ -21,6 +21,7 @@ full, then open only the authority documents named for the current task.
 | `Whatwg/Streams/` | library declarations and proofs |
 | `WhatwgTest/Streams/` | Lean tests, attacks, receipts, and the axiom gate |
 | `WhatwgGates/` | repository gates implemented in Lean |
+| `WhatwgTest/Ledger/` | the graph ledger: the ten edges of every proof graph, with their status, grounds and open items, as checked Lean data (ruling R-W6); `generated/graphs/` is its projection |
 | `harness/` | host conformance evidence |
 | `generated/` | deterministic projections only; never hand-edited |
 | `vendor/` | sealed pinned third-party bytes; never edited |
@@ -127,6 +128,8 @@ orchestrate; they decide nothing.
 | `lake build` | the libraries elaborate; the elaboration-time axiom gate in `WhatwgTest.lean` passes over every declaration |
 | `lake exe whatwg_vendorseal` | `vendor/` and `generated/vendor-manifest.tsv` agree in both directions; every path is valid on Windows |
 | `lake exe whatwg_citations` | no line-numbered citation into a protected authored document |
+| `lake exe whatwg_ledger` | every reference of the graph ledger resolves against the built modules and the authored files; a ruling of `COORDINATION.md` that names a graph is cited or acknowledged by that graph; a register row's status agrees with the cells that cite it; `generated/graphs/` is byte-identical to a fresh rendering |
+| `lake exe whatwg_declsnapshot` | `generated/declarations/` is byte-identical to a fresh snapshot of the built production libraries, and declaration records, freeze entries and census rows join under the rules of `test/contracts/declaration-snapshot.contract.md` |
 | `lake exe whatwg_trustselftest` | every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name |
 | `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of every built module under those three prefixes replays in the kernel |
 
@@ -136,9 +139,10 @@ The axiom ceiling is Lean's standard base, `propext`, `Quot.sound`, and
 `Vector` and never through computation, and forbidding it bought re-proved
 lemmas, not soundness). A stricter ceiling, `propext` and `Quot.sound` only,
 binds every declaration whose module is under a prefix of the strict list in
-`WhatwgTest/Audit/AxiomGate.lean` (ruling R-V1): `Whatwg.Ecma262`,
+`WhatwgGates/TrustConfig.lean` (rulings R-V1 and R-W19): `Whatwg.Ecma262`,
 `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Infra.Text.Utf8` and `Whatwg.Streams`
-at the lane V landing. A declaration there that reaches `Classical.choice` is
+since the lane V landing, and `Whatwg.Signatures` since the Q5 landing
+(rulings R-W3 and R-W16). A declaration there that reaches `Classical.choice` is
 admitted only by an exact exception beside the list, with its reason, and an
 exception that has outlived its reason fails the build. `sorryAx`,
 `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler`, and the
