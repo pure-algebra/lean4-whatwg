@@ -34,12 +34,13 @@ progress; `PLAN.md` records its slices.
 The toolchain is pinned by `lean-toolchain` to exactly
 `leanprover/lean4:v4.33.1`. Three Lake dependencies, each at an exact commit:
 `hash` ([lean4-hash](https://github.com/pure-algebra/lean4-hash)) at
-`0168306`, the proved SHA-256 every gate computes digests with; `effects`
-([lean4-effects](https://github.com/pure-algebra/lean4-effects)) at `c28833b`
-(tag `v0.5.0`), the generic effect algebra the reification strategy builds the
+`c906b15`, the proved SHA-256 every gate computes digests with; `effects`
+([lean4-effects](https://github.com/pure-algebra/lean4-effects)) at `a4ee7a1`
+(tag `v0.8.0`), the generic effect algebra the reification strategy builds the
 stateful standards against; and `typescript`
 ([lean4-typescript](https://github.com/pure-algebra/lean4-typescript)) at
-`fcbc05a` (tag `v0.2.0`), the TypeScript syntax P11 lowers through. The `Gates`
+`6afc9b8` (version 0.6.0, untagged), the TypeScript syntax P11 lowers through.
+These are lean4-effect4's pins (ruling R-V3(b)). The `Gates`
 tooling imports `hash`; nothing under `Whatwg/` imports `effects` or
 `typescript` yet. Every proof receipt in this
 repository is stated against that kernel. Everything below runs from any directory inside the

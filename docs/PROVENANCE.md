@@ -94,35 +94,50 @@ pinned npm dependencies outside `vendor/` (P8).
 FIPS 180-4 was a digest-only row until S1.0. Ruling R-8 vendored it; it is now
 sealed, and its row is in "Vendored, sealed" above with the same digest.
 
-## Lake dependency objects (cross-checked 2026-09-05)
+## Lake dependency objects (cross-checked 2026-10-01)
 
 These are Lake-managed Git dependencies, outside the `vendor/` seal.
 `SPEC-MANIFEST.md` owns their current roles and pins. The configured URLs are
 `https://github.com/pure-algebra/lean4-hash`, `lean4-effects`, and
 `lean4-typescript` under the same owner. Local clones use matching SSH remotes.
-The original fetch dates were not recorded. The reproducible fetch route is
-`lake update` with the exact `[[require]]` revisions in `lakefile.toml`; this
-audit did not refetch or change them.
+Ruling R-V3(b) moved the three pins to lean4-effect4's at `0f16828a`; they were
+fetched on 2026-10-01 by `lake update effects typescript hash` with the exact
+`[[require]]` revisions in `lakefile.toml`. The same day `git ls-remote`
+resolved `refs/tags/v0.8.0^{}` of lean4-effects to the effects pin and
+`refs/heads/main` of lean4-hash to the hash pin, and found the typescript pin
+only as `refs/heads/codex/typed-source-carrier`: lean4-typescript has no
+`v0.6.0` tag (its latest tag, `v0.5.0`, is `71bad1252ee8a1b243ed283320ededcb7d0a93c4`),
+and `0.6.0` is the `version` its `lakefile.toml` declares at the pin. The
+previous pins (hash `0168306`, Apache-2.0; effects `c28833b`, `v0.5.0`;
+typescript `fcbc05a`, `v0.2.0`), cross-checked 2026-09-05, are in this file's
+history.
 
 | Package | Commit / locally verified tag | Committed tree | License at this commit |
 | --- | --- | --- | --- |
-| `hash` | `0168306b7068b97758e3f2d4307eeb97aa31a104`; no local tag | `9613a78e01ec449bd2977c492a55efcfdf0e24cd` | Apache-2.0; `LICENSE` blob `d645695673349e3947e8e5ae42332d0ac3164cd7`, 11358 bytes, SHA-256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30` |
-| `effects` | `c28833b3c14431ba2886a0fb66bcc688c86c2589`; `v0.5.0` | `4725df0d6563e8a8b74137d23c2711be8608a5bb` | MIT; `LICENSE` blob `1e7fe3f72d2c0baf370f7375bca9802594a9a6ef`, 1069 bytes, SHA-256 `c51d370d20b9c1b2906d5583a1e9c519eaaf5d2033010eecfc7788e399d8eecf` |
-| `typescript` | `fcbc05a40e52f9bbe8a8e3ee0f4a746ebd4e9554`; `v0.2.0` | `0be6d0a2b2a5f5ba50932140ecb745a533d95e4a` | MIT; same committed `LICENSE` blob and digest as the effects row |
+| `hash` | `c906b15dc3e94ebac0c10056270fbb345a1d2b6e`; no tag (`main`) | `15e4bde04887faf982eeca111f50be08eab86e1d` | MIT; `LICENSE` blob `1e7fe3f72d2c0baf370f7375bca9802594a9a6ef`, 1069 bytes, SHA-256 `c51d370d20b9c1b2906d5583a1e9c519eaaf5d2033010eecfc7788e399d8eecf` |
+| `effects` | `a4ee7a14248ee5976039b73039319efa87834986`; `v0.8.0` | `2b705611e5efe66bbd34134b2f6c092b4d9895dd` | MIT; same committed `LICENSE` blob and digest as the hash row |
+| `typescript` | `6afc9b841603796c16b266c0b8b92ded37a9445c`; no tag (lakefile version 0.6.0) | `5aa05b3fb81a7a4d56d2b2dcaac5117fde746ecb` | MIT; same committed `LICENSE` blob and digest as the hash row |
 
 For each `.lake/packages/<name>`, `git rev-parse HEAD` and
 `git rev-parse HEAD^{tree}` match these rows; `HEAD` agrees with both
-`lakefile.toml` and `lake-manifest.json`. `git rev-parse <tag>^{commit}` checks
-the two tags. `git ls-tree HEAD LICENSE lean-toolchain lake-manifest.json`
-and `git cat-file blob HEAD:LICENSE` identify the committed bytes; the
-license SHA-256 values above were computed over those raw object bytes with
-the system implementation. All three committed toolchain blobs are
-`a8afa7d1b02d96f0671eba854a8dc4b416beb473`, 25 bytes, naming Lean 4.33.1 and
-matching this repository's toolchain SHA-256. All three Git statuses are
-clean and their package manifests list no transitive packages.
+`lakefile.toml` and `lake-manifest.json`. `git tag --points-at HEAD` names
+`v0.8.0` for effects and no tag for the other two. `git ls-tree HEAD LICENSE
+lean-toolchain lake-manifest.json` and `git cat-file blob HEAD:LICENSE`
+identify the committed bytes; the license SHA-256 values above were computed
+over those raw object bytes with the system implementation. All three
+committed toolchain blobs are `a8afa7d1b02d96f0671eba854a8dc4b416beb473`, 25
+bytes, naming Lean 4.33.1 and matching this repository's toolchain SHA-256.
+All three Git statuses are clean and their package manifests list no
+transitive packages (`"packages": []`). The hash pin differs from `0168306` in
+`LICENSE` (Apache-2.0 to MIT), `README.md`, `docs/PROVENANCE.md` and the
+lakefile's `license` field, and in no Lean source; the vendor seal gate
+passed through it and its `--write` mode regenerated
+`generated/vendor-manifest.tsv` byte-identically (SHA-256
+`56479a5223c6fa9363bb1f2e81a330351f22ffef2899560c34de516d6481ebbb` before and
+after), which is the cutover proof.
 
-This is a local object/lockfile cross-check, with no network revalidation or
-second SHA-256 implementation claimed. Package checkout attributes can
+This is a local object/lockfile cross-check with a same-day network fetch,
+with no second SHA-256 implementation claimed. Package checkout attributes can
 convert text to CRLF even with a clean Git status; therefore these rows
 identify committed Git objects and do not claim that package working files
 are sealed or byte-identical to those objects.
