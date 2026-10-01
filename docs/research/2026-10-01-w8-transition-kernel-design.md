@@ -31,11 +31,11 @@ inductive (Route B, R-P12's "generalize").
   alias theorems, but changes the kind of five relations and ten
   constructors and deletes 45 generated companions. Not additive under
   R-W1(b); it is the fallback.
-- Invariants: the readable queue invariant and registration-identity
-  freshness are proved in the prototype through `Kernel.Path.invariant`, with
-  no reachability hypothesis. `CellsWellFormed` names a predicate only the
-  held P8a draft states; its owner clause holds by representation and the
-  rest is P8's CFG-CELLS.
+- Invariants: the queue invariant of the Readable and of the Writable
+  machine and registration-identity freshness are proved in the prototype
+  through `Kernel.Path.invariant`, with no reachability hypothesis.
+  `CellsWellFormed` names a predicate only the held P8a draft states; its
+  owner clause holds by representation and the rest is P8's CFG-CELLS.
 - Proof style: adopt `fun_cases` (gate-accepted, choice-free, 33 lines to 8
   on one proof); drop `register_simp_attr` (29 gate findings, and R-W1(d)
   forbids the module it needs); keep the four `decide` names; drop typed
@@ -44,10 +44,11 @@ inductive (Route B, R-P12's "generalize").
   is still per calculus and 178 frozen ascriptions name it. W8b is a view
   onto W9's agent record with bridges, not a field change.
 
-Order: W8a (kernel, bridges, re-proofs, the two proved invariants, the
+Order: W8a (kernel, bridges, re-proofs, the three proved invariants, the
 `find?` cleanup) needs nothing from W9 and follows a breaker packet. W8b
 waits for W9's agent record. The three schedulers over one Writable step,
 and a Readable machine running its own pull reactions, stay with P8.
+
 ## 2. Evidence
 
 ### 2.1 Setup
@@ -154,15 +155,18 @@ five calculi.
 
 **Route A** (`abbrev Reaches := Kernel.Path Step`, theorems `Reaches.nil`
 and `Reaches.cons` as aliases), applied to Writable, then to Writable and
-`Semantics.Ordering.Reaches`.
+`Semantics.Ordering.Reaches`, then to all five closures with every `Laws`
+and `Runs` proof left as it was.
 
 | Measure | Result |
 | --- | --- |
-| `lake build` | 388 jobs, exit 0, both variants; Semantics variant 16768 declarations, 0 exceptions `[C]` |
+| `lake build` | 388 jobs, exit 0, all three variants; all five: 16745 declarations, 0 exceptions `[C]` |
 | batteries | none edited; the frozen `Reaches.nil` and `Reaches.cons` ascriptions of `OrderingContract.lean` accept the alias theorems `[C]` |
 | existing proofs | unchanged proofs elaborate: `cases`, `induction`, `.nil`, `.cons` and `apply Reaches.cons` all reach the kernel's constructors through the reducible abbreviation `[C]` |
 | fingerprint, Writable | `Reaches` induct to def (type hash unchanged), `Reaches.nil` and `Reaches.cons` ctor to thm (type hashes unchanged), and 9 generated companions removed (`rec`, `recOn`, `casesOn`, `below`, `below.casesOn`, `below.nil`, `below.cons`, `below.rec`, `brecOn`) `[C]` |
+| fingerprint, all five | 60 authored lines removed or changed and 15 re-added: five relations induct to def, ten constructors ctor to thm, 45 generated companions gone `[C]` |
 | lines, Writable | `Step.lean` +12 −6, `Laws.lean` +3 −15 `[C]` |
+| lines, all five, proofs untouched | the five `Step.lean` files, +57 −28 `[C]` |
 
 Route A without the alias theorems breaks the two `Reaches` constructor
 ascriptions of `OrderingContract.lean` and the 21 production uses.
@@ -171,7 +175,8 @@ ascriptions of `OrderingContract.lean` and the 21 production uses.
 hypotheses; it stays inductive under either route. `[S]`
 
 Elaboration time, `Measure-Command { lake env lean <file> }`, seconds,
-second of two runs (third of three for `Semantics/Step.lean`). `[C]`
+second of two runs. `[C]` Run-to-run spread on this host is about 0.5 s for
+the 10 s file and 0.1 s for the 1 s files.
 
 | File | Base | Route B | Route A (Writable) |
 | --- | ---: | ---: | ---: |
@@ -181,7 +186,8 @@ second of two runs (third of three for `Semantics/Step.lean`). `[C]`
 | `Writable/Lifecycle.lean` | 1.23 | 1.26 | 1.24 |
 | `Readable/Step.lean` | 0.84 | 0.78 | — |
 | `Semantics/Runs.lean` | 1.01 | 0.97 | — |
-| `Piping/Runs.lean` (R-V5 limit) | 10.89 | 10.92 | — |
+| `Piping/Runs.lean` (R-V5 limit) | 10.89; 10.45 on a later pair | 10.92 | 10.55 (all five) |
+| `Transform/Runs.lean` | 2.57 | — | 2.64 (all five) |
 
 **Route C** candidates tried. (i) A typeclass or structure carrying `tick`
 and `decide` per calculus adds nothing the bridge iff does not give, and
@@ -263,7 +269,7 @@ What W8b needs from W9's `Whatwg.Ecma262.Agent` `[H]`:
 
 ### 2.7 Invariants stated and not carried (question f)
 
-`Kernel.Path.invariant` (a property every step preserves holds at the end
+`Kernel.Path.invariant` (a property every step keeps holds at the end
 of every derivation) carries each of these once the one-step preservation is
 proved.
 
@@ -285,14 +291,40 @@ It holds as stated, with no reachability hypothesis: the invariant is
 inductive. The three queue-changing sites are `error` (`resetQueue`),
 `finishEnqueue` (`enqueueValueWithSize`) and `read` (`dequeueValue`, which
 needs `DyadicSize.classified`, `ordered` and `exact`); every other operation
-keeps the queue. Axioms: `propext`, `Quot.sound`. The Writable statement is
-the same predicate over `Writable.State` (elaborated in `StatementsProbe.lean`
-`[C]`); its preservation through the twenty branches of `Writable.tick` is
-not proved here. `[H]` that it holds without a reachability hypothesis: the
-queue changes only through `enqueueValueWithSize`, `dequeueValue` and
-`Queue.empty` in `Writable/DefaultController.lean`, and every other branch
-keeps it. Contracts amended: `readable-default.contract.md`,
-`writable-default.contract.md`.
+keeps the queue. Axioms: `propext`, `Quot.sound`.
+
+**Queue invariant, Writable.** Proposed and proved in the prototype
+`WritableQueueInv.lean` (168 lines, 2.2 s with its import) `[C]`:
+
+```lean
+def Writable.QueueInv (s : State α ε) : Prop :=
+  Data.Queue.WF sizes s.queue ∧ Data.Queue.SizesAdmissible sizes s.queue
+theorem Writable.tick_queueInv (s t : State α ε) :
+    QueueInv s → tick s = some t → QueueInv t
+theorem Writable.decide_queueInv (s t : State α ε) (d : Decision α ε) :
+    QueueInv s → decide s d = some t → QueueInv t
+theorem Writable.step_queueInv {s t : State α ε} {d : Option (Decision α ε)} :
+    QueueInv s → Step s d t → QueueInv t
+theorem Writable.reaches_queueInv {s t : State α ε}
+    {ds : List (Option (Decision α ε))} :
+    Reaches s ds t → QueueInv s → QueueInv t
+theorem Writable.initial_queueInv (hwm : Size) (alg : Algorithms)
+    (promiseSeed errorSeed : Nat) :
+    QueueInv (initial (α := α) (ε := ε) hwm alg promiseSeed errorSeed)
+```
+
+It also holds with no reachability hypothesis. `fun_cases tick s` splits the
+twenty-branch `tick` into 76 cases (and `decide` into 16), closed by eight
+tactic alternatives in six classes: no step, queue untouched, `invokeSink`
+(which keeps the queue), growth by
+`enqueueValueWithSize` (`enqueueWrite`, `beginClose`), shrinkage by
+`dequeueValue` (the close sentinel in `advance`, a fulfilled write
+reaction), and reset to `Queue.empty` (`finishErroring`). The local `let`
+bindings of `tick` need `simp (config := { zetaDelta := true })`, the form
+the tree already uses and V2c's rule 3 admits. Axioms: `propext`,
+`Quot.sound`. The prototype's simp lists carry unused arguments that
+`warningAsError` would refuse; a builder trims them. Contracts amended:
+`readable-default.contract.md`, `writable-default.contract.md`.
 
 **Registration identities.** Proposed and proved in the prototype
 `RegistrationsFresh.lean` (about 190 lines, 1.1 s) `[C]`:
@@ -402,8 +434,9 @@ Recommend: use it in every proof W8 touches; leave untouched proofs alone.
 spells `Decidable.decide` in full. 51 frozen ascription or axiom-report
 blocks name one of them `[C]`. Renaming breaks those. Declaring them
 `protected` changes no fingerprint line (protection is name-resolution state,
-not part of the constant) but requires qualifying every short use in
-production `[H]`, not measured. Recommend: keep the names; the kernel calls
+not part of the constant) `[H]`, but every short use in production then needs
+its namespace: about 137 by a regex count over the Writable, Transform,
+Piping and Semantics files `[C]`. Recommend: keep the names; the kernel calls
 its parameter `accept`.
 
 Counts re-measured `[C]`: 217 `simp_all`, 271 bare `intros`, 96
@@ -528,14 +561,14 @@ CONFIGURATION-PG-ORDERING).
 
 ### 3.3 Invariants (W8a, derived; new theorems need the breaker packet)
 
-The signatures are those in 2.7. `Readable.QueueInv`, `Ordering.registrationIds`
-and `Ordering.RegistrationsFresh` are views; the step, reaches, initial and
-reachable theorems are derived. Assurance route: the construction edge of
-READABLE-PG-DEFAULT and CONFIGURATION-PG-ORDERING; the latter discharges
-the `Nodup` premise of two bridge theorems. `Writable.QueueInv` and
-`Ordering.CellsWellFormed` are statements for P8 (CFG-CELLS) and are not in
-W8a unless the coordinator moves them (decision 5).
-
+The signatures are those in 2.7. `Readable.QueueInv`, `Writable.QueueInv`,
+`Ordering.registrationIds` and `Ordering.RegistrationsFresh` are views; the
+tick, decide, step, steps or reaches, initial and reachable theorems are
+derived. Assurance route: the construction edge of READABLE-PG-DEFAULT,
+WRITABLE-PG-DEFAULT and CONFIGURATION-PG-ORDERING; the last discharges the
+`Nodup` premise of two bridge theorems. `Ordering.CellsWellFormed` is a
+statement for P8 (CFG-CELLS) and is not in W8a unless the coordinator moves
+it (decision 5).
 ## 4. Effect on frozen surfaces
 
 Breaker owners: P4 `readable-default`, P5 `writable-default` and its
@@ -547,7 +580,7 @@ lifecycle addendum, P6 `transform-backpressure`, P7 `piping-shutdown`, Q4
 | Route B (recommended) | 0 | 0 | 0 | 0 | 0 | no change; an additive packet for the new declarations |
 | Route A, with aliases | 0 | 0 | 0 | 0 | 0 | yes: the kind of 5 relations and 10 constructors changes |
 | Route A, without aliases | 0 | 0 | 0 | 0 | 2 | yes |
-| invariants of 2.7 | 0 | 0 | 0 | 0 | 0 | additive amendments of P4, Q4 (and P5 if moved in) |
+| invariants of 2.7 | 0 | 0 | 0 | 0 | 0 | additive amendments of P4, P5 and Q4 |
 | `find?` cleanup | 0 | 0 | 0 | 0 | 0 | none; proof-only |
 | `fun_cases` in touched proofs | 0 | 0 | 0 | 0 | 0 | none; proof-only |
 | rename the four `decide` | | 18 | 17 | 8 | 8 | yes, 51 blocks |
@@ -566,6 +599,12 @@ batteries, not builds. `[C]`
   reach no axiom but `propext`. `[C]`
 - The kernel declares no syntax and runs no metaprogram; its source uses no
   refused word. `[C]` gate pass.
+- The module-closure check refuses a kernel module the audit root does not
+  reach: with `Whatwg/Streams/Kernel.lean` present and imported by nothing,
+  `lake build` fails with "is not reachable from the WhatwgTest audit root"
+  `[C]`. W8a.1 therefore adds the import to `Whatwg/Streams.lean`.
+- `lake env leanchecker Whatwg WhatwgTest WhatwgGates` over the Route B
+  prototype with the in-place `fun_cases` proof: exit 0 in 80.8 s. `[C]`
 - `fun_cases` is accepted in production under the strict prefix, and its
   generated principles reach `propext` only. `[C]`
 - `register_simp_attr` is refused (2.8); W8 does not ask for an addendum.
@@ -584,8 +623,9 @@ of each per-calculus lemma (generalize). Battery
 and `WhatwgTest/Streams/Kernel/PathAxiomReport.lean`, red until the builder
 lands, declared in `test/fixtures/trust-gate/known-red.txt`. Additive
 amendments: `readable-default.contract.md` for `Readable.QueueInv` and its
-three theorems, `configuration-ordering.contract.md` for
-`RegistrationsFresh` and its four theorems.
+three theorems, `writable-default.contract.md` for `Writable.QueueInv` and
+its five, `configuration-ordering.contract.md` for `RegistrationsFresh` and
+its four.
 
 Counterexample seeds for `test/counterexamples/REGISTER.md`:
 
@@ -608,7 +648,7 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 | --- | --- | --- | --- |
 | W8a.1 | `Whatwg/Streams/Kernel.lean` (new), `Whatwg/Streams.lean` | the kernel, appendix A | first |
 | W8a.2 | the five `Step.lean`, `Writable/Laws.lean`, `Transform/Laws.lean`, `Piping/Laws.lean`, `Semantics/Runs.lean` | bridges; per-calculus lemmas and the Decision-8 laws as corollaries; delete `strip` and its helpers | after W8a.1 |
-| W8a.3 | `Readable/Laws.lean` or a new `Readable/Invariants.lean`; `Semantics/Runs.lean` or a new `Semantics/Invariants.lean` | the invariants of 2.7 | after W8a.2 |
+| W8a.3 | new `Readable/Invariants.lean`, `Writable/Invariants.lean` and `Semantics/Invariants.lean` (or the matching `Laws`/`Runs` files) | the three proved invariants of 2.7 | after W8a.2 |
 | W8a.4 | `Whatwg/Ecma262/Promise.lean`, `Writable/Laws.lean`, `Readable/Laws.lean`, `Piping/Laws.lean` | `find?` over `map`: one keyed-update lemma, nine proof bodies | independent |
 | W8a.5 | `Semantics/Configuration.lean` | the `notifySettled` docstring sentence on the owner clause | independent |
 | W8b | to be fenced after W9 | the agent view and store bridges | after W9 lands |
@@ -643,7 +683,7 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 ## 7. Decisions for the coordinator
 
 1. **Route.** (a) Route B; (b) Route A with aliases; (c) no kernel.
-   Recommend (a). Cost: (a) +316 lines of kernel, −50 net elsewhere, 13
+   Recommend (a). Cost: (a) a 334-line kernel, −50 net lines elsewhere, 13
    bridges, no frozen change; (b) the same kernel, a ruling naming the kind
    change of 5 relations and 10 constructors and the loss of 45 generated
    companions; (c) the 65-line `strip` and the per-calculus lemmas stay
@@ -663,12 +703,14 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
    only; (b) plus the generic laws of 3.1; (c) plus per-calculus exclusivity
    and comparability. Recommend (b). (c) is false for Writable as measured,
    and for Transform and Piping it is a scheduler question for P8.
-5. **Invariants.** (a) W8a takes the Readable queue invariant and
-   registration freshness, both proved in prototype; `Writable.QueueInv` and
-   `CellsWellFormed` stay with P8 (CFG-CELLS), and the `notifySettled`
+5. **Invariants.** (a) W8a takes the three proved in prototype (the queue
+   invariant of Readable and of Writable, registration freshness);
+   `CellsWellFormed` stays with P8 (CFG-CELLS), and the `notifySettled`
    docstring and D38 say the owner clause is discharged by representation;
-   (b) W8a takes all four; (c) all four stay with P8. Recommend (a). Cost of
-   (b): two unproved preservation theorems over twenty-branch steps.
+   (b) W8a takes `CellsWellFormed` too; (c) all stay with P8. Recommend (a).
+   Cost of (b): one unproved preservation theorem through every Writable
+   table operation and the configuration's lift; of (c): the two `Nodup`
+   premises stay undischarged.
 6. **`find?` over `map`.** (a) proof-only cleanup in W8a.4; (b) leave.
    Recommend (a); it touches `Whatwg/Ecma262/Promise.lean`, owned by
    PROMISE-PG-FIRST, so that graph's owner is told.
@@ -679,8 +721,8 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
    every `split` cascade; (c) not at all. Recommend (a); (b) is a separate
    proof-only lane with R-V5's timing limits.
 9. **The four `decide` names.** (a) keep; (b) `protected`; (c) rename.
-   Recommend (a). (b) changes no fingerprint line but every short use in
-   production (not measured); (c) breaks 51 frozen blocks.
+   Recommend (a). (b) changes no fingerprint line but about 137 short uses
+   in production; (c) breaks 51 frozen blocks.
 10. **Typed identifiers and the `sizeCalled` order.** (a) drop; (b) defer to
     a rename lane. Recommend (a): 1 frozen equation changes meaning for the
     reorder, up to 365 blocks for typed identifiers, and no proof gains.
@@ -692,17 +734,15 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 
 ## 8. Not checked
 
-- Route A on Readable, Transform and Piping `[H]`: the mechanism measured on
-  Writable and Semantics applies unchanged.
-- Preservation of `Writable.QueueInv` and of `CellsWellFormed` (statements
-  elaborated, proofs not attempted).
-- `leanchecker` over the prototype tree.
+- Preservation of `CellsWellFormed` (statement elaborated; initialisation
+  proved only through a choice-reaching `simp`).
 - The `handled_bridge` and the four `Ecma262/Promise.lean` `find?` sites
   rewritten; one site was.
-- `protected` on the four `decide` functions.
+- `protected` on the four `decide` functions built; only counted.
 - Whether W9's agent wants a relational face (decision 2).
+- `leanchecker` over the Route A variants and over the invariant prototypes,
+  which were elaborated as scratch files outside the tree, not inside it.
 - lean4-effect4 at `efcf1ae2` was searched for a labelled closure only.
-
 ## Appendix A: the prototype kernel module
 
 The module as it built in the prototype (`Whatwg/Streams/Kernel.lean`,
@@ -804,7 +844,7 @@ theorem Path.mono {step' : σ → L → σ → Prop}
   | nil s => exact .nil s
   | cons first _ ih => exact .cons (sub _ _ _ first) ih
 
-/-- Pointwise equivalent one-step relations have the same derivations. -/
+/-- One-step relations that agree pointwise have the same derivations. -/
 theorem Path.congr {step' : σ → L → σ → Prop}
     (same : ∀ s d t, step s d t ↔ step' s d t) {s t : σ} {ds : List L} :
     Path step s ds t ↔ Path step' s ds t :=
@@ -820,7 +860,7 @@ theorem Path.map {τ : Type w} {M : Type x} {step' : τ → M → τ → Prop}
   | nil s => exact .nil (f s)
   | cons first _ ih => exact .cons (sim _ _ _ first) ih
 
-/-- A property every step preserves holds at the end of every derivation. -/
+/-- A property every step keeps holds at the end of every derivation. -/
 theorem Path.invariant {P : σ → Prop} (pres : ∀ s d t, P s → step s d t → P t)
     {s t : σ} {ds : List L} : Path step s ds t → P s → P t := by
   intro h
