@@ -421,7 +421,7 @@ The landed table operations, at any identity: what a settle, a mark and an
 allocation keep. Private: the battery ascribes none of them. -/
 
 /-- A map that keeps every key commutes with a lookup by key. -/
-private theorem find?_map_fst {α : Type} (l : List (Nat × α)) (g : Nat × α → Nat × α)
+theorem find?_map_fst {α : Type} (l : List (Nat × α)) (g : Nat × α → Nat × α)
     (hg : ∀ e, (g e).1 = e.1) (q : Nat) :
     List.find? (fun e => e.1 == q) (l.map g) = (List.find? (fun e => e.1 == q) l).map g := by
   rw [List.find?_map]
@@ -450,7 +450,7 @@ private theorem settle_ids {value reason : Type} (t : Promise.Table value reason
 
 /-- A settle keeps, at every identity, whether a cell is allocated and its
 handled bit. -/
-private theorem getCell_settle {value reason : Type} (t : Promise.Table value reason)
+theorem getCell_settle {value reason : Type} (t : Promise.Table value reason)
     (id q : Nat) (result : Except reason value) :
     (Promise.Table.getCell (Promise.Table.settle t id result) q).isSome =
         (Promise.Table.getCell t q).isSome ∧
@@ -478,7 +478,7 @@ private theorem getCell_settle {value reason : Type} (t : Promise.Table value re
         split <;> rfl
 
 /-- A settle changes no state at another identity. -/
-private theorem settle_get_other {value reason : Type} (t : Promise.Table value reason)
+theorem settle_get_other {value reason : Type} (t : Promise.Table value reason)
     (id q : Nat) (result : Except reason value) (hne : q ≠ id) :
     Promise.Table.get (Promise.Table.settle t id result) q = Promise.Table.get t q := by
   unfold Promise.Table.settle
@@ -578,7 +578,7 @@ private theorem settled_of_notPending {value reason : Type} (t : Promise.Table v
 
 /-- The cell a mark leaves at `q`: the old one, with the bit set when `q` is
 the marked identity. -/
-private theorem getCell_markHandled {value reason : Type} (t : Promise.Table value reason)
+theorem getCell_markHandled {value reason : Type} (t : Promise.Table value reason)
     (p q : Nat) :
     Promise.Table.getCell (Promise.Table.markHandled t p) q =
       (Promise.Table.getCell t q).map
@@ -604,7 +604,7 @@ private theorem getCell_markHandled {value reason : Type} (t : Promise.Table val
       cases (q == p) <;> rfl
 
 /-- A mark allocates and frees nothing. -/
-private theorem markHandled_isSome {value reason : Type} (t : Promise.Table value reason)
+theorem markHandled_isSome {value reason : Type} (t : Promise.Table value reason)
     (p q : Nat) :
     (Promise.Table.getCell (Promise.Table.markHandled t p) q).isSome =
       (Promise.Table.getCell t q).isSome := by
@@ -647,7 +647,7 @@ private theorem markHandled_ids {value reason : Type} (t : Promise.Table value r
   cases (e.1 == p) <;> rfl
 
 /-- Allocation keeps every old cell, at any identity. -/
-private theorem getCell_fresh {value reason : Type} (t : Promise.Table value reason)
+theorem getCell_fresh {value reason : Type} (t : Promise.Table value reason)
     (o : Promise.State value reason) (p : Nat) (c : Promise.Cell value reason)
     (h : Promise.Table.getCell t p = some c) :
     Promise.Table.getCell (Promise.Table.fresh t o).1 p = some c := by
@@ -660,7 +660,7 @@ private theorem getCell_fresh {value reason : Type} (t : Promise.Table value rea
   | some e => rw [hf] at h; exact h
 
 /-- Allocation keeps every old state, at any identity. -/
-private theorem get_fresh {value reason : Type} (t : Promise.Table value reason)
+theorem get_fresh {value reason : Type} (t : Promise.Table value reason)
     (o : Promise.State value reason) (p : Nat) (s : Promise.State value reason)
     (h : Promise.Table.get t p = some s) :
     Promise.Table.get (Promise.Table.fresh t o).1 p = some s := by
@@ -673,7 +673,7 @@ private theorem get_fresh {value reason : Type} (t : Promise.Table value reason)
       exact h
 
 /-- Allocation keeps every allocated identity allocated. -/
-private theorem getCell_fresh_isSome {value reason : Type} (t : Promise.Table value reason)
+theorem getCell_fresh_isSome {value reason : Type} (t : Promise.Table value reason)
     (o : Promise.State value reason) (p : Nat) (h : (Promise.Table.getCell t p).isSome = true) :
     (Promise.Table.getCell (Promise.Table.fresh t o).1 p).isSome = true := by
   cases hc : Promise.Table.getCell t p with
@@ -681,7 +681,7 @@ private theorem getCell_fresh_isSome {value reason : Type} (t : Promise.Table va
   | some c => rw [getCell_fresh t o p c hc]; rfl
 
 /-- A state lookup that succeeds has a cell behind it. -/
-private theorem getCell_isSome_of_get {value reason : Type} (t : Promise.Table value reason)
+theorem getCell_isSome_of_get {value reason : Type} (t : Promise.Table value reason)
     (p : Nat) (s : Promise.State value reason) (h : Promise.Table.get t p = some s) :
     (Promise.Table.getCell t p).isSome = true := by
   unfold Promise.Table.get at h
@@ -699,7 +699,7 @@ private theorem get_of_getCell_isSome {value reason : Type} (t : Promise.Table v
   | some c => exact ⟨c.state, rfl⟩
 
 /-- Under `WF`, an allocated identity is below the table cursor. -/
-private theorem WF.getCell_lt {value reason body : Type} {a : Agent value reason body}
+theorem WF.getCell_lt {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) {p : Nat} (h : (a.table.getCell p).isSome = true) : p < a.table.next := by
   unfold Promise.Table.getCell at h
   cases hf : a.table.entries.find? (fun e => e.1 == p) with
@@ -712,7 +712,7 @@ private theorem WF.getCell_lt {value reason body : Type} {a : Agent value reason
 
 /-- Under `WF`, the table cursor names no cell, so the next allocation is
 fresh. -/
-private theorem WF.getCell_next {value reason body : Type} {a : Agent value reason body}
+theorem WF.getCell_next {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) : Promise.Table.getCell a.table a.table.next = none := by
   cases hc : Promise.Table.getCell a.table a.table.next with
   | none => rfl
@@ -858,7 +858,7 @@ private theorem lt_of_ids {body : Type} (l l' : List (Promise.Reaction body)) (n
   exact hl r0 hr0
 
 /-- The waiting set is drawn from the list its kind names. -/
-private theorem mem_waitingOn {body : Type} (rs : Promise.Reactions body) (p : Nat)
+theorem mem_waitingOn {body : Type} (rs : Promise.Reactions body) (p : Nat)
     (k : Promise.ReactionType) (r : Promise.Reaction body)
     (h : r ∈ Promise.Reactions.waitingOn rs p k) :
     r ∈ (match k with
@@ -927,7 +927,7 @@ private theorem reactionOf_isSome {value reason body : Type} (a : Agent value re
           exact ⟨Or.inr, fun h => h.elim (fun h' => absurd h' hnot) id⟩
 
 /-- Membership through a `Nodup` key map identifies the element. -/
-private theorem eq_of_nodup_key {α : Type} (key : α → Nat) :
+theorem eq_of_nodup_key {α : Type} (key : α → Nat) :
     ∀ (l : List α), (l.map key).Nodup → ∀ x ∈ l, ∀ y ∈ l, key x = key y → x = y
   | [], _, x, hx, _, _, _ => absurd hx List.not_mem_nil
   | z :: l, hnd, x, hx, y, hy, hk => by
@@ -944,7 +944,7 @@ private theorem eq_of_nodup_key {α : Type} (key : α → Nat) :
 
 /-- When at most one member satisfies `pick`, `find?` names a member that
 does. -/
-private theorem find?_unique {α : Type} (l : List α) (pick : α → Bool)
+theorem find?_unique {α : Type} (l : List α) (pick : α → Bool)
     (huniq : ∀ g ∈ l, ∀ g' ∈ l, pick g = true → pick g' = true → g = g') (f : α) (hf : f ∈ l)
     (hp : pick f = true) : l.find? pick = some f := by
   cases h : l.find? pick with
@@ -1242,7 +1242,7 @@ records `pick` selects. Under `WF` a `[[Resolve]]` or `[[Reject]]` identity
 selects at most one record. -/
 
 /-- Setting the marker keeps a record's three identities. -/
-private theorem mark_fields (pick : Promise.ResolvingFunctions → Bool)
+theorem mark_fields (pick : Promise.ResolvingFunctions → Bool)
     (g : Promise.ResolvingFunctions) :
     (if pick g then { g with alreadyResolved := true } else g).resolve = g.resolve ∧
       (if pick g then { g with alreadyResolved := true } else g).reject = g.reject ∧
@@ -1353,7 +1353,7 @@ private theorem Le.callFunctions {value reason body : Type} (a : Agent value rea
 
 /-- Under `WF` (`functionsNodup`), a `[[Resolve]]` identity selects at most one
 stored record. -/
-private theorem resolve_unique {value reason body : Type} {a : Agent value reason body}
+theorem resolve_unique {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (cap : Promise.Capability) :
     ∀ g ∈ a.functions, ∀ g' ∈ a.functions,
       (fun (f : Promise.ResolvingFunctions) => f.resolve == cap.resolve) g = true →
@@ -1364,7 +1364,7 @@ private theorem resolve_unique {value reason body : Type} {a : Agent value reaso
 
 /-- Under `WF` (`functionsBelow` with `functionsNodup`), a `[[Reject]]`
 identity selects at most one stored record. -/
-private theorem reject_unique {value reason body : Type} {a : Agent value reason body}
+theorem reject_unique {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (cap : Promise.Capability) :
     ∀ g ∈ a.functions, ∀ g' ∈ a.functions,
       (fun (f : Promise.ResolvingFunctions) => f.reject == cap.reject) g = true →

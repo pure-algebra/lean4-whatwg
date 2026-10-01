@@ -2,6 +2,7 @@ import Whatwg.Ecma262.Promise
 import Whatwg.Ecma262.Jobs
 import Whatwg.Ecma262.Agent
 import Whatwg.Ecma262.AgentLaws
+import Whatwg.Ecma262.AgentInvariant
 
 /-!
 # Whatwg.Ecma262
@@ -51,6 +52,14 @@ Q3b builder seats:
   handler-adequacy shape (`pre`, `post`, `Implements` and one `*_implements`
   per operation), runs of the step with the lifted FIFO law, and the other
   lifted laws. It imports `Whatwg.Ecma262.Agent` and nothing else.
+- `Whatwg/Ecma262/AgentInvariant.lean` — promise slice Q5, addendum Q5b,
+  builder slice B5 (rulings R-W16 and R-W20): the stronger invariant
+  `Coherent`, which extends `WF`, with its inductiveness and reachability
+  laws; the stronger order `Extends`, which extends `Le`; the two-state post
+  `postFrom` and the second adequacy judgment `ImplementsFrom` over the
+  unchanged `pre`, one theorem per operation; and the reaction job's two
+  completions with the named departure `finishJob_abrupt_dropped`. It imports
+  `Whatwg.Ecma262.AgentLaws` and nothing else.
 
 Still open, with their gap ids from the packet: `G-02` remainder (the
 handled-bit consumer and `HostPromiseRejectionTracker`), `G-04` (`IsPromise`

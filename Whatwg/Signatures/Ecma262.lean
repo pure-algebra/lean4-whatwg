@@ -88,10 +88,10 @@ reason body) T`, which `effects` also writes `signature value reason body ⊕ₛ
 into `StateT σ Id`: the agent's operations through `handlerAt view update` and
 `T`'s through the consumer's own `other`. A provider program injected by
 `Effects.Program.inl` is interpreted as through the lens handler alone
-(`interpret_sumHandler_inl`). For the consumer's side, injected by
-`Effects.Program.inr`, `Effects.interpret_inr (handlerAt view update) other p`
-proves the same equation with `other` by `exact`; `rw` does not see through
-`sumHandler`, so a rewrite with it unfolds `sumHandler` first.
+(`interpret_sumHandler_inl`). A consumer program injected by
+`Effects.Program.inr` is interpreted as through the consumer's own `other`
+alone, by `interpret_sumHandler_inr`, which states the equation at
+`sumHandler`, where `rw` finds it.
 
 An example, the shape of lean4-effect4's `RSig = StoreSig ⊕ₛ FiberSig`: a
 consumer has a signature `Tick : Effects.Signature.{0, 0}` with one operation
@@ -294,6 +294,22 @@ theorem interpret_sumHandler_inl :
         Effects.interpret (Whatwg.Signatures.Ecma262.handlerAt view update) p := by
   intro value reason body σ α T view update other p
   exact Effects.interpret_inl (handlerAt view update) other p
+
+/-- A consumer program injected into the sum is interpreted by the consumer's
+own handler alone, by the `effects` law `Effects.interpret_inr`: the agent's
+lens handler takes no step, so no lens law is needed. The mirror of
+`interpret_sumHandler_inl`, stated at `sumHandler` so that `rw` finds it. Face
+law; DB-04 M2. -/
+theorem interpret_sumHandler_inr :
+    ∀ {value reason body σ α : Type} {T : Effects.Signature.{0, 0}}
+      (view : σ → Agent.Agent value reason body)
+      (update : Agent.Agent value reason body → σ → σ) (other : Effects.Handler T (StateT σ Id))
+      (p : Effects.Program T α),
+      Effects.interpret (Whatwg.Signatures.Ecma262.sumHandler view update other)
+          (Effects.Program.inr (S := Whatwg.Signatures.Ecma262.signature value reason body) p) =
+        Effects.interpret other p := by
+  intro value reason body σ α T view update other p
+  exact Effects.interpret_inr (handlerAt view update) other p
 
 /-! ## 4. "A promise resolved with" as a program -/
 
