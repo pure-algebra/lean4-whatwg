@@ -130,6 +130,7 @@ orchestrate; they decide nothing.
 | `lake exe whatwg_citations` | no line-numbered citation into a protected authored document |
 | `lake exe whatwg_ledger` | every reference of the graph ledger resolves against the built modules and the authored files; a ruling of `COORDINATION.md` that names a graph is cited or acknowledged by that graph; a register row's status agrees with the cells that cite it; `generated/graphs/` is byte-identical to a fresh rendering |
 | `lake exe whatwg_declsnapshot` | `generated/declarations/` is byte-identical to a fresh snapshot of the built production libraries, and declaration records, freeze entries and census rows join under the rules of `test/contracts/declaration-snapshot.contract.md` |
+| `lake exe whatwg_trustgate` | run after `lake build`: every audited module has a built `.olean` that matches its source, its trace and the options `lakefile.toml` fixes; every pass of the in-tree gate holds over the built modules, read with no extension loaded and no audited code run; every environment extension an audited module writes to is on the exact allowlist of `WhatwgGates/TrustConfig.lean`; the executable links no audited metaprogramming module (ruling R-W7, addendum V2e of `test/contracts/trust-gate-hardening.contract.md`) |
 | `lake exe whatwg_trustselftest` | every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name |
 | `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of every built module under those three prefixes replays in the kernel |
 
@@ -170,6 +171,17 @@ per tree, how many declarations reach `Classical.choice`. The token rules are
 lexical, and the contract's claim-scope sections (13, V2b.7 and V2c.7) list
 what they do not catch. The gate code carries R-11 since commit `184d7fe`,
 and R-V1, R-V2, R-V6 and R-V10 since the lane V landing.
+
+The in-tree gate is a command inside the tree it audits, so code that runs
+during elaboration can replace it. `lake exe whatwg_trustgate` runs the same
+passes from outside (ruling R-W7): the passes are the library
+`WhatwgGates/Trust/`, the lists are data in `WhatwgGates/TrustConfig.lean`,
+and the executable reads the built modules without running any of their
+code. It also refuses what the in-tree command cannot see: a stale or
+missing `.olean`, a recorded option that differs from `lakefile.toml`,
+`weakLeanArgs`, a `lakefile.lean`, and an audited module that writes to an
+environment extension outside the allowlist. Section V2e.7 of the contract
+lists what it does not catch.
 
 ## Generated facts and long-run continuity
 

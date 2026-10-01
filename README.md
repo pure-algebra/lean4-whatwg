@@ -22,8 +22,9 @@ queue with the Web IDL promise and exception vocabulary (promise slices Q3 and
 Q3b), the configuration-ordering restatement of P8a (Q4), the Infra text helpers
 with the UTF-8 codec, URL percent-encoding (U3), and the HTML content model
 (H1 to H4). Each representative is part of its phase, not the whole of it:
-the "Current state" table of each proof-graph document under `docs/` names the
-graph's open edges, and `PLAN.md` keeps P4 to P12 open. No host conformance is
+the graph ledger under `WhatwgTest/Ledger/`, rendered per graph in
+`generated/graphs/`, names each graph's open edges, and `PLAN.md` keeps P4 to
+P12 open. No host conformance is
 claimed; the harness fixtures are finite observations under named host
 profiles. Specification coverage is stated only by the blocks
 `lake exe whatwg_census --report` prints. Review lane V (2026-09-30 to
@@ -68,6 +69,9 @@ lake exe whatwg_census --standard webidl           # the Web IDL promise and exc
 lake exe whatwg_census --standard webidl --report  # the Web IDL coverage block, all-absent
 lake exe whatwg_census --standard ecma262          # the ECMA-262 promise and job census
 lake exe whatwg_census --standard ecma262 --report # the ES2026 coverage block, all-absent
+lake exe whatwg_trustgate                          # after lake build: the axiom gate's passes over the built modules, run from outside the tree
+lake exe whatwg_ledger                             # after lake build: the graph ledger's references, and generated/graphs against a fresh rendering
+lake exe whatwg_declsnapshot                       # after lake build: generated/declarations against a fresh snapshot of the production libraries
 lake exe whatwg_trustselftest                      # planted trust-gate violations are each refused for the frozen reason
 lake env leanchecker Whatwg WhatwgTest WhatwgGates # every built module under those three prefixes replays in the kernel
 ```

@@ -18,7 +18,7 @@ jobs:
       # `Whatwg` is the umbrella module; each standard is its own library
       # (ruling R-V3(d)), and each is built here as a target of its own.
       - name: Build production libraries and gate executables
-        run: lake --wfail build Whatwg WhatwgInfra WhatwgEcma262 WhatwgWebIdl WhatwgUrl WhatwgHtml WhatwgStreams WhatwgSignatures WhatwgGates whatwg_vendorseal whatwg_citations whatwg_census whatwg_urlinventory whatwg_urlcensus whatwg_ledger whatwg_declsnapshot
+        run: lake --wfail build Whatwg WhatwgInfra WhatwgEcma262 WhatwgWebIdl WhatwgUrl WhatwgHtml WhatwgStreams WhatwgSignatures WhatwgGates whatwg_vendorseal whatwg_citations whatwg_census whatwg_urlinventory whatwg_urlcensus whatwg_ledger whatwg_declsnapshot whatwg_trustgate
       - name: Vendor seal in both directions
         run: lake exe whatwg_vendorseal
       - name: Internal-citation gate
@@ -60,6 +60,16 @@ jobs:
         run: lake exe whatwg_census --standard ecma262 --report
       - name: Test root and the elaboration-time axiom gate
         run: lake --wfail build WhatwgTest
+      # Ruling R-W7, addendum V2e. The executable gate runs the in-tree gate's
+      # passes from outside the tree it audits: it reads the built modules
+      # with no extension loaded and runs none of their code, so an elaborator
+      # that replaces the in-tree command cannot silence it. It refuses a
+      # stale or missing .olean, a recorded option that differs from
+      # lakefile.toml, and an audited module that writes to an environment
+      # extension outside the allowlist. It prints the summary line of the
+      # in-tree gate; the self-test below checks that the two agree.
+      - name: Executable trust gate over the built modules
+        run: lake exe whatwg_trustgate
       # Rulings R-W5 and R-W6 of review lane W. Both gates read the built
       # modules, so they follow the test root. The ledger gate resolves every
       # reference of the graph ledger under WhatwgTest/Ledger against the built
