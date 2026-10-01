@@ -28,6 +28,7 @@ def promiseFirst : Graph where
   document := "docs/PROMISE-DAG.md"
   fence := [`Whatwg.Ecma262.Promise, `Whatwg.Ecma262.Jobs, `Whatwg.WebIdl.Promise,
     `Whatwg.WebIdl.Exceptions]
+  acknowledged := ["R-W16"]
   edges := {
     identity := {
       status := .requiredOpen
