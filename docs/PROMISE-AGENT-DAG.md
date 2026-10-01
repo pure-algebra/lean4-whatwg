@@ -56,6 +56,11 @@ its role, census row, mask and validation class.
 | `Signatures.Ecma262.signature`, `handler`, `handlerAt`, `sumHandler`, `run`, `resolvedWith` and their laws | `Signatures/Ecma262.lean` (B4) | new face over `Ecma262.Agent` and `Effects.Algebra.Sum` (`effects` v0.8.0) | `owned` adapter; no census row | targets |
 | existing types gaining instances: `Promise.Reaction` (`DecidableEq`), `Promise.Reactions` (`DecidableEq`, `Repr`), `Promise.ResolvingFunctions` (`Repr`), `Jobs.Active` (`Repr`) | instances in `Ecma262/Agent.lean` (B1); types owned by `PROMISE-PG-FIRST` | `E-29` (generalize): its "must not gain one silently" is superseded by R-W3, conditionally on `body`; `E-50`'s `Repr (Reaction Nat)` receipt stays green | unchanged dispositions | representation |
 | `Ecma262.Agent.instDecidableEqExcept` | `Ecma262/Agent.lean` (B1) | scoped, never global (R-W3), because Batteries declares a global `DecidableEq (Except ε α)` | helper | representation |
+| `Ecma262.Agent.Coherent` with its seven clause projections; `Coherent.empty`, `.step`, `.runOps`, `.reachable` | `Ecma262/AgentInvariant.lean` (Q5b slice B5) | new invariant that `extends` `WF` (owner B1), replacing nothing (R-W1(b), R-W9); answers gaps A to F of debts D62 and D65 (contract, Addendum Q5b, Q5b.2) | `owned`; RESOLVING, FULFILL, REJECT, TRIGGER, THEN, REACTJOB, `builtin.promise-executor`, `field.promisereaction-records.Type` | construction, counterexamples |
+| `Ecma262.Agent.Extends` with its two clause projections; `Extends.refl`, `.trans`, `.step` | `Ecma262/AgentInvariant.lean` (Q5b slice B5) | new order that `extends` `Le` (owner B2), replacing nothing; gap J (Q5b.3) | `owned`; RESOLVING (the one-shot marker) | laws |
+| `Ecma262.Agent.postFrom` with its nine equations and `postFrom_post`; `ImplementsFrom`, `ImplementsFrom_iff`, the nine `*_implementsFrom` and `implementsFrom` | `Ecma262/AgentInvariant.lean` (Q5b slice B5) | the second adequacy judgment beside `Implements` (owner B2), over the unchanged `pre`; its post reads the starting agent (Q5b.4); gaps A, D, E and I | `owned`; the rows of the contract's §5 | laws |
+| `Ecma262.Agent.callFunctions_resolve_reject`, `finishJob_abrupt`, `finishJob_normal`, `finishJob_abrupt_dropped` | `Ecma262/AgentInvariant.lean` (Q5b slice B5) | laws over `callFunctions` and `finishJob` (owner B1); gap G, and gap H as a named departure (Q5b.5) | `owned`; RESOLVING, CAPREC, REACTJOB | semantics, laws |
+| `Signatures.Ecma262.interpret_sumHandler_inr` | `Signatures/Ecma262.lean` (Q5b slice B6) | new face law, the mirror of `interpret_sumHandler_inl` (owner B4); gap K (Q5b.6) | `owned` adapter law; no census row | targets |
 
 ## Statement rows
 
@@ -74,6 +79,12 @@ authority; the contract is the reading aid.
 | targets | `WhatwgTest/Signatures/Ecma262Contract.lean` §§1 to 4 |
 | trust | the axiom gate over the four modules once imported by the root (R-W9: no axiom-report module) |
 | coverage | none in this slice |
+| construction (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§1 and 2 (`Coherent`, its preservation and reachability), §7 (non-vacuity at reached agents) and §10 (the obstructions the two supporting clauses remove) |
+| laws (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§3 to 6 (`Extends`, `postFrom`, `ImplementsFrom`, the job's two completions) |
+| semantics (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §6 (gap G's `[[Reject]]` route and gap H's dropped result) |
+| counterexamples (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§8 and 9, rows `WS-PROM-CE-048` to `056` |
+| targets (Q5b) | `WhatwgTest/Signatures/Ecma262SumContract.lean` §§1 and 2 |
+| trust (Q5b) | the axiom gate over `Whatwg/Ecma262/AgentInvariant.lean` and the added face law once the two batteries are imported by the root (R-W9: no axiom-report module) |
 
 ## Bridges to `PROMISE-PG-FIRST`
 
