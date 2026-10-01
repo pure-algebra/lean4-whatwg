@@ -111,8 +111,8 @@ zero or wholly covered by exact exceptions the coordinator accepts as debts.
 Adding a prefix is one line; the build then fails with one error per residue
 declaration, which is the measurement.
 
-At the V2 landing the four prefixes below have zero residue. `Whatwg.Streams`
-joins at integration with the R-V5 repair. `Whatwg.Html.Print` and the
+The five prefixes below have zero residue at the lane V landing; `Whatwg.Streams`
+joined at integration, with the R-V5 repair. `Whatwg.Html.Print` and the
 `String`-borne definitions of `Whatwg.Infra.{Namespaces,Text.Scalar,Text.String}`
 stay under R-11: they reach `Classical.choice` through core's `String` API. A
 prefix must lie inside the `Whatwg` tree, since R-V1 keeps `WhatwgTest` and
@@ -123,6 +123,7 @@ private def strictCeilingPrefixes : List Name :=
   , `Whatwg.WebIdl
   , `Whatwg.Url
   , `Whatwg.Infra.Text.Utf8
+  , `Whatwg.Streams
   ]
 
 /-- An exact admission of one declaration under the strict ceiling to
