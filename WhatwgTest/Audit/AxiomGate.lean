@@ -156,9 +156,10 @@ namespace WhatwgTest.Audit
 The audited trees, both ceilings, the strict prefixes and the three anchored
 lists are this repository's data, held by `Gates.TrustConfig.config` in
 `WhatwgGates/TrustConfig.lean` below their frozen anchor comments (addendum
-V2e.3, ruling R-W7(a)); the gate reads them from there. -/
+V2e.3, ruling R-W7(a)); every pass that reads them takes them as an argument,
+`config : Config`. -/
 
-open Gates.TrustConfig (config)
+open Gates.Trust (Config)
 
 /-- A ceiling as its diagnostics spell it, on one line. -/
 private def ceilingText (separator : String) (ceiling : List Name) : String :=
@@ -187,7 +188,7 @@ private def synthesizedOpaqueBodies : List Name :=
 
 /-! ## Trees, modules and declarations -/
 
-private def treeOf? (moduleName : Name) : Option Name :=
+private def treeOf? (config : Config) (moduleName : Name) : Option Name :=
   config.auditedTrees.find? (·.isPrefixOf moduleName)
 
 private def moduleOf? (environment : Environment) (declaration : Name) : Option Name := do
@@ -195,7 +196,7 @@ private def moduleOf? (environment : Environment) (declaration : Name) : Option 
   environment.header.moduleNames[index.toNat]?
 
 /-- The strict prefix a module is under: the longest that matches, if any. -/
-private def strictPrefixOf? (moduleName : Name) : Option Name :=
+private def strictPrefixOf? (config : Config) (moduleName : Name) : Option Name :=
   config.strictCeilingPrefixes.foldl (init := none) fun best candidate =>
     if candidate.isPrefixOf moduleName then
       match best with
@@ -214,7 +215,7 @@ lists rather than by materialising the whole constant map. A constant that
 more than one module realises (an equation lemma that several modules unfold)
 appears once, under the module `getModuleIdxFor?` records, exactly as the
 environment's constant map holds it once. -/
-private def auditedDeclarations (environment : Environment) :
+private def auditedDeclarations (config : Config) (environment : Environment) :
     Except String (Array AuditedDeclaration) := do
   let header := environment.header
   if header.moduleNames.size != header.moduleData.size then
@@ -223,7 +224,7 @@ private def auditedDeclarations (environment : Environment) :
   for index in [0:header.moduleNames.size] do
     let some moduleName := header.moduleNames[index]?
       | throw s!"Whatwg trust gate: module index {index} has no name"
-    let some tree := treeOf? moduleName | continue
+    let some tree := treeOf? config moduleName | continue
     let some data := header.moduleData[index]?
       | throw s!"Whatwg trust gate: audited module {moduleName} has no module data"
     for name in data.constNames do
@@ -588,17 +589,22 @@ private def scanStep (state : ScanState) (token : Syntax) (position : SourcePosi
   let state := if tag == .openParen then { state with latestParen := position } else state
   { state with shapeTags := state.shapeTags.push tag }
 
-/-- Tokenize one source with Lean's own tokenizer and record every modifier
-keyword, every refused trust token, every metaprogramming keyword and every
-configuration site that fails the shape, in code. -/
+/-- Tokenize one source's text `input` with Lean's own tokenizer and record every
+modifier keyword, every refused trust token, every metaprogramming keyword and
+every configuration site that fails the shape, in code. -/
+private def scanSourceText (environment : Environment) (tokenTable : Parser.TokenTable)
+    (source : System.FilePath) (input : String) : SourceScan :=
+  let (state, failure?) :=
+    foldCodeTokens environment tokenTable source.toString input {} scanStep
+  { source, modifiers := state.modifiers, trustTokens := state.trustTokens,
+    metaprogrammingKeywords := state.metaprogrammingKeywords,
+    configShapes := configShapeFindings state.shapeTags state.configSites, failure? }
+
+/-- Read one source and scan it with `scanSourceText`. -/
 private def scanSource (environment : Environment) (tokenTable : Parser.TokenTable)
     (source : System.FilePath) : IO SourceScan := do
   let input ← IO.FS.readFile source
-  let (state, failure?) :=
-    foldCodeTokens environment tokenTable source.toString input {} scanStep
-  return { source, modifiers := state.modifiers, trustTokens := state.trustTokens,
-           metaprogrammingKeywords := state.metaprogrammingKeywords,
-           configShapes := configShapeFindings state.shapeTags state.configSites, failure? }
+  return scanSourceText environment tokenTable source input
 
 /-! ## Token-table hygiene -/
 
@@ -708,9 +714,12 @@ private def inertFailures (splitters : Array String) (token : String) : Array St
 
 /-- The tokens of the final table, scoped entries included, that neither the
 `lean` binary nor an `Init` module declares, each with the modules whose parser
-entries declare it. -/
-private def nonBaseTokens (environment : Environment) (finalTable : Parser.TokenTable) :
-    IO (Array String × Array (String × Array Name)) := do
+entries declare it. `finalTable` is the final token table and `scopedTokens`
+every scoped `.token` entry of the environment, both read by the host. The
+per-module parser entries are read with `getModuleEntries`, which an import
+fills in whether or not it loads the extensions. -/
+private def nonBaseTokens (environment : Environment) (finalTable : Parser.TokenTable)
+    (scopedTokens : Array String) : IO (Array String × Array (String × Array Name)) := do
   let builtinTable ← Parser.builtinTokenTable.get
   let mut initDeclared : Std.HashSet String := {}
   let mut declaredBy : Std.HashMap String (Array Name) := {}
@@ -728,10 +737,8 @@ private def nonBaseTokens (environment : Environment) (finalTable : Parser.Token
   let mut table : Std.HashSet String := {}
   for token in finalTable.values do
     table := table.insert token
-  for (_, entries) in (Parser.parserExtension.ext.getState environment).scopedEntries.map.toList do
-    for entry in entries.toArray do
-      if let .token token := entry then
-        table := table.insert token
+  for token in scopedTokens do
+    table := table.insert token
   let tokens := table.toArray.qsort (· < ·)
   let nonBase := tokens.filter fun token =>
     (builtinTable.find? token).isNone && !initDeclared.contains token
@@ -793,7 +800,10 @@ token, syntax kind, category and parser entries, global and scoped; every
 keyed declaration attribute of `keyedRegistrationReaders`; and the `init` and
 `builtin_init` attributes, which `initialize`, `builtin_initialize` and the
 `register_…` commands produce, read from the module's `.olean` and `.ir`
-entries alike. -/
+entries alike. Every read is `getModuleEntries` or `getModuleIREntries` of an
+extension the reading process registers, whose imported entries an import fills
+in whether or not it loads the extensions, so a process that imports with
+`loadExts := false` reads the same registrations. -/
 private def registrationsOf (environment : Environment) (index : Nat) (moduleName : Name) :
     Array Registration := Id.run do
   let mut found : Array Registration := #[]
@@ -836,11 +846,12 @@ private def registrationsOf (environment : Environment) (index : Nat) (moduleNam
   return unique
 
 /-- Every registration of every audited module. -/
-private def auditedRegistrations (environment : Environment) : Array Registration := Id.run do
+private def auditedRegistrations (config : Config) (environment : Environment) :
+    Array Registration := Id.run do
   let mut found : Array Registration := #[]
   for index in [0:environment.header.moduleNames.size] do
     let some moduleName := environment.header.moduleNames[index]? | continue
-    if (treeOf? moduleName).isSome then
+    if (treeOf? config moduleName).isSome then
       found := found ++ registrationsOf environment index moduleName
   return found
 
@@ -901,16 +912,33 @@ private def auditedSources (projectRoot : System.FilePath) : IO AuditedSources :
     #[projectRoot / "Whatwg.lean", projectRoot / "WhatwgGates.lean", projectRoot / "WhatwgTest.lean"] -- R-V3(c), 2026-10-01
   return { modules := production ++ tests ++ tooling ++ roots, entryPoints }
 
+/-! ## Findings and the summary
+
+A finding is one diagnostic line. Every pass returns its findings as `String`s
+in the order it finds them, and the host prints each verbatim: the in-tree
+command logs each as one error. A run with no finding reports the counts of
+`Summary`, which `Summary.line` prints in the template of contract section 7. -/
+
+/-- The counts of the summary line (contract section 7), in its order. -/
+private structure Summary where
+  sourceCount : Nat
+  declarationCount : Nat
+  whatwgReached : Nat
+  whatwgTotal : Nat
+  testReached : Nat
+  testTotal : Nat
+  gatesReached : Nat
+  gatesTotal : Nat
+  prefixCount : Nat
+  exceptionCount : Nat
+  exemptionCount : Nat
+
+/-- The summary line: one line, counts only, in the template of contract
+section 7. -/
+private def Summary.line (summary : Summary) : String :=
+  s!"Whatwg module and axiom gate: checked {summary.sourceCount} source files and {summary.declarationCount} declarations; Classical.choice is reached by {summary.whatwgReached} of {summary.whatwgTotal} declarations in Whatwg, {summary.testReached} of {summary.testTotal} in WhatwgTest and {summary.gatesReached} of {summary.gatesTotal} in WhatwgGates; strict ceiling propext and Quot.sound over {summary.prefixCount} module prefix(es) with {summary.exceptionCount} exact exception(s); {summary.exemptionCount} source-token exemption(s)" -- R-V3(c), 2026-10-01
+
 /-! ## The passes -/
-
-open Elab Command
-
-/-- Log every finding of one pass as its own error, and say whether there was
-none. -/
-private def reportFindings (findings : Array MessageData) : CommandElabM Bool := do
-  for finding in findings do
-    logError finding
-  return findings.isEmpty
 
 /-- One token of the root as the root pass reads it. -/
 private inductive RootTag where
@@ -940,7 +968,7 @@ private def rootTagOf (token : Syntax) : RootTag :=
 /-- Pass 0 over the root's tokens of code (rule 4 of addendum V2c): `import` and
 a module name, any number of times, then the gate command and nothing after it. -/
 private def rootShapeFindings (tokens : Array (RootTag × String × SourcePosition)) :
-    Array MessageData := Id.run do
+    Array String := Id.run do
   let tagAt (index : Nat) : RootTag := (tokens[index]?.map (·.1)).getD .other
   let mut index := 0
   for _ in [0:tokens.size] do
@@ -949,82 +977,85 @@ private def rootShapeFindings (tokens : Array (RootTag × String × SourcePositi
     else
       break
   let gateIndex := (tokens.findIdx? (·.1 == RootTag.gateCommand)).getD tokens.size
-  let mut findings : Array MessageData := #[]
+  let mut findings : Array String := #[]
   if index < gateIndex then
     if let some (_, text, position) := tokens[index]? then
       findings := findings.push
-        m!"Whatwg axiom gate: the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate: `{text}` at line {position.line}, column {position.column}"
+        s!"Whatwg axiom gate: the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate: `{text}` at line {position.line}, column {position.column}"
   if gateIndex == tokens.size then
     findings := findings.push
-      m!"Whatwg axiom gate: #whatwg_streams_axiom_gate is not the last command of the root: the root has no #whatwg_streams_axiom_gate command"
+      s!"Whatwg axiom gate: #whatwg_streams_axiom_gate is not the last command of the root: the root has no #whatwg_streams_axiom_gate command"
   else if let some (_, text, position) := tokens[gateIndex + 1]? then
     findings := findings.push
-      m!"Whatwg axiom gate: #whatwg_streams_axiom_gate is not the last command of the root: `{text}` follows it at line {position.line}, column {position.column}"
+      s!"Whatwg axiom gate: #whatwg_streams_axiom_gate is not the last command of the root: `{text}` follows it at line {position.line}, column {position.column}"
   return findings
 
 /-- Pass 0, the root pass (rule 4 of addendum V2c): the gate runs in the root;
 the root's source, the text being elaborated, holds only imports, comments,
 documentation and the gate command as its last command; and the root module has
-declared no constant. -/
+declared no constant. `rootConstants` are the constants the root module has
+declared when the gate runs, which only a host that elaborates the root can
+read; a host that does not passes none. -/
 private def rootFindings (environment : Environment) (tokenTable : Parser.TokenTable)
-    (projectRoot sourceFile : System.FilePath) (sourceText : String) : Array MessageData :=
+    (projectRoot sourceFile : System.FilePath) (sourceText : String)
+    (rootConstants : Array Name) : Array String :=
   Id.run do
-  let mut findings : Array MessageData := #[]
+  let mut findings : Array String := #[]
   let rootFile := projectRoot / "WhatwgTest.lean"
   if pathKey sourceFile != pathKey rootFile then
     findings := findings.push
-      m!"Whatwg axiom gate: #whatwg_streams_axiom_gate runs in {sourceFile}, which is not the root {rootFile}; the gate runs only as the root's last command"
+      s!"Whatwg axiom gate: #whatwg_streams_axiom_gate runs in {sourceFile}, which is not the root {rootFile}; the gate runs only as the root's last command"
   let (tokens, failure?) := foldCodeTokens environment tokenTable sourceFile.toString sourceText
     (#[] : Array (RootTag × String × SourcePosition))
     fun tokens token position => tokens.push (rootTagOf token, tokenText token, position)
   if let some failure := failure? then
-    findings := findings.push m!"{failure}"
+    findings := findings.push failure
   findings := findings ++ rootShapeFindings tokens
-  let declared := (environment.constants.map₂.toList.map (·.1)).toArray.qsort
-    fun left right => left.toString < right.toString
+  let declared := rootConstants.qsort fun left right => left.toString < right.toString
   for name in declared do
     findings := findings.push
-      m!"Whatwg axiom gate: the root module WhatwgTest has declared a constant when the gate runs; the root must declare none, and it declares {name}"
+      s!"Whatwg axiom gate: the root module WhatwgTest has declared a constant when the gate runs; the root must declare none, and it declares {name}"
   return findings
 
 /-- Pass 1: every module source is imported by the test root, and (rule 5 of
 addendum V2c) every environment module under an audited prefix maps, by exact
 case-sensitive path, to exactly one scanned module source. -/
-private def closureFindings (environment : Environment) (projectRoot sourceFile : System.FilePath)
-    (sources : AuditedSources) : Array MessageData := Id.run do
+private def closureFindings (config : Config) (environment : Environment)
+    (projectRoot sourceFile : System.FilePath) (sources : AuditedSources) : Array String :=
+  Id.run do
   let importedPaths := environment.header.moduleNames.map fun moduleName =>
     pathKey (Lean.modToFilePath projectRoot moduleName "lean")
-  let mut findings : Array MessageData := #[]
+  let mut findings : Array String := #[]
   for source in sources.modules do
     if pathKey source != pathKey sourceFile && !importedPaths.contains (pathKey source) then
       findings := findings.push
-        m!"Whatwg module-closure gate: {source.toString} is not reachable from the WhatwgTest audit root"
+        s!"Whatwg module-closure gate: {source.toString} is not reachable from the WhatwgTest audit root"
   let scannedPaths := sources.modules.map pathKey
   for moduleName in environment.header.moduleNames do
-    if (treeOf? moduleName).isNone then continue
+    if (treeOf? config moduleName).isNone then continue
     let path := pathKey (Lean.modToFilePath projectRoot moduleName "lean")
     let matching := (scannedPaths.filter (· == path)).size
     if matching == 0 then
       findings := findings.push
-        m!"Whatwg module-closure gate: module {moduleName} is in the environment under an audited prefix but maps to no scanned source; its exact path would be {path}"
+        s!"Whatwg module-closure gate: module {moduleName} is in the environment under an audited prefix but maps to no scanned source; its exact path would be {path}"
     else if matching != 1 then
       findings := findings.push
-        m!"Whatwg module-closure gate: module {moduleName} is in the environment under an audited prefix and maps to {matching} scanned sources at {path}; exactly one is required"
+        s!"Whatwg module-closure gate: module {moduleName} is in the environment under an audited prefix and maps to {matching} scanned sources at {path}; exactly one is required"
   return findings
 
 /-- Pass 2: tokenization failures and the `unsafe` and `partial` keywords. -/
-private def modifierFindings (scans : Array SourceScan) : Array MessageData :=
+private def modifierFindings (scans : Array SourceScan) : Array String :=
   scans.flatMap fun scan =>
     let failures := match scan.failure? with
-      | some failure => #[m!"{failure}"]
+      | some failure => #[failure]
       | none => #[]
     failures ++ scan.modifiers.map fun hit =>
-      m!"Whatwg source trust gate: {scan.source.toString} contains an authored `{hit.word}` declaration modifier at line {hit.line}, column {hit.column}"
+      s!"Whatwg source trust gate: {scan.source.toString} contains an authored `{hit.word}` declaration modifier at line {hit.line}, column {hit.column}"
 
 /-- The pass after pass 2, token-table hygiene (rule 2 of addendum V2c): every
 non-base token of the final table is inert. -/
 private def tokenTableFindings (tokens : Array String) (nonBase : Array (String × Array Name)) :
-    Array MessageData :=
+    Array String :=
   let splitters := tokens.filter fun token => token.any fun character => !isIdRest character
   nonBase.filterMap fun (token, declaredBy) =>
     let reasons := inertFailures splitters token
@@ -1034,12 +1065,15 @@ private def tokenTableFindings (tokens : Array String) (nonBase : Array (String 
       let declarers :=
         if declaredBy.isEmpty then "no module's parser entries; the module header adds it"
         else ", ".intercalate (declaredBy.toList.map toString)
-      some m!"Whatwg source trust gate: token `{token}` of the final token table is not inert: {"; ".intercalate reasons.toList}; declared by {declarers}"
+      some s!"Whatwg source trust gate: token `{token}` of the final token table is not inert: {"; ".intercalate reasons.toList}; declared by {declarers}"
 
-/-- Pass 3: what each audited constant is (contract section 4.1). -/
+/-- Pass 3: what each audited constant is (contract section 4.1). The parametric
+attributes behind `isExtern` and `getImplementedBy?` answer for an imported
+constant from its module's entries, which an import fills in whether or not it
+loads the extensions. -/
 private def environmentFindings (environment : Environment)
-    (declarations : Array AuditedDeclaration) : Array MessageData := Id.run do
-  let mut findings : Array MessageData := #[]
+    (declarations : Array AuditedDeclaration) : Array String := Id.run do
+  let mut findings : Array String := #[]
   for declaration in declarations do
     let name := declaration.name
     if isGeneratedSafeRecursor environment name then continue
@@ -1047,121 +1081,163 @@ private def environmentFindings (environment : Environment)
       | some info => pure info
       | none =>
           findings := findings.push
-            m!"Whatwg trust gate: declaration {name} of module {declaration.moduleName} is missing from the environment"
+            s!"Whatwg trust gate: declaration {name} of module {declaration.moduleName} is missing from the environment"
           continue
     if info.isUnsafe then
-      findings := findings.push m!"Whatwg trust gate: declaration {name} is unsafe"
+      findings := findings.push s!"Whatwg trust gate: declaration {name} is unsafe"
     if info.isPartial then
-      findings := findings.push m!"Whatwg trust gate: declaration {name} is partial"
+      findings := findings.push s!"Whatwg trust gate: declaration {name} is partial"
     if let .axiomInfo _ := info then
       if isNativeAuxiliaryAxiom name then
         findings := findings.push
-          m!"Whatwg trust gate: declaration {name} is a native-evaluation axiom (native_decide auxiliary)"
+          s!"Whatwg trust gate: declaration {name} is a native-evaluation axiom (native_decide auxiliary)"
       else
         findings := findings.push
-          m!"Whatwg trust gate: declaration {name} is an axiom; no audited tree declares one"
+          s!"Whatwg trust gate: declaration {name} is an axiom; no audited tree declares one"
     if isExtern environment name then
       findings := findings.push
-        m!"Whatwg trust gate: declaration {name} is `@[extern]`; host code replaces its checked body"
+        s!"Whatwg trust gate: declaration {name} is `@[extern]`; host code replaces its checked body"
     if (Compiler.getImplementedBy? environment name).isSome then
       findings := findings.push
-        m!"Whatwg trust gate: declaration {name} is `@[implemented_by]`; another declaration replaces its checked body in compiled code"
+        s!"Whatwg trust gate: declaration {name} is `@[implemented_by]`; another declaration replaces its checked body in compiled code"
     if let .opaqueInfo opaqueInfo := info then
       if isSynthesizedOpaqueBody opaqueInfo.value then
         findings := findings.push
-          m!"Whatwg trust gate: declaration {name} is an `opaque` with no authored body; Lean synthesised its value, so it denotes an inhabitant nobody chose"
+          s!"Whatwg trust gate: declaration {name} is an `opaque` with no authored body; Lean synthesised its value, so it denotes an inhabitant nobody chose"
   return findings
 
 /-- The modules `metaprogrammingModules` lists. -/
-private def listedMetaprogrammingModules : NameSet :=
+private def listedMetaprogrammingModules (config : Config) : NameSet :=
   config.metaprogrammingModules.foldl (init := {}) fun listed entry => listed.insert entry.moduleName
 
 /-- Pass 3, the environment half of rule 1 (addendum V2c.2): a registration is
 attributed to the module whose entries record it and, when the registered
 declaration belongs to another audited module, to that module as well; either
 one that is not listed is refused. -/
-private def registrationFindings (environment : Environment)
-    (registrations : Array Registration) : Array MessageData := Id.run do
-  let mut findings : Array MessageData := #[]
+private def registrationFindings (config : Config) (environment : Environment)
+    (registrations : Array Registration) : Array String := Id.run do
+  let listed := listedMetaprogrammingModules config
+  let mut findings : Array String := #[]
   for registration in registrations do
-    unless listedMetaprogrammingModules.contains registration.moduleName do
+    unless listed.contains registration.moduleName do
       findings := findings.push
-        m!"Whatwg trust gate: module {registration.moduleName} registers {registration.kind} but is not a listed metaprogramming module: {registration.detail}"
+        s!"Whatwg trust gate: module {registration.moduleName} registers {registration.kind} but is not a listed metaprogramming module: {registration.detail}"
     if let some declaration := registration.declaration? then
       if let some owner := moduleOf? environment declaration then
-        if owner != registration.moduleName && (treeOf? owner).isSome &&
-            !listedMetaprogrammingModules.contains owner then
+        if owner != registration.moduleName && (treeOf? config owner).isSome &&
+            !listed.contains owner then
           findings := findings.push
-            m!"Whatwg trust gate: module {owner} registers {registration.kind} but is not a listed metaprogramming module: {registration.detail}, whose declaration it owns, registered by module {registration.moduleName}"
+            s!"Whatwg trust gate: module {owner} registers {registration.kind} but is not a listed metaprogramming module: {registration.detail}, whose declaration it owns, registered by module {registration.moduleName}"
   return findings
 
 /-- The checks every strict-ceiling exception passes once it names a
 declaration (contract section 6): its module is under a strict prefix, and it
-reaches `Classical.choice`. -/
-private def strictExceptionTargetFindings (environment : Environment) (declaration : Name) :
-    CommandElabM (Array MessageData) := do
+reaches `Classical.choice`. `axiomsOf` gives the axioms a constant reaches. -/
+private def strictExceptionTargetFindings {m : Type → Type} [Monad m] (config : Config)
+    (axiomsOf : Name → m (Array Name)) (environment : Environment) (declaration : Name) :
+    m (Array String) := do
   if !environment.contains declaration then
-    return #[m!"Whatwg axiom gate: strict-ceiling exception names missing declaration {declaration}"]
+    return #[s!"Whatwg axiom gate: strict-ceiling exception names missing declaration {declaration}"]
   let moduleName := (moduleOf? environment declaration).getD environment.mainModule
-  if (strictPrefixOf? moduleName).isNone then
-    return #[m!"Whatwg axiom gate: stale strict-ceiling exception for {declaration}; its module {moduleName} is under no strict prefix"]
-  if !(← collectAxioms declaration).contains ``Classical.choice then
-    return #[m!"Whatwg axiom gate: stale strict-ceiling exception for {declaration}; it does not reach Classical.choice"]
+  if (strictPrefixOf? config moduleName).isNone then
+    return #[s!"Whatwg axiom gate: stale strict-ceiling exception for {declaration}; its module {moduleName} is under no strict prefix"]
+  if !(← axiomsOf declaration).contains ``Classical.choice then
+    return #[s!"Whatwg axiom gate: stale strict-ceiling exception for {declaration}; it does not reach Classical.choice"]
   return #[]
 
 /-- Validate the strict prefixes and every strict-ceiling exception; return the
 findings and the declarations the exceptions name. -/
-private def strictCeilingFindings (environment : Environment)
-    (declarations : Array AuditedDeclaration) :
-    CommandElabM (Array MessageData × Array Name) := do
-  let mut findings : Array MessageData := #[]
+private def strictCeilingFindings {m : Type → Type} [Monad m] (config : Config)
+    (axiomsOf : Name → m (Array Name)) (environment : Environment)
+    (declarations : Array AuditedDeclaration) : m (Array String × Array Name) := do
+  let mut findings : Array String := #[]
   for strictPrefix in config.strictCeilingPrefixes do
     if !(`Whatwg).isPrefixOf strictPrefix then
       findings := findings.push
-        m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} is outside the Whatwg tree; ruling R-V1 keeps WhatwgTest and WhatwgGates under R-11" -- R-V3(c), 2026-10-01
+        s!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} is outside the Whatwg tree; ruling R-V1 keeps WhatwgTest and WhatwgGates under R-11" -- R-V3(c), 2026-10-01
     if !(declarations.any fun declaration => strictPrefix.isPrefixOf declaration.moduleName) then
       findings := findings.push
-        m!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} covers no audited module"
+        s!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} covers no audited module"
   let mut excepted : Array Name := #[]
   for entry in config.strictCeilingExceptions do
     if isBlank entry.reason then
       findings := findings.push
-        m!"Whatwg axiom gate: strict-ceiling exception for {entry.declaration} carries no reason"
-    findings := findings ++ (← strictExceptionTargetFindings environment entry.declaration)
+        s!"Whatwg axiom gate: strict-ceiling exception for {entry.declaration} carries no reason"
+    findings := findings ++
+      (← strictExceptionTargetFindings config axiomsOf environment entry.declaration)
     excepted := excepted.push entry.declaration
   for entry in config.privateStrictCeilingExceptions do
     if isBlank entry.reason then
       findings := findings.push
-        m!"Whatwg axiom gate: strict-ceiling exception for {entry.original} (private to {entry.owner}) carries no reason"
+        s!"Whatwg axiom gate: strict-ceiling exception for {entry.original} (private to {entry.owner}) carries no reason"
     let owned := declarations.filter fun declaration =>
       declaration.moduleName == entry.owner &&
         privateToUserName? declaration.name == some entry.original
     match owned.toList with
     | [declaration] =>
-        findings := findings ++ (← strictExceptionTargetFindings environment declaration.name)
+        findings := findings ++
+          (← strictExceptionTargetFindings config axiomsOf environment declaration.name)
         excepted := excepted.push declaration.name
     | [] =>
         findings := findings.push
-          m!"Whatwg axiom gate: strict-ceiling exception names missing declaration {entry.original} (private to {entry.owner})"
+          s!"Whatwg axiom gate: strict-ceiling exception names missing declaration {entry.original} (private to {entry.owner})"
     | _ =>
         findings := findings.push
-          m!"Whatwg axiom gate: private strict-ceiling exception {entry.owner}/{entry.original} matched {owned.size} declarations; expected exactly one"
+          s!"Whatwg axiom gate: private strict-ceiling exception {entry.owner}/{entry.original} matched {owned.size} declarations; expected exactly one"
   let mut seen : NameSet := {}
   let mut repeated : NameSet := {}
   for name in excepted do
     if seen.contains name && !repeated.contains name then
       repeated := repeated.insert name
       findings := findings.push
-        m!"Whatwg axiom gate: strict-ceiling exception for {name} is listed more than once"
+        s!"Whatwg axiom gate: strict-ceiling exception for {name} is listed more than once"
     seen := seen.insert name
   return (findings, excepted)
+
+/-- Pass 4, the axiom pass (contract section 6): the strict prefixes and every
+strict-ceiling exception are checked first; then, over every audited constant,
+the forbidden axioms and every native-evaluation auxiliary are refused, R-11's
+ceiling binds every audited tree, and the strict ceiling binds every constant
+whose module is under a strict prefix unless an exact exception names it.
+`axiomsOf` gives the axioms a constant reaches. Returns the findings and the
+constants that reach `Classical.choice`. -/
+private def axiomPassFindings {m : Type → Type} [Monad m] (config : Config)
+    (axiomsOf : Name → m (Array Name)) (environment : Environment)
+    (declarations : Array AuditedDeclaration) :
+    m (Array String × Array AuditedDeclaration) := do
+  let repositoryCeilingText := ceilingText ", " config.repositoryCeiling
+  let strictCeilingText := ceilingText " and " config.strictCeiling
+  let (exceptionFindings, excepted) ←
+    strictCeilingFindings config axiomsOf environment declarations
+  let mut axiomFindings := exceptionFindings
+  let mut choiceReachers : Array AuditedDeclaration := #[]
+  for declaration in declarations do
+    let name := declaration.name
+    let axioms ← axiomsOf name
+    for axiomName in axioms do
+      if isNativeAuxiliaryAxiom axiomName then
+        axiomFindings := axiomFindings.push
+          s!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName} (native_decide auxiliary)"
+      else if forbiddenAxioms.contains axiomName then
+        axiomFindings := axiomFindings.push
+          s!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName}"
+      else if !config.repositoryCeiling.contains axiomName then
+        axiomFindings := axiomFindings.push
+          s!"Whatwg axiom gate: declaration {name} reaches unexpected axiom {axiomName}; the ceiling is {repositoryCeilingText}"
+    if axioms.contains ``Classical.choice then
+      choiceReachers := choiceReachers.push declaration
+      if let some strictPrefix := strictPrefixOf? config declaration.moduleName then
+        if !excepted.contains name then
+          axiomFindings := axiomFindings.push
+            s!"Whatwg axiom gate: declaration {name} reaches Classical.choice under the strict ceiling of {strictPrefix}, which admits {strictCeilingText} only, and no exact exception names it"
+  return (axiomFindings, choiceReachers)
 
 /-- Pass 5: validate the exemption list, then refuse every refused token outside
 an exempted source and every exemption whose source needs none (contract
 sections 4.2 and 4.3). -/
-private def trustTokenFindings (projectRoot : System.FilePath) (sources : AuditedSources)
-    (scans : Array SourceScan) : Array MessageData := Id.run do
-  let mut findings : Array MessageData := #[]
+private def trustTokenFindings (config : Config) (projectRoot : System.FilePath)
+    (sources : AuditedSources) (scans : Array SourceScan) : Array String := Id.run do
+  let mut findings : Array String := #[]
   let modulePaths := sources.modules.map (·.normalize)
   let entryPaths := sources.entryPoints.map (·.normalize)
   let mut exempted : Array (System.FilePath × Name) := #[]
@@ -1170,42 +1246,42 @@ private def trustTokenFindings (projectRoot : System.FilePath) (sources : Audite
     let moduleName := exemption.moduleName
     if isBlank exemption.reason then
       findings := findings.push
-        m!"Whatwg source trust gate: source-token exemption for {moduleName} carries no reason"
+        s!"Whatwg source trust gate: source-token exemption for {moduleName} carries no reason"
     if listed.contains moduleName then
       findings := findings.push
-        m!"Whatwg source trust gate: source-token exemption for {moduleName} is listed more than once"
+        s!"Whatwg source trust gate: source-token exemption for {moduleName} is listed more than once"
       continue
     listed := listed.push moduleName
     let path := (Lean.modToFilePath projectRoot moduleName "lean").normalize
     let entryPath := (Lean.modToFilePath (projectRoot / "whatwgbin") moduleName "lean").normalize -- R-V3(c), 2026-10-01
     if entryPaths.contains path || entryPaths.contains entryPath then
       findings := findings.push
-        m!"Whatwg source trust gate: source-token exemption for {moduleName} names an entry point under whatwgbin/, and no file under whatwgbin/ can be exempted" -- R-V3(c), 2026-10-01
+        s!"Whatwg source trust gate: source-token exemption for {moduleName} names an entry point under whatwgbin/, and no file under whatwgbin/ can be exempted" -- R-V3(c), 2026-10-01
     else if modulePaths.contains path then
       exempted := exempted.push (path, moduleName)
     else
       findings := findings.push
-        m!"Whatwg source trust gate: source-token exemption names missing module {moduleName}"
+        s!"Whatwg source trust gate: source-token exemption names missing module {moduleName}"
   for scan in scans do
     match exempted.find? (·.1 == scan.source.normalize) with
     | some (_, moduleName) =>
         if scan.trustTokens.isEmpty then
           findings := findings.push
-            m!"Whatwg source trust gate: stale source-token exemption for {moduleName}; its source contains no refused token"
+            s!"Whatwg source trust gate: stale source-token exemption for {moduleName}; its source contains no refused token"
     | none =>
         for hit in scan.trustTokens do
           findings := findings.push
-            m!"Whatwg source trust gate: {scan.source.toString} contains an authored `{hit.word}` trust token at line {hit.line}, column {hit.column}"
+            s!"Whatwg source trust gate: {scan.source.toString} contains an authored `{hit.word}` trust token at line {hit.line}, column {hit.column}"
   return findings
 
 /-- Pass 5, the checks of `metaprogrammingModules` itself (addendum V2c.2):
 an entry with a blank reason, one listed twice, one that names an entry point
 under `whatwgbin/`, one that names no audited module source, and one whose
 source spells no metaprogramming keyword while its module registers nothing. -/
-private def metaprogrammingListFindings (environment : Environment)
+private def metaprogrammingListFindings (config : Config) (environment : Environment)
     (projectRoot : System.FilePath) (sources : AuditedSources) (scans : Array SourceScan)
-    (registrations : Array Registration) : Array MessageData := Id.run do
-  let mut findings : Array MessageData := #[]
+    (registrations : Array Registration) : Array String := Id.run do
+  let mut findings : Array String := #[]
   let modulePaths := sources.modules.map pathKey
   let entryPaths := sources.entryPoints.map pathKey
   let mut listed : Array Name := #[]
@@ -1213,20 +1289,20 @@ private def metaprogrammingListFindings (environment : Environment)
     let moduleName := entry.moduleName
     if isBlank entry.reason then
       findings := findings.push
-        m!"Whatwg trust gate: metaprogramming-module entry for {moduleName} carries no reason"
+        s!"Whatwg trust gate: metaprogramming-module entry for {moduleName} carries no reason"
     if listed.contains moduleName then
       findings := findings.push
-        m!"Whatwg trust gate: metaprogramming-module entry for {moduleName} is listed more than once"
+        s!"Whatwg trust gate: metaprogramming-module entry for {moduleName} is listed more than once"
       continue
     listed := listed.push moduleName
     let path := pathKey (Lean.modToFilePath projectRoot moduleName "lean")
     let entryPath := pathKey (Lean.modToFilePath (projectRoot / "whatwgbin") moduleName "lean")
     if entryPaths.contains path || entryPaths.contains entryPath then
       findings := findings.push
-        m!"Whatwg trust gate: metaprogramming-module entry for {moduleName} names an entry point under whatwgbin/, which cannot be a metaprogramming module"
+        s!"Whatwg trust gate: metaprogramming-module entry for {moduleName} names an entry point under whatwgbin/, which cannot be a metaprogramming module"
     else if !modulePaths.contains path then
       findings := findings.push
-        m!"Whatwg trust gate: metaprogramming-module entry names missing module {moduleName}"
+        s!"Whatwg trust gate: metaprogramming-module entry names missing module {moduleName}"
     else
       let spellsKeyword := scans.any fun scan =>
         pathKey scan.source == path && !scan.metaprogrammingKeywords.isEmpty
@@ -1235,122 +1311,175 @@ private def metaprogrammingListFindings (environment : Environment)
           (registration.declaration?.bind (moduleOf? environment ·)) == some moduleName
       unless spellsKeyword || registers do
         findings := findings.push
-          m!"Whatwg trust gate: stale metaprogramming-module entry for {moduleName}; its source declares no syntax, macro or elaborator and registers nothing"
+          s!"Whatwg trust gate: stale metaprogramming-module entry for {moduleName}; its source declares no syntax, macro or elaborator and registers nothing"
   return findings
 
 /-- Pass 5, the token half of rule 1 and rule 3 (addendum V2c.2 and V2c.4): a
 metaprogramming keyword in code outside a listed module's source, and every
 configuration site that fails the shape, in every audited source. -/
-private def keywordAndShapeFindings (projectRoot : System.FilePath) (sources : AuditedSources)
-    (scans : Array SourceScan) : Array MessageData := Id.run do
+private def keywordAndShapeFindings (config : Config) (projectRoot : System.FilePath)
+    (sources : AuditedSources) (scans : Array SourceScan) : Array String := Id.run do
   let modulePaths := sources.modules.map pathKey
   let listedPaths := (config.metaprogrammingModules.map fun entry =>
     pathKey (Lean.modToFilePath projectRoot entry.moduleName "lean")).filter modulePaths.contains
-  let mut findings : Array MessageData := #[]
+  let mut findings : Array String := #[]
   for scan in scans do
     unless listedPaths.contains (pathKey scan.source) do
       for hit in scan.metaprogrammingKeywords do
         findings := findings.push
-          m!"Whatwg source trust gate: {scan.source.toString} contains an authored `{hit.word}` metaprogramming keyword at line {hit.line}, column {hit.column}"
+          s!"Whatwg source trust gate: {scan.source.toString} contains an authored `{hit.word}` metaprogramming keyword at line {hit.line}, column {hit.column}"
   for scan in scans do
     for hit in scan.configShapes do
       findings := findings.push
-        m!"Whatwg source trust gate: {scan.source.toString} contains a non-literal `config` option at line {hit.line}, column {hit.column}: {hit.word}"
+        s!"Whatwg source trust gate: {scan.source.toString} contains a non-literal `config` option at line {hit.line}, column {hit.column}: {hit.word}"
   return findings
 
+/-! ## The host and the run -/
+
+/-- What only the gate's host can read, handed to the passes as data: the
+in-tree command reads each from its elaboration state, and an executable over
+built files reads its equivalent from their raw entries. -/
+private structure HostReads where
+  /-- The final token table every source pass tokenizes with. -/
+  tokenTable : Parser.TokenTable
+  /-- Every scoped `.token` entry of the environment, which token-table hygiene
+  adds to the final table (addendum V2c.3). -/
+  scopedTokens : Array String
+  /-- The constants the root module has declared when the gate runs; none for a
+  host that does not elaborate the root. -/
+  rootConstants : Array Name
+
+/-- What the gate's host does for the passes. -/
+private structure Host (m : Type → Type) where
+  /-- The axioms one constant reaches. -/
+  axiomsOf : Name → m (Array Name)
+  /-- Print every finding of one pass, in order; called once per pass, also when
+  the pass has none. -/
+  report : Array String → m Unit
+
+/-- Hand every finding of one pass to the host, and say whether there was none. -/
+private def reportFindings {m : Type → Type} [Monad m] (host : Host m)
+    (findings : Array String) : ExceptT String m Bool := do
+  host.report findings
+  return findings.isEmpty
+
 /-- Every pass, in order, over the project that holds `sourceFile`, the file the
-gate command runs in, whose elaborated text is `sourceText`. Each pass logs every
-finding; the summary line is logged only when no pass has one. -/
-private def runGate (sourceFile : System.FilePath) (sourceText : String) : CommandElabM Unit := do
-  let environment ← getEnv
+gate runs for, whose text is `sourceText` (contract section 3, as addendum V2c.1
+extends it). Each pass hands its findings to `host.report`; the summary is
+returned only when no pass has a finding. The error is a failure that stops the
+run: a source file with no parent directory, or an environment whose module
+tables disagree. -/
+private def runPasses {m : Type → Type} [Monad m] [MonadLiftT IO m] (config : Config)
+    (host : Host m) (environment : Environment) (reads : HostReads)
+    (sourceFile : System.FilePath) (sourceText : String) :
+    ExceptT String m (Option Summary) := do
   let some sourceDirectory := sourceFile.parent
-    | throwError "Whatwg axiom gate: source file has no parent directory"
-  let projectRoot ← liftIO <| findProjectRoot sourceDirectory
-  let sources ← liftIO <| auditedSources projectRoot
-  let tokenTable := Parser.Module.updateTokens (Parser.getTokenTable environment)
+    | throwThe String "Whatwg axiom gate: source file has no parent directory"
+  let projectRoot ← findProjectRoot sourceDirectory
+  let sources ← auditedSources projectRoot
+  let tokenTable := reads.tokenTable
   let mut clean := true
 
   -- 0. The root pass (addendum V2c, rule 4).
-  clean := (← reportFindings
-    (rootFindings environment tokenTable projectRoot sourceFile sourceText)) && clean
+  clean := (← reportFindings host
+    (rootFindings environment tokenTable projectRoot sourceFile sourceText
+      reads.rootConstants)) && clean
 
   -- 1. Module closure, in both directions (rule 5 is the reverse one).
-  clean := (← reportFindings (closureFindings environment projectRoot sourceFile sources)) && clean
+  clean := (← reportFindings host
+    (closureFindings config environment projectRoot sourceFile sources)) && clean
 
   -- 2. The modifier pass, over every audited source. The scan also records what
   -- pass 5 judges, so each source is tokenized once.
   let mut scans : Array SourceScan := #[]
   for source in sources.modules ++ sources.entryPoints do
-    scans := scans.push (← liftIO <| scanSource environment tokenTable source)
-  clean := (← reportFindings (modifierFindings scans)) && clean
+    scans := scans.push (← scanSource environment tokenTable source)
+  clean := (← reportFindings host (modifierFindings scans)) && clean
 
   -- After pass 2, token-table hygiene (rule 2).
-  let (tableTokens, nonBase) ← liftIO <| nonBaseTokens environment tokenTable
-  clean := (← reportFindings (tokenTableFindings tableTokens nonBase)) && clean
+  let (tableTokens, nonBase) ← nonBaseTokens environment tokenTable reads.scopedTokens
+  clean := (← reportFindings host (tokenTableFindings tableTokens nonBase)) && clean
 
   -- 3. The environment pass, over every constant of an audited module, then the
   -- environment half of rule 1 over every registration of one.
   let declarations ←
-    match auditedDeclarations environment with
+    match auditedDeclarations config environment with
     | .ok found => pure found
-    | .error message => throwError message
-  let registrations := auditedRegistrations environment
-  clean := (← reportFindings
+    | .error message => throwThe String message
+  let registrations := auditedRegistrations config environment
+  clean := (← reportFindings host
     (environmentFindings environment declarations ++
-      registrationFindings environment registrations)) && clean
+      registrationFindings config environment registrations)) && clean
 
   -- 4. The axiom pass: R-11 everywhere, the strict ceiling under its prefixes.
-  let repositoryCeilingText := ceilingText ", " config.repositoryCeiling
-  let strictCeilingText := ceilingText " and " config.strictCeiling
-  let (exceptionFindings, excepted) ← strictCeilingFindings environment declarations
-  let mut axiomFindings := exceptionFindings
-  let mut choiceReachers : Array AuditedDeclaration := #[]
-  for declaration in declarations do
-    let name := declaration.name
-    let axioms ← collectAxioms name
-    for axiomName in axioms do
-      if isNativeAuxiliaryAxiom axiomName then
-        axiomFindings := axiomFindings.push
-          m!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName} (native_decide auxiliary)"
-      else if forbiddenAxioms.contains axiomName then
-        axiomFindings := axiomFindings.push
-          m!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName}"
-      else if !config.repositoryCeiling.contains axiomName then
-        axiomFindings := axiomFindings.push
-          m!"Whatwg axiom gate: declaration {name} reaches unexpected axiom {axiomName}; the ceiling is {repositoryCeilingText}"
-    if axioms.contains ``Classical.choice then
-      choiceReachers := choiceReachers.push declaration
-      if let some strictPrefix := strictPrefixOf? declaration.moduleName then
-        if !excepted.contains name then
-          axiomFindings := axiomFindings.push
-            m!"Whatwg axiom gate: declaration {name} reaches Classical.choice under the strict ceiling of {strictPrefix}, which admits {strictCeilingText} only, and no exact exception names it"
-  clean := (← reportFindings axiomFindings) && clean
+  let (axiomFindings, choiceReachers) ←
+    (axiomPassFindings config host.axiomsOf environment declarations : m _)
+  clean := (← reportFindings host axiomFindings) && clean
 
   -- 5. The trust-token pass and its exemptions, then the token half of rule 1
   -- with the checks of its list, and rule 3.
-  clean := (← reportFindings
-    (trustTokenFindings projectRoot sources scans ++
-      metaprogrammingListFindings environment projectRoot sources scans registrations ++
-      keywordAndShapeFindings projectRoot sources scans)) && clean
+  clean := (← reportFindings host
+    (trustTokenFindings config projectRoot sources scans ++
+      metaprogrammingListFindings config environment projectRoot sources scans registrations ++
+      keywordAndShapeFindings config projectRoot sources scans)) && clean
 
   unless clean do
-    return
+    return none
 
-  -- The summary: one line, counts only, in the template of contract section 7.
+  -- The summary: counts only, in the template of contract section 7.
   let inTree (tree : Name) (found : Array AuditedDeclaration) : Nat :=
     (found.filter (·.tree == tree)).size
-  let sourceCount := sources.modules.size + sources.entryPoints.size
-  let whatwgReached := inTree `Whatwg choiceReachers
-  let whatwgTotal := inTree `Whatwg declarations
-  let testReached := inTree `WhatwgTest choiceReachers
-  let testTotal := inTree `WhatwgTest declarations
-  let gatesReached := inTree `WhatwgGates choiceReachers -- R-V3(c), 2026-10-01
-  let gatesTotal := inTree `WhatwgGates declarations -- R-V3(c), 2026-10-01
-  let prefixCount := config.strictCeilingPrefixes.length
-  let exceptionCount :=
-    config.strictCeilingExceptions.length + config.privateStrictCeilingExceptions.length
-  let exemptionCount := config.sourceTokenExemptions.length
-  logInfo m!"Whatwg module and axiom gate: checked {sourceCount} source files and {declarations.size} declarations; Classical.choice is reached by {whatwgReached} of {whatwgTotal} declarations in Whatwg, {testReached} of {testTotal} in WhatwgTest and {gatesReached} of {gatesTotal} in WhatwgGates; strict ceiling propext and Quot.sound over {prefixCount} module prefix(es) with {exceptionCount} exact exception(s); {exemptionCount} source-token exemption(s)" -- R-V3(c), 2026-10-01
+  return some
+    { sourceCount := sources.modules.size + sources.entryPoints.size
+      declarationCount := declarations.size
+      whatwgReached := inTree `Whatwg choiceReachers
+      whatwgTotal := inTree `Whatwg declarations
+      testReached := inTree `WhatwgTest choiceReachers
+      testTotal := inTree `WhatwgTest declarations
+      gatesReached := inTree `WhatwgGates choiceReachers -- R-V3(c), 2026-10-01
+      gatesTotal := inTree `WhatwgGates declarations -- R-V3(c), 2026-10-01
+      prefixCount := config.strictCeilingPrefixes.length
+      exceptionCount :=
+        config.strictCeilingExceptions.length + config.privateStrictCeilingExceptions.length
+      exemptionCount := config.sourceTokenExemptions.length }
+
+/-! ## The in-tree host
+
+What only an elaborating process can read, this module reads and hands to the
+passes: the final token table and the scoped tokens from the parser extension's
+loaded state, the root module's own constants, and each constant's axioms
+through `Lean.collectAxioms`, which reads the loaded per-module axiom tables. -/
+
+open Elab Command
+
+/-- Every scoped `.token` entry the parser extension's loaded state holds: the
+tokens token-table hygiene adds to the final table (addendum V2c.3). -/
+private def scopedTokenEntries (environment : Environment) : Array String := Id.run do
+  let mut tokens : Array String := #[]
+  for (_, entries) in (Parser.parserExtension.ext.getState environment).scopedEntries.map.toList do
+    for entry in entries.toArray do
+      if let .token token := entry then
+        tokens := tokens.push token
+  return tokens
+
+/-- Every pass, in order, over the project that holds `sourceFile`, the file the
+gate command runs in, whose elaborated text is `sourceText`. Each pass logs every
+finding as its own error; the summary line is logged only when no pass has one. -/
+private def runGate (sourceFile : System.FilePath) (sourceText : String) : CommandElabM Unit := do
+  let environment ← getEnv
+  let reads : HostReads :=
+    { tokenTable := Parser.Module.updateTokens (Parser.getTokenTable environment)
+      scopedTokens := scopedTokenEntries environment
+      rootConstants := (environment.constants.map₂.toList.map (·.1)).toArray }
+  let host : Host CommandElabM :=
+    { axiomsOf := fun declaration => collectAxioms declaration
+      report := fun findings => do
+        for finding in findings do
+          logError m!"{finding}" }
+  match ← (runPasses Gates.TrustConfig.config host environment reads sourceFile sourceText).run with
+  | .ok (some summary) => logInfo m!"{summary.line}"
+  | .ok none => pure ()
+  | .error message => throwError message
 
 /-! ## The gate command and the post-command check -/
 
