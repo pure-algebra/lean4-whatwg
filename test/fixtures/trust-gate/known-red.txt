@@ -458,5 +458,7 @@
 # WhatwgGates.Ledger.Check and WhatwgTest.Ledger, do not exist yet. Per ruling
 # R-W9 the battery is not imported by WhatwgTest.lean during its red phase;
 # the slice A builder adds that import and removes this entry the moment the
-# battery is green.
+# battery is green. Until then a default lake build at this packet's head also
+# stops at the root's module-closure gate, which refuses the unreachable
+# battery; that is the state R-W9 describes, not a second defect.
 WhatwgTest.Audit.LedgerContract

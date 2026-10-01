@@ -35,7 +35,7 @@ Section 13 lists what it does not read.
 | --- | --- | --- |
 | `WhatwgGates.Ledger.Model` | `Init` only | the data types and the structural invariant |
 | `WhatwgGates.Ledger.Render` | the model | the projection |
-| `WhatwgGates.Ledger.Check` | the model, the renderer, `WhatwgGates.Common`, the shared loader `WhatwgGates.Trust.Load` | the reference pass as pure functions over `World`, and `cli` |
+| `WhatwgGates.Ledger.Check` | the model, the renderer, `WhatwgGates.Common`, `Lean`, and the shared loader `WhatwgGates.Trust.Load` | the reference pass as pure functions over `World`, and `cli` |
 | `WhatwgTest.Ledger.<Graph>` | the model only | one graph's entry |
 | `WhatwgTest.Ledger` | the graph modules | `ledger`, the leaf records, `ledger_wellFormed` |
 | `whatwgbin.Ledger` | `Check` and `WhatwgTest.Ledger` | `main`, calling `Gates.Ledger.cli WhatwgTest.Ledger.ledger` |
@@ -44,8 +44,15 @@ No module of the ledger imports a production module (`Whatwg.*`), declares
 syntax, a macro, an elaborator or an initializer, or joins any list of the
 trust gate: no `metaprogrammingModules` entry, no `sourceTokenExemptions`
 entry, no strict exception. The ledger modules sit under no strict prefix,
-so R-11's ceiling binds them. Every declaration of these modules that this
-contract does not list is `private`.
+so R-11's ceiling binds them. Every authored declaration of the three
+`WhatwgGates.Ledger` modules that this contract does not list is `private`;
+what Lean generates (recursors, `noConfusion`, derived instances, equation
+lemmas) is not counted. The data names frozen for slice A are
+`WhatwgTest.Ledger.dataQueue`, `promiseFirst`, `configurationOrdering`,
+`infraInteger`, `ledger` and
+`ledger_wellFormed : WhatwgTest.Ledger.ledger.wellFormed = true`; the battery
+pins that the three graphs and the leaf are in `ledger`, and slice B names its
+own graph values.
 
 ## 3. The model
 
@@ -161,7 +168,9 @@ Functions of the model, with the spellings the battery pins:
 
 A ledger entry that omits an edge field fails to elaborate with
 "Fields missing: `coverage`", and one that repeats a field with "field
-'identity' has already been specified" (battery section 2).
+`identity` has already been specified" (battery section 2, pinned with
+`#guard_msgs (substring := true)` because `#check_failure` also prints a hint
+and the elaborator's recovery term).
 
 ## 4. The structural invariant, decided in the kernel
 
@@ -206,7 +215,11 @@ cell: a ruling that sets an edge `not-applicable` writes an edge token, and
 the token check requires the cell to cite that ruling (section 7).
 
 The battery holds seventeen kernel-decided refusals and three controls, each
-with a `#guard` pinning its finding:
+with a `#guard` pinning its finding, and a fourth control,
+`fixture_wellFormed`, for the fixture ledger of its reference rows. Each
+theorem is `(…).wellFormed = false` or `= true` by `decide +kernel`; on the
+prototype each prints `[propext]` under `#print axioms`, as
+`ledger_wellFormed` does.
 
 | Id | Plant | Finding |
 | --- | --- | --- |
@@ -284,11 +297,12 @@ for a leaf's receipts.
 | `edge h e` | nothing: the kernel checks it (section 4) | none |
 
 Rule R: a rulings-table row of the graph document is a line that begins
-with the Lean string `"| `" ++ r ++ "` |"`, as the `P3-R1` row of
+with the Lean string ``"| `" ++ r ++ "` |"``, as the `P3-R1` row of
 `docs/DATA-DAG.md` does. Rule T: a register row is the first line of the
-register that begins with `"| `" ++ id ++ "` | `"`; its status is the text
+register that begins with ``"| `" ++ id ++ "` | `"``; its status is the text
 after that prefix up to the next backtick. Both are line-prefix rules over
-the file's lines.
+the file's lines, split by `Gates.Common.lines`, which drops a final CR, so
+the CRLF register reads like an LF one.
 
 `sourcePath` spells a module's components joined by `/` with `.lean`:
 `WhatwgTest.Streams.Data.QueueAxiomReport` is
@@ -383,9 +397,19 @@ Counts are taken from the module source, by this lexical rule:
    character, or by nothing. Parentheses are counted on code text, so one
    inside a literal does not count.
 
-Measured on the design's prototype at `97a8715`: every receipt and
-ascription count the eleven current tables state recomputes with the
-comment-blind rule; section 15 records the same counts under this rule.
+Measured at `b0d35e2` with the validation prototype (section 15): every
+count the design recomputed is unchanged under this rule, namely 99, 125,
+57, 119, 46, 94, 93, 118, 108, 1, 2 and 95 receipts in the twelve
+`*AxiomReport.lean` modules and 80, 119 and 95 ascriptions in
+`WhatwgTest/Infra/Utf8Contract.lean`, `Utf8Laws.lean` and
+`WhatwgTest/Url/PercentEncodingLaws.lean`. Over every `.lean` file under
+`Whatwg/`, `WhatwgTest/` and `WhatwgGates/` (221 files) the rule finds the
+same 1,031 receipt lines as a comment-blind line count, and 2,446
+ascriptions where a comment-blind count finds 2,451: the five others are
+superseded ascriptions quoted in module documentation, three in
+`WhatwgTest/Ecma262/PromiseContract.lean` (75, not 78) and two in
+`WhatwgTest/Ecma262/PromiseLaws.lean` (44, not 46). A ground over either
+module states the lower number.
 
 ## 7. Rulings
 
@@ -437,8 +461,12 @@ The edge-token convention binds every ruling recorded from the ledger's
 landing on `main` (slice A's merge). Rulings before that date carry no token
 and are cited at seeding as `ruling` grounds; at `b0d35e2` the mention check
 is met for the slice A graphs by citing R-P20 (`docs/PROMISE-DAG.md`) and
-R-V8 (`CONFIGURATION-PG-ORDERING`), the only rulings that name them. The
-gate does not read dates: it checks every token it finds and every mention.
+R-V8 (`CONFIGURATION-PG-ORDERING`), the only rulings that name them. For
+slice B the rulings that name a graph at `b0d35e2` are R-V6, R-V8 and R-U5
+(`INFRA-PG-UTF8`), R-U1 and R-U5 (`URL-PG-PERCENT`) and R-W3 and R-W6
+(`PROMISE-PG-AGENT`); no ruling names the other six by identifier or
+document path. No ruling line at `b0d35e2` holds an edge token. The gate
+does not read dates: it checks every token it finds and every mention.
 
 ## 8. The projection
 
@@ -558,12 +586,15 @@ integer records (`Whatwg.Infra.Namespaces`, `Bytes.Byte`, `Bytes.Sequence`,
 `Primitive.Singleton`, `Text.Case`, `Text.Codec`, `Text.CodePoint`,
 `Text.Order`, `Text.Scan`, `Text.String`, `Text.Substring`,
 `Text.Whitespace`) are carried as thirteen `unrouted` entries,
-`⟨`Whatwg.Html, "D57"⟩` and `⟨`Whatwg.Infra.<module>, "D57"⟩`, citing debt
-D57. Their graph-or-leaf decision is a later packet.
+``⟨`Whatwg.Html, "D57"⟩`` and ``⟨`Whatwg.Infra.<module>, "D57"⟩``, citing
+debt D57, which `COORDINATION.md` records. Each of the thirteen prefixes is
+a module of the environment the gate loads (measured, section 15.2), so the
+entries pass the checks of section 5.4. Their graph-or-leaf decision is a
+later packet.
 
 | Slice | File fence | Depends on |
 | --- | --- | --- |
-| A, model and gate | `WhatwgGates/Ledger/{Model,Render,Check}.lean`; `whatwgbin/Ledger.lean`; `WhatwgTest/Ledger.lean`; `WhatwgTest/Ledger/{DataQueue,PromiseFirst,ConfigurationOrdering}.lean`; one import line in each of `WhatwgGates.lean` and `WhatwgTest.lean` (the latter also importing this battery); the `[[lean_exe]]` and `defaultTargets` entry in `lakefile.toml`; `generated/graphs/` for the three graphs; one sentence in the "Current state" section of `docs/DATA-DAG.md`, `docs/PROMISE-DAG.md` and `docs/CONFIGURATION-DAG.md` naming its projection's path; the removal of this packet's `known-red.txt` entry | this packet; the shared loader |
+| A, model and gate | `WhatwgGates/Ledger/{Model,Render,Check}.lean`; `whatwgbin/Ledger.lean`; `WhatwgTest/Ledger.lean`; `WhatwgTest/Ledger/{DataQueue,PromiseFirst,ConfigurationOrdering}.lean`; three import lines in `WhatwgGates.lean` (the three modules) and two in `WhatwgTest.lean` (`WhatwgTest.Ledger` and this battery); the `[[lean_exe]]` and `defaultTargets` entry in `lakefile.toml`; `generated/graphs/` for the three graphs; one sentence in the "Current state" section of `docs/DATA-DAG.md`, `docs/PROMISE-DAG.md` and `docs/CONFIGURATION-DAG.md` naming its projection's path; the removal of this packet's `known-red.txt` entry | this packet; the shared loader |
 | B, seeding | `WhatwgTest/Ledger/*.lean` for the other eight graphs and `PROMISE-PG-AGENT`; their `generated/graphs/*.md`; the "Current state" sections of the graph documents, each becoming one paragraph and a link to its projection; one appended section in each `docs/receipts/<GRAPH-ID>.md` holding the moved table verbatim | A |
 | D, routing | the thirteen `unrouted` entries above; `fence` for every graph; a module routing pass in `Check.lean`; `generated/graphs/INDEX.md` with the leaf records | B, and an addendum to this packet |
 
@@ -597,8 +628,9 @@ The gate does not read, and a green gate says nothing about:
 - what a counted command proves: a count equal to the stated one can hide a
   renamed or replaced theorem until the freeze registry check (R-W6, change
   3; `LEDGER-CE-002`);
-- an indented command, or a command sharing its line with a preceding
-  comment, in a counted module;
+- an indented command, a command sharing its line with a preceding
+  comment, or another spelling of a counted command (`#check(@`, two
+  spaces, `#whatwg_freeze(@`), in a counted module;
 - whether a `gate` ground's gate passes: the gate checks that its executable
   is declared, by a substring of `lakefile.toml`, not that it was run;
 - whether a theorem lies within its module's ceiling: the axiom gate does
@@ -643,9 +675,54 @@ lake env lean WhatwgTest/Audit/LedgerContract.lean
 and, once slice A has added the root import, `lake build
 WhatwgTest.Audit.LedgerContract`.
 
-The preimplementation red cause is the absence of the four modules the
-battery imports. The freeze receipt below records the command, the result
-and the validation of each frozen item against the reinstated prototype.
+### 15.1 Freeze receipt
+
+Observed in the breaker's worktree on Lean 4.33.1, Windows 11, with no
+ledger module present. `lake env lean WhatwgTest/Audit/LedgerContract.lean`
+stops at the first import:
+
+```text
+error: object file '…\.lake\build\lib\lean\WhatwgGates\Ledger\Model.olean' of module WhatwgGates.Ledger.Model does not exist
+```
+
+and `lake build WhatwgTest.Audit.LedgerContract` fails with `no such file or
+directory` for the sources of `WhatwgGates.Ledger.Model`, `.Render`,
+`.Check` and `WhatwgTest.Ledger`, and nothing else. A default `lake build` at
+the breaker head also stops at the root's module-closure gate, `…\WhatwgTest\
+Audit\LedgerContract.lean is not reachable from the WhatwgTest audit root`,
+because R-W9 keeps the battery out of `WhatwgTest.lean` until slice A; that
+is the state R-W9 describes ("the root gate cannot run there").
+
+### 15.2 Validation against the prototype (R-W9)
+
+The design's appendix A was reinstated as uncommitted files in the
+breaker's worktree, adapted to R-W6's three changes, the attestation rule and
+sections 4 to 11 above (the `World` of section 5.1, the code-text counter of
+section 6, `outcome`, the stray-projection and link checks, and `cli` with
+`Lean.importModules (loadExts := false)` standing in for the shared loader),
+with the appendix's three graph entries and leaf unchanged. Then:
+
+| Item | Command | Result |
+| --- | --- | --- |
+| the model, the three graphs, the leaf, `ledger_wellFormed` | `lake build WhatwgGates.Ledger.Check WhatwgTest.Ledger` | 9 jobs, green; the attestation rule and the not-applicable rule hold for the appendix data unchanged |
+| the whole battery | `lake env lean -DmaxErrors=5000 WhatwgTest/Audit/LedgerContract.lean` | exit 0, no error and no warning: 174 ascriptions, 32 instance checks, 2 `#check_failure` probes, 21 kernel theorems, 264 `#guard` rows |
+| that the rows discriminate | seven mutants of the prototype (character literals not lexed, no attestation, `axioms` matched anywhere in a freeze command, no latest-wins, line comments not blanked, headings matched at any level, not-applicable cells refusing ruling grounds) | every mutant fails the battery, with 1 to 52 errors |
+| axioms of the kernel theorems | `#print axioms` on `ledger_wellFormed`, `plant_closedWithItem`, `plant_closedUnattested`, `control_dependentGraphs`, `fixture_wellFormed` | `[propext]` for each |
+| the trust gate with the battery and the prototype imported (temporary root import lines) | `lake build` | 397 jobs, green; "checked 231 source files and 17748 declarations; Classical.choice is reached by 84 of 12766 declarations in Whatwg, 123 of 2468 in WhatwgTest and 210 of 2514 in WhatwgGates"; five strict prefixes, no exception, no exemption; the one new `Classical.choice` reach in `WhatwgTest` is the battery's private `fixWorld` |
+| kernel replay | `lake env leanchecker` naming the eight modules | exit 0, 16.9 s |
+| the reference pass on the real tree | `lake -q exe whatwg_ledger` (temporary lakefile entry) | exit 1 with exactly six findings: each of the three documents does not link its projection, and the three projections do not exist; every theorem, declaration, module, count, ruling, heading, register row, debt, gate and the leaf resolve |
+| the run with the slice A sentences | `outcome … true` over the real files, each document given the sentence in memory | the PASS line with "3 graph(s), 30 edges, 1 leaf record(s), 0 unrouted prefix(es)" and three projections written; `generated/graphs/DATA-PG-QUEUE.md` is byte-identical to the design's appendix B (3,686 characters) |
+| the run-time file set of the real ledger | `Ledger.files` | 18 paths: the three fixed files, three per graph, the four report sources, the leaf's document and `WhatwgTest/Infra/IntegerConstructiveContract.lean` |
+| tokens and mentions on the real `COORDINATION.md` | `edgeTokens`, `rulingMentions` | no token; mentions `(R-P20, PROMISE-PG-FIRST)` and `(R-V8, CONFIGURATION-PG-ORDERING)` |
+| the thirteen `unrouted` prefixes | `getModuleIdx?` over the imported roots | each is a built module |
+| the executable's link | its response file | 9 objects, none under `ir/Whatwg/` |
+| usage | `lake -q exe whatwg_ledger --bogus` | the usage line, exit 2 |
+
+Not validated, because the code does not exist yet: the shared loader's
+refusal of a missing or stale `.olean` and `cli`'s FAIL line on that refusal
+(section 10, item 2); slice D (section 12). After validation every prototype
+file, the temporary root and lakefile lines and the prototype's build
+outputs were removed, and the battery fails as in 15.1.
 
 ## 16. Deviations from the design
 
@@ -663,3 +740,6 @@ and the validation of each frozen item against the reinstated prototype.
 | no document-link check in the prototype; section 3 asks for one | `does not link generated/graphs/<G>.md`; slice A adds the sentence to its three documents | the design's section 3 |
 | PASS line counts graphs and edges | also leaf records and unrouted prefixes | the line states what was checked |
 | `Cell.render` prefixes non-closed grounds `Discharged: ` | not-applicable cells use `Recorded by: ` | the new ruling grounds of such cells |
+| the environment of `[WhatwgTest]` | the roots `Whatwg`, `WhatwgTest` and `WhatwgGates`, the set `leanchecker` replays | a ground may name a production module no battery imports |
+| `unrouted` entries checked by nobody until slice D | `unroutedFindings` from slice A | a cheap check of data slice D adds |
+| public declarations of section 3 | also `Ground.attests`, `ConstantKind`, `World.linesOf`, `codeLines`, `unroutedFindings`, `Ledger.files`, `referenceFindings`, `projectionFindings`, `Outcome` and `outcome` | the changes above; each is ascribed by the battery |
