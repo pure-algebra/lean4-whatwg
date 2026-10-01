@@ -52,9 +52,9 @@ module name, or a `Module.leanArgs` label that does not end in `]`.
 missing or unreadable source into `fresh = false`. `sourceModules` refuses
 (throws) a tree name that is not a module name, an unreadable directory, and a
 walk that exceeds `sourceWalkFuel` directory reads, which only a cycle of
-symbolic links can cause. `importBuilt` throws whatever `Lean.importModules`
-throws: a module with no built file, an unknown module prefix, a constant two
-modules both declare.
+symbolic links can cause. `importBuilt` throws for a requested name that is
+not a module name, and whatever `Lean.importModules` throws: a module with no
+built file, an unknown module prefix, a constant two modules both declare.
 
 ## Why extensions are not loaded
 
@@ -90,14 +90,22 @@ without loading the extension.
 
 ## Call sequence
 
-`initLoaderSearchPath root`; `sourceModules root trees`; `traceOf (leanBuildDir
-root) root m` and the existence of `Lean.modToFilePath (leanBuildDir root) m
-"olean"` for each module; then `importBuilt` over the modules the caller
-imports; then, for each module index `i` below
-`env.header.moduleNames.size`, `moduleDeclarations env i`,
-`extensionsWithEntries env i` and `rawEntries env i e`. The first three throw
-on the failures listed above; `traceOf` never throws; the last three are pure
-and answer `#[]` for an index out of range.
+1. `initLoaderSearchPath root`, once, before any import.
+2. `sourceModules root trees`: the module sources, the root module included.
+3. For each module `m`: `traceOf (leanBuildDir root) root m`, and the
+   existence of `Lean.modToFilePath (leanBuildDir root) m "olean"`, which
+   `traceOf` does not check. A caller that imports a module whose trace is not
+   fresh reads a built file that is not its source's.
+4. `importBuilt` over the modules the caller imports (the trust gate's import
+   set never holds the root, V2e.1).
+5. For each module index `i` below `env.header.moduleNames.size`:
+   `moduleDeclarations env i`, `extensionsWithEntries env i` and
+   `rawEntries env i e`.
+
+`initLoaderSearchPath`, `sourceModules` and `importBuilt` throw on the
+failures listed above; `parseTrace` returns its refusal as a value; `traceOf`
+never throws; `moduleDeclarations`, `extensionsWithEntries` and `rawEntries`
+are pure and answer `#[]` for an index out of range.
 -/
 
 namespace Gates.Trust
@@ -133,22 +141,30 @@ packages directory cannot be read. -/
 def initLoaderSearchPath (root : System.FilePath) : IO Unit := do
   Lean.searchPathRef.set (← loaderSearchPath root (← Lean.findSysroot))
 
+/-- Whether every component of a name is a non-empty string, so that
+`Lean.modToFilePath` maps it to a path; the anonymous name is no module. Read
+through `Lean.Name.componentsRev`, so this module defines no recursive
+function. -/
+def isModuleName (name : Name) : Bool :=
+  !name.isAnonymous && name.componentsRev.all fun component =>
+    match component with
+    | .str .anonymous text => !text.isEmpty
+    | _ => false
+
 /-- Import the built files of `modules`, and of everything they import, with
-no environment extension loaded: no import hook, parser descriptor or
-initializer of an imported module runs. Call `initLoaderSearchPath` first.
-Throws when a module has no built file or two modules declare one constant. -/
-def importBuilt (modules : Array Name) : IO Environment :=
+no environment extension loaded:
+`Lean.importModules (modules.map ({ module := · })) {} (loadExts := false)`,
+so no import hook, parser descriptor or initializer of an imported module
+runs. Call `initLoaderSearchPath` first. Throws when a module has no built
+file or two modules declare one constant, and, before importing anything,
+when a requested name is not a module name (for which `Lean.modToFilePath`
+would panic). -/
+def importBuilt (modules : Array Name) : IO Environment := do
+  if let some bad := modules.find? (!isModuleName ·) then
+    throw <| IO.userError s!"Whatwg trust loader: cannot import {bad}, which is not a module name"
   Lean.importModules (modules.map ({ module := · })) {} (loadExts := false)
 
 /-! ## Module sources -/
-
-/-- Whether every component of a name is a non-empty string, so that
-`Lean.modToFilePath` maps it to a path; the anonymous name is no module. -/
-def isModuleName : Name → Bool
-  | .anonymous => false
-  | .str .anonymous component => !component.isEmpty
-  | .str parent component => !component.isEmpty && isModuleName parent
-  | .num _ _ => false
 
 /-- Whether a path names a Lean source: its extension is `lean` in any case,
 as the in-tree gate reads it, so that a `.LEAN` file a case-insensitive host
