@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2-T15: a root-anchored spelling of a
+-- forbidden axiom.
+set_option linter.deprecated false in
+#check @_root_.Lean.trustCompiler

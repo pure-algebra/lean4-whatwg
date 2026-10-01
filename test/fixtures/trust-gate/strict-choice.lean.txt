@@ -1,0 +1,15 @@
+/-!
+Planted by the trust self-test: one theorem that reaches `Classical.choice`
+(`#print axioms` reports `propext`, `Classical.choice` and `Quot.sound`). The
+same text is planted as a new module under the strict prefix `Whatwg.Ecma262`
+(plants V2-S1 and V2-S6, where it must be refused unless excepted) and as a new
+module under `WhatwgTest` (plants V2-S2, V2-S5 and V2-X1, where R-11 admits it).
+Strictness is decided by the module, so the declaration's name is the same in
+both places.
+-/
+
+namespace TrustSelfTestPlant
+
+theorem plantedChoice (p : Prop) : p ∨ ¬p := Classical.em p
+
+end TrustSelfTestPlant

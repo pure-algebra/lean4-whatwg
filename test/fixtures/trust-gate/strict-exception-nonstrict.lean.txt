@@ -1,0 +1,1 @@
+  ⟨`TrustSelfTestPlant.plantedChoice, "trust self-test plant V2-S5: this declaration's module is under no strict prefix"⟩ ::

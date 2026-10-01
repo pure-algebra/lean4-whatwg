@@ -1,0 +1,10 @@
+import Std.Tactic.BVDecide
+
+/-!
+Planted by the trust self-test, plant V2-T03: `bv_decide?` inside a tactic
+quotation. The macro is never expanded here, so no constant records it; its
+expansion anywhere would run `bv_decide`. (The tactic is not run in the plant
+because it writes an LRAT file beside the source.)
+-/
+
+macro "planted_bv_decide_query" : tactic => `(tactic| bv_decide?)

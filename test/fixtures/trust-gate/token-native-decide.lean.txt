@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plants V2-T01 (appended to the production
+-- root), V2-T16 (a new tooling module) and V2-T17 (appended to an entry point
+-- under bin/): `native_decide` inside an `example`, which leaves no constant
+-- for the environment pass to inspect.
+example : (2 : Nat) + 2 = 4 := by native_decide

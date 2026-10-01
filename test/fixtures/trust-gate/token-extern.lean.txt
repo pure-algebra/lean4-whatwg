@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2-T09: `extern` inside a command
+-- quotation. The macro is never expanded here, so no constant records it.
+macro "planted_extern_command" : command =>
+  `(command| @[extern "planted_symbol"] def plantedQuotedExtern : Nat := 0)

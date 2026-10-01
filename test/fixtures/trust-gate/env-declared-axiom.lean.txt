@@ -1,0 +1,13 @@
+import Lean
+
+/-!
+Planted by the trust self-test, plant V2-E1 of
+`test/contracts/trust-gate-hardening.contract.md`: an axiom added through
+`Lean.addDecl`, so that no source token spells it. Only the environment pass
+of the gate can see it. Its type is `True`, so nothing false is assumed.
+-/
+
+run_cmd Lean.Elab.Command.liftCoreM do
+  Lean.addDecl (.axiomDecl
+    { name := `plantedDeclaredAxiom, levelParams := [], type := Lean.mkConst ``True,
+      isUnsafe := false })

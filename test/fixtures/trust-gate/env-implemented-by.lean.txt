@@ -1,0 +1,17 @@
+import Lean
+
+/-!
+Planted by the trust self-test, plant V2-E4: `@[implemented_by]` data attached
+through the attribute API, so that no source token spells the attribute. Only
+the environment pass of the gate can see it.
+-/
+
+def plantedImplementation : Nat := 1
+
+def plantedImplementedTarget : Nat := 0
+
+run_cmd Lean.Elab.Command.liftCoreM do
+  match Lean.Compiler.implementedByAttr.setParam (← Lean.getEnv) `plantedImplementedTarget
+      `plantedImplementation with
+  | .ok environment => Lean.setEnv environment
+  | .error message => throwError message

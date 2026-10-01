@@ -1,0 +1,8 @@
+import Std.Tactic.BVDecide
+
+/-!
+Planted by the trust self-test, plant V2-T02: `bv_decide` inside an `example`,
+which leaves no constant for the environment pass to inspect.
+-/
+
+example (x y : BitVec 4) : x &&& y = y &&& x := by bv_decide

@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2-T11: a theorem the kernel never
+-- checks. It reaches no axiom, so the axiom pass sees an ordinary theorem.
+set_option debug.skipKernelTC true in
+theorem plantedUncheckedTheorem : (1 : Nat) + 1 = 2 := rfl

@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2-T10: `implemented_by` inside a
+-- command quotation. The macro is never expanded here, so no constant records it.
+macro "planted_implemented_by_command" : command =>
+  `(command| @[implemented_by plantedQuotedImplementation] def plantedQuotedTarget : Nat := 0)

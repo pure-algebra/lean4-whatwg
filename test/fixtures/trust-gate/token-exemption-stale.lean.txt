@@ -1,0 +1,1 @@
+  ⟨`WhatwgTest.TrustSelfTestPlant, "trust self-test plant V2-X1: this module names no refused token"⟩ ::

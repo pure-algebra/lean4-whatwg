@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2-T13: the qualified spelling of a
+-- forbidden axiom in code. The deprecation linter is switched off for the one
+-- command, as an author bypassing it would.
+set_option linter.deprecated false in
+#check @Lean.ofReduceBool

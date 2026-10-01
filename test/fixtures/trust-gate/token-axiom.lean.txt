@@ -1,0 +1,3 @@
+-- Planted by the trust self-test, plant V2-T08: `axiom` inside a command
+-- quotation. The macro is never expanded here, so no constant records it.
+macro "planted_axiom_command" : command => `(command| axiom plantedQuotedAxiom : True)

@@ -1,0 +1,3 @@
+-- Planted by the trust self-test, plant V2-E6: an `opaque` with no body, whose
+-- value Lean synthesises from the `Inhabited Nat` instance.
+opaque plantedBodylessOpaque : Nat

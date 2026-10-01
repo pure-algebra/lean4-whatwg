@@ -1,0 +1,1 @@
+  ⟨`TrustSelfTestPlant.plantedChoiceFree, "trust self-test plant V2-S4: this declaration reaches no Classical.choice"⟩ ::
