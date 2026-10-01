@@ -47,7 +47,7 @@ def readableDefault : Graph where
         .theorems [`Whatwg.Streams.Readable.step_queueInv,
           `Whatwg.Streams.Readable.steps_queueInv,
           `Whatwg.Streams.Readable.initial_queueInv]]
-      note := "`QueueInv` holds at `initial` and every step preserves it; R-W14 adds it to this edge as a ground and changes no status." }
+      note := "`QueueInv` holds at `initial`, and every step from a state where it holds reaches a state where it holds; R-W14 adds it to this edge as a ground and changes no status." }
     semantics := {
       status := .requiredOpen
       remaining := [.named "the full-state embedding", .named "the shared-allocation embedding",

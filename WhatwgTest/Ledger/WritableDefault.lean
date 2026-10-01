@@ -52,7 +52,7 @@ def writableDefault : Graph where
           `Whatwg.Streams.Writable.step_queueInv,
           `Whatwg.Streams.Writable.reaches_queueInv,
           `Whatwg.Streams.Writable.initial_queueInv]]
-      note := "Setup/start and writer acquire/release/reacquire are later full-P5 work. `QueueInv` holds at `initial` and `tick`, `decide`, every step and every run preserve it; R-W14 adds it to this edge as a ground and changes no status." }
+      note := "Setup/start and writer acquire/release/reacquire are later full-P5 work. `QueueInv` holds at `initial`, and `tick`, `decide`, every step and every run from a state where it holds reach a state where it holds; R-W14 adds it to this edge as a ground and changes no status." }
     semantics := {
       status := .requiredOpen
       remaining := [.named "the global call-stack and job order",
