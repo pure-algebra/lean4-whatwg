@@ -192,12 +192,14 @@ def recordsDirectory : String := "test/records"
 leaves only by a ruling (contract, section 12). -/
 def recordedPrefixes : List String := []
 
-/-- The seven production libraries, in file order, with the module each is
-rooted at. The umbrella `Whatwg` owns only its own module. -/
+/-- The eight production libraries, in file order, with the module each is
+rooted at. The umbrella `Whatwg` owns only its own module. `WhatwgSignatures`,
+the `Effects.Signature` faces of promise slice Q5, is the eighth since ruling
+R-W17: the snapshot packet and the Q5 packet were frozen in parallel. -/
 def libraries : List (String × Name) :=
   [("Whatwg", `Whatwg), ("WhatwgInfra", `Whatwg.Infra), ("WhatwgEcma262", `Whatwg.Ecma262),
    ("WhatwgWebIdl", `Whatwg.WebIdl), ("WhatwgUrl", `Whatwg.Url), ("WhatwgHtml", `Whatwg.Html),
-   ("WhatwgStreams", `Whatwg.Streams)]
+   ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures)]
 
 /-- The roles a record may give its declaration. -/
 def roles : List String :=

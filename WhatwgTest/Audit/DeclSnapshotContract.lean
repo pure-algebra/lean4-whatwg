@@ -123,10 +123,15 @@ open Gates.DeclSnapshot
 #guard outputDirectory == "generated/declarations"
 #guard recordsDirectory == "test/records"
 #guard recordedPrefixes == []
+-- R-W17, 2026-10-01: an eighth library. This packet and promise slice Q5 were
+-- frozen in parallel; Q5 landed the Lake library `WhatwgSignatures` (ruling
+-- R-W3), and the generator refuses a production module that belongs to no
+-- library, so the frozen seven became eight. Amended by the coordinator's
+-- ruling; no other row of this battery changes meaning.
 #guard libraries ==
   [("Whatwg", `Whatwg), ("WhatwgInfra", `Whatwg.Infra), ("WhatwgEcma262", `Whatwg.Ecma262),
    ("WhatwgWebIdl", `Whatwg.WebIdl), ("WhatwgUrl", `Whatwg.Url), ("WhatwgHtml", `Whatwg.Html),
-   ("WhatwgStreams", `Whatwg.Streams)]
+   ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures)]
 #guard roles ==
   ["canonical", "view", "adapter", "separate-calculus", "derived", "helper",
    "foreign-boundary", "target-only"]
@@ -499,7 +504,9 @@ private def emptyProjection (library : String) : String :=
    ("generated/declarations/WhatwgWebIdl.tsv", emptyProjection "WhatwgWebIdl"),
    ("generated/declarations/WhatwgUrl.tsv", emptyProjection "WhatwgUrl"),
    ("generated/declarations/WhatwgHtml.tsv", emptyProjection "WhatwgHtml"),
-   ("generated/declarations/WhatwgStreams.tsv", streamsProjection)]
+   ("generated/declarations/WhatwgStreams.tsv", streamsProjection),
+   -- R-W17, 2026-10-01: the eighth library's file, empty in this fixture.
+   ("generated/declarations/WhatwgSignatures.tsv", emptyProjection "WhatwgSignatures")]
 
 /-! ### 6. The nine join failures
 

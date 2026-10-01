@@ -1,5 +1,28 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgWebIdl rows=281 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgWebIdl rows=304 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
+Whatwg.WebIdl.Agent.markAsHandled	Whatwg.WebIdl.Agent	definition	authored	0	cd684c92da86604b66489e3fe1a80c238ab978051dca4ea63f26e734381fc173	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.markAsHandled_eq	Whatwg.WebIdl.Agent	theorem	authored	0	3cbb1c682f2f47f2d87cc3f90fca8d05a1aa21dad98868f1afbb9116da016f97	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.markAsHandled_view	Whatwg.WebIdl.Agent	theorem	authored	0	ca1bbdf4c602c83168d280bfdf9fb1a4111e72fdbb1ca30e0b2839681174637f	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.newPromise	Whatwg.WebIdl.Agent	definition	authored	0	cd2b6ef8fe90b9295b7fe716cc6cf150a0f72c80b27448506516ccae7a2f4f07	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.newPromise_eq	Whatwg.WebIdl.Agent	theorem	authored	0	441406b9cb2651f861abc8d345a2253487f931d5b372603b07fd161975c521d2	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.newPromise_view	Whatwg.WebIdl.Agent	theorem	authored	0	9e5e57ef406a4bc6fc29374e14a747a7d26e9716e97726f8eced9e0294791cc3	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.react	Whatwg.WebIdl.Agent	definition	authored	0	f53cf683ca7871a4e839c3b2411fed03f11ed092f0aef727b8bc6947e0c0aadf	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.react_eq	Whatwg.WebIdl.Agent	theorem	authored	0	2325f85358cf17b19f6d8c357dc2f305e6a3bffb3705665492b684f5952e56f2	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.react_resolve	Whatwg.WebIdl.Agent	theorem	authored	0	a1a1c681996b744ba0328c502ba9d3fe089a674fa791227aba3472656119cf23	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.reject	Whatwg.WebIdl.Agent	definition	authored	0	9b21dacb9c44f05b4f204f1d54c5494728769d26e1fd10a27dc76fc261a93a83	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.reject_eq	Whatwg.WebIdl.Agent	theorem	authored	0	dfac063962aaa710f9dbf5bd47255fa3f17112c5d27b742c1e4d274908b1ef50	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.reject_view	Whatwg.WebIdl.Agent	theorem	authored	0	859bbd54b432e47b8393a6c337e41b6c6578fe486430883683695ca56b83340e	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.rejectedWith	Whatwg.WebIdl.Agent	definition	authored	0	3c8e55e0e6e9bab3c6604caa02d4a6d1be732a819bf2f19d6b51f5fa62ddd420	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.rejectedWith_eq	Whatwg.WebIdl.Agent	theorem	authored	0	5bf40049ff28d2a1c06d61aa43796a64b193f7e277a3f53f4a285738a6c2ae8d	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.resolve	Whatwg.WebIdl.Agent	definition	authored	0	3b942ce805657fbf5324147ec748630c51ab1bbf0e8f8a7ff8c2f203aace2cbf	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.resolve_eq	Whatwg.WebIdl.Agent	theorem	authored	0	0fdeef11e37dde676b0ef6c89a3fe7a88084d0474f4ead70052404f2a2eee8b9	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.resolve_view	Whatwg.WebIdl.Agent	theorem	authored	0	66b49182427a77905a7d7a0749888cdcf5029610a6b0fa65c5374565df1484c8	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.resolvedWith	Whatwg.WebIdl.Agent	definition	authored	0	5d77ae04577b183d93071409508d04959eada219738336678fa3d98d848bad14	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.resolvedWith_eq	Whatwg.WebIdl.Agent	theorem	authored	0	d2c1e7514f01507e23db9367797ad2cb384e1c401f3b173a19f900fb6dc933ee	propext	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.uponFulfillment	Whatwg.WebIdl.Agent	definition	authored	0	566911cc7b9d0c10d7fcf3147daa7cd6872b15fbf4fc4549d6ffd42bc805d70a	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.uponFulfillment_eq	Whatwg.WebIdl.Agent	theorem	authored	0	d400490607d21ec0b239222557c25dc9dd4e1c096bdaac2bcef5a5cc5e2db01b	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.uponRejection	Whatwg.WebIdl.Agent	definition	authored	0	566911cc7b9d0c10d7fcf3147daa7cd6872b15fbf4fc4549d6ffd42bc805d70a	-	-	-	-	-	-	-	-
+Whatwg.WebIdl.Agent.uponRejection_eq	Whatwg.WebIdl.Agent	theorem	authored	0	77c8c37ee37437815358f29333bace48ed84f74a152b26306107fcc800702cbd	-	-	-	-	-	-	-	-
 Whatwg.WebIdl.Exceptions.Exception	Whatwg.WebIdl.Exceptions	inductive	authored	0	21400adfb2a4458d3e08520c1d3f4925e210fa4ad4a8a10b07e681f182ae07fb	-	-	-	-	-	-	-	-
 Whatwg.WebIdl.Exceptions.Exception.casesOn	Whatwg.WebIdl.Exceptions	definition	authored	1	a52d8a2d6cbc0bafd86f3f752c4bcecb8046974a8f070d071954a65604c62504	-	-	-	-	-	-	-	-
 Whatwg.WebIdl.Exceptions.Exception.ctorElim	Whatwg.WebIdl.Exceptions	definition	authored	1	2fe84a6c49a09167e904be1af8d9198e835687f71e5121b020b1d5c93f2f18c3	-	-	-	-	-	-	-	-
