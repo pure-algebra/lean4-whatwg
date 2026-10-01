@@ -140,3 +140,50 @@ pass proves them. The two witnesses above are stated, not executed: no
 `WS-CONFIG` witness module exists yet, and the configuration counterexample
 tranche remains the `counterexamples` edge of `docs/CONFIGURATION-DAG.md`. No
 host was run and no WPT case was replayed.
+
+## Q5 agent packet, 2026-10-01, branch `review/w9-q5-breaker`
+
+Appended by the Q5 breaker seat of review lane W, based on `b0d35e2`, under
+ruling R-W3. Packet: `test/contracts/promise-agent-q5.contract.md`. Graph:
+`docs/PROMISE-AGENT-DAG.md`. The thirty-nine rows above are frozen and
+unchanged; these eight are new, the rows of the W9 design's §6.2. Their
+register entries are added in `test/counterexamples/REGISTER.md` at the same
+commit, as `SEEDED`.
+
+Every row below is `SEEDED`: the attack and the statements that must reject
+it are frozen now, and the statements are red until the builder slice named
+beside each lands. One row attacks the landed surface *as built*
+(`WS-PROM-CE-040`, debt D46) and says so. The rejecting statements live in
+`WhatwgTest/Ecma262/{AgentContract,AgentLaws}.lean`,
+`WhatwgTest/WebIdl/AgentContract.lean` and
+`WhatwgTest/Signatures/Ecma262Contract.lean`, beside finite witnesses over
+`Unit`, `Nat` and `Nat` closed by `rfl` or `decide`; no separate witness
+module is written. Masks are DB-04's.
+
+Byte offsets are 0-based, ends exclusive, into
+`vendor/ecma262-0248456c/spec.html` and
+`vendor/whatwg-webidl-a652053f/index.bs`. No line number is cited.
+
+| ID | Mutant | Rejecting statement |
+| --- | --- | --- |
+| WS-PROM-CE-040 | Web IDL "react" followed by "resolve" enqueues no reaction job, because `WebIdl.Promise.resolve` is `Table.settle` and its signature carries no reaction store or queue. **This is the landed Q3 surface (debt D46)**: store-level `react` then `resolve` from one pending promise leaves the caller's queue empty while the promise is fulfilled | D46; `op.triggerpromisereactions` (2700260..2701212) and `op.performpromisethen` (2740635..2743669) through Web IDL `op.resolve` (349216..349783) step 3. `Whatwg.Ecma262.Agent.react_resolve_enqueues` (DB-04 M2, slice B1): agent-level `perform` with a derived capability then `resolve` enqueues, behind every job already queued, the jobs of the reactions already waiting in registration order and then exactly the new reaction's job; `react_resolve_enqueues_wf` and `react_resolve_enqueues_exactly` beside it, and `Whatwg.WebIdl.Agent.react_resolve` (DB-04 M2, slice B3). Witness: the B3 battery's §5, 0 jobs at store level and `[⟨0, .ok ()⟩]` at agent level, and the B1 battery's §10, where the law's hypotheses hold at a well-formed agent |
+| WS-PROM-CE-041 | a forged capability, whose resolving functions this agent never stored, settles its promise, as a fallback to `Table.settle cap.promise` would | `op.createresolvingfunctions` (2692679..2695411): only a stored function settles. `Whatwg.Ecma262.Agent.resolve_unminted` and `reject_unminted` (DB-04 M1, slice B2): with no stored function of that identity the agent is unchanged; `callFunctions_none` (slice B1). Witness: the B1 battery's §10, capability `⟨0, 5, 6⟩` |
+| WS-PROM-CE-042 | each resolving function keeps its own one-shot marker at the agent, so `reject` after `resolve` through the same capability still fires | `op.createresolvingfunctions`'s shared record (`WS-PROM-CE-032` at the store level). `Whatwg.Ecma262.Agent.resolve_then_reject` and `reject_then_resolve` (DB-04 M1, slice B2): under `WF` and for a stored capability the second call returns the agent unchanged. Witness: the B1 battery's §10 and the B3 battery's §5 |
+| WS-PROM-CE-043 | an agent whose table repeats an identity through the public `Table.mk` is accepted as well formed, so `find?` names the first cell while `Table.settle` rewrites both | `Whatwg.Ecma262.Agent.WF.tableNodup` (slice B1): such an agent is ill formed, not unconstructible, since `Table.mk` stays public. Witness: the B1 battery's §10, `¬ WF` on `Table.mk` with identity `0` twice |
+| WS-PROM-CE-044 | `finishJob` for a reaction whose `[[Capability]]` is *undefined* settles something (debt D18) | `op.newpromisereactionjob` (2702885..2705591) inner step 6. `Whatwg.Ecma262.Agent.finishJob_no_capability` (DB-04 M1, slice B1): the agent only returns to a checkpoint with no job running. Witness: the B1 battery's §10, with the derived-capability contrast that does settle (D17) |
+| WS-PROM-CE-045 | `startJob` ignores the activation, so a job starts while another is being evaluated | `requirement.jobs.3` (626357..626479) and `requirement.jobs.2` (626257..626350). `Whatwg.Ecma262.Agent.startJob_running` and `startJob_blocked` (DB-04 M1, slice B1). Witness: the B1 battery's §10, two jobs queued and the second `startJob` inert |
+| WS-PROM-CE-046 | a separate job-serial supply: `startJob` enters `Active.job` with a serial from a fourth cursor, not the reaction identity `triggerReactions` writes as `.queued r.id` (the `WS-PROM-CE-039` shape) | the design's decision 5 as R-W3 adopts it. `Whatwg.Ecma262.Agent.startJob_agree` and `startJob_checkpoint` (DB-04 M2, slice B1) and `startJob_serial` (DB-04 M1, slice B2). Witness: the B1 battery's §10, serial `0` and the record's phase `.queued 0` |
+| WS-PROM-CE-047 | the face's lens handler is used with a `view` and `update` that do not satisfy `view (update a s) = a`, or the canonical handler steps twice or keeps state of its own | `Whatwg.Signatures.Ecma262.interpret_handlerAt`, whose hypothesis is the lens law, `interpret_eq_run` and `handler_handle` (DB-04 M2, slice B4). Witness: the B4 battery's §5, a lens that drops the write and a handler that steps twice, both refuted by `decide` |
+
+Two attacks this packet still deliberately does **not** discriminate, as the
+earlier sections: thenable adoption (`G-05`,
+`op.newpromiseresolvethenablejob`, 2705599..2707541), which is exactly what
+would falsify `WF.resolvedSettled` and which R-W3 records as the obligation to
+weaken that clause; and a rejection tracker reading the handled bit (`G-02`,
+`hook.host-promise-rejection-tracker`, 2701220..2702791).
+
+Verification: the eight rows' statements and witnesses elaborated green
+against an uncommitted prototype in the breaker's worktree, with the axiom
+gate over six strict prefixes and no exception; after the prototype's removal
+each battery is red only because the names it ascribes do not exist (the
+contract's §§14 and 19). No host was run and no WPT case was replayed.
