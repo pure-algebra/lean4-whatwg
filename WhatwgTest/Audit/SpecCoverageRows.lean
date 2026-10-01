@@ -12,7 +12,7 @@ coverage state, and the witness list. `WhatwgTest/Audit/SpecCoverage.lean`
 owns the checks over it and `docs/SPEC-COVERAGE.md` owns the rules.
 -/
 
-import Gates
+import WhatwgGates
 
 namespace WhatwgTest.Audit.SpecCoverageRows
 

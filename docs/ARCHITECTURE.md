@@ -12,8 +12,8 @@ first-order data (queue-with-sizes, chunks, strategies)
   -> host conformance harnesses
 ```
 
-Nothing in `Whatwg/` depends on `Gates/`,
-`WhatwgTest/`, or `harness/`. `Gates/` depends on nothing in `Whatwg/`. The
+Nothing in `Whatwg/` depends on `WhatwgGates/`,
+`WhatwgTest/`, or `harness/`. `WhatwgGates/` depends on nothing in `Whatwg/`. The
 test tree imports both.
 
 ## Planned source tree

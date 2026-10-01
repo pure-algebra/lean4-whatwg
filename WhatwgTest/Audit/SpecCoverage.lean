@@ -1,6 +1,6 @@
 import Lean
 import Lean.Util.CollectAxioms
-import Gates
+import WhatwgGates
 import Whatwg.Streams
 import WhatwgTest.Audit.SpecCoverageRows
 

@@ -1,4 +1,4 @@
-import Gates.Census
+import WhatwgGates.Census
 
 /-!
 Byte-oriented lexical inventory of the pinned URL Bikeshed source.
@@ -412,7 +412,7 @@ def cli (args : List String) : IO UInt32 := do
     | [] => checkOrWrite root false
     | ["--write"] => checkOrWrite root true
     | _ =>
-      IO.eprintln "usage: lake exe urlinventory [--write]"
+      IO.eprintln "usage: lake exe whatwg_urlinventory [--write]" -- R-V3(c), 2026-10-01
       return 2
   catch err =>
     IO.eprintln s!"FAIL URL inventory: {err}"

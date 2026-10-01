@@ -1,4 +1,4 @@
-import Gates.Common
+import WhatwgGates.Common
 
 /-!
 # Gates.Ecmarkup
@@ -25,7 +25,7 @@ frozen contract, and it matches the `Gates.Census` message style.
 
 ## Why the byte primitives are re-spelled here
 
-`Gates/Census.lean` must import this module to serve
+`WhatwgGates/Census.lean` must import this module to serve
 `Gates.Census.Profile.ecmarkup`, so the dependency cannot also run the other
 way and the handful of byte helpers below cannot be taken from `Gates.Census`.
 They are the same rules, deliberately: total `byteAt`, ASCII-first

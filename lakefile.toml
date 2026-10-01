@@ -4,8 +4,9 @@ description = "WHATWG standards reified in Lean 4, one library per standard; Str
 keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
-defaultTargets = ["Whatwg", "Gates", "WhatwgTest",
-                  "vendorseal", "citations", "census", "urlinventory", "urlcensus"]
+defaultTargets = ["Whatwg", "WhatwgGates", "WhatwgTest",
+                  "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
+                  "whatwg_urlinventory", "whatwg_urlcensus"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -19,10 +20,12 @@ name = "Whatwg"
 globs = ["Whatwg.*"]
 
 # Repository gates implemented in Lean. Tooling, not semantics; audited for
-# totality and forbidden axioms under the implementation ceiling.
+# totality and forbidden axioms under ruling R-11's ceiling, like every tree.
+# The modules are `WhatwgGates.*` and their declarations keep the namespace
+# `Gates.*` (ruling R-V3(c)).
 [[lean_lib]]
-name = "Gates"
-globs = ["Gates.*"]
+name = "WhatwgGates"
+globs = ["WhatwgGates.*"]
 
 # Contracts, attacks, receipts, and the elaboration-time axiom gate.
 [[lean_lib]]
@@ -30,41 +33,44 @@ name = "WhatwgTest"
 globs = ["WhatwgTest.*"]
 
 
-# Executable entry points. Each is a one-line wrapper under bin/ that calls
-# the audited `cli` of its Gates module; bin/ itself holds no logic.
+# Executable entry points. Each is a one-line wrapper under `whatwgbin/` that
+# calls the audited `cli` of its WhatwgGates module; `whatwgbin/` itself holds
+# no logic, and the census entry point alone also imports the test-side
+# coverage numerators.
+#
+# Lake resolves module names and executable names across the whole workspace,
+# so a package that requires this one could not also define `Gates.Common`, a
+# `bin.*` or bare `Citations` root, or an executable called `census`
+# (docs/AGENT-ROUTING.md, "Packages cloned from this skeleton"). Every entry
+# point therefore uses `root = "whatwgbin.<Name>"` under the default source
+# directory, which resolves to `whatwgbin/<Name>.lean`, and every executable
+# name carries the `whatwg_` prefix.
 
 [[lean_exe]]
-name = "vendorseal"
-srcDir = "bin"
-root = "VendorSeal"
+name = "whatwg_vendorseal"
+root = "whatwgbin.VendorSeal"
 
 [[lean_exe]]
-name = "citations"
-srcDir = "bin"
-root = "Citations"
+name = "whatwg_citations"
+root = "whatwgbin.Citations"
 
 [[lean_exe]]
-name = "urlinventory"
-srcDir = "bin"
-root = "UrlInventory"
+name = "whatwg_urlinventory"
+root = "whatwgbin.UrlInventory"
 
 [[lean_exe]]
-name = "urlcensus"
-srcDir = "bin"
-root = "UrlCensus"
+name = "whatwg_urlcensus"
+root = "whatwgbin.UrlCensus"
 
 [[lean_exe]]
-name = "trustselftest"
-srcDir = "bin"
-root = "TrustSelfTest"
+name = "whatwg_trustselftest"
+root = "whatwgbin.TrustSelfTest"
 
-# The P1 specification-algorithm census. `root = "bin.Census"` under the
-# default `srcDir` resolves to `bin/Census.lean`, matching the `sha256`
-# entry point above; there is no `Census` library root to collide with today,
-# and the spelling keeps the two entry-point conventions from diverging.
+# The P1 specification-algorithm census, and since slice Q2 the Web IDL and
+# ECMA-262 censuses, each with its coverage report.
 [[lean_exe]]
-name = "census"
-root = "bin.Census"
+name = "whatwg_census"
+root = "whatwgbin.Census"
 
 # The proved hash functions the gates compute every digest with. Exact commit
 # of pure-algebra/lean4-hash `main`, the pin lean4-effect4 uses (ruling

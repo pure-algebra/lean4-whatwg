@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # ECMA-262 promise census contract battery

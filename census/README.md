@@ -1,7 +1,7 @@
 # Census authored inputs
 
 This directory is authored input to the P1 specification-algorithm census, not
-generated output. `Gates/Census.lean` reads it; `generated/` receives what the
+generated output. `WhatwgGates/Census.lean` reads it; `generated/` receives what the
 generator writes. Nothing here may be produced by a tool.
 
 `SPEC-MANIFEST.md` owns the disposition vocabulary and the section table these
@@ -162,5 +162,5 @@ rather than at a definition, and the four that matter —
 
 The manifest's P0 survey records 66 distinct internal slot names. Four of those
 are Bikeshed bibliography citations rather than internal slots, so the census
-carries 62 `slot` rows. `Gates/Census.lean` documents the mechanical rule that
+carries 62 `slot` rows. `WhatwgGates/Census.lean` documents the mechanical rule that
 separates the two.

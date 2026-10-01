@@ -1,6 +1,6 @@
-import Gates.Common
-import Gates.Sha256
-import Gates.Ecmarkup
+import WhatwgGates.Common
+import WhatwgGates.Sha256
+import WhatwgGates.Ecmarkup
 
 /-!
 # Gates.Census
@@ -11,24 +11,24 @@ slot, IDL member, stated piping requirement, and authored cross-cutting rule
 of the pinned `index.bs`, each anchored to the pinned bytes by a byte string
 that occurs exactly once and by the SHA-256 of its span.
 
-`lake exe census --write` writes two projections:
+`lake exe whatwg_census --write` writes two projections:
 
 - `generated/spec-algorithm-census.tsv`, the census itself; and
 - `WhatwgTest/Audit/SpecCoverageRows.lean`, the frozen Lean row list
   the test-side numerator checks itself against.
 
-`lake exe census` checks the input digest, anchor uniqueness, every span
+`lake exe whatwg_census` checks the input digest, anchor uniqueness, every span
 digest, the disposition join, byte-identity of both projections against a
 fresh regeneration, and the numerator's coverage emit against that same
-regeneration. `lake exe census --report` prints the coverage block from the
+regeneration. `lake exe whatwg_census --report` prints the coverage block from the
 emit.
 
 The emit is not a file. `WhatwgTest/Audit/SpecCoverage.lean` owns the Streams
 coverage states and witnesses and exports them as `emit`, and since slice Q2
 `WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and
 `WhatwgTest/Audit/Ecma262/SpecCoverage.lean` do the same for their standards;
-`bin/Census.lean` imports all three and hands `cli` below a map from
-`Standard.key` to emit, because `Gates/` may not import a test-side module.
+`whatwgbin/Census.lean` imports all three and hands `cli` below a map from
+`Standard.key` to emit, because `WhatwgGates/` may not import a test-side module.
 Infra has no entry in that map and therefore no report. Every number this
 executable prints therefore
 comes from Lean data that the numerator's own elaboration-time gate has
@@ -465,7 +465,7 @@ structure Bikeshed where
   deriving Inhabited
 
 /-- The source shape a standard is written in. `bikeshed` carries the switches
-above; `ecmarkup` is served by `Gates/Ecmarkup.lean`, which the ES2026 builder
+above; `ecmarkup` is served by `WhatwgGates/Ecmarkup.lean`, which the ES2026 builder
 lands. -/
 inductive Profile
   | bikeshed (switches : Bikeshed)
@@ -1891,7 +1891,7 @@ def renderRowsModule (std : Standard) (entries : Array CoverageRow) (denominator
     s!"`{std.censusRelativePath}`, and the authored disposition inputs under `{std.authoredDir}/`.\n" ++
     "Format version " ++ formatVersion ++ s!". `{std.regenerateCommand.replace " --write" ""}` fails on any byte of drift.\n\n" ++
     assuranceDescription ++ "-/\n\n" ++
-    "import Gates\n\n" ++
+    "import WhatwgGates\n\n" ++ -- R-V3(c), 2026-10-01
     s!"namespace {std.rowsNamespace}\n\n" ++
     "open Gates.Census\n\n" ++
     "/-- One entry per census row, sorted by kind then id, as the census is. -/\n" ++
@@ -2411,19 +2411,19 @@ def report (root : System.FilePath) (std : Standard) (emit : Array CoverageRow) 
     return 0
 
 def usage : String :=
-  "usage: lake exe census [--standard <key>]           check the census against the pinned specification bytes\n" ++
-  "       lake exe census [--standard <key>] --write   regenerate the census and the frozen coverage row list\n" ++
-  "       lake exe census [--standard <key>] --report  print the coverage block of docs/SPEC-COVERAGE.md\n" ++
+  "usage: lake exe whatwg_census [--standard <key>]           check the census against the pinned specification bytes\n" ++ -- R-V3(c), 2026-10-01
+  "       lake exe whatwg_census [--standard <key>] --write   regenerate the census and the frozen coverage row list\n" ++ -- R-V3(c), 2026-10-01
+  "       lake exe whatwg_census [--standard <key>] --report  print the coverage block of docs/SPEC-COVERAGE.md\n" ++ -- R-V3(c), 2026-10-01
   "keys: " ++ String.intercalate ", " (standards.map (·.key)) ++ " (default streams)"
 
-/-- Command-line entry, invoked by `bin/Census.lean`, which supplies one
+/-- Command-line entry, invoked by `whatwgbin/Census.lean`, which supplies one
 coverage emit per standard that has a numerator, keyed by `Standard.key`.
 
 Section 6.2 of `test/contracts/webidl-census-q2.contract.md` freezes the map
 shape rather than one `Option` argument per standard: the number of standards
 is already four and ruling R-P6 leaves the door open for more, an association
 list adds no case analysis at any call site, and a per-standard parameter would
-enter a signature whose only caller is `bin/Census.lean`.
+enter a signature whose only caller is `whatwgbin/Census.lean`.
 
 `--write` does not take an emit: regenerating a census must stay possible while
 a numerator is red. A standard the map does not name (Infra today) is checked

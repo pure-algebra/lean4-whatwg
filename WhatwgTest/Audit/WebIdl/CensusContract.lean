@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # Web IDL promise and exception census contract battery

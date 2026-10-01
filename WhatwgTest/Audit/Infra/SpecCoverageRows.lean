@@ -12,7 +12,7 @@ theorem witnesses. The census command checks projection drift; the Streams
 numerator does not validate this module. `docs/SPEC-COVERAGE.md` owns the rules.
 -/
 
-import Gates
+import WhatwgGates
 
 namespace WhatwgTest.Audit.Infra.SpecCoverageRows
 

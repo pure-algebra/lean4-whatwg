@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # ECMA-262 census Q2 addendum battery
@@ -90,7 +90,7 @@ private def scannerBatteryRelativePath : String :=
 
 private def numeratorRelativePath : String := "WhatwgTest/Audit/Ecma262/SpecCoverage.lean"
 
-private def entryPointRelativePath : String := "bin/Census.lean"
+private def entryPointRelativePath : String := "whatwgbin/Census.lean" -- R-V3(c), 2026-10-01
 
 private def coverageDocRelativePath : String := "docs/SPEC-COVERAGE.md"
 

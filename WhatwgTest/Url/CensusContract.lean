@@ -1,4 +1,4 @@
-import Gates.UrlCensus
+import WhatwgGates.UrlCensus
 
 /-!
 Breaker-owned U2b finite contract, frozen before the assignment implementation.

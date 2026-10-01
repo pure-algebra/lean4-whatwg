@@ -1,4 +1,4 @@
-import Gates.UrlCensusInput
+import WhatwgGates.UrlCensusInput
 
 /-!
 Independent review regression `URL-INP-CE-001`, frozen before repair.

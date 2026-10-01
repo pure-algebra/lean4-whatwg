@@ -1,4 +1,4 @@
-import Gates.Common
+import WhatwgGates.Common
 
 /-!
 # Gates.TrustSelfTest
@@ -19,7 +19,7 @@ their builder lands. This self-test therefore:
 3. excises the declared red modules from the copy; and
 4. runs the planted-declaration checks against a genuinely green tree.
 
-Run `lake exe trustselftest` from anywhere inside the checkout. It invokes
+Run `lake exe whatwg_trustselftest` from anywhere inside the checkout. It invokes
 `lake build` in the throwaway copy through the same toolchain.
 
 The plants whose labels begin `V2-` are frozen by
@@ -54,7 +54,7 @@ structure Context where
 
 def copiedFiles : List String :=
   ["lakefile.toml", "lake-manifest.json", "lean-toolchain",
-   "Whatwg.lean", "Gates.lean", "WhatwgTest.lean"]
+   "Whatwg.lean", "WhatwgGates.lean", "WhatwgTest.lean"] -- R-V3(c), 2026-10-01
 
 /-- `census` and `generated` join the copied trees because
 `WhatwgTest/Audit/SpecCoverage.lean` reads the census projection and
@@ -62,7 +62,7 @@ its authored disposition inputs at elaboration time: without them the probe's
 build fails for a missing file rather than for a planted violation. `vendor`
 stays out: the probe only builds the census generator, never runs it. -/
 def copiedTrees : List String :=
-  ["Whatwg", "WhatwgTest", "Gates", "bin", "census", "generated"]
+  ["Whatwg", "WhatwgTest", "WhatwgGates", "whatwgbin", "census", "generated"] -- R-V3(c), 2026-10-01
 
 def fixture (root : System.FilePath) (name : String) : System.FilePath :=
   root / "test" / "fixtures" / "trust-gate" / name
@@ -76,12 +76,12 @@ def productionRoot (probe : System.FilePath) : System.FilePath :=
 def testRoot (probe : System.FilePath) : System.FilePath :=
   probe / "WhatwgTest.lean"
 
-/-- A new tooling module, module `Gates.TrustSelfTestToolingPlant`. A plant in
-an existing `Gates` module would make the probe re-elaborate every census
-battery that imports `Gates`, and those read `vendor/` and `docs/`, which the
+/-- A new tooling module, module `WhatwgGates.TrustSelfTestToolingPlant`. A plant in
+an existing `WhatwgGates` module would make the probe re-elaborate every census
+battery that imports `WhatwgGates`, and those read `vendor/` and `docs/`, which the
 probe does not copy. -/
 def toolingPlantModule (probe : System.FilePath) : System.FilePath :=
-  probe / "Gates" / "TrustSelfTestToolingPlant.lean"
+  probe / "WhatwgGates" / "TrustSelfTestToolingPlant.lean" -- R-V3(c), 2026-10-01
 
 /-- A new production module under the strict prefix `Whatwg.Ecma262` of
 ruling R-V1. A new leaf module is used rather than `Whatwg/Ecma262/Jobs.lean`:
@@ -96,9 +96,9 @@ prefix and under no source-token exemption. -/
 def testPlantModule (probe : System.FilePath) : System.FilePath :=
   probe / "WhatwgTest" / "TrustSelfTestPlant.lean"
 
-/-- An executable entry point under `bin/`, which no audit root imports. -/
+/-- An executable entry point under `whatwgbin/`, which no audit root imports. -/
 def binEntryPoint (probe : System.FilePath) : System.FilePath :=
-  probe / "bin" / "Citations.lean"
+  probe / "whatwgbin" / "Citations.lean" -- R-V3(c), 2026-10-01
 
 /-- The line of `WhatwgTest/Audit/AxiomGate.lean`, trimmed, after which a
 strict-ceiling exception entry `⟨`Name, "reason"⟩ ::` is inserted. Frozen by
@@ -582,7 +582,7 @@ def numeralPlaceholder : String := "<n>"
 def gateSummaryTemplate : String :=
   "Whatwg module and axiom gate: checked <n> source files and <n> declarations; " ++
   "Classical.choice is reached by <n> of <n> declarations in Whatwg, <n> of <n> in WhatwgTest " ++
-  "and <n> of <n> in Gates; strict ceiling propext and Quot.sound over <n> module prefix(es) " ++
+  "and <n> of <n> in WhatwgGates; strict ceiling propext and Quot.sound over <n> module prefix(es) " ++ -- R-V3(c), 2026-10-01
   "with <n> exact exception(s); <n> source-token exemption(s)"
 
 def narrowRuns : List NarrowRun :=
@@ -695,10 +695,10 @@ def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
     allOk := allOk && ok
   return allOk
 
-/-- Command-line entry, invoked by `bin/TrustSelfTest.lean`. -/
+/-- Command-line entry, invoked by `whatwgbin/TrustSelfTest.lean`. -/
 def cli (args : List String) : IO UInt32 := do
   unless args.isEmpty do
-    IO.eprintln "usage: lake exe trustselftest"
+    IO.eprintln "usage: lake exe whatwg_trustselftest" -- R-V3(c), 2026-10-01
     return 2
   let root ← Gates.Common.projectRoot
   let probe ← makeProbe root

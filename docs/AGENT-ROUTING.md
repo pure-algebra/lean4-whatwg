@@ -10,8 +10,8 @@ work without repeating the same rule in several directories.
 | --- | --- | --- |
 | `AGENTS.md` | the whole repository | development order, authority order, representation rules, claims, gates, handoffs |
 | `Whatwg/AGENTS.md` | Lean library declarations and proofs | source ownership, spec anchors, assurance routes, proof-graph obligations, the semantic ceiling |
-| `WhatwgTest/AGENTS.md` | Lean tests and proof receipts | attacks, counterexample witnesses, known-red declaration, coverage witnesses, audit admissions |
-| `Gates/AGENTS.md` | Lean-implemented gates | totality, the implementation ceiling, the PASS/FAIL reporting rule, projection writes |
+| `WhatwgTest/AGENTS.md` | Lean tests and proof receipts | attacks, counterexample witnesses, known-red declaration, coverage witnesses, the strict ceiling with its exact exceptions and the source-token exemption list |
+| `WhatwgGates/AGENTS.md` | Lean-implemented gates | totality, the ceiling every tree shares, the PASS/FAIL reporting rule, projection writes |
 | `harness/AGENTS.md` | host evidence | exact host profiles, WPT replay, refusal rows |
 | `generated/AGENTS.md` | deterministic machine projections | regeneration and drift rules |
 
@@ -21,11 +21,12 @@ error: stop and repair the routers instead of choosing whichever wording is
 more convenient.
 
 These six files are written and reviewed by people. No generator may create,
-replace, or edit an `AGENTS.md` file. `Gates/` has its own router because it
-is a distinct trust boundary: tooling that reads files and spawns processes
-under a wider axiom ceiling. Add another boundary router only when a
-directory gains a distinct owner, trust boundary, or toolchain that these six
-cannot route accurately.
+replace, or edit an `AGENTS.md` file. `WhatwgGates/` has its own router
+because it is a distinct trust boundary: tooling that reads files, spawns
+processes and writes projections, audited under the same ceiling as every
+other tree. Add another boundary router only when a directory gains a
+distinct owner, trust boundary, or toolchain that these six cannot route
+accurately.
 
 ## Authored facts and generated facts
 
@@ -169,3 +170,12 @@ becomes `<name>bin.*`, and `sha256`, `vendorseal`, `citations`,
 `Effects`) are already unique by construction. The first collision cost one
 seat-run: `lean4-hash` at `92cb0cf` could not be required by this repository
 until its S6 rename.
+
+This repository obeys the rule since ruling R-V3(c): its tooling modules are
+`WhatwgGates.*`, its executable roots `whatwgbin.*`, and its executables
+`whatwg_vendorseal`, `whatwg_citations`, `whatwg_census`,
+`whatwg_urlinventory`, `whatwg_urlcensus` and `whatwg_trustselftest`. The
+declarations in those modules keep the namespace `Gates.*`, so frozen
+ascriptions did not move; a consumer that imports a `WhatwgGates` module into
+an environment that already declares the same `Gates.*` name still fails at
+import, which no Lake rename prevents.

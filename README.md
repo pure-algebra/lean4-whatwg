@@ -26,7 +26,7 @@ the "Current state" table of each proof-graph document under `docs/` names the
 graph's open edges, and `PLAN.md` keeps P4 to P12 open. No host conformance is
 claimed; the harness fixtures are finite observations under named host
 profiles. Specification coverage is stated only by the blocks
-`lake exe census --report` prints. Review lane V, opened 2026-09-30, is in
+`lake exe whatwg_census --report` prints. Review lane V, opened 2026-09-30, is in
 progress; `PLAN.md` records its slices.
 
 ## Build and gates
@@ -40,30 +40,30 @@ The toolchain is pinned by `lean-toolchain` to exactly
 stateful standards against; and `typescript`
 ([lean4-typescript](https://github.com/pure-algebra/lean4-typescript)) at
 `6afc9b8` (version 0.6.0, untagged), the TypeScript syntax P11 lowers through.
-These are lean4-effect4's pins (ruling R-V3(b)). The `Gates`
+These are lean4-effect4's pins (ruling R-V3(b)). The `WhatwgGates`
 tooling imports `hash`; nothing under `Whatwg/` imports `effects` or
 `typescript` yet. Every proof receipt in this
 repository is stated against that kernel. Everything below runs from any directory inside the
 checkout.
 
 ```text
-lake build                       # libraries, the elaboration-time axiom gate, the gate executables
-lake exe vendorseal              # vendor/ against generated/vendor-manifest.tsv, both directions
-lake exe citations               # no line-numbered citation into a protected authored document
-lake exe urlinventory            # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
-lake exe urlcensus               # the authored URL census and its source assignments against a regeneration
-lake exe census                  # the Streams census and coverage emit
-lake exe census --report         # the Streams coverage block from the Lean emit
-lake exe census --standard infra # the Infra definition census
-lake exe census --standard webidl # the Web IDL promise and exception census
-lake exe census --standard webidl --report  # the Web IDL coverage block, all-absent
-lake exe census --standard ecma262 # the ECMA-262 promise and job census
-lake exe census --standard ecma262 --report # the ES2026 coverage block, all-absent
+lake build                                         # libraries, the elaboration-time axiom gate, the gate executables
+lake exe whatwg_vendorseal                         # vendor/ against generated/vendor-manifest.tsv, both directions
+lake exe whatwg_citations                          # no line-numbered citation into a protected authored document
+lake exe whatwg_urlinventory                       # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
+lake exe whatwg_urlcensus                          # the authored URL census and its source assignments against a regeneration
+lake exe whatwg_census                             # the Streams census and coverage emit
+lake exe whatwg_census --report                    # the Streams coverage block from the Lean emit
+lake exe whatwg_census --standard infra            # the Infra definition census
+lake exe whatwg_census --standard webidl           # the Web IDL promise and exception census
+lake exe whatwg_census --standard webidl --report  # the Web IDL coverage block, all-absent
+lake exe whatwg_census --standard ecma262          # the ECMA-262 promise and job census
+lake exe whatwg_census --standard ecma262 --report # the ES2026 coverage block, all-absent
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
 
-`lake exe trustselftest` (not a default target, and not a CI step at this
+`lake exe whatwg_trustselftest` (not a default target, and not a CI step at this
 commit) plants known violations in a throwaway copy and checks that the axiom
 gate rejects each; run it after changing the gate itself. The WP-7 rename-parity receipt was
 retired on 2026-09-03: it had proved what it was written to prove.

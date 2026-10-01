@@ -1,5 +1,5 @@
-import Gates.Common
-import Gates.Sha256
+import WhatwgGates.Common
+import WhatwgGates.Sha256
 import Hash
 
 /-!
@@ -14,13 +14,13 @@ seal is the projection `generated/vendor-manifest.tsv`, one row per file:
 <relative path>\t<sha256>\t<byte count>
 ```
 
-`lake exe vendorseal` checks the working tree against the manifest in both
+`lake exe whatwg_vendorseal` checks the working tree against the manifest in both
 directions: every manifested file must exist with the recorded digest and
 size, and every file under `vendor/` must be manifested. It also refuses any
 path that cannot exist on a Windows host, because a pinned tree that fails to
 check out on one supported host is not a pin.
 
-`lake exe vendorseal --write` regenerates the manifest. The manifest is a
+`lake exe whatwg_vendorseal --write` regenerates the manifest. The manifest is a
 generated projection: repair the vendored bytes or this generator, never the
 manifest by hand. A re-pin moves a whole tree together.
 -/
@@ -122,7 +122,7 @@ def write (root : System.FilePath) : IO UInt32 := do
 def check (root : System.FilePath) : IO UInt32 := do
   let manifest := manifestPath root
   unless ← manifest.pathExists do
-    IO.eprintln s!"FAIL vendor seal: missing manifest {manifest}; run `lake exe vendorseal --write`"
+    IO.eprintln s!"FAIL vendor seal: missing manifest {manifest}; run `lake exe whatwg_vendorseal --write`" -- R-V3(c), 2026-10-01
     return 1
   let expected ← match parse (← IO.FS.readFile manifest) with
     | .ok rows => pure rows
@@ -161,10 +161,10 @@ def check (root : System.FilePath) : IO UInt32 := do
   return 1
 
 def usage : String :=
-  "usage: lake exe vendorseal          check vendor/ against generated/vendor-manifest.tsv\n" ++
-  "       lake exe vendorseal --write  regenerate the manifest from vendor/"
+  "usage: lake exe whatwg_vendorseal          check vendor/ against generated/vendor-manifest.tsv\n" ++ -- R-V3(c), 2026-10-01
+  "       lake exe whatwg_vendorseal --write  regenerate the manifest from vendor/" -- R-V3(c), 2026-10-01
 
-/-- Command-line entry, invoked by `bin/VendorSeal.lean`. -/
+/-- Command-line entry, invoked by `whatwgbin/VendorSeal.lean`. -/
 def cli (args : List String) : IO UInt32 := do
   let root ← Gates.Common.projectRoot
   match args with

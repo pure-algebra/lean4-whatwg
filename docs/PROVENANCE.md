@@ -4,7 +4,7 @@ Every pin this repository relies on, with its digest, how it was fetched, the
 cross-check performed, and its license. `SPEC-MANIFEST.md` owns what each pin
 is for; this file owns that the bytes are what they are claimed to be.
 
-Sealed-source digest cross-check protocol: each sealed-file digest is computed by `lake exe vendorseal`
+Sealed-source digest cross-check protocol: each sealed-file digest is computed by `lake exe whatwg_vendorseal`
 through the required `hash` package (`Hash.Sha256.sha256`, proved against
 FIPS 180-4 in lean4-hash) and independently by PowerShell `Get-FileHash
 -Algorithm SHA256`; both spellings must agree. At P0 the first computation was

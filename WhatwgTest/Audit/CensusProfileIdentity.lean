@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # Census profile-identity battery
@@ -110,10 +110,15 @@ private def identities : Array Identity := #[
   -- bytes. R-P26 amends the pin to the two values below; the other three
   -- identities are unchanged, and no coverage number moves, because a
   -- disposition is not a coverage state.
-  ⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32012,
-    "247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c"⟩,
-  ⟨"WhatwgTest/Audit/Infra/SpecCoverageRows.lean", 10607,
-    "94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0"⟩]
+  -- R-V3(c), 2026-10-01: the generated import line `import Gates` became
+  -- `import WhatwgGates` (+6 bytes); superseded 32012 bytes, digest
+  -- 247f9909716c8153541174b72d96923fe766e263c07d717c95f149b38ebba63c.
+  ⟨"WhatwgTest/Audit/SpecCoverageRows.lean", 32018,
+    "fd6a5a5ba41346b631d96a4d914f80f4b4ac80488512fe1e29ca3c0589072937"⟩,
+  -- R-V3(c), 2026-10-01: the same import line; superseded 10607 bytes, digest
+  -- 94b04b5a9c23af20bc101be9504e2ccbd54b3e0002ccfb5ffd73c92ff7eef7b0.
+  ⟨"WhatwgTest/Audit/Infra/SpecCoverageRows.lean", 10613,
+    "fb948275a04de97628c6bc3654ab5392021ed7eba1784bf4e2e37e3d57e4ebba"⟩]
 
 private def streamsHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/whatwg-streams-b9ba9f49/index.bs " ++

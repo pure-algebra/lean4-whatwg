@@ -1,4 +1,4 @@
-import Gates
+import WhatwgGates
 import WhatwgTest.Audit.Ecma262.SpecCoverageRows
 
 /-!

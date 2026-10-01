@@ -1,5 +1,5 @@
 import Lean
-import Gates
+import WhatwgGates
 
 /-!
 # Web IDL census Q2 addendum battery
@@ -170,7 +170,7 @@ private def externalsRelativePath : String := "census/webidl/externals.tsv"
 
 private def numeratorRelativePath : String := "WhatwgTest/Audit/WebIdl/SpecCoverage.lean"
 
-private def entryPointRelativePath : String := "bin/Census.lean"
+private def entryPointRelativePath : String := "whatwgbin/Census.lean" -- R-V3(c), 2026-10-01
 
 private def coverageDocRelativePath : String := "docs/SPEC-COVERAGE.md"
 

@@ -32,7 +32,7 @@ something named in the ground cell.
 
 | Edge | Status | Ground |
 | --- | --- | --- |
-| identity | `required-open` | The canonical declaration and assurance identity joins; the per-declaration assurance snapshot has no generator (debt D47). `lake exe urlinventory` checks the pin and lexical spans, and `lake exe urlcensus` checks the six authored inputs, in-span anchors, digests, origin and owner joins and disposition resolution |
+| identity | `required-open` | The canonical declaration and assurance identity joins; the per-declaration assurance snapshot has no generator (debt D47). `lake exe whatwg_urlinventory` checks the pin and lexical spans, and `lake exe whatwg_urlcensus` checks the six authored inputs, in-span anchors, digests, origin and owner joins and disposition resolution |
 | construction | `required-open` | The generated declaration and assurance joins (debt D47). U2b adapts `Gates.Census.Row` through `SourceRow`, and the two source projections are Lean-generated and drift-checked |
 | semantics | `required-open` | Declaration correspondence and semantic assurance. Independent review accounted for every candidate and reviewed each authored disposition and dependency list |
 | laws | `required-open` | Numerator/denominator agreement. The frozen scanner, join, syntax, priority, anchor and projection probes are finite tooling receipts, not general parser laws |

@@ -25,10 +25,10 @@ must be used, and each row must resolve without an inferred default.
 `externals.tsv` names the external identities used by those lists.
 `docs/URL-DEPENDENCIES.md` defines their meanings and open obligations.
 
-These offsets and origin choices are authored decisions. `lake exe urlcensus`
+These offsets and origin choices are authored decisions. `lake exe whatwg_urlcensus`
 reads all six files, checks the pinned source and strict joins, and compares
 `generated/url-census.tsv` and `generated/url-source-assignments.tsv` against
-a fresh Lean regeneration. `lake exe urlcensus --write` writes both outputs.
+a fresh Lean regeneration. `lake exe whatwg_urlcensus --write` writes both outputs.
 The census contains each span and unique in-span prefix anchor's digest;
 both outputs hash the exact bytes of all six authored inputs. The format
 and reader are frozen in `docs/URL-CENSUS-INPUT-INTERFACE.md`.

@@ -38,7 +38,7 @@ keeping it open is discharged by something named in the ground cell.
 | bridges | `not-applicable` | The packet claims no relation to a host implementation. `DATA-FB-ROUNDING` is where a bridge would live, and it is refused at this stratum |
 | targets | `not-applicable` | No generated code. Lowering is `RS-5` of `docs/REIFICATION-STRATEGY.md` and P11 |
 | trust | `required-closed` | The 99 named receipts of `WhatwgTest/Streams/Data/QueueAxiomReport.lean` print inside the R-11 ceiling, and the declared red set of `test/fixtures/trust-gate/known-red.txt` is empty (receipt "Landing"). No declaration in `Whatwg.Streams.Data` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md` |
-| coverage | `required-closed` | The section 6 rows landed in the numerator `WhatwgTest/Audit/SpecCoverage.lean` (receipt "Coverage landed"); `lake exe census --report` prints the Streams block |
+| coverage | `required-closed` | The section 6 rows landed in the numerator `WhatwgTest/Audit/SpecCoverage.lean` (receipt "Coverage landed"); `lake exe whatwg_census --report` prints the Streams block |
 
 ## 1. Why this family gets a graph and not a leaf
 

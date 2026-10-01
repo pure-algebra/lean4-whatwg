@@ -1,10 +1,10 @@
-import Gates.UrlCensus
+import WhatwgGates.UrlCensus
 
 /-!
 URL authored census reader and deterministic source projections.
 Declaration record and byte formats: `docs/URL-CENSUS-INPUT-INTERFACE.md`.
 This validates authored joins; it supplies no URL execution or coverage judgment.
-Regenerate both TSVs with `lake exe urlcensus --write`; check with `lake exe urlcensus`.
+Regenerate both TSVs with `lake exe whatwg_urlcensus --write`; check with `lake exe whatwg_urlcensus`.
 -/
 
 namespace Gates.UrlCensusInput
@@ -282,7 +282,7 @@ def cli (args : List String) : IO UInt32 := do
     | [] => pure false
     | ["--write"] => pure true
     | _ =>
-      IO.eprintln "usage: lake exe urlcensus [--write]"
+      IO.eprintln "usage: lake exe whatwg_urlcensus [--write]" -- R-V3(c), 2026-10-01
       return 2
   try
     checkOrWrite (← Gates.Common.projectRoot) write
