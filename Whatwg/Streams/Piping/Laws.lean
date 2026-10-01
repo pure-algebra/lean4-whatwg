@@ -960,16 +960,22 @@ private theorem lookup_map_other {ε : Type} (ps : List (Nat × Writable.UnitPro
     ((ps.map (fun p => if p.1 == target then (target, outcome) else p)).find?
       (fun p => p.1 == id)).map Prod.snd =
       (ps.find? (fun p => p.1 == id)).map Prod.snd := by
-  induction ps with
-  | nil => rfl
-  | cons p ps ih =>
-      rcases p with ⟨key, value⟩
-      by_cases ht : key = target
-      · subst key
-        simpa [Ne.symm different, -BEq.rfl, beq_self_eq_true'] using ih
-      · by_cases hi : key = id
-        · simp [hi, different, -BEq.rfl, beq_self_eq_true']
-        · simpa [ht, hi] using ih
+  -- The update writes `target` back as the key it matched, so it is a keyed update.
+  have keyed : (fun p : Nat × Writable.UnitPromise ε =>
+        if p.1 == target then (target, outcome) else p) =
+      (fun p => if p.1 == target then (p.1, outcome) else p) := by
+    funext p
+    by_cases hb : (p.1 == target) = true
+    · rw [if_pos hb, if_pos hb, beq_iff_eq.mp hb]
+    · rw [if_neg hb, if_neg hb]
+  rw [keyed, Whatwg.Ecma262.Promise.find?_keyUpdate ps target id (fun _ => outcome)]
+  cases hf : ps.find? (fun p => p.1 == id) with
+  | none => rfl
+  | some e =>
+      have hb := List.find?_some hf
+      have hi : e.1 = id := beq_iff_eq.mp hb
+      exact congrArg (Option.map Prod.snd ∘ some)
+        (if_neg fun ht => different (hi.symm.trans (beq_iff_eq.mp ht)))
 
 private theorem lookup_settle_other {α ε : Type} (s : Writable.State α ε)
     (id target : Nat) (result : Except (Boundary.Exception ε) Unit) (different : id ≠ target) :

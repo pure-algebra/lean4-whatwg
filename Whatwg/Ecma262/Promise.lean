@@ -248,6 +248,21 @@ theorem Table.fresh_get {value reason : Type} (t : Table value reason)
     List.find?_cons_of_pos (p := fun (e : Nat × Cell value reason) => e.1 == t.next) htrue]
   rfl
 
+/-- Helper (W8a, ruling R-W10): lookup by key commutes with an update of the
+entries at one key, because the update keeps every key. `find?` over `map` for
+the settle and mark-handled tables of this module and of Streams goes through
+it rather than through a list induction at each site. No mask: a list law. -/
+theorem find?_keyUpdate {β : Type} (l : List (Nat × β)) (a i : Nat) (g : β → β) :
+    List.find? (fun e => e.1 == i) (l.map (fun e => if e.1 == a then (e.1, g e.2) else e)) =
+      (List.find? (fun e => e.1 == i) l).map
+        (fun e => if e.1 == a then (e.1, g e.2) else e) := by
+  have keep : ((fun e : Nat × β => e.1 == i) ∘
+      (fun e : Nat × β => if e.1 == a then (e.1, g e.2) else e)) = (fun e => e.1 == i) := by
+    funext e
+    simp only [Function.comp_apply]
+    split <;> rfl
+  rw [List.find?_map, keep]
+
 /-! ### Settling: the guard, and the assertion as a side condition — mask M1 -/
 
 /-- `E-20`: the pending branch, whose shape the Streams `settle_pending`
@@ -295,25 +310,10 @@ theorem Table.settle_assert {value reason : Type} (t : Table value reason) (id :
       List.find? (fun e => e.1 == id) (l.map (fun e => if e.1 == id then (e.1, g e.2) else e)) =
         (List.find? (fun e => e.1 == id) l).map (fun e => (e.1, g e.2)) := by
     intro g l
-    induction l with
-    | nil => rfl
-    | cons e rest ih =>
-        by_cases hb : (e.1 == id) = true
-        · have hhead :
-              ((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id := by
-            rw [if_pos hb]; exact hb
-          simp only [List.map_cons]
-          rw [List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hb,
-            if_pos hb]
-          rfl
-        · have hhead :
-              ¬ (((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id) =
-                true := by
-            rw [if_neg hb]; exact hb
-          simp only [List.map_cons]
-          rw [List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hb, ih]
+    rw [find?_keyUpdate]
+    cases hf : List.find? (fun (e : Nat × Cell value reason) => e.1 == id) l with
+    | none => rfl
+    | some e => exact congrArg some (if_pos (List.find?_some hf))
   rw [Table.settle_pending t id result h]
   simp only [Table.get, Table.getCell] at h ⊢
   rw [key (fun c => Cell.mk (match result with
@@ -335,25 +335,10 @@ theorem Table.settle_handled {value reason : Type} (t : Table value reason) (id 
         List.find? (fun e => e.1 == id) (l.map (fun e => if e.1 == id then (e.1, g e.2) else e)) =
           (List.find? (fun e => e.1 == id) l).map (fun e => (e.1, g e.2)) := by
       intro g l
-      induction l with
-      | nil => rfl
-      | cons e rest ih =>
-          by_cases hb : (e.1 == id) = true
-          · have hhead :
-                ((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id := by
-              rw [if_pos hb]; exact hb
-            simp only [List.map_cons]
-            rw [List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hb,
-            if_pos hb]
-            rfl
-          · have hhead :
-                ¬ (((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id) =
-                  true := by
-              rw [if_neg hb]; exact hb
-            simp only [List.map_cons]
-            rw [List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hb, ih]
+      rw [find?_keyUpdate]
+      cases hf : List.find? (fun (e : Nat × Cell value reason) => e.1 == id) l with
+      | none => rfl
+      | some e => exact congrArg some (if_pos (List.find?_some hf))
     rw [Table.settle_pending t id result hp]
     simp only [Table.getCell]
     rw [key (fun c => Cell.mk (match result with
@@ -392,25 +377,10 @@ theorem Table.markHandled_state {value reason : Type} (t : Table value reason) (
       List.find? (fun e => e.1 == id) (l.map (fun e => if e.1 == id then (e.1, g e.2) else e)) =
         (List.find? (fun e => e.1 == id) l).map (fun e => (e.1, g e.2)) := by
     intro g l
-    induction l with
-    | nil => rfl
-    | cons e rest ih =>
-        by_cases hb : (e.1 == id) = true
-        · have hhead :
-              ((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id := by
-            rw [if_pos hb]; exact hb
-          simp only [List.map_cons]
-          rw [List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hb,
-            if_pos hb]
-          rfl
-        · have hhead :
-              ¬ (((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id) =
-                true := by
-            rw [if_neg hb]; exact hb
-          simp only [List.map_cons]
-          rw [List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hb, ih]
+    rw [find?_keyUpdate]
+    cases hf : List.find? (fun (e : Nat × Cell value reason) => e.1 == id) l with
+    | none => rfl
+    | some e => exact congrArg some (if_pos (List.find?_some hf))
   simp only [Table.get, Table.getCell, Table.markHandled]
   rw [key (fun c => Cell.mk c.state true) t.entries]
   cases List.find? (fun (e : Nat × Cell value reason) => e.1 == id) t.entries <;> rfl
@@ -1193,25 +1163,10 @@ theorem Table.markHandled_marked {value reason : Type} (t : Table value reason) 
       List.find? (fun e => e.1 == id) (l.map (fun e => if e.1 == id then (e.1, g e.2) else e)) =
         (List.find? (fun e => e.1 == id) l).map (fun e => (e.1, g e.2)) := by
     intro g l
-    induction l with
-    | nil => rfl
-    | cons e rest ih =>
-        by_cases hb : (e.1 == id) = true
-        · have hhead :
-              ((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id := by
-            rw [if_pos hb]; exact hb
-          simp only [List.map_cons]
-          rw [List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_pos (p := fun (x : Nat × Cell value reason) => x.1 == id) hb,
-            if_pos hb]
-          rfl
-        · have hhead :
-              ¬ (((if e.1 == id then (e.1, g e.2) else e) : Nat × Cell value reason).1 == id) =
-                true := by
-            rw [if_neg hb]; exact hb
-          simp only [List.map_cons]
-          rw [List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hhead,
-            List.find?_cons_of_neg (p := fun (x : Nat × Cell value reason) => x.1 == id) hb, ih]
+    rw [find?_keyUpdate]
+    cases hf : List.find? (fun (e : Nat × Cell value reason) => e.1 == id) l with
+    | none => rfl
+    | some e => exact congrArg some (if_pos (List.find?_some hf))
   simp only [Table.getCell, Table.markHandled] at hsome ⊢
   rw [key (fun c => Cell.mk c.state true) t.entries]
   cases hf : List.find? (fun (e : Nat × Cell value reason) => e.1 == id) t.entries with

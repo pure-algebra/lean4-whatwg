@@ -1504,22 +1504,9 @@ theorem promiseTable_eq {α ε : Type} (s : State α ε) :
 /-- `E-18`: `lookupPromise` is `Table.get` through the view. Mask M1. -/
 theorem lookupPromise_bridge {α ε : Type} (s : State α ε) (id : Nat) :
     lookupPromise s id = Whatwg.Ecma262.Promise.Table.get (promiseTable s) id := by
-  have key : ∀ (l : List (Nat × UnitPromise ε)),
-      (l.find? (fun p => p.1 == id)).map Prod.snd =
-        Option.map Whatwg.Ecma262.Promise.Cell.state
-          (Option.map Prod.snd
-            (List.find? (fun e => e.1 == id)
-              (l.map (fun p =>
-                (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled))))))) := by
-    intro l
-    induction l with
-    | nil => rfl
-    | cons q rest ih =>
-        simp only [List.map_cons, List.find?_cons]
-        cases hb : (q.1 == id) with
-        | true => rfl
-        | false => exact ih
-  exact key s.promises
+  simp only [lookupPromise, promiseTable, Whatwg.Ecma262.Promise.Table.get,
+    Whatwg.Ecma262.Promise.Table.getCell, List.find?_map, Option.map_map]
+  rfl
 
 /-- `E-19`: allocation is `Table.fresh` through the view, provided the cursor
 has not already been marked handled. The Streams instance additionally appends
@@ -1588,25 +1575,14 @@ theorem handled_bridge {α ε : Type} (s : State α ε) (id : Nat) :
     (Whatwg.Ecma262.Promise.Table.getCell (promiseTable s) id).map
         Whatwg.Ecma262.Promise.Cell.handled =
       (lookupPromise s id).map (fun _ => Decidable.decide (id ∈ s.handled)) := by
-  have key : ∀ (l : List (Nat × UnitPromise ε)),
-      Option.map Whatwg.Ecma262.Promise.Cell.handled
-          (Option.map Prod.snd
-            (List.find? (fun e => e.1 == id)
-              (l.map (fun p =>
-                (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 (Decidable.decide (p.1 ∈ s.handled))))))) =
-        Option.map (fun _ => Decidable.decide (id ∈ s.handled))
-          ((l.find? (fun p => p.1 == id)).map Prod.snd) := by
-    intro l
-    induction l with
-    | nil => rfl
-    | cons q rest ih =>
-        simp only [List.map_cons, List.find?_cons]
-        cases hb : (q.1 == id) with
-        | true =>
-            have hq : q.1 = id := by simpa using hb
-            simp [hq]
-        | false => exact ih
-  exact key s.promises
+  simp only [lookupPromise, promiseTable, Whatwg.Ecma262.Promise.Table.getCell, List.find?_map,
+    Function.comp_def, Option.map_map]
+  cases hf : s.promises.find? (fun p => p.1 == id) with
+  | none => rfl
+  | some q =>
+      have hb := List.find?_some hf
+      have hq : q.1 = id := beq_iff_eq.mp hb
+      simp only [Option.map_some, hq]
 
 /-- The Q3b fidelity addendum's one additive bridging lemma
 (`test/contracts/promise-first-packet-q3b.contract.md` §7.1, finding F6,
