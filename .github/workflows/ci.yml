@@ -57,3 +57,21 @@ jobs:
         run: lake exe census --standard ecma262 --report
       - name: Test root and the elaboration-time axiom gate
         run: lake --wfail build WhatwgTest
+      # Ruling R-V2 returns the trust-gate self-test to CI after its removal on
+      # 2026-09-03. It copies the sources and the build cache into a throwaway
+      # directory, so it must follow the full build above: each planted
+      # violation is then one incremental build of the roots it touches. It
+      # checks the declared red set, plants the older trust-gate violations
+      # and every row of test/contracts/trust-gate-hardening.contract.md, and
+      # runs the gate and the coverage numerator by relative file name.
+      - name: Trust-gate self-test (planted violations, controls and narrow runs)
+        run: lake exe trustselftest
+      # Ruling R-V2: a kernel replay of every module of the three libraries.
+      # leanchecker re-adds each module's declarations to the environment its
+      # imports build and type-checks them in the kernel, so a declaration the
+      # kernel never checked (debug.skipKernelTC set by a metaprogram, which no
+      # axiom records and no token names) fails here. Measured by the V2 gate
+      # builder on 2026-10-01 on the Windows development host: 216 modules in
+      # 79 s, exit 0, inside the fifteen-minute bound of R-V2.
+      - name: Kernel replay of Whatwg, WhatwgTest and Gates (leanchecker)
+        run: lake env leanchecker Whatwg WhatwgTest Gates

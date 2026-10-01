@@ -1,11 +1,12 @@
 # Gates tooling routing
 
 This boundary contains the repository's gates implemented in Lean: the digest
-face of the required `hash` package, the vendor seal, the internal-citation gate, the trust self-test, the census, and the TyXML schema projection. It is
+face of the required `hash` package, the vendor seal, the internal-citation
+gate, the trust self-test, the census, and the URL inventory and census. It is
 the sixth authored router because this tree has a distinct trust boundary
 from the other five: it is tooling that reads files, spawns processes, and
-produces projections, and it is admitted to the implementation ceiling as a
-whole.
+produces projections. The axiom gate audits it like every other tree, under
+ruling R-11's ceiling; no strict prefix of ruling R-V1 covers it.
 
 ## Why the gates are Lean
 
@@ -22,8 +23,16 @@ they decide nothing.
 - Totality holds: no `partial`, no `unsafe`. Loops are bounded by fuel or by
   the structure they traverse.
 - The ceiling is `propext`, `Quot.sound`, and `Classical.choice`, the same
-  as every other tree since ruling R-11. `sorryAx`, `Lean.ofReduceBool`,
-  `Lean.ofReduceNat`, and `Lean.trustCompiler` remain forbidden.
+  as every other tree since ruling R-11; ruling R-V1 keeps this tree off the
+  strict list. `sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`, and
+  `Lean.trustCompiler` remain forbidden.
+- Since ruling R-V2 the axiom gate's environment pass refuses here, as in
+  every audited tree, a declared `axiom`, an `@[extern]` or
+  `@[implemented_by]` declaration, and an `opaque` with no authored body; its
+  token pass refuses, in code, the trust words no constant records (section
+  4.2 of `test/contracts/trust-gate-hardening.contract.md`), in every file
+  under `Gates/` and `bin/` alike. Write such a word in a comment or a string
+  literal, never as code.
 - A gate reports a stable `PASS` or `FAIL` line stating exactly what was
   checked and, on failure, every offending item. It never truncates the
   failure list.
@@ -41,8 +50,11 @@ they decide nothing.
   not its `Msg` text, is the authority for the message length. Digests this gate
   produces are cross-checked against a second implementation at pin time and
   recorded in `docs/PROVENANCE.md`.
-- Every gate resolves the repository root by searching upward for
-  `Whatwg.Streams.lean`; none reads an environment variable for that.
+- Every gate resolves the repository root by searching upward for the
+  production root `Whatwg.lean` (`Gates.Common.findProjectRoot`), joining a
+  relative start to the working directory first, so an elaboration-time
+  battery also runs by relative file name; none reads an environment variable
+  for that.
 
 ## Gates
 
@@ -51,7 +63,7 @@ they decide nothing.
 | `lake exe vendorseal` | `vendor/` against `generated/vendor-manifest.tsv` in both directions; Windows path validity | nothing |
 | `lake exe vendorseal --write` | Windows path validity | `generated/vendor-manifest.tsv` |
 | `lake exe citations` | no line-numbered citation into a protected authored document | nothing |
-| `lake exe trustselftest` (on demand, not a default target and not in CI since 2026-09-03) | the declared red set; then planted `partial`, `unsafe`, `sorry`, `native_decide`, malformed literals, and an unreachable module are each rejected for the stated reason | a throwaway copy outside the tree, seeded from `.lake`, removed afterwards |
+| `lake exe trustselftest` (not a default target; in CI again since ruling R-V2, after the full build) | the declared red set; then planted `partial`, `unsafe`, `sorry`, `native_decide`, malformed literals, and an unreachable module are each rejected for the stated reason; then the `V2-` plants of `test/contracts/trust-gate-hardening.contract.md`: the environment pass (declared axioms, `@[extern]`, `@[implemented_by]`, bodyless `opaque`), trust tokens in commands that leave no constant (`native_decide`, `bv_decide`, `bv_decide?`, `bv_check`, the `native` flag, `sorry`, `axiom`, `extern`, `implemented_by`, `debug.skipKernelTC`, the three forbidden axiom names) in the production, test and tooling trees and under `bin/`, the strict ceiling of ruling R-V1 with its four exception checks, and the source-token exemption checks, each rejected for its frozen reason; benign spellings, an authored `opaque` and a `Classical.choice` theorem under `WhatwgTest` accepted; and the gate and the coverage numerator run narrowly by relative file name | a throwaway copy outside the tree, seeded from `.lake`, removed afterwards |
 | `lake exe census` | the pinned `index.bs` digest; every census anchor occurs exactly once at its span start; every span digest recomputes; every row has exactly one disposition from the authored inputs under `census/`, with no unused entry; both projections are byte-identical to a fresh regeneration; and the numerator's coverage emit carries the same ids, order and dispositions as that regeneration, with no witness on an absent row and none on a row outside the denominator | nothing |
 | `lake exe census --write` | the same, apart from the emit, before writing | `generated/spec-algorithm-census.tsv` and `WhatwgTest/Audit/SpecCoverageRows.lean` |
 | `lake exe census --report` | the emit against a fresh regeneration, as above; then prints the coverage block of `docs/SPEC-COVERAGE.md` from the emit's states | nothing |

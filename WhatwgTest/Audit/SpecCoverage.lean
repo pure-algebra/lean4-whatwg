@@ -706,7 +706,12 @@ private def ascriptionNames (source : String) : List String :=
 open Elab Command in
 elab "#spec_coverage_gate" : command => do
   let environment ← getEnv
-  let sourceFile := System.FilePath.mk (← getFileName)
+  -- `lake env lean WhatwgTest/Audit/SpecCoverage.lean` hands the elaborator a
+  -- relative file name, whose parent walk ends before the root: join it to the
+  -- working directory first.
+  let namedFile := System.FilePath.mk (← getFileName)
+  let sourceFile ←
+    if namedFile.isAbsolute then pure namedFile else do pure ((← liftIO IO.currentDir) / namedFile)
   let some sourceDirectory := sourceFile.parent
     | throwError "spec coverage gate: source file has no parent directory"
   let projectRoot ← liftIO <| findProjectRoot sourceDirectory

@@ -5,9 +5,10 @@ Shared helpers for the Lean-implemented repository gates: project-root
 discovery, path spelling, file walking, small string utilities, and the
 Windows path-validity rule.
 
-Every gate resolves the repository root by searching upward for
-`Whatwg.Streams.lean`, so it can be run from any working directory inside the
-checkout, and it never trusts an environment variable for that location.
+Every gate resolves the repository root by searching upward for the
+production root module `Whatwg.lean`, so it can be run from any working
+directory inside the checkout, and it never trusts an environment variable for
+that location.
 
 String utilities here operate on `List Char` rather than the slice API so
 that the gates read the same on every toolchain minor and never depend on
@@ -17,15 +18,20 @@ byte-position arithmetic.
 namespace Gates.Common
 
 /-- Search upward from `directory` for the repository root, identified by the
-production root module `Whatwg.Streams.lean`. -/
+production root module `Whatwg.lean`. A relative `directory` is joined to the
+working directory first, so an elaboration-time battery run by relative file
+name (`lake env lean WhatwgTest/Audit/CensusProfileIdentity.lean`) walks up
+from where that file is rather than stopping at the relative path's first
+component. -/
 def findProjectRoot (directory : System.FilePath) : IO System.FilePath := do
-  let mut current := directory
+  let mut current ←
+    if directory.isAbsolute then pure directory else do pure ((← IO.currentDir) / directory)
   for _ in [0:64] do
     if ← (current / "Whatwg.lean").pathExists then
       return current
     match current.parent with
     | some parent => current := parent
-    | none => throw <| IO.userError "gate: could not locate the repository root (no Whatwg.Streams.lean above the working directory)"
+    | none => throw <| IO.userError s!"gate: could not locate the repository root (no Whatwg.lean at or above {directory})"
   throw <| IO.userError "gate: repository-root search exceeded 64 parents"
 
 /-- The repository root for the current working directory. -/
