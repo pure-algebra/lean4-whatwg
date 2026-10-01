@@ -440,3 +440,24 @@
 # green. Every receipt prints inside the R-11 ceiling; 17 reach
 # Classical.choice against the stricter R-U3 target, recorded as debt D42. All
 # three entries are removed. No entry remains.
+
+# Q5 agent packet, review lane W (ruling R-W3), frozen 2026-10-01 by the Q5
+# breaker seat on branch review/w9-q5-breaker from b0d35e2.
+# Packet: test/contracts/promise-agent-q5.contract.md. Graph: PROMISE-PG-AGENT,
+# docs/PROMISE-AGENT-DAG.md. Attacks: WS-PROM-CE-040..047.
+#
+# FOUR entries, one battery per builder slice, so that each entry leaves when
+# its own slice lands: B1 (record, operations, step, views, D46) turns
+# AgentContract green; B2 (WF lemmas, adequacy, lifted laws) AgentLaws; B3
+# (Web IDL verbs) WebIdl.AgentContract; B4 (the Effects face, the
+# WhatwgSignatures library and the umbrella import) Signatures.Ecma262Contract.
+# Each module is red only because the names it ascribes do not exist yet; the
+# contract's freeze receipt records the measured diagnostics. No axiom-report
+# module is written (R-W9). Under R-W9 the packet does not reach main while
+# red: each slice branches from the breaker's head and merges when its battery
+# is green and its entry is gone. Breakers do not edit WhatwgTest.lean; the
+# builder that turns a battery green adds its root import.
+WhatwgTest.Ecma262.AgentContract
+WhatwgTest.Ecma262.AgentLaws
+WhatwgTest.WebIdl.AgentContract
+WhatwgTest.Signatures.Ecma262Contract
