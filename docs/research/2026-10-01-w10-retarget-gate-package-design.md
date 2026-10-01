@@ -416,7 +416,8 @@ imports the root would read a stale root and stop on freshness. The
 executable therefore imports every module that an audited source names,
 the root excepted, and checks the root lexically; when the root's `.olean`
 is current it also audits the root's constants. This keeps the two gates
-independent in the self-test.
+independent in the self-test. The prototype imports the root itself, which
+declares no constant, so its counts are the same either way.
 
 ### 4.3 The in-tree command: keep, slim, retire
 
