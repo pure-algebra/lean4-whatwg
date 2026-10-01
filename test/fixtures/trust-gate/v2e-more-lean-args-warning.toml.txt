@@ -1,0 +1,4 @@
+# Planted by the trust self-test, plant V2e-O1 (addendum V2e, debt D51): the
+# library Whatwg, which owns only the umbrella module, compiled with
+# warningAsError switched off through moreLeanArgs, which Lake traces.
+moreLeanArgs = ["-DwarningAsError=false"]

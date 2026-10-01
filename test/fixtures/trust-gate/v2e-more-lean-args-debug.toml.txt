@@ -1,0 +1,4 @@
+# Planted by the trust self-test, plant V2e-O2 (addendum V2e, debt D51): the
+# library Whatwg compiled with a debug option, warn.sorry switched off, and an
+# argument that is not a -D option, all through moreLeanArgs.
+moreLeanArgs = ["-Ddebug.skipKernelTC=true", "-Dwarn.sorry=false", "-j1"]
