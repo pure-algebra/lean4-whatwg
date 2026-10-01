@@ -79,8 +79,35 @@ A module that must spell one in code is admitted to that pass, and to no other
 check, by an exact entry of `sourceTokenExemptions`; an entry whose module has
 no source, or whose source carries no refused word, fails the build, and no
 file under `whatwgbin/` can be exempted. The list is empty: the gate spells its own
-words as string and name literals. `test/contracts/trust-gate-hardening.contract.md`
-freezes this behaviour and `lake exe whatwg_trustselftest` plants its violations.
+words as string and name literals.
+
+The third list, `metaprogrammingModules` (addendum V2c, ruling R-V10), names the
+modules that may declare syntax, a macro or an elaborator, or run a metaprogram
+at elaboration (`run_cmd`, `#eval`, `initialize` and the rest of the keyword set
+of V2c.2). Outside it the token pass refuses those keywords in code, and the
+environment pass refuses an audited module that registers a token, parser,
+syntax category, macro, elaborator or initializer, whatever spelled it, such as
+an `@[command_elab]` attribute. A listed module stays bound by every trust
+word: the list relaxes rule 1 and nothing else. It holds the eight modules that
+declare a `#…` gate command, the gate's own module included, and the two
+constructive-contract batteries that run their receipts in `run_cmd`, each with
+its reason; an entry that names no audited module source, one whose module
+neither spells a keyword nor registers anything, one with a blank reason, one
+listed twice, and one that names an entry point under `whatwgbin/` fail the
+build. A new elaboration-time battery that needs `elab` or `run_cmd` therefore
+needs an entry, reviewed like an exemption.
+
+The same addendum makes the gate refuse a token of the final token table that
+is not inert (one that could hide a refused word from the token pass), a
+`(config := …)` whose value is not a literal brace group without `with` closed
+by `)`, any command of `WhatwgTest.lean` other than its imports and the gate
+command, which must come last, a constant that root declares, and an audited
+environment module that maps to no scanned source by exact path. Because the
+gate is a command inside the tree it audits, its module also registers linters
+that check, after the root's commands, that the gate's own elaborator ran it,
+and run every pass themselves when it did not.
+`test/contracts/trust-gate-hardening.contract.md` freezes this behaviour and
+`lake exe whatwg_trustselftest` plants its violations.
 
 Before handoff, run the narrow file directly and the default Lake build. Link
 the exact command and result to the affected proof-graph edge or leaf receipt;
