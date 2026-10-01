@@ -184,6 +184,7 @@ private def strictCeilingPrefixes : List Name :=
   , `Whatwg.Url
   , `Whatwg.Infra.Text.Utf8
   , `Whatwg.Streams
+  , `Whatwg.Signatures
   ]
 
 /-- An exact admission of one declaration under the strict ceiling to
