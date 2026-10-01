@@ -3,33 +3,151 @@ import Whatwg.Ecma262.Agent
 /-!
 # Laws of the ECMAScript agent
 
-Promise slice Q5, builder slice B2 (ruling R-W3, R-W13): the world order, the
-handler-adequacy theorems and the lifted laws over `Whatwg/Ecma262/Agent.lean`.
-Battery: `WhatwgTest/Ecma262/AgentLaws.lean`. Replayed from the breaker's
-validation prototype; the restructured and documented module follows.
+Owner: promise slice Q5 (ruling R-W3), graph `PROMISE-PG-AGENT`
+(`docs/PROMISE-AGENT-DAG.md`), at the surface
+`test/contracts/promise-agent-q5.contract.md` freezes (ruling R-W13). This
+module is builder slice B2; its battery is
+`WhatwgTest/Ecma262/AgentLaws.lean`. Slice B1, `Whatwg/Ecma262/Agent.lean`,
+owns the agent record, its nine operations, the step and the definitions of
+`Minted` and `WF`; this module owns every other lemma about `WF`.
+
+Landed here: the world order `Le`; the certificate, pre and post of every
+operation; the judgment `Implements` with one `*_implements` theorem per
+operation and `implements` over all nine; `WF.empty`, `WF.step` and
+`WF.runOps`, so every agent a run reaches from `Agent.empty` is well formed;
+runs of the step (`Op.started`, `runOps`) with the landed FIFO law lifted to
+them; and the other lifted laws of the contract's section 9.
+
+## The adequacy shape
+
+Each operation's law has four parts: a well-formed agent `a`, a request `op`
+that `pre a op c` admits, the step, and the answer in the post. The step is
+total, so an admitted request always steps and there is no frontier. The
+later agent is the stepped one, `(step a op).1`, and `Implements op` says
+three things of it: it is above `a` in `Le`, it is well formed again, and
+`post` holds of it and the answer `(step a op).2`. The middle conjunct is
+the operation's `WF` preservation.
+
+`pre` is enabledness, so under it the step takes no disabled branch, with one
+exception: the pre of `resolve` and `reject` is `Minted a cap`, which admits a
+capability whose functions already fired, because a program may call
+"resolve" twice. That step is inert and the post still holds, by
+`WF.resolvedSettled` and `WF.functionsAllocated`. `Cert` is `Unit`: the table
+is homogeneous in `value` and `reason`, so no ghost certificate is needed.
+The posts are facts at the answering agent. The activation posts of
+`startJob` and `finishJob` hold there only, because a job's activation ends;
+every other post is upward closed in `Le`.
+
+## What the shape is a reading of
+
+The shape is lean4-effect4's handler-adequacy judgment, read in its source at
+commit `b9d0d19f` (`src/Effect4/Laws/Program/Typed/Adequacy.lean`, with
+`src/Effect4/Laws/Effects/Protocol.lean`). What follows is a reading of that
+source, not a claim about that repository, its intent or its gate. There,
+`StoreImplements root op` says that for every world and certificate, a store
+that `StoreTyped` types and a request that `storePre` admits step
+(`syncOpStep op w.state = some (st', ans)`), and some later world `w'` over
+`st'`, above `w` in `World.leHost`, is typed again with the answer in
+`storePost`. Read that way:
+
+- `Agent.WF` is `StoreTyped`;
+- `Agent.Le` is `World.leHost`;
+- `Agent.Cert` is `StoreCert op`;
+- `Agent.pre` and `Agent.post` are `storePre` and `storePost`;
+- `Agent.Implements op` is `StoreImplements root op`, and the nine
+  `*_implements` theorems are its per-row `*_implements`.
+
+Three differences, each a reading. Their step is partial and ours is total,
+so their `∃ st' ans` is our step's own components. Their later world is any
+`w'` above `w` over the new store; ours is the stepped agent, with
+`Le a (step a op).1` as a conjunct. Their typing is "every value fits its
+declared type" over a heterogeneous store; ours is identity and reference
+coherence over a homogeneous one. `Cert`, `pre` and `post` have the types of
+`Protocol`'s `Cert`, `pre` and `post` at the face's signature, and `Le`,
+`Le.refl` and `Le.trans` those of `WorldOrder`'s `le`, `refl` and `trans`.
+No generic law is copied: the program-level `run_adequate` over `Protocol`
+waits until that module is in the `effects` package and this repository moves
+its pin (R-W3), because a second owner of a generic law is what
+`Whatwg/AGENTS.md` forbids.
+
+## Masks
+
+Masks are DB-04's, written "DB-04 M1" and "DB-04 M2"; no declaration here
+spells a mask. A statement is DB-04 M2 when it observes the order of the
+settlement trace or of the job queue, and DB-04 M1 otherwise. `Le.trace` is a
+prefix of the settlement order, so every law that concludes `Le` is DB-04 M2:
+`Le.refl`, `Le.trans`, `Le.step`, `Implements_iff`, the nine `*_implements`
+and `implements`. `runOps_cons`, `runOps_fifo` and `runOps_fifoRequirement`
+observe start order and `settle_trace` settlement order, so they are DB-04 M2
+too. Every other law here is DB-04 M1.
+
+## Anchors and claim scope
+
+Anchor aliases (NEWCAP, RESOLVING, FULFILL, REJECT, TRIGGER, THEN, REACTJOB,
+RUNCOND, ONEJOB, ORDER, COMPLETE, REACT, HANDLEDOP) expand through
+`docs/PROMISE-DAG.md`'s alias table. Byte spans are 0-based, ends exclusive,
+into `vendor/ecma262-0248456c/spec.html`, or into
+`vendor/whatwg-webidl-a652053f/index.bs` for a Web IDL row. Every census row
+cited here anchors a declaration and is never a numerator; no coverage state
+moves.
+
+Not modelled, as in `Whatwg/Ecma262/Agent.lean`: thenable adoption (`G-05`),
+so `WF.resolvedSettled` holds only while adoption stays out, and the posts of
+`resolve` and `reject` lean on it (the `G-05` obligation of R-W3); the
+rejection tracker (the `G-02` remainder); job callbacks (the `G-07`
+remainder). `held` never shrinks and `finishJob` leaves a reaction's phase at
+`.queued`.
+
+Layering (DB-11): this module imports `Whatwg.Ecma262.Agent` and nothing
+else, so no `Effects` module and no `Whatwg.Infra` module (R-W3). Every lemma
+the battery does not ascribe is private.
 -/
 
 namespace Whatwg.Ecma262.Agent
 
+/-! ## 1. The world order
+
+What a later agent keeps of an earlier one. Every operation moves a
+well-formed agent up this order (`Le.step`, section 13). -/
+
+/-- The world order of the adequacy shape: the earlier agent's allocated cells
+stay allocated, its settled states never change, its handled bits never clear,
+its three cursors grow, every stored resolving-function record survives with
+its three identities, and its settlement trace is a prefix of the later one.
+Adequacy definition, read as lean4-effect4's `World.leHost`; its eight clauses
+are frozen by their projections. -/
 structure Le {value reason body : Type} (a a' : Agent value reason body) : Prop where
+  /-- An allocated cell stays allocated. -/
   allocated : ∀ (p : Nat), (a.table.getCell p).isSome = true → (a'.table.getCell p).isSome = true
+  /-- A settled state never changes. -/
   settled : ∀ (p : Nat) (s : Promise.State value reason), a.table.get p = some s →
     s ≠ Promise.State.pending → a'.table.get p = some s
+  /-- The handled bit never clears. -/
   handled : ∀ (p : Nat), (a.table.getCell p).map Promise.Cell.handled = some true →
     (a'.table.getCell p).map Promise.Cell.handled = some true
+  /-- The table cursor grows. -/
   tableNext : a.table.next ≤ a'.table.next
+  /-- The registration cursor grows. -/
   reactionsNext : a.reactions.next ≤ a'.reactions.next
+  /-- The function cursor grows. -/
   functionCursor : a.nextFunction ≤ a'.nextFunction
+  /-- Every stored resolving-function record survives with its `[[Resolve]]`,
+  `[[Reject]]` and `[[Promise]]` identities; its one-shot marker may change. -/
   minted : ∀ f ∈ a.functions, ∃ g ∈ a'.functions,
     g.resolve = f.resolve ∧ g.reject = f.reject ∧ g.promise = f.promise
+  /-- The settlement trace only grows, at its end. -/
   trace : a.settlements <+: a'.settlements
 
+/-- Every agent is later than itself (the type of `WorldOrder`'s `refl`).
+Adequacy law; DB-04 M2, through `Le.trace`. -/
 theorem Le.refl :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body), Agent.Le a a := by
   intro value reason body a
   exact ⟨fun _ h => h, fun _ _ h _ => h, fun _ h => h, Nat.le_refl _, Nat.le_refl _,
     Nat.le_refl _, fun f hf => ⟨f, hf, rfl, rfl, rfl⟩, List.prefix_refl _⟩
 
+/-- Later than later is later (the type of `WorldOrder`'s `trans`). Adequacy
+law; DB-04 M2, through `Le.trace`. -/
 theorem Le.trans :
     ∀ {value reason body : Type} {a b c : Agent.Agent value reason body},
       Agent.Le a b → Agent.Le b c → Agent.Le a c := by
@@ -45,8 +163,20 @@ theorem Le.trans :
       exact ⟨g', hg', h1'.trans h1, h2'.trans h2, h3'.trans h3⟩,
     List.IsPrefix.trans h₁.trace h₂.trace⟩
 
+/-! ## 2. The certificate, the pre and the post
+
+The content of each is frozen by the eighteen `pre_*` and `post_*` equations,
+each `Iff.rfl` of the definition, and `Implements` by `Implements_iff`. -/
+
+/-- The certificate a request carries: `Unit`, because the table is
+homogeneous in `value` and `reason`, so no ghost certificate is needed.
+Adequacy definition, read as `StoreCert op`; an `abbrev`. -/
 abbrev Cert {value reason body : Type} (_ : Op value reason body) : Type := Unit
 
+/-- The requests the adequacy shape admits: each operation's enabledness (the
+contract's section 5), except that `resolve` and `reject` admit any minted
+capability, its functions fired or not. Adequacy definition, read as
+`storePre`; the nine `pre_*` equations fix it. -/
 def pre {value reason body : Type} (a : Agent value reason body) :
     (op : Op value reason body) → Cert op → Prop
   | .newPromise, _ => True
@@ -59,6 +189,13 @@ def pre {value reason body : Type} (a : Agent value reason body) :
   | .enterScript, _ => a.active = Jobs.Active.checkpoint
   | .leaveScript, _ => a.active = Jobs.Active.script
 
+/-- What an answer satisfies at the answering agent `a`: a new capability is
+minted and pending; a resolved or rejected capability's promise is settled; a
+performed promise is handled, with the derived capability minted and pending
+when one was asked for; a marked promise is handled; a started job is the
+running job at its own serial; a finished job leaves a checkpoint with nothing
+running; a script operation reaches its activation. Adequacy definition, read
+as `storePost`; the nine `post_*` equations fix it. -/
 def post {value reason body : Type} (a : Agent value reason body) :
     (op : Op value reason body) → Cert op → op.Answer → Prop
   | .newPromise, _, cap => Minted a cap ∧ a.table.get cap.promise = some Promise.State.pending
@@ -79,32 +216,24 @@ def post {value reason body : Type} (a : Agent value reason body) :
   | .enterScript, _, _ => a.active = Jobs.Active.script
   | .leaveScript, _, _ => a.active = Jobs.Active.checkpoint
 
+/-- The handler-adequacy judgment of one operation: from every well-formed
+agent and every request its pre admits, the step reaches an agent that is
+later in `Le`, well formed again, and holds the answer in the post. Adequacy
+definition, read as `StoreImplements root op`; `Implements_iff` fixes it. -/
 def Implements {value reason body : Type} (op : Op value reason body) : Prop :=
   ∀ (a : Agent value reason body) (c : Cert op), WF a → pre a op c →
     Le a (step a op).1 ∧ WF (step a op).1 ∧ post (step a op).1 op c (step a op).2
 
-def Op.started {value reason body : Type} :
-    (op : Op value reason body) → op.Answer → List (Job value reason)
-  | .startJob, ans => (ans.map Prod.fst).toList
-  | _, _ => []
-
-def runOps {value reason body : Type} :
-    Agent value reason body → List (Op value reason body) →
-      Agent value reason body × List (Job value reason)
-  | a, [] => (a, [])
-  | a, op :: ops =>
-      ((runOps (step a op).1 ops).1,
-        Op.started op (step a op).2 ++ (runOps (step a op).1 ops).2)
-
-
-/-! ## Defining equations -/
-
+/-- `newPromise` is always admitted (NEWCAP). Defining equation; DB-04 M1. -/
 theorem pre_newPromise :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.newPromise : Agent.Op value reason body)),
       Agent.pre a Agent.Op.newPromise c ↔ True := by
   intros; exact Iff.rfl
 
+/-- `resolve` is admitted through any capability this agent minted, its
+functions fired or not (RESOLVING; Web IDL `op.resolve`). Defining equation;
+DB-04 M1. -/
 theorem pre_resolve :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (v : value)
@@ -112,6 +241,9 @@ theorem pre_resolve :
       Agent.pre a (Agent.Op.resolve cap v) c ↔ Agent.Minted a cap := by
   intros; exact Iff.rfl
 
+/-- `reject` is admitted through any capability this agent minted, its
+functions fired or not (RESOLVING; Web IDL `op.reject`). Defining equation;
+DB-04 M1. -/
 theorem pre_reject :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (r : reason)
@@ -119,6 +251,8 @@ theorem pre_reject :
       Agent.pre a (Agent.Op.reject cap r) c ↔ Agent.Minted a cap := by
   intros; exact Iff.rfl
 
+/-- `perform` is admitted on an allocated promise (THEN, where the
+specification asserts `IsPromise`). Defining equation; DB-04 M1. -/
 theorem pre_perform :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (onFulfilled onRejected : Option body) (derive : Bool)
@@ -128,12 +262,16 @@ theorem pre_perform :
         (a.table.get promise).isSome = true := by
   intros; exact Iff.rfl
 
+/-- `markHandled` is admitted on an allocated promise (HANDLEDOP). Defining
+equation; DB-04 M1. -/
 theorem pre_markHandled :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (c : Agent.Cert (Agent.Op.markHandled promise : Agent.Op value reason body)),
       Agent.pre a (Agent.Op.markHandled promise) c ↔ (a.table.get promise).isSome = true := by
   intros; exact Iff.rfl
 
+/-- `startJob` is admitted at a checkpoint with a job queued (RUNCOND, ONEJOB).
+Defining equation; DB-04 M1. -/
 theorem pre_startJob :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.startJob : Agent.Op value reason body)),
@@ -141,6 +279,8 @@ theorem pre_startJob :
         a.active = Jobs.Active.checkpoint ∧ a.queue.pending ≠ [] := by
   intros; exact Iff.rfl
 
+/-- `finishJob` is admitted while the activation is a job (REACTJOB, COMPLETE).
+Defining equation; DB-04 M1. -/
 theorem pre_finishJob :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (decision : Except reason value)
@@ -148,18 +288,24 @@ theorem pre_finishJob :
       Agent.pre a (Agent.Op.finishJob decision) c ↔ ∃ s : Nat, a.active = Jobs.Active.job s := by
   intros; exact Iff.rfl
 
+/-- `enterScript` is admitted at a checkpoint (RUNCOND). Defining equation;
+DB-04 M1. -/
 theorem pre_enterScript :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.enterScript : Agent.Op value reason body)),
       Agent.pre a Agent.Op.enterScript c ↔ a.active = Jobs.Active.checkpoint := by
   intros; exact Iff.rfl
 
+/-- `leaveScript` is admitted in a script (RUNCOND). Defining equation; DB-04
+M1. -/
 theorem pre_leaveScript :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.leaveScript : Agent.Op value reason body)),
       Agent.pre a Agent.Op.leaveScript c ↔ a.active = Jobs.Active.script := by
   intros; exact Iff.rfl
 
+/-- After `newPromise`, the answered capability is minted and its promise is
+pending (NEWCAP, RESOLVING). Defining equation; DB-04 M1. -/
 theorem post_newPromise :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.newPromise : Agent.Op value reason body))
@@ -168,6 +314,9 @@ theorem post_newPromise :
         Agent.Minted a cap ∧ a.table.get cap.promise = some Promise.State.pending := by
   intros; exact Iff.rfl
 
+/-- After `resolve`, the capability's promise is settled, fulfilled or
+rejected (RESOLVING, FULFILL; Web IDL `op.resolve`). Defining equation; DB-04
+M1. -/
 theorem post_resolve :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (v : value)
@@ -177,6 +326,8 @@ theorem post_resolve :
           s ≠ Promise.State.pending := by
   intros; exact Iff.rfl
 
+/-- After `reject`, the capability's promise is settled, fulfilled or rejected
+(RESOLVING, REJECT; Web IDL `op.reject`). Defining equation; DB-04 M1. -/
 theorem post_reject :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (r : reason)
@@ -186,6 +337,9 @@ theorem post_reject :
           s ≠ Promise.State.pending := by
   intros; exact Iff.rfl
 
+/-- After `perform`, the promise is handled (THEN step 12); with `derive` the
+answer carries a capability that is minted and pending (REACT step 6), and
+without it the answer is `some none`. Defining equation; DB-04 M1. -/
 theorem post_perform :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (onFulfilled onRejected : Option body) (derive : Bool)
@@ -199,6 +353,8 @@ theorem post_perform :
           (derive = false → ans = some none) := by
   intros; exact Iff.rfl
 
+/-- After `markHandled`, the promise's handled bit is set (HANDLEDOP).
+Defining equation; DB-04 M1. -/
 theorem post_markHandled :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (c : Agent.Cert (Agent.Op.markHandled promise : Agent.Op value reason body))
@@ -207,6 +363,9 @@ theorem post_markHandled :
         (a.table.getCell promise).map Promise.Cell.handled = some true := by
   intros; exact Iff.rfl
 
+/-- After `startJob`, the answer is some job with its record's handler, and
+that job is the running job at the serial of its own reaction identity
+(RUNCOND, ONEJOB). Defining equation; DB-04 M1. -/
 theorem post_startJob :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.startJob : Agent.Op value reason body))
@@ -217,6 +376,9 @@ theorem post_startJob :
             a.active = Jobs.Active.job j.reaction ∧ a.running = some j := by
   intros; exact Iff.rfl
 
+/-- After `finishJob`, the agent is at a checkpoint with no job running
+(COMPLETE). It lifts the landed `Jobs.completeJob_job`. Defining equation;
+DB-04 M1. -/
 theorem post_finishJob :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (decision : Except reason value)
@@ -225,18 +387,25 @@ theorem post_finishJob :
         a.active = Jobs.Active.checkpoint ∧ a.running = none := by
   intros; exact Iff.rfl
 
+/-- After `enterScript`, the agent is in a script (RUNCOND). Defining equation;
+DB-04 M1. -/
 theorem post_enterScript :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.enterScript : Agent.Op value reason body)) (ans : Unit),
       Agent.post a Agent.Op.enterScript c ans ↔ a.active = Jobs.Active.script := by
   intros; exact Iff.rfl
 
+/-- After `leaveScript`, the agent is at a checkpoint (RUNCOND). Defining
+equation; DB-04 M1. -/
 theorem post_leaveScript :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (c : Agent.Cert (Agent.Op.leaveScript : Agent.Op value reason body)) (ans : Unit),
       Agent.post a Agent.Op.leaveScript c ans ↔ a.active = Jobs.Active.checkpoint := by
   intros; exact Iff.rfl
 
+/-- The judgment `Implements op`, spelled out: from a well-formed agent and an
+admitted request, the stepped agent is later, well formed, and holds the
+answer in the post. Defining equation; DB-04 M2, through `Le.trace`. -/
 theorem Implements_iff :
     ∀ {value reason body : Type} (op : Agent.Op value reason body),
       Agent.Implements op ↔
@@ -246,27 +415,12 @@ theorem Implements_iff :
             Agent.post (Agent.step a op).1 op c (Agent.step a op).2 := by
   intros; exact Iff.rfl
 
-theorem Op.started_startJob :
-    ∀ {value reason body : Type}
-      (ans : Agent.Op.Answer (Agent.Op.startJob : Agent.Op value reason body)),
-      Agent.Op.started Agent.Op.startJob ans = (ans.map Prod.fst).toList := by
-  intros; rfl
+/-! ## 3. Lemmas about the promise table
 
-theorem runOps_nil :
-    ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-      Agent.runOps a [] = (a, []) := by
-  intros; rfl
+The landed table operations, at any identity: what a settle, a mark and an
+allocation keep. Private: the battery ascribes none of them. -/
 
-theorem runOps_cons :
-    ∀ {value reason body : Type} (a : Agent.Agent value reason body)
-      (op : Agent.Op value reason body) (ops : List (Agent.Op value reason body)),
-      Agent.runOps a (op :: ops) =
-        ((Agent.runOps (Agent.step a op).1 ops).1,
-          Agent.Op.started op (Agent.step a op).2 ++ (Agent.runOps (Agent.step a op).1 ops).2) := by
-  intros; rfl
-
-/-! ## Table helpers -/
-
+/-- A map that keeps every key commutes with a lookup by key. -/
 private theorem find?_map_fst {α : Type} (l : List (Nat × α)) (g : Nat × α → Nat × α)
     (hg : ∀ e, (g e).1 = e.1) (q : Nat) :
     List.find? (fun e => e.1 == q) (l.map g) = (List.find? (fun e => e.1 == q) l).map g := by
@@ -277,6 +431,7 @@ private theorem find?_map_fst {α : Type} (l : List (Nat × α)) (g : Nat × α 
     rw [hg e]
   rw [this]
 
+/-- A settle keeps the identities and the cursor. -/
 private theorem settle_ids {value reason : Type} (t : Promise.Table value reason) (id : Nat)
     (result : Except reason value) :
     (Promise.Table.settle t id result).entries.map Prod.fst = t.entries.map Prod.fst ∧
@@ -293,9 +448,10 @@ private theorem settle_ids {value reason : Type} (t : Promise.Table value reason
       show (if _ then _ else e).1 = e.1
       split <;> rfl
 
-/-- The cell a settle leaves at `q`: the old one, with the state replaced at `id`. -/
-private theorem getCell_settle {value reason : Type} (t : Promise.Table value reason) (id q : Nat)
-    (result : Except reason value) :
+/-- A settle keeps, at every identity, whether a cell is allocated and its
+handled bit. -/
+private theorem getCell_settle {value reason : Type} (t : Promise.Table value reason)
+    (id q : Nat) (result : Except reason value) :
     (Promise.Table.getCell (Promise.Table.settle t id result) q).isSome =
         (Promise.Table.getCell t q).isSome ∧
       (Promise.Table.getCell (Promise.Table.settle t id result) q).map Promise.Cell.handled =
@@ -321,6 +477,7 @@ private theorem getCell_settle {value reason : Type} (t : Promise.Table value re
         show (if _ then _ else e).1 = e.1
         split <;> rfl
 
+/-- A settle changes no state at another identity. -/
 private theorem settle_get_other {value reason : Type} (t : Promise.Table value reason)
     (id q : Nat) (result : Except reason value) (hne : q ≠ id) :
     Promise.Table.get (Promise.Table.settle t id result) q = Promise.Table.get t q := by
@@ -349,6 +506,7 @@ private theorem settle_get_other {value reason : Type} (t : Promise.Table value 
         show (if _ then _ else e).1 = e.1
         split <;> rfl
 
+/-- A settle leaves a non-pending identity non-pending. -/
 private theorem settle_notPending {value reason : Type} (t : Promise.Table value reason)
     (id q : Nat) (result : Except reason value) (h : Promise.Table.isPending t q = false) :
     Promise.Table.isPending (Promise.Table.settle t id result) q = false := by
@@ -365,6 +523,17 @@ private theorem settle_notPending {value reason : Type} (t : Promise.Table value
       unfold Promise.Table.isPending
       rw [settle_get_other t id q result hne]
       exact h
+
+/-- After a settle at `p`, `p` is not pending. -/
+private theorem isPending_settle_self {value reason : Type} (t : Promise.Table value reason)
+    (p : Nat) (result : Except reason value) :
+    Promise.Table.isPending (Promise.Table.settle t p result) p = false := by
+  cases hp : Promise.Table.isPending t p with
+  | false => exact settle_notPending t p p result hp
+  | true =>
+      unfold Promise.Table.isPending
+      rw [Promise.Table.settle_assert t p result ((Promise.Table.isPending_iff t p).mp hp)]
+      cases result <;> rfl
 
 /-- After a settle at `p`, an allocated `p` is settled. -/
 private theorem settle_settled {value reason : Type} (t : Promise.Table value reason) (p : Nat)
@@ -391,7 +560,7 @@ private theorem settle_settled {value reason : Type} (t : Promise.Table value re
           rw [hc, ← e]
           rfl
 
-/-- A not-pending allocated promise is settled. -/
+/-- An allocated promise that is not pending is settled. -/
 private theorem settled_of_notPending {value reason : Type} (t : Promise.Table value reason)
     (p : Nat) (h : (Promise.Table.getCell t p).isSome = true)
     (hp : Promise.Table.isPending t p = false) :
@@ -407,6 +576,8 @@ private theorem settled_of_notPending {value reason : Type} (t : Promise.Table v
       rw [hc, ← e]
       rfl
 
+/-- The cell a mark leaves at `q`: the old one, with the bit set when `q` is
+the marked identity. -/
 private theorem getCell_markHandled {value reason : Type} (t : Promise.Table value reason)
     (p q : Nat) :
     Promise.Table.getCell (Promise.Table.markHandled t p) q =
@@ -432,6 +603,7 @@ private theorem getCell_markHandled {value reason : Type} (t : Promise.Table val
       rw [hq]
       cases (q == p) <;> rfl
 
+/-- A mark allocates and frees nothing. -/
 private theorem markHandled_isSome {value reason : Type} (t : Promise.Table value reason)
     (p q : Nat) :
     (Promise.Table.getCell (Promise.Table.markHandled t p) q).isSome =
@@ -439,6 +611,7 @@ private theorem markHandled_isSome {value reason : Type} (t : Promise.Table valu
   rw [getCell_markHandled]
   cases Promise.Table.getCell t q <;> rfl
 
+/-- A mark clears no handled bit. -/
 private theorem markHandled_handled {value reason : Type} (t : Promise.Table value reason)
     (p q : Nat) (h : (Promise.Table.getCell t q).map Promise.Cell.handled = some true) :
     (Promise.Table.getCell (Promise.Table.markHandled t p) q).map Promise.Cell.handled =
@@ -453,13 +626,16 @@ private theorem markHandled_handled {value reason : Type} (t : Promise.Table val
       | true => rfl
       | false => exact h
 
+/-- A mark changes no pending flag. -/
 private theorem markHandled_isPending {value reason : Type} (t : Promise.Table value reason)
     (p q : Nat) :
     Promise.Table.isPending (Promise.Table.markHandled t p) q = Promise.Table.isPending t q := by
   unfold Promise.Table.isPending
   rw [markHandled_get]
 
-private theorem markHandled_ids {value reason : Type} (t : Promise.Table value reason) (p : Nat) :
+/-- A mark keeps the identities and the cursor. -/
+private theorem markHandled_ids {value reason : Type} (t : Promise.Table value reason)
+    (p : Nat) :
     (Promise.Table.markHandled t p).entries.map Prod.fst = t.entries.map Prod.fst ∧
       (Promise.Table.markHandled t p).next = t.next := by
   refine ⟨?_, rfl⟩
@@ -470,7 +646,7 @@ private theorem markHandled_ids {value reason : Type} (t : Promise.Table value r
   show (if e.1 == p then (e.1, Promise.Cell.mk e.2.state true) else e).1 = e.1
   cases (e.1 == p) <;> rfl
 
-/-- Allocation keeps every old lookup, at any identity. -/
+/-- Allocation keeps every old cell, at any identity. -/
 private theorem getCell_fresh {value reason : Type} (t : Promise.Table value reason)
     (o : Promise.State value reason) (p : Nat) (c : Promise.Cell value reason)
     (h : Promise.Table.getCell t p = some c) :
@@ -483,6 +659,46 @@ private theorem getCell_fresh {value reason : Type} (t : Promise.Table value rea
   | none => rw [hf] at h; cases h
   | some e => rw [hf] at h; exact h
 
+/-- Allocation keeps every old state, at any identity. -/
+private theorem get_fresh {value reason : Type} (t : Promise.Table value reason)
+    (o : Promise.State value reason) (p : Nat) (s : Promise.State value reason)
+    (h : Promise.Table.get t p = some s) :
+    Promise.Table.get (Promise.Table.fresh t o).1 p = some s := by
+  unfold Promise.Table.get at h ⊢
+  cases hc : Promise.Table.getCell t p with
+  | none => rw [hc] at h; cases h
+  | some c =>
+      rw [hc] at h
+      rw [getCell_fresh t o p c hc]
+      exact h
+
+/-- Allocation keeps every allocated identity allocated. -/
+private theorem getCell_fresh_isSome {value reason : Type} (t : Promise.Table value reason)
+    (o : Promise.State value reason) (p : Nat) (h : (Promise.Table.getCell t p).isSome = true) :
+    (Promise.Table.getCell (Promise.Table.fresh t o).1 p).isSome = true := by
+  cases hc : Promise.Table.getCell t p with
+  | none => rw [hc] at h; cases h
+  | some c => rw [getCell_fresh t o p c hc]; rfl
+
+/-- A state lookup that succeeds has a cell behind it. -/
+private theorem getCell_isSome_of_get {value reason : Type} (t : Promise.Table value reason)
+    (p : Nat) (s : Promise.State value reason) (h : Promise.Table.get t p = some s) :
+    (Promise.Table.getCell t p).isSome = true := by
+  unfold Promise.Table.get at h
+  cases hc : Promise.Table.getCell t p with
+  | none => rw [hc] at h; cases h
+  | some _ => rfl
+
+/-- An allocated identity has a state. -/
+private theorem get_of_getCell_isSome {value reason : Type} (t : Promise.Table value reason)
+    (p : Nat) (h : (Promise.Table.getCell t p).isSome = true) :
+    ∃ s, Promise.Table.get t p = some s := by
+  unfold Promise.Table.get
+  cases hc : Promise.Table.getCell t p with
+  | none => rw [hc] at h; cases h
+  | some c => exact ⟨c.state, rfl⟩
+
+/-- Under `WF`, an allocated identity is below the table cursor. -/
 private theorem WF.getCell_lt {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) {p : Nat} (h : (a.table.getCell p).isSome = true) : p < a.table.next := by
   unfold Promise.Table.getCell at h
@@ -494,16 +710,26 @@ private theorem WF.getCell_lt {value reason body : Type} {a : Agent value reason
       rw [← beq_iff_eq.mp hb]
       exact hw.tableBelow e (List.mem_of_find?_eq_some hf)
 
-private theorem getCell_isSome_of_get {value reason : Type} (t : Promise.Table value reason)
-    (p : Nat) (s : Promise.State value reason) (h : Promise.Table.get t p = some s) :
-    (Promise.Table.getCell t p).isSome = true := by
-  unfold Promise.Table.get at h
-  cases hc : Promise.Table.getCell t p with
-  | none => rw [hc] at h; cases h
-  | some _ => rfl
+/-- Under `WF`, the table cursor names no cell, so the next allocation is
+fresh. -/
+private theorem WF.getCell_next {value reason body : Type} {a : Agent value reason body}
+    (hw : WF a) : Promise.Table.getCell a.table a.table.next = none := by
+  cases hc : Promise.Table.getCell a.table a.table.next with
+  | none => rfl
+  | some _ =>
+      have := hw.getCell_lt (p := a.table.next) (by rw [hc]; rfl)
+      exact absurd this (Nat.lt_irrefl _)
 
-/-! ## Reaction-list helpers -/
+/-! ## 4. Lemmas about reactions, lookups and identities
 
+What trigger-then-clear keeps of the two reaction lists, when `reactionOf`
+finds a record, and uniqueness through a `Nodup` key. Private. The lemmas over
+a reaction kind are stated for every kind `k`, never with an inline `match`
+on the result, because an inline `match` elaborates to a matcher other than
+the landed one. -/
+
+/-- Trigger-then-clear keeps the identities of the fulfil list, for either
+kind. -/
 private theorem trigger_clear_fulfill_ids {value reason body : Type}
     (rs : Promise.Reactions body) (p : Nat) (k : Promise.ReactionType)
     (argument : Except reason value) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
@@ -525,6 +751,8 @@ private theorem trigger_clear_fulfill_ids {value reason body : Type}
       show (if _ then _ else r).id = r.id
       split <;> rfl
 
+/-- Trigger-then-clear keeps the identities of the reject list, for either
+kind. -/
 private theorem trigger_clear_reject_ids {value reason body : Type}
     (rs : Promise.Reactions body) (p : Nat) (k : Promise.ReactionType)
     (argument : Except reason value) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
@@ -546,6 +774,7 @@ private theorem trigger_clear_reject_ids {value reason body : Type}
       show (if _ then _ else r).id = r.id
       split <;> rfl
 
+/-- Trigger-then-clear keeps the registration cursor. -/
 private theorem trigger_clear_next {value reason body : Type} (rs : Promise.Reactions body)
     (p : Nat) (k : Promise.ReactionType) (argument : Except reason value)
     (q : Jobs.Queue (Jobs.ReactionJob (Except reason value))) :
@@ -561,6 +790,7 @@ private theorem mem_map_keeps {body : Type} (l : List (Promise.Reaction body))
   obtain ⟨r, hr, he⟩ := List.mem_map.mp h
   exact ⟨r, hr, he ▸ hg r⟩
 
+/-- The clearing map keeps identity and capability. -/
 private theorem clearMap_keeps {body : Type} (p : Nat) (r : Promise.Reaction body) :
     ((fun (r : Promise.Reaction body) =>
         if r.promise == p && r.phase == Promise.ReactionPhase.waiting then
@@ -573,6 +803,7 @@ private theorem clearMap_keeps {body : Type} (p : Nat) (r : Promise.Reaction bod
   show (if _ then _ else r).id = r.id ∧ (if _ then _ else r).capability = r.capability
   split <;> exact ⟨rfl, rfl⟩
 
+/-- The triggering map keeps identity and capability. -/
 private theorem advanceMap_keeps {body : Type} (p : Nat) (r : Promise.Reaction body) :
     ((fun (r : Promise.Reaction body) =>
         if r.promise == p && r.phase == Promise.ReactionPhase.waiting then
@@ -585,7 +816,8 @@ private theorem advanceMap_keeps {body : Type} (p : Nat) (r : Promise.Reaction b
   show (if _ then _ else r).id = r.id ∧ (if _ then _ else r).capability = r.capability
   split <;> exact ⟨rfl, rfl⟩
 
-/-- The records trigger-then-clear leaves: the same records with a new phase. -/
+/-- Every record trigger-then-clear leaves on the fulfil list is an old record
+with a new phase. -/
 private theorem trigger_clear_fulfill_mem {value reason body : Type}
     (rs : Promise.Reactions body) (p : Nat) (k : Promise.ReactionType)
     (argument : Except reason value) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
@@ -599,6 +831,8 @@ private theorem trigger_clear_fulfill_mem {value reason body : Type}
       exact ⟨r, hr, h1.trans h3, h2.trans h4⟩
   | reject => exact mem_map_keeps _ _ (clearMap_keeps p) r' h
 
+/-- Every record trigger-then-clear leaves on the reject list is an old record
+with a new phase. -/
 private theorem trigger_clear_reject_mem {value reason body : Type}
     (rs : Promise.Reactions body) (p : Nat) (k : Promise.ReactionType)
     (argument : Except reason value) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
@@ -612,6 +846,8 @@ private theorem trigger_clear_reject_mem {value reason body : Type}
       exact ⟨r, hr, h1.trans h3, h2.trans h4⟩
   | fulfill => exact mem_map_keeps _ _ (clearMap_keeps p) r' h
 
+/-- A bound on every identity transfers between lists with the same
+identities. -/
 private theorem lt_of_ids {body : Type} (l l' : List (Promise.Reaction body)) (n : Nat)
     (h : l'.map Promise.Reaction.id = l.map Promise.Reaction.id)
     (hl : ∀ r ∈ l, r.id < n) : ∀ r ∈ l', r.id < n := by
@@ -620,6 +856,15 @@ private theorem lt_of_ids {body : Type} (l l' : List (Promise.Reaction body)) (n
   obtain ⟨r0, hr0, he⟩ := List.mem_map.mp hm
   rw [← he]
   exact hl r0 hr0
+
+/-- The waiting set is drawn from the list its kind names. -/
+private theorem mem_waitingOn {body : Type} (rs : Promise.Reactions body) (p : Nat)
+    (k : Promise.ReactionType) (r : Promise.Reaction body)
+    (h : r ∈ Promise.Reactions.waitingOn rs p k) :
+    r ∈ (match k with
+      | .fulfill => rs.fulfill
+      | .reject => rs.reject) := by
+  cases k <;> exact (List.mem_filter.mp h).1
 
 /-- A lookup by identity finds something exactly when the identity is listed. -/
 private theorem find_id_isSome {body : Type} (l : List (Promise.Reaction body)) (x : Nat) :
@@ -638,6 +883,8 @@ private theorem find_id_isSome {body : Type} (l : List (Promise.Reaction body)) 
     rw [List.find?_isSome]
     exact ⟨r, hr, beq_iff_eq.mpr he⟩
 
+/-- `Reactions.get` finds a record exactly when the identity is on the list
+of its kind. -/
 private theorem reactionsGet_isSome {body : Type} (rs : Promise.Reactions body)
     (k : Promise.ReactionType) (x : Nat) :
     (Promise.Reactions.get rs k x).isSome = true ↔
@@ -646,8 +893,8 @@ private theorem reactionsGet_isSome {body : Type} (rs : Promise.Reactions body)
         | .reject => rs.reject).map Promise.Reaction.id := by
   cases k <;> exact find_id_isSome _ x
 
-/-- `reactionOf` finds a record exactly when the job's identity is held or is
-listed in the list its tag selects. -/
+/-- `reactionOf` finds a record exactly when the job's identity is held, or
+is on the list its argument's tag selects. -/
 private theorem reactionOf_isSome {value reason body : Type} (a : Agent value reason body)
     (j : Job value reason) :
     (reactionOf a j).isSome = true ↔
@@ -695,8 +942,23 @@ private theorem eq_of_nodup_key {α : Type} (key : α → Nat) :
           exact absurd (hk.symm ▸ List.mem_map_of_mem hxl) hnd.1
         · exact eq_of_nodup_key key l hnd.2 x hxl y hyl hk
 
-/-! ## `WF.empty` and `settle` -/
+/-- When at most one member satisfies `pick`, `find?` names a member that
+does. -/
+private theorem find?_unique {α : Type} (l : List α) (pick : α → Bool)
+    (huniq : ∀ g ∈ l, ∀ g' ∈ l, pick g = true → pick g' = true → g = g') (f : α) (hf : f ∈ l)
+    (hp : pick f = true) : l.find? pick = some f := by
+  cases h : l.find? pick with
+  | none =>
+      have := List.find?_eq_none.mp h f hf
+      rw [hp] at this
+      exact absurd rfl this
+  | some g =>
+      rw [huniq g (List.mem_of_find?_eq_some h) f hf (List.find?_some h) hp]
 
+/-! ## 5. The empty agent -/
+
+/-- The agent before any promise is well formed: every store is empty, so every
+clause holds vacuously or by `rfl`. Invariant law; DB-04 M1. -/
 theorem WF.empty :
     ∀ {value reason body : Type}, Agent.WF (Agent.empty : Agent.Agent value reason body) := by
   intro value reason body
@@ -717,6 +979,15 @@ theorem WF.empty :
     settlementsCoherent := ⟨List.nodup_nil, fun _ _ h => absurd h List.not_mem_nil,
       fun _ _ h => absurd h List.not_mem_nil⟩ }
 
+/-! ## 6. `settle`
+
+The settle-and-trigger every resolving function and every finished job with a
+capability reaches. On a promise that is not pending it changes nothing; on a
+pending one it settles the table, triggers and clears the waiting reactions
+and appends one trace entry, and each of these keeps `WF` and moves the agent
+up `Le`. -/
+
+/-- On a promise that is not pending, `settle` is the identity. -/
 private theorem settle_notPending_eq {value reason body : Type} (a : Agent value reason body)
     (p : Nat) (result : Except reason value) (h : Promise.Table.isPending a.table p = false) :
     settle a p result = a := by
@@ -724,6 +995,8 @@ private theorem settle_notPending_eq {value reason body : Type} (a : Agent value
   rw [h]
   rfl
 
+/-- On a pending promise, `settle` is the landed settle, trigger-then-clear
+and one appended trace entry. -/
 private theorem settle_pending_eq {value reason body : Type} (a : Agent value reason body)
     (p : Nat) (result : Except reason value) (h : Promise.Table.isPending a.table p = true) :
     settle a p result =
@@ -743,31 +1016,13 @@ private theorem settle_pending_eq {value reason body : Type} (a : Agent value re
   rw [h]
   rfl
 
-private theorem isPending_settle_self {value reason : Type} (t : Promise.Table value reason)
-    (p : Nat) (result : Except reason value) :
-    Promise.Table.isPending (Promise.Table.settle t p result) p = false := by
-  cases hp : Promise.Table.isPending t p with
-  | false => exact settle_notPending t p p result hp
-  | true =>
-      unfold Promise.Table.isPending
-      rw [Promise.Table.settle_assert t p result ((Promise.Table.isPending_iff t p).mp hp)]
-      cases result <;> rfl
-
-/-- The waiting set is drawn from the list its kind names. -/
-private theorem mem_waitingOn {body : Type} (rs : Promise.Reactions body) (p : Nat)
-    (k : Promise.ReactionType) (r : Promise.Reaction body)
-    (h : r ∈ Promise.Reactions.waitingOn rs p k) :
-    r ∈ (match k with
-      | .fulfill => rs.fulfill
-      | .reject => rs.reject) := by
-  cases k <;> exact (List.mem_filter.mp h).1
-
-/-- `settle` keeps the invariant, whether or not the promise was pending. -/
-private theorem WF.settle {value reason body : Type} {a : Agent value reason body} (hw : WF a)
-    (p : Nat) (result : Except reason value) : WF (settle a p result) := by
-  cases hp : Promise.Table.isPending a.table p with
-  | false => rw [settle_notPending_eq a p result hp]; exact hw
-  | true =>
+/-- The pending branch of `settle` keeps `WF`: identities, cursors and pairing
+survive trigger-then-clear, every newly queued job names a listed record, and
+the new trace entry is the table's new settled state at an identity not yet
+traced. -/
+private theorem WF.settlePending {value reason body : Type} {a : Agent value reason body}
+    (hw : WF a) (p : Nat) (result : Except reason value)
+    (hp : Promise.Table.isPending a.table p = true) : WF (settle a p result) := by
   rw [settle_pending_eq a p result hp]
   have hpend : Promise.Table.get a.table p = some Promise.State.pending :=
     (Promise.Table.isPending_iff a.table p).mp hp
@@ -778,7 +1033,7 @@ private theorem WF.settle {value reason body : Type} {a : Agent value reason bod
     hw.reactionsBelow r (List.mem_append_left _ (List.mem_append_right _ hr))
   have hH : ∀ r ∈ a.held, r.id < a.reactions.next := fun r hr =>
     hw.reactionsBelow r (List.mem_append_right _ hr)
-  -- the identities of the two lists are unchanged
+  -- The identities of the two lists and the cursor are unchanged, for either kind.
   have hfi : ∀ k : Promise.ReactionType,
       (Promise.Reactions.clear (Promise.triggerReactions a.reactions p k result a.queue).1
         p).fulfill.map Promise.Reaction.id = a.reactions.fulfill.map Promise.Reaction.id :=
@@ -791,7 +1046,7 @@ private theorem WF.settle {value reason body : Type} {a : Agent value reason bod
       (Promise.Reactions.clear (Promise.triggerReactions a.reactions p k result a.queue).1
         p).next = a.reactions.next :=
     fun k => trigger_clear_next a.reactions p k result a.queue
-  -- a settled identity in the trace is not the pending `p`
+  -- No trace entry names the pending `p`, by `settlementsCoherent`.
   have htr : ∀ e ∈ a.settlements, e.1 ≠ p := by
     intro e he hep
     obtain ⟨q, x⟩ := e
@@ -938,8 +1193,55 @@ private theorem WF.settle {value reason body : Type} {a : Agent value reason bod
         cases he
         rw [Promise.Table.settle_assert a.table p (Except.error r) hpend]
 
-/-! ## Marking functions fired -/
+/-- `settle` keeps `WF`, whether or not the promise was pending. -/
+private theorem WF.settle {value reason body : Type} {a : Agent value reason body} (hw : WF a)
+    (p : Nat) (result : Except reason value) : WF (settle a p result) := by
+  cases hp : Promise.Table.isPending a.table p with
+  | false => rw [settle_notPending_eq a p result hp]; exact hw
+  | true => exact WF.settlePending hw p result hp
 
+/-- `settle` moves the agent up `Le`: only the settled identity's state
+changes, from pending, and the trace gains one entry at its end. -/
+private theorem Le.settle {value reason body : Type} (a : Agent value reason body) (p : Nat)
+    (result : Except reason value) : Le a (settle a p result) := by
+  cases hp : Promise.Table.isPending a.table p with
+  | false => rw [settle_notPending_eq a p result hp]; exact Le.refl a
+  | true =>
+      rw [settle_pending_eq a p result hp]
+      have hpend : Promise.Table.get a.table p = some Promise.State.pending :=
+        (Promise.Table.isPending_iff a.table p).mp hp
+      refine ⟨fun q h => ?_, fun q s h hs => ?_, fun q h => ?_, ?_, ?_, Nat.le_refl _,
+        fun f hf => ⟨f, hf, rfl, rfl, rfl⟩, List.prefix_append _ _⟩
+      · show (Promise.Table.getCell (Promise.Table.settle a.table p result) q).isSome = true
+        rw [(getCell_settle a.table p q result).1]
+        exact h
+      · show Promise.Table.get (Promise.Table.settle a.table p result) q = some s
+        have hne : q ≠ p := by
+          intro hqp
+          rw [hqp, hpend] at h
+          cases h
+          exact hs rfl
+        rw [settle_get_other a.table p q result hne]
+        exact h
+      · show (Promise.Table.getCell (Promise.Table.settle a.table p result) q).map
+          Promise.Cell.handled = some true
+        rw [(getCell_settle a.table p q result).2]
+        exact h
+      · show a.table.next ≤ (Promise.Table.settle a.table p result).next
+        rw [(settle_ids a.table p result).2]
+        exact Nat.le_refl _
+      · show a.reactions.next ≤ (Promise.Reactions.clear _ p).next
+        rw [trigger_clear_next]
+        exact Nat.le_refl _
+
+/-! ## 7. `callFunctions`: the stored resolving functions
+
+`resolve`, `reject` and a finished job with a capability all go through
+`callFunctions`, which settles and then sets the shared one-shot marker on the
+records `pick` selects. Under `WF` a `[[Resolve]]` or `[[Reject]]` identity
+selects at most one record. -/
+
+/-- Setting the marker keeps a record's three identities. -/
 private theorem mark_fields (pick : Promise.ResolvingFunctions → Bool)
     (g : Promise.ResolvingFunctions) :
     (if pick g then { g with alreadyResolved := true } else g).resolve = g.resolve ∧
@@ -947,6 +1249,7 @@ private theorem mark_fields (pick : Promise.ResolvingFunctions → Bool)
       (if pick g then { g with alreadyResolved := true } else g).promise = g.promise := by
   cases pick g <;> exact ⟨rfl, rfl, rfl⟩
 
+/-- A marker set after marking was selected or already set. -/
 private theorem mark_fired (pick : Promise.ResolvingFunctions → Bool)
     (g : Promise.ResolvingFunctions)
     (h : (if pick g then { g with alreadyResolved := true } else g).alreadyResolved = true) :
@@ -957,6 +1260,8 @@ private theorem mark_fired (pick : Promise.ResolvingFunctions → Bool)
       rw [hp] at h
       exact Or.inr h
 
+/-- Marking keeps `WF` when every selected record's promise is already
+settled. -/
 private theorem WF.mark {value reason body : Type} {a : Agent value reason body} (hw : WF a)
     (pick : Promise.ResolvingFunctions → Bool)
     (hp : ∀ g ∈ a.functions, pick g = true → Promise.Table.isPending a.table g.promise = false) :
@@ -997,7 +1302,18 @@ private theorem WF.mark {value reason body : Type} {a : Agent value reason body}
     · rw [(mark_fields pick f).2.1]; exact h2
     · rw [(mark_fields pick f).2.2]; exact h3
 
-/-- `callFunctions` keeps the invariant when `pick` selects at most one stored record. -/
+/-- Marking moves the agent up `Le`: every record survives with its
+identities. -/
+private theorem Le.mark {value reason body : Type} (a : Agent value reason body)
+    (pick : Promise.ResolvingFunctions → Bool) :
+    Le a { a with functions := a.functions.map (fun g =>
+      if pick g then { g with alreadyResolved := true } else g) } :=
+  ⟨fun _ h => h, fun _ _ h _ => h, fun _ h => h, Nat.le_refl _, Nat.le_refl _, Nat.le_refl _,
+    fun f hf => ⟨_, List.mem_map_of_mem hf, (mark_fields pick f).1, (mark_fields pick f).2.1,
+      (mark_fields pick f).2.2⟩, List.prefix_refl _⟩
+
+/-- `callFunctions` keeps `WF` when `pick` selects at most one stored record:
+the settle keeps it, and the one marked record's promise is then settled. -/
 private theorem WF.callFunctions {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value)
     (huniq : ∀ g ∈ a.functions, ∀ g' ∈ a.functions, pick g = true → pick g' = true → g = g') :
@@ -1021,6 +1337,22 @@ private theorem WF.callFunctions {value reason body : Type} {a : Agent value rea
             rw [settleAndTrigger_table]
             exact isPending_settle_self a.table f.promise result)
 
+/-- `callFunctions` moves the agent up `Le`, on every branch. -/
+private theorem Le.callFunctions {value reason body : Type} (a : Agent value reason body)
+    (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value) :
+    Le a (callFunctions a pick result) := by
+  cases hf : a.functions.find? pick with
+  | none => rw [callFunctions_none a pick result hf]; exact Le.refl a
+  | some f =>
+      cases hfr : f.alreadyResolved with
+      | true => rw [callFunctions_fired a pick result f hf hfr]; exact Le.refl a
+      | false =>
+          rw [callFunctions_fresh a pick result f hf hfr]
+          exact Le.trans (Le.settle a f.promise result)
+            (Le.mark (Whatwg.Ecma262.Agent.settle a f.promise result) pick)
+
+/-- Under `WF` (`functionsNodup`), a `[[Resolve]]` identity selects at most one
+stored record. -/
 private theorem resolve_unique {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (cap : Promise.Capability) :
     ∀ g ∈ a.functions, ∀ g' ∈ a.functions,
@@ -1030,6 +1362,8 @@ private theorem resolve_unique {value reason body : Type} {a : Agent value reaso
   exact eq_of_nodup_key Promise.ResolvingFunctions.resolve a.functions hw.functionsNodup g hg g'
     hg' ((beq_iff_eq.mp h1).trans (beq_iff_eq.mp h2).symm)
 
+/-- Under `WF` (`functionsBelow` with `functionsNodup`), a `[[Reject]]`
+identity selects at most one stored record. -/
 private theorem reject_unique {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (cap : Promise.Capability) :
     ∀ g ∈ a.functions, ∀ g' ∈ a.functions,
@@ -1045,36 +1379,10 @@ private theorem reject_unique {value reason body : Type} {a : Agent value reason
   exact eq_of_nodup_key Promise.ResolvingFunctions.resolve a.functions hw.functionsNodup g hg g'
     hg' hres
 
-private theorem WF.resolve {value reason body : Type} {a : Agent value reason body} (hw : WF a)
-    (cap : Promise.Capability) (v : value) : WF (resolve a cap v) :=
-  WF.callFunctions hw _ _ (resolve_unique hw cap)
+/-! ## 8. `newPromise` -/
 
-private theorem WF.reject {value reason body : Type} {a : Agent value reason body} (hw : WF a)
-    (cap : Promise.Capability) (r : reason) : WF (reject a cap r) :=
-  WF.callFunctions hw _ _ (reject_unique hw cap)
-
-/-! ## `newPromise` and `markHandled` -/
-
-private theorem get_fresh {value reason : Type} (t : Promise.Table value reason)
-    (o : Promise.State value reason) (p : Nat) (s : Promise.State value reason)
-    (h : Promise.Table.get t p = some s) :
-    Promise.Table.get (Promise.Table.fresh t o).1 p = some s := by
-  unfold Promise.Table.get at h ⊢
-  cases hc : Promise.Table.getCell t p with
-  | none => rw [hc] at h; cases h
-  | some c =>
-      rw [hc] at h
-      rw [getCell_fresh t o p c hc]
-      exact h
-
-private theorem WF.getCell_next {value reason body : Type} {a : Agent value reason body}
-    (hw : WF a) : Promise.Table.getCell a.table a.table.next = none := by
-  cases hc : Promise.Table.getCell a.table a.table.next with
-  | none => rfl
-  | some _ =>
-      have := hw.getCell_lt (p := a.table.next) (by rw [hc]; rfl)
-      exact absurd this (Nat.lt_irrefl _)
-
+/-- `newPromise` keeps `WF`: the new cell and the new function record take
+the two cursors, which were fresh, and every old fact survives allocation. -/
 private theorem WF.newPromise {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) : WF (newPromise a).1 := by
   refine ⟨?_, ?_, ?_, ?_, ?_, hw.reactionsBelow, hw.queueBelow, hw.paired, ?_, hw.heldDistinct,
@@ -1106,10 +1414,7 @@ private theorem WF.newPromise {value reason body : Type} {a : Agent value reason
     show (Promise.Table.getCell (Promise.Table.fresh a.table Promise.State.pending).1
       f.promise).isSome = true
     rcases List.mem_append.mp hf with hold | hnew
-    · have hs := hw.functionsAllocated f hold
-      cases hc : Promise.Table.getCell a.table f.promise with
-      | none => rw [hc] at hs; cases hs
-      | some c => rw [getCell_fresh a.table _ f.promise c hc]; rfl
+    · exact getCell_fresh_isSome a.table _ f.promise (hw.functionsAllocated f hold)
     · rw [List.mem_singleton.mp hnew]
       exact getCell_isSome_of_get _ _ _
         (Promise.Table.fresh_get a.table Promise.State.pending hw.getCell_next)
@@ -1143,6 +1448,113 @@ private theorem WF.newPromise {value reason body : Type} {a : Agent value reason
     · exact get_fresh a.table _ q _ (hw.settlementsCoherent.2.1 q v hq)
     · exact get_fresh a.table _ q _ (hw.settlementsCoherent.2.2 q r hq)
 
+/-- `newPromise` moves the agent up `Le`: allocation keeps every old cell and
+grows the table and function cursors. -/
+private theorem Le.newPromise {value reason body : Type} (a : Agent value reason body) :
+    Le a (Whatwg.Ecma262.Agent.newPromise a).1 := by
+  refine ⟨fun p h => ?_, fun p s h _ => ?_, fun p h => ?_, Nat.le_succ _, Nat.le_refl _,
+    Nat.le_add_right _ 2, fun f hf => ⟨f, List.mem_append_left _ hf, rfl, rfl, rfl⟩,
+    List.prefix_refl _⟩
+  · exact getCell_fresh_isSome a.table _ p h
+  · exact get_fresh a.table _ p s h
+  · show (Promise.Table.getCell (Promise.Table.fresh a.table _).1 p).map
+      Promise.Cell.handled = some true
+    cases hc : Promise.Table.getCell a.table p with
+    | none => rw [hc] at h; cases h
+    | some c => rw [getCell_fresh a.table _ p c hc]; rw [hc] at h; exact h
+
+/-- The capability `newPromise` answers is minted in the agent it leaves. -/
+private theorem newPromise_minted {value reason body : Type} (a : Agent value reason body) :
+    Minted (newPromise a).1 (newPromise a).2 :=
+  ⟨Promise.createResolvingFunctions a.table.next a.nextFunction,
+    List.mem_append_right _ (List.mem_singleton.mpr rfl), rfl, rfl, rfl⟩
+
+/-- `newPromise` fulfils its row: from a well-formed agent it moves up `Le`,
+keeps `WF`, and answers a capability that is minted and whose promise, the
+cell allocated at the old table cursor, is pending. `op.newpromisecapability` (NEWCAP,
+2696238..2698770) with `op.createresolvingfunctions` (RESOLVING). Adequacy law;
+DB-04 M2. -/
+theorem newPromise_implements :
+    ∀ {value reason body : Type},
+      Agent.Implements (Agent.Op.newPromise : Agent.Op value reason body) := by
+  intro value reason body a c hw _
+  refine ⟨Le.newPromise a, WF.newPromise hw, newPromise_minted a, ?_⟩
+  exact Promise.Table.fresh_get a.table Promise.State.pending hw.getCell_next
+
+/-! ## 9. `resolve` and `reject` -/
+
+/-- `resolve` keeps `WF`. -/
+private theorem WF.resolve {value reason body : Type} {a : Agent value reason body} (hw : WF a)
+    (cap : Promise.Capability) (v : value) : WF (resolve a cap v) :=
+  WF.callFunctions hw _ _ (resolve_unique hw cap)
+
+/-- `reject` keeps `WF`. -/
+private theorem WF.reject {value reason body : Type} {a : Agent value reason body} (hw : WF a)
+    (cap : Promise.Capability) (r : reason) : WF (reject a cap r) :=
+  WF.callFunctions hw _ _ (reject_unique hw cap)
+
+/-- `resolve` fulfils its row: through a minted capability it moves up `Le`,
+keeps `WF`, and leaves the capability's promise settled. An unfired function
+settles it now; a fired one is inert, and the promise is already settled by
+`WF.resolvedSettled`. `op.createresolvingfunctions` (RESOLVING,
+2692679..2695411) resolve steps, with `op.fulfillpromise` (FULFILL); Web IDL
+`op.resolve` (349216..349783). Adequacy law; DB-04 M2. -/
+theorem resolve_implements :
+    ∀ {value reason body : Type} (cap : Promise.Capability) (v : value),
+      Agent.Implements (Agent.Op.resolve cap v : Agent.Op value reason body) := by
+  intro value reason body cap v a c hw hpre
+  refine ⟨Le.callFunctions a _ _, WF.resolve hw cap v, ?_⟩
+  obtain ⟨f, hf, h1, _, h3⟩ := hpre
+  have hres := find?_unique a.functions _ (resolve_unique hw cap) f hf (beq_iff_eq.mpr h1)
+  show ∃ s, Promise.Table.get (Whatwg.Ecma262.Agent.resolve a cap v).table cap.promise =
+    some s ∧ s ≠ Promise.State.pending
+  rw [← h3]
+  cases hfr : f.alreadyResolved with
+  | true =>
+      rw [show Whatwg.Ecma262.Agent.resolve a cap v = a from callFunctions_fired a _ _ f hres hfr]
+      exact settled_of_notPending a.table f.promise (hw.functionsAllocated f hf)
+        (hw.resolvedSettled f hf hfr)
+  | false =>
+      rw [show Whatwg.Ecma262.Agent.resolve a cap v = _ from
+        callFunctions_fresh a _ (Except.ok v) f hres hfr]
+      show ∃ s, Promise.Table.get
+        (Promise.Table.settleAndTrigger a.table a.reactions a.queue f.promise (Except.ok v)).1
+        f.promise = some s ∧ s ≠ Promise.State.pending
+      rw [settleAndTrigger_table]
+      exact settle_settled a.table f.promise _ (hw.functionsAllocated f hf)
+
+/-- `reject` fulfils its row: through a minted capability it moves up `Le`,
+keeps `WF`, and leaves the capability's promise settled, now or already.
+`op.createresolvingfunctions` (RESOLVING) reject steps, with
+`op.rejectpromise` (REJECT, 2699323..2700252); Web IDL `op.reject`
+(349785..350073). Adequacy law; DB-04 M2. -/
+theorem reject_implements :
+    ∀ {value reason body : Type} (cap : Promise.Capability) (r : reason),
+      Agent.Implements (Agent.Op.reject cap r : Agent.Op value reason body) := by
+  intro value reason body cap r a c hw hpre
+  refine ⟨Le.callFunctions a _ _, WF.reject hw cap r, ?_⟩
+  obtain ⟨f, hf, _, h2, h3⟩ := hpre
+  have hrej := find?_unique a.functions _ (reject_unique hw cap) f hf (beq_iff_eq.mpr h2)
+  show ∃ s, Promise.Table.get (Whatwg.Ecma262.Agent.reject a cap r).table cap.promise =
+    some s ∧ s ≠ Promise.State.pending
+  rw [← h3]
+  cases hfr : f.alreadyResolved with
+  | true =>
+      rw [show Whatwg.Ecma262.Agent.reject a cap r = a from callFunctions_fired a _ _ f hrej hfr]
+      exact settled_of_notPending a.table f.promise (hw.functionsAllocated f hf)
+        (hw.resolvedSettled f hf hfr)
+  | false =>
+      rw [show Whatwg.Ecma262.Agent.reject a cap r = _ from
+        callFunctions_fresh a _ (Except.error r) f hrej hfr]
+      show ∃ s, Promise.Table.get
+        (Promise.Table.settleAndTrigger a.table a.reactions a.queue f.promise
+          (Except.error r)).1 f.promise = some s ∧ s ≠ Promise.State.pending
+      rw [settleAndTrigger_table]
+      exact settle_settled a.table f.promise _ (hw.functionsAllocated f hf)
+
+/-! ## 10. `markHandled` -/
+
+/-- `markHandled` keeps `WF`: a mark changes no identity, cursor or state. -/
 private theorem WF.markHandled {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (p : Nat) : WF (markHandled a p) := by
   have hids := markHandled_ids a.table p
@@ -1177,14 +1589,65 @@ private theorem WF.markHandled {value reason body : Type} {a : Agent value reaso
       rw [markHandled_get]
       exact hw.settlementsCoherent.2.2 q r hq
 
-/-! ## `perform` -/
+/-- `markHandled` moves the agent up `Le`: it only sets a handled bit. -/
+private theorem Le.markHandled {value reason body : Type} (a : Agent value reason body)
+    (p : Nat) : Le a (Whatwg.Ecma262.Agent.markHandled a p) :=
+  ⟨fun q h => by
+      show (Promise.Table.getCell (Promise.Table.markHandled a.table p) q).isSome = true
+      rw [markHandled_isSome]; exact h,
+    fun q s h _ => by
+      show Promise.Table.get (Promise.Table.markHandled a.table p) q = some s
+      rw [markHandled_get]; exact h,
+    fun q h => markHandled_handled a.table p q h,
+    Nat.le_refl _, Nat.le_refl _, Nat.le_refl _, fun f hf => ⟨f, hf, rfl, rfl, rfl⟩,
+    List.prefix_refl _⟩
 
-private theorem newPromise_minted {value reason body : Type} (a : Agent value reason body) :
-    Minted (newPromise a).1 (newPromise a).2 :=
-  ⟨Promise.createResolvingFunctions a.table.next a.nextFunction,
-    List.mem_append_right _ (List.mem_singleton.mpr rfl), rfl, rfl, rfl⟩
+/-- `markHandled` fulfils its row: on an allocated promise it moves up `Le`,
+keeps `WF`, and leaves the promise's handled bit set. Web IDL
+`op.mark-a-promise-as-handled` (HANDLEDOP, 356060..356713). Adequacy law;
+DB-04 M2. -/
+theorem markHandled_implements :
+    ∀ {value reason body : Type} (promise : Nat),
+      Agent.Implements (Agent.Op.markHandled promise : Agent.Op value reason body) := by
+  intro value reason body promise a c hw hpre
+  refine ⟨Le.markHandled a promise, WF.markHandled hw promise, ?_⟩
+  obtain ⟨s, hg⟩ : ∃ s, a.table.get promise = some s := Option.isSome_iff_exists.mp hpre
+  exact Promise.Table.markHandled_marked a.table promise (getCell_isSome_of_get _ _ _ hg)
 
-/-- The pending branch of `perform` keeps the invariant. -/
+/-! ## 11. `perform` -/
+
+/-- Minting a derived capability keeps every allocated identity allocated. -/
+private theorem mintFor_isSome {value reason body : Type} (a : Agent value reason body)
+    (derive : Bool) (p : Nat) (h : (a.table.getCell p).isSome = true) :
+    ((mintFor a derive).1.table.getCell p).isSome = true := by
+  cases derive with
+  | false => exact h
+  | true => exact getCell_fresh_isSome a.table _ p h
+
+/-- On an allocated promise every branch of `perform` answers the minted
+capability behind `some`, keeps the function records `mintFor` left, and
+leaves `mintFor`'s table with the promise marked handled. -/
+private theorem perform_allocated {value reason body : Type} (a : Agent value reason body)
+    (promise : Nat) (onFulfilled onRejected : Option body) (derive : Bool)
+    (s : Promise.State value reason) (hg : a.table.get promise = some s) :
+    (perform a promise onFulfilled onRejected derive).2 = some (mintFor a derive).2 ∧
+      (perform a promise onFulfilled onRejected derive).1.functions =
+        (mintFor a derive).1.functions ∧
+      (perform a promise onFulfilled onRejected derive).1.table =
+        Promise.Table.markHandled (mintFor a derive).1.table promise := by
+  cases s with
+  | pending =>
+      rw [perform_pending a promise onFulfilled onRejected derive hg]; exact ⟨rfl, rfl, rfl⟩
+  | fulfilled v =>
+      rw [perform_fulfilled a promise v onFulfilled onRejected derive hg]
+      exact ⟨rfl, rfl, rfl⟩
+  | rejected x =>
+      rw [perform_rejected a promise x onFulfilled onRejected derive hg]
+      exact ⟨rfl, rfl, rfl⟩
+
+/-- The pending branch of `perform` keeps `WF`: both new records take the
+fresh registration identity, which no held or registered record has, and the
+capability they carry is minted. -/
 private theorem WF.performPending {value reason body : Type} {b : Agent value reason body}
     (hw : WF b) (p : Nat) (onFulfilled onRejected : Option body)
     (cap : Option Promise.Capability) (hcap : ∀ c, cap = some c → Minted b c) :
@@ -1269,7 +1732,8 @@ private theorem WF.performPending {value reason body : Type} {b : Agent value re
           exact hcap c hc
     · exact hw.capabilityStored r (List.mem_append_right _ hheld) c hc
 
-/-- A settled branch of `perform` keeps the invariant. -/
+/-- A settled branch of `perform` keeps `WF`: the held record and the queued
+job take the fresh registration identity, so the job names that record. -/
 private theorem WF.performSettled {value reason body : Type} {b : Agent value reason body}
     (hw : WF b) (p : Nat) (kind : Promise.ReactionType) (handler : Option body)
     (cap : Option Promise.Capability) (hcap : ∀ c, cap = some c → Minted b c)
@@ -1344,6 +1808,8 @@ private theorem WF.performSettled {value reason body : Type} {b : Agent value re
       · rw [List.mem_singleton.mp hnew] at hc
         exact hcap c hc
 
+/-- `perform` keeps `WF`, on every branch and with or without a derived
+capability. -/
 private theorem WF.perform {value reason body : Type} {a : Agent value reason body} (hw : WF a)
     (p : Nat) (onFulfilled onRejected : Option body) (derive : Bool) :
     WF (perform a p onFulfilled onRejected derive).1 := by
@@ -1382,8 +1848,97 @@ private theorem WF.perform {value reason body : Type} {a : Agent value reason bo
               rw [perform_rejected a p x onFulfilled onRejected true hg]
               exact WF.performSettled hw1 p _ onRejected _ hcap (Except.error x)
 
-/-! ## The activation operations -/
+/-- A step that marks one promise handled, grows the registration cursor and
+touches no other part of the order moves the agent up `Le`. -/
+private theorem Le.ofMark {value reason body : Type} (b b' : Agent value reason body) (p : Nat)
+    (ht : b'.table = Promise.Table.markHandled b.table p)
+    (hr : b.reactions.next ≤ b'.reactions.next) (hf : b'.functions = b.functions)
+    (hn : b'.nextFunction = b.nextFunction) (hs : b'.settlements = b.settlements) :
+    Le b b' := by
+  have hm := Le.markHandled b p
+  exact ⟨fun q h => ht ▸ hm.allocated q h, fun q s h hs' => ht ▸ hm.settled q s h hs',
+    fun q h => ht ▸ hm.handled q h, ht ▸ hm.tableNext, hr, Nat.le_of_eq hn.symm,
+    fun f hf' => ⟨f, hf ▸ hf', rfl, rfl, rfl⟩, hs ▸ List.prefix_refl _⟩
 
+/-- `perform` moves the agent up `Le`: minting is a `newPromise`, and every
+branch then only marks the promise and grows the registration cursor. -/
+private theorem Le.perform {value reason body : Type} (a : Agent value reason body) (p : Nat)
+    (onFulfilled onRejected : Option body) (derive : Bool) :
+    Le a (Whatwg.Ecma262.Agent.perform a p onFulfilled onRejected derive).1 := by
+  cases hg : a.table.get p with
+  | none => rw [perform_missing a p onFulfilled onRejected derive hg]; exact Le.refl a
+  | some s =>
+      have hmint : Le a (mintFor a derive).1 := by
+        cases derive with
+        | false => exact Le.refl a
+        | true => exact Le.newPromise a
+      cases s with
+      | pending =>
+          rw [perform_pending a p onFulfilled onRejected derive hg]
+          exact Le.trans hmint (Le.ofMark _ _ p rfl (by cases derive <;> exact Nat.le_succ _) rfl
+            rfl rfl)
+      | fulfilled v =>
+          rw [perform_fulfilled a p v onFulfilled onRejected derive hg]
+          exact Le.trans hmint (Le.ofMark _ _ p rfl (by cases derive <;> exact Nat.le_succ _) rfl
+            rfl rfl)
+      | rejected x =>
+          rw [perform_rejected a p x onFulfilled onRejected derive hg]
+          exact Le.trans hmint (Le.ofMark _ _ p rfl (by cases derive <;> exact Nat.le_succ _) rfl
+            rfl rfl)
+
+/-- `perform` fulfils its row: on an allocated promise it moves up `Le`, keeps
+`WF`, and leaves the promise handled; with `derive` it answers a capability
+that is minted and whose promise is pending, and without it answers
+`some none`. `op.performpromisethen` (THEN, 2740635..2743669); Web IDL
+`op.dfn-perform-steps-once-promise-is-settled` (REACT, 350075..352408) steps 6
+to 8 when `derive` is set. Adequacy law; DB-04 M2. -/
+theorem perform_implements :
+    ∀ {value reason body : Type} (promise : Nat) (onFulfilled onRejected : Option body)
+      (derive : Bool),
+      Agent.Implements (Agent.Op.perform promise onFulfilled onRejected derive :
+        Agent.Op value reason body) := by
+  intro value reason body promise onFulfilled onRejected derive a c hw hpre
+  refine ⟨Le.perform a promise onFulfilled onRejected derive,
+    WF.perform hw promise onFulfilled onRejected derive, ?_⟩
+  obtain ⟨s, hg⟩ : ∃ s, a.table.get promise = some s := Option.isSome_iff_exists.mp hpre
+  obtain ⟨hans, hfun, htab⟩ := perform_allocated a promise onFulfilled onRejected derive s hg
+  refine ⟨?_, ?_⟩
+  · show (Promise.Table.getCell
+      (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected derive).1.table
+      promise).map Promise.Cell.handled = some true
+    rw [htab]
+    exact Promise.Table.markHandled_marked _ promise
+      (mintFor_isSome a derive promise (getCell_isSome_of_get _ _ _ hg))
+  · cases derive with
+    | false =>
+        refine ⟨fun h => Bool.noConfusion h, fun _ => ?_⟩
+        show (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected false).2 = some none
+        rw [hans]
+        rfl
+    | true =>
+        refine ⟨fun _ => ⟨(Whatwg.Ecma262.Agent.newPromise a).2, ?_, ?_, ?_⟩,
+          fun h => Bool.noConfusion h⟩
+        · show (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected true).2 = _
+          rw [hans]
+          rfl
+        · obtain ⟨f, hf, h1, h2, h3⟩ := newPromise_minted a
+          refine ⟨f, ?_, h1, h2, h3⟩
+          show f ∈ (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected true).1.functions
+          rw [hfun]
+          exact hf
+        · show Promise.Table.get
+            (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected true).1.table
+            a.table.next = _
+          rw [htab, markHandled_get]
+          exact Promise.Table.fresh_get a.table Promise.State.pending hw.getCell_next
+
+/-! ## 12. `startJob`, `finishJob`, `enterScript` and `leaveScript`
+
+The activation operations. Each disabled branch leaves the agent unchanged;
+each enabled one changes only the activation, the running job and, for
+`startJob`, the queue's head, or, for `finishJob`, what `callFunctions` does. -/
+
+/-- Returning to a checkpoint with nothing running keeps `WF`. -/
 private theorem WF.idle {value reason body : Type} {a : Agent value reason body} (hw : WF a) :
     WF { a with active := Jobs.Active.checkpoint, running := none } :=
   ⟨hw.tableNodup, hw.tableBelow, hw.functionsBelow, hw.functionsAllocated, hw.resolvedSettled,
@@ -1391,12 +1946,15 @@ private theorem WF.idle {value reason body : Type} {a : Agent value reason body}
     hw.queuedKnown, ⟨fun _ h => (by cases h), fun _ h => (by cases h)⟩, hw.capabilityStored,
     hw.settlementsCoherent⟩
 
+/-- Under `WF`, away from a job activation nothing runs. -/
 private theorem WF.running_none {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (h : ∀ s, a.active ≠ Jobs.Active.job s) : a.running = none := by
   cases hr : a.running with
   | none => rfl
   | some j => exact absurd (hw.runningActive.1 j hr) (h j.reaction)
 
+/-- With nothing running, moving to an activation that is not a job keeps
+`WF`. -/
 private theorem WF.withActive {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (act : Jobs.Active) (hr : a.running = none)
     (hact : ∀ s, act ≠ Jobs.Active.job s) : WF { a with active := act } :=
@@ -1407,6 +1965,21 @@ private theorem WF.withActive {value reason body : Type} {a : Agent value reason
       fun s h => absurd h (hact s)⟩,
     hw.capabilityStored, hw.settlementsCoherent⟩
 
+/-- An agent that differs only outside the order's eight clauses is later. -/
+private theorem Le.ofEq {value reason body : Type} (b b' : Agent value reason body)
+    (ht : b'.table = b.table) (hr : b'.reactions.next = b.reactions.next)
+    (hf : b'.functions = b.functions) (hn : b'.nextFunction = b.nextFunction)
+    (hs : b'.settlements = b.settlements) : Le b b' := by
+  refine ⟨fun p h => ?_, fun p s h _ => ?_, fun p h => ?_, ?_, Nat.le_of_eq hr.symm,
+    Nat.le_of_eq hn.symm, fun f hf' => ⟨f, hf ▸ hf', rfl, rfl, rfl⟩, ?_⟩
+  · rw [ht]; exact h
+  · rw [ht]; exact h
+  · rw [ht]; exact h
+  · rw [ht]; exact Nat.le_refl _
+  · rw [hs]; exact List.prefix_refl _
+
+/-- `startJob` keeps `WF`: the started job leaves the queue and becomes the
+running job at its own serial. -/
 private theorem WF.startJob {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) : WF (startJob a).1 := by
   cases ha : a.active with
@@ -1432,6 +2005,48 @@ private theorem WF.startJob {value reason body : Type} {a : Agent value reason b
   | job _ =>
       rw [startJob_blocked a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
 
+/-- `startJob` moves the agent up `Le`: it touches none of the order's
+clauses. -/
+private theorem Le.startJob {value reason body : Type} (a : Agent value reason body) :
+    Le a (Whatwg.Ecma262.Agent.startJob a).1 := by
+  cases ha : a.active with
+  | checkpoint =>
+      cases hq : a.queue.pending with
+      | nil => rw [startJob_empty a hq]; exact Le.refl a
+      | cons job rest =>
+          rw [startJob_checkpoint a job rest ha hq]
+          exact Le.ofEq _ _ rfl rfl rfl rfl rfl
+  | script => rw [startJob_blocked a (by rw [ha]; exact fun h => by cases h)]; exact Le.refl a
+  | intrinsic _ =>
+      rw [startJob_blocked a (by rw [ha]; exact fun h => by cases h)]; exact Le.refl a
+  | job _ => rw [startJob_blocked a (by rw [ha]; exact fun h => by cases h)]; exact Le.refl a
+
+/-- `startJob` fulfils its row: at a checkpoint with a job queued it moves up
+`Le`, keeps `WF`, and answers a job with its record's handler, which is then
+the running job at its own serial (the job is the queue's head, by
+`startJob_serial`). `requirement.jobs.1`
+(RUNCOND, 625769..626250), `requirement.jobs.2` (ONEJOB, 626257..626350) and
+`requirement.hostenqueuepromisejob.3` (ORDER, 634739..634841). Adequacy law;
+DB-04 M2. -/
+theorem startJob_implements :
+    ∀ {value reason body : Type},
+      Agent.Implements (Agent.Op.startJob : Agent.Op value reason body) := by
+  intro value reason body a c hw hpre
+  refine ⟨Le.startJob a, WF.startJob hw, ?_⟩
+  obtain ⟨ha, hne⟩ := hpre
+  cases hq : a.queue.pending with
+  | nil => exact absurd hq hne
+  | cons job rest =>
+      show ∃ j, (Whatwg.Ecma262.Agent.startJob a).2 =
+          some (j, (reactionOf (Whatwg.Ecma262.Agent.startJob a).1 j).bind
+            Promise.Reaction.handler) ∧
+        (Whatwg.Ecma262.Agent.startJob a).1.active = Jobs.Active.job j.reaction ∧
+        (Whatwg.Ecma262.Agent.startJob a).1.running = some j
+      rw [startJob_checkpoint a job rest ha hq]
+      exact ⟨job, rfl, rfl, rfl⟩
+
+/-- `finishJob` keeps `WF`: whatever its record and capability, it settles
+through `callFunctions` at most and then returns to a checkpoint. -/
 private theorem WF.finishJob {value reason body : Type} {a : Agent value reason body}
     (hw : WF a) (decision : Except reason value) : WF (finishJob a decision) := by
   cases hrun : a.running with
@@ -1462,206 +2077,7 @@ private theorem WF.finishJob {value reason body : Type} {a : Agent value reason 
             (by rw [ha]; exact fun _ h => Jobs.Active.noConfusion h)]
           exact hw
 
-private theorem WF.enterScript {value reason body : Type} {a : Agent value reason body}
-    (hw : WF a) : WF (enterScript a) := by
-  cases ha : a.active with
-  | checkpoint =>
-      rw [enterScript_checkpoint a ha]
-      exact WF.withActive hw _
-        (hw.running_none (by rw [ha]; exact fun _ h => Jobs.Active.noConfusion h))
-        (fun _ h => Jobs.Active.noConfusion h)
-  | script =>
-      rw [enterScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
-  | intrinsic _ =>
-      rw [enterScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
-  | job _ =>
-      rw [enterScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
-
-private theorem WF.leaveScript {value reason body : Type} {a : Agent value reason body}
-    (hw : WF a) : WF (leaveScript a) := by
-  cases ha : a.active with
-  | script =>
-      rw [leaveScript_script a ha]
-      exact WF.withActive hw _
-        (hw.running_none (by rw [ha]; exact fun _ h => Jobs.Active.noConfusion h))
-        (fun _ h => Jobs.Active.noConfusion h)
-  | checkpoint =>
-      rw [leaveScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
-  | intrinsic _ =>
-      rw [leaveScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
-  | job _ =>
-      rw [leaveScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
-
-theorem WF.step :
-    ∀ {value reason body : Type} (a : Agent.Agent value reason body)
-      (op : Agent.Op value reason body),
-      Agent.WF a → Agent.WF (Agent.step a op).1 := by
-  intro value reason body a op hw
-  cases op with
-  | newPromise => exact WF.newPromise hw
-  | resolve cap v => exact WF.resolve hw cap v
-  | reject cap r => exact WF.reject hw cap r
-  | perform p f r d => exact WF.perform hw p f r d
-  | markHandled p => exact WF.markHandled hw p
-  | startJob => exact WF.startJob hw
-  | finishJob d => exact WF.finishJob hw d
-  | enterScript => exact WF.enterScript hw
-  | leaveScript => exact WF.leaveScript hw
-
-theorem WF.runOps :
-    ∀ {value reason body : Type} (a : Agent.Agent value reason body)
-      (ops : List (Agent.Op value reason body)),
-      Agent.WF a → Agent.WF (Agent.runOps a ops).1 := by
-  intro value reason body a ops
-  induction ops generalizing a with
-  | nil => exact id
-  | cons op ops ih =>
-      exact fun hw => ih (Whatwg.Ecma262.Agent.step a op).1 (WF.step a op hw)
-
-/-! ## The world order is kept -/
-
-private theorem Le.ofEq {value reason body : Type} (b b' : Agent value reason body)
-    (ht : b'.table = b.table) (hr : b'.reactions.next = b.reactions.next)
-    (hf : b'.functions = b.functions) (hn : b'.nextFunction = b.nextFunction)
-    (hs : b'.settlements = b.settlements) : Le b b' := by
-  refine ⟨fun p h => ?_, fun p s h _ => ?_, fun p h => ?_, ?_, Nat.le_of_eq hr.symm,
-    Nat.le_of_eq hn.symm, fun f hf' => ⟨f, hf ▸ hf', rfl, rfl, rfl⟩, ?_⟩
-  · rw [ht]; exact h
-  · rw [ht]; exact h
-  · rw [ht]; exact h
-  · rw [ht]; exact Nat.le_refl _
-  · rw [hs]; exact List.prefix_refl _
-
-private theorem Le.settle {value reason body : Type} (a : Agent value reason body) (p : Nat)
-    (result : Except reason value) : Le a (settle a p result) := by
-  cases hp : Promise.Table.isPending a.table p with
-  | false => rw [settle_notPending_eq a p result hp]; exact Le.refl a
-  | true =>
-      rw [settle_pending_eq a p result hp]
-      have hpend : Promise.Table.get a.table p = some Promise.State.pending :=
-        (Promise.Table.isPending_iff a.table p).mp hp
-      refine ⟨fun q h => ?_, fun q s h hs => ?_, fun q h => ?_, ?_, ?_, Nat.le_refl _,
-        fun f hf => ⟨f, hf, rfl, rfl, rfl⟩, List.prefix_append _ _⟩
-      · show (Promise.Table.getCell (Promise.Table.settle a.table p result) q).isSome = true
-        rw [(getCell_settle a.table p q result).1]
-        exact h
-      · show Promise.Table.get (Promise.Table.settle a.table p result) q = some s
-        have hne : q ≠ p := by
-          intro hqp
-          rw [hqp, hpend] at h
-          cases h
-          exact hs rfl
-        rw [settle_get_other a.table p q result hne]
-        exact h
-      · show (Promise.Table.getCell (Promise.Table.settle a.table p result) q).map
-          Promise.Cell.handled = some true
-        rw [(getCell_settle a.table p q result).2]
-        exact h
-      · show a.table.next ≤ (Promise.Table.settle a.table p result).next
-        rw [(settle_ids a.table p result).2]
-        exact Nat.le_refl _
-      · show a.reactions.next ≤ (Promise.Reactions.clear _ p).next
-        rw [trigger_clear_next]
-        exact Nat.le_refl _
-
-private theorem Le.mark {value reason body : Type} (a : Agent value reason body)
-    (pick : Promise.ResolvingFunctions → Bool) :
-    Le a { a with functions := a.functions.map (fun g =>
-      if pick g then { g with alreadyResolved := true } else g) } :=
-  ⟨fun _ h => h, fun _ _ h _ => h, fun _ h => h, Nat.le_refl _, Nat.le_refl _, Nat.le_refl _,
-    fun f hf => ⟨_, List.mem_map_of_mem hf, (mark_fields pick f).1, (mark_fields pick f).2.1,
-      (mark_fields pick f).2.2⟩, List.prefix_refl _⟩
-
-private theorem Le.callFunctions {value reason body : Type} (a : Agent value reason body)
-    (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value) :
-    Le a (callFunctions a pick result) := by
-  cases hf : a.functions.find? pick with
-  | none => rw [callFunctions_none a pick result hf]; exact Le.refl a
-  | some f =>
-      cases hfr : f.alreadyResolved with
-      | true => rw [callFunctions_fired a pick result f hf hfr]; exact Le.refl a
-      | false =>
-          rw [callFunctions_fresh a pick result f hf hfr]
-          exact Le.trans (Le.settle a f.promise result)
-            (Le.mark (Whatwg.Ecma262.Agent.settle a f.promise result) pick)
-
-private theorem Le.newPromise {value reason body : Type} (a : Agent value reason body) :
-    Le a (Whatwg.Ecma262.Agent.newPromise a).1 := by
-  refine ⟨fun p h => ?_, fun p s h _ => ?_, fun p h => ?_, Nat.le_succ _, Nat.le_refl _,
-    Nat.le_add_right _ 2, fun f hf => ⟨f, List.mem_append_left _ hf, rfl, rfl, rfl⟩,
-    List.prefix_refl _⟩
-  · show (Promise.Table.getCell (Promise.Table.fresh a.table _).1 p).isSome = true
-    cases hc : Promise.Table.getCell a.table p with
-    | none => rw [hc] at h; cases h
-    | some c => rw [getCell_fresh a.table _ p c hc]; rfl
-  · exact get_fresh a.table _ p s h
-  · show (Promise.Table.getCell (Promise.Table.fresh a.table _).1 p).map
-      Promise.Cell.handled = some true
-    cases hc : Promise.Table.getCell a.table p with
-    | none => rw [hc] at h; cases h
-    | some c => rw [getCell_fresh a.table _ p c hc]; rw [hc] at h; exact h
-
-private theorem Le.markHandled {value reason body : Type} (a : Agent value reason body)
-    (p : Nat) : Le a (Whatwg.Ecma262.Agent.markHandled a p) :=
-  ⟨fun q h => by
-      show (Promise.Table.getCell (Promise.Table.markHandled a.table p) q).isSome = true
-      rw [markHandled_isSome]; exact h,
-    fun q s h _ => by
-      show Promise.Table.get (Promise.Table.markHandled a.table p) q = some s
-      rw [markHandled_get]; exact h,
-    fun q h => markHandled_handled a.table p q h,
-    Nat.le_refl _, Nat.le_refl _, Nat.le_refl _, fun f hf => ⟨f, hf, rfl, rfl, rfl⟩,
-    List.prefix_refl _⟩
-
-/-- A step that marks one promise handled and touches no other part of the order. -/
-private theorem Le.ofMark {value reason body : Type} (b b' : Agent value reason body) (p : Nat)
-    (ht : b'.table = Promise.Table.markHandled b.table p)
-    (hr : b.reactions.next ≤ b'.reactions.next) (hf : b'.functions = b.functions)
-    (hn : b'.nextFunction = b.nextFunction) (hs : b'.settlements = b.settlements) :
-    Le b b' := by
-  have hm := Le.markHandled b p
-  exact ⟨fun q h => ht ▸ hm.allocated q h, fun q s h hs' => ht ▸ hm.settled q s h hs',
-    fun q h => ht ▸ hm.handled q h, ht ▸ hm.tableNext, hr, Nat.le_of_eq hn.symm,
-    fun f hf' => ⟨f, hf ▸ hf', rfl, rfl, rfl⟩, hs ▸ List.prefix_refl _⟩
-
-private theorem Le.perform {value reason body : Type} (a : Agent value reason body) (p : Nat)
-    (onFulfilled onRejected : Option body) (derive : Bool) :
-    Le a (Whatwg.Ecma262.Agent.perform a p onFulfilled onRejected derive).1 := by
-  cases hg : a.table.get p with
-  | none => rw [perform_missing a p onFulfilled onRejected derive hg]; exact Le.refl a
-  | some s =>
-      have hmint : Le a (mintFor a derive).1 := by
-        cases derive with
-        | false => exact Le.refl a
-        | true => exact Le.newPromise a
-      cases s with
-      | pending =>
-          rw [perform_pending a p onFulfilled onRejected derive hg]
-          exact Le.trans hmint (Le.ofMark _ _ p rfl (by cases derive <;> exact Nat.le_succ _) rfl
-            rfl rfl)
-      | fulfilled v =>
-          rw [perform_fulfilled a p v onFulfilled onRejected derive hg]
-          exact Le.trans hmint (Le.ofMark _ _ p rfl (by cases derive <;> exact Nat.le_succ _) rfl
-            rfl rfl)
-      | rejected x =>
-          rw [perform_rejected a p x onFulfilled onRejected derive hg]
-          exact Le.trans hmint (Le.ofMark _ _ p rfl (by cases derive <;> exact Nat.le_succ _) rfl
-            rfl rfl)
-
-private theorem Le.startJob {value reason body : Type} (a : Agent value reason body) :
-    Le a (Whatwg.Ecma262.Agent.startJob a).1 := by
-  cases ha : a.active with
-  | checkpoint =>
-      cases hq : a.queue.pending with
-      | nil => rw [startJob_empty a hq]; exact Le.refl a
-      | cons job rest =>
-          rw [startJob_checkpoint a job rest ha hq]
-          exact Le.ofEq _ _ rfl rfl rfl rfl rfl
-  | script => rw [startJob_blocked a (by rw [ha]; exact fun h => by cases h)]; exact Le.refl a
-  | intrinsic _ =>
-      rw [startJob_blocked a (by rw [ha]; exact fun h => by cases h)]; exact Le.refl a
-  | job _ => rw [startJob_blocked a (by rw [ha]; exact fun h => by cases h)]; exact Le.refl a
-
+/-- `finishJob` moves the agent up `Le`, on every branch. -/
 private theorem Le.finishJob {value reason body : Type} (a : Agent value reason body)
     (decision : Except reason value) : Le a (Whatwg.Ecma262.Agent.finishJob a decision) := by
   cases hrun : a.running with
@@ -1691,16 +2107,128 @@ private theorem Le.finishJob {value reason body : Type} (a : Agent value reason 
           rw [finishJob_not_job a decision (by rw [ha]; exact fun _ h => by cases h)]
           exact Le.refl a
 
+/-- `finishJob` fulfils its row: while a job runs it moves up `Le`, keeps
+`WF`, and leaves the agent at a checkpoint with nothing running; under `WF`
+a job activation has a running job, so the enabled branch is taken.
+`op.newpromisereactionjob` (REACTJOB, 2702885..2705591) inner steps 4 to 9 and
+`requirement.jobs.3` (COMPLETE, 626357..626479). Adequacy law; DB-04 M2. -/
+theorem finishJob_implements :
+    ∀ {value reason body : Type} (decision : Except reason value),
+      Agent.Implements (Agent.Op.finishJob decision : Agent.Op value reason body) := by
+  intro value reason body decision a c hw hpre
+  refine ⟨Le.finishJob a decision, WF.finishJob hw decision, ?_⟩
+  obtain ⟨s, ha⟩ := hpre
+  show (Whatwg.Ecma262.Agent.finishJob a decision).active = Jobs.Active.checkpoint ∧
+    (Whatwg.Ecma262.Agent.finishJob a decision).running = none
+  cases hrun : a.running with
+  | none =>
+      have := hw.runningActive.2 s ha
+      rw [hrun] at this
+      cases this
+  | some job =>
+      cases hr : reactionOf a job with
+      | none => rw [finishJob_unknown a decision s job ha hrun hr]; exact ⟨rfl, rfl⟩
+      | some r =>
+          cases hc : r.capability with
+          | none =>
+              rw [finishJob_no_capability a decision s job r ha hrun hr hc]; exact ⟨rfl, rfl⟩
+          | some cap =>
+              rw [finishJob_capability a decision s job r cap ha hrun hr hc]; exact ⟨rfl, rfl⟩
+
+/-- `enterScript` keeps `WF`: at a checkpoint nothing runs, and a script is
+not a job activation. -/
+private theorem WF.enterScript {value reason body : Type} {a : Agent value reason body}
+    (hw : WF a) : WF (enterScript a) := by
+  cases ha : a.active with
+  | checkpoint =>
+      rw [enterScript_checkpoint a ha]
+      exact WF.withActive hw _
+        (hw.running_none (by rw [ha]; exact fun _ h => Jobs.Active.noConfusion h))
+        (fun _ h => Jobs.Active.noConfusion h)
+  | script =>
+      rw [enterScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
+  | intrinsic _ =>
+      rw [enterScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
+  | job _ =>
+      rw [enterScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
+
+/-- `enterScript` moves the agent up `Le`: it changes only the activation. -/
 private theorem Le.enterScript {value reason body : Type} (a : Agent value reason body) :
     Le a (Whatwg.Ecma262.Agent.enterScript a) := by
   unfold Whatwg.Ecma262.Agent.enterScript
   cases a.active <;> first | exact Le.refl a | exact Le.ofEq _ _ rfl rfl rfl rfl rfl
 
+/-- `enterScript` fulfils its row: at a checkpoint it moves up `Le`, keeps
+`WF`, and leaves the agent in a script. `requirement.jobs.1` (RUNCOND). Adequacy
+law; DB-04 M2. -/
+theorem enterScript_implements :
+    ∀ {value reason body : Type},
+      Agent.Implements (Agent.Op.enterScript : Agent.Op value reason body) := by
+  intro value reason body a c hw hpre
+  refine ⟨Le.enterScript a, WF.enterScript hw, ?_⟩
+  show (Whatwg.Ecma262.Agent.enterScript a).active = Jobs.Active.script
+  rw [enterScript_checkpoint a hpre]
+
+/-- `leaveScript` keeps `WF`: in a script nothing runs, and a checkpoint is
+not a job activation. -/
+private theorem WF.leaveScript {value reason body : Type} {a : Agent value reason body}
+    (hw : WF a) : WF (leaveScript a) := by
+  cases ha : a.active with
+  | script =>
+      rw [leaveScript_script a ha]
+      exact WF.withActive hw _
+        (hw.running_none (by rw [ha]; exact fun _ h => Jobs.Active.noConfusion h))
+        (fun _ h => Jobs.Active.noConfusion h)
+  | checkpoint =>
+      rw [leaveScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
+  | intrinsic _ =>
+      rw [leaveScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
+  | job _ =>
+      rw [leaveScript_other a (by rw [ha]; exact fun h => Jobs.Active.noConfusion h)]; exact hw
+
+/-- `leaveScript` moves the agent up `Le`: it changes only the activation. -/
 private theorem Le.leaveScript {value reason body : Type} (a : Agent value reason body) :
     Le a (Whatwg.Ecma262.Agent.leaveScript a) := by
   unfold Whatwg.Ecma262.Agent.leaveScript
   cases a.active <;> first | exact Le.refl a | exact Le.ofEq _ _ rfl rfl rfl rfl rfl
 
+/-- `leaveScript` fulfils its row: in a script it moves up `Le`, keeps `WF`,
+and returns the agent to a checkpoint. `requirement.jobs.1` (RUNCOND).
+Adequacy law; DB-04 M2. -/
+theorem leaveScript_implements :
+    ∀ {value reason body : Type},
+      Agent.Implements (Agent.Op.leaveScript : Agent.Op value reason body) := by
+  intro value reason body a c hw hpre
+  refine ⟨Le.leaveScript a, WF.leaveScript hw, ?_⟩
+  show (Whatwg.Ecma262.Agent.leaveScript a).active = Jobs.Active.checkpoint
+  rw [leaveScript_script a hpre]
+
+/-! ## 13. Every operation
+
+The per-operation lemmas assembled over the alphabet. `WF.step` and `Le.step`
+hold for every operation, enabled or not, because a disabled one leaves the
+agent unchanged. -/
+
+/-- Every operation keeps `WF`, enabled or disabled. With `WF.empty` this is
+the contract's "`WF` kept by every operation". Invariant law; DB-04 M1. -/
+theorem WF.step :
+    ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+      (op : Agent.Op value reason body),
+      Agent.WF a → Agent.WF (Agent.step a op).1 := by
+  intro value reason body a op hw
+  cases op with
+  | newPromise => exact WF.newPromise hw
+  | resolve cap v => exact WF.resolve hw cap v
+  | reject cap r => exact WF.reject hw cap r
+  | perform p f r d => exact WF.perform hw p f r d
+  | markHandled p => exact WF.markHandled hw p
+  | startJob => exact WF.startJob hw
+  | finishJob d => exact WF.finishJob hw d
+  | enterScript => exact WF.enterScript hw
+  | leaveScript => exact WF.leaveScript hw
+
+/-- Every operation moves a well-formed agent up the order, enabled or not.
+Adequacy law; DB-04 M2, through `Le.trace`. -/
 theorem Le.step :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (op : Agent.Op value reason body),
@@ -1717,19 +2245,31 @@ theorem Le.step :
   | enterScript => exact Le.enterScript a
   | leaveScript => exact Le.leaveScript a
 
-/-! ## Lifted laws -/
+/-- The handler fulfils every row: all nine operations satisfy `Implements`.
+Adequacy law; DB-04 M2. -/
+theorem implements :
+    ∀ {value reason body : Type} (op : Agent.Op value reason body), Agent.Implements op := by
+  intro value reason body op
+  cases op with
+  | newPromise => exact newPromise_implements
+  | resolve cap v => exact resolve_implements cap v
+  | reject cap r => exact reject_implements cap r
+  | perform p f r d => exact perform_implements p f r d
+  | markHandled p => exact markHandled_implements p
+  | startJob => exact startJob_implements
+  | finishJob d => exact finishJob_implements d
+  | enterScript => exact enterScript_implements
+  | leaveScript => exact leaveScript_implements
 
-private theorem find?_unique {α : Type} (l : List α) (pick : α → Bool)
-    (huniq : ∀ g ∈ l, ∀ g' ∈ l, pick g = true → pick g' = true → g = g') (f : α) (hf : f ∈ l)
-    (hp : pick f = true) : l.find? pick = some f := by
-  cases h : l.find? pick with
-  | none =>
-      have := List.find?_eq_none.mp h f hf
-      rw [hp] at this
-      exact absurd rfl this
-  | some g =>
-      rw [huniq g (List.mem_of_find?_eq_some h) f hf (List.find?_some h) hp]
+/-! ## 14. The lifted laws
 
+The landed store-level laws restated at the agent (the contract's section 9),
+and the two counterexample rows the agent closes. -/
+
+/-- `op.performpromisethen` (THEN, 2740635..2743669) step 12 at the agent: on
+an allocated promise every branch of `perform` leaves the promise handled,
+with or without a derived capability. Lifts the landed
+`Promise.performPromiseThen_handled` (Q3b finding F1). Lifted law; DB-04 M1. -/
 theorem perform_handled :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (onFulfilled onRejected : Option body) (derive : Bool),
@@ -1737,32 +2277,15 @@ theorem perform_handled :
         ((Agent.perform a promise onFulfilled onRejected derive).1.table.getCell promise).map
           Promise.Cell.handled = some true := by
   intro value reason body a promise onFulfilled onRejected derive hcell
-  have hmint : (Promise.Table.getCell (mintFor a derive).1.table promise).isSome = true := by
-    cases derive with
-    | false => exact hcell
-    | true =>
-        show (Promise.Table.getCell (Promise.Table.fresh a.table _).1 promise).isSome = true
-        cases hc : Promise.Table.getCell a.table promise with
-        | none => rw [hc] at hcell; cases hcell
-        | some c => rw [getCell_fresh a.table _ promise c hc]; rfl
-  cases hg : a.table.get promise with
-  | none =>
-      unfold Promise.Table.get at hg
-      cases hc : Promise.Table.getCell a.table promise with
-      | none => rw [hc] at hcell; cases hcell
-      | some c => rw [hc] at hg; cases hg
-  | some s =>
-      cases s with
-      | pending =>
-          rw [perform_pending a promise onFulfilled onRejected derive hg]
-          exact Promise.Table.markHandled_marked _ promise hmint
-      | fulfilled v =>
-          rw [perform_fulfilled a promise v onFulfilled onRejected derive hg]
-          exact Promise.Table.markHandled_marked _ promise hmint
-      | rejected x =>
-          rw [perform_rejected a promise x onFulfilled onRejected derive hg]
-          exact Promise.Table.markHandled_marked _ promise hmint
+  obtain ⟨s, hg⟩ := get_of_getCell_isSome a.table promise hcell
+  rw [(perform_allocated a promise onFulfilled onRejected derive s hg).2.2]
+  exact Promise.Table.markHandled_marked _ promise (mintFor_isSome a derive promise hcell)
 
+/-- THEN steps 10 and 11 at the agent: on a settled promise `perform` appends
+to neither reaction list and grows `held` by exactly one record, which carries
+the next registration identity and the derived capability, the link D17 needs
+from a job to its capability. Lifts the landed `Promise.Reactions.mint_no_waiting`
+(Q3b finding F2). Lifted law; DB-04 M1. -/
 theorem perform_settled_lists :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (onFulfilled onRejected : Option body) (derive : Bool) (s : Promise.State value reason),
@@ -1784,6 +2307,12 @@ theorem perform_settled_lists :
       rw [perform_rejected a promise x onFulfilled onRejected derive hg]
       exact ⟨rfl, rfl, _, rfl, rfl, rfl⟩
 
+/-- `op.fulfillpromise` (FULFILL, 2695419..2696230) and `op.rejectpromise`
+(REJECT, 2699323..2700252) at the agent: settling a pending promise leaves no
+reaction waiting on it in either list, which is how the model reads the
+specification setting both reaction slots to undefined. Lifts the landed
+`Promise.Table.settleAndTrigger_cleared` (Q3b finding F3). Lifted law; DB-04
+M1. -/
 theorem settle_cleared :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (result : Except reason value) (kind : Promise.ReactionType),
@@ -1793,6 +2322,10 @@ theorem settle_cleared :
   intro value reason body a promise result kind h
   exact Promise.Table.settleAndTrigger_cleared a.table a.reactions a.queue promise result kind h
 
+/-- FULFILL and REJECT at the agent: settling a pending promise appends exactly
+one entry, the promise with its result, at the end of the settlement trace.
+Lifts the landed `Promise.Table.settleTraced_pending` (Q3b finding F6). Lifted
+law; DB-04 M2, since it observes settlement order. -/
 theorem settle_trace :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
       (result : Except reason value),
@@ -1801,6 +2334,12 @@ theorem settle_trace :
   intro value reason body a promise result h
   exact Promise.Table.settleTraced_pending a.table a.settlements promise result h
 
+/-- `op.createresolvingfunctions` (RESOLVING, 2692679..2695411) at the agent:
+a capability's resolve and reject functions share one `[[AlreadyResolved]]`
+record, so after `resolve`, a `reject` through the same capability changes
+nothing (`WS-PROM-CE-042`). Lifts the landed
+`Promise.ResolvingFunctions.callResolve_disables_reject`. Lifted law; DB-04
+M1. -/
 theorem resolve_then_reject :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (v : value) (r : reason),
@@ -1842,6 +2381,10 @@ theorem resolve_then_reject :
         rw [beq_iff_eq.mpr h1]
         rfl
 
+/-- RESOLVING at the agent, the other order: after `reject`, a `resolve`
+through the same capability changes nothing (`WS-PROM-CE-042`). Lifts the
+landed `Promise.ResolvingFunctions.callResolve_disables_reject`'s shared
+marker. Lifted law; DB-04 M1. -/
 theorem reject_then_resolve :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (r : reason) (v : value),
@@ -1883,6 +2426,9 @@ theorem reject_then_resolve :
         rw [beq_iff_eq.mpr h2]
         rfl
 
+/-- RESOLVING: a capability whose `[[Resolve]]` identity no stored function
+carries settles nothing; `resolve` leaves the agent unchanged and has no
+fallback to `Table.settle` (`WS-PROM-CE-041`). Law; DB-04 M1. -/
 theorem resolve_unminted :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (v : value),
@@ -1891,6 +2437,9 @@ theorem resolve_unminted :
   apply callFunctions_none
   exact List.find?_eq_none.mpr (fun f hf hb => h f hf (beq_iff_eq.mp hb))
 
+/-- RESOLVING: a capability whose `[[Reject]]` identity no stored function
+carries settles nothing; `reject` leaves the agent unchanged
+(`WS-PROM-CE-041`). Law; DB-04 M1. -/
 theorem reject_unminted :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (cap : Promise.Capability) (r : reason),
@@ -1899,6 +2448,10 @@ theorem reject_unminted :
   apply callFunctions_none
   exact List.find?_eq_none.mpr (fun f hf hb => h f hf (beq_iff_eq.mp hb))
 
+/-- `requirement.jobs.1` (RUNCOND, 625769..626250): at a checkpoint with `job`
+at the queue's head, `startJob` makes `job` the running job at the serial of
+its own reaction identity, so job serials and reaction identities are one
+supply (`WS-PROM-CE-046`). Law; DB-04 M1. -/
 theorem startJob_serial :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (job : Agent.Job value reason) (rest : List (Agent.Job value reason)),
@@ -1909,6 +2462,31 @@ theorem startJob_serial :
   rw [startJob_checkpoint a job rest ha hq]
   exact ⟨rfl, rfl⟩
 
+/-! ## 15. Runs, and the FIFO law lifted to them
+
+A run folds the step over a list of operations and collects the jobs
+`startJob` answered, in start order. Over any run, the started jobs followed
+by the still-queued jobs are the initially queued jobs followed by the jobs
+enqueued during the run: `Jobs.run_fifo` and `Jobs.hostEnqueuePromiseJob_order`
+lifted to the agent. -/
+
+/-- The jobs one step started: the job `startJob` answered, if it started one,
+and none for every other operation. Run device; `Op.started_startJob` and
+`Op.started_other` fix it. -/
+def Op.started {value reason body : Type} :
+    (op : Op value reason body) → op.Answer → List (Job value reason)
+  | .startJob, ans => (ans.map Prod.fst).toList
+  | _, _ => []
+
+/-- `startJob` started the job it answered, if any. Defining equation; DB-04
+M1. -/
+theorem Op.started_startJob :
+    ∀ {value reason body : Type}
+      (ans : Agent.Op.Answer (Agent.Op.startJob : Agent.Op value reason body)),
+      Agent.Op.started Agent.Op.startJob ans = (ans.map Prod.fst).toList := by
+  intros; rfl
+
+/-- Every other operation starts no job. Defining equation; DB-04 M1. -/
 theorem Op.started_other :
     ∀ {value reason body : Type} (op : Agent.Op value reason body) (ans : Agent.Op.Answer op),
       op ≠ Agent.Op.startJob → Agent.Op.started op ans = [] := by
@@ -1924,8 +2502,49 @@ theorem Op.started_other :
   | enterScript => rfl
   | leaveScript => rfl
 
-/-! ## FIFO over runs -/
+/-- Run a list of operations from an agent: the agent the last step leaves,
+and the jobs the run started, oldest first. Run device; `runOps_nil` and
+`runOps_cons` fix it. -/
+def runOps {value reason body : Type} :
+    Agent value reason body → List (Op value reason body) →
+      Agent value reason body × List (Job value reason)
+  | a, [] => (a, [])
+  | a, op :: ops =>
+      ((runOps (step a op).1 ops).1,
+        Op.started op (step a op).2 ++ (runOps (step a op).1 ops).2)
 
+/-- The empty run leaves the agent and starts nothing. Defining equation;
+DB-04 M1. -/
+theorem runOps_nil :
+    ∀ {value reason body : Type} (a : Agent.Agent value reason body),
+      Agent.runOps a [] = (a, []) := by
+  intros; rfl
+
+/-- A run is one step and then the rest; the first step's started jobs come
+first. Defining equation; DB-04 M2, since it fixes start order. -/
+theorem runOps_cons :
+    ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+      (op : Agent.Op value reason body) (ops : List (Agent.Op value reason body)),
+      Agent.runOps a (op :: ops) =
+        ((Agent.runOps (Agent.step a op).1 ops).1,
+          Agent.Op.started op (Agent.step a op).2 ++
+            (Agent.runOps (Agent.step a op).1 ops).2) := by
+  intros; rfl
+
+/-- Every agent a run reaches from a well-formed agent is well formed; with
+`WF.empty`, every agent `runOps` reaches from `Agent.empty` is. Invariant law;
+DB-04 M1. -/
+theorem WF.runOps :
+    ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+      (ops : List (Agent.Op value reason body)),
+      Agent.WF a → Agent.WF (Agent.runOps a ops).1 := by
+  intro value reason body a ops
+  induction ops generalizing a with
+  | nil => exact id
+  | cons op ops ih =>
+      exact fun hw => ih (Whatwg.Ecma262.Agent.step a op).1 (WF.step a op hw)
+
+/-- `callFunctions` only appends to the queue. -/
 private theorem callFunctions_queue {value reason body : Type} (a : Agent value reason body)
     (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value) :
     ∃ later : List (Job value reason),
@@ -1948,6 +2567,8 @@ private theorem callFunctions_queue {value reason body : Type} (a : Agent value 
               rw [settle_pending_eq a f.promise result hp]
               exact ⟨_, Promise.triggerReactions_order _ _ _ _ _⟩
 
+/-- One step's FIFO: the job it started, followed by the queue it leaves, is
+the old queue followed by the jobs it enqueued. -/
 private theorem step_fifo {value reason body : Type} (a : Agent value reason body)
     (op : Op value reason body) :
     ∃ later : List (Job value reason),
@@ -2037,11 +2658,18 @@ private theorem step_fifo {value reason body : Type} (a : Agent value reason bod
       unfold Whatwg.Ecma262.Agent.leaveScript
       cases a.active <;> exact ⟨[], (List.append_nil _).symm⟩
 
+/-- `requirement.hostenqueuepromisejob.3` (ORDER, 634739..634841, digest
+`6c5b7796efb44a87c971febe7c06bac4a74f18154b8ccd99cf1ac693d8b4dd65`) over runs:
+the jobs a run started, followed by the jobs still queued, are the jobs queued
+at its start followed by the jobs enqueued during it, so no job starts before
+one enqueued earlier. Lifts the landed `Jobs.run_fifo` and
+`Jobs.hostEnqueuePromiseJob_order`. Lifted law; DB-04 M2. -/
 theorem runOps_fifo :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (ops : List (Agent.Op value reason body)),
       ∃ later : List (Agent.Job value reason),
-        (Agent.runOps a ops).2 ++ (Agent.runOps a ops).1.queue.pending = a.queue.pending ++ later := by
+        (Agent.runOps a ops).2 ++ (Agent.runOps a ops).1.queue.pending =
+          a.queue.pending ++ later := by
   intro value reason body a ops
   induction ops generalizing a with
   | nil => exact ⟨[], (List.append_nil _).symm⟩
@@ -2054,6 +2682,10 @@ theorem runOps_fifo :
           (runOps (Whatwg.Ecma262.Agent.step a op).1 ops).1.queue.pending = _
       rw [List.append_assoc, h1, ← List.append_assoc, h0, List.append_assoc]
 
+/-- ORDER as the landed DB-05 specification: the jobs a run started are a
+prefix of the order in which jobs were scheduled, `Jobs.FifoRequirement`.
+Lifts `Jobs.run_fifo` and `Jobs.hostEnqueuePromiseJob_order`. Lifted law; DB-04
+M2. -/
 theorem runOps_fifoRequirement :
     ∀ {value reason body : Type} (a : Agent.Agent value reason body)
       (ops : List (Agent.Op value reason body)),
@@ -2062,204 +2694,5 @@ theorem runOps_fifoRequirement :
   intro value reason body a ops
   obtain ⟨later, h⟩ := runOps_fifo a ops
   exact ⟨later, ⟨_, h⟩⟩
-
-/-! ## The nine rows -/
-
-theorem newPromise_implements :
-    ∀ {value reason body : Type},
-      Agent.Implements (Agent.Op.newPromise : Agent.Op value reason body) := by
-  intro value reason body a c hw _
-  refine ⟨Le.step a _ hw, WF.step a _ hw, newPromise_minted a, ?_⟩
-  exact Promise.Table.fresh_get a.table Promise.State.pending hw.getCell_next
-
-theorem resolve_implements :
-    ∀ {value reason body : Type} (cap : Promise.Capability) (v : value),
-      Agent.Implements (Agent.Op.resolve cap v : Agent.Op value reason body) := by
-  intro value reason body cap v a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  obtain ⟨f, hf, h1, _, h3⟩ := hpre
-  have hres := find?_unique a.functions _ (resolve_unique hw cap) f hf (beq_iff_eq.mpr h1)
-  show ∃ s, Promise.Table.get (Whatwg.Ecma262.Agent.resolve a cap v).table cap.promise =
-    some s ∧ s ≠ Promise.State.pending
-  rw [← h3]
-  cases hfr : f.alreadyResolved with
-  | true =>
-      rw [show Whatwg.Ecma262.Agent.resolve a cap v = a from callFunctions_fired a _ _ f hres hfr]
-      exact settled_of_notPending a.table f.promise (hw.functionsAllocated f hf)
-        (hw.resolvedSettled f hf hfr)
-  | false =>
-      rw [show Whatwg.Ecma262.Agent.resolve a cap v = _ from
-        callFunctions_fresh a _ (Except.ok v) f hres hfr]
-      show ∃ s, Promise.Table.get
-        (Promise.Table.settleAndTrigger a.table a.reactions a.queue f.promise (Except.ok v)).1
-        f.promise = some s ∧ s ≠ Promise.State.pending
-      rw [settleAndTrigger_table]
-      exact settle_settled a.table f.promise _ (hw.functionsAllocated f hf)
-
-theorem reject_implements :
-    ∀ {value reason body : Type} (cap : Promise.Capability) (r : reason),
-      Agent.Implements (Agent.Op.reject cap r : Agent.Op value reason body) := by
-  intro value reason body cap r a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  obtain ⟨f, hf, _, h2, h3⟩ := hpre
-  have hrej := find?_unique a.functions _ (reject_unique hw cap) f hf (beq_iff_eq.mpr h2)
-  show ∃ s, Promise.Table.get (Whatwg.Ecma262.Agent.reject a cap r).table cap.promise =
-    some s ∧ s ≠ Promise.State.pending
-  rw [← h3]
-  cases hfr : f.alreadyResolved with
-  | true =>
-      rw [show Whatwg.Ecma262.Agent.reject a cap r = a from callFunctions_fired a _ _ f hrej hfr]
-      exact settled_of_notPending a.table f.promise (hw.functionsAllocated f hf)
-        (hw.resolvedSettled f hf hfr)
-  | false =>
-      rw [show Whatwg.Ecma262.Agent.reject a cap r = _ from
-        callFunctions_fresh a _ (Except.error r) f hrej hfr]
-      show ∃ s, Promise.Table.get
-        (Promise.Table.settleAndTrigger a.table a.reactions a.queue f.promise
-          (Except.error r)).1 f.promise = some s ∧ s ≠ Promise.State.pending
-      rw [settleAndTrigger_table]
-      exact settle_settled a.table f.promise _ (hw.functionsAllocated f hf)
-
-theorem perform_implements :
-    ∀ {value reason body : Type} (promise : Nat) (onFulfilled onRejected : Option body)
-      (derive : Bool),
-      Agent.Implements (Agent.Op.perform promise onFulfilled onRejected derive :
-        Agent.Op value reason body) := by
-  intro value reason body promise onFulfilled onRejected derive a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  have hsome : (a.table.get promise).isSome = true := hpre
-  have hcell : (a.table.getCell promise).isSome = true := by
-    unfold Promise.Table.get at hsome
-    cases hc : Promise.Table.getCell a.table promise with
-    | none => rw [hc] at hsome; cases hsome
-    | some _ => rfl
-  refine ⟨perform_handled a promise onFulfilled onRejected derive hcell, ?_⟩
-  -- the answer and the derived capability, branch by branch
-  have key : ∀ (s : Promise.State value reason), a.table.get promise = some s →
-      (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected derive).2 =
-          some (mintFor a derive).2 ∧
-        (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected derive).1.functions =
-          (mintFor a derive).1.functions ∧
-        (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected derive).1.table =
-          Promise.Table.markHandled (mintFor a derive).1.table promise := by
-    intro s hg
-    cases s with
-    | pending =>
-        rw [perform_pending a promise onFulfilled onRejected derive hg]; exact ⟨rfl, rfl, rfl⟩
-    | fulfilled v =>
-        rw [perform_fulfilled a promise v onFulfilled onRejected derive hg]
-        exact ⟨rfl, rfl, rfl⟩
-    | rejected x =>
-        rw [perform_rejected a promise x onFulfilled onRejected derive hg]
-        exact ⟨rfl, rfl, rfl⟩
-  cases hg : a.table.get promise with
-  | none => rw [hg] at hsome; cases hsome
-  | some s =>
-      obtain ⟨hans, hfun, htab⟩ := key s hg
-      cases derive with
-      | false =>
-          refine ⟨fun h => Bool.noConfusion h, fun _ => ?_⟩
-          show (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected false).2 = some none
-          rw [hans]
-          rfl
-      | true =>
-          refine ⟨fun _ => ⟨(Whatwg.Ecma262.Agent.newPromise a).2, ?_, ?_, ?_⟩,
-            fun h => Bool.noConfusion h⟩
-          · show (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected true).2 = _
-            rw [hans]
-            rfl
-          · obtain ⟨f, hf, h1, h2, h3⟩ := newPromise_minted a
-            refine ⟨f, ?_, h1, h2, h3⟩
-            show f ∈ (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected true).1.functions
-            rw [hfun]
-            exact hf
-          · show Promise.Table.get
-              (Whatwg.Ecma262.Agent.perform a promise onFulfilled onRejected true).1.table
-              a.table.next = _
-            rw [htab, markHandled_get]
-            exact Promise.Table.fresh_get a.table Promise.State.pending hw.getCell_next
-
-theorem markHandled_implements :
-    ∀ {value reason body : Type} (promise : Nat),
-      Agent.Implements (Agent.Op.markHandled promise : Agent.Op value reason body) := by
-  intro value reason body promise a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  have hsome : (a.table.get promise).isSome = true := hpre
-  have hcell : (a.table.getCell promise).isSome = true := by
-    unfold Promise.Table.get at hsome
-    cases hc : Promise.Table.getCell a.table promise with
-    | none => rw [hc] at hsome; cases hsome
-    | some _ => rfl
-  exact Promise.Table.markHandled_marked a.table promise hcell
-
-theorem startJob_implements :
-    ∀ {value reason body : Type},
-      Agent.Implements (Agent.Op.startJob : Agent.Op value reason body) := by
-  intro value reason body a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  obtain ⟨ha, hne⟩ := hpre
-  cases hq : a.queue.pending with
-  | nil => exact absurd hq hne
-  | cons job rest =>
-      show ∃ j, (Whatwg.Ecma262.Agent.startJob a).2 =
-          some (j, (reactionOf (Whatwg.Ecma262.Agent.startJob a).1 j).bind
-            Promise.Reaction.handler) ∧
-        (Whatwg.Ecma262.Agent.startJob a).1.active = Jobs.Active.job j.reaction ∧
-        (Whatwg.Ecma262.Agent.startJob a).1.running = some j
-      rw [startJob_checkpoint a job rest ha hq]
-      exact ⟨job, rfl, rfl, rfl⟩
-
-theorem finishJob_implements :
-    ∀ {value reason body : Type} (decision : Except reason value),
-      Agent.Implements (Agent.Op.finishJob decision : Agent.Op value reason body) := by
-  intro value reason body decision a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  obtain ⟨s, ha⟩ := hpre
-  show (Whatwg.Ecma262.Agent.finishJob a decision).active = Jobs.Active.checkpoint ∧
-    (Whatwg.Ecma262.Agent.finishJob a decision).running = none
-  cases hrun : a.running with
-  | none =>
-      have := hw.runningActive.2 s ha
-      rw [hrun] at this
-      cases this
-  | some job =>
-      cases hr : reactionOf a job with
-      | none => rw [finishJob_unknown a decision s job ha hrun hr]; exact ⟨rfl, rfl⟩
-      | some r =>
-          cases hc : r.capability with
-          | none =>
-              rw [finishJob_no_capability a decision s job r ha hrun hr hc]; exact ⟨rfl, rfl⟩
-          | some cap =>
-              rw [finishJob_capability a decision s job r cap ha hrun hr hc]; exact ⟨rfl, rfl⟩
-
-theorem enterScript_implements :
-    ∀ {value reason body : Type},
-      Agent.Implements (Agent.Op.enterScript : Agent.Op value reason body) := by
-  intro value reason body a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  show (Whatwg.Ecma262.Agent.enterScript a).active = Jobs.Active.script
-  rw [enterScript_checkpoint a hpre]
-
-theorem leaveScript_implements :
-    ∀ {value reason body : Type},
-      Agent.Implements (Agent.Op.leaveScript : Agent.Op value reason body) := by
-  intro value reason body a c hw hpre
-  refine ⟨Le.step a _ hw, WF.step a _ hw, ?_⟩
-  show (Whatwg.Ecma262.Agent.leaveScript a).active = Jobs.Active.checkpoint
-  rw [leaveScript_script a hpre]
-
-theorem implements :
-    ∀ {value reason body : Type} (op : Agent.Op value reason body), Agent.Implements op := by
-  intro value reason body op
-  cases op with
-  | newPromise => exact newPromise_implements
-  | resolve cap v => exact resolve_implements cap v
-  | reject cap r => exact reject_implements cap r
-  | perform p f r d => exact perform_implements p f r d
-  | markHandled p => exact markHandled_implements p
-  | startJob => exact startJob_implements
-  | finishJob d => exact finishJob_implements d
-  | enterScript => exact enterScript_implements
-  | leaveScript => exact leaveScript_implements
 
 end Whatwg.Ecma262.Agent
