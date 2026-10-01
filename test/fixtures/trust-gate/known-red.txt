@@ -549,8 +549,6 @@
 # changed: every #guard_msgs control matches and every rfl read-back holds.
 # The entry is removed. No entry remains.
 
-WhatwgTest.Audit.FreezeContract
-
 # W6 declaration snapshot (packet 2 of 2, ruling R-W5), frozen RED 2026-10-01
 # by the W6 breaker seat on branch review/w6-snapshot-breaker, stacked on
 # review/w6-freeze-breaker (R-W9). Packet:
