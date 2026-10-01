@@ -86,6 +86,7 @@ import WhatwgTest.Audit.Ecma262.CensusQ2Contract
 import WhatwgTest.Audit.TrustLoadContract
 import WhatwgTest.Audit.Freeze
 import WhatwgTest.Audit.FreezeContract
+import WhatwgTest.Audit.DeclSnapshotContract
 import WhatwgTest.Audit.AxiomGate
 
 /-!

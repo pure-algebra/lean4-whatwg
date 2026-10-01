@@ -565,4 +565,11 @@
 # WhatwgGates.DeclSnapshot as a failing target, which, as for packet 1, the
 # self-test can neither ignore nor excise. The builder removes this entry the
 # moment the battery is green.
-WhatwgTest.Audit.DeclSnapshotContract
+#
+# The W6 builder 2 seat landed the snapshot on branch
+# review/w6-snapshot-builder, from 12e8b2a, on 2026-10-01: the new module
+# WhatwgGates/DeclSnapshot.lean, the entry point whatwgbin/DeclSnapshot.lean,
+# the whatwg_declsnapshot executable in lakefile.toml, the root import of the
+# battery and the projections generated/declarations/*.tsv. The battery is
+# green with no byte of it changed: its 51 ascriptions and 99 #guard rows
+# elaborate and pass. The entry is removed. No entry remains.

@@ -8,6 +8,7 @@ import WhatwgGates.UrlInventory
 import WhatwgGates.UrlCensus
 import WhatwgGates.UrlCensusInput
 import WhatwgGates.TrustSelfTest
+import WhatwgGates.DeclSnapshot
 
 /-!
 # WhatwgGates
