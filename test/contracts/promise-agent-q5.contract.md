@@ -922,8 +922,8 @@ fourteen (§6).
 
 **Why two clauses no gap names.** `Coherent` must be inductive: kept by every
 operation from every agent it holds of, not only from reachable ones. Two
-clauses are there for that alone, and each was found by the obstruction it
-removes.
+clauses are there for that alone; each removes the obstruction to the
+induction named below.
 
 - Without `functionPromisesNodup`, an agent with two unfired records for one
   pending promise satisfies the other clauses. `resolve` through one of them
@@ -935,6 +935,9 @@ removes.
   `~reject~`, waiting on a pending promise, satisfies the other clauses.
   Fulfilling that promise queues `⟨r.id, .ok v⟩`, and `reactionOf` finds the
   `~reject~` record for it: `jobsTyped` is not kept.
+
+The B5 battery's §10 runs both obstructions (`twoRecords`, `wrongList`) by
+`decide` and `rfl`.
 
 **`jobsTyped` says more than gap F asks.** Besides "the tag is the
 `[[Type]]`" it says the record's promise is settled with the job's argument,
@@ -1085,30 +1088,30 @@ Every new public declaration. Module B5 is `Whatwg/Ecma262/AgentInvariant.lean`
 (namespace `Whatwg.Ecma262.Agent`), B6 is `Whatwg/Signatures/Ecma262.lean`
 (namespace `Whatwg.Signatures.Ecma262`). Route G is an edge of
 `PROMISE-PG-AGENT`, named; no declaration here is on a leaf route. "—" means a
-model device with no census row. Validation (Val.) is Q5b.12's class; `pend.` marks a law not yet
-classified at this commit.
+model device with no census row. Validation (Val.) is Q5b.12's class: S =
+proved in this seat's scratch prototype.
 
 | Declaration | Slice | Role | Anchor (census row) | Route | Mask | Gap | Val. |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `Coherent`, `Coherent.toWF` and its seven clause projections | B5 | invariant | the clause anchors of Q5b.2 | G construction | — | A to F | pend. |
-| `Coherent.empty`, `Coherent.step`, `Coherent.runOps`, `Coherent.reachable` | B5 | invariant laws | — | G construction, laws | M1 | A to F | pend. |
-| `Extends`, `Extends.toLe`, `Extends.markerKept`, `Extends.heldGrows` | B5 | adequacy: world order | `op.createresolvingfunctions` (the marker) | G laws | — | J | pend. |
-| `Extends.refl`, `Extends.trans`, `Extends.step` | B5 | adequacy laws | — | G laws | M2 | J | pend. |
-| `postFrom` | B5 | adequacy definition | the rows of §5 | G laws | — | A, D, E, I | pend. |
-| `postFrom_newPromise`, `_resolve`, `_reject`, `_perform`, `_markHandled`, `_finishJob`, `_enterScript`, `_leaveScript` (8) | B5 | defining equations | the rows of §5; `builtin.promise-executor` for `newPromise` | G laws | M1 | A, D, E | pend. |
-| `postFrom_startJob` | B5 | defining equation | `requirement.jobs.1`, `requirement.hostenqueuepromisejob.3` | G laws | M2 | I | pend. |
-| `postFrom_post` | B5 | adequacy law | — | G laws | M1 | — | pend. |
-| `ImplementsFrom`, `ImplementsFrom_iff` | B5 | adequacy definition and its equation | — | G laws | — (`_iff`: M2) | — | pend. |
-| `newPromise_implementsFrom` | B5 | adequacy law | NEWCAP, `builtin.promise-executor` | G laws | M2 | E | pend. |
-| `resolve_implementsFrom`, `reject_implementsFrom` | B5 | adequacy laws | RESOLVING, FULFILL, REJECT | G laws | M2 | A | pend. |
-| `perform_implementsFrom`, `markHandled_implementsFrom`, `enterScript_implementsFrom`, `leaveScript_implementsFrom` | B5 | adequacy laws | THEN; HANDLEDOP; RUNCOND | G laws | M2 | — | pend. |
-| `startJob_implementsFrom` | B5 | adequacy law | RUNCOND, ONEJOB, ORDER | G laws | M2 | I | pend. |
-| `finishJob_implementsFrom` | B5 | adequacy law | REACTJOB, COMPLETE | G laws | M2 | D | pend. |
-| `implementsFrom` | B5 | adequacy law | — | G laws | M2 | — | pend. |
-| `callFunctions_resolve_reject` | B5 | law | `op.createresolvingfunctions`, `record.promisecapability-records` | G laws, semantics | M2 | G | pend. |
-| `finishJob_abrupt`, `finishJob_normal` | B5 | laws | `op.newpromisereactionjob` | G laws, semantics | M2 | G | pend. |
-| `finishJob_abrupt_dropped` | B5 | law (a named departure) | `op.newpromisereactionjob` | G semantics, counterexamples | M1 | H | pend. |
-| `interpret_sumHandler_inr` | B6 | face law | — | G targets | M2 | K | pend. |
+| `Coherent`, `Coherent.toWF` and its seven clause projections | B5 | invariant | the clause anchors of Q5b.2 | G construction | — | A to F | S |
+| `Coherent.empty`, `Coherent.step`, `Coherent.runOps`, `Coherent.reachable` | B5 | invariant laws | — | G construction, laws | M1 | A to F | S |
+| `Extends`, `Extends.toLe`, `Extends.markerKept`, `Extends.heldGrows` | B5 | adequacy: world order | `op.createresolvingfunctions` (the marker) | G laws | — | J | S |
+| `Extends.refl`, `Extends.trans`, `Extends.step` | B5 | adequacy laws | — | G laws | M2 | J | S |
+| `postFrom` | B5 | adequacy definition | the rows of §5 | G laws | — | A, D, E, I | S |
+| `postFrom_newPromise`, `_resolve`, `_reject`, `_perform`, `_markHandled`, `_finishJob`, `_enterScript`, `_leaveScript` (8) | B5 | defining equations | the rows of §5; `builtin.promise-executor` for `newPromise` | G laws | M1 | A, D, E | S |
+| `postFrom_startJob` | B5 | defining equation | `requirement.jobs.1`, `requirement.hostenqueuepromisejob.3` | G laws | M2 | I | S |
+| `postFrom_post` | B5 | adequacy law | — | G laws | M1 | — | S |
+| `ImplementsFrom`, `ImplementsFrom_iff` | B5 | adequacy definition and its equation | — | G laws | — (`_iff`: M2) | — | S |
+| `newPromise_implementsFrom` | B5 | adequacy law | NEWCAP, `builtin.promise-executor` | G laws | M2 | E | S |
+| `resolve_implementsFrom`, `reject_implementsFrom` | B5 | adequacy laws | RESOLVING, FULFILL, REJECT | G laws | M2 | A | S |
+| `perform_implementsFrom`, `markHandled_implementsFrom`, `enterScript_implementsFrom`, `leaveScript_implementsFrom` | B5 | adequacy laws | THEN; HANDLEDOP; RUNCOND | G laws | M2 | — | S |
+| `startJob_implementsFrom` | B5 | adequacy law | RUNCOND, ONEJOB, ORDER | G laws | M2 | I | S |
+| `finishJob_implementsFrom` | B5 | adequacy law | REACTJOB, COMPLETE | G laws | M2 | D | S |
+| `implementsFrom` | B5 | adequacy law | — | G laws | M2 | — | S |
+| `callFunctions_resolve_reject` | B5 | law | `op.createresolvingfunctions`, `record.promisecapability-records` | G laws, semantics | M2 | G | S |
+| `finishJob_abrupt`, `finishJob_normal` | B5 | laws | `op.newpromisereactionjob` | G laws, semantics | M2 | G | S |
+| `finishJob_abrupt_dropped` | B5 | law (a named departure) | `op.newpromisereactionjob` | G semantics, counterexamples | M1 | H | S |
+| `interpret_sumHandler_inr` | B6 | face law | — | G targets | M2 | K | S |
 
 The exact signature of every declaration is its battery ascription; this
 block is those ascriptions, extracted from the two batteries by script and
@@ -1401,6 +1404,18 @@ What each builder must know:
   `postFrom_startJob`, `post_startJob`).
 - **B6.** One line: `exact Effects.interpret_inr (handlerAt view update) other
   p`. The docstring's consumer note becomes "by `interpret_sumHandler_inr`".
+- **The prototype.** This seat's prototype is the builders' starting point and
+  is on no branch: `AgentInvariant.lean` (2135 lines; 32 public theorems, 65
+  private theorems, of which 16 are copies from `AgentLaws.lean`, and four
+  private definitions) and `FaceProto.lean` (the one face law), in the
+  breaker's scratch directory `q5b-breaker` of session
+  `c34c8bf9-429a-44d3-b2a9-17ccf1aba26e`, with the scripts that measured it
+  (Q5b.12). Its proof plan: the seven clauses split into the two function
+  clauses and the five others; `settle` on a pending promise is a tame map on
+  each reaction list (it keeps identity, promise, kind and capability, and a
+  record still waiting was left alone and waits elsewhere); `reactionOf` is
+  carried across a tame map, an append to the lists and an append to `held`
+  by three lemmas; marking a record touches only the function clauses.
 
 ### Q5b.9 Masks and counts
 
@@ -1413,9 +1428,9 @@ unchanged, DB-04 M1; every face law is DB-04 M2.
 
 | Module | Slice | `#check (@n : T)` | of which theorems | DB-04 M1 | DB-04 M2 | `example`s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `WhatwgTest/Ecma262/AgentInvariantContract.lean` | B5 | 47 | 32 | 14 | 18 | 39 |
+| `WhatwgTest/Ecma262/AgentInvariantContract.lean` | B5 | 47 | 32 | 14 | 18 | 42 |
 | `WhatwgTest/Signatures/Ecma262SumContract.lean` | B6 | 1 | 1 | 0 | 1 | 3 |
-| **total** | | **48** | **33** | **14** | **19** | **42** |
+| **total** | | **48** | **33** | **14** | **19** | **45** |
 
 The 15 non-theorem ascriptions are the two structures with their eleven
 projections (`toWF`, `toLe` and nine clauses) and the two definitions
@@ -1472,11 +1487,47 @@ Everything §16 lists stays out, and the addendum depends on it staying out:
 
 ### Q5b.12 Validation (R-W9)
 
-Status at this commit: every statement of the two batteries elaborates, with no
-error, against a scratch prototype whose definitions are final and whose 22
-non-equation laws are not yet proved; the `example`s of the batteries, which
-are kernel evaluations, pass against it. The per-law classes are recorded here
-when the proofs are done, by a later commit of this seat.
+Every statement of the two batteries was elaborated against a scratch
+prototype of the two builder slices, and every law was proved there. The
+prototype was never placed in the worktree's existing files: this seat's
+environment refused an uncommitted edit of `Whatwg/Ecma262.lean` (the import
+line slice B5 adds), so each battery was compiled as one scratch file after the
+prototype's text (`lake env lean`, from the worktree, against the built
+`Whatwg.Ecma262` and `Whatwg` libraries at `5999363`).
+
+| Class | Theorem obligations |
+| --- | ---: |
+| proved in this seat's scratch prototype | 33 |
+| probed on instances only | 0 |
+| unprobed | 0 |
+
+The 33 are the 32 theorems of the B5 battery and `interpret_sumHandler_inr`.
+The 45 `example`s are kernel evaluations and refutations in addition to the
+laws: non-vacuity at agents a run reaches (Q5b.4's posts, gaps A, D, E, G, H
+and I), the nine counterexample witnesses (Q5b.10), the two obstruction
+witnesses of Q5b.2 and the face's consumer runs.
+
+Measured with the final prototype:
+
+- **Elaboration.** Each battery, after the prototype's text, elaborates with
+  no error and no warning (B5: 47 ascriptions; B6: 1).
+- **Statements.** For each of the 47 B5 ascriptions, the prototype's declared
+  type was compared with the elaborated ascription by `Expr.eqv`: 45 are
+  syntactically equal, and `finishJob_abrupt` and `finishJob_normal` differ
+  only in that the declared type carries the `{ … with … }` notation's
+  binding as `have` where the elaborated term carries `let`, which R-W5's
+  conversion unfolds (it compares "unfolding nothing but `let`/`have` and
+  auxiliary matchers"); with that binding instantiated the two are equal.
+- **Ceiling.** `Lean.collectAxioms` over every constant the prototype declares,
+  private and generated ones included: 159 constants (122 theorems); 65 reach
+  `propext` and `Quot.sound`, 49 `propext` only, 45 none; none reaches
+  `Classical.choice`. `interpret_sumHandler_inr` reaches `propext` and
+  `Quot.sound`, as the landed `interpret_sumHandler_inl` does. The prototype
+  uses none of `simp`, `omega`, `by_cases` or `grind`.
+- **Not measured.** The root gate with the prototype and the batteries imported
+  (it needs the import edits this environment refused), and `lake env
+  leanchecker` over a built prototype module. The builder of each slice runs
+  both on its branch (R-W9).
 
 ### Q5b.13 Deviations from the brief and from the Q5 shape
 
@@ -1510,7 +1561,50 @@ when the proofs are done, by a later commit of this seat.
 
 ### Q5b.15 Freeze receipt
 
-Recorded by a later commit of this seat, after the prototype is removed.
+Observed in this worktree at this branch's head, Lean 4.33.1, Windows 11. No
+prototype file is in the worktree or on any branch; `git status --short` is
+empty after the final commit, and `git diff --stat 5999363 HEAD` lists the
+seven files of Q5b.16 only.
+
+- `lake build` fails, and the failing targets are exactly the two modules
+  declared in `known-red.txt`, `WhatwgTest.Ecma262.AgentInvariantContract` and
+  `WhatwgTest.Signatures.Ecma262SumContract` (443 of 445 jobs built). The root
+  `WhatwgTest` is replayed from the build cache (debt D61), its gate line
+  unchanged: "checked 255 source files and 19408 declarations; … strict
+  ceiling propext and Quot.sound over 6 module prefix(es) with 0 exact
+  exception(s)". Elaborated afresh (`lake env lean WhatwgTest.lean`), its
+  module-closure gate reports exactly the two battery sources as "not reachable
+  from the WhatwgTest audit root" and nothing else. That is R-W9's arrangement
+  (breakers do not edit `WhatwgTest.lean`; the builder that turns a battery
+  green adds its root import), not a third red module.
+- Each battery's complete diagnostic list, `lake env lean -DmaxErrors=5000
+  <file>` after `lake build`:
+
+| Module | Exit | Diagnostics | Classes |
+| --- | ---: | ---: | --- |
+| `WhatwgTest.Ecma262.AgentInvariantContract` | 1 | 121 | 113 `lean.unknownIdentifier`; 8 error-recovery consequences inside the counterexample refutations, whose hypothesis (`Agent.Coherent`, `Agent.Extends` or `Agent.postFrom` of a witness) has an unknown type: 4 "Expected type must not contain metavariables" (a `by decide` against an unknown projection) and 4 "`rcases` failed: … is not an inductive datatype" (an `obtain` on an unknown projection) |
+| `WhatwgTest.Signatures.Ecma262SumContract` | 1 | 2 | 2 `lean.unknownIdentifier` |
+
+  123 diagnostics in total. There is no parse error, no import error, no type
+  mismatch and no failed instance synthesis: each battery is red only because
+  the names it ascribes do not exist yet.
+- `lake exe whatwg_vendorseal`: PASS ("manifest and vendor/ agree in both
+  directions; every path is valid on Windows").
+- `lake exe whatwg_citations`: PASS ("505 files scanned; no line-numbered
+  citation into a protected authored document").
+- `lake exe whatwg_trustselftest`: see the next paragraph.
+
+`lake exe whatwg_trustselftest` exits 1 after 644 s, and not because of this
+addendum. Its first check reads "PASS declared red set matches the observed
+red set (2 module(s))", the receipt that the two `known-red.txt` entries are
+exact in both directions, and it excises both modules from its probe copy.
+75 rows pass: every control, every planted refusal of the in-tree gate, the
+unreachable-module plant and both narrow runs. The 93 failing rows belong to
+the trust packet's own red phase at `5999363` (R-W9: the trust addenda merged
+with their red self-test rows): 81 executable twins, which run `lake exe
+whatwg_trustgate`, an executable no lakefile entry defines at this base, and
+12 plants into `WhatwgGates/TrustConfig.lean`, addendum V2e's config module,
+which does not exist at this base. This seat's fence touches neither.
 
 ### Q5b.16 Fence
 

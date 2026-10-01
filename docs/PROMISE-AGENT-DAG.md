@@ -93,7 +93,7 @@ authority; the contract is the reading aid.
 | targets | `WhatwgTest/Signatures/Ecma262Contract.lean` §§1 to 4 |
 | trust | the axiom gate over the four modules once imported by the root (R-W9: no axiom-report module) |
 | coverage | none in this slice |
-| construction (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§1 and 2 (`Coherent`, its preservation and reachability) and §7 (non-vacuity at reached agents) |
+| construction (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§1 and 2 (`Coherent`, its preservation and reachability), §7 (non-vacuity at reached agents) and §10 (the obstructions the two supporting clauses remove) |
 | laws (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§3 to 6 (`Extends`, `postFrom`, `ImplementsFrom`, the job's two completions) |
 | semantics (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §6 (gap G's `[[Reject]]` route and gap H's dropped result) |
 | counterexamples (Q5b) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` §§8 and 9, rows `WS-PROM-CE-048` to `056` |

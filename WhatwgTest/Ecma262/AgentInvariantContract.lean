@@ -421,6 +421,7 @@ def ops2 : List O := [Agent.Op.newPromise, Agent.Op.perform 0 (some 7) none fals
 def a2 : A := (Agent.runOps Agent.empty ops2).1
 
 example : Agent.Coherent a2 := Agent.Coherent.reachable ops2
+example : Agent.pre a2 (Agent.Op.newPromise : O) () := trivial
 example : (a2.reactions.fulfill ++ a2.reactions.reject ++ a2.held).length = 2 := rfl
 example :
     ∀ r ∈ (Agent.step a2 (Agent.Op.newPromise : O)).1.reactions.fulfill ++
@@ -878,5 +879,54 @@ example : Agent.Le fired cleared :=
 example : ¬ Agent.Extends fired cleared := fun h =>
   absurd (h.markerKept (Promise.ResolvingFunctions.mk 0 0 1 true) (List.mem_singleton.mpr rfl)
     rfl) (by decide)
+
+/-! ## 10. Why `Coherent` has two clauses no gap names
+
+Each witness is an agent at which the clause fails and the other clauses of
+the gap it supports hold, and one step after which that gap's clause fails:
+without the supporting clause, `Coherent` would not be kept by `Coherent.step`
+(contract, Addendum Q5b, Q5b.2). -/
+
+/-- Two unfired function records for the one pending promise `0`. -/
+def twoRecords : A :=
+  { (Agent.empty : A) with
+    table := Promise.Table.mk [(0, Promise.Cell.mk Promise.State.pending false)] 1
+    functions :=
+      [Promise.ResolvingFunctions.mk 0 0 1 false, Promise.ResolvingFunctions.mk 0 2 3 false]
+    nextFunction := 4 }
+
+/-- `functionPromisesNodup` fails, `unfiredPending` holds; after `resolve`
+through the first record the second is unfired on a fulfilled promise. -/
+example :
+    ¬ (twoRecords.functions.map Promise.ResolvingFunctions.promise).Nodup ∧
+      (∀ f ∈ twoRecords.functions, f.alreadyResolved = false →
+        Promise.Table.isPending twoRecords.table f.promise = true) ∧
+      Promise.Table.get (Agent.resolve twoRecords cap0 ()).table 0 =
+        some (Promise.State.fulfilled ()) ∧
+      Promise.ResolvingFunctions.mk 0 2 3 false ∈ (Agent.resolve twoRecords cap0 ()).functions :=
+  ⟨by decide, by decide, rfl, by decide⟩
+
+/-- A `~reject~` record waiting on the fulfil list of the pending promise `0`. -/
+def wrongList : A :=
+  { twoRecords with
+    functions := [Promise.ResolvingFunctions.mk 0 0 1 false]
+    nextFunction := 2
+    reactions := Promise.Reactions.mk
+      [Promise.Reaction.mk 0 0 Promise.ReactionType.reject (some 7) none
+        Promise.ReactionPhase.waiting]
+      [Promise.Reaction.mk 0 0 Promise.ReactionType.reject none none
+        Promise.ReactionPhase.waiting] 1 }
+
+/-- `listKinds` fails and nothing is queued; after `resolve` the queued job
+`⟨0, .ok ()⟩` finds a `~reject~` record, so `jobsTyped` fails. -/
+example :
+    ¬ (∀ r ∈ wrongList.reactions.fulfill, r.kind = Promise.ReactionType.fulfill) ∧
+      wrongList.queue.pending = [] ∧
+      (Agent.resolve wrongList cap0 ()).queue.pending =
+        [Jobs.ReactionJob.mk 0 (Except.ok ())] ∧
+      (Agent.reactionOf (Agent.resolve wrongList cap0 ())
+          (Jobs.ReactionJob.mk 0 (Except.ok ()))).map Promise.Reaction.kind =
+        some Promise.ReactionType.reject :=
+  ⟨by decide, rfl, rfl, rfl⟩
 
 end WhatwgTest.Ecma262.AgentInvariantContract
