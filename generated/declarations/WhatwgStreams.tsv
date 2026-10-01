@@ -595,7 +595,7 @@ Whatwg.Streams.Kernel.Path.snoc	Whatwg.Streams.Kernel	theorem	authored	2	3f6fe32
 Whatwg.Streams.Kernel.Path.snoc_iff	Whatwg.Streams.Kernel	theorem	authored	2	19fc394f885d5b704fc2cba1d29f483c5a43a58499278a579dba4e7c4065644f	-	WhatwgTest.Streams.Kernel.PathContract	-	-	-	-	-	-
 Whatwg.Streams.Kernel.Path.snoc_iff.match_1_1	Whatwg.Streams.Kernel	definition	generated	2	43be2c1fb642ea724ef928a77619348269e5b93f370cf5230c0d35ab0496fb34	-	-	-	-	-	-	-	-
 Whatwg.Streams.Kernel.Path.snoc_iff.match_1_3	Whatwg.Streams.Kernel	definition	generated	2	125fdd789435cc7d334dd0060b1f5651aac1ddb5d0b9e986f7949dc0299241ba	-	-	-	-	-	-	-	-
-Whatwg.Streams.Kernel.externalWord	Whatwg.Streams.Kernel	definition	authored	1	554136ad53d2a923db92929005dab770f15a226b16c0f24f8fba3a7641c9787a	-	-	-	-	-	-	-	-
+Whatwg.Streams.Kernel.externalWord	Whatwg.Streams.Kernel	definition	authored	1	554136ad53d2a923db92929005dab770f15a226b16c0f24f8fba3a7641c9787a	-	WhatwgTest.Streams.Kernel.PathContract	-	-	-	-	-	-
 Whatwg.Streams.Kernel.graph_deterministic	Whatwg.Streams.Kernel	theorem	authored	2	f8c22116210e5ff3ca959806f05bea8c059ac8389439cc9a72bd7a61d095fa50	-	WhatwgTest.Streams.Kernel.PathContract	-	-	-	-	-	-
 Whatwg.Streams.Kernel.graph_iff	Whatwg.Streams.Kernel	theorem	authored	2	534706f74e6a7f94b628954ecb1887fb25dc574695563c28282926ce2a15f907	-	WhatwgTest.Streams.Kernel.PathContract	-	-	-	-	-	-
 Whatwg.Streams.Kernel.normalized_unique	Whatwg.Streams.Kernel	theorem	authored	2	b5795b1c5707779f130ad0f78305289d5b2ac95258cf08bdb9cb494003323935	-	WhatwgTest.Streams.Kernel.PathContract	-	-	-	-	-	-

@@ -2,6 +2,7 @@ import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render
 import WhatwgGates.Ledger.Check
 import WhatwgTest.Ledger
+import WhatwgTest.Audit.Freeze
 
 /-!
 # WhatwgTest.Audit.LedgerRoutingContract
@@ -37,25 +38,25 @@ open Gates.Ledger
 
 /-! ## 1. Signatures -/
 
-#check (@Gates.Ledger.productionRoot : Lean.Name)
-#check (@Gates.Ledger.ModuleTable : Type)
-#check (@Gates.Ledger.ModuleTable.mk :
+#whatwg_freeze (@Gates.Ledger.productionRoot : Lean.Name)
+#whatwg_freeze (@Gates.Ledger.ModuleTable : Type)
+#whatwg_freeze (@Gates.Ledger.ModuleTable.mk :
   List (Lean.Name × List Lean.Name) → Gates.Ledger.ModuleTable)
-#check (@Gates.Ledger.ModuleTable.modules :
+#whatwg_freeze (@Gates.Ledger.ModuleTable.modules :
   Gates.Ledger.ModuleTable → List (Lean.Name × List Lean.Name))
-#check (@Gates.Ledger.ModuleTable.mustRoute : Gates.Ledger.ModuleTable → List Lean.Name)
-#check (@Gates.Ledger.ModuleTable.declaringModule? :
+#whatwg_freeze (@Gates.Ledger.ModuleTable.mustRoute : Gates.Ledger.ModuleTable → List Lean.Name)
+#whatwg_freeze (@Gates.Ledger.ModuleTable.declaringModule? :
   Gates.Ledger.ModuleTable → Lean.Name → Option Lean.Name)
-#check (@Gates.Ledger.Ledger.claimsOn : Gates.Ledger.ModuleTable → Gates.Ledger.Ledger →
+#whatwg_freeze (@Gates.Ledger.Ledger.claimsOn : Gates.Ledger.ModuleTable → Gates.Ledger.Ledger →
   Lean.Name → List (String × String))
-#check (@Gates.Ledger.routingFindings :
+#whatwg_freeze (@Gates.Ledger.routingFindings :
   Gates.Ledger.ModuleTable → Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.indexPath : String)
-#check (@Gates.Ledger.Graph.countStatus : Gates.Ledger.Graph → Gates.Ledger.Status → Nat)
-#check (@Gates.Ledger.Ledger.renderIndex : Gates.Ledger.Ledger → String → String)
-#check (@Gates.Ledger.indexFindings : Gates.Ledger.World → Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.Ledger.runFiles : Gates.Ledger.Ledger → List String)
-#check (@Gates.Ledger.routedOutcome : Gates.Ledger.World → Gates.Ledger.ModuleTable →
+#whatwg_freeze (@Gates.Ledger.indexPath : String)
+#whatwg_freeze (@Gates.Ledger.Graph.countStatus : Gates.Ledger.Graph → Gates.Ledger.Status → Nat)
+#whatwg_freeze (@Gates.Ledger.Ledger.renderIndex : Gates.Ledger.Ledger → String → String)
+#whatwg_freeze (@Gates.Ledger.indexFindings : Gates.Ledger.World → Gates.Ledger.Ledger → List String)
+#whatwg_freeze (@Gates.Ledger.Ledger.runFiles : Gates.Ledger.Ledger → List String)
+#whatwg_freeze (@Gates.Ledger.routedOutcome : Gates.Ledger.World → Gates.Ledger.ModuleTable →
   Gates.Ledger.Ledger → Bool → Gates.Ledger.Outcome)
 
 #check (inferInstance : DecidableEq Gates.Ledger.ModuleTable)

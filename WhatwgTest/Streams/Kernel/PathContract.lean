@@ -201,7 +201,10 @@ example {σ : Type u} {D : Type v} (tick : σ → Option σ) (accept : σ → D 
     (s : σ) (d : D) : Kernel.stage tick accept s (some d) = accept s d :=
   rfl
 
-#check (@Kernel.externalWord : {D : Type u} → List (Option D) → List D)
+-- R-W27, 2026-10-01: the universe is written `v`, the name the declaration
+-- binds; the freeze command compares universe names. The statement is the
+-- same up to that renaming, and it was green under `#check` with `u`.
+#whatwg_freeze (@Kernel.externalWord : {D : Type v} → List (Option D) → List D)
 
 -- Body pin: the admitted decisions in order, silent labels dropped.
 example {D : Type u} (labels : List (Option D)) :
