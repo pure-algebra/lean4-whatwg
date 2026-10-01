@@ -99,8 +99,9 @@ remainder). `held` never shrinks and `finishJob` leaves a reaction's phase at
 `.queued`.
 
 Layering (DB-11): this module imports `Whatwg.Ecma262.Agent` and nothing
-else, so no `Effects` module and no `Whatwg.Infra` module (R-W3). Every lemma
-the battery does not ascribe is private.
+else, so no `Effects` module and no `Whatwg.Infra` module (R-W3). A lemma the
+battery does not ascribe is private, except the seventeen that ruling R-W20(c)
+published for `Whatwg/Ecma262/AgentInvariant.lean`.
 -/
 
 namespace Whatwg.Ecma262.Agent
@@ -418,7 +419,8 @@ theorem Implements_iff :
 /-! ## 3. Lemmas about the promise table
 
 The landed table operations, at any identity: what a settle, a mark and an
-allocation keep. Private: the battery ascribes none of them. -/
+allocation keep. The battery ascribes none of them; eleven are public since
+ruling R-W20(c). -/
 
 /-- A map that keeps every key commutes with a lookup by key. -/
 theorem find?_map_fst {α : Type} (l : List (Nat × α)) (g : Nat × α → Nat × α)
@@ -723,7 +725,8 @@ theorem WF.getCell_next {value reason body : Type} {a : Agent value reason body}
 /-! ## 4. Lemmas about reactions, lookups and identities
 
 What trigger-then-clear keeps of the two reaction lists, when `reactionOf`
-finds a record, and uniqueness through a `Nodup` key. Private. The lemmas over
+finds a record, and uniqueness through a `Nodup` key. Private, except the
+three that ruling R-W20(c) published. The lemmas over
 a reaction kind are stated for every kind `k`, never with an inline `match`
 on the result, because an inline `match` elaborates to a matcher other than
 the landed one. -/

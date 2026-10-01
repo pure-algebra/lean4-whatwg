@@ -15,14 +15,19 @@ status because the independent review reads the slice first. Where the table
 and R-W16 disagree, the ruling wins (R-V4): what the table calls red until a
 slice lands is recorded here as a ground the landing discharged, citing R-W16,
 and every cell but coverage names the independent review as a remaining item.
-R-W16 also records debts D62 and D65, what the builders found weaker than the
-specification text, which addendum Q5b owes: D62 holds open the semantics
-edge's "every departure named", and the construction edge records both debts
-and the laws edge D65.
+R-W16 also recorded debts D62 and D65, what the builders found weaker than the
+specification text; addendum Q5b answered both (next paragraph).
 
-R-W3 (which adopted the graph), R-W5, R-W9, R-P20 and R-W16 are cited where
-the cells use them. R-W6 and R-W13 name the graph and change no edge; they are
-acknowledged.
+Ruling R-W21 landed addendum Q5b: the invariant `Coherent`, the order
+`Extends`, the second judgment `ImplementsFrom`, the laws of the reaction
+job's two completions and the face law `interpret_sumHandler_inr`. It closes
+debts D62 and D65, records what Q5b leaves as debt D67, closes rows
+`WS-PROM-CE-048` to `056` and changes no edge. The construction, semantics,
+laws, counterexamples and targets cells cite it.
+
+R-W3 (which adopted the graph), R-W5, R-W9, R-P20, R-W16 and R-W21 are cited
+where the cells use them. R-W6 and R-W13 name the graph and change no edge;
+they are acknowledged.
 -/
 
 namespace WhatwgTest.Ledger
@@ -33,8 +38,8 @@ open Gates.Ledger
 def promiseAgent : Graph where
   id := "PROMISE-PG-AGENT"
   document := "docs/PROMISE-AGENT-DAG.md"
-  fence := [`Whatwg.Ecma262.Agent, `Whatwg.Ecma262.AgentLaws, `Whatwg.WebIdl.Agent,
-    `Whatwg.Signatures.Ecma262]
+  fence := [`Whatwg.Ecma262.Agent, `Whatwg.Ecma262.AgentLaws, `Whatwg.Ecma262.AgentInvariant,
+    `Whatwg.WebIdl.Agent, `Whatwg.Signatures.Ecma262]
   dependsOn := ["PROMISE-PG-FIRST"]
   acknowledged := ["R-W6", "R-W13"]
   edges := {
@@ -58,19 +63,27 @@ def promiseAgent : Graph where
         .theorems [`Whatwg.Ecma262.Agent.WF.get_lt, `Whatwg.Ecma262.Agent.WF.empty,
           `Whatwg.Ecma262.Agent.WF.step, `Whatwg.Ecma262.Agent.WF.runOps],
         .modules [`WhatwgTest.Ecma262.AgentContract, `WhatwgTest.Ecma262.AgentLaws],
-        .ruling "R-W16"]
-      debts := ["D62", "D65"]
-      note := "`Agent.empty`, `Minted` and the fourteen clauses of `WF` (B1 battery §6) with `WF.get_lt`, and `WF.empty`, `WF.step` and `WF.runOps` (B2 battery §2 and §5), which make every agent `runOps` reaches from `Agent.empty` well formed, are green since slices B1 and B2 landed (R-W16). Debts D62 and D65 record clauses `WF` does not state, which addendum Q5b owes." }
+        .ruling "R-W16",
+        .declarations [`Whatwg.Ecma262.Agent.Coherent],
+        .theorems [`Whatwg.Ecma262.Agent.Coherent.empty, `Whatwg.Ecma262.Agent.Coherent.step,
+          `Whatwg.Ecma262.Agent.Coherent.runOps, `Whatwg.Ecma262.Agent.Coherent.reachable],
+        .modules [`WhatwgTest.Ecma262.AgentInvariantContract], .ruling "R-W21"]
+      debts := ["D67"]
+      note := "`Agent.empty`, `Minted` and the fourteen clauses of `WF` (B1 battery §6) with `WF.get_lt`, and `WF.empty`, `WF.step` and `WF.runOps` (B2 battery §2 and §5), which make every agent `runOps` reaches from `Agent.empty` well formed, are green since slices B1 and B2 landed (R-W16). `Coherent` extends `WF` with seven clauses, holds at `Agent.empty` and is kept by `step` for every operation, so it holds of every agent `runOps` reaches from `Agent.empty` (B5 battery §§1 and 2, R-W21). Debt D67 records two facts of reachable agents that `Coherent` does not state." }
     semantics := {
       status := .requiredOpen
       remaining := [
         .named "the independent reviewer's fidelity check per operation against the sealed bytes (the design's §6.4): `op.fulfillpromise`, `op.rejectpromise`, `op.triggerpromisereactions`, `op.performpromisethen`, `op.newpromisereactionjob`, `op.createresolvingfunctions`, and Web IDL `op.resolve`, `op.reject` and react, with every departure named (§16 of the contract)",
-        .debt "D62",
         .named "the independent review of slice Q5, before which R-W16 changes no edge"]
       grounds := [.modules [`Whatwg.Ecma262.Agent, `Whatwg.WebIdl.Agent,
           `WhatwgTest.Ecma262.AgentContract, `WhatwgTest.WebIdl.AgentContract],
-        .ruling "R-W16"]
-      note := "The nine operations and their defining equations, every disabled branch included (B1 battery §§3 to 5), and the Web IDL verbs and their equations (B3 battery §§1 and 2) are green since slices B1 and B3 landed (R-W16). Debt D62 records four departures from the specification text that the contract does not name." }
+        .ruling "R-W16",
+        .theorems [`Whatwg.Ecma262.Agent.callFunctions_resolve_reject,
+          `Whatwg.Ecma262.Agent.finishJob_abrupt, `Whatwg.Ecma262.Agent.finishJob_normal,
+          `Whatwg.Ecma262.Agent.finishJob_abrupt_dropped],
+        .ruling "R-W21"]
+      debts := ["D67"]
+      note := "The nine operations and their defining equations, every disabled branch included (B1 battery §§3 to 5), and the Web IDL verbs and their equations (B3 battery §§1 and 2) are green since slices B1 and B3 landed (R-W16). The four departures the Q5 contract did not name are answered by addendum Q5b (R-W21): an abrupt result goes through `[[Reject]]` (`finishJob_abrupt`, by `callFunctions_resolve_reject`), the two clauses `Coherent.jobsTyped` and `Coherent.reactionsAllocated` are stated, and the one departure the model keeps, an abrupt result dropped when `[[Capability]]` is undefined, is the theorem `finishJob_abrupt_dropped` (debt D67)." }
     laws := {
       status := .requiredOpen
       remaining := [.named "the independent review of slice Q5, before which R-W16 changes no edge"]
@@ -86,9 +99,15 @@ def promiseAgent : Graph where
           `Whatwg.Ecma262.Agent.Implements],
         .modules [`WhatwgTest.Ecma262.AgentContract, `WhatwgTest.Ecma262.AgentLaws,
           `WhatwgTest.WebIdl.AgentContract],
-        .ruling "R-W16"]
-      debts := ["D65"]
-      note := "The D46 law `react_resolve_enqueues` with `_wf` and `_exactly`, `finishJob_settles_capability` and `startJob_running` (B1 battery §§8 and 9); `Le`, `Cert`, `pre`, `post`, `Implements`, the nine `*_implements` and `implements`, and the lifted laws (B2 battery §§1, 3 to 6); and `WebIdl.Agent.react_resolve` (B3 battery §4) are landed and green (R-W16), which repairs debt D46. Debt D65 records what `Agent.WF` and the frozen posts leave unsaid, which addendum Q5b owes." }
+        .ruling "R-W16",
+        .declarations [`Whatwg.Ecma262.Agent.Extends, `Whatwg.Ecma262.Agent.postFrom,
+          `Whatwg.Ecma262.Agent.ImplementsFrom],
+        .theorems [`Whatwg.Ecma262.Agent.Extends.refl, `Whatwg.Ecma262.Agent.Extends.trans,
+          `Whatwg.Ecma262.Agent.Extends.step, `Whatwg.Ecma262.Agent.postFrom_post,
+          `Whatwg.Ecma262.Agent.ImplementsFrom_iff, `Whatwg.Ecma262.Agent.implementsFrom],
+        .modules [`WhatwgTest.Ecma262.AgentInvariantContract], .ruling "R-W21"]
+      debts := ["D66"]
+      note := "The D46 law `react_resolve_enqueues` with `_wf` and `_exactly`, `finishJob_settles_capability` and `startJob_running` (B1 battery §§8 and 9); `Le`, `Cert`, `pre`, `post`, `Implements`, the nine `*_implements` and `implements`, and the lifted laws (B2 battery §§1, 3 to 6); and `WebIdl.Agent.react_resolve` (B3 battery §4) are landed and green (R-W16), which repairs debt D46. Addendum Q5b (R-W21) adds the order `Extends`, the two-state post `postFrom` and the second judgment `ImplementsFrom` over the unchanged `pre`, with one theorem per operation and `implementsFrom` for all nine (B5 battery §§3 to 5); the Q5 declarations keep their text. Debt D66 records that the single-agent form of the post with a certificate is not stated." }
     representation := {
       status := .requiredOpen
       remaining := [
@@ -102,8 +121,9 @@ def promiseAgent : Graph where
     counterexamples := {
       status := .requiredOpen
       remaining := [.named "the independent review of slice Q5, before which R-W16 changes no edge"]
-      grounds := [.rows ⟨"WS-PROM-CE", 40, 47⟩ .closed, .ruling "R-W16"]
-      note := "Each of the eight rows closes when its rejecting statements are green and its finite witness elaborates; R-W16 records all eight `CLOSED`." }
+      grounds := [.rows ⟨"WS-PROM-CE", 40, 47⟩ .closed, .ruling "R-W16",
+        .rows ⟨"WS-PROM-CE", 48, 56⟩ .closed, .ruling "R-W21"]
+      note := "Each row closes when its rejecting statements are green and its finite witness elaborates; R-W16 records rows 040 to 047 `CLOSED` and R-W21 rows 048 to 056, the well-formed agents that `Coherent`, `Extends` and `postFrom` refuse (B5 battery §§8 and 9)." }
     bridges := {
       status := .requiredOpen
       remaining := [.named "the independent review of slice Q5, before which R-W16 changes no edge"]
@@ -138,8 +158,10 @@ def promiseAgent : Graph where
           `Whatwg.Signatures.Ecma262.handlerAt, `Whatwg.Signatures.Ecma262.sumHandler,
           `Whatwg.Signatures.Ecma262.run],
         .modules [`Whatwg.Signatures.Ecma262, `WhatwgTest.Signatures.Ecma262Contract],
-        .ruling "R-W16"]
-      note := "The `Effects.Signature` face (B4 battery) with its agreement laws, the Lake library `WhatwgSignatures` in `defaultTargets`, the umbrella import in `Whatwg.lean` that makes the audit root reach it, and the toy consumer sum of the battery's §4 are landed (R-W16). No lowering and no generated code: P11 owns the TypeScript target." }
+        .ruling "R-W16",
+        .theorems [`Whatwg.Signatures.Ecma262.interpret_sumHandler_inr],
+        .modules [`WhatwgTest.Signatures.Ecma262SumContract], .ruling "R-W21"]
+      note := "The `Effects.Signature` face (B4 battery) with its agreement laws, the Lake library `WhatwgSignatures` in `defaultTargets`, the umbrella import in `Whatwg.lean` that makes the audit root reach it, and the toy consumer sum of the battery's §4 are landed (R-W16). The face law `interpret_sumHandler_inr`, the consumer's half of the sum, landed with addendum Q5b (B6 battery, R-W21). No lowering and no generated code: P11 owns the TypeScript target." }
     trust := {
       status := .requiredOpen
       remaining := [.named "`lake exe whatwg_trustselftest` at the Q5 landing, which R-W16 does not record",

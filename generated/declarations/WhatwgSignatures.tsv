@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgSignatures rows=16 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgSignatures rows=17 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 Whatwg.Signatures.Ecma262.handler	Whatwg.Signatures.Ecma262	definition	authored	0	c284a2f0398a5ba3cc791c6825d5d6ec3a69ed81f67a99977dca7a3422a27f62	propext	-	-	-	-	-	-	-
 Whatwg.Signatures.Ecma262.handlerAt	Whatwg.Signatures.Ecma262	definition	authored	0	8397f1caa21c9f6b3ecb781f23d3e69ac02569c3cd8c745bd4468bbba2926e67	propext	-	-	-	-	-	-	-
@@ -8,6 +8,7 @@ Whatwg.Signatures.Ecma262.interpret_eq_run	Whatwg.Signatures.Ecma262	theorem	aut
 Whatwg.Signatures.Ecma262.interpret_handlerAt	Whatwg.Signatures.Ecma262	theorem	authored	0	000dac011861cd4c411104716016a19633c8347276def2d8a8f43fd4367834cf	propext	-	-	-	-	-	-	-
 Whatwg.Signatures.Ecma262.interpret_perform_step	Whatwg.Signatures.Ecma262	theorem	authored	0	e62a1a8dd4f5dfd88ced15718136b1d9ebc31a484b687d4f49a1f6ef2d8d99e9	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Signatures.Ecma262.interpret_sumHandler_inl	Whatwg.Signatures.Ecma262	theorem	authored	0	d29cc8b5ba77e7207a04980646ec30bfb1d8eb5e5650457df8a5b30841b166be	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Signatures.Ecma262.interpret_sumHandler_inr	Whatwg.Signatures.Ecma262	theorem	authored	0	0888a32cafbaeed94597ca22ad2aa0826e547da802aaac8663dcbec53d0ce505	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Signatures.Ecma262.resolvedWith	Whatwg.Signatures.Ecma262	definition	authored	0	111d6055220d45b4ed8ad6c688d30db66c8f23ee2df8036bd6bd3427ca37fac4	-	-	-	-	-	-	-	-
 Whatwg.Signatures.Ecma262.run	Whatwg.Signatures.Ecma262	definition	authored	0	28370b50d2cbb144e7d4ab80cdf682c951e5265c344c0a4e2b71293c5e88627f	propext	-	-	-	-	-	-	-
 Whatwg.Signatures.Ecma262.run.match_1	Whatwg.Signatures.Ecma262	definition	generated	1	8333d0fdec545c0da6d7bf5ab4ed8491d991eb7cae204567cb1b38527226f534	-	-	-	-	-	-	-	-
