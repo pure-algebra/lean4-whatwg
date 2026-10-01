@@ -1,0 +1,1 @@
+  ⟨`WhatwgTest.TrustSelfTestPlant, "trust self-test plant V2c-L2: this module declares no metaprogramming"⟩ ::

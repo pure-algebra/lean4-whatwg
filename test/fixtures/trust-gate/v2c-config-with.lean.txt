@@ -1,0 +1,10 @@
+-- Planted by the trust self-test, plant V2c-C2 (B2 of ruling R-V10): the native
+-- configuration reached through a record update `{ v with }`. The value opens
+-- with `{`, so a brace test alone would pass; rule 3 of addendum V2c refuses it
+-- because the brace group contains `with`. The `example` leaves no constant.
+import Lean
+
+open Lean.Parser.Tactic in
+def rvV2cNativeCfg : DecideConfig := ⟨false, true, true, false⟩
+
+example : (2 : Nat) + 2 = 4 := by decide (config := { rvV2cNativeCfg with })

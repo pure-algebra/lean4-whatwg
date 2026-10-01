@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2c-M01: a declaring metaprogramming
+-- keyword (`notation`, a core keyword that needs no import) in the production
+-- tree, outside the metaprogramming-module list. Rule 1 of addendum V2c refuses
+-- the keyword, and the environment half refuses the parser it registers.
+notation "rvV2cMetaNota" => (1 : Nat)

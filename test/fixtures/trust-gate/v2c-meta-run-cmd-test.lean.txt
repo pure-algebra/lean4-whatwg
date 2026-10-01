@@ -1,0 +1,7 @@
+-- Planted by the trust self-test, plant V2c-M02: a running metaprogramming
+-- keyword (`run_cmd`) in a new test module outside the metaprogramming-module
+-- list. It registers nothing, so only rule 1's token half of addendum V2c
+-- refuses it, naming the keyword. `run_cmd` needs `Lean.Elab.Command`.
+import Lean.Elab.Command
+
+run_cmd pure ()

@@ -1066,3 +1066,759 @@ scratch directory with `lake env lean -DwarningAsError=true`: exit 0 for all
 fourteen, with no message except V2b-T11's two warnings, which its
 `set_option warningAsError false in` keeps as warnings. `lake exe citations`
 and `lake exe vendorseal` pass at the freeze.
+
+## Addendum V2c (2026-10-01)
+
+Status: FROZEN / RED, V2c breaker seat, 2026-10-01, on branch
+`review/v2c-gate-breaker`, based on `cb50951` (the commit that lands ruling
+R-V10, which opens this addendum). The addendum is appended; no earlier
+sentence of this file is changed. Where it and an earlier section differ, the
+addendum governs, and V2c.10 names each place.
+
+Authority: ruling R-V10 at the end of `COORDINATION.md`, from the review
+findings B1, B2, B3 and S1 of R-V9. The reviewer found four ways past the gate
+at the base that no document declared, each accepted by `lake build`:
+
+- B1: the token pass reads every source with the *final* environment's token
+  table, so a longer token a later module declares hides a refused word in an
+  earlier source. Measured: `Whatwg/Ecma262/RvDesyncA.lean` with
+  `example : (2 : Nat) + 2 = 4 := by (native_decide)` and
+  `WhatwgTest/RvDesyncB.lean` with `syntax "(native_decide" : term`, both
+  reached from `WhatwgTest.lean`; `lake build` exit 0. The gate reads
+  `(native_decide` as one token and never sees the word.
+- B2: `decide (config := ⟨false, true, true, false⟩)` turns native evaluation
+  on without the word `native`. Every spelling of the configuration value the
+  V2c measurement tried evaluates natively (anonymous constructor, `.mk …`,
+  `DecideConfig.mk …`, a named value, `{ v with }`, `id …`, `if …`,
+  `by exact …`, the escaped key `«config»`, `+kernel` with a `config` item, a
+  macro expanding to any of these); `(cfg := …)` is not valid syntax.
+- B3: a constant declared in the root `WhatwgTest.lean` itself, and anything
+  after the gate command, is never audited, because the gate reads the imported
+  modules' data and not the main module's own constants. Measured: a `run_cmd`
+  that `addDecl`s an `axiomDecl` of `False` and a `theorem rvRootFalse :
+  (1 : Nat) = 2` proved from it, placed before the gate command, build exit 0.
+- S1: the gate never checks that every audited environment module maps to a
+  source it scanned, so a source the extension test misses is never tokenized.
+  Measured: `WhatwgTest/RvCase.LEAN` (uppercase extension) reached as
+  `WhatwgTest.RvCase`; on this case-insensitive host the build passes and the
+  gate scans 222 sources, not 223.
+
+R-V10 also found that any imported module can replace the gate itself:
+`macro_rules | `(#whatwg_streams_axiom_gate) => `(#check 1)` in an audited
+module expands the gate command to something else, the build passes, and no
+pass runs. The gate is a command inside the tree it audits, so the closure is a
+set of rules about what audited code may do, checked from the tokens and the
+environment together. The principle R-V10 states: *code in the audited trees
+is object-level; it declares no syntax, macro or elaborator and runs no
+metaprogram, except in modules named on an exact list.* None of B1, B2, B3 or
+S1 invalidates a landed theorem or the strict-ceiling measurement, which rest
+on the environment pass; they are gaps in where the gate looks.
+
+A breaker (this seat) freezes the five rules, the fixtures and the plant rows;
+a builder implements them in `WhatwgTest/Audit/AxiomGate.lean`; the reviewer
+checks the delta. The builder edits none of the files of section 1 or this
+addendum's V2c.9.
+
+### V2c.1 Terms and the pass order
+
+The terms of section 2 stand. Three are added.
+
+- *Metaprogramming module*: an audited module named by an exact entry of a new
+  list `metaprogrammingModules`, held as data in
+  `WhatwgTest/Audit/AxiomGate.lean` beside the two lists of section 10. It is
+  the one place where audited code may declare syntax, a macro or an elaborator,
+  or run a metaprogram. A listed module is **still bound by every trust word of
+  sections 4.2 and V2b.3**: the list relaxes only the metaprogramming-keyword
+  refusal of V2c.2 and the environment-registration refusal of V2c.2, and no
+  other check.
+- *Final token table*: `Parser.Module.updateTokens (Parser.getTokenTable env)`
+  at gate time, the table the source passes already tokenize with. *Base
+  token*: a token the `lean` binary declares (`Parser.builtinTokenTable`) or a
+  token an `Init.*` module declares. *Non-base token*: every other token of the
+  final table, including the scoped entries of
+  `(Parser.parserExtension.ext.getState env).scopedEntries`.
+- *Root*: the module `WhatwgTest.lean`, which runs the gate command last.
+
+The five rules slot into the six-step order of section 3 as follows; the gate
+stops after the first step that has any finding, so the order fixes which rule
+reports a plant two rules would refuse:
+
+| Step of section 3 | V2c check added |
+| --- | --- |
+| before step 1 | V2c.5 the root pass (rule 4) |
+| 1 module closure | V2c.6 reverse closure (rule 5) |
+| 2 modifier pass | *(after it)* V2c.3 token-table hygiene (rule 2), a new pass over the final table |
+| 3 environment pass | V2c.2 the environment half of the metaprogramming-module rule (rule 1): a non-listed audited module that registers a token, parser, syntax category, macro, elaborator or initializer |
+| 4 axiom pass | *(unchanged)* |
+| 5 trust-token pass | V2c.2 the token half of rule 1 (metaprogramming keywords outside the list) and V2c.4 the configuration-shape refusal (rule 3) |
+| 6 summary line | *(unchanged counts; V2c adds no field)* |
+| after the root's gate command | V2c.5 the post-command check: if the gate's own elaborator did not run to completion, run every pass or fail with V2c.5's diagnostic |
+
+Token-table hygiene (V2c.3) runs before the environment pass on purpose: it is
+the last line of defence against a token that shadows a refused word (B1), and
+it must fire even when a *listed* module declares that token, which the
+environment and token halves of rule 1 permit. So a plant that declares a
+shadowing token through `syntax` is reported by V2c.3, not by rule 1.
+
+### V2c.2 Rule 1 — metaprogramming modules
+
+**Statement.** Outside `metaprogrammingModules`, an audited source may not
+spell a metaprogramming keyword in code, and an audited module may not register
+a token, parser, syntax category, macro, elaborator or initializer, whatever
+spelled the registration. A listed module may do both and remains bound by every trust word
+of sections 4.2 and V2b.3.
+
+**The keyword set.** The token half refuses the words below with the
+whole-name shape of section 4.2: a token of code carries a word when it is an
+atom whose text is the word, or an identifier whose `Name`, with `«»` escapes
+removed, equals the word's `Name`. `local` and `scoped` prefixes do not fuse
+with the keyword — `local syntax` tokenizes as the atoms `local` then `syntax`
+— so refusing the keyword catches its `local`- and `scoped`-prefixed forms too,
+and `local` and `scoped` themselves are not refused, since the tree uses both
+legitimately:
+
+- *declaring*: `syntax`, `macro`, `macro_rules`, `elab`, `elab_rules`,
+  `notation`, `infix`, `infixl`, `infixr`, `prefix`, `postfix`,
+  `declare_syntax_cat`, `binder_predicate`, `declare_simp_like_tactic`,
+  `simproc`, `dsimproc`, `simproc_decl`, `dsimproc_decl`, `builtin_simproc`,
+  `builtin_dsimproc`, `builtin_simproc_decl`, `builtin_dsimproc_decl`,
+  `register_simp_attr`, `register_option`, `register_builtin_option`,
+  `register_label_attr`, `register_linter_set`, `register_grind_attr`,
+  `register_sym_simp_attr`, `register_parser_alias`, `register_tactic_tag`,
+  `register_error_explanation`, `declare_config_elab`,
+  `declare_command_config_elab`;
+- *running*: `run_cmd`, `run_elab`, `run_meta`, `run_tac`, `by_elab`, `#eval`,
+  `#eval!`, `initialize`, `builtin_initialize`, `test_extern`.
+
+Measured in 4.33.1 with the gate's tokenizer: every word above except `run_tac`
+is a keyword `atom` of the final table; `run_tac` is a tactic name, read as an
+identifier token (as V2b.3 found for `admit` and `stop`), and is refused by the
+identifier shape, which is why the shape is whole-name and not atom-only. Six
+further candidates read as identifiers and are **not** refused, because they are
+attribute or category names with ordinary uses (`init` is the named argument
+`(init := …)` of `foldl` in the gate itself): `command_elab`, `term_elab`,
+`tactic`, `init`, `builtin_init`, `syntax_cat`; what they register is the
+environment half's to refuse. Seven words are **excluded** because the tree uses
+them as ordinary code, as `stop` and `#guard_msgs` were excluded in V2b.4:
+`meta` (the HTML `<meta>` element, written `«meta»`, is the identifier `meta`;
+refusing it would strike every such element), `deriving`, `open`, `attribute`,
+`#guard`, `#guard_msgs` and `#check_failure`. `deriving` registers only
+instances, not syntax, a macro or an elaborator; `#guard` evaluates a `Bool`
+with compiled code and adds no declaration (V2c.7); `attribute [k] d` that
+attaches an elaborator or macro is refused by the environment half for what it
+registers.
+
+Diagnostic fragment, token half (in the message style of section 4.2; nothing
+may stand between `<path>` and ` contains`; a position may follow):
+
+```text
+Whatwg source trust gate: <path> contains an authored `<keyword>` metaprogramming keyword
+```
+
+**The environment half.** An audited module not on `metaprogrammingModules` is
+refused when it registers, in any environment extension the gate reads, a token,
+a parser or parser alias, a syntax category, a macro, a command/term/tactic
+elaborator, or an initializer. The builder maps these to the extensions that
+hold them (`Parser.parserExtension` module entries, global or scoped, for
+tokens, parsers and categories; the macro and the command, term and tactic
+elaborator attributes; the `init` and `builtin_init` attributes, which
+`initialize`, `builtin_initialize` and the `register_*` commands produce, for
+initializers), attributing each registration to the module that owns the
+registering declaration. An initializer runs `IO` whenever a later module is
+imported, the gate's own elaboration included, so it is a running channel no
+keyword need spell (`@[init f]` writes `init` as an identifier); the tree has
+none. This half catches a
+registration no token spells: `@[command_elab K] def f : CommandElab := …`
+spells `command_elab` as an identifier, which the token half does not refuse,
+yet registers an elaborator (measured: such a declaration builds exit 0 at the
+base and the gate accepts it; V2c-E01).
+
+Diagnostic fragment, environment half:
+
+```text
+Whatwg trust gate: module <m> registers <kind> but is not a listed metaprogramming module
+```
+
+with `<kind>` one of `a token`, `a parser`, `a syntax category`, `a macro`,
+`an elaborator`, `an initializer` (the article is part of `<kind>`).
+
+**Tree measurement.** Over the 222 audited sources, scanned with the gate's own
+tokenizer and the keyword set above, the only code occurrences of any listed
+keyword are `elab` in the eight gate-command modules
+(`WhatwgTest/Audit/AxiomGate.lean`, `Audit/SpecCoverage.lean`,
+`Audit/CensusProfileIdentity.lean`, `Audit/WebIdl/CensusContract.lean`,
+`Audit/WebIdl/CensusQ2Contract.lean`, `Audit/Ecma262/CensusContract.lean`,
+`Audit/Ecma262/CensusQ2Contract.lean`, `Audit/Ecma262/EcmarkupScanner.lean`)
+and `run_cmd` in the two constructive-contract batteries
+(`WhatwgTest/Infra/IntegerConstructiveContract.lean`,
+`WhatwgTest/Infra/ScalarConstructiveContract.lean`). The environment half's
+registrations agree: the audited trees register exactly eight parser
+descriptors, the eight `#…` gate commands, each a
+`Lean.ParserDescr.symbol "#…_gate"` in one of those eight modules; no
+`macro_rules`, `elab_rules`, `notation`, local or scoped syntax, `initialize`,
+`#eval`, `run_elab`, `run_meta`, `run_tac`, and no other `run_cmd`. So the list
+holds exactly those ten modules. (`deriving` generates `BEq`, `Repr` and
+friends in many modules; it registers no syntax, macro or elaborator, only
+instances, so the environment half does not refuse it, and `deriving` is not a
+refused keyword.)
+
+**The list, its shape and its checks.** `metaprogrammingModules` is a third list
+of `WhatwgTest/Audit/AxiomGate.lean`, held as data and written one entry per
+line below a frozen anchor comment, exactly as section 10 fixes the other two
+lists. The anchor, which the gate carries once and the harness matches after
+trimming ASCII whitespace:
+
+```text
+-- trust-selftest: metaprogramming-module entries are inserted below this line
+```
+
+It stands immediately before the body of the list, so inserting after it a line
+
+```lean
+  ⟨`Some.Module, "reason"⟩ ::
+```
+
+prepends that entry whatever the others. The element type is a structure (or
+product) whose anonymous constructor takes the module's full `Name` then the
+reason `String`, the name a single-backtick literal. The gate refuses:
+
+| Condition | Diagnostic fragment (verbatim) |
+| --- | --- |
+| an entry names a module with no audited source | `Whatwg trust gate: metaprogramming-module entry names missing module <m>` |
+| an entry names a module whose source spells no metaprogramming keyword and registers nothing | `Whatwg trust gate: stale metaprogramming-module entry for <m>; its source declares no syntax, macro or elaborator and registers nothing` |
+| an entry's reason is empty after trimming ASCII whitespace | `Whatwg trust gate: metaprogramming-module entry for <m> carries no reason` |
+| an entry is listed twice | `Whatwg trust gate: metaprogramming-module entry for <m> is listed more than once` |
+| an entry names an entry point under `whatwgbin/` | `Whatwg trust gate: metaprogramming-module entry for <m> names an entry point under whatwgbin/, which cannot be a metaprogramming module` |
+
+At the freeze the list holds the ten modules above, each with its reason; it has
+no missing, stale, blank, duplicate or `whatwgbin/` entry.
+
+### V2c.3 Rule 2 — token-table hygiene
+
+**Statement (R-V10(2)).** Every non-base token of the final table must be
+*inert*. The inert test is a decision procedure over the token's characters
+`t`, using `Lean.isIdFirst`/`isIdRest` for identifier boundaries and the word
+lists of sections 4.2 and V2b.3 (`refusedWords` as printed; the modifier words
+`unsafe`, `partial`; and the last-component words `sorryAx`, `Lean.reduceBool`,
+`Lean.reduceNat` and the three forbidden axioms). `t` is inert unless any holds:
+
+- *(T1)* `t` contains a space, tab, carriage return, line feed, `"`, `«`, `»`,
+  `--`, `/-` or `-/`;
+- *(T2)* `t` ends in `-` or `/`; or `t` has a `'` at index 0 or after a
+  character that is not `isIdRest` (a character-literal opener); or, at an
+  identifier start as T3 defines it, the identifier read is exactly `r` and is
+  followed by `#`, by `"`, or by the end of `t` (a raw-string opener);
+- *(T3)* at some *identifier start* `k` — a position with `isIdFirst t[k]` where
+  `k` is 0, or `t[k-1]` is not `isIdRest`, or the prefix `t[0:k]` ends with some
+  token of the table that contains a character that is not `isIdRest` — the
+  identifier read from `k` (components joined by `.` when the next character is
+  `isIdFirst`), up to a non-identifier character or the end of `t`, either
+  **equals** a whole-name refused word or modifier keyword, or has a last
+  component equal to a last-component word; or, when the read reaches the end of
+  `t` (optionally ending in `.`), so the next source character could extend it,
+  it is a **prefix** of such a word, or its last component is a prefix of such a
+  last component.
+
+A builder implements T3 by walking each index `k` of `t`, and where an
+identifier may begin there, reading its `Name` (escapes do not occur inside a
+registered token) and testing equality against the whole-name words and the
+last component against the last-component words; when the read reaches the end of
+`t`, it also tests `isPrefixOf` against every such word, because the source
+character after the token could continue the identifier and complete the word.
+A token for which none of T1, T2 and T3 holds is inert. This is the procedure
+the V2c measurement ran (and the one the prior V2c seat's scratch measurement
+of 127 inert tokens used).
+
+**Measurement.** The final table holds 512 tokens (574 with the scoped entries);
+239 are built into the binary and 277 are declared by `Init` modules, leaving
+127 non-base tokens. All 127 pass the inert test today (the V2c scratch
+measurement re-ran the test of this section over the union of the gate's table
+and the scoped entries). Eight tokens of the table contain a refused word as a
+substring; six are base and two are non-base:
+
+- `axiom`, `sorry`, `unsafe`, `partial` (built into the binary),
+  `partial_fixpoint` (built into the binary) and `register_try?_tactic`
+  (`Init.Try`) are **base** tokens, which the rule does not test. The first four
+  equal a refused or modifier word and would fail T3 if tested; the words are
+  refused in *code* by the trust-token and modifier passes, which read them as
+  atoms whose text is the word. `partial_fixpoint` and `register_try?_tactic`
+  would pass anyway: no identifier starts at the word, because the character
+  before it (`_`) is `isIdRest`.
+- `test_extern` (non-base, `Lean.Util.TestExtern`) passes: the identifier at
+  index 0 is `test_extern`, which is neither `extern` nor a prefix of a refused
+  word, and no identifier starts at the `e` of `extern`, which follows `_`.
+- `#whatwg_streams_axiom_gate` (non-base, the gate module) passes: the
+  identifier starting after `#` is `whatwg_streams_axiom_gate`, and `axiom`
+  follows `_`, so no identifier starts there.
+
+Many base tokens would fail the test and are outside its scope by definition:
+operators ending in `-` or `/` (`-`, `/`, `//`, `<-`, `\/`), the comment
+openers `/--` and `/-!`, the primed operators `]'`, `×'`, `Σ'`, `⊕'`, the four
+keywords above, `try` (a prefix of `try?`), the scoped `#'` (`BitVec`) and
+`#reduce` (`Init.Notation`, whose identifier part `reduce` begins `reduceBool`
+and `reduceNat`). The exemption is sound for the global ones because every
+audited module imports `Init` (no audited source is a `prelude` module,
+measured over the 222 sources), so the gate's table and every module's
+elaboration table agree on them; the scoped `#'` is the exception V2c.7 records,
+since a module that opens `BitVec` elaborates with a token the gate's table
+lacks.
+
+Diagnostic fragment:
+
+```text
+Whatwg source trust gate: token `<tok>` of the final token table is not inert: <reason>
+```
+
+### V2c.4 Rule 3 — configuration shape
+
+**Statement (R-V10(3)).** Wherever the token `(` is immediately followed by an
+identifier whose `Name`, with `«»` escapes removed, is `config`, and then the
+token `:=`, the value that follows must be a plain literal brace group: the next
+token is `{`, the brace group it opens contains no `with` token, and the token
+immediately after the matching `}` is `)`. Any other shape is refused. The
+escaped key `«config»` is treated as `config` (measured: `decide («config» :=
+…)` tokenizes the key as the identifier `config` and evaluates natively, so it
+must be caught). This is a syntactic backstop to the `native` word of section
+4.2: it refuses `(config := ⟨…⟩)` and every non-brace or `with`-bearing value by
+which B2 turns native evaluation on without the word `native`.
+
+**Measurement.** The tree has 35 `(config := …)` sites, all exactly
+`simp (config := { zetaDelta := true })` — a plain `{ … }` group, no `with`,
+`)` after — which the rule accepts. Every B2 spelling the seat tried
+(anonymous constructor, `.mk`, a named value, `{ v with }`, `id …`, `if …`,
+`by exact …`, the escaped key) is refused, because its value either does not
+open with `{` or opens a group containing `with`. The gate's existing
+`simp (config := { zetaDelta := true })` sites and the one
+`simp_all (maxDischargeDepth := 4)` (whose key is not `config`) are untouched;
+`decide +kernel` carries no `config` token.
+
+Diagnostic fragment (one line, a reason after the colon says which of the three
+shape conditions failed — the value does not open with `{`, its brace group
+contains `with`, or `)` does not follow the closing `}`):
+
+```text
+Whatwg source trust gate: <path> contains a non-literal `config` option
+```
+
+### V2c.5 Rule 4 — the root
+
+**Statement (R-V10(4)).** The root `WhatwgTest.lean` holds only imports,
+comments, module documentation and one command, `#whatwg_streams_axiom_gate`,
+which is its last command; and at gate time the main module `WhatwgTest` has
+declared no constant. The gate checks all three: tokenizing its own root source
+(every code token is part of an `import` line or is the single gate-command
+token), confirming the gate command is the last command, and reading the main
+module's own constants (`env.constants.map₂`), which must be empty.
+
+**Measurement.** The root's only code token outside its `import` lines is
+`#whatwg_streams_axiom_gate`, and `env.constants.map₂` is empty when the gate
+runs (0 constants; 2563 modules in the environment). This closes B3: a constant
+`addDecl`ed in the root, or a declaration after the gate command, is one the
+environment pass never audits.
+
+Diagnostic fragments:
+
+```text
+Whatwg axiom gate: the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate
+Whatwg axiom gate: #whatwg_streams_axiom_gate is not the last command of the root
+Whatwg axiom gate: the root module WhatwgTest has declared a constant when the gate runs; the root must declare none
+```
+
+**The gate runs even when its command is replaced.** Every pass of this gate,
+rule 1 included, runs inside the elaborator of `#whatwg_streams_axiom_gate`. An
+imported module that registers a macro or a command elaborator for that command
+(`macro_rules | `(#whatwg_streams_axiom_gate) => …`, or `@[command_elab
+WhatwgTest.Audit.«command#whatwg_streams_axiom_gate»]`) takes precedence over the
+gate's own elaborator, so no pass runs and the build passes (measured at the
+base; plant V2c-M03). A refusal that lives only inside that elaborator therefore
+cannot refuse the module that replaced it. So rule 4 also requires: the gate
+module registers, when it is imported, a check that runs after each command of
+the root and is not reached through the gate command's own syntax; when the root
+command `#whatwg_streams_axiom_gate` finishes without the gate's own elaborator
+having run to completion, that check either runs every pass itself, so that the
+replacing module is refused by rule 1 for its keyword or its registration, or
+fails the build with the diagnostic below. The breaker measured the mechanism
+outside the tree, in a three-module package on Lean 4.33.1: a gate module that
+sets a flag in its elaborator and registers a linter (`initialize addLinter …`)
+that, for the root's gate command, logs an error when the flag is unset. With a
+`macro_rules` replacement imported, and again with a `@[command_elab …]`
+replacement, the build failed with that error; with neither, it passed and the
+gate ran. A linter runs after every command with the command's original syntax,
+whatever macro or elaborator handled it, so neither replacement reaches it. The
+gate module is a listed metaprogramming module, so its `initialize` is admitted.
+
+```text
+Whatwg axiom gate: the gate command of WhatwgTest.lean did not run the gate
+```
+
+What this leaves is recorded in V2c.7: an `IO` initializer that runs before the
+check and removes it. Outside the list an initializer is refused by rule 1's
+environment half, but that refusal also runs inside the gate, so the
+self-test's rejection rows, not the in-build gate, are what expose such a
+module.
+
+### V2c.6 Rule 5 — reverse closure
+
+**Statement (R-V10(5)).** Every environment module whose name is under an
+audited tree prefix maps, by exact case-sensitive path through
+`Lean.modToFilePath`, to exactly one source the gate scanned. Section 3's module
+closure already refuses a scanned source no module imports; this is the reverse
+direction, refusing an audited environment module no scanned source backs. It
+closes S1: a source the extension filter (`path.extension == some "lean"`,
+case-sensitive) misses — a `.LEAN` file on a case-insensitive host — is in the
+environment but not in the scan.
+
+**Measurement.** All 216 audited environment modules map to exactly one scanned
+source by exact path today.
+
+Diagnostic fragment:
+
+```text
+Whatwg module-closure gate: module <m> is in the environment under an audited prefix but maps to no scanned source
+```
+
+On a case-sensitive host (Linux) the S1 construction never reaches the gate:
+Lake refuses `import WhatwgTest.RvCase` for `RvCase.LEAN` with `bad import`, a
+build error before elaboration. So S1 is refused on every host — by Lake on a
+case-sensitive one, by this rule on a case-insensitive one. It is frozen as a
+review clause (V2c.8 R-C4), not a portable plant.
+
+### V2c.7 Claim scope (extends sections 13 and V2b.6)
+
+A green `lake exe whatwg_trustselftest` with the V2c rows says each V2c plant is
+refused or accepted for its stated reason on Lean 4.33.1. In addition to
+sections 13 and V2b.6, it does not say the following; each item names which
+assurance route still catches it.
+
+- **A dependency package's syntax and macros.** A `syntax`, `macro` or elaborator
+  defined in a pinned dependency (`hash`, and core/`Std`/`Lean`) is not in an
+  audited source and not refused; rule 1 governs audited modules only.
+  Dependencies are pinned by digest and gated in their own repositories
+  (`docs/PROVENANCE.md`). Nothing in this gate re-audits them; the
+  `leanchecker` CI replay (`lake env leanchecker Whatwg WhatwgTest WhatwgGates`)
+  re-checks every *audited* declaration in the kernel but does not police a
+  dependency's metaprogramming.
+- **The toolchain's own scoped tokens `#'` and `#reduce`.** They fail the inert
+  test but are base tokens, which rule 2 does not test. A dependency or the
+  toolchain could add another non-inert base token; the rule would not see it,
+  because "base" is exactly "declared by the binary or an `Init` module". Only a
+  reader of the toolchain, not this gate, catches a toolchain token that shadows
+  a refused word. Neither CI replay nor the self-test catches this; it is a
+  bounded trust in the pinned toolchain, recorded here.
+- **A listed metaprogramming module misusing the Meta API.** The ten listed
+  modules may run `MetaM`/`CommandElabM`/`IO` at elaboration and could, in
+  principle, `addDecl` with the kernel check off, assign a goal through
+  `Lean.MVarId.admit`, or build `sorryAx` from a name literal — none spelled by a
+  refused word (V2b.6). The list is short and every entry is reviewed; a change
+  to any listed module is a reviewer's item. Of these, a declaration added with
+  the kernel check off (`addDeclCore … (doCheck := false)`, debt D55) is caught
+  only by the `leanchecker` CI replay, not by `lake build` or the self-test; the
+  others reach Lean's "declaration uses `sorry`" warning, which
+  `warningAsError = true` turns into an error at build (V2b.6), a check this gate
+  does not itself make.
+- **Options passed outside the source.** `-D`, `leanOptions`, `moreLeanArgs` in
+  `lakefile.toml`, or a metaprogram's `withOptions`/`modifyScope` can set
+  `debug.skipKernelTC`, `warningAsError`, `warn.sorry`, `debug.byAsSorry` and the
+  rest without a source token (sections 13 and V2b.6). The token passes are
+  lexical and see none of them. A false statement admitted through
+  `debug.skipKernelTC` set this way, or a declaration added with the kernel check
+  off, is caught only by the `leanchecker` replay. `warningAsError` set to
+  `false` outside the source re-enables the goal-admitting spellings of V2b; no
+  pass catches that, and the self-test does not run with it.
+- **A name built by metaprogramming**, inside a listed module or a dependency
+  (`Lean.mkIdent`, `Name.mkStr`, concatenation), reaches `Lean.reduceBool`,
+  `sorryAx` or another channel without a source token (section 13). The token
+  passes do not see it; the axiom pass catches what it leaves as a reachable
+  forbidden axiom in an audited constant, and the `leanchecker` replay catches a
+  kernel-unchecked result.
+- **B1 through a listed module.** Rule 2 (token-table hygiene) is the backstop
+  here: a *listed* module may declare syntax, but a token it declares that
+  shadows a refused word is still refused by rule 2, which tests the table
+  whoever filled it. A listed module could still declare an inert token that is
+  later composed in source to hide a word across token boundaries; the token
+  passes read token by token and do not compose, a lexical limit sections 13 and
+  V2b.7 already state.
+- **An initializer that removes the post-command check (V2c.5).** An `IO`
+  initializer runs when its module is imported, before any command of the root,
+  and can unregister the check that catches a replaced gate command. Outside the
+  list it is refused by rule 1's environment half, but every pass runs in the
+  gate, so a module that both removes the check and replaces the gate command is
+  refused by no in-build pass. The trust self-test catches it, because every
+  rejection row is then accepted; the `leanchecker` replay does not, since it
+  checks declarations, not the gate's run. Inside the list, only review
+  catches it.
+- **`#guard` is compiler evaluation.** The tree's 416 `#guard` commands
+  (counted with the gate's tokenizer, all under `WhatwgTest/`) decide a `Bool` with compiled code at elaboration. They add no
+  declaration, so they cannot admit a false theorem, but a `#guard` that passes
+  is evidence under compiler trust, not a kernel-checked statement. `#guard` is
+  not refused (V2c.2). Nothing here re-checks it; a reader treats a `#guard` as
+  a finite executable probe.
+- **The scoped base token `#'`.** A module that opens `BitVec` elaborates with
+  the token `#'`, which the gate's final table lacks, so the gate reads `#` and
+  then a character literal where Lean read one atom. A character literal holds
+  one character, so this cannot hide a multi-character word, but the gate's
+  token stream and the elaborator's differ in that module. No audited source
+  opens `BitVec` (measured: no `open … BitVec` line among the 222 sources), so
+  the token is active in no module today; nothing checks that it stays so.
+
+Summary of routes: the `leanchecker` CI replay catches a kernel-unchecked
+declaration and a false statement from `debug.skipKernelTC`/`reduceBool` however
+the option or name was introduced; the trust self-test catches every lexical and
+registration rule of V2/V2b/V2c on the audited sources and environment; nothing
+in this repository catches a non-inert *base* token the pinned toolchain ships,
+a dependency's own metaprogramming, or an option set outside the audited
+sources — these are bounded trust in the pins and the host, recorded here and
+not claimed closed.
+
+### V2c.8 Review clauses (not planted)
+
+Checked by the independent reviewer, because planting would need a seam in the
+gate, a red acceptance row, or a host-specific file.
+
+- R-C1. A listed metaprogramming module is accepted: its metaprogramming
+  keywords and its registrations are admitted, and only by rule 1, and it is
+  still refused for any trust word of section 4.2 or V2b.3. Not planted for the
+  reason section 12 R2 gives: an acceptance row that needs the new anchor is red
+  until the builder lands, and this packet's red state is fixed to rejection
+  rows. The ten listed modules are the live witnesses: the gate accepts the
+  unmodified tree, in which `elab` and `run_cmd` appear only there.
+- R-C2. Token-table hygiene accepts the 127 non-base tokens of the unmodified
+  tree (the step-0 build is the witness) and the inert test's decision procedure
+  is the one V2c.3 states; the builder's implementation is checked against the
+  measurement, not re-planted per token.
+- R-C3. The summary line of section 7 is unchanged: V2c adds no field, and the
+  three tree counts still sum to the declaration count.
+- R-C4. S1 is refused on every host (V2c.6): `bad import` on a case-sensitive
+  host, the reverse-closure diagnostic on a case-insensitive one. Not planted,
+  because the plant is a `.LEAN` source whose behaviour is host-specific and the
+  harness has no portable extension mechanism; the reviewer confirms the rule on
+  this host and reads the Linux path.
+- R-C5. The environment half of rule 1 attributes each registration to the
+  module that owns the registering declaration, and the unmodified tree's only
+  registrations are the eight gate-command parser descriptors, in listed
+  modules. A registration the builder's extension map misses would be an
+  under-refusal the next such registration exposes; V2c-E01 plants one concrete
+  token-invisible registration (`@[command_elab …]`) to anchor the map.
+
+### V2c.9 Plants
+
+Breaker-owned and frozen by this addendum, beside the files of section 1 and
+V2b.7: this addendum; the fixtures `test/fixtures/trust-gate/v2c-*.lean.txt`
+named below; and the rows of `acceptancePlants` and `rejectionPlants` in
+`WhatwgGates/TrustSelfTest.lean` whose labels begin `V2c-`, appended to each
+table with `++`, together with the selector `metaprogrammingModuleAnchor`, the
+root-gate constant `rootGateCommand`, the `Placement.beforeRootGate`
+constructor and the one line it adds to `Edit.apply`. Every earlier line of the
+harness is unchanged. The coordinator applies rules 1 through 5 in
+`WhatwgTest/Audit/AxiomGate.lean` and edits none of these files.
+
+Placement as in section 9, plus `beforeRootGate`: insert the fixture's lines
+immediately before the root's `#whatwg_streams_axiom_gate` line. Every plant is
+undone before the next. Fragments are substrings of the build output. The
+`V2c-` labels are stable identifiers, never reused, and not registered in
+`test/counterexamples/REGISTER.md` (section 1). No module is red, so
+`test/fixtures/trust-gate/known-red.txt` gains no entry.
+
+Acceptance plants (the build must succeed):
+
+| ID | Fixture | Target, placement | State at the freeze |
+| --- | --- | --- | --- |
+| V2c-A1 | `v2c-config-control.lean.txt` | `Whatwg.lean`, append | green |
+| V2c-A2 | `v2c-benign.lean.txt` | `Whatwg.lean`, append | green |
+
+Rejection plants (the build must fail and print the fragment). "Reason" names
+the rule; "expected" is the fragment any one of which proves the rejection:
+
+| ID | Fixture | Target, placement; further edit | Expected fragment(s) |
+| --- | --- | --- | --- |
+| V2c-M01 | `v2c-meta-notation-prod.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains an authored `notation` metaprogramming keyword``; or `module Whatwg registers a` |
+| V2c-M02 | `v2c-meta-run-cmd-test.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `run_cmd` metaprogramming keyword`` |
+| V2c-M03 | `v2c-meta-gate-macro-rules.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains an authored `macro_rules` metaprogramming keyword``; or `registers a macro but is not a listed metaprogramming module`; or `the gate command of WhatwgTest.lean did not run the gate` |
+| V2c-E01 | `v2c-meta-attr-command-elab.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | `registers an elaborator but is not a listed metaprogramming module` |
+| V2c-B1 | `v2c-token-shadow-decl.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module; new module `Whatwg/Ecma262/TrustSelfTestPlant.lean` from `v2c-token-shadow-use.lean.txt` | ``token `(native_decide` of the final token table is not inert``; or ``contains an authored `syntax` metaprogramming keyword`` |
+| V2c-T1 | `v2c-token-cut-word.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``token `(nat` of the final token table is not inert`` |
+| V2c-T2 | `v2c-token-comment-opener.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``of the final token table is not inert`` |
+| V2c-T3 | `v2c-token-hidden-native.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``token `+native` of the final token table is not inert`` |
+| V2c-C1 | `v2c-config-anon-ctor.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains a non-literal `config` option`` |
+| V2c-C2 | `v2c-config-with.lean.txt` | `WhatwgTest/TrustSelfTestPlant.lean`, new module | ``TrustSelfTestPlant.lean contains a non-literal `config` option`` |
+| V2c-C3 | `v2c-config-escaped-key.lean.txt` | `Whatwg.lean`, append | ``Whatwg.lean contains a non-literal `config` option`` |
+| V2c-R1 | `v2c-root-before-gate.lean.txt` | `WhatwgTest.lean`, before the gate | `the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate`; or `the root module WhatwgTest has declared a constant when the gate runs` |
+| V2c-R2 | `v2c-root-after-gate.lean.txt` | `WhatwgTest.lean`, append | `#whatwg_streams_axiom_gate is not the last command of the root`; or `the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate` |
+| V2c-L1 | `v2c-meta-module-missing.lean.txt` | `WhatwgTest/Audit/AxiomGate.lean`, after the metaprogramming anchor | `metaprogramming-module entry names missing module WhatwgTest.TrustSelfTestPlantMissing` |
+| V2c-L2 | `v2c-meta-module-stale.lean.txt` | the same anchor; new module `WhatwgTest/TrustSelfTestPlant.lean` from `strict-choice.lean.txt` | `stale metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant; its source declares no syntax, macro or elaborator and registers nothing` |
+| V2c-L3 | `v2c-meta-module-blank.lean.txt` | the same anchor; new module `WhatwgTest/TrustSelfTestPlant.lean` from `strict-choice.lean.txt` | `metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant carries no reason` |
+
+Why each plant is shaped as it is:
+
+- V2c-M01 uses `notation` (a core keyword needing no import) so the production
+  root builds at the base; it is caught by the token half, and by the
+  environment half for the parser it registers, so two fragments are admitted.
+- V2c-M02 uses `run_cmd`, which registers nothing, so only the token half
+  applies and one fragment names it; its fixture imports `Lean.Elab.Command`,
+  which `run_cmd` needs. V2c-M03's `macro_rules` suppresses the gate at the base
+  (build exit 0, no summary line), which is exactly the gate-replacement hole;
+  it imports the gate module to name its command syntax. Because the replaced
+  command never runs the gate's own elaborator, the row turns green only through
+  V2c.5's post-command check: either that check runs the passes and rule 1
+  names the keyword or the macro, or it fails closed with its own diagnostic.
+  All three fragments are admitted.
+- V2c-E01 is the registration no token spells: `@[command_elab K]` on a no-op
+  `CommandElab`, `command_elab` an identifier. It targets
+  `Lean.Parser.Command.check`, a command the plant module does not invoke, so it
+  builds exit 0 and perturbs nothing.
+- V2c-B1 declares `(native_decide` in a test module and uses it in a new
+  production module under `Whatwg.Ecma262`; the `example` leaves no constant, so
+  only the token-table hygiene rule (or rule 1's `syntax` keyword) refuses it.
+  Token-table hygiene runs before rule 1 (V2c.1), so the inert-failure fragment
+  is the expected one, with the keyword fragment admitted as the backstop.
+- V2c-T1 declares `(nat`, which cuts the word `native` short at the token's end;
+  V2c-T2 declares a token containing `/-`, a comment opener; V2c-T3 declares
+  `+native`, hiding the whole word `native`. Each is a non-inert token in the
+  table with no bare refused word in code, caught only by rule 2.
+- V2c-C1, C2 and C3 are B2 spellings: the anonymous constructor, the `{ v with }`
+  record update (in a test module that imports `Lean` for `DecideConfig`), and
+  the escaped key `«config»`. Each `example` leaves no constant, so only the
+  configuration-shape rule refuses it.
+- V2c-R1 inserts a `run_cmd`-added axiom and a false theorem before the gate in
+  the root; V2c-R2 appends a declaration after the gate. Each is unaudited at the
+  base (B3) and refused by the root pass.
+- V2c-L1, L2 and L3 exercise the metaprogramming-module list's checks; like the
+  other two lists' checks (V2-S3 to S6, V2-X1, V2-X2) they cannot plant until the
+  builder adds the anchor, so at the freeze each fails to plant.
+
+### V2c.10 Changes to earlier sections
+
+- Section 3's pass order: V2c.1 inserts the root pass before step 1, reverse
+  closure into step 1, token-table hygiene after step 2, the environment half of
+  rule 1 into step 3, and the token half of rule 1 and the configuration-shape
+  rule into step 5, and adds the post-command check of V2c.5 after the root's
+  gate command. No existing step's checks move.
+- The premise of R-V10 that the gate-replacement hole closes "checked from the
+  environment and the tokens together" holds only once the gate runs whatever
+  handled its command; V2c.5 adds that requirement, which R-V10's text does not
+  state. It is a finding for the coordinator as well as a frozen rule.
+- Section 13, the bullet "a name built by metaprogramming … are invisible to the
+  token pass": still true, and V2c.7 says which route catches each residual.
+- Sections 8 and V2b.5 hold for every row that predates this addendum: none is
+  changed, and each older fixture is expected to stay green, since no new keyword
+  of V2c.2, no non-inert token, no `(config := …)` and no root or reverse-closure
+  condition appears in it. (The 35 existing `simp (config := { zetaDelta := true
+  })` sites and the eight gate-command modules and two `run_cmd` batteries are
+  the measured reason the unmodified tree still passes.)
+
+### V2c.11 Red state and freeze run
+
+`lake build` is green on the base tree with this packet (it adds fixtures and
+harness rows only). `lake exe whatwg_trustselftest` fails, and fails exactly on
+the `V2c-` rejection rows: V2c-M01, M02, M03, E01, B1, T1, T2, T3, C1, C2, C3,
+R1 and R2 each "unexpectedly accepted" (the base gate has none of rules 1
+through 5), and V2c-L1, L2 and L3 each "could not plant" (the metaprogramming
+anchor does not exist yet). V2c-A1, V2c-A2, every V2/V2b row and both narrow
+runs pass. The full listing is recorded below. Turning the `V2c-` rows green
+needs the builder's rules 1 through 5 in `WhatwgTest/Audit/AxiomGate.lean`,
+outside this packet's fence; the breaker did not run the gate with them applied.
+
+Recorded on Windows 11, Lean 4.33.1, at the freeze tree, after a full build:
+`lake build` exit 0, 386 jobs, its gate line `checked 222 source files and 16497
+declarations; ... 0 source-token exemption(s)`; then `lake exe whatwg_trustselftest`
+exit 1 in 526 s. Its result lines, in the order the harness checks them (in a
+captured log the standard-output lines follow the standard-error lines, as
+section 15 says), are 65 PASS and 17 FAIL: the 63 checks of the base and the two
+V2c acceptance rows pass, exactly the sixteen V2c rejection rows fail, and the
+last line is the summary:
+
+```text
+PASS declared red set matches the observed red set (0 module(s))
+PASS trust gate accepted the unmodified source tree (the step-0 build)
+PASS trust gate accepted comments, strings, and numeric projections
+PASS trust gate accepted V2-A1 refused trust words in comments, documentation, strings and name literals, and identifiers that only contain them
+PASS trust gate accepted V2-A2 an opaque with an authored body in the production tree
+PASS trust gate accepted V2-S2 a theorem reaching Classical.choice in a new module under WhatwgTest
+PASS trust gate accepted V2b-A1 the added trust words in comments, documentation, strings and name literals, identifiers that only contain them, a local named stop, an ordinary set_option, and #guard_msgs around #check_failure
+PASS trust gate accepted V2c-A1 the one configuration shape the tree uses, simp (config := { zetaDelta := true })
+PASS trust gate accepted V2c-A2 the new keywords and the identifier config in comments, strings, longer identifiers and an ordinary parameter
+PASS planted partial declaration rejected with the expected diagnostic: contains an authored `partial` declaration modifier
+PASS planted unsafe declaration rejected with the expected diagnostic: contains an authored `unsafe` declaration modifier
+PASS planted sorry in the production tree rejected with the expected diagnostic: declaration uses `sorry`
+PASS planted native_decide in the production tree rejected with the expected diagnostic: (native_decide auxiliary)
+PASS planted malformed string literal rejected
+PASS planted malformed raw string literal rejected
+PASS planted malformed decimal literal rejected
+PASS planted unterminated comment rejected
+PASS planted V2-E1 an axiom added through Lean.addDecl in a new test module rejected with the expected diagnostic: declaration plantedDeclaredAxiom is an axiom; no audited tree declares one
+PASS planted V2-E2 a declared axiom in the production tree rejected with the expected diagnostic: declaration plantedProductionAxiom is an axiom; no audited tree declares one
+PASS planted V2-E3 @[extern] attached through the attribute API in a new test module rejected with the expected diagnostic: declaration plantedExternTarget is `@[extern]`
+PASS planted V2-E4 @[implemented_by] attached through the attribute API in a new test module rejected with the expected diagnostic: declaration plantedImplementedTarget is `@[implemented_by]`
+PASS planted V2-E5 @[implemented_by] under its escaped name in the production tree rejected with the expected diagnostic: declaration plantedEscapedTarget is `@[implemented_by]`
+PASS planted V2-E6 an opaque with no body in the production tree rejected with the expected diagnostic: declaration plantedBodylessOpaque is an `opaque` with no authored body
+PASS planted V2-E7 a parameterised opaque with no body in a new tooling module rejected with the expected diagnostic: declaration plantedParameterisedOpaque is an `opaque` with no authored body
+PASS planted V2-T01 native_decide inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `native_decide` trust token
+PASS planted V2-T02 bv_decide inside an example in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `bv_decide` trust token
+PASS planted V2-T03 bv_decide? inside a tactic quotation in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `bv_decide?` trust token
+PASS planted V2-T04 bv_check inside a tactic quotation in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `bv_check` trust token
+PASS planted V2-T05 decide +native inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `native` trust token
+PASS planted V2-T06 decide (native := true) inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `native` trust token
+PASS planted V2-T07 sorry inside an example with warningAsError switched off rejected with the expected diagnostic: Whatwg.lean contains an authored `sorry` trust token
+PASS planted V2-T08 axiom inside a command quotation in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `axiom` trust token
+PASS planted V2-T09 extern inside a command quotation in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `extern` trust token
+PASS planted V2-T10 implemented_by inside a command quotation in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `implemented_by` trust token
+PASS planted V2-T11 debug.skipKernelTC on a theorem in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `debug.skipKernelTC` trust token
+PASS planted V2-T12 the escaped spelling of debug.skipKernelTC in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `debug.skipKernelTC` trust token
+PASS planted V2-T13 the qualified spelling Lean.ofReduceBool in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.ofReduceBool` trust token
+PASS planted V2-T14 the short spelling ofReduceNat under open Lean in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.ofReduceNat` trust token
+PASS planted V2-T15 the spelling _root_.Lean.trustCompiler in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.trustCompiler` trust token
+PASS planted V2-T16 native_decide inside an example in a new tooling module rejected with the expected diagnostic: TrustSelfTestToolingPlant.lean contains an authored `native_decide` trust token
+PASS planted V2-T17 native_decide inside an example in an entry point under bin/ rejected with the expected diagnostic: Citations.lean contains an authored `native_decide` trust token
+PASS planted V2-S1 a theorem reaching Classical.choice in a new module under Whatwg.Ecma262 rejected with the expected diagnostic: declaration TrustSelfTestPlant.plantedChoice reaches Classical.choice under the strict ceiling of Whatwg.Ecma262
+PASS planted V2-S3 a strict-ceiling exception naming no declaration rejected with the expected diagnostic: strict-ceiling exception names missing declaration TrustSelfTestPlant.plantedMissing
+PASS planted V2-S4 a strict-ceiling exception naming a declaration that reaches no Classical.choice rejected with the expected diagnostic: stale strict-ceiling exception for TrustSelfTestPlant.plantedChoiceFree; it does not reach Classical.choice
+PASS planted V2-S5 a strict-ceiling exception naming a declaration under no strict prefix rejected with the expected diagnostic: stale strict-ceiling exception for TrustSelfTestPlant.plantedChoice; its module WhatwgTest.TrustSelfTestPlant is under no strict prefix
+PASS planted V2-S6 a strict-ceiling exception whose reason is blank rejected with the expected diagnostic: strict-ceiling exception for TrustSelfTestPlant.plantedChoice carries no reason
+PASS planted V2-X1 a source-token exemption for a module that names no refused token rejected with the expected diagnostic: stale source-token exemption for WhatwgTest.TrustSelfTestPlant; its source contains no refused token
+PASS planted V2-X2 a source-token exemption naming no module rejected with the expected diagnostic: source-token exemption names missing module WhatwgTest.TrustSelfTestPlantMissing
+PASS planted V2b-T01 sorryAx inside an example whose messages #guard_msgs drops, in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `sorryAx` trust token
+PASS planted V2b-T02 the spelling _root_.sorryAx in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `sorryAx` trust token
+PASS planted V2b-T03 the admit tactic inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `admit` trust token
+PASS planted V2b-T04 the impossible tactic inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `impossible` trust token
+PASS planted V2b-T05 apply? inside an example in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `apply?` trust token
+PASS planted V2b-T06 try? inside an example in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `try?` trust token
+PASS planted V2b-T07 grind? inside an example in a new tooling module rejected with the expected diagnostic: TrustSelfTestToolingPlant.lean contains an authored `grind?` trust token
+PASS planted V2b-T08 debug.byAsSorry on an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `debug.byAsSorry` trust token
+PASS planted V2b-T09 debug.terminalTacticsAsSorry on an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `debug.terminalTacticsAsSorry` trust token
+PASS planted V2b-T10 warn.sorry on an example closed by an elaborator in a new test module rejected with the expected diagnostic: TrustSelfTestPlant.lean contains an authored `warn.sorry` trust token
+PASS planted V2b-T11 warningAsError switched off for an example closed by grind +trace in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `warningAsError` trust token
+PASS planted V2b-T12 the qualified spelling Lean.reduceBool inside an example in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.reduceBool` trust token
+PASS planted V2b-T13 the short spelling reduceNat under open Lean in the production tree rejected with the expected diagnostic: Whatwg.lean contains an authored `Lean.reduceNat` trust token
+FAIL trust gate unexpectedly accepted V2c-M01 a declaring metaprogramming keyword (notation) in the production tree
+FAIL trust gate unexpectedly accepted V2c-M02 a running metaprogramming keyword (run_cmd) in a new test module
+FAIL trust gate unexpectedly accepted V2c-M03 a macro_rules that replaces the gate command, in a new test module
+FAIL trust gate unexpectedly accepted V2c-E01 an elaborator registered through @[command_elab], a token no source spells
+FAIL trust gate unexpectedly accepted V2c-B1 a shadow token (native_decide hiding the word native_decide from the gate
+FAIL trust gate unexpectedly accepted V2c-T1 a token that cuts a refused word short ((nat begins native)
+FAIL trust gate unexpectedly accepted V2c-T2 a token that hides a comment opener (rvV2cTok/-)
+FAIL trust gate unexpectedly accepted V2c-T3 a token that hides a whole refused word (+native)
+FAIL trust gate unexpectedly accepted V2c-C1 the native flag through a config anonymous constructor in the production tree
+FAIL trust gate unexpectedly accepted V2c-C2 the native config through a { v with } record update in a new test module
+FAIL trust gate unexpectedly accepted V2c-C3 the escaped key «config» in the production tree
+FAIL trust gate unexpectedly accepted V2c-R1 a false axiom and theorem in the root, before the gate command
+FAIL trust gate unexpectedly accepted V2c-R2 a declaration after the gate command in the root
+FAIL could not plant V2c-L1 a metaprogramming-module entry naming no module: <probe>\WhatwgTest\Audit\AxiomGate.lean: the anchor line `-- trust-selftest: metaprogramming-module entries are inserted below this line` occurs 0 time(s); exactly one is required
+FAIL could not plant V2c-L2 a metaprogramming-module entry whose module declares no metaprogramming: <probe>\WhatwgTest\Audit\AxiomGate.lean: the anchor line `-- trust-selftest: metaprogramming-module entries are inserted below this line` occurs 0 time(s); exactly one is required
+FAIL could not plant V2c-L3 a metaprogramming-module entry whose reason is blank: <probe>\WhatwgTest\Audit\AxiomGate.lean: the anchor line `-- trust-selftest: metaprogramming-module entries are inserted below this line` occurs 0 time(s); exactly one is required
+PASS planted unreachable test module rejected with the expected diagnostic: is not reachable from the WhatwgTest audit root
+PASS trust gate accepted the restored source tree
+PASS V2-N1 the axiom gate run narrowly as `lake env lean WhatwgTest.lean`: exit code 0 and a line matching each of [Whatwg module and axiom gate: checked <n> source files and <n> declarations; Classical.choice is reached by <n> of <n> declarations in Whatwg, <n> of <n> in WhatwgTest and <n> of <n> in WhatwgGates; strict ceiling propext and Quot.sound over <n> module prefix(es) with <n> exact exception(s); <n> source-token exemption(s)]
+PASS V2-N2 the spec coverage gate run narrowly by its relative file name: exit code 0 and a line matching each of [Whatwg spec coverage gate: <n> frozen rows agree with ]
+FAIL trust self-test
+```
+
+A first run of this freeze reported V2c-M02 `rejected ... for an unexpected
+reason`: its fixture's `run_cmd` needed `import Lean.Elab.Command`, so the module
+did not build at the base. The fixture was repaired, not the expectation. The
+seat then added V2c.5's post-command requirement and its diagnostic as a third
+admitted fragment of V2c-M03, a string that cannot change any row's outcome at
+the base, and ran the self-test again on the final harness: the listing above is
+that run, byte-identical to the run before the edit apart from its time. Every
+V2c rejection row fails only because the base gate lacks rules 1 through 5 or
+the metaprogramming anchor.
+`lake exe whatwg_citations` and `lake exe whatwg_vendorseal` pass at the freeze.

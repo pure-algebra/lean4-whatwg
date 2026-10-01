@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2c-T2: a token that hides a comment
+-- opener. The atom `rvV2cTok/-` contains `/-`, so a reader stripping comments
+-- would mis-parse a source that used it, and it also ends in `-`. Rule 2 of
+-- addendum V2c refuses it as non-inert.
+syntax "rvV2cTok/-" : term

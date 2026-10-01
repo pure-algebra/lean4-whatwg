@@ -1,0 +1,8 @@
+-- Planted by the trust self-test, plant V2c-M03: a `macro_rules` for the gate
+-- command. At the base it replaces the gate with `#check 1`, so no pass runs
+-- (build exit 0, no summary line) -- the gate-replacement hole of ruling R-V10.
+-- Rule 1 of addendum V2c refuses `macro_rules` outside the metaprogramming list,
+-- and the environment half refuses the macro it registers.
+import WhatwgTest.Audit.AxiomGate
+
+macro_rules | `(#whatwg_streams_axiom_gate) => `(#check 1)

@@ -1,0 +1,4 @@
+-- Planted by the trust self-test, plant V2c-A1: the one configuration shape the
+-- tree uses, `simp (config := { zetaDelta := true })`, which rule 3 of addendum
+-- V2c accepts (a literal brace group, no `with`, `)` after the closing brace).
+example (n : Nat) : n + 0 = n := by simp (config := { zetaDelta := true })

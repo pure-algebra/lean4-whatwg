@@ -112,6 +112,17 @@ the contract; the gate carries it exactly once. -/
 def tokenExemptionAnchor : String :=
   "-- trust-selftest: source-token exemption entries are inserted below this line"
 
+/-- The line of `WhatwgTest/Audit/AxiomGate.lean`, trimmed, after which a
+metaprogramming-module entry `⟨`Module, "reason"⟩ ::` is inserted (addendum
+V2c, rule 1). Frozen by the contract; the gate carries it exactly once. -/
+def metaprogrammingModuleAnchor : String :=
+  "-- trust-selftest: metaprogramming-module entries are inserted below this line"
+
+/-- The root's single gate command, before which `Placement.beforeRootGate`
+inserts a fixture (addendum V2c, rule 4). -/
+def rootGateCommand : String :=
+  "#whatwg_streams_axiom_gate"
+
 def copyTree (source destination : System.FilePath) : IO Unit := do
   for file in ← regularFilesBelow source do
     let relative ← relativeTo source file
@@ -208,6 +219,11 @@ inductive Placement where
   at elaboration time, Lake does not track that read (debt D49), and a cached
   build would otherwise replay the earlier verdict. -/
   | reelaborate
+  /-- Insert the fixture's lines immediately before the root's single
+  `#whatwg_streams_axiom_gate` line (addendum V2c, plant V2c-R1). The edit
+  fails, and so does its plant, when that line is absent or occurs more than
+  once. The target is the root `WhatwgTest.lean`. -/
+  | beforeRootGate
   deriving BEq
 
 /-- One edit of one probe file. -/
@@ -237,6 +253,19 @@ def insertAfterAnchor (text anchor planted : String) : Except String String :=
     let plantedLines := lines planted
     let joined := all.foldr
       (fun line rest => if trimmed line == anchor then line :: plantedLines ++ rest else line :: rest) []
+    .ok (String.intercalate "\n" joined ++ "\n")
+
+/-- `text` with `planted`'s lines inserted immediately before the one line whose
+trimmed text is `target`. Lines are rejoined with LF and a final LF. -/
+def insertBeforeLine (text target planted : String) : Except String String :=
+  let all := lines text
+  let hits := (all.filter fun line => trimmed line == target).length
+  if hits != 1 then
+    .error s!"the line `{target}` occurs {hits} time(s); exactly one is required"
+  else
+    let plantedLines := lines planted
+    let joined := all.foldr
+      (fun line rest => if trimmed line == target then plantedLines ++ (line :: rest) else line :: rest) []
     .ok (String.intercalate "\n" joined ++ "\n")
 
 /-- The module a source file under the probe defines: its relative path with
@@ -271,6 +300,12 @@ def Edit.apply (root probe : System.FilePath) (edit : Edit) : IO Unit := do
     let original ← IO.FS.readBinFile path
     IO.FS.writeFile path
       (String.fromUTF8! original ++ "\n-- trust self-test: re-elaborate this module\n")
+  | .beforeRootGate =>
+    let original ← IO.FS.readFile path
+    let planted ← IO.FS.readFile (fixture root edit.fixtureName)
+    match insertBeforeLine original rootGateCommand planted with
+    | .ok text => IO.FS.writeFile path text
+    | .error message => throw <| IO.userError s!"{path}: {message}"
 
 /-- Make `edits` in order, run the block, and restore every file they wrote:
 rewrite its original bytes, or remove it when it did not exist. -/
@@ -371,6 +406,11 @@ def acceptancePlants : List Plant :=
   -- Addendum V2b of test/contracts/trust-gate-hardening.contract.md (ruling R-V6).
   ++ [{ label := "V2b-A1 the added trust words in comments, documentation, strings and name literals, identifiers that only contain them, a local named stop, an ordinary set_option, and #guard_msgs around #check_failure",
         fixtureName := "benign-trust-tokens-v2b.lean.txt", target := productionRoot, expected := [] }]
+  -- Addendum V2c of test/contracts/trust-gate-hardening.contract.md (ruling R-V10).
+  ++ [{ label := "V2c-A1 the one configuration shape the tree uses, simp (config := { zetaDelta := true })",
+        fixtureName := "v2c-config-control.lean.txt", target := productionRoot, expected := [] },
+      { label := "V2c-A2 the new keywords and the identifier config in comments, strings, longer identifiers and an ordinary parameter",
+        fixtureName := "v2c-benign.lean.txt", target := productionRoot, expected := [] }]
 
 /-- Under the package-wide `warningAsError = true` (ruling R-6 in
 `docs/SHA256-DAG.md`), Lean's own "declaration uses `sorry`" warning is
@@ -565,6 +605,83 @@ def rejectionPlants : List Plant :=
       { label := "V2b-T13 the short spelling reduceNat under open Lean in the production tree",
         fixtureName := "token-reduce-nat.lean.txt", target := productionRoot,
         expected := ["Whatwg.lean contains an authored `Lean.reduceNat` trust token"] }]
+  -- Addendum V2c of test/contracts/trust-gate-hardening.contract.md (ruling R-V10):
+  -- the metaprogramming-module rule (1), token-table hygiene (2), the
+  -- configuration shape (3), the root (4), and reverse closure (5). Rows that
+  -- name two fragments do so where two layers each reject the plant for a stated
+  -- reason and the frozen pass order leaves either able to fire first.
+  ++ [{ label := "V2c-M01 a declaring metaprogramming keyword (notation) in the production tree",
+        fixtureName := "v2c-meta-notation-prod.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains an authored `notation` metaprogramming keyword",
+                     "module Whatwg registers a"] },
+      { label := "V2c-M02 a running metaprogramming keyword (run_cmd) in a new test module",
+        fixtureName := "v2c-meta-run-cmd-test.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestPlant.lean contains an authored `run_cmd` metaprogramming keyword"] },
+      { label := "V2c-M03 a macro_rules that replaces the gate command, in a new test module",
+        fixtureName := "v2c-meta-gate-macro-rules.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestPlant.lean contains an authored `macro_rules` metaprogramming keyword",
+                     "registers a macro but is not a listed metaprogramming module",
+                     "the gate command of WhatwgTest.lean did not run the gate"] },
+      { label := "V2c-E01 an elaborator registered through @[command_elab], a token no source spells",
+        fixtureName := "v2c-meta-attr-command-elab.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["registers an elaborator but is not a listed metaprogramming module"] },
+      { label := "V2c-B1 a shadow token (native_decide hiding the word native_decide from the gate",
+        fixtureName := "v2c-token-shadow-decl.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        alsoEdits := [{ target := strictPlantModule, fixtureName := "v2c-token-shadow-use.lean.txt",
+                        placement := .newModule }],
+        expected := ["token `(native_decide` of the final token table is not inert",
+                     "TrustSelfTestPlant.lean contains an authored `syntax` metaprogramming keyword"] },
+      { label := "V2c-T1 a token that cuts a refused word short ((nat begins native)",
+        fixtureName := "v2c-token-cut-word.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["token `(nat` of the final token table is not inert"] },
+      { label := "V2c-T2 a token that hides a comment opener (rvV2cTok/-)",
+        fixtureName := "v2c-token-comment-opener.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["of the final token table is not inert"] },
+      { label := "V2c-T3 a token that hides a whole refused word (+native)",
+        fixtureName := "v2c-token-hidden-native.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["token `+native` of the final token table is not inert"] },
+      { label := "V2c-C1 the native flag through a config anonymous constructor in the production tree",
+        fixtureName := "v2c-config-anon-ctor.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains a non-literal `config` option"] },
+      { label := "V2c-C2 the native config through a { v with } record update in a new test module",
+        fixtureName := "v2c-config-with.lean.txt", target := testPlantModule,
+        placement := .newModule,
+        expected := ["TrustSelfTestPlant.lean contains a non-literal `config` option"] },
+      { label := "V2c-C3 the escaped key «config» in the production tree",
+        fixtureName := "v2c-config-escaped-key.lean.txt", target := productionRoot,
+        expected := ["Whatwg.lean contains a non-literal `config` option"] },
+      { label := "V2c-R1 a false axiom and theorem in the root, before the gate command",
+        fixtureName := "v2c-root-before-gate.lean.txt", target := testRoot,
+        placement := .beforeRootGate,
+        expected := ["the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate",
+                     "the root module WhatwgTest has declared a constant when the gate runs"] },
+      { label := "V2c-R2 a declaration after the gate command in the root",
+        fixtureName := "v2c-root-after-gate.lean.txt", target := testRoot,
+        expected := ["#whatwg_streams_axiom_gate is not the last command of the root",
+                     "the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate"] },
+      { label := "V2c-L1 a metaprogramming-module entry naming no module",
+        fixtureName := "v2c-meta-module-missing.lean.txt", target := auditSource,
+        placement := .afterAnchor metaprogrammingModuleAnchor,
+        expected := ["metaprogramming-module entry names missing module WhatwgTest.TrustSelfTestPlantMissing"] },
+      { label := "V2c-L2 a metaprogramming-module entry whose module declares no metaprogramming",
+        fixtureName := "v2c-meta-module-stale.lean.txt", target := auditSource,
+        placement := .afterAnchor metaprogrammingModuleAnchor,
+        alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
+                        placement := .newModule }],
+        expected := ["stale metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant; its source declares no syntax, macro or elaborator and registers nothing"] },
+      { label := "V2c-L3 a metaprogramming-module entry whose reason is blank",
+        fixtureName := "v2c-meta-module-blank.lean.txt", target := auditSource,
+        placement := .afterAnchor metaprogrammingModuleAnchor,
+        alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
+                        placement := .newModule }],
+        expected := ["metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant carries no reason"] }]
 
 /-- One narrow run: `lake env lean <file>` in the probe root, with `file`
 spelled as a person types it there, relative and without a leading `./`. -/

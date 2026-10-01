@@ -1,0 +1,5 @@
+-- Planted by the trust self-test, plant V2c-T3: a token that hides a whole
+-- refused word. `+native` tokenizes as one atom, so `decide +native` would read
+-- as `decide` then `+native`, never the word `native`. The identifier `native`
+-- starts after the `+`; rule 2 of addendum V2c refuses the non-inert table token.
+syntax "+native" : term

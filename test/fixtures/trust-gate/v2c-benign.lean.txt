@@ -1,0 +1,9 @@
+-- Planted by the trust self-test, plant V2c-A2: addendum V2c's new keywords and
+-- the identifier `config` appear only where the rules do not refuse them: in
+-- comments, in string literals, as components of longer identifiers, and as an
+-- ordinary parameter named `config` introduced with `:` rather than `:=`.
+-- Comment prose: syntax macro macro_rules elab notation run_cmd initialize config.
+/-- Doc comment: notation, run_cmd and command_elab are plain words here. -/
+def rvV2cElaborate (config : Nat) : Nat := config + 1
+def rvV2cNotationTable : List String := ["notation", "macro_rules", "run_cmd", "config := x"]
+def rvV2cRunCommandLog : Nat := rvV2cElaborate 0
