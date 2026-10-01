@@ -1,10 +1,10 @@
 /-
 GENERATED FILE. Do not edit.
 
-Written by `lake exe census --standard webidl --write` (`Gates.Census`) from the pinned
+Written by `lake exe whatwg_census --standard webidl --write` (`Gates.Census`) from the pinned
 `vendor/whatwg-webidl-a652053f/index.bs` (SHA-256 `3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83`), the census projection
 `generated/webidl-census.tsv`, and the authored disposition inputs under `census/webidl/`.
-Format version 1. `lake exe census --standard webidl` fails on any byte of drift.
+Format version 1. `lake exe whatwg_census --standard webidl` fails on any byte of drift.
 
 This is an all-absent census scaffold, not a checked coverage numerator.
 One entry per census row carries its id and joined disposition, with no

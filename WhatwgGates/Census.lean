@@ -596,8 +596,8 @@ def Standard.dependenciesRelativePath (s : Standard) : String := s.authoredDir +
 def Standard.externalsRelativePath (s : Standard) : String := s.authoredDir ++ "/externals.tsv"
 
 def Standard.regenerateCommand (s : Standard) : String :=
-  if s.key == "streams" then "lake exe census --write"
-  else s!"lake exe census --standard {s.key} --write"
+  if s.key == "streams" then "lake exe whatwg_census --write" -- R-V7, 2026-10-01
+  else s!"lake exe whatwg_census --standard {s.key} --write" -- R-V7, 2026-10-01
 
 def inputRelativePath : String := streams.inputRelativePath
 

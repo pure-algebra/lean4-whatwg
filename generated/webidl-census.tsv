@@ -1,4 +1,4 @@
-#census format=1 generator=Gates.Census input=vendor/whatwg-webidl-a652053f/index.bs input-sha256=3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83 rows=124 regenerate=lake exe census --standard webidl --write
+#census format=1 generator=Gates.Census input=vendor/whatwg-webidl-a652053f/index.bs input-sha256=3c401f1eade4b56fc674e9bb86344d452f8854433bc48f0e28e354280d43dc83 rows=124 regenerate=lake exe whatwg_census --standard webidl --write
 idl|idl.dom-exception|[Exposed=*,\n Serializabl|673588|673639|4e9332bb7e47cf957a9ff8fcfeb1fdd42d6a8a93b2b9227765d29e6c1f7f2e9e|[Exposed=*, Serializable] interface DOMException {
 idl|idl.domexception-abort-err|const unsigned short ABO|674776|674812|180a37fcd9ce24e6d0f515e38b8b3987ceed6d97e26869a3cb2212c1ac75f172|const unsigned short ABORT_ERR = 20;
 idl|idl.domexception-code|readonly attribute unsigned short code;\n\n  const|673849|673888|19315c8e4e4c657557461099d25f86f0a7ec9650d040b40d3b4581ae36d2739d|readonly attribute unsigned short code;

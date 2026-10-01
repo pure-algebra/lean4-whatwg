@@ -64,8 +64,8 @@ lake exe whatwg_census --standard ecma262 --report # the ES2026 coverage block, 
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
 
-`lake exe whatwg_trustselftest` (not a default target, and not a CI step at this
-commit) plants known violations in a throwaway copy and checks that the axiom
+`lake exe whatwg_trustselftest` (not a default target; a CI step since ruling
+R-V2, after the full build) plants known violations in a throwaway copy and checks that the axiom
 gate rejects each; run it after changing the gate itself. The WP-7 rename-parity receipt was
 retired on 2026-09-03: it had proved what it was written to prove.
 

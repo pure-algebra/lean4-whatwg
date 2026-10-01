@@ -94,7 +94,7 @@ private def entryPointRelativePath : String := "whatwgbin/Census.lean" -- R-V3(c
 
 private def coverageDocRelativePath : String := "docs/SPEC-COVERAGE.md"
 
-private def regenerateCommand : String := "lake exe census --standard ecma262 --write"
+private def regenerateCommand : String := "lake exe whatwg_census --standard ecma262 --write" -- R-V7, 2026-10-01
 
 private def expectedRowTotal : Nat := 77
 
@@ -105,7 +105,7 @@ either. -/
 private def expectedHeader : String :=
   "#census format=1 generator=Gates.Census input=vendor/ecma262-0248456c/spec.html " ++
   "input-sha256=ce7bc30174061fd8d212270b81cf6511661180c1e174f6911d10ced0581527b0 " ++
-  "rows=77 regenerate=lake exe census --standard ecma262 --write"
+  "rows=77 regenerate=lake exe whatwg_census --standard ecma262 --write" -- R-V7, 2026-10-01
 
 private def expectedKindCounts : List (String × Nat) :=
   [("builtin", 13), ("clause", 8), ("field", 8), ("hook", 6), ("op", 16),

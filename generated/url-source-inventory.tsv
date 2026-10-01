@@ -1,4 +1,4 @@
-#url-source-inventory format=1 generator=Gates.UrlInventory input=vendor/whatwg-url-55d66993/url.bs input-sha256=a5aa827f544f9077912dc1553cfd9025b6afa4e996460074b5f67d83e0f3c805 tokens=17501 tags=9159 candidates=1473 regenerate=lake exe urlinventory --write
+#url-source-inventory format=1 generator=Gates.UrlInventory input=vendor/whatwg-url-55d66993/url.bs input-sha256=a5aa827f544f9077912dc1553cfd9025b6afa4e996460074b5f67d83e0f3c805 tokens=17501 tags=9159 candidates=1473 regenerate=lake exe whatwg_urlinventory --write
 #ordinal	kind	byte-start	byte-end	span-sha256	label	section
 1	heading	790	826	4921d625c6edbb21341b68710b96df134b4ec51d96edd1cd90b365184842ffaf	Goals	goals
 2	prose	828	919	d9684d73747cb1baedc3f0542364fca7738e422e0b9fa4fb859955ef93e2f008	The URL standard takes the following approach towards making URLs fully interoperable:	goals
