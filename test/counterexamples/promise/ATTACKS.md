@@ -187,3 +187,51 @@ against an uncommitted prototype in the breaker's worktree, with the axiom
 gate over six strict prefixes and no exception; after the prototype's removal
 each battery is red only because the names it ascribes do not exist (the
 contract's §§14 and 19). No host was run and no WPT case was replayed.
+
+## Q5b agent addendum, 2026-10-01, branch `review/w9-q5b-breaker`
+
+Appended by the Q5b breaker seat of review lane W, based on `5999363`, under
+ruling R-W16 (debts D62 and D65). Packet:
+`test/contracts/promise-agent-q5.contract.md`, section "Addendum Q5b". Graph:
+`docs/PROMISE-AGENT-DAG.md`. The forty-seven rows above are frozen and
+unchanged; these nine are new. Their register entries are added in
+`test/counterexamples/REGISTER.md` at the same commit, as `SEEDED`.
+
+Rows `WS-PROM-CE-048` to `054` attack the landed invariant `Agent.WF` *as
+built*: each witness is a hand-built agent that satisfies all fourteen `WF`
+clauses, shown clause by clause, and that no run from `Agent.empty` reaches
+(the B2 builder found the first ones; debts D62 and D65). Rows `055` and `056`
+attack the landed post of `startJob` and the landed order `Le`. The rejecting
+statements live in `WhatwgTest/Ecma262/AgentInvariantContract.lean` (slice B5)
+beside the witnesses, closed by `rfl` or `decide`; no separate witness module
+is written. Masks are DB-04's.
+
+Byte offsets are 0-based, ends exclusive, into
+`vendor/ecma262-0248456c/spec.html`. No line number is cited.
+
+| ID | Mutant | Rejecting statement |
+| --- | --- | --- |
+| WS-PROM-CE-048 | **The landed `WF` admits it.** Promise `0` is rejected with `5`, its trace entry is there, and its one stored function record is unfired. `resolve` through it fires the function and leaves the promise rejected, so a post "fulfilled with `v`" fails at a well-formed agent, and the landed post of `resolve` can only say "settled" | `op.createresolvingfunctions` (2692679..2695411): only the promise's own functions settle it, and they set the shared marker first. `Whatwg.Ecma262.Agent.Coherent.unfiredPending` (slice B5), kept inductive by `functionPromisesNodup`; the second judgment's `postFrom_resolve` with `resolve_implementsFrom` (DB-04 M2). Witness: `ceA`, `ceA_wf`, and the harm by `rfl` |
+| WS-PROM-CE-049 | **The landed `WF` admits it.** Promise `0` is fulfilled and its function fired, and the settlement trace is empty: the trace no longer records every settlement (the other half of debt D20) | `op.fulfillpromise` (2695419..2696230) and `op.rejectpromise` (2699323..2700252) through `Table.settleTraced`. `Coherent.settledTraced` (DB-04 M1). Witness: `ceB`, `ceB_wf` |
+| WS-PROM-CE-050 | **The landed `WF` admits it.** A reaction pair waits on the fulfilled promise `0`; the promise's only function has fired, so no operation can queue the reaction's job | FULFILL and REJECT steps 2 to 5, with `op.triggerpromisereactions` (2700260..2701212): settling takes the waiting list and clears both. `Coherent.waitingPending` (DB-04 M1). Witness: `ceC`, `ceC_wf`, and `resolve` inert by `rfl` |
+| WS-PROM-CE-051 | **The landed `WF` admits it.** Job `⟨0, .ok ()⟩` runs at activation `job 0` and no reaction record has identity `0`, so `finishJob` takes its unknown-record branch and settles nothing; the landed post of `finishJob` covers only the activation | `op.newpromisereactionjob` (2702885..2705591) step 1: a job captures its reaction. `Coherent.jobsTyped` (its running half); `postFrom_finishJob` with `finishJob_implementsFrom` (DB-04 M2). Witness: `ceD`, `ceD_wf`, and `finishJob` by `rfl` |
+| WS-PROM-CE-052 | **The landed `WF` admits it.** A `.done` reaction pair names promise `0`, which is not allocated; `newPromise` then allocates `0`, and a reaction names the new promise, against the new and empty reaction lists of the Promise constructor. Its twin `ceE'`, with the pair waiting, has the stray job queued when the new promise resolves | `builtin.promise-executor` (2708413..2711495), whose steps set both reaction lists to a new empty List, reached through `op.newpromisecapability`. `Coherent.reactionsAllocated`; `postFrom_newPromise` with `newPromise_implementsFrom` (DB-04 M2). Witness: `ceE`, `ceE_wf`, and the two harms by `decide` and `rfl` |
+| WS-PROM-CE-053 | **The landed `WF` admits it.** A held record of `[[Type]]` `~fulfill~` with an empty handler, and its queued job carries a rejection. REACTJOB inner step 4.a reads `[[Type]]` and yields `NormalCompletion(argument)`; the model's `reactionHandlerResult` reads the argument's tag and yields the rejection (debt D62) | `op.newpromisereactionjob` inner step 4 and `field.promisereaction-records.Type` (2691815..2692138). `Coherent.jobsTyped`, kept inductive by `listKinds` (DB-04 M1). Witness: `ceF`, `ceF_wf`, and the divergent result by `rfl` |
+| WS-PROM-CE-054 | **The landed `WF` admits it.** The job's tag and its record's `[[Type]]` agree, and the job carries the reason `6` where the record's promise was rejected with `5`: the job does not carry what TRIGGER passed | `op.triggerpromisereactions`: the argument of every job is the settled promise's result. `Coherent.jobsTyped` (DB-04 M1). Witness: `ceF'`, `ceF'_wf` |
+| WS-PROM-CE-055 | A `startJob` that answers the second queued job and leaves the first: **the landed post of `startJob` admits it**, since it says only that the answered job is the running one | `requirement.hostenqueuepromisejob.3` (634739..634841) and `requirement.jobs.1` (625769..626250). `postFrom_startJob` with `startJob_implementsFrom` (DB-04 M2): the answer is the head and the queue loses exactly it. Witness: `ceI` and `ceIAnswer`, where `post_startJob` holds and `postFrom_startJob` refutes them |
+| WS-PROM-CE-056 | A later agent that clears a fired one-shot marker: **the landed order `Le` admits it**, since `Le.minted` keeps only the record's three identities | `op.createresolvingfunctions`: the marker is set and never reset. `Extends.markerKept`, with `Extends.heldGrows` for `held` (DB-04 M2). Witness: `fired` and `cleared`, `Le fired cleared` built clause by clause and `Extends fired cleared` refuted by `decide` |
+
+Two attacks this addendum still deliberately does **not** discriminate, as
+the Q5 section: thenable adoption (`G-05`,
+`op.newpromiseresolvethenablejob`, 2705599..2707541), which would make a fired
+function leave its promise pending and would weaken the posts of `resolve`
+and `finishJob` (the contract's Q5b.11); and a rejection tracker reading the
+handled bit (`G-02`, `hook.host-promise-rejection-tracker`,
+2701220..2702791), which would report the abrupt result
+`finishJob_abrupt_dropped` drops.
+
+Verification: the nine rows' statements and witnesses elaborated, with no
+error, against an uncommitted scratch prototype compiled as one file with the
+battery (the contract's Q5b.12); after the prototype's removal the battery is
+red only because the names it ascribes do not exist (Q5b.15). No host was run
+and no WPT case was replayed.

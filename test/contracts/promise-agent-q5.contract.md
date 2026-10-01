@@ -852,3 +852,674 @@ lines are the builders' to remove, one per slice.
 This breaker edited no file under `Whatwg/`, no existing battery or
 contract, and not `WhatwgTest.lean`, `COORDINATION.md`, `PLAN.md`, any
 `AGENTS.md` or `lakefile.toml`.
+
+## Addendum Q5b: what `WF` and the posts leave unsaid
+
+Status: FROZEN / RED, Q5b breaker seat of review lane W, 2026-10-01, branch
+`review/w9-q5b-breaker` from `5999363` (`main`: `Ledger: PROMISE-PG-FIRST
+acknowledges R-W16, which names it and changes no edge`). Opened by ruling
+R-W16 for debts D62 and D65. Rulings: R-W1(b) and R-W9 (additive; a law is
+frozen only once proved in scratch or probed, and this addendum says which),
+R-W3, R-W13 and R-W16.
+
+This addendum is breaker-owned under the rules of this packet's preamble. It
+is appended: no line above it changes. The Lean batteries are the authority on
+names and propositions; the Lean here is a reading aid. Sections are numbered
+Q5b.1 to Q5b.16.
+
+### Q5b.1 Claim boundary
+
+Additive (R-W1(b), R-W9). No frozen ascription, battery, statement or
+definition body of Q5 changes: `WF`, `Minted`, `Le`, `Cert`, `pre`, `post`,
+`Implements`, every Q5 law and every Q5 battery keep their text. Beside them
+the addendum freezes a stronger invariant `Agent.Coherent`, which extends
+`Agent.WF`; a stronger order `Agent.Extends`, which extends `Agent.Le`; a
+two-state post `Agent.postFrom` and a second adequacy judgment
+`Agent.ImplementsFrom` over the Q5 `pre`; the laws of the reaction job's two
+completions; the reachability corollary; and the face law
+`interpret_sumHandler_inr`.
+
+It grants no coverage state, no host observation, no equivalence with any
+engine and no claim about `Whatwg.Streams`. Every census row cited here
+anchors a declaration and is never a numerator. Masks follow this packet's
+§1 and §12; no Lean declaration is named `m1` or `m2`.
+
+The gaps, by the letters of the coordinator's brief (debts D62 and D65):
+
+| Gap | What `WF` and the Q5 posts leave unsaid | Answered by |
+| --- | --- | --- |
+| A | an unfired resolving function's promise is pending (only the converse, `resolvedSettled`, is stated), so the posts of `resolve` and `reject` say "settled" and not "fulfilled with `v`" or "rejected with `r`" | `Coherent.unfiredPending`, kept inductive by `Coherent.functionPromisesNodup`; `postFrom` of `resolve` and `reject` |
+| B | every settled cell is in the settlement trace | `Coherent.settledTraced` |
+| C | a waiting reaction waits on a pending promise | `Coherent.waitingPending` |
+| D | the running job names a reaction record, so `post_finishJob` cannot say the capability's promise is settled | `Coherent.jobsTyped` (its running half); `postFrom` of `finishJob` |
+| E | a registered or held reaction names an allocated promise | `Coherent.reactionsAllocated`; `postFrom` of `newPromise` |
+| F | a job's argument tag is its record's `[[Type]]` | `Coherent.jobsTyped`, kept inductive by `Coherent.listKinds` |
+| G | an abrupt result goes through the record the `[[Resolve]]` identity finds | `callFunctions_resolve_reject`, `finishJob_abrupt` (with `finishJob_normal`) |
+| H | REACTJOB's unchecked assertion: an abrupt result with `[[Capability]]` *undefined* is dropped | `finishJob_abrupt_dropped` |
+| I | `startJob` answers the head of the queue | `postFrom` of `startJob` |
+| J | a one-shot marker never clears, and `held` only grows | `Extends.markerKept`, `Extends.heldGrows` |
+| K | the face has `interpret_sumHandler_inl` and no `inr` twin | `Whatwg.Signatures.Ecma262.interpret_sumHandler_inr` |
+
+### Q5b.2 The stronger invariant `Agent.Coherent`
+
+`Agent.Coherent a : Prop`, in `Whatwg/Ecma262/AgentInvariant.lean`, namespace
+`Whatwg.Ecma262.Agent`, is a structure that `extends Agent.WF a` (projection
+`Coherent.toWF`, so `Coherent` implies `WF`) with seven clauses, each frozen by
+its projection in the B5 battery's §1. The name says what the clauses add to
+`WF`'s identity and reference coherence: the stores cohere with one another the
+way the specification's algorithms leave them. Clause numbers continue `WF`'s
+fourteen (§6).
+
+| # | Clause | Statement (reading aid) | Gap | Anchor |
+| ---: | --- | --- | --- | --- |
+| 15 | `functionPromisesNodup` | `(a.functions.map ResolvingFunctions.promise).Nodup` | keeps A inductive | NEWCAP with RESOLVING: one pair of resolving functions per promise |
+| 16 | `unfiredPending` | `∀ f ∈ a.functions, f.alreadyResolved = false → Table.isPending a.table f.promise = true` | A | RESOLVING: a promise leaves `~pending~` only through FULFILL or REJECT, which only its own functions reach, after setting the shared marker |
+| 17 | `settledTraced` | `(∀ p v, get p = some (.fulfilled v) → (p, .ok v) ∈ a.settlements) ∧ (∀ p r, get p = some (.rejected r) → (p, .error r) ∈ a.settlements)` | B | FULFILL, REJECT; with `WF.settlementsCoherent` the trace and the settled cells determine each other (the other half of D20) |
+| 18 | `waitingPending` | `∀ r ∈ fulfill ++ reject, r.phase = .waiting → get r.promise = some .pending` | C | FULFILL and REJECT steps 2 to 5: TRIGGER takes the list, and both lists are set to *undefined* |
+| 19 | `reactionsAllocated` | `∀ r ∈ fulfill ++ reject ++ held, (getCell r.promise).isSome = true` | E | `builtin.promise-executor` (2708413..2711495): a new promise's reaction lists are new and empty; THEN registers only on a promise |
+| 20 | `listKinds` | `(∀ r ∈ fulfill, r.kind = .fulfill) ∧ (∀ r ∈ reject, r.kind = .reject)` | keeps F inductive | THEN steps 7 to 9; `field.promisereaction-records.Type` (2691815..2692138) |
+| 21 | `jobsTyped` | `∀ j, (j ∈ a.queue.pending ∨ a.running = some j) → ∃ r, reactionOf a j = some r ∧ (∀ v, j.argument = .ok v → r.kind = .fulfill ∧ get r.promise = some (.fulfilled v)) ∧ (∀ e, j.argument = .error e → r.kind = .reject ∧ get r.promise = some (.rejected e))` | D, F | REACTJOB step 1 (the job captures the reaction and the argument); TRIGGER (the argument is the promise's result); `field.promisereaction-records.Type` |
+
+**Why two clauses no gap names.** `Coherent` must be inductive: kept by every
+operation from every agent it holds of, not only from reachable ones. Two
+clauses are there for that alone, and each was found by the obstruction it
+removes.
+
+- Without `functionPromisesNodup`, an agent with two unfired records for one
+  pending promise satisfies the other clauses. `resolve` through one of them
+  settles the promise and marks only that record (the pick selects by the
+  `[[Resolve]]` identity), and the other is left unfired on a settled promise:
+  `unfiredPending` is not kept. Every reachable agent has exactly one record per
+  allocated promise; the clause states the half the proof needs.
+- Without `listKinds`, an agent whose fulfil list holds a record of `[[Type]]`
+  `~reject~`, waiting on a pending promise, satisfies the other clauses.
+  Fulfilling that promise queues `⟨r.id, .ok v⟩`, and `reactionOf` finds the
+  `~reject~` record for it: `jobsTyped` is not kept.
+
+**`jobsTyped` says more than gap F asks.** Besides "the tag is the
+`[[Type]]`" it says the record's promise is settled with the job's argument,
+which is what TRIGGER passes and what REACTJOB step 1 captures. With it,
+`reactionOf`'s re-reading of the record by identity reads what step 1
+captured, so the docstring of `reactionOf` becomes a consequence of
+`Coherent`. It covers the running job as well as the queued ones, so it also
+answers gap D.
+
+**What `Coherent` is not.** It is an invariant, not a characterization of the
+reachable agents: an agent with one pending cell and no stored function
+satisfies it and no run reaches it. Facts true of every reachable agent and not
+stated: every allocated promise has exactly one stored function record; a held
+record's phase is `.queued` of its own identity. No post below needs them.
+
+Laws (B5 battery §2), all DB-04 M1: `Coherent.empty`; `Coherent.step`, for
+every operation, enabled or disabled; `Coherent.runOps`; and the reachability
+corollary `Coherent.reachable : ∀ ops, Coherent (runOps Agent.empty ops).1`,
+which is `Coherent.runOps` at `Coherent.empty`.
+
+### Q5b.3 The stronger order `Agent.Extends`
+
+`Agent.Extends a a' : Prop`, a structure that `extends Agent.Le a a'`
+(projection `Extends.toLe`, so `Extends` implies `Le`) with two clauses:
+
+| Clause | Statement | Gap |
+| --- | --- | --- |
+| `markerKept` | `∀ f ∈ a.functions, f.alreadyResolved = true → f ∈ a'.functions` | J: a fired record survives as it is, so its one-shot marker never clears |
+| `heldGrows` | `a.held <+: a'.held` | J: `held` only grows, at its end |
+
+`markerKept` names the record itself rather than a marker over `[[Resolve]]`
+identities: it is the stronger statement, and it needs no `WF`, because setting
+the marker of a fired record returns the record. Laws (B5 battery §3), all
+DB-04 M2 through `Le.trace` and `heldGrows`: `Extends.refl`, `Extends.trans`,
+and `Extends.step : WF a → Extends a (step a op).1` for every operation, the
+hypothesis as in `Le.step`.
+
+### Q5b.4 The two-state post and the second judgment
+
+`Agent.postFrom a a' op c ans : Prop` is the post of the second judgment. It
+reads the agent `a` the step starts from as well as the agent `a'` it answers
+at, because every fact the gaps ask for is relative to `a`: "the head of the
+queue", "the running job's capability" and "an unfired function" are facts of
+`a`, and at `a'` the job has left the queue, nothing runs and the function has
+fired. Each row begins with the Q5 post `post a' op c ans ∧`; `postFrom_post`
+states that the stronger post implies it, for every operation. The nine
+`postFrom_*` equations are `Iff.rfl` of the definition.
+
+| `op` | What `postFrom a a' op c ans` adds to `post a' op c ans` | Gap |
+| --- | --- | --- |
+| `newPromise` | `∀ r ∈ a'.reactions.fulfill ++ a'.reactions.reject ++ a'.held, r.promise ≠ ans.promise` | E |
+| `resolve cap v` | `∀ f ∈ a.functions, f.resolve = cap.resolve → f.alreadyResolved = false → get a'.table cap.promise = some (.fulfilled v)` | A |
+| `reject cap r` | `∀ f ∈ a.functions, f.reject = cap.reject → f.alreadyResolved = false → get a'.table cap.promise = some (.rejected r)` | A |
+| `perform`, `markHandled`, `enterScript`, `leaveScript` | nothing | — |
+| `startJob` | `∃ j rest, a.queue.pending = j :: rest ∧ a'.queue.pending = rest ∧ ans.map Prod.fst = some j` | I |
+| `finishJob d` | `∃ j r, a.running = some j ∧ reactionOf a j = some r ∧ (r.capability = none → a' = { a with active := .checkpoint, running := none }) ∧ ∀ cap, r.capability = some cap → ∀ f ∈ a.functions, f.resolve = cap.resolve → (f.alreadyResolved = true → a' = { a with active := .checkpoint, running := none }) ∧ (f.alreadyResolved = false → (∀ v, res = .ok v → get a'.table cap.promise = some (.fulfilled v)) ∧ (∀ e, res = .error e → get a'.table cap.promise = some (.rejected e)))`, where `res` is `reactionHandlerResult r j.argument d` | D (H in its first case) |
+
+`finishJob`'s row covers each case the model has: `[[Capability]]`
+*undefined* (nothing settles, whatever the result: gap H's departure), a
+capability whose function already fired (nothing settles: a program may
+settle a derived promise before its reaction job runs, and the job's call is
+then inert, as RESOLVING's step 1 says), and an unfired function (the promise
+is settled with the handler's result, `[[Reject]]` for an abrupt one by gap
+G's law).
+
+**Unfired and pending.** The posts of `resolve`, `reject` and `finishJob` are
+conditioned on the stored function being unfired, the hypothesis gap A is
+about. A consumer that knows the promise is pending reaches it through Q5's
+`WF.resolvedSettled` (a fired function's promise is not pending); one that
+knows the function is unfired learns the promise is pending through
+`Coherent.unfiredPending`. At a `WF` agent that is not `Coherent` the
+conditional fails (`WS-PROM-CE-048`).
+
+The judgment (B5 battery §5):
+
+```lean
+ImplementsFrom op ↔
+  ∀ (a : Agent value reason body) (c : Cert op), Coherent a → pre a op c →
+    Extends a (step a op).1 ∧ Coherent (step a op).1 ∧
+      postFrom a (step a op).1 op c (step a op).2
+```
+
+`ImplementsFrom_iff` fixes it; `newPromise_implementsFrom`,
+`resolve_implementsFrom cap v`, `reject_implementsFrom cap r`,
+`perform_implementsFrom p onF onR d`, `markHandled_implementsFrom p`,
+`startJob_implementsFrom`, `finishJob_implementsFrom d`,
+`enterScript_implementsFrom`, `leaveScript_implementsFrom` give one theorem per
+operation, the four whose post did not change included, and `implementsFrom`
+covers all nine. The middle conjunct of each is the operation's `Coherent`
+preservation; the pre is Q5's `pre`, unchanged, so a request is admitted
+exactly when Q5 admits it.
+
+Against lean4-effect4 as §7.5 reads it: `Coherent` plays `StoreTyped` and
+`Extends` plays `World.leHost`, as `WF` and `Le` do. There the post is a
+predicate of the answering world, and whatever it needs of the earlier world
+travels in the request's certificate; Q5's `Cert` is `Unit` and frozen, so the
+earlier agent is an argument of `postFrom` instead. That is the one change of
+shape, and it is recorded as a deviation (Q5b.13). Nothing here is a claim
+about that repository.
+
+### Q5b.5 The reaction job's two completions (gaps G and H)
+
+`op.newpromisereactionjob` (REACTJOB, 2702885..2705591, digest
+`3225cb2f3907ae48b448c01a862587e80cd5e8b795b8ad5d610df68b5f291a7b`) inner
+steps 6 to 9. B5 battery §6.
+
+| Law | Statement (reading aid) | Census row | Mask |
+| --- | --- | --- | --- |
+| `callFunctions_resolve_reject` | `WF a → Minted a cap → callFunctions a (·.resolve == cap.resolve) result = callFunctions a (·.reject == cap.reject) result` | `op.createresolvingfunctions`, `record.promisecapability-records` | DB-04 M2 |
+| `finishJob_abrupt` | `WF a → a.active = .job s → a.running = some job → reactionOf a job = some r → r.capability = some cap → reactionHandlerResult r job.argument d = .error e → finishJob a d = { reject a cap e with active := .checkpoint, running := none }` | `op.newpromisereactionjob` (inner step 8) | DB-04 M2 |
+| `finishJob_normal` | the same with `.ok v` and `resolve a cap v`, without `WF` | `op.newpromisereactionjob` (inner step 9) | DB-04 M2 |
+| `finishJob_abrupt_dropped` | `a.active = .job s → a.running = some job → reactionOf a job = some r → r.capability = none → reactionHandlerResult r job.argument d = .error e → finishJob a d = { a with active := .checkpoint, running := none }` | `op.newpromisereactionjob` (inner step 6) | DB-04 M1 |
+
+Gap G: `finishJob` finds the stored functions by the `[[Resolve]]` identity
+for both completions. Under `WF` (`functionsBelow`: `[[Reject]]` is
+`[[Resolve]] + 1`; `functionsNodup`) and for a minted capability the two picks
+select the same records, so the two `callFunctions` are equal, and an abrupt
+result is `Agent.reject` through the capability, as inner step 8 says.
+`finishJob_abrupt` needs no `Minted` hypothesis: `WF.capabilityStored` supplies
+it for the record `reactionOf` finds.
+
+Gap H: inner step 6.a asserts that the result is not abrupt when
+`[[Capability]]` is *undefined*; the model takes the host's decision unchecked
+(DB-02), so the case is representable, and the law says what the model does:
+nothing settles, nothing is traced and nothing is queued; the agent only
+returns to a checkpoint. The departure is now a theorem and no longer only a
+docstring. Where the model reaches it: a Web IDL reaction with `derive =
+false` (§5, `mintFor`) whose handler throws. The specification's REACT would
+reject a derived promise there; the model has none, and with the rejection
+tracker (`G-02`) out, nothing reports the drop.
+
+### Q5b.6 The face law (gap K)
+
+`Whatwg.Signatures.Ecma262.interpret_sumHandler_inr`, in
+`Whatwg/Signatures/Ecma262.lean` (B6 battery §1), the mirror of the landed
+`interpret_sumHandler_inl`: a consumer program `p : Effects.Program T α`,
+injected by `Effects.Program.inr (S := signature value reason body)`, is
+interpreted through `sumHandler view update other` exactly as through `other`
+alone. It is `Effects.interpret_inr (handlerAt view update) other p` stated at
+`sumHandler`, which `rw` cannot see through. No hypothesis on the lens is
+needed: the agent's half takes no step. DB-04 M2, as every face law. The
+battery's §2 runs a consumer program and a mixed program, consumer half first,
+through the summed handler by `rfl`.
+
+### Q5b.7 Declaration record
+
+Every new public declaration. Module B5 is `Whatwg/Ecma262/AgentInvariant.lean`
+(namespace `Whatwg.Ecma262.Agent`), B6 is `Whatwg/Signatures/Ecma262.lean`
+(namespace `Whatwg.Signatures.Ecma262`). Route G is an edge of
+`PROMISE-PG-AGENT`, named; no declaration here is on a leaf route. "—" means a
+model device with no census row. Validation (Val.) is Q5b.12's class; `pend.` marks a law not yet
+classified at this commit.
+
+| Declaration | Slice | Role | Anchor (census row) | Route | Mask | Gap | Val. |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `Coherent`, `Coherent.toWF` and its seven clause projections | B5 | invariant | the clause anchors of Q5b.2 | G construction | — | A to F | pend. |
+| `Coherent.empty`, `Coherent.step`, `Coherent.runOps`, `Coherent.reachable` | B5 | invariant laws | — | G construction, laws | M1 | A to F | pend. |
+| `Extends`, `Extends.toLe`, `Extends.markerKept`, `Extends.heldGrows` | B5 | adequacy: world order | `op.createresolvingfunctions` (the marker) | G laws | — | J | pend. |
+| `Extends.refl`, `Extends.trans`, `Extends.step` | B5 | adequacy laws | — | G laws | M2 | J | pend. |
+| `postFrom` | B5 | adequacy definition | the rows of §5 | G laws | — | A, D, E, I | pend. |
+| `postFrom_newPromise`, `_resolve`, `_reject`, `_perform`, `_markHandled`, `_finishJob`, `_enterScript`, `_leaveScript` (8) | B5 | defining equations | the rows of §5; `builtin.promise-executor` for `newPromise` | G laws | M1 | A, D, E | pend. |
+| `postFrom_startJob` | B5 | defining equation | `requirement.jobs.1`, `requirement.hostenqueuepromisejob.3` | G laws | M2 | I | pend. |
+| `postFrom_post` | B5 | adequacy law | — | G laws | M1 | — | pend. |
+| `ImplementsFrom`, `ImplementsFrom_iff` | B5 | adequacy definition and its equation | — | G laws | — (`_iff`: M2) | — | pend. |
+| `newPromise_implementsFrom` | B5 | adequacy law | NEWCAP, `builtin.promise-executor` | G laws | M2 | E | pend. |
+| `resolve_implementsFrom`, `reject_implementsFrom` | B5 | adequacy laws | RESOLVING, FULFILL, REJECT | G laws | M2 | A | pend. |
+| `perform_implementsFrom`, `markHandled_implementsFrom`, `enterScript_implementsFrom`, `leaveScript_implementsFrom` | B5 | adequacy laws | THEN; HANDLEDOP; RUNCOND | G laws | M2 | — | pend. |
+| `startJob_implementsFrom` | B5 | adequacy law | RUNCOND, ONEJOB, ORDER | G laws | M2 | I | pend. |
+| `finishJob_implementsFrom` | B5 | adequacy law | REACTJOB, COMPLETE | G laws | M2 | D | pend. |
+| `implementsFrom` | B5 | adequacy law | — | G laws | M2 | — | pend. |
+| `callFunctions_resolve_reject` | B5 | law | `op.createresolvingfunctions`, `record.promisecapability-records` | G laws, semantics | M2 | G | pend. |
+| `finishJob_abrupt`, `finishJob_normal` | B5 | laws | `op.newpromisereactionjob` | G laws, semantics | M2 | G | pend. |
+| `finishJob_abrupt_dropped` | B5 | law (a named departure) | `op.newpromisereactionjob` | G semantics, counterexamples | M1 | H | pend. |
+| `interpret_sumHandler_inr` | B6 | face law | — | G targets | M2 | K | pend. |
+
+The exact signature of every declaration is its battery ascription; this
+block is those ascriptions, extracted from the two batteries by script and
+pasted unchanged (prefix `Whatwg.Ecma262.Agent.` or
+`Whatwg.Signatures.Ecma262.` dropped):
+
+```lean
+Coherent :
+  ∀ {value reason body : Type}, Agent.Agent value reason body → Prop
+Coherent.toWF :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    Agent.WF a
+Coherent.functionPromisesNodup :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    (a.functions.map Promise.ResolvingFunctions.promise).Nodup
+Coherent.unfiredPending :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    ∀ f ∈ a.functions, f.alreadyResolved = false →
+      Promise.Table.isPending a.table f.promise = true
+Coherent.settledTraced :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    (∀ (p : Nat) (v : value),
+        Promise.Table.get a.table p = some (Promise.State.fulfilled v) →
+          (p, Except.ok v) ∈ a.settlements) ∧
+      (∀ (p : Nat) (r : reason),
+        Promise.Table.get a.table p = some (Promise.State.rejected r) →
+          (p, Except.error r) ∈ a.settlements)
+Coherent.waitingPending :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject,
+      r.phase = Promise.ReactionPhase.waiting →
+        Promise.Table.get a.table r.promise = some Promise.State.pending
+Coherent.reactionsAllocated :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject ++ a.held,
+      (a.table.getCell r.promise).isSome = true
+Coherent.listKinds :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    (∀ r ∈ a.reactions.fulfill, r.kind = Promise.ReactionType.fulfill) ∧
+      (∀ r ∈ a.reactions.reject, r.kind = Promise.ReactionType.reject)
+Coherent.jobsTyped :
+  ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
+    ∀ j : Agent.Job value reason, (j ∈ a.queue.pending ∨ a.running = some j) →
+      ∃ r : Promise.Reaction body, Agent.reactionOf a j = some r ∧
+        (∀ v : value, j.argument = Except.ok v →
+          r.kind = Promise.ReactionType.fulfill ∧
+            Promise.Table.get a.table r.promise = some (Promise.State.fulfilled v)) ∧
+        (∀ e : reason, j.argument = Except.error e →
+          r.kind = Promise.ReactionType.reject ∧
+            Promise.Table.get a.table r.promise = some (Promise.State.rejected e))
+Coherent.empty :
+  ∀ {value reason body : Type},
+    Agent.Coherent (Agent.empty : Agent.Agent value reason body)
+Coherent.step :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (op : Agent.Op value reason body),
+    Agent.Coherent a → Agent.Coherent (Agent.step a op).1
+Coherent.runOps :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (ops : List (Agent.Op value reason body)),
+    Agent.Coherent a → Agent.Coherent (Agent.runOps a ops).1
+Coherent.reachable :
+  ∀ {value reason body : Type} (ops : List (Agent.Op value reason body)),
+    Agent.Coherent (Agent.runOps (Agent.empty : Agent.Agent value reason body) ops).1
+Extends :
+  ∀ {value reason body : Type}, Agent.Agent value reason body →
+    Agent.Agent value reason body → Prop
+Extends.toLe :
+  ∀ {value reason body : Type} {a a' : Agent.Agent value reason body}, Agent.Extends a a' →
+    Agent.Le a a'
+Extends.markerKept :
+  ∀ {value reason body : Type} {a a' : Agent.Agent value reason body}, Agent.Extends a a' →
+    ∀ f ∈ a.functions, f.alreadyResolved = true → f ∈ a'.functions
+Extends.heldGrows :
+  ∀ {value reason body : Type} {a a' : Agent.Agent value reason body}, Agent.Extends a a' →
+    a.held <+: a'.held
+Extends.refl :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body), Agent.Extends a a
+Extends.trans :
+  ∀ {value reason body : Type} {a b c : Agent.Agent value reason body},
+    Agent.Extends a b → Agent.Extends b c → Agent.Extends a c
+Extends.step :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (op : Agent.Op value reason body),
+    Agent.WF a → Agent.Extends a (Agent.step a op).1
+postFrom :
+  ∀ {value reason body : Type}, Agent.Agent value reason body →
+    Agent.Agent value reason body → (op : Agent.Op value reason body) → Agent.Cert op →
+      Agent.Op.Answer op → Prop
+postFrom_newPromise :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (c : Agent.Cert (Agent.Op.newPromise : Agent.Op value reason body))
+    (cap : Promise.Capability),
+    Agent.postFrom a a' Agent.Op.newPromise c cap ↔
+      Agent.post a' Agent.Op.newPromise c cap ∧
+        ∀ r ∈ a'.reactions.fulfill ++ a'.reactions.reject ++ a'.held,
+          r.promise ≠ cap.promise
+postFrom_resolve :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (cap : Promise.Capability) (v : value)
+    (c : Agent.Cert (Agent.Op.resolve cap v : Agent.Op value reason body)) (ans : Unit),
+    Agent.postFrom a a' (Agent.Op.resolve cap v) c ans ↔
+      Agent.post a' (Agent.Op.resolve cap v) c ans ∧
+        ∀ f ∈ a.functions, f.resolve = cap.resolve → f.alreadyResolved = false →
+          Promise.Table.get a'.table cap.promise = some (Promise.State.fulfilled v)
+postFrom_reject :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (cap : Promise.Capability) (r : reason)
+    (c : Agent.Cert (Agent.Op.reject cap r : Agent.Op value reason body)) (ans : Unit),
+    Agent.postFrom a a' (Agent.Op.reject cap r) c ans ↔
+      Agent.post a' (Agent.Op.reject cap r) c ans ∧
+        ∀ f ∈ a.functions, f.reject = cap.reject → f.alreadyResolved = false →
+          Promise.Table.get a'.table cap.promise = some (Promise.State.rejected r)
+postFrom_perform :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body) (promise : Nat)
+    (onFulfilled onRejected : Option body) (derive : Bool)
+    (c : Agent.Cert (Agent.Op.perform promise onFulfilled onRejected derive :
+      Agent.Op value reason body))
+    (ans : Option (Option Promise.Capability)),
+    Agent.postFrom a a' (Agent.Op.perform promise onFulfilled onRejected derive) c ans ↔
+      Agent.post a' (Agent.Op.perform promise onFulfilled onRejected derive) c ans
+postFrom_markHandled :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body) (promise : Nat)
+    (c : Agent.Cert (Agent.Op.markHandled promise : Agent.Op value reason body))
+    (ans : Unit),
+    Agent.postFrom a a' (Agent.Op.markHandled promise) c ans ↔
+      Agent.post a' (Agent.Op.markHandled promise) c ans
+postFrom_startJob :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (c : Agent.Cert (Agent.Op.startJob : Agent.Op value reason body))
+    (ans : Option (Agent.Job value reason × Option body)),
+    Agent.postFrom a a' Agent.Op.startJob c ans ↔
+      Agent.post a' Agent.Op.startJob c ans ∧
+        ∃ (j : Agent.Job value reason) (rest : List (Agent.Job value reason)),
+          a.queue.pending = j :: rest ∧ a'.queue.pending = rest ∧
+            ans.map Prod.fst = some j
+postFrom_finishJob :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (decision : Except reason value)
+    (c : Agent.Cert (Agent.Op.finishJob decision : Agent.Op value reason body)) (ans : Unit),
+    Agent.postFrom a a' (Agent.Op.finishJob decision) c ans ↔
+      Agent.post a' (Agent.Op.finishJob decision) c ans ∧
+        ∃ (j : Agent.Job value reason) (r : Promise.Reaction body),
+          a.running = some j ∧ Agent.reactionOf a j = some r ∧
+          (r.capability = none →
+            a' = { a with active := Jobs.Active.checkpoint, running := none }) ∧
+          ∀ cap : Promise.Capability, r.capability = some cap →
+            ∀ f ∈ a.functions, f.resolve = cap.resolve →
+              (f.alreadyResolved = true →
+                a' = { a with active := Jobs.Active.checkpoint, running := none }) ∧
+              (f.alreadyResolved = false →
+                (∀ v : value,
+                  Promise.reactionHandlerResult r j.argument decision = Except.ok v →
+                    Promise.Table.get a'.table cap.promise =
+                      some (Promise.State.fulfilled v)) ∧
+                (∀ e : reason,
+                  Promise.reactionHandlerResult r j.argument decision = Except.error e →
+                    Promise.Table.get a'.table cap.promise =
+                      some (Promise.State.rejected e)))
+postFrom_enterScript :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (c : Agent.Cert (Agent.Op.enterScript : Agent.Op value reason body)) (ans : Unit),
+    Agent.postFrom a a' Agent.Op.enterScript c ans ↔
+      Agent.post a' Agent.Op.enterScript c ans
+postFrom_leaveScript :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (c : Agent.Cert (Agent.Op.leaveScript : Agent.Op value reason body)) (ans : Unit),
+    Agent.postFrom a a' Agent.Op.leaveScript c ans ↔
+      Agent.post a' Agent.Op.leaveScript c ans
+postFrom_post :
+  ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
+    (op : Agent.Op value reason body) (c : Agent.Cert op) (ans : Agent.Op.Answer op),
+    Agent.postFrom a a' op c ans → Agent.post a' op c ans
+ImplementsFrom :
+  ∀ {value reason body : Type}, Agent.Op value reason body → Prop
+ImplementsFrom_iff :
+  ∀ {value reason body : Type} (op : Agent.Op value reason body),
+    Agent.ImplementsFrom op ↔
+      ∀ (a : Agent.Agent value reason body) (c : Agent.Cert op), Agent.Coherent a →
+        Agent.pre a op c →
+        Agent.Extends a (Agent.step a op).1 ∧ Agent.Coherent (Agent.step a op).1 ∧
+          Agent.postFrom a (Agent.step a op).1 op c (Agent.step a op).2
+newPromise_implementsFrom :
+  ∀ {value reason body : Type},
+    Agent.ImplementsFrom (Agent.Op.newPromise : Agent.Op value reason body)
+resolve_implementsFrom :
+  ∀ {value reason body : Type} (cap : Promise.Capability) (v : value),
+    Agent.ImplementsFrom (Agent.Op.resolve cap v : Agent.Op value reason body)
+reject_implementsFrom :
+  ∀ {value reason body : Type} (cap : Promise.Capability) (r : reason),
+    Agent.ImplementsFrom (Agent.Op.reject cap r : Agent.Op value reason body)
+perform_implementsFrom :
+  ∀ {value reason body : Type} (promise : Nat) (onFulfilled onRejected : Option body)
+    (derive : Bool),
+    Agent.ImplementsFrom (Agent.Op.perform promise onFulfilled onRejected derive :
+      Agent.Op value reason body)
+markHandled_implementsFrom :
+  ∀ {value reason body : Type} (promise : Nat),
+    Agent.ImplementsFrom (Agent.Op.markHandled promise : Agent.Op value reason body)
+startJob_implementsFrom :
+  ∀ {value reason body : Type},
+    Agent.ImplementsFrom (Agent.Op.startJob : Agent.Op value reason body)
+finishJob_implementsFrom :
+  ∀ {value reason body : Type} (decision : Except reason value),
+    Agent.ImplementsFrom (Agent.Op.finishJob decision : Agent.Op value reason body)
+enterScript_implementsFrom :
+  ∀ {value reason body : Type},
+    Agent.ImplementsFrom (Agent.Op.enterScript : Agent.Op value reason body)
+leaveScript_implementsFrom :
+  ∀ {value reason body : Type},
+    Agent.ImplementsFrom (Agent.Op.leaveScript : Agent.Op value reason body)
+implementsFrom :
+  ∀ {value reason body : Type} (op : Agent.Op value reason body), Agent.ImplementsFrom op
+callFunctions_resolve_reject :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (cap : Promise.Capability) (result : Except reason value),
+    Agent.WF a → Agent.Minted a cap →
+      Agent.callFunctions a
+          (fun (f : Promise.ResolvingFunctions) => f.resolve == cap.resolve) result =
+        Agent.callFunctions a
+          (fun (f : Promise.ResolvingFunctions) => f.reject == cap.reject) result
+finishJob_abrupt :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
+    (r : Promise.Reaction body) (cap : Promise.Capability) (e : reason),
+    Agent.WF a → a.active = Jobs.Active.job s → a.running = some job →
+      Agent.reactionOf a job = some r → r.capability = some cap →
+      Promise.reactionHandlerResult r job.argument decision = Except.error e →
+      Agent.finishJob a decision =
+        { Agent.reject a cap e with active := Jobs.Active.checkpoint, running := none }
+finishJob_normal :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
+    (r : Promise.Reaction body) (cap : Promise.Capability) (v : value),
+    a.active = Jobs.Active.job s → a.running = some job →
+      Agent.reactionOf a job = some r → r.capability = some cap →
+      Promise.reactionHandlerResult r job.argument decision = Except.ok v →
+      Agent.finishJob a decision =
+        { Agent.resolve a cap v with active := Jobs.Active.checkpoint, running := none }
+finishJob_abrupt_dropped :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body)
+    (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
+    (r : Promise.Reaction body) (e : reason),
+    a.active = Jobs.Active.job s → a.running = some job →
+      Agent.reactionOf a job = some r → r.capability = none →
+      Promise.reactionHandlerResult r job.argument decision = Except.error e →
+      Agent.finishJob a decision =
+        { a with active := Jobs.Active.checkpoint, running := none }
+interpret_sumHandler_inr :
+  ∀ {value reason body σ α : Type} {T : Effects.Signature.{0, 0}}
+    (view : σ → Agent.Agent value reason body)
+    (update : Agent.Agent value reason body → σ → σ) (other : Effects.Handler T (StateT σ Id))
+    (p : Effects.Program T α),
+    Effects.interpret (Whatwg.Signatures.Ecma262.sumHandler view update other)
+        (Effects.Program.inr (S := Whatwg.Signatures.Ecma262.signature value reason body) p) =
+      Effects.interpret other p
+```
+
+### Q5b.8 Builder slices
+
+Ruling R-W9: each slice branches from this breaker's head and merges when its
+battery is green, its `known-red.txt` entry is gone and the root gate passes on
+the slice branch. The two slices are independent and may run in parallel.
+
+| Slice | Fence | Depends on | Battery |
+| --- | --- | --- | --- |
+| B5 the invariant, the order, the second judgment, the job's completions | new `Whatwg/Ecma262/AgentInvariant.lean`, importing `Whatwg.Ecma262.AgentLaws` and nothing else; one import line and one docstring bullet in `Whatwg/Ecma262.lean`; its `known-red.txt` line; its root import in `WhatwgTest.lean` | Q5 (landed) | `WhatwgTest/Ecma262/AgentInvariantContract.lean` |
+| B6 the face law | one theorem, `interpret_sumHandler_inr`, in `Whatwg/Signatures/Ecma262.lean`, and the sentence of its module docstring ("Summing with another signature") that sends a consumer to `Effects.interpret_inr`; its `known-red.txt` line; its root import | Q5 (landed) | `WhatwgTest/Signatures/Ecma262SumContract.lean` |
+
+What each builder must know:
+
+- **Both.** Declare each theorem with its ascribed statement copied verbatim as
+  its type, binders in the ascribed order (R-W5's conversion compares by
+  `Expr.eqv`). `Coherent` and `Extends` are structures that `extends` `WF a`
+  and `Le a a'`, with the fields in the ascribed order and statements, so that
+  the generated projections have the ascribed types. `postFrom` is defined by
+  matching on the operation, with each row's first conjunct `post a' op c ans`
+  as written in the ascriptions, so that the nine `postFrom_*` are `Iff.rfl`.
+  No `simp`, `omega`, `by_cases` or `grind` was needed in the prototype; the
+  ceiling traps of `Whatwg/AGENTS.md` ("Ceiling") apply.
+- **B5.** The private lemmas of `Whatwg/Ecma262/AgentLaws.lean` are not visible
+  from a new module. The prototype carries private copies of the ones it needs,
+  restated and re-proved under the same names; a builder may instead make them
+  public in `AgentLaws.lean`, which edits a landed module and needs a record per
+  name. Inside a theorem named `Coherent.x` or `Extends.x`, the unqualified
+  `step`, `runOps`, `empty` and `refl` resolve to `Coherent.step` and so on:
+  write `Whatwg.Ecma262.Agent.step`. The examples of the battery's §§7 to 9 are
+  closed by `rfl` or `decide` in the kernel and use the B5 laws themselves
+  (`Coherent.reachable`, `resolve_implementsFrom`, `postFrom_resolve`,
+  `postFrom_startJob`, `post_startJob`).
+- **B6.** One line: `exact Effects.interpret_inr (handlerAt view update) other
+  p`. The docstring's consumer note becomes "by `interpret_sumHandler_inr`".
+
+### Q5b.9 Masks and counts
+
+The rule is §12's. A law that concludes `Extends` is DB-04 M2 (through
+`Le.trace` and `heldGrows`); `postFrom_startJob` observes the queue's order and
+is DB-04 M2; `callFunctions_resolve_reject`, `finishJob_abrupt` and
+`finishJob_normal` are equations whose sides move the queue and the trace,
+DB-04 M2; `finishJob_abrupt_dropped` is an equation that leaves both
+unchanged, DB-04 M1; every face law is DB-04 M2.
+
+| Module | Slice | `#check (@n : T)` | of which theorems | DB-04 M1 | DB-04 M2 | `example`s |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `WhatwgTest/Ecma262/AgentInvariantContract.lean` | B5 | 47 | 32 | 14 | 18 | 39 |
+| `WhatwgTest/Signatures/Ecma262SumContract.lean` | B6 | 1 | 1 | 0 | 1 | 3 |
+| **total** | | **48** | **33** | **14** | **19** | **42** |
+
+The 15 non-theorem ascriptions are the two structures with their eleven
+projections (`toWF`, `toLe` and nine clauses) and the two definitions
+`postFrom` and `ImplementsFrom`. Every statement is written in full: no `_`
+hole, and every implicit argument the body does not determine is written. The
+battery also declares, inside its own namespace, the reached witness agents,
+the hand-built counterexample agents and their `WF` proofs (Q5b.10); the
+`example` count includes the refutations and non-vacuity checks.
+
+### Q5b.10 Counterexample rows
+
+Nine rows, `WS-PROM-CE-048` to `056`, registered in
+`test/counterexamples/REGISTER.md` and described in
+`test/counterexamples/promise/ATTACKS.md`, section "Q5b agent addendum". Each
+is `SEEDED`: its rejecting statement is frozen and red until slice B5 lands.
+The witnesses are the B5 battery's §§8 and 9; each counterexample agent is
+shown well formed clause by clause, so `WF` admits it, and refuted through the
+named clause.
+
+| Id | Gap | Witness (B5 battery) | `WF` admits it | Rejecting statement |
+| --- | --- | --- | --- | --- |
+| `WS-PROM-CE-048` | A | `ceA`: promise `0` rejected with `5`, its function unfired; `resolve` fires the function and the promise stays rejected | `ceA_wf` | `Coherent.unfiredPending`; `postFrom_resolve` |
+| `WS-PROM-CE-049` | B | `ceB`: promise `0` fulfilled, its function fired, the trace empty | `ceB_wf` | `Coherent.settledTraced` |
+| `WS-PROM-CE-050` | C | `ceC`: a reaction pair waits on the fulfilled promise `0`; its job can never be queued | `ceC_wf` | `Coherent.waitingPending` |
+| `WS-PROM-CE-051` | D | `ceD`: job `⟨0, .ok ()⟩` runs and no record has identity `0`; `finishJob` settles nothing | `ceD_wf` | `Coherent.jobsTyped`; `postFrom_finishJob` |
+| `WS-PROM-CE-052` | E | `ceE`: a `.done` reaction pair names the unallocated promise `0`, which `newPromise` then allocates; `ceE'`, the same pair waiting, gets its job queued when the new promise resolves | `ceE_wf` | `Coherent.reactionsAllocated`; `postFrom_newPromise` |
+| `WS-PROM-CE-053` | F | `ceF`: a held `~fulfill~` record with an empty handler, and its queued job carries a rejection; REACTJOB step 4.a would give `NormalCompletion`, the model gives the rejection | `ceF_wf` | `Coherent.jobsTyped` (the `[[Type]]` half) |
+| `WS-PROM-CE-054` | F | `ceF'`: the tag and the `[[Type]]` agree, and the job carries `6` where the promise was rejected with `5` | `ceF'_wf` | `Coherent.jobsTyped` (the argument half) |
+| `WS-PROM-CE-055` | I | `ceI`: the second of two queued jobs runs; the Q5 post of `startJob` holds and `postFrom` refutes it | — (an answer, not an agent) | `postFrom_startJob`; `startJob_implementsFrom` |
+| `WS-PROM-CE-056` | J | `fired` and `cleared`: `Le fired cleared` holds though `cleared` clears a fired marker | — (an order) | `Extends.markerKept` |
+
+### Q5b.11 Claim scope: what the addendum does not model
+
+Everything §16 lists stays out, and the addendum depends on it staying out:
+
+- **Thenable adoption (`G-05`)**, `op.newpromiseresolvethenablejob`
+  (2705599..2707541). When it enters, a resolving function fires and leaves its
+  promise pending, so Q5's `resolvedSettled` must weaken (R-W3), and so must the
+  posts of `resolve` and `finishJob` here, which then fulfil only for a
+  non-thenable value. `unfiredPending`, `settledTraced` and `waitingPending`
+  stay true under adoption as the specification has it; `jobsTyped` gains a
+  second job kind (`NewPromiseResolveThenableJob`) that the queue payload does
+  not have today (R-W3 fixed it).
+- **The rejection tracker (`G-02` remainder)**: the handled bit is read by
+  nothing, so the drop of `finishJob_abrupt_dropped` is reported nowhere.
+- **Job callbacks (`G-07` remainder)**: a handler is a first-order descriptor
+  and its completion is the host's decision (DB-02); `finishJob_abrupt_dropped`
+  exists because that decision is unchecked.
+- **The binding layer**: the Web IDL verbs omit the IDL-to-ECMAScript value
+  conversion; nothing here moves a Web IDL row.
+- Not claimed: that `Coherent` characterizes the reachable agents (Q5b.2); a
+  program-level adequacy rule over runs (`run_adequate`, §7.4); any coverage
+  join.
+
+### Q5b.12 Validation (R-W9)
+
+Status at this commit: every statement of the two batteries elaborates, with no
+error, against a scratch prototype whose definitions are final and whose 22
+non-equation laws are not yet proved; the `example`s of the batteries, which
+are kernel evaluations, pass against it. The per-law classes are recorded here
+when the proofs are done, by a later commit of this seat.
+
+### Q5b.13 Deviations from the brief and from the Q5 shape
+
+| Deviation | Reason |
+| --- | --- |
+| The stronger post reads the starting agent (`postFrom a a' op c ans`) where Q5's post reads the answering agent only | every fact the gaps name is a fact of the starting agent; Q5's `Cert` is `Unit` and frozen, so the earlier agent cannot travel in a certificate (Q5b.4) |
+| `Coherent` has two clauses no gap names, `functionPromisesNodup` and `listKinds` | without either, `Coherent` is not inductive; each obstruction is named in Q5b.2 |
+| `jobsTyped` also says the record's promise is settled with the job's argument, and covers the running job | the argument is what TRIGGER passes; covering the running job is gap D; one clause answers both D and F |
+| The posts of `resolve`, `reject` and `finishJob` are conditioned on the stored function being unfired, not on the promise being pending | the brief's wording for gap A; the pending form is reached through `WF.resolvedSettled` (Q5b.4) |
+| Names beyond the brief: `postFrom_post`, `finishJob_normal`, `callFunctions_resolve_reject` (the core of gap G), the `newPromise` row of `postFrom` (gap E as a post) | the brief asks that the stronger post be stronger, that gap G be a lemma, and that gap E be closed; each needs a statement |
+| `Extends.step` takes `WF a`, as `Le.step` does | uniformity with the landed order; the proof does not use it |
+| Rows beyond A to F: `055` (I) and `056` (J), and two rows for F (`053` the `[[Type]]`, `054` the argument) | each is a statement the addendum refutes; the brief asks for at least one per gap A to F |
+| The validation prototype was compiled as one scratch file with each battery, not reinstated into the worktree with the root gate | this seat's environment refused an uncommitted edit of `Whatwg/Ecma262.lean`; Q5b.12 says what was measured instead |
+
+### Q5b.14 Acceptance conditions
+
+1. Every ascription and `example` of the two batteries elaborates with no edit
+   to a statement; a builder may repair an `example`'s proof only.
+2. The gate passes with the batteries imported by the root, under the strict
+   ceiling over the six prefixes with no exception.
+3. No landed definition, statement, ascription or battery changes; the only
+   edits to landed modules are the import line and docstrings of Q5b.8 and the
+   one added theorem of B6.
+4. `Whatwg/Ecma262/AgentInvariant.lean` imports `Whatwg.Ecma262.AgentLaws` only:
+   no `Effects` and no `Whatwg.Infra` module.
+5. Each `known-red.txt` entry is removed by the slice that turns its battery
+   green, and only then (R-W9).
+6. Both censuses are unchanged; no coverage row moves.
+7. `lake exe whatwg_vendorseal`, `lake exe whatwg_citations` and
+   `lake exe whatwg_trustselftest` pass at each landing.
+
+### Q5b.15 Freeze receipt
+
+Recorded by a later commit of this seat, after the prototype is removed.
+
+### Q5b.16 Fence
+
+Breaker files, which the builders may not edit: this addendum; the two
+batteries; the "Q5b agent addendum" section of
+`test/counterexamples/promise/ATTACKS.md`; rows `WS-PROM-CE-048` to `056` of
+`test/counterexamples/REGISTER.md`; the Q5b rows of
+`docs/PROMISE-AGENT-DAG.md`. The two `known-red.txt` entries are the builders'
+to remove, one per slice. This breaker edited no file under `Whatwg/`, no
+existing battery, no existing line of a contract, and not `WhatwgTest.lean`,
+`COORDINATION.md`, `PLAN.md`, any `AGENTS.md`, `lakefile.toml` or
+`WhatwgTest/Ledger/`.
