@@ -1,5 +1,6 @@
 import Whatwg
 import Effects.Algebra.Sum
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q5 battery for slice B4: the `Effects.Signature` face of the
@@ -36,19 +37,19 @@ open Whatwg.Ecma262
 `signature` is an `abbrev`, as lean4-effect4's `StoreSig` is: as a `def` it
 blocks `Effects.interpret_perform`'s unification. Both universes are `0`. -/
 
-#check (@Whatwg.Signatures.Ecma262.signature : Type → Type → Type → Effects.Signature.{0, 0})
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.signature : Type → Type → Type → Effects.Signature.{0, 0})
 
-#check (@Whatwg.Signatures.Ecma262.handler :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.handler :
   ∀ (value reason body : Type),
     Effects.Handler (Whatwg.Signatures.Ecma262.signature value reason body)
       (StateT (Agent.Agent value reason body) Id))
 
-#check (@Whatwg.Signatures.Ecma262.handlerAt :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.handlerAt :
   ∀ {value reason body σ : Type}, (σ → Agent.Agent value reason body) →
     (Agent.Agent value reason body → σ → σ) →
     Effects.Handler (Whatwg.Signatures.Ecma262.signature value reason body) (StateT σ Id))
 
-#check (@Whatwg.Signatures.Ecma262.sumHandler :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.sumHandler :
   ∀ {value reason body σ : Type} {T : Effects.Signature.{0, 0}},
     (σ → Agent.Agent value reason body) → (Agent.Agent value reason body → σ → σ) →
     Effects.Handler T (StateT σ Id) →
@@ -56,7 +57,7 @@ blocks `Effects.interpret_perform`'s unification. Both universes are `0`. -/
       (Effects.Signature.sum (Whatwg.Signatures.Ecma262.signature value reason body) T)
       (StateT σ Id))
 
-#check (@Whatwg.Signatures.Ecma262.run :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.run :
   ∀ {value reason body α : Type},
     Effects.Program (Whatwg.Signatures.Ecma262.signature value reason body) α →
       Agent.Agent value reason body → α × Agent.Agent value reason body)
@@ -64,52 +65,52 @@ blocks `Effects.interpret_perform`'s unification. Both universes are `0`. -/
 /-! `run`'s two defining equations: the step-fold, one `Agent.step` per
 operation, continuing with its answer. DB-04 M2: the fold carries the agent,
 whose queue and settlement trace are its order observation. -/
-#check (@Whatwg.Signatures.Ecma262.run_pure :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.run_pure :
   ∀ {value reason body α : Type} (x : α) (a : Agent.Agent value reason body),
     Whatwg.Signatures.Ecma262.run
         (Effects.Program.pure x :
           Effects.Program (Whatwg.Signatures.Ecma262.signature value reason body) α) a =
-      (x, a))
-#check (@Whatwg.Signatures.Ecma262.run_vis :
+      (x, a)) axioms [propext]
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.run_vis :
   ∀ {value reason body α : Type} (op : Agent.Op value reason body)
     (k : Agent.Op.Answer op →
       Effects.Program (Whatwg.Signatures.Ecma262.signature value reason body) α)
     (a : Agent.Agent value reason body),
     Whatwg.Signatures.Ecma262.run (Effects.Program.vis op k) a =
-      Whatwg.Signatures.Ecma262.run (k (Agent.step a op).2) (Agent.step a op).1)
+      Whatwg.Signatures.Ecma262.run (k (Agent.step a op).2) (Agent.step a op).1) axioms [propext]
 
 /-! ## 2. The handler is exactly `step`
 
 DB-04 M2 for each: the observed state is the whole agent, queue and
 settlement trace included. -/
 
-#check (@Whatwg.Signatures.Ecma262.handler_handle :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.handler_handle :
   ∀ {value reason body : Type} (op : Agent.Op value reason body)
     (a : Agent.Agent value reason body),
     ((Whatwg.Signatures.Ecma262.handler value reason body).handle op).run a =
-      ((Agent.step a op).2, (Agent.step a op).1))
+      ((Agent.step a op).2, (Agent.step a op).1)) axioms [propext]
 
-#check (@Whatwg.Signatures.Ecma262.handlerAt_id :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.handlerAt_id :
   ∀ {value reason body : Type},
     Whatwg.Signatures.Ecma262.handlerAt
         (fun (a : Agent.Agent value reason body) => a)
         (fun (a : Agent.Agent value reason body) (_ : Agent.Agent value reason body) => a) =
-      Whatwg.Signatures.Ecma262.handler value reason body)
+      Whatwg.Signatures.Ecma262.handler value reason body) axioms [propext]
 
 /-! **Handler–step agreement.** Interpreting any program through the canonical
 handler is the step-fold `run`; this refutes a handler that steps twice
 (`WS-PROM-CE-047`). -/
-#check (@Whatwg.Signatures.Ecma262.interpret_eq_run :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.interpret_eq_run :
   ∀ {value reason body α : Type}
     (p : Effects.Program (Whatwg.Signatures.Ecma262.signature value reason body) α)
     (a : Agent.Agent value reason body),
     (Effects.interpret (Whatwg.Signatures.Ecma262.handler value reason body) p).run a =
-      Whatwg.Signatures.Ecma262.run p a)
+      Whatwg.Signatures.Ecma262.run p a) axioms [propext]
 
 /-! **Lens agreement.** Under the view–update law the lens handler runs the
 same fold on the viewed agent and writes back the agent the fold ends with.
 The hypothesis is necessary (`WS-PROM-CE-047`, witness in §5). -/
-#check (@Whatwg.Signatures.Ecma262.interpret_handlerAt :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.interpret_handlerAt :
   ∀ {value reason body σ α : Type} (view : σ → Agent.Agent value reason body)
     (update : Agent.Agent value reason body → σ → σ),
     (∀ (a : Agent.Agent value reason body) (s : σ), view (update a s) = a) →
@@ -118,40 +119,40 @@ The hypothesis is necessary (`WS-PROM-CE-047`, witness in §5). -/
       ((Effects.interpret (Whatwg.Signatures.Ecma262.handlerAt view update) p).run s).1 =
           (Whatwg.Signatures.Ecma262.run p (view s)).1 ∧
         view ((Effects.interpret (Whatwg.Signatures.Ecma262.handlerAt view update) p).run s).2 =
-          (Whatwg.Signatures.Ecma262.run p (view s)).2)
+          (Whatwg.Signatures.Ecma262.run p (view s)).2) axioms [propext]
 
-#check (@Whatwg.Signatures.Ecma262.interpret_perform_step :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.interpret_perform_step :
   ∀ {value reason body : Type} (op : Agent.Op value reason body)
     (a : Agent.Agent value reason body),
     (Effects.interpret (Whatwg.Signatures.Ecma262.handler value reason body)
         (Effects.Program.perform (S := Whatwg.Signatures.Ecma262.signature value reason body)
           op)).run a =
-      ((Agent.step a op).2, (Agent.step a op).1))
+      ((Agent.step a op).2, (Agent.step a op).1)) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Signatures.Ecma262.interpret_sumHandler_inl :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.interpret_sumHandler_inl :
   ∀ {value reason body σ α : Type} {T : Effects.Signature.{0, 0}}
     (view : σ → Agent.Agent value reason body)
     (update : Agent.Agent value reason body → σ → σ) (other : Effects.Handler T (StateT σ Id))
     (p : Effects.Program (Whatwg.Signatures.Ecma262.signature value reason body) α),
     Effects.interpret (Whatwg.Signatures.Ecma262.sumHandler view update other)
         (Effects.Program.inl (T := T) p) =
-      Effects.interpret (Whatwg.Signatures.Ecma262.handlerAt view update) p)
+      Effects.interpret (Whatwg.Signatures.Ecma262.handlerAt view update) p) axioms [propext, Quot.sound]
 
 /-! ## 3. "A promise resolved with" as a program
 
 Web IDL `op.a-promise-resolved-with` (347948..348631), non-thenable branch:
 allocate, then resolve through the stored functions. DB-04 M2. -/
 
-#check (@Whatwg.Signatures.Ecma262.resolvedWith :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.resolvedWith :
   ∀ {value reason body : Type}, value →
     Effects.Program (Whatwg.Signatures.Ecma262.signature value reason body)
       Promise.Capability)
 
-#check (@Whatwg.Signatures.Ecma262.run_resolvedWith :
+#whatwg_freeze (@Whatwg.Signatures.Ecma262.run_resolvedWith :
   ∀ {value reason body : Type} (v : value) (a : Agent.Agent value reason body),
     Whatwg.Signatures.Ecma262.run (Whatwg.Signatures.Ecma262.resolvedWith (body := body) v) a =
       ((Agent.newPromise a).2,
-        Agent.resolve (Agent.newPromise a).1 (Agent.newPromise a).2 v))
+        Agent.resolve (Agent.newPromise a).1 (Agent.newPromise a).2 v)) axioms [propext]
 
 namespace WhatwgTest.Signatures.Ecma262Contract
 

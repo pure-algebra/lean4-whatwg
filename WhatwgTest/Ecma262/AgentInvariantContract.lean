@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q5b battery for builder slice B5: the agent's stronger
@@ -57,41 +58,41 @@ section B.2):
   record, whose `[[Type]]` is the argument's tag and whose promise is settled
   with the argument. -/
 
-#check (@Whatwg.Ecma262.Agent.Coherent :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Prop)
 
-#check (@Whatwg.Ecma262.Agent.Coherent.toWF :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.toWF :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
-    Agent.WF a)
-#check (@Whatwg.Ecma262.Agent.Coherent.functionPromisesNodup :
+    Agent.WF a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.functionPromisesNodup :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
-    (a.functions.map Promise.ResolvingFunctions.promise).Nodup)
-#check (@Whatwg.Ecma262.Agent.Coherent.unfiredPending :
+    (a.functions.map Promise.ResolvingFunctions.promise).Nodup) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.unfiredPending :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
     ∀ f ∈ a.functions, f.alreadyResolved = false →
-      Promise.Table.isPending a.table f.promise = true)
-#check (@Whatwg.Ecma262.Agent.Coherent.settledTraced :
+      Promise.Table.isPending a.table f.promise = true) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.settledTraced :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
     (∀ (p : Nat) (v : value),
         Promise.Table.get a.table p = some (Promise.State.fulfilled v) →
           (p, Except.ok v) ∈ a.settlements) ∧
       (∀ (p : Nat) (r : reason),
         Promise.Table.get a.table p = some (Promise.State.rejected r) →
-          (p, Except.error r) ∈ a.settlements))
-#check (@Whatwg.Ecma262.Agent.Coherent.waitingPending :
+          (p, Except.error r) ∈ a.settlements)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.waitingPending :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
     ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject,
       r.phase = Promise.ReactionPhase.waiting →
-        Promise.Table.get a.table r.promise = some Promise.State.pending)
-#check (@Whatwg.Ecma262.Agent.Coherent.reactionsAllocated :
+        Promise.Table.get a.table r.promise = some Promise.State.pending) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.reactionsAllocated :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
     ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject ++ a.held,
-      (a.table.getCell r.promise).isSome = true)
-#check (@Whatwg.Ecma262.Agent.Coherent.listKinds :
+      (a.table.getCell r.promise).isSome = true) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.listKinds :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
     (∀ r ∈ a.reactions.fulfill, r.kind = Promise.ReactionType.fulfill) ∧
-      (∀ r ∈ a.reactions.reject, r.kind = Promise.ReactionType.reject))
-#check (@Whatwg.Ecma262.Agent.Coherent.jobsTyped :
+      (∀ r ∈ a.reactions.reject, r.kind = Promise.ReactionType.reject)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.jobsTyped :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.Coherent a →
     ∀ j : Agent.Job value reason, (j ∈ a.queue.pending ∨ a.running = some j) →
       ∃ r : Promise.Reaction body, Agent.reactionOf a j = some r ∧
@@ -100,7 +101,7 @@ section B.2):
             Promise.Table.get a.table r.promise = some (Promise.State.fulfilled v)) ∧
         (∀ e : reason, j.argument = Except.error e →
           r.kind = Promise.ReactionType.reject ∧
-            Promise.Table.get a.table r.promise = some (Promise.State.rejected e)))
+            Promise.Table.get a.table r.promise = some (Promise.State.rejected e))) axioms [propext]
 
 /-! ## 2. The stronger invariant is inductive
 
@@ -108,20 +109,20 @@ section B.2):
 make it an invariant a consumer carries through its own proofs; reachability
 follows. DB-04 M1. -/
 
-#check (@Whatwg.Ecma262.Agent.Coherent.empty :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.empty :
   ∀ {value reason body : Type},
-    Agent.Coherent (Agent.empty : Agent.Agent value reason body))
-#check (@Whatwg.Ecma262.Agent.Coherent.step :
+    Agent.Coherent (Agent.empty : Agent.Agent value reason body)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.step :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (op : Agent.Op value reason body),
-    Agent.Coherent a → Agent.Coherent (Agent.step a op).1)
-#check (@Whatwg.Ecma262.Agent.Coherent.runOps :
+    Agent.Coherent a → Agent.Coherent (Agent.step a op).1) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.runOps :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (ops : List (Agent.Op value reason body)),
-    Agent.Coherent a → Agent.Coherent (Agent.runOps a ops).1)
-#check (@Whatwg.Ecma262.Agent.Coherent.reachable :
+    Agent.Coherent a → Agent.Coherent (Agent.runOps a ops).1) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Coherent.reachable :
   ∀ {value reason body : Type} (ops : List (Agent.Op value reason body)),
-    Agent.Coherent (Agent.runOps (Agent.empty : Agent.Agent value reason body) ops).1)
+    Agent.Coherent (Agent.runOps (Agent.empty : Agent.Agent value reason body) ops).1) axioms [propext, Quot.sound]
 
 /-! ## 3. The stronger order (gap J)
 
@@ -129,28 +130,28 @@ follows. DB-04 M1. -/
 function record survives unchanged, so a one-shot marker never clears, and
 `held` only grows, at its end. Every operation moves up it. DB-04 M2. -/
 
-#check (@Whatwg.Ecma262.Agent.Extends :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body → Prop)
-#check (@Whatwg.Ecma262.Agent.Extends.toLe :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends.toLe :
   ∀ {value reason body : Type} {a a' : Agent.Agent value reason body}, Agent.Extends a a' →
-    Agent.Le a a')
-#check (@Whatwg.Ecma262.Agent.Extends.markerKept :
+    Agent.Le a a') axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends.markerKept :
   ∀ {value reason body : Type} {a a' : Agent.Agent value reason body}, Agent.Extends a a' →
-    ∀ f ∈ a.functions, f.alreadyResolved = true → f ∈ a'.functions)
-#check (@Whatwg.Ecma262.Agent.Extends.heldGrows :
+    ∀ f ∈ a.functions, f.alreadyResolved = true → f ∈ a'.functions) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends.heldGrows :
   ∀ {value reason body : Type} {a a' : Agent.Agent value reason body}, Agent.Extends a a' →
-    a.held <+: a'.held)
+    a.held <+: a'.held) axioms []
 
-#check (@Whatwg.Ecma262.Agent.Extends.refl :
-  ∀ {value reason body : Type} (a : Agent.Agent value reason body), Agent.Extends a a)
-#check (@Whatwg.Ecma262.Agent.Extends.trans :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends.refl :
+  ∀ {value reason body : Type} (a : Agent.Agent value reason body), Agent.Extends a a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends.trans :
   ∀ {value reason body : Type} {a b c : Agent.Agent value reason body},
-    Agent.Extends a b → Agent.Extends b c → Agent.Extends a c)
-#check (@Whatwg.Ecma262.Agent.Extends.step :
+    Agent.Extends a b → Agent.Extends b c → Agent.Extends a c) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Extends.step :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (op : Agent.Op value reason body),
-    Agent.WF a → Agent.Extends a (Agent.step a op).1)
+    Agent.WF a → Agent.Extends a (Agent.step a op).1) axioms [propext, Quot.sound]
 
 /-! ## 4. The two-state post
 
@@ -167,50 +168,50 @@ result. The other five operations keep the Q5 post. The nine equations are
 `Iff.rfl` of the definition; `postFrom_startJob` is DB-04 M2 (it observes the
 queue's order), the others DB-04 M1. -/
 
-#check (@Whatwg.Ecma262.Agent.postFrom :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body → (op : Agent.Op value reason body) → Agent.Cert op →
       Agent.Op.Answer op → Prop)
 
-#check (@Whatwg.Ecma262.Agent.postFrom_newPromise :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_newPromise :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (c : Agent.Cert (Agent.Op.newPromise : Agent.Op value reason body))
     (cap : Promise.Capability),
     Agent.postFrom a a' Agent.Op.newPromise c cap ↔
       Agent.post a' Agent.Op.newPromise c cap ∧
         ∀ r ∈ a'.reactions.fulfill ++ a'.reactions.reject ++ a'.held,
-          r.promise ≠ cap.promise)
-#check (@Whatwg.Ecma262.Agent.postFrom_resolve :
+          r.promise ≠ cap.promise) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_resolve :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (cap : Promise.Capability) (v : value)
     (c : Agent.Cert (Agent.Op.resolve cap v : Agent.Op value reason body)) (ans : Unit),
     Agent.postFrom a a' (Agent.Op.resolve cap v) c ans ↔
       Agent.post a' (Agent.Op.resolve cap v) c ans ∧
         ∀ f ∈ a.functions, f.resolve = cap.resolve → f.alreadyResolved = false →
-          Promise.Table.get a'.table cap.promise = some (Promise.State.fulfilled v))
-#check (@Whatwg.Ecma262.Agent.postFrom_reject :
+          Promise.Table.get a'.table cap.promise = some (Promise.State.fulfilled v)) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_reject :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (cap : Promise.Capability) (r : reason)
     (c : Agent.Cert (Agent.Op.reject cap r : Agent.Op value reason body)) (ans : Unit),
     Agent.postFrom a a' (Agent.Op.reject cap r) c ans ↔
       Agent.post a' (Agent.Op.reject cap r) c ans ∧
         ∀ f ∈ a.functions, f.reject = cap.reject → f.alreadyResolved = false →
-          Promise.Table.get a'.table cap.promise = some (Promise.State.rejected r))
-#check (@Whatwg.Ecma262.Agent.postFrom_perform :
+          Promise.Table.get a'.table cap.promise = some (Promise.State.rejected r)) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_perform :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body) (promise : Nat)
     (onFulfilled onRejected : Option body) (derive : Bool)
     (c : Agent.Cert (Agent.Op.perform promise onFulfilled onRejected derive :
       Agent.Op value reason body))
     (ans : Option (Option Promise.Capability)),
     Agent.postFrom a a' (Agent.Op.perform promise onFulfilled onRejected derive) c ans ↔
-      Agent.post a' (Agent.Op.perform promise onFulfilled onRejected derive) c ans)
-#check (@Whatwg.Ecma262.Agent.postFrom_markHandled :
+      Agent.post a' (Agent.Op.perform promise onFulfilled onRejected derive) c ans) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_markHandled :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body) (promise : Nat)
     (c : Agent.Cert (Agent.Op.markHandled promise : Agent.Op value reason body))
     (ans : Unit),
     Agent.postFrom a a' (Agent.Op.markHandled promise) c ans ↔
-      Agent.post a' (Agent.Op.markHandled promise) c ans)
-#check (@Whatwg.Ecma262.Agent.postFrom_startJob :
+      Agent.post a' (Agent.Op.markHandled promise) c ans) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_startJob :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (c : Agent.Cert (Agent.Op.startJob : Agent.Op value reason body))
     (ans : Option (Agent.Job value reason × Option body)),
@@ -218,8 +219,8 @@ queue's order), the others DB-04 M1. -/
       Agent.post a' Agent.Op.startJob c ans ∧
         ∃ (j : Agent.Job value reason) (rest : List (Agent.Job value reason)),
           a.queue.pending = j :: rest ∧ a'.queue.pending = rest ∧
-            ans.map Prod.fst = some j)
-#check (@Whatwg.Ecma262.Agent.postFrom_finishJob :
+            ans.map Prod.fst = some j) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_finishJob :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (decision : Except reason value)
     (c : Agent.Cert (Agent.Op.finishJob decision : Agent.Op value reason body)) (ans : Unit),
@@ -241,23 +242,23 @@ queue's order), the others DB-04 M1. -/
                 (∀ e : reason,
                   Promise.reactionHandlerResult r j.argument decision = Except.error e →
                     Promise.Table.get a'.table cap.promise =
-                      some (Promise.State.rejected e))))
-#check (@Whatwg.Ecma262.Agent.postFrom_enterScript :
+                      some (Promise.State.rejected e)))) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_enterScript :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (c : Agent.Cert (Agent.Op.enterScript : Agent.Op value reason body)) (ans : Unit),
     Agent.postFrom a a' Agent.Op.enterScript c ans ↔
-      Agent.post a' Agent.Op.enterScript c ans)
-#check (@Whatwg.Ecma262.Agent.postFrom_leaveScript :
+      Agent.post a' Agent.Op.enterScript c ans) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_leaveScript :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (c : Agent.Cert (Agent.Op.leaveScript : Agent.Op value reason body)) (ans : Unit),
     Agent.postFrom a a' Agent.Op.leaveScript c ans ↔
-      Agent.post a' Agent.Op.leaveScript c ans)
+      Agent.post a' Agent.Op.leaveScript c ans) axioms []
 
 /-! The stronger post implies the Q5 post, for every operation. DB-04 M1. -/
-#check (@Whatwg.Ecma262.Agent.postFrom_post :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.postFrom_post :
   ∀ {value reason body : Type} (a a' : Agent.Agent value reason body)
     (op : Agent.Op value reason body) (c : Agent.Cert op) (ans : Agent.Op.Answer op),
-    Agent.postFrom a a' op c ans → Agent.post a' op c ans)
+    Agent.postFrom a a' op c ans → Agent.post a' op c ans) axioms []
 
 /-! ## 5. The second adequacy judgment
 
@@ -267,47 +268,47 @@ holds the answer in `postFrom`. One theorem per operation, whether or not its
 post changed, and `implementsFrom` over all nine. DB-04 M2, through
 `Extends`. -/
 
-#check (@Whatwg.Ecma262.Agent.ImplementsFrom :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.ImplementsFrom :
   ∀ {value reason body : Type}, Agent.Op value reason body → Prop)
-#check (@Whatwg.Ecma262.Agent.ImplementsFrom_iff :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.ImplementsFrom_iff :
   ∀ {value reason body : Type} (op : Agent.Op value reason body),
     Agent.ImplementsFrom op ↔
       ∀ (a : Agent.Agent value reason body) (c : Agent.Cert op), Agent.Coherent a →
         Agent.pre a op c →
         Agent.Extends a (Agent.step a op).1 ∧ Agent.Coherent (Agent.step a op).1 ∧
-          Agent.postFrom a (Agent.step a op).1 op c (Agent.step a op).2)
+          Agent.postFrom a (Agent.step a op).1 op c (Agent.step a op).2) axioms [propext]
 
-#check (@Whatwg.Ecma262.Agent.newPromise_implementsFrom :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.newPromise_implementsFrom :
   ∀ {value reason body : Type},
-    Agent.ImplementsFrom (Agent.Op.newPromise : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.resolve_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.newPromise : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.resolve_implementsFrom :
   ∀ {value reason body : Type} (cap : Promise.Capability) (v : value),
-    Agent.ImplementsFrom (Agent.Op.resolve cap v : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.reject_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.resolve cap v : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reject_implementsFrom :
   ∀ {value reason body : Type} (cap : Promise.Capability) (r : reason),
-    Agent.ImplementsFrom (Agent.Op.reject cap r : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.perform_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.reject cap r : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.perform_implementsFrom :
   ∀ {value reason body : Type} (promise : Nat) (onFulfilled onRejected : Option body)
     (derive : Bool),
     Agent.ImplementsFrom (Agent.Op.perform promise onFulfilled onRejected derive :
-      Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.markHandled_implementsFrom :
+      Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.markHandled_implementsFrom :
   ∀ {value reason body : Type} (promise : Nat),
-    Agent.ImplementsFrom (Agent.Op.markHandled promise : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.startJob_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.markHandled promise : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob_implementsFrom :
   ∀ {value reason body : Type},
-    Agent.ImplementsFrom (Agent.Op.startJob : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.finishJob_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.startJob : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_implementsFrom :
   ∀ {value reason body : Type} (decision : Except reason value),
-    Agent.ImplementsFrom (Agent.Op.finishJob decision : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.enterScript_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.finishJob decision : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.enterScript_implementsFrom :
   ∀ {value reason body : Type},
-    Agent.ImplementsFrom (Agent.Op.enterScript : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.leaveScript_implementsFrom :
+    Agent.ImplementsFrom (Agent.Op.enterScript : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.leaveScript_implementsFrom :
   ∀ {value reason body : Type},
-    Agent.ImplementsFrom (Agent.Op.leaveScript : Agent.Op value reason body))
-#check (@Whatwg.Ecma262.Agent.implementsFrom :
-  ∀ {value reason body : Type} (op : Agent.Op value reason body), Agent.ImplementsFrom op)
+    Agent.ImplementsFrom (Agent.Op.leaveScript : Agent.Op value reason body)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.implementsFrom :
+  ∀ {value reason body : Type} (op : Agent.Op value reason body), Agent.ImplementsFrom op) axioms [propext, Quot.sound]
 
 /-! ## 6. The reaction job's two completions (gaps G and H)
 
@@ -321,15 +322,15 @@ abrupt when `[[Capability]]` is *undefined*; the model does not check it, and
 an abrupt result there is dropped. That departure is the theorem
 `finishJob_abrupt_dropped`. -/
 
-#check (@Whatwg.Ecma262.Agent.callFunctions_resolve_reject :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.callFunctions_resolve_reject :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (result : Except reason value),
     Agent.WF a → Agent.Minted a cap →
       Agent.callFunctions a
           (fun (f : Promise.ResolvingFunctions) => f.resolve == cap.resolve) result =
         Agent.callFunctions a
-          (fun (f : Promise.ResolvingFunctions) => f.reject == cap.reject) result)
-#check (@Whatwg.Ecma262.Agent.finishJob_abrupt :
+          (fun (f : Promise.ResolvingFunctions) => f.reject == cap.reject) result) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_abrupt :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
     (r : Promise.Reaction body) (cap : Promise.Capability) (e : reason),
@@ -337,8 +338,8 @@ an abrupt result there is dropped. That departure is the theorem
       Agent.reactionOf a job = some r → r.capability = some cap →
       Promise.reactionHandlerResult r job.argument decision = Except.error e →
       Agent.finishJob a decision =
-        { Agent.reject a cap e with active := Jobs.Active.checkpoint, running := none })
-#check (@Whatwg.Ecma262.Agent.finishJob_normal :
+        { Agent.reject a cap e with active := Jobs.Active.checkpoint, running := none }) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_normal :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
     (r : Promise.Reaction body) (cap : Promise.Capability) (v : value),
@@ -346,8 +347,8 @@ an abrupt result there is dropped. That departure is the theorem
       Agent.reactionOf a job = some r → r.capability = some cap →
       Promise.reactionHandlerResult r job.argument decision = Except.ok v →
       Agent.finishJob a decision =
-        { Agent.resolve a cap v with active := Jobs.Active.checkpoint, running := none })
-#check (@Whatwg.Ecma262.Agent.finishJob_abrupt_dropped :
+        { Agent.resolve a cap v with active := Jobs.Active.checkpoint, running := none }) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_abrupt_dropped :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
     (r : Promise.Reaction body) (e : reason),
@@ -355,7 +356,7 @@ an abrupt result there is dropped. That departure is the theorem
       Agent.reactionOf a job = some r → r.capability = none →
       Promise.reactionHandlerResult r job.argument decision = Except.error e →
       Agent.finishJob a decision =
-        { a with active := Jobs.Active.checkpoint, running := none })
+        { a with active := Jobs.Active.checkpoint, running := none }) axioms [propext]
 
 namespace WhatwgTest.Ecma262.AgentInvariantContract
 

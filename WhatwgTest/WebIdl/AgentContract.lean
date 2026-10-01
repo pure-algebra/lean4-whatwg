@@ -1,4 +1,5 @@
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q5 battery for slice B3: the Web IDL promise verbs over the
@@ -49,32 +50,32 @@ capability (step 6 and step 8, now present); `G-05` stays out. A Web IDL
 promise value is the capability record `op.a-new-promise` returns
 (`WS-PROM-CE-034`). -/
 
-#check (@Whatwg.WebIdl.Agent.newPromise :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.newPromise :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body × Promise.Capability)
-#check (@Whatwg.WebIdl.Agent.resolve :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.resolve :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     value → Agent.Agent value reason body)
-#check (@Whatwg.WebIdl.Agent.reject :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.reject :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     reason → Agent.Agent value reason body)
-#check (@Whatwg.WebIdl.Agent.react :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.react :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     Option body → Option body →
     Agent.Agent value reason body × Option (Option Promise.Capability))
-#check (@Whatwg.WebIdl.Agent.uponFulfillment :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.uponFulfillment :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     body → Agent.Agent value reason body × Option (Option Promise.Capability))
-#check (@Whatwg.WebIdl.Agent.uponRejection :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.uponRejection :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     body → Agent.Agent value reason body × Option (Option Promise.Capability))
-#check (@Whatwg.WebIdl.Agent.markAsHandled :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.markAsHandled :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     Agent.Agent value reason body)
-#check (@Whatwg.WebIdl.Agent.resolvedWith :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.resolvedWith :
   ∀ {value reason body : Type}, Agent.Agent value reason body → value →
     Agent.Agent value reason body × Promise.Capability)
-#check (@Whatwg.WebIdl.Agent.rejectedWith :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.rejectedWith :
   ∀ {value reason body : Type}, Agent.Agent value reason body → reason →
     Agent.Agent value reason body × Promise.Capability)
 
@@ -83,48 +84,48 @@ promise value is the capability record `op.a-new-promise` returns
 DB-04 M1 for all nine. `uponFulfillment` and `uponRejection` keep the landed
 `G-11` modelling restriction: the other handler is `none` (`WS-PROM-CE-036`). -/
 
-#check (@Whatwg.WebIdl.Agent.newPromise_eq :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.newPromise_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Whatwg.WebIdl.Agent.newPromise a = Agent.newPromise a)
-#check (@Whatwg.WebIdl.Agent.resolve_eq :
+    Whatwg.WebIdl.Agent.newPromise a = Agent.newPromise a) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.resolve_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (v : value),
-    Whatwg.WebIdl.Agent.resolve a p v = Agent.resolve a p v)
-#check (@Whatwg.WebIdl.Agent.reject_eq :
+    Whatwg.WebIdl.Agent.resolve a p v = Agent.resolve a p v) axioms [propext]
+#whatwg_freeze (@Whatwg.WebIdl.Agent.reject_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (r : reason),
-    Whatwg.WebIdl.Agent.reject a p r = Agent.reject a p r)
-#check (@Whatwg.WebIdl.Agent.react_eq :
+    Whatwg.WebIdl.Agent.reject a p r = Agent.reject a p r) axioms [propext]
+#whatwg_freeze (@Whatwg.WebIdl.Agent.react_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (onFulfilled onRejected : Option body),
     Whatwg.WebIdl.Agent.react a p onFulfilled onRejected =
-      Agent.perform a p.promise onFulfilled onRejected true)
-#check (@Whatwg.WebIdl.Agent.uponFulfillment_eq :
+      Agent.perform a p.promise onFulfilled onRejected true) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.uponFulfillment_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (steps : body),
     Whatwg.WebIdl.Agent.uponFulfillment a p steps =
-      Whatwg.WebIdl.Agent.react a p (some steps) none)
-#check (@Whatwg.WebIdl.Agent.uponRejection_eq :
+      Whatwg.WebIdl.Agent.react a p (some steps) none) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.uponRejection_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (steps : body),
     Whatwg.WebIdl.Agent.uponRejection a p steps =
-      Whatwg.WebIdl.Agent.react a p none (some steps))
-#check (@Whatwg.WebIdl.Agent.markAsHandled_eq :
+      Whatwg.WebIdl.Agent.react a p none (some steps)) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.markAsHandled_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability),
-    Whatwg.WebIdl.Agent.markAsHandled a p = Agent.markHandled a p.promise)
-#check (@Whatwg.WebIdl.Agent.resolvedWith_eq :
+    Whatwg.WebIdl.Agent.markAsHandled a p = Agent.markHandled a p.promise) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.resolvedWith_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (v : value),
     Whatwg.WebIdl.Agent.resolvedWith a v =
       (Whatwg.WebIdl.Agent.resolve (Whatwg.WebIdl.Agent.newPromise a).1
           (Whatwg.WebIdl.Agent.newPromise a).2 v,
-        (Whatwg.WebIdl.Agent.newPromise a).2))
-#check (@Whatwg.WebIdl.Agent.rejectedWith_eq :
+        (Whatwg.WebIdl.Agent.newPromise a).2)) axioms [propext]
+#whatwg_freeze (@Whatwg.WebIdl.Agent.rejectedWith_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (r : reason),
     Whatwg.WebIdl.Agent.rejectedWith a r =
       (Whatwg.WebIdl.Agent.reject (Whatwg.WebIdl.Agent.newPromise a).1
           (Whatwg.WebIdl.Agent.newPromise a).2 r,
-        (Whatwg.WebIdl.Agent.newPromise a).2))
+        (Whatwg.WebIdl.Agent.newPromise a).2)) axioms [propext]
 
 /-! ## 3. The frozen store-level operations are views
 
@@ -133,18 +134,18 @@ Each right side is the landed `Whatwg.WebIdl.Promise` operation. DB-04 M1.
 `resolve` and `reject` are what the agent's verbs do to the table, for a
 capability the agent stored, under `WF`. -/
 
-#check (@Whatwg.WebIdl.Agent.newPromise_view :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.newPromise_view :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
     (Whatwg.WebIdl.Agent.newPromise a).1.table =
         (Whatwg.WebIdl.Promise.newPromiseWithCapability a.table a.nextFunction).1 ∧
       (Whatwg.WebIdl.Agent.newPromise a).2 =
-        (Whatwg.WebIdl.Promise.newPromiseWithCapability a.table a.nextFunction).2)
-#check (@Whatwg.WebIdl.Agent.markAsHandled_view :
+        (Whatwg.WebIdl.Promise.newPromiseWithCapability a.table a.nextFunction).2) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.markAsHandled_view :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability),
     (Whatwg.WebIdl.Agent.markAsHandled a p).table =
-      Whatwg.WebIdl.Promise.markAsHandled a.table p.promise)
-#check (@Whatwg.WebIdl.Agent.resolve_view :
+      Whatwg.WebIdl.Promise.markAsHandled a.table p.promise) axioms []
+#whatwg_freeze (@Whatwg.WebIdl.Agent.resolve_view :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (f : Promise.ResolvingFunctions) (v : value),
     Agent.WF a →
@@ -152,8 +153,8 @@ capability the agent stored, under `WF`. -/
         some f →
       f.promise = p.promise →
       (Whatwg.WebIdl.Agent.resolve a p v).table =
-        Whatwg.WebIdl.Promise.resolve a.table p.promise v)
-#check (@Whatwg.WebIdl.Agent.reject_view :
+        Whatwg.WebIdl.Promise.resolve a.table p.promise v) axioms [propext]
+#whatwg_freeze (@Whatwg.WebIdl.Agent.reject_view :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (f : Promise.ResolvingFunctions) (r : reason),
     Agent.WF a →
@@ -161,7 +162,7 @@ capability the agent stored, under `WF`. -/
         some f →
       f.promise = p.promise →
       (Whatwg.WebIdl.Agent.reject a p r).table =
-        Whatwg.WebIdl.Promise.reject a.table p.promise r)
+        Whatwg.WebIdl.Promise.reject a.table p.promise r) axioms [propext]
 
 /-! ## 4. D46 at the Web IDL surface
 
@@ -169,7 +170,7 @@ capability the agent stored, under `WF`. -/
 enqueues, behind every job already queued and every reaction already waiting,
 exactly the new reaction's job. DB-04 M2: it observes queue order. -/
 
-#check (@Whatwg.WebIdl.Agent.react_resolve :
+#whatwg_freeze (@Whatwg.WebIdl.Agent.react_resolve :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (p : Promise.Capability) (f : Promise.ResolvingFunctions) (h : body) (v : value),
     Agent.WF a → a.table.get p.promise = some Promise.State.pending →
@@ -182,7 +183,7 @@ exactly the new reaction's job. DB-04 M2: it observes queue order. -/
           ((Promise.Reactions.waitingOn a.reactions p.promise
               Promise.ReactionType.fulfill).map
             (fun (r : Promise.Reaction body) => Jobs.ReactionJob.mk r.id (Except.ok v)) ++
-          [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)]))
+          [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)])) axioms [propext, Quot.sound]
 
 /-! ## 5. `WS-PROM-CE-040`, the seed witness of the design's §3.3
 

@@ -1,4 +1,5 @@
 import WhatwgGates.DeclSnapshot
+import WhatwgTest.Audit.Freeze
 
 /-!
 # Declaration snapshot contract battery
@@ -36,82 +37,82 @@ set_option autoImplicit false
 
 /-! ## 1. Public declarations -/
 
-#check (@Gates.DeclSnapshot.Decl : Type)
-#check (@Gates.DeclSnapshot.Decl.mk :
+#whatwg_freeze (@Gates.DeclSnapshot.Decl : Type)
+#whatwg_freeze (@Gates.DeclSnapshot.Decl.mk :
   Lean.Name → Lean.Name → String → Bool → Nat → String → List Lean.Name →
     Gates.DeclSnapshot.Decl)
-#check (@Gates.DeclSnapshot.EntryData : Type)
-#check (@Gates.DeclSnapshot.EntryData.mk :
+#whatwg_freeze (@Gates.DeclSnapshot.EntryData : Type)
+#whatwg_freeze (@Gates.DeclSnapshot.EntryData.mk :
   Lean.Name → Lean.Name → Option (List Lean.Name) → Option String → Option String →
     Option String → List String → Gates.DeclSnapshot.EntryData)
-#check (@Gates.DeclSnapshot.Record : Type)
-#check (@Gates.DeclSnapshot.Record.mk :
+#whatwg_freeze (@Gates.DeclSnapshot.Record : Type)
+#whatwg_freeze (@Gates.DeclSnapshot.Record.mk :
   String → String → String → String → String → String → String → String → String →
     String → String → Gates.DeclSnapshot.Record)
-#check (@Gates.DeclSnapshot.CensusRow : Type)
-#check (@Gates.DeclSnapshot.CensusRow.mk : String → String → Gates.DeclSnapshot.CensusRow)
-#check (@Gates.DeclSnapshot.JoinInput : Type)
-#check (@Gates.DeclSnapshot.JoinInput.mk :
+#whatwg_freeze (@Gates.DeclSnapshot.CensusRow : Type)
+#whatwg_freeze (@Gates.DeclSnapshot.CensusRow.mk : String → String → Gates.DeclSnapshot.CensusRow)
+#whatwg_freeze (@Gates.DeclSnapshot.JoinInput : Type)
+#whatwg_freeze (@Gates.DeclSnapshot.JoinInput.mk :
   List String → Array Gates.DeclSnapshot.Decl → Array Gates.DeclSnapshot.EntryData →
     Array Gates.DeclSnapshot.Record → Array Gates.DeclSnapshot.CensusRow → List String →
       Gates.DeclSnapshot.JoinInput)
-#check (@Gates.DeclSnapshot.Row : Type)
-#check (@Gates.DeclSnapshot.Row.mk :
+#whatwg_freeze (@Gates.DeclSnapshot.Row : Type)
+#whatwg_freeze (@Gates.DeclSnapshot.Row.mk :
   String → String → String → String → Nat → String → List String → List String → String →
     String → String → List String → String → String → Gates.DeclSnapshot.Row)
 
-#check (@Gates.DeclSnapshot.formatVersion : String)
-#check (@Gates.DeclSnapshot.regenerateCommand : String)
-#check (@Gates.DeclSnapshot.outputDirectory : String)
-#check (@Gates.DeclSnapshot.recordsDirectory : String)
-#check (@Gates.DeclSnapshot.recordedPrefixes : List String)
-#check (@Gates.DeclSnapshot.libraries : List (String × Lean.Name))
-#check (@Gates.DeclSnapshot.roles : List String)
-#check (@Gates.DeclSnapshot.dispositions : List String)
-#check (@Gates.DeclSnapshot.columns : List String)
+#whatwg_freeze (@Gates.DeclSnapshot.formatVersion : String)
+#whatwg_freeze (@Gates.DeclSnapshot.regenerateCommand : String)
+#whatwg_freeze (@Gates.DeclSnapshot.outputDirectory : String)
+#whatwg_freeze (@Gates.DeclSnapshot.recordsDirectory : String)
+#whatwg_freeze (@Gates.DeclSnapshot.recordedPrefixes : List String)
+#whatwg_freeze (@Gates.DeclSnapshot.libraries : List (String × Lean.Name))
+#whatwg_freeze (@Gates.DeclSnapshot.roles : List String)
+#whatwg_freeze (@Gates.DeclSnapshot.dispositions : List String)
+#whatwg_freeze (@Gates.DeclSnapshot.columns : List String)
 
-#check (@Gates.DeclSnapshot.libraryOf : Lean.Name → Option String)
-#check (@Gates.DeclSnapshot.escapeField : String → String)
-#check (@Gates.DeclSnapshot.levelText : Lean.Level → String)
-#check (@Gates.DeclSnapshot.typeText : Lean.Expr → String)
-#check (@Gates.DeclSnapshot.typeDigest : Lean.Expr → String)
-#check (@Gates.DeclSnapshot.kindOf : Lean.ConstantInfo → String)
-#check (@Gates.DeclSnapshot.isRecorded : List String → String → Bool)
-#check (@Gates.DeclSnapshot.entryDeclaration? : Lean.Name → Lean.Name → Option Lean.Name)
-#check (@Gates.DeclSnapshot.decodeName : Lean.Expr → Except String Lean.Name)
-#check (@Gates.DeclSnapshot.decodeEntry :
+#whatwg_freeze (@Gates.DeclSnapshot.libraryOf : Lean.Name → Option String)
+#whatwg_freeze (@Gates.DeclSnapshot.escapeField : String → String)
+#whatwg_freeze (@Gates.DeclSnapshot.levelText : Lean.Level → String)
+#whatwg_freeze (@Gates.DeclSnapshot.typeText : Lean.Expr → String)
+#whatwg_freeze (@Gates.DeclSnapshot.typeDigest : Lean.Expr → String)
+#whatwg_freeze (@Gates.DeclSnapshot.kindOf : Lean.ConstantInfo → String)
+#whatwg_freeze (@Gates.DeclSnapshot.isRecorded : List String → String → Bool)
+#whatwg_freeze (@Gates.DeclSnapshot.entryDeclaration? : Lean.Name → Lean.Name → Option Lean.Name)
+#whatwg_freeze (@Gates.DeclSnapshot.decodeName : Lean.Expr → Except String Lean.Name)
+#whatwg_freeze (@Gates.DeclSnapshot.decodeEntry :
   Lean.Name → Lean.Expr → Except String Gates.DeclSnapshot.EntryData)
-#check (@Gates.DeclSnapshot.parseRecords :
+#whatwg_freeze (@Gates.DeclSnapshot.parseRecords :
   String → String → Except String (Array Gates.DeclSnapshot.Record))
-#check (@Gates.DeclSnapshot.parseCensus :
+#whatwg_freeze (@Gates.DeclSnapshot.parseCensus :
   String → Except String (Array Gates.DeclSnapshot.CensusRow))
-#check (@Gates.DeclSnapshot.duplicateRecords :
+#whatwg_freeze (@Gates.DeclSnapshot.duplicateRecords :
   Array Gates.DeclSnapshot.Record → Array String)
-#check (@Gates.DeclSnapshot.duplicateCensusIds :
+#whatwg_freeze (@Gates.DeclSnapshot.duplicateCensusIds :
   Array Gates.DeclSnapshot.CensusRow → Array String)
-#check (@Gates.DeclSnapshot.coveringRecord? :
+#whatwg_freeze (@Gates.DeclSnapshot.coveringRecord? :
   Array Gates.DeclSnapshot.Record → String → Option Gates.DeclSnapshot.Record)
-#check (@Gates.DeclSnapshot.rows :
+#whatwg_freeze (@Gates.DeclSnapshot.rows :
   Gates.DeclSnapshot.JoinInput → Array Gates.DeclSnapshot.Row)
-#check (@Gates.DeclSnapshot.renderRow : Gates.DeclSnapshot.Row → String)
-#check (@Gates.DeclSnapshot.renderFile :
+#whatwg_freeze (@Gates.DeclSnapshot.renderRow : Gates.DeclSnapshot.Row → String)
+#whatwg_freeze (@Gates.DeclSnapshot.renderFile :
   String → Array Gates.DeclSnapshot.Row → String)
-#check (@Gates.DeclSnapshot.projection :
+#whatwg_freeze (@Gates.DeclSnapshot.projection :
   Gates.DeclSnapshot.JoinInput → List (String × String))
-#check (@Gates.DeclSnapshot.unrecordedTypes : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.uncoveredDeclarations :
+#whatwg_freeze (@Gates.DeclSnapshot.unrecordedTypes : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.uncoveredDeclarations :
   Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.danglingRecords : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.sharedAnchors : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.orphanRelations : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.unknownAnchors : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.unrecordedEntries : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.disagreeingEntries :
+#whatwg_freeze (@Gates.DeclSnapshot.danglingRecords : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.sharedAnchors : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.orphanRelations : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.unknownAnchors : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.unrecordedEntries : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.disagreeingEntries :
   Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.byteDrift :
+#whatwg_freeze (@Gates.DeclSnapshot.byteDrift :
   List (String × String) → List (String × String) → Array String)
-#check (@Gates.DeclSnapshot.joinFailures : Gates.DeclSnapshot.JoinInput → Array String)
-#check (@Gates.DeclSnapshot.cli : List String → IO UInt32)
+#whatwg_freeze (@Gates.DeclSnapshot.joinFailures : Gates.DeclSnapshot.JoinInput → Array String)
+#whatwg_freeze (@Gates.DeclSnapshot.cli : List String → IO UInt32)
 
 namespace WhatwgTest.Audit.DeclSnapshotContract
 

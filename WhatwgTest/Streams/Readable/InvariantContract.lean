@@ -1,4 +1,5 @@
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned W8a battery: the queue invariant of the default-readable
@@ -25,7 +26,7 @@ The builder must not change a statement in this file.
 set_option autoImplicit false
 open Whatwg.Streams
 
-#check (@Readable.QueueInv : {α ε : Type} → Readable.State α ε → Prop)
+#whatwg_freeze (@Readable.QueueInv : {α ε : Type} → Readable.State α ε → Prop)
 
 -- Body pin: the two queue-with-sizes predicates at the readable size class.
 example {α ε : Type} (s : Readable.State α ε) :
@@ -34,14 +35,14 @@ example {α ε : Type} (s : Readable.State α ε) :
         Data.Queue.SizesAdmissible Readable.sizes s.queue) :=
   rfl
 
-#check (@Readable.step_queueInv :
+#whatwg_freeze (@Readable.step_queueInv :
   ∀ {α ε : Type} {s t : Readable.State α ε} {d : Readable.Decision α ε},
-    Readable.QueueInv s → Readable.Step s d t → Readable.QueueInv t)
+    Readable.QueueInv s → Readable.Step s d t → Readable.QueueInv t) axioms [propext, Quot.sound]
 
-#check (@Readable.steps_queueInv :
+#whatwg_freeze (@Readable.steps_queueInv :
   ∀ {α ε : Type} {s t : Readable.State α ε} {ds : List (Readable.Decision α ε)},
-    Readable.Steps s ds t → Readable.QueueInv s → Readable.QueueInv t)
+    Readable.Steps s ds t → Readable.QueueInv s → Readable.QueueInv t) axioms [propext, Quot.sound]
 
-#check (@Readable.initial_queueInv :
+#whatwg_freeze (@Readable.initial_queueInv :
   ∀ {α ε : Type} (algorithms : Readable.Algorithms) (hwm : Readable.Size),
-    Readable.QueueInv (Readable.initial (α := α) (ε := ε) algorithms hwm))
+    Readable.QueueInv (Readable.initial (α := α) (ε := ε) algorithms hwm)) axioms [propext]

@@ -1,4 +1,5 @@
 import Whatwg.Ecma262
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q5 battery for slice B1: the agent record, its nine
@@ -58,7 +59,7 @@ are the base packet's. -/
 one and lean4-effect4 requires Batteries through `aesop`. Outside the scope
 the instance must fail to synthesize; inside it, it must succeed. -/
 
-#check (@Whatwg.Ecma262.Agent.instDecidableEqExcept :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.instDecidableEqExcept :
   ∀ {ε α : Type} [DecidableEq ε] [DecidableEq α], DecidableEq (Except ε α))
 
 /--
@@ -96,40 +97,40 @@ a job's serial is its reaction identity. The queue payload is fixed at
 `G-08` remainder (the global configuration that threads the activation),
 `G-03` (the resolving functions as state). -/
 
-#check (@Whatwg.Ecma262.Agent.Job : Type → Type → Type)
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Job : Type → Type → Type)
 
-#check (@Whatwg.Ecma262.Agent.Agent : Type → Type → Type → Type)
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent : Type → Type → Type → Type)
 
-#check (@Whatwg.Ecma262.Agent.Agent.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.mk :
   ∀ {value reason body : Type}, Promise.Table value reason → Promise.Reactions body →
     List (Promise.Reaction body) → Jobs.Queue (Agent.Job value reason) →
     List Promise.ResolvingFunctions → Nat → Jobs.Active → Option (Agent.Job value reason) →
     Promise.SettlementTrace value reason → Agent.Agent value reason body)
 
-#check (@Whatwg.Ecma262.Agent.Agent.table :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.table :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Table value reason)
-#check (@Whatwg.Ecma262.Agent.Agent.reactions :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.reactions :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Reactions body)
-#check (@Whatwg.Ecma262.Agent.Agent.held :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.held :
   ∀ {value reason body : Type}, Agent.Agent value reason body → List (Promise.Reaction body))
-#check (@Whatwg.Ecma262.Agent.Agent.queue :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.queue :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Jobs.Queue (Agent.Job value reason))
-#check (@Whatwg.Ecma262.Agent.Agent.functions :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.functions :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     List Promise.ResolvingFunctions)
-#check (@Whatwg.Ecma262.Agent.Agent.nextFunction :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.nextFunction :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Nat)
-#check (@Whatwg.Ecma262.Agent.Agent.active :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.active :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Jobs.Active)
-#check (@Whatwg.Ecma262.Agent.Agent.running :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.running :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Option (Agent.Job value reason))
-#check (@Whatwg.Ecma262.Agent.Agent.settlements :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Agent.settlements :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Promise.SettlementTrace value reason)
 
-#check (@Whatwg.Ecma262.Agent.empty :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.empty :
   ∀ {value reason body : Type}, Agent.Agent value reason body)
 
 /-! ## 3. The operations
@@ -140,45 +141,45 @@ contract's §4. Gap ids: `G-03` (`newPromise`, `resolve`, `reject`,
 (`markHandled`), `G-07` remainder and `G-08` remainder (`reactionOf`,
 `startJob`, `finishJob`, `enterScript`, `leaveScript`). -/
 
-#check (@Whatwg.Ecma262.Agent.newPromise :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.newPromise :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body × Promise.Capability)
-#check (@Whatwg.Ecma262.Agent.settle :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.settle :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Nat →
     Except reason value → Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.callFunctions :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.callFunctions :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     (Promise.ResolvingFunctions → Bool) → Except reason value →
     Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.resolve :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.resolve :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     value → Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.reject :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reject :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability →
     reason → Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.mintFor :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.mintFor :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Bool →
     Agent.Agent value reason body × Option Promise.Capability)
-#check (@Whatwg.Ecma262.Agent.perform :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.perform :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Nat → Option body →
     Option body → Bool →
     Agent.Agent value reason body × Option (Option Promise.Capability))
-#check (@Whatwg.Ecma262.Agent.markHandled :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.markHandled :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Nat →
     Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.reactionOf :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reactionOf :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Job value reason → Option (Promise.Reaction body))
-#check (@Whatwg.Ecma262.Agent.startJob :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body × Option (Agent.Job value reason × Option body))
-#check (@Whatwg.Ecma262.Agent.finishJob :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Except reason value →
     Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.enterScript :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.enterScript :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body)
-#check (@Whatwg.Ecma262.Agent.leaveScript :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.leaveScript :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     Agent.Agent value reason body)
 
@@ -188,68 +189,68 @@ Nine first-order operations; every argument is data (DB-02). `step` is total,
 and the nine `step_*` equations fix each operation's answer type, since each
 typechecks only when `Op.Answer` reduces to the stated type. -/
 
-#check (@Whatwg.Ecma262.Agent.Op : Type → Type → Type → Type)
-#check (@Whatwg.Ecma262.Agent.Op.newPromise :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op : Type → Type → Type → Type)
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.newPromise :
   ∀ {value reason body : Type}, Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.resolve :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.resolve :
   ∀ {value reason body : Type}, Promise.Capability → value → Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.reject :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.reject :
   ∀ {value reason body : Type}, Promise.Capability → reason → Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.perform :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.perform :
   ∀ {value reason body : Type}, Nat → Option body → Option body → Bool →
     Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.markHandled :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.markHandled :
   ∀ {value reason body : Type}, Nat → Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.startJob :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.startJob :
   ∀ {value reason body : Type}, Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.finishJob :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.finishJob :
   ∀ {value reason body : Type}, Except reason value → Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.enterScript :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.enterScript :
   ∀ {value reason body : Type}, Agent.Op value reason body)
-#check (@Whatwg.Ecma262.Agent.Op.leaveScript :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.leaveScript :
   ∀ {value reason body : Type}, Agent.Op value reason body)
 
-#check (@Whatwg.Ecma262.Agent.Op.Answer :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Op.Answer :
   ∀ {value reason body : Type}, Agent.Op value reason body → Type)
 
-#check (@Whatwg.Ecma262.Agent.step :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step :
   ∀ {value reason body : Type}, Agent.Agent value reason body →
     (op : Agent.Op value reason body) → Agent.Agent value reason body × Agent.Op.Answer op)
 
 /-! DB-04 M1 for all nine: each states which operation runs, and the answers'
 types; the order content is in the operation's own laws below. -/
-#check (@Whatwg.Ecma262.Agent.step_newPromise :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_newPromise :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Agent.step a Agent.Op.newPromise = Agent.newPromise a)
-#check (@Whatwg.Ecma262.Agent.step_resolve :
+    Agent.step a Agent.Op.newPromise = Agent.newPromise a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_resolve :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (v : value),
-    Agent.step a (Agent.Op.resolve cap v) = (Agent.resolve a cap v, ()))
-#check (@Whatwg.Ecma262.Agent.step_reject :
+    Agent.step a (Agent.Op.resolve cap v) = (Agent.resolve a cap v, ())) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_reject :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (r : reason),
-    Agent.step a (Agent.Op.reject cap r) = (Agent.reject a cap r, ()))
-#check (@Whatwg.Ecma262.Agent.step_perform :
+    Agent.step a (Agent.Op.reject cap r) = (Agent.reject a cap r, ())) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_perform :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (onFulfilled onRejected : Option body) (derive : Bool),
     Agent.step a (Agent.Op.perform promise onFulfilled onRejected derive) =
-      Agent.perform a promise onFulfilled onRejected derive)
-#check (@Whatwg.Ecma262.Agent.step_markHandled :
+      Agent.perform a promise onFulfilled onRejected derive) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_markHandled :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat),
-    Agent.step a (Agent.Op.markHandled promise) = (Agent.markHandled a promise, ()))
-#check (@Whatwg.Ecma262.Agent.step_startJob :
+    Agent.step a (Agent.Op.markHandled promise) = (Agent.markHandled a promise, ())) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_startJob :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Agent.step a Agent.Op.startJob = Agent.startJob a)
-#check (@Whatwg.Ecma262.Agent.step_finishJob :
+    Agent.step a Agent.Op.startJob = Agent.startJob a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_finishJob :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value),
-    Agent.step a (Agent.Op.finishJob decision) = (Agent.finishJob a decision, ()))
-#check (@Whatwg.Ecma262.Agent.step_enterScript :
+    Agent.step a (Agent.Op.finishJob decision) = (Agent.finishJob a decision, ())) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_enterScript :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Agent.step a Agent.Op.enterScript = (Agent.enterScript a, ()))
-#check (@Whatwg.Ecma262.Agent.step_leaveScript :
+    Agent.step a Agent.Op.enterScript = (Agent.enterScript a, ())) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.step_leaveScript :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Agent.step a Agent.Op.leaveScript = (Agent.leaveScript a, ()))
+    Agent.step a Agent.Op.leaveScript = (Agent.leaveScript a, ())) axioms [propext]
 
 /-! ## 5. Defining equations
 
@@ -259,18 +260,18 @@ whose right side moves the queue or the settlement trace is DB-04 M2
 (`settle_eq`, `callFunctions_fresh`, `perform_fulfilled`, `perform_rejected`,
 `startJob_checkpoint`, `finishJob_capability`); every other one is DB-04 M1. -/
 
-#check (@Whatwg.Ecma262.Agent.empty_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.empty_eq :
   ∀ {value reason body : Type},
     (Agent.empty : Agent.Agent value reason body) =
       Agent.Agent.mk Promise.Table.empty Promise.Reactions.empty [] Jobs.Queue.empty [] 0
-        Jobs.Active.checkpoint none [])
+        Jobs.Active.checkpoint none []) axioms []
 
 /-! `op.newpromisecapability` (2696238..2698770, digest
 `9d0157b63bd72c38fb0951e4d0030b46997508ca43b46c5402eb901bb4f5c1d9`) at the
 intrinsic constructor, with `op.createresolvingfunctions` (2692679..2695411,
 digest `8227712c5eaa66d17942e1b7c13a8d6f7c29f24a03a591df81ce9868a90c8944`)
 storing the functions. -/
-#check (@Whatwg.Ecma262.Agent.newPromise_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.newPromise_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
     Agent.newPromise a =
       ({ a with
@@ -278,12 +279,12 @@ storing the functions. -/
           functions := a.functions ++
             [Promise.createResolvingFunctions a.table.next a.nextFunction],
           nextFunction := a.nextFunction + 2 },
-        (Promise.newPromiseCapability a.table a.nextFunction).2))
+        (Promise.newPromiseCapability a.table a.nextFunction).2)) axioms []
 
 /-! `op.fulfillpromise` (2695419..2696230) and `op.rejectpromise`
 (2699323..2700252) with `op.triggerpromisereactions` (2700260..2701212), the
 settlement recorded by the landed `Table.settleTraced` (D20's producer). -/
-#check (@Whatwg.Ecma262.Agent.settle_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.settle_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (result : Except reason value),
     Agent.settle a promise result =
@@ -292,21 +293,21 @@ settlement recorded by the landed `Table.settleTraced` (D20's producer). -/
         reactions :=
           (Promise.Table.settleAndTrigger a.table a.reactions a.queue promise result).2.1,
         queue := (Promise.Table.settleAndTrigger a.table a.reactions a.queue promise result).2.2,
-        settlements := (Promise.Table.settleTraced a.table a.settlements promise result).2 })
+        settlements := (Promise.Table.settleTraced a.table a.settlements promise result).2 }) axioms [propext]
 
 /-! `op.createresolvingfunctions` resolve and reject steps 1 to 3: the shared
 one-shot marker. An unknown function and a fired one are both inert. -/
-#check (@Whatwg.Ecma262.Agent.callFunctions_none :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.callFunctions_none :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value),
-    a.functions.find? pick = none → Agent.callFunctions a pick result = a)
-#check (@Whatwg.Ecma262.Agent.callFunctions_fired :
+    a.functions.find? pick = none → Agent.callFunctions a pick result = a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.callFunctions_fired :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value)
     (f : Promise.ResolvingFunctions),
     a.functions.find? pick = some f → f.alreadyResolved = true →
-      Agent.callFunctions a pick result = a)
-#check (@Whatwg.Ecma262.Agent.callFunctions_fresh :
+      Agent.callFunctions a pick result = a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.callFunctions_fresh :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (pick : Promise.ResolvingFunctions → Bool) (result : Except reason value)
     (f : Promise.ResolvingFunctions),
@@ -314,42 +315,42 @@ one-shot marker. An unknown function and a fired one are both inert. -/
       Agent.callFunctions a pick result =
         { Agent.settle a f.promise result with
           functions := a.functions.map (fun (g : Promise.ResolvingFunctions) =>
-            if pick g then { g with alreadyResolved := true } else g) })
+            if pick g then { g with alreadyResolved := true } else g) }) axioms [propext]
 
 /-! `Call(cap.[[Resolve]], undefined, « v »)` and `Call(cap.[[Reject]], …)`
 on the non-thenable branch (`G-04`, `G-05` stay out). -/
-#check (@Whatwg.Ecma262.Agent.resolve_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.resolve_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (v : value),
     Agent.resolve a cap v =
       Agent.callFunctions a (fun (f : Promise.ResolvingFunctions) => f.resolve == cap.resolve)
-        (Except.ok v))
-#check (@Whatwg.Ecma262.Agent.reject_eq :
+        (Except.ok v)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reject_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (r : reason),
     Agent.reject a cap r =
       Agent.callFunctions a (fun (f : Promise.ResolvingFunctions) => f.reject == cap.reject)
-        (Except.error r))
+        (Except.error r)) axioms [propext]
 
 /-! Web IDL `op.dfn-perform-steps-once-promise-is-settled` step 6: the derived
 capability is minted only when `derive` is set. -/
-#check (@Whatwg.Ecma262.Agent.mintFor_true :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.mintFor_true :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Agent.mintFor a true = ((Agent.newPromise a).1, some (Agent.newPromise a).2))
-#check (@Whatwg.Ecma262.Agent.mintFor_false :
+    Agent.mintFor a true = ((Agent.newPromise a).1, some (Agent.newPromise a).2)) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.mintFor_false :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    Agent.mintFor a false = (a, none))
+    Agent.mintFor a false = (a, none)) axioms []
 
 /-! `op.performpromisethen` (2740635..2743669, digest
 `ff69ee65628ebe06e4fe2717feb6013c3d3089b3fa2b034fd90c085c3fa7e2ce`), its three
 branches through the landed `performPromiseThen`, and the missing cell
 (`E-31`'s `Option`). The settled branches hand the minted record to `held`. -/
-#check (@Whatwg.Ecma262.Agent.perform_missing :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.perform_missing :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (onFulfilled onRejected : Option body) (derive : Bool),
     a.table.get promise = none →
-      Agent.perform a promise onFulfilled onRejected derive = (a, none))
-#check (@Whatwg.Ecma262.Agent.perform_pending :
+      Agent.perform a promise onFulfilled onRejected derive = (a, none)) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.perform_pending :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (onFulfilled onRejected : Option body) (derive : Bool),
     a.table.get promise = some Promise.State.pending →
@@ -358,8 +359,8 @@ branches through the landed `performPromiseThen`, and the missing cell
             table := Promise.Table.markHandled (Agent.mintFor a derive).1.table promise,
             reactions := (Promise.Reactions.add a.reactions promise onFulfilled onRejected
               (Agent.mintFor a derive).2).1 },
-          some (Agent.mintFor a derive).2))
-#check (@Whatwg.Ecma262.Agent.perform_fulfilled :
+          some (Agent.mintFor a derive).2)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.perform_fulfilled :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (v : value) (onFulfilled onRejected : Option body) (derive : Bool),
     a.table.get promise = some (Promise.State.fulfilled v) →
@@ -372,8 +373,8 @@ branches through the landed `performPromiseThen`, and the missing cell
               (Jobs.ReactionJob.mk a.reactions.next (Except.ok v)),
             held := a.held ++ [(Promise.Reactions.mint a.reactions promise
               Promise.ReactionType.fulfill onFulfilled (Agent.mintFor a derive).2).2] },
-          some (Agent.mintFor a derive).2))
-#check (@Whatwg.Ecma262.Agent.perform_rejected :
+          some (Agent.mintFor a derive).2)) axioms [propext, Quot.sound]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.perform_rejected :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (r : reason) (onFulfilled onRejected : Option body) (derive : Bool),
     a.table.get promise = some (Promise.State.rejected r) →
@@ -386,42 +387,42 @@ branches through the landed `performPromiseThen`, and the missing cell
               (Jobs.ReactionJob.mk a.reactions.next (Except.error r)),
             held := a.held ++ [(Promise.Reactions.mint a.reactions promise
               Promise.ReactionType.reject onRejected (Agent.mintFor a derive).2).2] },
-          some (Agent.mintFor a derive).2))
+          some (Agent.mintFor a derive).2)) axioms [propext, Quot.sound]
 
 /-! Web IDL `op.mark-a-promise-as-handled` (356060..356713). -/
-#check (@Whatwg.Ecma262.Agent.markHandled_eq :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.markHandled_eq :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat),
     Agent.markHandled a promise =
-      { a with table := Promise.Table.markHandled a.table promise })
+      { a with table := Promise.Table.markHandled a.table promise }) axioms []
 
 /-! The record a job was built from: a held record first, otherwise the
 registered one in the list its argument's tag selects (`G-01`). -/
-#check (@Whatwg.Ecma262.Agent.reactionOf_held :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reactionOf_held :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (job : Agent.Job value reason) (r : Promise.Reaction body),
     a.held.find? (fun (x : Promise.Reaction body) => x.id == job.reaction) = some r →
-      Agent.reactionOf a job = some r)
-#check (@Whatwg.Ecma262.Agent.reactionOf_ok :
+      Agent.reactionOf a job = some r) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reactionOf_ok :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (job : Agent.Job value reason) (v : value),
     a.held.find? (fun (x : Promise.Reaction body) => x.id == job.reaction) = none →
       job.argument = Except.ok v →
       Agent.reactionOf a job =
-        Promise.Reactions.get a.reactions Promise.ReactionType.fulfill job.reaction)
-#check (@Whatwg.Ecma262.Agent.reactionOf_error :
+        Promise.Reactions.get a.reactions Promise.ReactionType.fulfill job.reaction) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reactionOf_error :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (job : Agent.Job value reason) (r : reason),
     a.held.find? (fun (x : Promise.Reaction body) => x.id == job.reaction) = none →
       job.argument = Except.error r →
       Agent.reactionOf a job =
-        Promise.Reactions.get a.reactions Promise.ReactionType.reject job.reaction)
+        Promise.Reactions.get a.reactions Promise.ReactionType.reject job.reaction) axioms []
 
 /-! `requirement.jobs.1` (625769..626250), `requirement.jobs.2`
 (626257..626350) and `requirement.hostenqueuepromisejob.3` (634739..634841):
 at a checkpoint the oldest job starts, and its serial is its reaction
 identity; anywhere else, or on an empty queue, nothing starts (DB-07: an
 empty queue is a live frontier). -/
-#check (@Whatwg.Ecma262.Agent.startJob_checkpoint :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob_checkpoint :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (job : Agent.Job value reason) (rest : List (Agent.Job value reason)),
     a.active = Jobs.Active.checkpoint → a.queue.pending = job :: rest →
@@ -430,13 +431,13 @@ empty queue is a live frontier). -/
             queue := Jobs.Queue.mk rest,
             active := Jobs.Active.job job.reaction,
             running := some job },
-          some (job, (Agent.reactionOf a job).bind Promise.Reaction.handler)))
-#check (@Whatwg.Ecma262.Agent.startJob_empty :
+          some (job, (Agent.reactionOf a job).bind Promise.Reaction.handler))) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob_empty :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    a.queue.pending = [] → Agent.startJob a = (a, none))
-#check (@Whatwg.Ecma262.Agent.startJob_blocked :
+    a.queue.pending = [] → Agent.startJob a = (a, none)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob_blocked :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    a.active ≠ Jobs.Active.checkpoint → Agent.startJob a = (a, none))
+    a.active ≠ Jobs.Active.checkpoint → Agent.startJob a = (a, none)) axioms [propext]
 
 /-! `op.newpromisereactionjob` (2702885..2705591, digest
 `3225cb2f3907ae48b448c01a862587e80cd5e8b795b8ad5d610df68b5f291a7b`) inner steps
@@ -445,29 +446,29 @@ the host's decision (DB-02); the derived capability is settled through its
 stored resolving functions; with `[[Capability]]` *undefined* nothing settles
 (D18, `WS-PROM-CE-044`); the agent returns to a checkpoint. Inert when no job
 is running. -/
-#check (@Whatwg.Ecma262.Agent.finishJob_idle :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_idle :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value),
-    a.running = none → Agent.finishJob a decision = a)
-#check (@Whatwg.Ecma262.Agent.finishJob_not_job :
+    a.running = none → Agent.finishJob a decision = a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_not_job :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value),
-    (∀ s : Nat, a.active ≠ Jobs.Active.job s) → Agent.finishJob a decision = a)
-#check (@Whatwg.Ecma262.Agent.finishJob_unknown :
+    (∀ s : Nat, a.active ≠ Jobs.Active.job s) → Agent.finishJob a decision = a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_unknown :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value) (s : Nat) (job : Agent.Job value reason),
     a.active = Jobs.Active.job s → a.running = some job → Agent.reactionOf a job = none →
       Agent.finishJob a decision =
-        { a with active := Jobs.Active.checkpoint, running := none })
-#check (@Whatwg.Ecma262.Agent.finishJob_no_capability :
+        { a with active := Jobs.Active.checkpoint, running := none }) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_no_capability :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
     (r : Promise.Reaction body),
     a.active = Jobs.Active.job s → a.running = some job →
       Agent.reactionOf a job = some r → r.capability = none →
       Agent.finishJob a decision =
-        { a with active := Jobs.Active.checkpoint, running := none })
-#check (@Whatwg.Ecma262.Agent.finishJob_capability :
+        { a with active := Jobs.Active.checkpoint, running := none }) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_capability :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (decision : Except reason value) (s : Nat) (job : Agent.Job value reason)
     (r : Promise.Reaction body) (cap : Promise.Capability),
@@ -477,24 +478,24 @@ is running. -/
         { Agent.callFunctions a
             (fun (f : Promise.ResolvingFunctions) => f.resolve == cap.resolve)
             (Promise.reactionHandlerResult r job.argument decision) with
-          active := Jobs.Active.checkpoint, running := none })
+          active := Jobs.Active.checkpoint, running := none }) axioms [propext]
 
 /-! `requirement.jobs.1`: an execution context is running, then the stack is
 empty again. No other activation is entered or left. -/
-#check (@Whatwg.Ecma262.Agent.enterScript_checkpoint :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.enterScript_checkpoint :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
     a.active = Jobs.Active.checkpoint →
-      Agent.enterScript a = { a with active := Jobs.Active.script })
-#check (@Whatwg.Ecma262.Agent.enterScript_other :
+      Agent.enterScript a = { a with active := Jobs.Active.script }) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.enterScript_other :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    a.active ≠ Jobs.Active.checkpoint → Agent.enterScript a = a)
-#check (@Whatwg.Ecma262.Agent.leaveScript_script :
+    a.active ≠ Jobs.Active.checkpoint → Agent.enterScript a = a) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.leaveScript_script :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
     a.active = Jobs.Active.script →
-      Agent.leaveScript a = { a with active := Jobs.Active.checkpoint })
-#check (@Whatwg.Ecma262.Agent.leaveScript_other :
+      Agent.leaveScript a = { a with active := Jobs.Active.checkpoint }) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.leaveScript_other :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    a.active ≠ Jobs.Active.script → Agent.leaveScript a = a)
+    a.active ≠ Jobs.Active.script → Agent.leaveScript a = a) axioms [propext]
 
 /-! ## 6. `Minted` and the fourteen clauses of `WF`
 
@@ -505,75 +506,75 @@ their projections. `resolvedSettled` holds only while thenable adoption
 (`G-05`) is out, and carries the obligation to be weakened when it enters
 (R-W3). `settlementsCoherent` closes debt D20. -/
 
-#check (@Whatwg.Ecma262.Agent.Minted :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Minted :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Promise.Capability → Prop)
-#check (@Whatwg.Ecma262.Agent.Minted_iff :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.Minted_iff :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability),
     Agent.Minted a cap ↔
       ∃ f ∈ a.functions, f.resolve = cap.resolve ∧ f.reject = cap.reject ∧
-        f.promise = cap.promise)
+        f.promise = cap.promise) axioms []
 
-#check (@Whatwg.Ecma262.Agent.WF :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF :
   ∀ {value reason body : Type}, Agent.Agent value reason body → Prop)
 
-#check (@Whatwg.Ecma262.Agent.WF.tableNodup :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.tableNodup :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    (a.table.entries.map Prod.fst).Nodup)
-#check (@Whatwg.Ecma262.Agent.WF.tableBelow :
+    (a.table.entries.map Prod.fst).Nodup) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.tableBelow :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    ∀ e ∈ a.table.entries, e.1 < a.table.next)
-#check (@Whatwg.Ecma262.Agent.WF.functionsBelow :
+    ∀ e ∈ a.table.entries, e.1 < a.table.next) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.functionsBelow :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    ∀ f ∈ a.functions, f.reject = f.resolve + 1 ∧ f.reject < a.nextFunction)
-#check (@Whatwg.Ecma262.Agent.WF.functionsAllocated :
+    ∀ f ∈ a.functions, f.reject = f.resolve + 1 ∧ f.reject < a.nextFunction) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.functionsAllocated :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    ∀ f ∈ a.functions, (a.table.getCell f.promise).isSome = true)
-#check (@Whatwg.Ecma262.Agent.WF.resolvedSettled :
+    ∀ f ∈ a.functions, (a.table.getCell f.promise).isSome = true) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.resolvedSettled :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
     ∀ f ∈ a.functions, f.alreadyResolved = true →
-      Promise.Table.isPending a.table f.promise = false)
-#check (@Whatwg.Ecma262.Agent.WF.reactionsBelow :
+      Promise.Table.isPending a.table f.promise = false) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.reactionsBelow :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject ++ a.held, r.id < a.reactions.next)
-#check (@Whatwg.Ecma262.Agent.WF.queueBelow :
+    ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject ++ a.held, r.id < a.reactions.next) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.queueBelow :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    ∀ j ∈ a.queue.pending, j.reaction < a.reactions.next)
-#check (@Whatwg.Ecma262.Agent.WF.paired :
+    ∀ j ∈ a.queue.pending, j.reaction < a.reactions.next) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.paired :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    a.reactions.fulfill.map Promise.Reaction.id = a.reactions.reject.map Promise.Reaction.id)
-#check (@Whatwg.Ecma262.Agent.WF.functionsNodup :
+    a.reactions.fulfill.map Promise.Reaction.id = a.reactions.reject.map Promise.Reaction.id) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.functionsNodup :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    (a.functions.map Promise.ResolvingFunctions.resolve).Nodup)
-#check (@Whatwg.Ecma262.Agent.WF.heldDistinct :
+    (a.functions.map Promise.ResolvingFunctions.resolve).Nodup) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.heldDistinct :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    (a.held.map Promise.Reaction.id ++ a.reactions.fulfill.map Promise.Reaction.id).Nodup)
-#check (@Whatwg.Ecma262.Agent.WF.queuedKnown :
+    (a.held.map Promise.Reaction.id ++ a.reactions.fulfill.map Promise.Reaction.id).Nodup) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.queuedKnown :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
-    ∀ j ∈ a.queue.pending, (Agent.reactionOf a j).isSome = true)
-#check (@Whatwg.Ecma262.Agent.WF.runningActive :
+    ∀ j ∈ a.queue.pending, (Agent.reactionOf a j).isSome = true) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.runningActive :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
     (∀ j : Agent.Job value reason, a.running = some j →
         a.active = Jobs.Active.job j.reaction) ∧
-      (∀ s : Nat, a.active = Jobs.Active.job s → a.running.isSome = true))
-#check (@Whatwg.Ecma262.Agent.WF.capabilityStored :
+      (∀ s : Nat, a.active = Jobs.Active.job s → a.running.isSome = true)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.capabilityStored :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
     ∀ r ∈ a.reactions.fulfill ++ a.reactions.reject ++ a.held,
-      ∀ cap : Promise.Capability, r.capability = some cap → Agent.Minted a cap)
-#check (@Whatwg.Ecma262.Agent.WF.settlementsCoherent :
+      ∀ cap : Promise.Capability, r.capability = some cap → Agent.Minted a cap) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.settlementsCoherent :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
     (a.settlements.map Prod.fst).Nodup ∧
       (∀ (p : Nat) (v : value), (p, Except.ok v) ∈ a.settlements →
         Promise.Table.get a.table p = some (Promise.State.fulfilled v)) ∧
       (∀ (p : Nat) (r : reason), (p, Except.error r) ∈ a.settlements →
-        Promise.Table.get a.table p = some (Promise.State.rejected r)))
+        Promise.Table.get a.table p = some (Promise.State.rejected r))) axioms [propext]
 
 /-! An allocated identity is below the table cursor, so it is never the
 identity the next allocation takes. DB-04 M1. -/
-#check (@Whatwg.Ecma262.Agent.WF.get_lt :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.WF.get_lt :
   ∀ {value reason body : Type} {a : Agent.Agent value reason body}, Agent.WF a →
     ∀ {p : Nat} {s : Promise.State value reason},
-      Promise.Table.get a.table p = some s → p < a.table.next)
+      Promise.Table.get a.table p = some s → p < a.table.next) axioms [propext, Quot.sound]
 
 /-! ## 7. Views onto the landed store-level operations
 
@@ -582,49 +583,49 @@ the design's §6.4). All DB-04 M1 except `settle_ok_fulfillPromise` and
 `settle_error_rejectPromise`, whose triples include the job queue and are
 DB-04 M2, and `settle_settlements`, DB-04 M2. -/
 
-#check (@Whatwg.Ecma262.Agent.settleAndTrigger_table :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.settleAndTrigger_table :
   ∀ {value reason body : Type} (t : Promise.Table value reason)
     (rs : Promise.Reactions body) (q : Jobs.Queue (Jobs.ReactionJob (Except reason value)))
     (id : Nat) (result : Except reason value),
-    (Promise.Table.settleAndTrigger t rs q id result).1 = Promise.Table.settle t id result)
-#check (@Whatwg.Ecma262.Agent.settle_ok_fulfillPromise :
+    (Promise.Table.settleAndTrigger t rs q id result).1 = Promise.Table.settle t id result) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.settle_ok_fulfillPromise :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (v : value),
     ((Agent.settle a promise (Except.ok v)).table,
         (Agent.settle a promise (Except.ok v)).reactions,
         (Agent.settle a promise (Except.ok v)).queue) =
-      Promise.fulfillPromise a.table a.reactions a.queue promise v)
-#check (@Whatwg.Ecma262.Agent.settle_error_rejectPromise :
+      Promise.fulfillPromise a.table a.reactions a.queue promise v) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.settle_error_rejectPromise :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (r : reason),
     ((Agent.settle a promise (Except.error r)).table,
         (Agent.settle a promise (Except.error r)).reactions,
         (Agent.settle a promise (Except.error r)).queue) =
-      Promise.rejectPromise a.table a.reactions a.queue promise r)
-#check (@Whatwg.Ecma262.Agent.settle_settlements :
+      Promise.rejectPromise a.table a.reactions a.queue promise r) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.settle_settlements :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat)
     (result : Except reason value),
     (Agent.settle a promise result).settlements =
-      (Promise.Table.settleTraced a.table a.settlements promise result).2)
-#check (@Whatwg.Ecma262.Agent.newPromise_capability :
+      (Promise.Table.settleTraced a.table a.settlements promise result).2) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.newPromise_capability :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body),
-    (Agent.newPromise a).2 = (Promise.newPromiseCapability a.table a.nextFunction).2)
-#check (@Whatwg.Ecma262.Agent.markHandled_table :
+    (Agent.newPromise a).2 = (Promise.newPromiseCapability a.table a.nextFunction).2) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.markHandled_table :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (promise : Nat),
-    (Agent.markHandled a promise).table = Promise.Table.markHandled a.table promise)
-#check (@Whatwg.Ecma262.Agent.markHandled_get :
+    (Agent.markHandled a promise).table = Promise.Table.markHandled a.table promise) axioms []
+#whatwg_freeze (@Whatwg.Ecma262.Agent.markHandled_get :
   ∀ {value reason : Type} (t : Promise.Table value reason) (p q : Nat),
-    Promise.Table.get (Promise.Table.markHandled t p) q = Promise.Table.get t q)
+    Promise.Table.get (Promise.Table.markHandled t p) q = Promise.Table.get t q) axioms [propext, Quot.sound]
 
 /-! The oldest job starts, at its own reaction identity, which is the landed
 `Jobs.startJob` with that serial. DB-04 M2: it observes which job leaves the
 queue. -/
-#check (@Whatwg.Ecma262.Agent.startJob_agree :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob_agree :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (job : Agent.Job value reason) (rest : List (Agent.Job value reason)),
     a.active = Jobs.Active.checkpoint → a.queue.pending = job :: rest →
       Jobs.startJob a.active a.queue job.reaction =
-        some (job, (Agent.startJob a).1.active, (Agent.startJob a).1.queue))
+        some (job, (Agent.startJob a).1.active, (Agent.startJob a).1.queue)) axioms [propext]
 
 /-! **D46 re-described.** The frozen `Whatwg.WebIdl.Promise.resolve` and
 `reject` are `Table.settle`; for a capability this agent stored, the agent's
@@ -632,7 +633,7 @@ queue. -/
 `WF` (whose `resolvedSettled` covers functions that already fired).
 `op.resolve` (Web IDL 349216..349783) via `op.createresolvingfunctions`.
 DB-04 M1. -/
-#check (@Whatwg.Ecma262.Agent.resolve_table :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.resolve_table :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (f : Promise.ResolvingFunctions) (v : value),
     Agent.WF a →
@@ -640,8 +641,8 @@ DB-04 M1. -/
         some f →
       f.promise = cap.promise →
       (Agent.resolve a cap v).table =
-        Promise.Table.settle a.table cap.promise (Except.ok v))
-#check (@Whatwg.Ecma262.Agent.reject_table :
+        Promise.Table.settle a.table cap.promise (Except.ok v)) axioms [propext]
+#whatwg_freeze (@Whatwg.Ecma262.Agent.reject_table :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (f : Promise.ResolvingFunctions) (r : reason),
     Agent.WF a →
@@ -649,7 +650,7 @@ DB-04 M1. -/
         some f →
       f.promise = cap.promise →
       (Agent.reject a cap r).table =
-        Promise.Table.settle a.table cap.promise (Except.error r))
+        Promise.Table.settle a.table cap.promise (Except.error r)) axioms [propext]
 
 /-! ## 8. D46: `react` followed by `resolve` enqueues the new reaction's job
 
@@ -657,16 +658,16 @@ DB-04 M1. -/
 `ba03acae7a5640e794655f0fcb6e085859ce91eb4a8f899472ff01dc122c1839`) and
 `op.performpromisethen`. All four are DB-04 M2: they observe queue order. -/
 
-#check (@Whatwg.Ecma262.Agent.waitingOn_add_fulfill :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.waitingOn_add_fulfill :
   ∀ {body : Type} (rs : Promise.Reactions body) (promise : Nat)
     (onFulfilled onRejected : Option body) (cap : Option Promise.Capability),
     Promise.Reactions.waitingOn (Promise.Reactions.add rs promise onFulfilled onRejected cap).1
         promise Promise.ReactionType.fulfill =
       Promise.Reactions.waitingOn rs promise Promise.ReactionType.fulfill ++
         [Promise.Reaction.mk rs.next promise Promise.ReactionType.fulfill onFulfilled cap
-          Promise.ReactionPhase.waiting])
+          Promise.ReactionPhase.waiting]) axioms [propext]
 
-#check (@Whatwg.Ecma262.Agent.react_resolve_enqueues :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.react_resolve_enqueues :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (f : Promise.ResolvingFunctions) (h : body) (v : value),
     a.table.get cap.promise = some Promise.State.pending →
@@ -679,9 +680,9 @@ DB-04 M1. -/
           ((Promise.Reactions.waitingOn a.reactions cap.promise
               Promise.ReactionType.fulfill).map
             (fun (r : Promise.Reaction body) => Jobs.ReactionJob.mk r.id (Except.ok v)) ++
-          [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)]))
+          [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)])) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Ecma262.Agent.react_resolve_enqueues_wf :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.react_resolve_enqueues_wf :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (f : Promise.ResolvingFunctions) (h : body) (v : value),
     Agent.WF a → a.table.get cap.promise = some Promise.State.pending →
@@ -693,9 +694,9 @@ DB-04 M1. -/
           ((Promise.Reactions.waitingOn a.reactions cap.promise
               Promise.ReactionType.fulfill).map
             (fun (r : Promise.Reaction body) => Jobs.ReactionJob.mk r.id (Except.ok v)) ++
-          [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)]))
+          [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)])) axioms [propext, Quot.sound]
 
-#check (@Whatwg.Ecma262.Agent.react_resolve_enqueues_exactly :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.react_resolve_enqueues_exactly :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (cap : Promise.Capability) (f : Promise.ResolvingFunctions) (h : body) (v : value),
     a.table.get cap.promise = some Promise.State.pending →
@@ -705,7 +706,7 @@ DB-04 M1. -/
       f.alreadyResolved = false → f.promise = cap.promise →
       Promise.Reactions.waitingOn a.reactions cap.promise Promise.ReactionType.fulfill = [] →
       (Agent.resolve (Agent.perform a cap.promise (some h) none true).1 cap v).queue.pending =
-        a.queue.pending ++ [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)])
+        a.queue.pending ++ [Jobs.ReactionJob.mk a.reactions.next (Except.ok v)]) axioms [propext, Quot.sound]
 
 /-! ## 9. D17 and run to completion at the agent
 
@@ -716,7 +717,7 @@ record carries is settled through the functions this agent stored for it.
 `3cee57a0e02ed9d66b34bdaa1398995eebf32ac008eb9d493e15647bb9235378`) at the
 agent (`WS-PROM-CE-045`); DB-04 M1. -/
 
-#check (@Whatwg.Ecma262.Agent.finishJob_settles_capability :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.finishJob_settles_capability :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body)
     (job : Agent.Job value reason) (s : Nat) (r : Promise.Reaction body)
     (cap : Promise.Capability) (f : Promise.ResolvingFunctions)
@@ -729,11 +730,11 @@ agent (`WS-PROM-CE-045`); DB-04 M1. -/
       (Agent.finishJob a decision).table =
           Promise.Table.settle a.table cap.promise
             (Promise.reactionHandlerResult r job.argument decision) ∧
-        (Agent.finishJob a decision).active = Jobs.Active.checkpoint)
+        (Agent.finishJob a decision).active = Jobs.Active.checkpoint) axioms [propext]
 
-#check (@Whatwg.Ecma262.Agent.startJob_running :
+#whatwg_freeze (@Whatwg.Ecma262.Agent.startJob_running :
   ∀ {value reason body : Type} (a : Agent.Agent value reason body) (s : Nat),
-    a.active = Jobs.Active.job s → Agent.startJob a = (a, none))
+    a.active = Jobs.Active.job s → Agent.startJob a = (a, none)) axioms [propext]
 
 /-! ## 10. Finite witnesses over `Unit`, `Nat` and `Nat`
 

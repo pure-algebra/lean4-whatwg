@@ -1,4 +1,5 @@
 import Whatwg.Streams
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned W8a battery: freshness of registration identities in the
@@ -30,7 +31,7 @@ The builder must not change a statement in this file.
 set_option autoImplicit false
 open Whatwg.Streams
 
-#check (@Semantics.Ordering.registrationIds :
+#whatwg_freeze (@Semantics.Ordering.registrationIds :
   {α ε : Type} → Semantics.Ordering.Config α ε → List Nat)
 
 -- Body pin: the registration identities, in registration order.
@@ -38,7 +39,7 @@ example {α ε : Type} (c : Semantics.Ordering.Config α ε) :
     Semantics.Ordering.registrationIds c = c.registrations.map (fun r => r.id) :=
   rfl
 
-#check (@Semantics.Ordering.RegistrationsFresh :
+#whatwg_freeze (@Semantics.Ordering.RegistrationsFresh :
   {α ε : Type} → Semantics.Ordering.Config α ε → Prop)
 
 -- Body pin: duplicate-free, and every identity below the observer cursor.
@@ -48,29 +49,29 @@ example {α ε : Type} (c : Semantics.Ordering.Config α ε) :
         ∀ i ∈ Semantics.Ordering.registrationIds c, i < c.nextObserver) :=
   rfl
 
-#check (@Semantics.Ordering.step_registrationsFresh :
+#whatwg_freeze (@Semantics.Ordering.step_registrationsFresh :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)},
     Semantics.Ordering.RegistrationsFresh c → Semantics.Ordering.Step c d t →
-      Semantics.Ordering.RegistrationsFresh t)
+      Semantics.Ordering.RegistrationsFresh t) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.reaches_registrationsFresh :
+#whatwg_freeze (@Semantics.Ordering.reaches_registrationsFresh :
   ∀ {α ε : Type} {c t : Semantics.Ordering.Config α ε}
     {ds : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.Reaches c ds t → Semantics.Ordering.RegistrationsFresh c →
-      Semantics.Ordering.RegistrationsFresh t)
+      Semantics.Ordering.RegistrationsFresh t) axioms [propext, Quot.sound]
 
-#check (@Semantics.Ordering.initial_registrationsFresh :
+#whatwg_freeze (@Semantics.Ordering.initial_registrationsFresh :
   ∀ {α ε : Type} (owner : Nat) (hwm : Writable.Size) (alg : Writable.Algorithms)
     (promiseSeed errorSeed : Nat),
     Semantics.Ordering.RegistrationsFresh
-      (Semantics.Ordering.initial (α := α) (ε := ε) owner hwm alg promiseSeed errorSeed))
+      (Semantics.Ordering.initial (α := α) (ε := ε) owner hwm alg promiseSeed errorSeed)) axioms [propext]
 
-#check (@Semantics.Ordering.reachable_registrations_nodup :
+#whatwg_freeze (@Semantics.Ordering.reachable_registrations_nodup :
   ∀ {α ε : Type} {c : Semantics.Ordering.Config α ε} {owner : Nat} {hwm : Writable.Size}
     {alg : Writable.Algorithms} {promiseSeed errorSeed : Nat}
     {ds : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.Reaches
         (Semantics.Ordering.initial (α := α) (ε := ε) owner hwm alg promiseSeed errorSeed)
         ds c →
-      (c.registrations.map (fun r => r.id)).Nodup)
+      (c.registrations.map (fun r => r.id)).Nodup) axioms [propext, Quot.sound]
