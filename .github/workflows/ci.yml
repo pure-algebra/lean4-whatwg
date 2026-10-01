@@ -61,9 +61,9 @@ jobs:
       # 2026-09-03. It copies the sources and the build cache into a throwaway
       # directory, so it must follow the full build above: each planted
       # violation is then one incremental build of the roots it touches. It
-      # checks the declared red set, plants every frozen violation of
-      # test/contracts/trust-gate-hardening.contract.md and its predecessors,
-      # and runs the gate narrowly by relative file name.
+      # checks the declared red set, plants the older trust-gate violations
+      # and every row of test/contracts/trust-gate-hardening.contract.md, and
+      # runs the gate and the coverage numerator by relative file name.
       - name: Trust-gate self-test (planted violations, controls and narrow runs)
         run: lake exe trustselftest
       # Ruling R-V2: a kernel replay of every module of the three libraries.
