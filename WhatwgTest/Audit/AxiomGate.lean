@@ -3,6 +3,8 @@ import Lean.Util.CollectAxioms
 import Whatwg
 import WhatwgGates
 import WhatwgGates.TrustConfig
+import WhatwgGates.Trust.Axioms
+import WhatwgGates.Trust.Report
 
 /-!
 # Whatwg trust and axiom gate
@@ -151,114 +153,15 @@ open Lean
 
 namespace WhatwgTest.Audit
 
-/-! ## Ceilings and their lists
+/-! ## The gate library
 
 The audited trees, both ceilings, the strict prefixes and the three anchored
 lists are this repository's data, held by `Gates.TrustConfig.config` in
-`WhatwgGates/TrustConfig.lean` below their frozen anchor comments (addendum
-V2e.3, ruling R-W7(a)); every pass that reads them takes them as an argument,
-`config : Config`. -/
+`WhatwgGates/TrustConfig.lean`; the passes moved so far live in the gate library
+`WhatwgGates/Trust/` (addendum V2e.3, ruling R-W7(a)), and every pass that reads
+the data takes it as an argument, `config : Config`. -/
 
-open Gates.Trust (Config)
-
-/-- A ceiling as its diagnostics spell it, on one line. -/
-private def ceilingText (separator : String) (ceiling : List Name) : String :=
-  separator.intercalate (ceiling.map toString)
-
-/-- The three compiler-trust axioms. With `sorryAx` they are the axioms no
-audited constant may reach, and the trust-token pass refuses all four by name. -/
-private def forbiddenTrustAxioms : List Name :=
-  [``Lean.ofReduceBool, ``Lean.ofReduceNat, ``Lean.trustCompiler]
-
-/-- Axioms no audited constant may reach. -/
-private def forbiddenAxioms : List Name :=
-  ``sorryAx :: forbiddenTrustAxioms
-
-/-- `native_decide` mints a per-declaration auxiliary axiom whose name carries a
-`_native` component (Lean 4.33.1 records `t._native.native_decide.ax_1_1` for a
-theorem `t`). Such an axiom is forbidden by shape, whatever declaration it
-hangs off. -/
-private def isNativeAuxiliaryAxiom (axiomName : Name) : Bool :=
-  axiomName.anyS fun component => component == "_native"
-
-/-- The synthesised values Lean gives an `opaque` with no body
-(`default_or_ofNonempty%`, `Lean/Elab/DefView.lean`). -/
-private def synthesizedOpaqueBodies : List Name :=
-  [``Inhabited.default, ``Classical.ofNonempty]
-
-/-! ## Trees, modules and declarations -/
-
-private def treeOf? (config : Config) (moduleName : Name) : Option Name :=
-  config.auditedTrees.find? (·.isPrefixOf moduleName)
-
-private def moduleOf? (environment : Environment) (declaration : Name) : Option Name := do
-  let index ← environment.getModuleIdxFor? declaration
-  environment.header.moduleNames[index.toNat]?
-
-/-- The strict prefix a module is under: the longest that matches, if any. -/
-private def strictPrefixOf? (config : Config) (moduleName : Name) : Option Name :=
-  config.strictCeilingPrefixes.foldl (init := none) fun best candidate =>
-    if candidate.isPrefixOf moduleName then
-      match best with
-      | some current => if current.getNumParts < candidate.getNumParts then some candidate else best
-      | none => some candidate
-    else best
-
-/-- One constant of an audited module. -/
-private structure AuditedDeclaration where
-  name : Name
-  moduleName : Name
-  tree : Name
-
-/-- Every constant of every audited module, read from the modules' own constant
-lists rather than by materialising the whole constant map. A constant that
-more than one module realises (an equation lemma that several modules unfold)
-appears once, under the module `getModuleIdxFor?` records, exactly as the
-environment's constant map holds it once. -/
-private def auditedDeclarations (config : Config) (environment : Environment) :
-    Except String (Array AuditedDeclaration) := do
-  let header := environment.header
-  if header.moduleNames.size != header.moduleData.size then
-    throw s!"Whatwg trust gate: the environment records {header.moduleNames.size} module names and {header.moduleData.size} module data entries"
-  let mut found : Array AuditedDeclaration := #[]
-  for index in [0:header.moduleNames.size] do
-    let some moduleName := header.moduleNames[index]?
-      | throw s!"Whatwg trust gate: module index {index} has no name"
-    let some tree := treeOf? config moduleName | continue
-    let some data := header.moduleData[index]?
-      | throw s!"Whatwg trust gate: audited module {moduleName} has no module data"
-    for name in data.constNames do
-      if (environment.getModuleIdxFor? name).map (·.toNat) == some index then
-        found := found.push { name, moduleName, tree }
-  return found
-
-private def isGeneratedSafeRecursor (environment : Environment) (name : Name) : Bool :=
-  match Lean.Compiler.isUnsafeRecName? name with
-  | none => false
-  | some sourceName =>
-      match environment.find? sourceName with
-      | some (.defnInfo sourceInfo) => sourceInfo.safety == .safe
-      | none => false
-      | _ => false
-
-/-- The body under every leading `fun` binder and metadata wrapper. -/
-private def lambdaBody : Expr → Expr
-  | .lam _ _ body _ => lambdaBody body
-  | .mdata _ inner => lambdaBody inner
-  | value => value
-
-/-- Whether an `opaque` value is the one Lean synthesised for a missing body:
-its head constant, under the binders a parameterised `opaque` puts in front,
-is `Inhabited.default` or `Classical.ofNonempty`. An authored body that is
-literally `default` is refused with them, by design (contract section 4.1). -/
-private def isSynthesizedOpaqueBody (value : Expr) : Bool :=
-  match (lambdaBody value).getAppFn with
-  | .const name _ => synthesizedOpaqueBodies.contains name
-  | _ => false
-
-/-- Whether a string is empty after trimming ASCII whitespace. -/
-private def isBlank (text : String) : Bool :=
-  text.toList.all Char.isWhitespace
+open Gates.Trust
 
 /-! ## Source tokens -/
 
@@ -394,20 +297,6 @@ private def metaprogrammingKeywordOf? : Syntax → Option String
 /-- The one token of the gate command. -/
 private def gateCommandToken : String :=
   "#whatwg_streams_axiom_gate"
-
-/-- A position in a source, one-based in both coordinates, as diagnostics print it. -/
-private structure SourcePosition where
-  line : Nat
-  column : Nat
-
-/-- One refused token of one source, at a one-based line and column. -/
-private structure TokenHit where
-  word : String
-  line : Nat
-  column : Nat
-
-private def SourcePosition.hit (position : SourcePosition) (word : String) : TokenHit :=
-  { word, line := position.line, column := position.column }
 
 /-- Run Lean's own tokenizer over one source text and fold `step` over every
 token of code. Documentation comments and module documentation are syntax nodes
@@ -912,32 +801,6 @@ private def auditedSources (projectRoot : System.FilePath) : IO AuditedSources :
     #[projectRoot / "Whatwg.lean", projectRoot / "WhatwgGates.lean", projectRoot / "WhatwgTest.lean"] -- R-V3(c), 2026-10-01
   return { modules := production ++ tests ++ tooling ++ roots, entryPoints }
 
-/-! ## Findings and the summary
-
-A finding is one diagnostic line. Every pass returns its findings as `String`s
-in the order it finds them, and the host prints each verbatim: the in-tree
-command logs each as one error. A run with no finding reports the counts of
-`Summary`, which `Summary.line` prints in the template of contract section 7. -/
-
-/-- The counts of the summary line (contract section 7), in its order. -/
-private structure Summary where
-  sourceCount : Nat
-  declarationCount : Nat
-  whatwgReached : Nat
-  whatwgTotal : Nat
-  testReached : Nat
-  testTotal : Nat
-  gatesReached : Nat
-  gatesTotal : Nat
-  prefixCount : Nat
-  exceptionCount : Nat
-  exemptionCount : Nat
-
-/-- The summary line: one line, counts only, in the template of contract
-section 7. -/
-private def Summary.line (summary : Summary) : String :=
-  s!"Whatwg module and axiom gate: checked {summary.sourceCount} source files and {summary.declarationCount} declarations; Classical.choice is reached by {summary.whatwgReached} of {summary.whatwgTotal} declarations in Whatwg, {summary.testReached} of {summary.testTotal} in WhatwgTest and {summary.gatesReached} of {summary.gatesTotal} in WhatwgGates; strict ceiling propext and Quot.sound over {summary.prefixCount} module prefix(es) with {summary.exceptionCount} exact exception(s); {summary.exemptionCount} source-token exemption(s)" -- R-V3(c), 2026-10-01
-
 /-! ## The passes -/
 
 /-- One token of the root as the root pass reads it. -/
@@ -1067,45 +930,6 @@ private def tokenTableFindings (tokens : Array String) (nonBase : Array (String 
         else ", ".intercalate (declaredBy.toList.map toString)
       some s!"Whatwg source trust gate: token `{token}` of the final token table is not inert: {"; ".intercalate reasons.toList}; declared by {declarers}"
 
-/-- Pass 3: what each audited constant is (contract section 4.1). The parametric
-attributes behind `isExtern` and `getImplementedBy?` answer for an imported
-constant from its module's entries, which an import fills in whether or not it
-loads the extensions. -/
-private def environmentFindings (environment : Environment)
-    (declarations : Array AuditedDeclaration) : Array String := Id.run do
-  let mut findings : Array String := #[]
-  for declaration in declarations do
-    let name := declaration.name
-    if isGeneratedSafeRecursor environment name then continue
-    let info ← match environment.find? name with
-      | some info => pure info
-      | none =>
-          findings := findings.push
-            s!"Whatwg trust gate: declaration {name} of module {declaration.moduleName} is missing from the environment"
-          continue
-    if info.isUnsafe then
-      findings := findings.push s!"Whatwg trust gate: declaration {name} is unsafe"
-    if info.isPartial then
-      findings := findings.push s!"Whatwg trust gate: declaration {name} is partial"
-    if let .axiomInfo _ := info then
-      if isNativeAuxiliaryAxiom name then
-        findings := findings.push
-          s!"Whatwg trust gate: declaration {name} is a native-evaluation axiom (native_decide auxiliary)"
-      else
-        findings := findings.push
-          s!"Whatwg trust gate: declaration {name} is an axiom; no audited tree declares one"
-    if isExtern environment name then
-      findings := findings.push
-        s!"Whatwg trust gate: declaration {name} is `@[extern]`; host code replaces its checked body"
-    if (Compiler.getImplementedBy? environment name).isSome then
-      findings := findings.push
-        s!"Whatwg trust gate: declaration {name} is `@[implemented_by]`; another declaration replaces its checked body in compiled code"
-    if let .opaqueInfo opaqueInfo := info then
-      if isSynthesizedOpaqueBody opaqueInfo.value then
-        findings := findings.push
-          s!"Whatwg trust gate: declaration {name} is an `opaque` with no authored body; Lean synthesised its value, so it denotes an inhabitant nobody chose"
-  return findings
-
 /-- The modules `metaprogrammingModules` lists. -/
 private def listedMetaprogrammingModules (config : Config) : NameSet :=
   config.metaprogrammingModules.foldl (init := {}) fun listed entry => listed.insert entry.moduleName
@@ -1129,108 +953,6 @@ private def registrationFindings (config : Config) (environment : Environment)
           findings := findings.push
             s!"Whatwg trust gate: module {owner} registers {registration.kind} but is not a listed metaprogramming module: {registration.detail}, whose declaration it owns, registered by module {registration.moduleName}"
   return findings
-
-/-- The checks every strict-ceiling exception passes once it names a
-declaration (contract section 6): its module is under a strict prefix, and it
-reaches `Classical.choice`. `axiomsOf` gives the axioms a constant reaches. -/
-private def strictExceptionTargetFindings {m : Type → Type} [Monad m] (config : Config)
-    (axiomsOf : Name → m (Array Name)) (environment : Environment) (declaration : Name) :
-    m (Array String) := do
-  if !environment.contains declaration then
-    return #[s!"Whatwg axiom gate: strict-ceiling exception names missing declaration {declaration}"]
-  let moduleName := (moduleOf? environment declaration).getD environment.mainModule
-  if (strictPrefixOf? config moduleName).isNone then
-    return #[s!"Whatwg axiom gate: stale strict-ceiling exception for {declaration}; its module {moduleName} is under no strict prefix"]
-  if !(← axiomsOf declaration).contains ``Classical.choice then
-    return #[s!"Whatwg axiom gate: stale strict-ceiling exception for {declaration}; it does not reach Classical.choice"]
-  return #[]
-
-/-- Validate the strict prefixes and every strict-ceiling exception; return the
-findings and the declarations the exceptions name. -/
-private def strictCeilingFindings {m : Type → Type} [Monad m] (config : Config)
-    (axiomsOf : Name → m (Array Name)) (environment : Environment)
-    (declarations : Array AuditedDeclaration) : m (Array String × Array Name) := do
-  let mut findings : Array String := #[]
-  for strictPrefix in config.strictCeilingPrefixes do
-    if !(`Whatwg).isPrefixOf strictPrefix then
-      findings := findings.push
-        s!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} is outside the Whatwg tree; ruling R-V1 keeps WhatwgTest and WhatwgGates under R-11" -- R-V3(c), 2026-10-01
-    if !(declarations.any fun declaration => strictPrefix.isPrefixOf declaration.moduleName) then
-      findings := findings.push
-        s!"Whatwg axiom gate: strict-ceiling prefix {strictPrefix} covers no audited module"
-  let mut excepted : Array Name := #[]
-  for entry in config.strictCeilingExceptions do
-    if isBlank entry.reason then
-      findings := findings.push
-        s!"Whatwg axiom gate: strict-ceiling exception for {entry.declaration} carries no reason"
-    findings := findings ++
-      (← strictExceptionTargetFindings config axiomsOf environment entry.declaration)
-    excepted := excepted.push entry.declaration
-  for entry in config.privateStrictCeilingExceptions do
-    if isBlank entry.reason then
-      findings := findings.push
-        s!"Whatwg axiom gate: strict-ceiling exception for {entry.original} (private to {entry.owner}) carries no reason"
-    let owned := declarations.filter fun declaration =>
-      declaration.moduleName == entry.owner &&
-        privateToUserName? declaration.name == some entry.original
-    match owned.toList with
-    | [declaration] =>
-        findings := findings ++
-          (← strictExceptionTargetFindings config axiomsOf environment declaration.name)
-        excepted := excepted.push declaration.name
-    | [] =>
-        findings := findings.push
-          s!"Whatwg axiom gate: strict-ceiling exception names missing declaration {entry.original} (private to {entry.owner})"
-    | _ =>
-        findings := findings.push
-          s!"Whatwg axiom gate: private strict-ceiling exception {entry.owner}/{entry.original} matched {owned.size} declarations; expected exactly one"
-  let mut seen : NameSet := {}
-  let mut repeated : NameSet := {}
-  for name in excepted do
-    if seen.contains name && !repeated.contains name then
-      repeated := repeated.insert name
-      findings := findings.push
-        s!"Whatwg axiom gate: strict-ceiling exception for {name} is listed more than once"
-    seen := seen.insert name
-  return (findings, excepted)
-
-/-- Pass 4, the axiom pass (contract section 6): the strict prefixes and every
-strict-ceiling exception are checked first; then, over every audited constant,
-the forbidden axioms and every native-evaluation auxiliary are refused, R-11's
-ceiling binds every audited tree, and the strict ceiling binds every constant
-whose module is under a strict prefix unless an exact exception names it.
-`axiomsOf` gives the axioms a constant reaches. Returns the findings and the
-constants that reach `Classical.choice`. -/
-private def axiomPassFindings {m : Type → Type} [Monad m] (config : Config)
-    (axiomsOf : Name → m (Array Name)) (environment : Environment)
-    (declarations : Array AuditedDeclaration) :
-    m (Array String × Array AuditedDeclaration) := do
-  let repositoryCeilingText := ceilingText ", " config.repositoryCeiling
-  let strictCeilingText := ceilingText " and " config.strictCeiling
-  let (exceptionFindings, excepted) ←
-    strictCeilingFindings config axiomsOf environment declarations
-  let mut axiomFindings := exceptionFindings
-  let mut choiceReachers : Array AuditedDeclaration := #[]
-  for declaration in declarations do
-    let name := declaration.name
-    let axioms ← axiomsOf name
-    for axiomName in axioms do
-      if isNativeAuxiliaryAxiom axiomName then
-        axiomFindings := axiomFindings.push
-          s!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName} (native_decide auxiliary)"
-      else if forbiddenAxioms.contains axiomName then
-        axiomFindings := axiomFindings.push
-          s!"Whatwg axiom gate: declaration {name} reaches forbidden axiom {axiomName}"
-      else if !config.repositoryCeiling.contains axiomName then
-        axiomFindings := axiomFindings.push
-          s!"Whatwg axiom gate: declaration {name} reaches unexpected axiom {axiomName}; the ceiling is {repositoryCeilingText}"
-    if axioms.contains ``Classical.choice then
-      choiceReachers := choiceReachers.push declaration
-      if let some strictPrefix := strictPrefixOf? config declaration.moduleName then
-        if !excepted.contains name then
-          axiomFindings := axiomFindings.push
-            s!"Whatwg axiom gate: declaration {name} reaches Classical.choice under the strict ceiling of {strictPrefix}, which admits {strictCeilingText} only, and no exact exception names it"
-  return (axiomFindings, choiceReachers)
 
 /-- Pass 5: validate the exemption list, then refuse every refused token outside
 an exempted source and every exemption whose source needs none (contract
