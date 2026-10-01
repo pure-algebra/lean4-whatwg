@@ -2,7 +2,8 @@
 
 This boundary contains the repository's gates implemented in Lean: the digest
 face of the required `hash` package, the vendor seal, the internal-citation
-gate, the trust self-test, the census, and the URL inventory and census. It is
+gate, the trust gate's library and configuration, the trust self-test, the
+census, and the URL inventory and census. It is
 the sixth authored router because this tree has a distinct trust boundary
 from the other five: it is tooling that reads files, spawns processes, and
 produces projections. The axiom gate audits it like every other tree, under
@@ -48,6 +49,23 @@ they decide nothing.
   registers a token, parser, syntax category, macro, elaborator or initializer.
   A tool runs as an executable or as an ordinary function a listed test module
   calls; it declares no syntax of its own.
+- The trust gate's passes live here, in the gate library
+  `WhatwgGates/Trust/*.lean`, namespace `Gates.Trust` (addendum V2e.3 of
+  `test/contracts/trust-gate-hardening.contract.md`, ruling R-W7(a)). The
+  in-tree command `#whatwg_streams_axiom_gate` of
+  `WhatwgTest/Audit/AxiomGate.lean` calls `Gates.Trust.runPasses` with the reads
+  only an elaborating process can make, and the executable gate is to call the
+  same passes over built `.olean` files read through `WhatwgGates/Trust/Load.lean`.
+  The library takes the configuration as an argument and reads no elaboration
+  state. This repository's data, the audited trees, the two ceilings, the strict
+  prefixes and the three anchored lists `strictCeilingExceptions`,
+  `sourceTokenExemptions` and `metaprogrammingModules`, lives in
+  `WhatwgGates/TrustConfig.lean` (`Gates.TrustConfig.config`). That module
+  imports only `WhatwgGates.Trust.Config` and is imported only by the gate
+  module and, once it lands, the executable gate's entry point: never by the
+  umbrella `WhatwgGates`, by a `WhatwgGates.Trust` module or by anything a
+  census battery imports (ruling R-W14(b)), so a plant after one of its anchors
+  rebuilds no census battery.
 - A gate reports a stable `PASS` or `FAIL` line stating exactly what was
   checked and, on failure, every offending item. It never truncates the
   failure list.
