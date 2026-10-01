@@ -3,7 +3,7 @@
 # Current state of `CONFIGURATION-PG-ORDERING`
 
 Graph document: `docs/CONFIGURATION-DAG.md`. Receipts log: `docs/receipts/CONFIGURATION-PG-ORDERING.md`.
-Fence: `Whatwg.Streams.Semantics.Configuration`.
+Fence: `Whatwg.Streams.Semantics.Configuration`, `Whatwg.Streams.Semantics.Step`, `Whatwg.Streams.Semantics.Runs`, `Whatwg.Streams.Semantics.Source`, `Whatwg.Streams.Semantics.Frontier`, `Whatwg.Streams.Semantics.Mask` and `Whatwg.Streams.Semantics.Invariants`.
 Depends on: `PROMISE-PG-FIRST` and `WRITABLE-PG-DEFAULT`.
 
 | Edge | Status | Ground |

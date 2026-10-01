@@ -700,4 +700,13 @@
 # at its module-closure gate. The slice D builder adds the import and removes
 # this entry the moment the battery is green. Turning it green by editing the
 # battery is a refusal, not a landing.
-WhatwgTest.Audit.LedgerRoutingContract
+#
+# The slice D builder seat of review lane W landed the routing pass and the
+# index on branch review/w7-ledger-d-builder, from 309ed31 (main at R-W22
+# merged with the breaker's head 929215f), on 2026-10-01: the 14 declarations
+# of addendum D.8 in WhatwgGates/Ledger/{Render,Check}.lean, cli acting on
+# routedOutcome, the fourteen unrouted entries of R-W22 (thirteen citing D57,
+# Whatwg.Streams.Kernel citing D68), the six fence entries of
+# CONFIGURATION-PG-ORDERING and generated/graphs/INDEX.md. The battery is
+# green with no byte of it changed, and WhatwgTest.lean imports it after
+# WhatwgTest.Audit.LedgerContract. The entry is removed. No entry remains.
