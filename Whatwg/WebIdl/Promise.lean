@@ -531,7 +531,11 @@ theorem Promise.waitForAll_success {value reason : Type}
           | _ => none) = vs := by
       intro l
       induction l with
-      | nil => intro vs hl _; cases vs with | nil => rfl | cons _ _ => simp at hl
+      | nil =>
+          intro vs hl _
+          cases vs with
+          | nil => rfl
+          | cons _ _ => exact absurd hl.symm (Nat.succ_ne_zero _)
       | cons id rest ih =>
           intro vs hl ha
           cases vs with

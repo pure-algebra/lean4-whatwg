@@ -1,5 +1,3 @@
-import Whatwg.Infra
-
 /-!
 # ECMAScript jobs and job queues
 
@@ -24,8 +22,9 @@ carrier beyond a first-order descriptor, `HostMakeJobCallback`,
 (`G-07` remainder); a single global configuration that observes the run
 condition (`G-08` remainder, P8).
 
-Layering (DB-11): this module imports only `Whatwg.Infra`, and nothing here
-mentions a promise state, so the queue stays payload-polymorphic (decision 4).
+Layering (DB-11): this module imports nothing; DB-11's `Whatwg.Infra` is an
+upper bound it does not use (R-V3(a)). Nothing here mentions a promise state,
+so the queue stays payload-polymorphic (decision 4).
 -/
 
 namespace Whatwg.Ecma262.Jobs
