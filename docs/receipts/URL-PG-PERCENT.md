@@ -94,3 +94,29 @@ The measured commands are in the "U3 landing receipt" of
 The **encoding obligation stays open exactly as stated above**. The three rows
 DECS, U8CP and U8STR keep their unowned UTF-8 half; no `utf8Encode` is declared
 anywhere, and the packet's `Boundary.Utf8Encoding` remains an answer record.
+
+## Current-state table as hand-written before the ledger, 2026-10-01
+
+Moved verbatim from the "Current state" section of `docs/URL-PERCENT-ENCODING-DAG.md` at `5999363`; the ledger entry `WhatwgTest/Ledger/UrlPercent.lean` and its projection `generated/graphs/URL-PG-PERCENT.md` supersede it.
+
+This table describes commit `325d5d5` on 2026-09-30. The U3 builder landing of
+2026-09-07, merged as `5732e77` and accepted by ruling R-U2, closed
+construction, semantics, laws and trust; rulings R-U4 and R-U5 later settled
+the `encoding` obligation. Ruling R-V4 sets the rule: an edge is
+`required-closed` only when every ground this document or a ruling in
+`COORDINATION.md` states for keeping it open is discharged by something named
+in the ground cell. Where a document and a later ruling disagree, the ruling
+wins and the cell names it.
+
+| Edge | Status | Ground |
+| --- | --- | --- |
+| identity | `required-open` | The per-declaration ownership record and the generated declaration snapshot join, which URL has never had and which has no generator (debt D47). `setOf_eq` and `setOf_injective` are proved |
+| construction | `required-closed` | The eight sets `extend`ed from the parent the census records, each membership sentence a theorem (`c0Control_mem_iff` to `form_mem_iff`), the four helpers with their laws, and steps 1, 2 and 7.3.2 (U3 landing, R-U2). Debt D26, recorded by R-U2's review: `decimalDigits` has no base-ten denotation law, so this closure over AFTER rests on the probe value 8253 |
+| semantics | `required-closed` | Percent-decode transcribed branch by branch (`percentDecodeBytes_nil`, `_other`, `_pair`, `_malformed_pair`, `_short`), `percentDecodeString_eq` and `followsUtf8Advice_iff`, the encoder answer tape as DB-02 data with `EncoderTape.terminated_iff` and `encodeLoop_nil`, and the loop and assembly laws ending in `percentEncodeAfterEncoding_eq` (U3 landing, R-U2). Debts D30 and D31 are recorded against `encodeLoop` and step 1's assertion |
+| laws | `required-closed` | All 95 ascriptions of `WhatwgTest/Url/PercentEncodingLaws.lean` are proved; thirteen are finite probes and close no clause on their own (U3 landing, R-U2). Debts D26, D28 and D29 are recorded against these laws |
+| representation | `required-open` | The declaration records (debt D47). The Encoding owner the landing waited on is ruled and landed (R-U1, R-U4); R-U5 records what that closure does not cover: no declaration constructs `Boundary.Utf8Encoding` from Infra's encoder (debt D44) |
+| counterexamples | `required-open` | `URL-PE-CE-006` is registered `SEEDED`: its first mutation, a fresh ISO-2022-JP encoder per code point, is unrepresentable while the encoder is a tape, and `Boundary.isStateful_iso2022jp` falsifies nothing (R-U2, debt D27). The other thirteen rows are `CLOSED`. Debt D50 records that the witness module `WhatwgTest/Url/Counterexamples/PercentEncoding.lean` imports no production module |
+| bridges | `required-open` | (a) ECMA-262's `encodeURIComponent`: the URL half is `component_complement`; the other half needs `ext.ecma262.encodeuricomponent`, outside the promise lane's census scope. (b) The Encoding Standard: the `encoding` obligation is closed (R-U4, R-U5; see "The encoding obligation" below), and debt D44 remains. WPT `url/` replay and any host profile are U9 work and are not claimed |
+| targets | `not-applicable` | U3 lowers nothing and introduces no generated-code relation; P11 owns the lowering machinery |
+| trust | `required-closed` | The 95 named receipts of `WhatwgTest/Url/PercentEncodingAxiomReport.lean` print inside the R-11 ceiling and none reaches `Classical.choice`; the root audit reaches both modules and `known-red.txt` holds no U3 entry (U3 landing, R-U2). No declaration under `Whatwg.Url` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md` |
+| coverage | `required-open` | URL has no admitted denominator, numerator or report; `docs/SPEC-COVERAGE.md` and `docs/URL-CENSUS-DAG.md` own the rest of the join |

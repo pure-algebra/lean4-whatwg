@@ -7,6 +7,8 @@ import WhatwgTest.Ledger.TransformBackpressure
 import WhatwgTest.Ledger.PipingForwardShutdown
 import WhatwgTest.Ledger.InfraUtf8
 import WhatwgTest.Ledger.InfraScalar
+import WhatwgTest.Ledger.UrlPercent
+import WhatwgTest.Ledger.UrlCensus
 
 /-!
 # WhatwgTest.Ledger
@@ -51,7 +53,7 @@ def infraInteger : Leaf where
 one leaf record. -/
 def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
-    transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar]
+    transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus]
   leaves := [infraInteger]
 
 /-- The ledger has no structural finding (contract section 4). -/
