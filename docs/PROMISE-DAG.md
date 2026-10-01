@@ -36,6 +36,11 @@ names it.
 | trust | `required-closed` | The 182 named receipts print inside the R-11 ceiling, and `lake exe trustselftest` passed at the Q3b landing (Q3 landing, Q3b landing; R-P20, R-P24). At `325d5d5` seven of them reached `Classical.choice`: `Table.fresh_get`, `Table.settle_handled`, `Table.markHandled_idem`, `ResolvingFunctions.callResolveSelf_self`, `WebIdl.Promise.waitForAll_success`, `waitForAllTraced_success` and `Streams.Writable.settle_bridge`. Lane V repaired all seven with no statement changed (slices V1 and V5, R-V6), and since that landing the axiom gate holds `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1) |
 | coverage | `required-open` | Ruling R-P20 set the edge `required-open` because both numerator modules, `WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and `WhatwgTest/Audit/Ecma262/SpecCoverage.lean`, exist; every row of both censuses is `absent`. The later sentence of the Q3 landing section that says coverage stays `not-applicable` disagrees with R-P20, and R-P20 wins |
 
+The ledger entry of this graph in `WhatwgTest/Ledger.lean` is projected to
+`generated/graphs/PROMISE-PG-FIRST.md` by `lake exe whatwg_ledger --write`,
+and `lake exe whatwg_ledger` checks that projection and the entry's
+references, not this table.
+
 ## Authority anchors
 
 Two pinned sources. Byte offsets are 0-based, ends exclusive; no line number is

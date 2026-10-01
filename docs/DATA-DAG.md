@@ -40,6 +40,11 @@ keeping it open is discharged by something named in the ground cell.
 | trust | `required-closed` | The 99 named receipts of `WhatwgTest/Streams/Data/QueueAxiomReport.lean` print inside the R-11 ceiling, and the declared red set of `test/fixtures/trust-gate/known-red.txt` is empty (receipt "Landing"). No declaration in `Whatwg.Streams.Data` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md` |
 | coverage | `required-closed` | The section 6 rows landed in the numerator `WhatwgTest/Audit/SpecCoverage.lean` (receipt "Coverage landed"); `lake exe whatwg_census --report` prints the Streams block |
 
+The ledger entry of this graph in `WhatwgTest/Ledger.lean` is projected to
+`generated/graphs/DATA-PG-QUEUE.md` by `lake exe whatwg_ledger --write`, and
+`lake exe whatwg_ledger` checks that projection and the entry's references,
+not this table.
+
 ## 1. Why this family gets a graph and not a leaf
 
 `docs/AGENT-ROUTING.md` allows a leaf-receipt route only for a passive value
