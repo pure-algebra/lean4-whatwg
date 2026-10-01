@@ -363,3 +363,52 @@ The coordinator owns the two new known-red declarations and root integration:
 `WhatwgTest.Streams.Writable.InFlightExactContract` and
 `WhatwgTest.Streams.Writable.InFlightExactAxiomReport`.
 The breaker has changed no existing frozen Lean file or production source.
+
+## W8a amendment: the writable queue invariant (2026-10-01, ruling R-W4)
+
+Appended by the W8a breaker seat on branch `review/w8a-kernel-breaker`, based
+on `main` at `b0d35e2`. This section is additive. No earlier sentence of this
+contract or of its two addenda changes, and no earlier P5a ascription,
+battery, witness or receipt changes.
+
+The contract gains six declarations, frozen in the new breaker-owned battery
+`WhatwgTest/Streams/Writable/InvariantContract.lean` and recorded in section
+5.2 of `test/contracts/transition-kernel.contract.md`, which owns their
+declaration record:
+
+```lean
+Writable.QueueInv : {α ε : Type} → Writable.State α ε → Prop
+  -- view; body pinned by `rfl`:
+  -- Data.Queue.WF Writable.sizes s.queue ∧ Data.Queue.SizesAdmissible Writable.sizes s.queue
+Writable.tick_queueInv : ∀ {α ε : Type} (s t : Writable.State α ε),
+  Writable.QueueInv s → Writable.tick s = some t → Writable.QueueInv t
+Writable.decide_queueInv :
+  ∀ {α ε : Type} (s t : Writable.State α ε) (d : Writable.Decision α ε),
+    Writable.QueueInv s → Writable.decide s d = some t → Writable.QueueInv t
+Writable.step_queueInv :
+  ∀ {α ε : Type} {s t : Writable.State α ε} {d : Option (Writable.Decision α ε)},
+    Writable.QueueInv s → Writable.Step s d t → Writable.QueueInv t
+Writable.reaches_queueInv :
+  ∀ {α ε : Type} {s t : Writable.State α ε} {ds : List (Option (Writable.Decision α ε))},
+    Writable.Reaches s ds t → Writable.QueueInv s → Writable.QueueInv t
+Writable.initial_queueInv :
+  ∀ {α ε : Type} (hwm : Writable.Size) (alg : Writable.Algorithms)
+    (promiseSeed errorSeed : Nat),
+    Writable.QueueInv (Writable.initial (α := α) (ε := ε) hwm alg promiseSeed errorSeed)
+```
+
+`Writable.QueueInv` is the queue-with-sizes invariant of DATA-PG-QUEUE read off
+the writable `[[queue]]`. It is inductive for both stages, and the closure
+theorem is carried by `Kernel.Path.invariant` through the bridge
+`Writable.reaches_iff_path`. Assurance route: the construction edge of
+WRITABLE-PG-DEFAULT.
+
+Under the same packet, and outside this battery, the writable calculus also
+gains the bridges `Writable.step_iff_stage` and `Writable.reaches_iff_path`
+(semantics edge), and the proofs of `reaches_nil`, `reaches_cons` and
+`reaches_append_iff` are re-derived from the kernel; their frozen statements
+do not change. The local writable machine is **not** exclusive
+(`WS-KERNEL-CE-002`): `Kernel.prefix_comparable` and `Kernel.normalized_unique`
+are not claimed for `Writable.Reaches`, and nothing in this contract is read as
+claiming them. The battery is declared red in
+`test/fixtures/trust-gate/known-red.txt` until slice W8a.3 lands.

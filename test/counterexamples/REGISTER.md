@@ -300,3 +300,25 @@ battery's three `sourceCheck … = false` ascriptions in
 R-P26). They carry no `WS-CONFIG` ids yet: §12.3 of
 `test/contracts/configuration-ordering.contract.md` puts their register rows on
 P8, which is where they will be minted.
+
+## Transition-kernel witnesses
+
+W8a rows, 2026-10-01, frozen by the W8a breaker seat on branch
+`review/w8a-kernel-breaker` with the packet
+`test/contracts/transition-kernel.contract.md` (ruling R-W4). Attack shapes are
+in `test/counterexamples/kernel/ATTACKS.md`. The witness modules are red until
+the builder slices land the names they use, and are declared in
+`test/fixtures/trust-gate/known-red.txt`: rows 001 to 004 need slice W8a.1
+(`Whatwg.Streams.Kernel`), rows 005 and 006 slice W8a.3 (the invariants). All
+six elaborated against the design's Route B prototype reinstated in the
+breaker's worktree; none is a host observation or names an observation mask.
+Each row is `SEEDED` until its module is green on `main`.
+
+| ID | Status | Attacked statement | Witness / evidence | Forced repair |
+| --- | --- | --- | --- | --- |
+| `WS-KERNEL-CE-001` | `SEEDED` | `Kernel.Path.deterministic` holds of every one-step relation, so its `Kernel.Deterministic` hypothesis is decoration | `WhatwgTest/Streams/Counterexamples/Kernel/Path.lean`, `ce001_not_deterministic`, `ce001_two_ends`, `ce001_unconditional_false` over the toy `Breaker.anyStep`; ATTACKS.md `WS-KERNEL-CE-001` | `Kernel.Path.deterministic` takes `Kernel.Deterministic step`; `Kernel.graph_deterministic` discharges it for every partial-function graph, hence for all five calculi |
+| `WS-KERNEL-CE-002` | `SEEDED` | the fixed-external-word comparability law needs no exclusivity, so it transfers from the configuration to the local Writable machine | same module, `ce002_fork_not_exclusive`, `ce002_left`, `ce002_right`, `ce002_comparability_false` over the toy `Breaker.forkTick`/`forkAccept`, and `ce002_writable_not_exclusive : ¬ Kernel.Exclusive (@Writable.tick Unit Unit) Writable.decide` (the design's `Writable.not_exclusive`); ATTACKS.md `WS-KERNEL-CE-002` | `Kernel.prefix_comparable` and `Kernel.normalized_unique` take `Kernel.Exclusive tick accept`; only `Semantics.Ordering.exclusive` is frozen, and per-calculus exclusivity is not claimed |
+| `WS-KERNEL-CE-003` | `SEEDED` | under exclusivity, two derivations from one state with one external word end at one state whether or not the ends are normalized | same module, `ce003_exclusive`, `ce003_unnormalized_false`, with controls `ce003_start_not_normalized` and `ce003_comparable`, over the toy `Breaker.countTick`/`countAccept`; ATTACKS.md `WS-KERNEL-CE-003` | `Kernel.normalized_unique` takes `tick t = none` and `tick u = none`, the configuration's `Normalized` frontier of Decision 8 |
+| `WS-KERNEL-CE-004` | `SEEDED` | the two-stage bridge can be the equation of relations `Writable.Step = Kernel.Graph (Kernel.stage Writable.tick Writable.decide)`, closed by `rfl` | same module, `#check_failure` of that `rfl` at an open label under `#guard_msgs (drop info)`, with the two closed-label `rfl` controls; an elaboration probe, not a kernel fact; ATTACKS.md `WS-KERNEL-CE-004` | `step_iff_stage` is a pointwise iff proved by cases on the label for Writable, Transform, Piping and the configuration; Readable's `step_eq_graph` alone is an equation |
+| `WS-KERNEL-CE-005` | `SEEDED` | the readable queue invariant survives a `finishEnqueue` that appends the chunk without `Data.enqueueValueWithSize` | `WhatwgTest/Streams/Counterexamples/Kernel/Invariants.lean`, `Breaker.finishEnqueueAppend`, `ce005_reference_wf`, `ce005_mutant_breaks_wf` (both by `decide`) and `ce005_mutant_breaks_step_law`; ATTACKS.md `WS-KERNEL-CE-005` | `Readable.step_queueInv` over the production `finishEnqueue`, whose only queue growth is `enqueueValueWithSize`, with `Readable.QueueInv` pinned to `Data.Queue.WF` and `Data.Queue.SizesAdmissible` |
+| `WS-KERNEL-CE-006` | `SEEDED` | registration freshness survives a `register` that reuses `nextObserver - 1` as the new identity | same module, `Breaker.registerReuse`, `ce006_config1_step`, `ce006_config1_fresh`, `ce006_reference_ids`, `ce006_mutant_ids`, `ce006_mutant_breaks_step_law`; ATTACKS.md `WS-KERNEL-CE-006` | `Semantics.Ordering.step_registrationsFresh` over the production `register`, and the cursor clause of `RegistrationsFresh` that makes freshness inductive |
