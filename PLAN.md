@@ -200,6 +200,19 @@ graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
 still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
 global `@[simp]` attributes R-P27 re-froze.
 
+**Review lane V opened, 2026-09-30:** the operator asked for a review of the
+implementation and then opened its first five rows as slices V1 to V5:
+a `propext`, `Quot.sound` ceiling by module prefix with the six promise
+proofs repaired (V1); the trust gate's missing refusals, the trust self-test
+and a kernel replay in CI (V2); the unused Infra import, the dependency pins
+and the prefixed tooling tree (V3); one current-state edge table per graph
+with history in a receipts log (V4); and the proof-only repairs that take
+`Classical.choice` out of Streams and Infra UTF-8, debt D43 included (V5).
+`docs/research/2026-09-30-implementation-review.md` is the evidence and
+rulings R-V0 to R-V5 and R-U5 in `COORDINATION.md` are the brief. The lane
+adds no semantic declaration and changes no theorem statement; P8 and the
+phases after it are unchanged.
+
 **Hold lifted, 2026-09-06:** the operator lifted the 2026-09-05 semantics
 hold and opened the promise lane: a census of ES2026's Jobs and Promise
 Objects clauses and of Web IDL's promise and exception sections, run as
