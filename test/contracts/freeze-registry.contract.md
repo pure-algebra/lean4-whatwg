@@ -159,8 +159,12 @@ these names, the module declares only instances (`deriving` clauses and a
 `Lean.ToExpr` instance are the builder's choice) and the declarations Lean
 generates for the names above (recursors, `casesOn`, `noConfusion`, structure
 default auxiliaries and the like); every other declaration it needs is
-`private`. No declaration of the module, or of this repository, is named
-`m1` or `m2` (R-W5); the battery refuses the two obvious spellings.
+`private`. No declaration of the module is named `m1` or `m2` (R-W5); the
+battery refuses the two obvious spellings. R-W5 says the same of every
+declaration of the repository, and the base has one so named, the
+definition `Whatwg.Streams.Readable.M2Observation.m1` (found by the scratch
+snapshot walk of packet 2). It is outside this packet's fence and is reported
+to the coordinator.
 
 The battery ascribes every row with `#check (@n : T)`, not with the command
 under test: the command does not attest its own surface, and the conversion of
