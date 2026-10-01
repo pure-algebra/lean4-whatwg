@@ -9,7 +9,7 @@ defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_ledger",
-                  "whatwg_declsnapshot"]
+                  "whatwg_declsnapshot", "whatwg_trustgate"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -139,6 +139,16 @@ root = "whatwgbin.Ledger"
 [[lean_exe]]
 name = "whatwg_declsnapshot"
 root = "whatwgbin.DeclSnapshot"
+
+# The executable trust gate of addendum V2e (ruling R-W7(a)): the passes of
+# WhatwgGates/Trust/ over the built .olean files, imported with no extension
+# loaded, so that no audited initializer, parser or elaborator runs in its
+# process. No `needs` and no `supportInterpreter`: it refuses a missing or stale
+# .olean, so it runs after `lake build`, and it evaluates nothing it imports.
+# Its link closure is the gate library, the loader and the config module.
+[[lean_exe]]
+name = "whatwg_trustgate"
+root = "whatwgbin.TrustGate"
 
 # The proved hash functions the gates compute every digest with. Exact commit
 # of pure-algebra/lean4-hash `main`, the pin lean4-effect4 uses (ruling

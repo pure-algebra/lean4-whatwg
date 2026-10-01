@@ -3,24 +3,26 @@ import WhatwgGates.Trust.Config
 /-!
 # Gates.TrustConfig
 
-This repository's data for the trust gate (addendum V2e.3 of
+This repository's data for the trust gate (addenda V2e.3 and V2e.5 of
 `test/contracts/trust-gate-hardening.contract.md`, ruling R-W7(a)): the audited
-trees, the two ceilings, the strict prefixes and the exact lists, each anchored
-list below the comment line after which `lake exe whatwg_trustselftest` plants
-its entries. `config` is the one value the gate library reads. The in-tree
-command `#whatwg_streams_axiom_gate` of `WhatwgTest/Audit/AxiomGate.lean` hands
-it to every pass, and the executable gate is to hand it the same value, so both
-judge with one copy.
+trees, the two ceilings, the strict prefixes and the four exact lists, each
+anchored list below the comment line after which `lake exe whatwg_trustselftest`
+plants its entries. `config` is the one value the gate library reads. The
+in-tree command `#whatwg_streams_axiom_gate` of `WhatwgTest/Audit/AxiomGate.lean`
+hands it to every pass, and the executable gate `lake exe whatwg_trustgate`,
+whose entry point `whatwgbin/TrustGate.lean` links this module, hands it the
+same value, so both judge with one copy. The fourth list, the extension
+allowlist, is read by the executable alone.
 
 The module declares data only and imports only `WhatwgGates.Trust.Config`. It is
 imported by `WhatwgTest.Audit.AxiomGate`, which keeps it in the test root's
-import closure, and by nothing else in the audited trees: not by the umbrella
-`WhatwgGates`, not by any `WhatwgGates.Trust` module and not by anything a
-census battery imports (ruling R-W14(b)). An after-anchor plant therefore
-rebuilds this module, the gate module and the test root, and no census battery,
-which would read `vendor/` and `docs/` that the self-test's probe does not
-copy. The module is audited like every tooling module and is not a
-metaprogramming module.
+import closure, and by the executable's entry point, and by nothing else: not by
+the umbrella `WhatwgGates`, not by any `WhatwgGates.Trust` module and not by
+anything a census battery imports (ruling R-W14(b)). An after-anchor plant
+therefore rebuilds this module, the gate module and the test root and relinks
+the executable, and rebuilds no census battery, which would read `vendor/` and
+`docs/` that the self-test's probe does not copy. The module is audited like
+every tooling module and is not a metaprogramming module.
 -/
 
 namespace Gates.TrustConfig
@@ -121,6 +123,85 @@ def metaprogrammingModules : List MetaprogrammingModule :=
   ⟨`WhatwgTest.Infra.ScalarConstructiveContract, "runs receipt INFRA-SCALAR-CE-001 in run_cmd: Lean.collectAxioms over nine declarations"⟩ ::
   []
 
+/-- The environment extensions an audited module's built file may hold entries in
+(addendum V2e.5, step 5), written `` ⟨"Printed.Name", "reason"⟩ :: `` on its own
+line below the anchor comment, where `lake exe whatwg_trustselftest` plants its
+entries too. An extension is named by its printed name, `toString` of the name
+`ModuleData.entries` records, because a private extension's name has a numeric
+component no name literal spells (fifteen below). Only the executable gate reads
+the list: it refuses an entry of an audited module in an extension the list does
+not name, and a list entry that names an extension no audited module holds
+entries in, carries no reason, or is listed twice.
+
+Seeded at the executable's landing with exactly the 51 extensions that hold an
+entry from an audited module of the unmodified tree, as the executable reads them
+with no extension loaded. The reasons fall in four classes. *Compiler metadata*
+shapes compiled code only, the executables and the compiler evaluation of
+`#guard` (contract V2c.7), and never a kernel declaration; the substitutions of
+compiled code that do matter, `@[extern]` and `@[implemented_by]`, are the
+environment pass's to refuse, and they hold no entry here. An *elaboration hint*
+steers how later terms elaborate, and every declaration that results is
+kernel-checked and audited by the environment and axiom passes. *Bookkeeping*
+(documentation, source ranges, names, messages) changes no declaration. Four are
+*read by a pass*: the parser extension, the command-elaborator attribute and the
+`init` attribute, which rule 1 reads, and the per-module axiom tables, which the
+in-tree command reads through `Lean.collectAxioms` and the executable never does.
+A later entry needs a reason the coordinator accepts, as an exemption does. -/
+def extensionAllowlist : List ExtensionAllowlistEntry :=
+  -- trust-selftest: extension-allowlist entries are inserted below this line
+  ⟨"Lean.Compiler.LCNF.UnreachableBranches.functionSummariesExt", "compiler metadata: the dead-branch analysis's summary of each compiled function, read by the code generator only"⟩ ::
+  ⟨"Lean.Compiler.LCNF.baseExt", "compiler metadata: each compiled function's LCNF body in the base phase, read by the code generator only"⟩ ::
+  ⟨"Lean.Compiler.LCNF.impureSigExt", "compiler metadata: the impure-phase signature of each compiled function, read by the code generator only"⟩ ::
+  ⟨"Lean.Compiler.LCNF.monoExt", "compiler metadata: each compiled function's LCNF body in the mono phase, read by the code generator only"⟩ ::
+  ⟨"Lean.Compiler.LCNF.monoTypeExt", "compiler metadata: the erased type of a declaration in the mono phase, read by the code generator only"⟩ ::
+  ⟨"Lean.Compiler.LCNF.specExtension", "compiler metadata: which arguments of a function the code generator specialises; compiled code only"⟩ ::
+  ⟨"Lean.Compiler.inlineAttrs", "compiler metadata: inline, noinline and macro_inline marks, which steer the code generator; the kernel checks the declaration's own body"⟩ ::
+  ⟨"Lean.Elab.Command.commandElabAttribute", "read by a pass: command elaborators, today the gate and freeze commands of listed metaprogramming modules; rule 1 refuses one outside the list"⟩ ::
+  ⟨"Lean.Elab.Structural.eqnInfoExt", "elaboration hint: what Lean needs to state the equation lemmas of a structurally recursive definition on demand; each lemma is a kernel-checked theorem"⟩ ::
+  ⟨"Lean.Elab.Term.elabAsElim", "elaboration hint: the elab_as_elim tag, today on the generated .elim eliminators of enumerations, which changes only how an application elaborates"⟩ ::
+  ⟨"Lean.Elab.WF.eqnInfoExt", "elaboration hint: the equation-lemma data of a definition by well-founded recursion (Whatwg.Infra.Text.Order); each lemma is a kernel-checked theorem"⟩ ::
+  ⟨"Lean.IR.declMapExt", "compiler metadata: each compiled function's IR, which the interpreter and the code generator run; the kernel never reads it"⟩ ::
+  ⟨"Lean.Linter.deprecatedAttr", "bookkeeping: deprecated marks, today on the generated toCtorIdx aliases, which make Lean warn at a use"⟩ ::
+  ⟨"Lean.Meta.Grind.grindExt", "elaboration hint: theorems and patterns registered for grind; a proof grind builds is kernel-checked and audited"⟩ ::
+  ⟨"Lean.Meta.Match.Extension.extension", "elaboration hint: the matcher information of each auxiliary match function, itself a kernel-checked definition"⟩ ::
+  ⟨"Lean.Meta.completionBlackListExt", "bookkeeping: names the editor hides from completion"⟩ ::
+  ⟨"Lean.Meta.congrKindsExt", "elaboration hint: the argument kinds of generated congruence theorems, each a kernel-checked theorem"⟩ ::
+  ⟨"Lean.Meta.funIndInfoExt", "elaboration hint: how a functional induction or fun_cases principle maps to its function; the principles are kernel-checked theorems"⟩ ::
+  ⟨"Lean.Meta.instanceExtension", "elaboration hint: type class instances, which steer instance search; every term the search builds is kernel-checked"⟩ ::
+  ⟨"Lean.Meta.matcherLikeExt", "compiler metadata: the generated match_on_same_ctor auxiliaries the code generator inlines like matchers"⟩ ::
+  ⟨"Lean.Meta.simpExtension", "elaboration hint: simp lemmas; every rewrite simp makes is a proof the kernel checks"⟩ ::
+  ⟨"Lean.Parser.parserExtension", "read by a pass: tokens, syntax kinds, categories and parsers, today of listed metaprogramming modules; rule 1 refuses one outside the list and token-table hygiene tests every token"⟩ ::
+  ⟨"Lean.auxRecExt", "elaboration hint: the tag on generated auxiliary recursors such as casesOn and brecOn, which are kernel-checked definitions"⟩ ::
+  ⟨"Lean.backwardDefeqAttr", "elaboration hint: the backward_defeq tag on rfl theorems, which dsimp reads only under an option; a dsimp step is a proof the kernel checks"⟩ ::
+  ⟨"Lean.declRangeExt", "bookkeeping: each declaration's source range"⟩ ::
+  ⟨"Lean.defeqAttr", "elaboration hint: the defeq tag on rfl theorems that dsimp may use; a dsimp step is a proof the kernel checks"⟩ ::
+  ⟨"Lean.deprecatedModuleExt", "bookkeeping: one entry per module saying whether it is deprecated, which makes Lean warn at an import"⟩ ::
+  ⟨"Lean.docStringExt", "bookkeeping: documentation strings"⟩ ::
+  ⟨"Lean.noConfusionExt", "elaboration hint: which generated declarations are noConfusion constructions, themselves kernel-checked definitions"⟩ ::
+  ⟨"Lean.projectionFnInfoExt", "elaboration hint: which definitions are structure projections, themselves kernel-checked definitions"⟩ ::
+  ⟨"Lean.protectedExt", "bookkeeping: the protected mark, which only makes a name need qualification"⟩ ::
+  ⟨"Lean.regularInitAttr", "read by a pass: initializers, today the post-command check of the listed module WhatwgTest.Audit.AxiomGate; rule 1 refuses one outside the list, and the executable runs none"⟩ ::
+  ⟨"_private.Lean.AuxRecursor.0.Lean.sparseCasesOnExt", "elaboration hint: the tag on generated sparse casesOn auxiliaries, which are kernel-checked definitions"⟩ ::
+  ⟨"_private.Lean.Compiler.LCNF.MonoTypes.0.Lean.Compiler.LCNF.trivialStructureInfoExt", "compiler metadata: which structures the code generator represents by their one field"⟩ ::
+  ⟨"_private.Lean.Compiler.LCNF.Specialize.0.Lean.Compiler.LCNF.Specialize.specCacheExt", "compiler metadata: the cache of functions the code generator specialised"⟩ ::
+  ⟨"_private.Lean.Compiler.LCNF.ToImpureType.0.Lean.Compiler.LCNF.ctorLayoutExt", "compiler metadata: constructor memory layouts, read by the code generator only"⟩ ::
+  ⟨"_private.Lean.Compiler.LCNF.ToImpureType.0.Lean.Compiler.LCNF.impureTrivialStructureInfoExt", "compiler metadata: which structures the impure phase represents by their one field"⟩ ::
+  ⟨"_private.Lean.Compiler.LCNF.ToImpureType.0.Lean.Compiler.LCNF.impureTypeExt", "compiler metadata: the impure-phase type of each compiled declaration, read by the code generator only"⟩ ::
+  ⟨"_private.Lean.Compiler.MetaAttr.0.Lean.metaExt", "compiler metadata: the meta mark, today on the generated _auto declarations that hold an auto-param's tactic syntax; the proof that tactic builds at a use is kernel-checked"⟩ ::
+  ⟨"_private.Lean.Compiler.ModPkgExt.0.Lean.modPkgExt", "bookkeeping: the package each module belongs to, one entry per module"⟩ ::
+  ⟨"_private.Lean.DocString.Extension.0.Lean.moduleDocExt", "bookkeeping: module documentation"⟩ ::
+  ⟨"_private.Lean.ExtraModUses.0.Lean.extraModUses", "bookkeeping: import dependencies recorded for the shake tool"⟩ ::
+  ⟨"_private.Lean.Meta.Constructions.SparseCasesOn.0.Lean.Meta.sparseCasesOnInfoExt", "elaboration hint: the data of generated sparse casesOn auxiliaries, which are kernel-checked definitions"⟩ ::
+  ⟨"_private.Lean.Meta.MethodSpecs.0.Lean.methodSpecsAttr", "elaboration hint: the method_specs mark on derived instances, from which Lean states specification theorems on demand, each kernel-checked"⟩ ::
+  ⟨"_private.Lean.Namespace.0.Lean.namespacesExt", "bookkeeping: the namespaces a module declares"⟩ ::
+  ⟨"_private.Lean.Structure.0.Lean.structureExt", "elaboration hint: the fields and parents of each structure, itself a kernel-checked inductive type"⟩ ::
+  ⟨"_private.Lean.Util.CollectAxioms.0.Lean.exportedAxiomsExt", "read by a pass: each module's own table of the axioms its declarations reach, which the in-tree command reads through Lean.collectAxioms; the executable never reads it and traverses the kernel declarations itself"⟩ ::
+  ⟨"recExt", "elaboration hint: the tag on recursive definitions, which simp reads when it unfolds one"⟩ ::
+  ⟨"reducibilityCore", "elaboration hint: reducible, semireducible and irreducible marks, which steer unification and instance search; the kernel ignores them"⟩ ::
+  ⟨"sineQueNon", "bookkeeping: library-suggestion triggers, one entry per module"⟩ ::
+  ⟨"symbolFrequency", "bookkeeping: symbol counts for library suggestions, one entry per module"⟩ ::
+  []
+
 /-- This repository's configuration of the trust gate: the one value the in-tree
 command and the executable gate hand the gate library. -/
 def config : Config where
@@ -132,5 +213,6 @@ def config : Config where
   privateStrictCeilingExceptions := privateStrictCeilingExceptions
   sourceTokenExemptions := sourceTokenExemptions
   metaprogrammingModules := metaprogrammingModules
+  extensionAllowlist := extensionAllowlist
 
 end Gates.TrustConfig
