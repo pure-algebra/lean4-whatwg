@@ -520,3 +520,31 @@
 # control build is all green again; its executable rows stay red until
 # whatwg_trustgate lands (V2e.10). This block's lines, which the breaker's
 # commit wrote with LF endings, are CRLF again like the rest of the file.
+
+# W6 freeze registry, the command (packet 1 of 2, ruling R-W5), frozen RED
+# 2026-10-01 by the W6 breaker seat on branch review/w6-freeze-breaker, based
+# on b0d35e2. Packet: test/contracts/freeze-registry.contract.md.
+# Implementation fence (builder 1, R-W8 wave 2a): the new module
+# WhatwgTest/Audit/Freeze.lean, its metaprogrammingModules entry as addendum
+# V2d of test/contracts/trust-gate-hardening.contract.md freezes it, and the
+# root imports of WhatwgTest.Audit.Freeze and WhatwgTest.Audit.FreezeContract
+# (R-W9: breakers do not edit WhatwgTest.lean).
+#
+# One entry. The battery is red for one reason only: it imports
+# WhatwgTest.Audit.Freeze, which does not exist yet. Against the design's
+# prototype command adapted to R-W5, the battery elaborates with exit 0; the
+# packet's section 15 records that run. The builder removes this entry the
+# moment the battery is green. Turning it green by editing the battery is a
+# refusal, not a landing.
+#
+# Lake also names the missing module WhatwgTest.Audit.Freeze as a failing
+# target. It is not declared here: the self-test's excise step refuses a
+# declared module with no source file. Until builder 1 creates the module,
+# lake exe whatwg_trustselftest reports it as undeclared (packet section 14).
+#
+# The W6 builder 1 seat landed the command on branch review/w6-freeze-builder
+# on 2026-10-01: the new module WhatwgTest/Audit/Freeze.lean, its
+# metaprogrammingModules entry, and the root imports of WhatwgTest.Audit.Freeze
+# and WhatwgTest.Audit.FreezeContract. The battery is green with no byte of it
+# changed: every #guard_msgs control matches and every rfl read-back holds.
+# The entry is removed. No entry remains.
