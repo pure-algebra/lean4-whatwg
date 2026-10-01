@@ -1,4 +1,5 @@
 import WhatwgGates.UrlCensus
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned U2b finite contract, frozen before the assignment implementation.
@@ -11,7 +12,7 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Url.CensusContract
 
-#check (@Gates.UrlCensus.assign : ByteArray → Array Gates.UrlCensus.SourceRow →
+#whatwg_freeze (@Gates.UrlCensus.assign : ByteArray → Array Gates.UrlCensus.SourceRow →
   Array Gates.UrlCensus.Explanation → Array String →
   Except String (Array Gates.UrlCensus.Assignment))
 

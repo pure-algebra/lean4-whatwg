@@ -1,4 +1,5 @@
 import WhatwgGates.UrlCensusInput
+import WhatwgTest.Audit.Freeze
 
 /-!
 Independent review regression `URL-INP-CE-001`, frozen before repair.
@@ -11,9 +12,9 @@ set_option autoImplicit false
 
 namespace WhatwgTest.Url.Counterexamples.CensusInput
 
-#check (@Gates.UrlCensusInput.build : ByteArray → Gates.UrlCensusInput.Inputs →
+#whatwg_freeze (@Gates.UrlCensusInput.build : ByteArray → Gates.UrlCensusInput.Inputs →
   Except String (Array Gates.UrlCensus.SourceRow × Array Gates.UrlCensus.Assignment))
-#check (@Gates.UrlCensusInput.project :
+#whatwg_freeze (@Gates.UrlCensusInput.project :
   ByteArray → Gates.UrlCensusInput.Inputs → Except String (String × String))
 
 private def source := "<h2 id=s:1>H</h2><dfn id=x>x</dfn>"

@@ -1,5 +1,6 @@
 import Whatwg.Infra
 import Whatwg.Url
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned U3 exact-signature battery for the URL percent-encoding packet.
@@ -45,64 +46,64 @@ three rows that call UTF-8 —  `op.percent-decode-string` [18464,18967),
 `op.utf8-percent-encode-string` [25073,25393) — are stated relative to the
 supplied UTF-8 encoding of their input. -/
 
-#check (@Whatwg.Url.Boundary.EncoderName :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderName :
   Type)
 
-#check (@Whatwg.Url.Boundary.EncoderName.utf8 :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderName.utf8 :
   Whatwg.Url.Boundary.EncoderName)
 
-#check (@Whatwg.Url.Boundary.EncoderName.iso2022jp :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderName.iso2022jp :
   Whatwg.Url.Boundary.EncoderName)
 
-#check (@Whatwg.Url.Boundary.EncoderName.other :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderName.other :
   Whatwg.Infra.JsString → Whatwg.Url.Boundary.EncoderName)
 
-#check (@Whatwg.Url.Boundary.EncoderName.isStateful :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderName.isStateful :
   Whatwg.Url.Boundary.EncoderName → Bool)
 
-#check (@Whatwg.Url.Boundary.EncodeAnswer :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncodeAnswer :
   Type)
 
-#check (@Whatwg.Url.Boundary.EncodeAnswer.mk :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncodeAnswer.mk :
   Whatwg.Infra.ByteSequence → Option Nat → Whatwg.Url.Boundary.EncodeAnswer)
 
-#check (@Whatwg.Url.Boundary.EncodeAnswer.output :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncodeAnswer.output :
   Whatwg.Url.Boundary.EncodeAnswer → Whatwg.Infra.ByteSequence)
 
-#check (@Whatwg.Url.Boundary.EncodeAnswer.potentialError :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncodeAnswer.potentialError :
   Whatwg.Url.Boundary.EncodeAnswer → Option Nat)
 
-#check (@Whatwg.Url.Boundary.EncoderTape :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderTape :
   Type)
 
-#check (@Whatwg.Url.Boundary.EncoderTape.terminated :
+#whatwg_freeze (@Whatwg.Url.Boundary.EncoderTape.terminated :
   Whatwg.Url.Boundary.EncoderTape → Bool)
 
-#check (@Whatwg.Url.Boundary.Utf8Encoding :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8Encoding :
   Type)
 
-#check (@Whatwg.Url.Boundary.Utf8Encoding.mk :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8Encoding.mk :
   Whatwg.Infra.JsString → Whatwg.Infra.ByteSequence → Whatwg.Url.Boundary.Utf8Encoding)
 
-#check (@Whatwg.Url.Boundary.Utf8Encoding.input :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8Encoding.input :
   Whatwg.Url.Boundary.Utf8Encoding → Whatwg.Infra.JsString)
 
-#check (@Whatwg.Url.Boundary.Utf8Encoding.bytes :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8Encoding.bytes :
   Whatwg.Url.Boundary.Utf8Encoding → Whatwg.Infra.ByteSequence)
 
-#check (@Whatwg.Url.Boundary.Utf8Encoding.tape :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8Encoding.tape :
   Whatwg.Url.Boundary.Utf8Encoding → Whatwg.Url.Boundary.EncoderTape)
 
-#check (@Whatwg.Url.Boundary.Utf8DecodeOrFail :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8DecodeOrFail :
   Type)
 
-#check (@Whatwg.Url.Boundary.Utf8DecodeOrFail.mk :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8DecodeOrFail.mk :
   Whatwg.Infra.ByteSequence → Bool → Whatwg.Url.Boundary.Utf8DecodeOrFail)
 
-#check (@Whatwg.Url.Boundary.Utf8DecodeOrFail.input :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8DecodeOrFail.input :
   Whatwg.Url.Boundary.Utf8DecodeOrFail → Whatwg.Infra.ByteSequence)
 
-#check (@Whatwg.Url.Boundary.Utf8DecodeOrFail.failed :
+#whatwg_freeze (@Whatwg.Url.Boundary.Utf8DecodeOrFail.failed :
   Whatwg.Url.Boundary.Utf8DecodeOrFail → Bool)
 
 
@@ -114,41 +115,41 @@ point. `extend` is the one construction the eight named sets use, so the text's
 "consisting of X and …" sentences become applications of it and the inclusion
 chain becomes a theorem rather than a definition. -/
 
-#check (@Whatwg.Url.PercentEncoding.PercentEncodeSet :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.PercentEncodeSet :
   Type)
 
-#check (@Whatwg.Url.PercentEncoding.mem :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.mem :
   Whatwg.Url.PercentEncoding.PercentEncodeSet → Whatwg.Infra.CodePoint → Bool)
 
-#check (@Whatwg.Url.PercentEncoding.extend :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.extend :
   Whatwg.Url.PercentEncoding.PercentEncodeSet → List Nat →
     Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
 
 /-! ## The eight named sets, in the text's own dependency order -/
 
-#check (@Whatwg.Url.PercentEncoding.c0Control :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.c0Control :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.fragment :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.fragment :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.query :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.query :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.specialQuery :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.specialQuery :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.path :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.path :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.userinfo :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.userinfo :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.component :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.component :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
-#check (@Whatwg.Url.PercentEncoding.form :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.form :
   Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
 
@@ -159,34 +160,34 @@ Steps 1 and 2 of `op.percent-encode-after-encoding` [21624,24696) compare the
 equality, so the algorithm takes the name and `setOf` resolves it. `setOf` is
 pinned by `setOf_eq` and separated by `setOf_injective` in the laws battery. -/
 
-#check (@Whatwg.Url.PercentEncoding.SetName :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName :
   Type)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.c0Control :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.c0Control :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.fragment :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.fragment :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.query :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.query :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.specialQuery :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.specialQuery :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.path :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.path :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.userinfo :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.userinfo :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.component :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.component :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.SetName.form :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.SetName.form :
   Whatwg.Url.PercentEncoding.SetName)
 
-#check (@Whatwg.Url.PercentEncoding.setOf :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.setOf :
   Whatwg.Url.PercentEncoding.SetName → Whatwg.Url.PercentEncoding.PercentEncodeSet)
 
 
@@ -199,16 +200,16 @@ then interpreted as a hexadecimal number" of `op.percent-decode-bytes`
 sequence of ASCII digits representing potentialError in base ten" of step 7.4 of
 `op.percent-encode-after-encoding` [21624,24696). -/
 
-#check (@Whatwg.Url.PercentEncoding.isHexByte :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.isHexByte :
   Whatwg.Infra.Byte → Bool)
 
-#check (@Whatwg.Url.PercentEncoding.hexValue :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.hexValue :
   Whatwg.Infra.Byte → Nat)
 
-#check (@Whatwg.Url.PercentEncoding.upperHexDigit :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.upperHexDigit :
   Nat → Whatwg.Infra.CodeUnit)
 
-#check (@Whatwg.Url.PercentEncoding.decimalDigits :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.decimalDigits :
   Nat → Whatwg.Infra.JsString)
 
 
@@ -217,25 +218,25 @@ sequence of ASCII digits representing potentialError in base ten" of step 7.4 of
 /-! Row `op.percent-encoded-byte-syntax` [16209,16325): "A percent-encoded byte
 is a string consisting of U+0025 (%) followed by two ASCII hex digits." Either
 hex case is accepted; the serializer emits upper case. -/
-#check (@Whatwg.Url.PercentEncoding.isPercentEncodedByte :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.isPercentEncodedByte :
   Whatwg.Infra.JsString → Bool)
 
 /-! Row `op.percent-encode-byte` [16862,17111). -/
-#check (@Whatwg.Url.PercentEncoding.percentEncodeByte :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.percentEncodeByte :
   Whatwg.Infra.Byte → Whatwg.Infra.JsString)
 
 /-! Row `op.percent-decode-bytes` [17113,18462). -/
-#check (@Whatwg.Url.PercentEncoding.percentDecodeBytes :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.percentDecodeBytes :
   Whatwg.Infra.ByteSequence → Whatwg.Infra.ByteSequence)
 
 /-! Row `op.percent-decode-string` [18464,18967), over the boundary's UTF-8
 answer for step 1's "the UTF-8 encoding of input". -/
-#check (@Whatwg.Url.PercentEncoding.percentDecodeString :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.percentDecodeString :
   Whatwg.Url.Boundary.Utf8Encoding → Whatwg.Infra.ByteSequence)
 
 /-! Row `requirement.percent-encoded-utf8-advice` [16325,16862), over the
 boundary's `UTF-8 decode without BOM or fail` answer. -/
-#check (@Whatwg.Url.PercentEncoding.followsUtf8Advice :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.followsUtf8Advice :
   Whatwg.Infra.ByteSequence → Whatwg.Url.Boundary.Utf8DecodeOrFail → Prop)
 
 
@@ -248,31 +249,31 @@ step 7, and `encodeLoop` the whole while loop of step 7. Steps 3 and 4 —
 `getting an encoder` and the I/O queue — are the boundary's, and appear only as
 the answer tape. -/
 
-#check (@Whatwg.Url.PercentEncoding.encodingAssertion :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.encodingAssertion :
   Whatwg.Url.Boundary.EncoderName → Whatwg.Url.PercentEncoding.SetName → Bool)
 
-#check (@Whatwg.Url.PercentEncoding.spaceAsPlus :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.spaceAsPlus :
   Whatwg.Url.PercentEncoding.SetName → Bool)
 
-#check (@Whatwg.Url.PercentEncoding.isomorph :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.isomorph :
   Whatwg.Infra.Byte → Whatwg.Infra.CodePoint)
 
-#check (@Whatwg.Url.PercentEncoding.renderByte :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.renderByte :
   Bool → Whatwg.Url.PercentEncoding.PercentEncodeSet → Whatwg.Infra.Byte →
     Whatwg.Infra.JsString)
 
-#check (@Whatwg.Url.PercentEncoding.errorReference :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.errorReference :
   Nat → Whatwg.Infra.JsString)
 
-#check (@Whatwg.Url.PercentEncoding.renderAnswer :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.renderAnswer :
   Bool → Whatwg.Url.PercentEncoding.PercentEncodeSet → Whatwg.Url.Boundary.EncodeAnswer →
     Whatwg.Infra.JsString)
 
-#check (@Whatwg.Url.PercentEncoding.encodeLoop :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.encodeLoop :
   Bool → Whatwg.Url.PercentEncoding.PercentEncodeSet → Whatwg.Url.Boundary.EncoderTape →
     Whatwg.Infra.JsString)
 
-#check (@Whatwg.Url.PercentEncoding.percentEncodeAfterEncoding :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.percentEncodeAfterEncoding :
   Whatwg.Url.Boundary.EncoderName → Whatwg.Url.PercentEncoding.SetName →
     Whatwg.Url.Boundary.EncoderTape → Whatwg.Infra.JsString)
 
@@ -280,13 +281,13 @@ the answer tape. -/
 /-! ## The two UTF-8 specializations -/
 
 /-! Row `op.utf8-percent-encode-string` [25073,25393). -/
-#check (@Whatwg.Url.PercentEncoding.utf8PercentEncodeString :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.utf8PercentEncodeString :
   Whatwg.Url.Boundary.Utf8Encoding → Whatwg.Url.PercentEncoding.SetName →
     Whatwg.Infra.JsString)
 
 /-! Row `op.utf8-percent-encode-code-point` [24698,25071): the scalar value is
 the algorithm's own argument and the encoding is the boundary's answer for
 "scalarValue as a string". -/
-#check (@Whatwg.Url.PercentEncoding.utf8PercentEncodeCodePoint :
+#whatwg_freeze (@Whatwg.Url.PercentEncoding.utf8PercentEncodeCodePoint :
   Whatwg.Infra.ScalarValue → Whatwg.Url.Boundary.Utf8Encoding →
     Whatwg.Url.PercentEncoding.SetName → Whatwg.Infra.JsString)
