@@ -217,6 +217,20 @@ inner induction of `Writable.lookupPromise_bridge` by one `simp only` over
 `Quot.sound`. `[C]` probe `FindMapProbe.lean`. The same replacement in
 `handled_bridge` needs `Function.comp_def` first; not finished.
 
+The keyed-update lemma the update-map sites need, proved in
+`KeyUpdateProbe.lean` with axioms `propext` and `Quot.sound` `[C]`:
+
+```lean
+theorem find?_keyUpdate {β : Type} (l : List (Nat × β)) (a i : Nat) (g : β → β) :
+    List.find? (fun e => e.1 == i) (l.map (fun e => if e.1 == a then (e.1, g e.2) else e)) =
+      (List.find? (fun e => e.1 == i) l).map
+        (fun e => if e.1 == a then (e.1, g e.2) else e)
+```
+
+From it the statement of the four `key` lemmas of `Ecma262/Promise.lean`
+(the updated key) and of the `Readable/Laws.lean` settle site (another key)
+each follow in under ten lines, with no list induction. `[C]`
+
 ### 2.6 Stores (question e)
 
 What Q3 and Q4 unified `[S]` (`Whatwg/Ecma262/Promise.lean`, `Jobs.lean`,
@@ -425,8 +439,12 @@ from 33 lines to 8; `Semantics/Step.lean` elaborates in 0.98, 0.93, 0.98 s
 against 0.99, 1.03, 1.01 s before; `lake build` passes the gate, which
 admits the tactic and the generated principle under the strict prefix
 (16809 declarations, 0 exceptions). `[C]` The registration-freshness proof
-above uses `fun_cases` on the full `tick` and `decide` of the configuration.
-Recommend: use it in every proof W8 touches; leave untouched proofs alone.
+above uses `fun_cases` on the full `tick` and `decide` of the configuration,
+and the Writable queue invariant on the 76 cases of `Writable.tick`.
+`fun_induction` does not apply: the step functions are not recursive, and
+`fun_induction Writable.tick s` fails with "No functional induction theorem"
+`[C]`. Recommend: use `fun_cases` in every proof W8 touches; leave untouched
+proofs alone.
 
 **The four `decide` functions** (`Writable/DefaultWriter.lean`,
 `Transform/Step.lean`, `Piping/Step.lean`, `Semantics/Step.lean`) shadow
@@ -740,8 +758,8 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
 
 - Preservation of `CellsWellFormed` (statement elaborated; initialisation
   proved only through a choice-reaching `simp`).
-- Rewriting `handled_bridge` and the four `Ecma262/Promise.lean` `find?`
-  sites; one site was rewritten.
+- Rewriting the nine `find?` sites in the tree; `lookupPromise_bridge` and
+  the two `key` shapes were re-derived in scratch files only.
 - A build with the four `decide` functions `protected`; the short uses were
   only counted.
 - Exclusivity of Transform and Piping (2.10).
