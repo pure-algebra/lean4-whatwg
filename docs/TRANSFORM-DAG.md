@@ -10,7 +10,7 @@ backpressure Boolean model does not discharge its coupling obligation.
 
 ## Current state
 
-This table describes commit `325d5d5` on 2026-09-30. P6a landed on
+This table describes commit `325d5d5` on 2026-09-30, with the trust row brought to the lane V landing of 2026-10-01 (R-V6). P6a landed on
 2026-09-05 with implementation `afb57f8`, closing laws, counterexamples and
 trust; full P6 stays open. Ruling R-V4 sets the rule: an edge is
 `required-closed` only when every ground this document or a ruling in
@@ -27,7 +27,7 @@ in the ground cell.
 | counterexamples | `required-closed` | `WS-TRANS-CE-001` to `WS-TRANS-CE-014` are `CLOSED` in `test/counterexamples/REGISTER.md` with their linked production laws, for the exact local scope the register records (P6a landing receipt) |
 | bridges | `required-open` | Full-state embeddings, global ECMAScript job order, promise adoption and registration, numeric boundaries and host relations; the four Node observations are finite host observations, compared with no Lean run (P6a landing receipt) |
 | targets | `not-applicable` | This representative generates no target code; P11 owns lowering |
-| trust | `required-closed` | The 118 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent implementation and proof review passed (P6a landing receipt). Four of the receipts, `freshInternal_new`, `coupled_write_read_enqueue`, `coupled_error_during_transform` and `coupled_positive_readable_capacity`, reach `Classical.choice`, which R-11 admits; under repair in lane V (slice V5) |
+| trust | `required-closed` | The 118 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent implementation and proof review passed (P6a landing receipt). Four of the receipts, `freshInternal_new`, `coupled_write_read_enqueue`, `coupled_error_during_transform` and `coupled_positive_readable_capacity`, reached `Classical.choice` at `325d5d5`; slice V5 of lane V repaired them with no statement changed, and since that landing the axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1, R-V6) |
 | coverage | `required-open` | The clause map and the test-side numerator witnesses; the packet adds no coverage claim (P6a landing receipt) |
 
 ## Authority anchors

@@ -76,7 +76,20 @@ receipts without rounding them up to category completion.
 ## Ceiling
 
 Every declaration in this tree is bound by the ceiling `propext`,
-`Quot.sound`, `Classical.choice` (ruling R-11). `sorry`, `native_decide`,
-`bv_decide`, `partial`, `unsafe`, and new axioms are rejected by
-`WhatwgTest/Audit/AxiomGate.lean`. There is no per-module exemption
-in this tree because none is needed.
+`Quot.sound`, `Classical.choice` (ruling R-11). Under the module prefixes of
+the strict list in `WhatwgTest/Audit/AxiomGate.lean` (ruling R-V1:
+`Whatwg.Ecma262`, `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Infra.Text.Utf8`
+and `Whatwg.Streams` at the lane V landing) the ceiling is `propext` and
+`Quot.sound` only, for authored, private and Lean-generated declarations
+alike; an exact exception beside the list, with its reason, is the only
+admission. `sorry`, `admit`, `native_decide`, `bv_decide`, `partial`,
+`unsafe`, `@[extern]`, `@[implemented_by]`, a bodyless `opaque` and new
+axioms are rejected by the same gate, inside an `example` included.
+
+What takes a proof over the strict ceiling, as lane V measured it: `by_cases`
+on a proposition with no `Decidable` instance; a `simp` that closes `n == n`
+on `Nat` through `BEq.rfl`, or rewrites with `Nat.right_eq_add`,
+`Nat.add_eq_left` or `List.filter_eq_nil_iff`; `omega` given a conjunctive
+goal or a hypothesis of the form `¬(P ∧ Q)`, `P → Q` or `P ↔ Q`; and `grind`.
+Case on a Boolean or on the data, split a conjunction before `omega`, and
+name the `simp` lemmas.

@@ -27,8 +27,10 @@ Authority pin: `whatwg/infra` commit `3f984adcd24a6d5c53cc26b3e737701808003f3e`
 under `vendor/whatwg-infra-3f984adc/` by `generated/vendor-manifest.tsv`;
 `SPEC-MANIFEST.md` owns the pin and `docs/PROVENANCE.md` its fetch record.
 
-The declaration-free W5 root (`docs/WHATWG-PACKAGE-PLAN.md`) now imports the
-byte and text helpers added at `c610a5e`, so the common audit reaches them.
-`docs/INFRA-PROOF-PLAN.md` records their intended obligations; import reachability
-and elaboration do not close the remaining Infra assurance work.
+This root declares nothing itself. It imports the byte and text helpers added
+at `c610a5e` and the UTF-8 codec of `Whatwg/Infra/Text/Utf8.lean`, which ruling
+R-U4 landed under the Encoding pin and `docs/INFRA-UTF8-DAG.md` owns, so the
+common audit reaches them. `docs/INFRA-PROOF-PLAN.md` records the helpers'
+intended obligations; import reachability and elaboration do not close the
+remaining Infra assurance work.
 -/

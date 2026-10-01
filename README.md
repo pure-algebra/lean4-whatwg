@@ -11,7 +11,7 @@ commit. The specification's own reference implementation is second-tier
 evidence. Web Platform Tests are the host conformance corpus, replayed against
 named host profiles. No host defines the model.
 
-Current state at commit `325d5d5`, 2026-09-30: pre-release. The package
+Current state at the review lane V landing, 2026-10-01: pre-release. The package
 builds, the Lean-implemented gates run, the pinned sources are sealed, and the
 libraries hold first-order models with proved laws for one bounded
 representative per area: queue-with-sizes and the queuing strategies (P3), a
@@ -26,8 +26,12 @@ the "Current state" table of each proof-graph document under `docs/` names the
 graph's open edges, and `PLAN.md` keeps P4 to P12 open. No host conformance is
 claimed; the harness fixtures are finite observations under named host
 profiles. Specification coverage is stated only by the blocks
-`lake exe whatwg_census --report` prints. Review lane V, opened 2026-09-30, is in
-progress; `PLAN.md` records its slices.
+`lake exe whatwg_census --report` prints. Review lane V (2026-09-30 to
+2026-10-01) changed no theorem statement: it made every declaration of
+`Whatwg.Ecma262`, `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Streams` and
+`Whatwg.Infra.Text.Utf8` reach at most `propext` and `Quot.sound`, a ceiling
+the axiom gate now enforces for those module prefixes, and hardened that gate;
+`PLAN.md` records its slices.
 
 ## Build and gates
 
@@ -60,6 +64,8 @@ lake exe whatwg_census --standard webidl           # the Web IDL promise and exc
 lake exe whatwg_census --standard webidl --report  # the Web IDL coverage block, all-absent
 lake exe whatwg_census --standard ecma262          # the ECMA-262 promise and job census
 lake exe whatwg_census --standard ecma262 --report # the ES2026 coverage block, all-absent
+lake exe whatwg_trustselftest                      # planted trust-gate violations are each refused for the frozen reason
+lake env leanchecker Whatwg WhatwgTest WhatwgGates # every declaration of the three libraries replays in the kernel
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.

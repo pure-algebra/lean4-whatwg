@@ -14,7 +14,8 @@ merged as `f4c8bad` under R-P27. No edge closes from a compiling battery.
 
 ## Current state
 
-This table describes commit `325d5d5` on 2026-09-30. Its landing records are
+This table describes commit `325d5d5` on 2026-09-30, with the trust row
+brought to the lane V landing of 2026-10-01 (R-V6, R-V8). Its landing records are
 the Q3, Q3b and Q4 sections of the receipts log, as rulings R-P20, R-P24 and
 R-P27 accepted them. Ruling R-V4 sets the rule: an edge is `required-closed`
 only when every ground this document or a ruling in `COORDINATION.md` states
@@ -32,7 +33,7 @@ names it.
 | counterexamples | `required-open` | Six rows of `test/counterexamples/REGISTER.md` stand `SEEDED`: `WS-PROM-CE-015` (no witness pins the absent `DecidableEq`), `WS-PROM-CE-026` (the capability is stored and never read; debt D17), `WS-PROM-CE-033`, `WS-PROM-CE-036`, `WS-PROM-CE-037` and `WS-PROM-CE-038` (R-P24). The other 33 `WS-PROM-CE` rows are `CLOSED` |
 | bridges | `required-closed` | The 29 Q3 bridging lemmas with the preservation half of `WhatwgTest/Streams/PromiseBridge.lean` green (Q3 landing, accepted by R-P20), `Writable.settlementTrace_bridge` (Q3b landing), and the bridges that rows 14 to 16 of §4.4 of the Q3 contract deferred, `notify_jobQueue_bridge`, `settle_table_bridge`, `settle_jobQueue_order`, `settle_waiting_once`, `runJob_writable_dequeue` and `runJob_writable_blocked`, with `WhatwgTest/Streams/PromiseBridgeQ4.lean` green (Q4 landing). Deferred with stated reasons, outside this edge's obligation: `E-63`'s readable settlement-trace bridge, and the host profiles and WPT settlement-order replay of P8 |
 | targets | `not-applicable` | Q3, Q3b and Q4 land no lowering and no generated code; P11 owns the TypeScript target |
-| trust | `required-closed` | The 182 named receipts print inside the R-11 ceiling, and `lake exe trustselftest` passed at the Q3b landing (Q3 landing, Q3b landing; R-P20, R-P24). Seven of them reach `Classical.choice`, which R-11 admits: `Table.fresh_get`, `Table.settle_handled`, `Table.markHandled_idem`, `ResolvingFunctions.callResolveSelf_self`, `WebIdl.Promise.waitForAll_success` and `waitForAllTraced_success`, under repair in lane V (slice V1), and `Streams.Writable.settle_bridge`, under repair in lane V (slice V5) |
+| trust | `required-closed` | The 182 named receipts print inside the R-11 ceiling, and `lake exe trustselftest` passed at the Q3b landing (Q3 landing, Q3b landing; R-P20, R-P24). At `325d5d5` seven of them reached `Classical.choice`: `Table.fresh_get`, `Table.settle_handled`, `Table.markHandled_idem`, `ResolvingFunctions.callResolveSelf_self`, `WebIdl.Promise.waitForAll_success`, `waitForAllTraced_success` and `Streams.Writable.settle_bridge`. Lane V repaired all seven with no statement changed (slices V1 and V5, R-V6), and since that landing the axiom gate holds `Whatwg.Ecma262`, `Whatwg.WebIdl` and `Whatwg.Streams` to `propext` and `Quot.sound` with no exception (R-V1) |
 | coverage | `required-open` | Ruling R-P20 set the edge `required-open` because both numerator modules, `WhatwgTest/Audit/WebIdl/SpecCoverage.lean` and `WhatwgTest/Audit/Ecma262/SpecCoverage.lean`, exist; every row of both censuses is `absent`. The later sentence of the Q3 landing section that says coverage stays `not-applicable` disagrees with R-P20, and R-P20 wins |
 
 ## Authority anchors

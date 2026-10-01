@@ -75,8 +75,10 @@ module is imported from here; a module not reachable from this root is not
 part of the production build and is rejected by the module-closure gate.
 
 The imports retain the P2 breadth scaffold, with implemented modules added
-behind their frozen contracts and counterexample packets. P3, P4a, P5a, P6a,
-and P7a now contain declarations; later categories remain declaration-free stubs
-until their own packets admit implementation. `PLAN.md` owns phase status
+behind their frozen contracts and counterexample packets. P3, P4a, P5a, P6a
+and P7a contain declarations, and so does the configuration-ordering
+restatement of P8a under `Whatwg/Streams/Semantics/` (slice Q4, ruling R-P27);
+later categories remain declaration-free stubs until their own packets admit
+implementation. `PLAN.md` owns phase status
 and the category proof graphs own the remaining assurance obligations.
 -/

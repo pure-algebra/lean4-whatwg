@@ -1,7 +1,11 @@
 # WHATWG Streams reification plan
 
-Status: P0 bootstrap complete, 2026-09-01. Held before P1 for the R0 research
-pass.
+Status, 2026-10-01: P0 to P3 are landed. One bounded representative of each
+of P4 to P7 (P4a, P5a, P6a, P7a), the promise slices Q0 to Q4 with the
+configuration-ordering restatement of P8a, URL U0 to U3, the Infra UTF-8
+codec and HTML H0 to H4 are on `main`. P8 proper is next, and P4 to P12
+remain open. Review lane V landed on 2026-10-01. "Current phase" below is the
+dated record; its entries are not in date order.
 
 ## Objective
 
@@ -199,6 +203,44 @@ their named homes, and the U3 tapes' UTF-8 profile discharged, so the U3
 graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
 still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
 global `@[simp]` attributes R-P27 re-froze.
+
+**Review lane V landed, 2026-10-01** (rulings R-V6 to R-V8 in
+`COORDINATION.md`). No theorem statement, definition body or disposition
+changed, and no coverage row moved.
+
+- V1 and V5: no declaration under `Whatwg.Ecma262`, `Whatwg.WebIdl`,
+  `Whatwg.Url`, `Whatwg.Infra.Text.Utf8` or `Whatwg.Streams` reaches
+  `Classical.choice`; `grind` is out of `Whatwg/`; debts D42 and D43 are
+  closed. Across `Whatwg` the gate counts 84 of 12,766 declarations reaching
+  `Classical.choice`, all in `Whatwg.Html.Print` and the `String`-borne
+  definitions of Infra.
+- V2 and V2b: the axiom gate enforces `propext` and `Quot.sound` under those
+  five module prefixes with an exact, stale-checked exception list (empty);
+  refuses a declared axiom, `@[extern]`, `@[implemented_by]` and a bodyless
+  `opaque`; and refuses the trust tokens of
+  `test/contracts/trust-gate-hardening.contract.md` in any command, the
+  entry points included. `lake exe whatwg_trustselftest` passes 64 checks,
+  and it and a `leanchecker` kernel replay are CI steps.
+- V3: the tooling library is `WhatwgGates`, the executable roots are
+  `whatwgbin.*` and the executables are `whatwg_*`, with declaration
+  namespaces unchanged; each standard has its own Lake library
+  (`lake build WhatwgEcma262` is 5 jobs); the unused `Whatwg.Infra` import
+  left the promise modules.
+- V4: each graph document opens with one current-state edge table, and
+  landing history is under `docs/receipts/`.
+
+Dependency acceptance probes for R-V3(b), run 2026-10-01 under the policy
+below, all at lean4-effect4's pins: `effects`
+`a4ee7a14248ee5976039b73039319efa87834986` (tag `v0.8.0`), MIT, no transitive
+package, `lake build effects/Effects` 24 jobs; `typescript`
+`6afc9b841603796c16b266c0b8b92ded37a9445c` (version 0.6.0 in its lakefile, no
+tag, reachable only from the branch `codex/typed-source-carrier`; debt D52),
+MIT, no transitive package, `lake build typescript/TypeScript` 9 jobs; `hash`
+`c906b15dc3e94ebac0c10056270fbb345a1d2b6e`, MIT, no transitive package, no
+Lean source changed since `0168306`, `lake build hash/Hash` 37 jobs, and the
+vendor manifest regenerates byte-identically, which is the cutover proof.
+Every package pins Lean 4.33.1. Nothing under `Whatwg/` imports `effects` or
+`typescript`.
 
 **Review lane V opened, 2026-09-30:** the operator asked for a review of the
 implementation and then opened its first five rows as slices V1 to V5:

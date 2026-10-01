@@ -42,7 +42,9 @@ open Whatwg.Infra
 
 /-- The name of the encoding step 3 of `op.percent-encode-after-encoding`
 [21624,24696) gets an encoder from. This is a first-order name, not an encoder:
-no encoding algorithm is modelled anywhere in this repository.
+no encoding algorithm is modelled in this module. UTF-8 is the one encoding
+with an owner in this repository, `Whatwg/Infra/Text/Utf8.lean`, and no
+declaration here is built from it yet (debt D44).
 
 Only two names are distinguished, and both are named by the pin itself:
 `utf8`, which step 1's assertion and the two UTF-8 specializations single out,

@@ -72,10 +72,10 @@ those assertion steps as well would move `op.enqueue-value-with-size`,
 `partial`, and no other row.
 
 Reading files at elaboration puts this module in `MetaM`, which reaches
-`Classical.choice`, so its exact name is listed in
-`WhatwgTest/Audit/AxiomGate.lean`'s `auditImplementationModules`. The
-section-to-disposition join itself is not recomputed here: it needs the pinned
-`index.bs`, and `lake exe census` is the gate that owns it.
+`Classical.choice`. R-11's ceiling admits that in this tree, and since ruling
+R-V1 the gate keeps no list of audit modules. The section-to-disposition join
+itself is not recomputed here: it needs the pinned `index.bs`, and
+`lake exe whatwg_census` is the gate that owns it.
 -/
 
 open Lean

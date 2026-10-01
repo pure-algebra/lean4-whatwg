@@ -29,8 +29,7 @@ of it, needs this module to elaborate — and `--write` still does not read an
 emit, so a census the numerators have not caught up with is still regenerable.
 
 Unlike the Streams numerator this module reads no file and declares no
-theorem, so it stays out of `MetaM` and needs no entry in
-`WhatwgTest/Audit/AxiomGate.lean`'s `auditImplementationModules`.
+theorem, so it stays out of `MetaM`.
 -/
 
 namespace WhatwgTest.Audit.WebIdl.SpecCoverage

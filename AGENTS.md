@@ -127,16 +127,32 @@ orchestrate; they decide nothing.
 | `lake build` | the libraries elaborate; the elaboration-time axiom gate in `WhatwgTest.lean` passes over every declaration |
 | `lake exe whatwg_vendorseal` | `vendor/` and `generated/vendor-manifest.tsv` agree in both directions; every path is valid on Windows |
 | `lake exe whatwg_citations` | no line-numbered citation into a protected authored document |
+| `lake exe whatwg_trustselftest` | every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name |
+| `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of the three libraries replays in the kernel |
 
 The axiom ceiling is Lean's standard base, `propext`, `Quot.sound`, and
 `Classical.choice`, for every tree (operator ruling R-11, 2026-09-02;
 `Classical.choice` enters through library proofs about `String` and
 `Vector` and never through computation, and forbidding it bought re-proved
-lemmas, not soundness). `sorryAx`, `Lean.ofReduceBool`, `Lean.ofReduceNat`,
-`Lean.trustCompiler`, and the `native_decide` auxiliary axioms are forbidden
-everywhere. This forbids `native_decide` and `bv_decide` in proofs. Audit
-lines report how many declarations reach `Classical.choice` as information.
-The gate code carries the rule since commit `184d7fe`.
+lemmas, not soundness). A stricter ceiling, `propext` and `Quot.sound` only,
+binds every declaration whose module is under a prefix of the strict list in
+`WhatwgTest/Audit/AxiomGate.lean` (ruling R-V1): `Whatwg.Ecma262`,
+`Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Infra.Text.Utf8` and `Whatwg.Streams`
+at the lane V landing. A declaration there that reaches `Classical.choice` is
+admitted only by an exact exception beside the list, with its reason, and an
+exception that has outlived its reason fails the build. `sorryAx`,
+`Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler`, and the
+`native_decide` auxiliary axioms are forbidden everywhere. The gate also
+refuses, in every audited tree, a declared `axiom`, an `@[extern]` or
+`@[implemented_by]` declaration and an `opaque` whose body Lean synthesised.
+In code under `Whatwg/`, `WhatwgTest/`, `WhatwgGates/` and `whatwgbin/`,
+inside an `example` included, it refuses every token that opens a trust
+channel no constant records (rulings R-V2 and R-V6; the word list is section
+4.2 and addendum V2b of `test/contracts/trust-gate-hardening.contract.md`).
+This forbids `native_decide`, `bv_decide`, `sorry` and `admit`, and switching
+`warningAsError` off in code. The gate's summary line reports, per tree, how
+many declarations reach `Classical.choice`. The gate code carries R-11 since
+commit `184d7fe`, and R-V1, R-V2 and R-V6 since the lane V landing.
 
 ## Generated facts and long-run continuity
 
