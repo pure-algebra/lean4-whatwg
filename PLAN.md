@@ -204,7 +204,7 @@ graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
 still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
 global `@[simp]` attributes R-P27 re-froze.
 
-**Review lane V landed, 2026-10-01** (rulings R-V6 to R-V11 in
+**Review lane V landed, 2026-10-01** (rulings R-V6 to R-V12 in
 `COORDINATION.md`). No theorem statement, definition body or disposition
 changed, and no coverage row moved. An independent reviewer re-derived
 statement identity and the strict-ceiling residue by its own method (R-V9).
