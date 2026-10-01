@@ -1524,3 +1524,66 @@ The Streams coverage block is byte-identical to §7.5, as §7.4 predicts. The
 trust self-test accepts the five-module declared red set in both directions,
 which is what makes A7's fifth entry a declaration rather than an undeclared
 failure.
+
+## 13. W8a amendment: registration freshness (2026-10-01, ruling R-W4)
+
+Appended by the W8a breaker seat on branch `review/w8a-kernel-breaker`, based
+on `main` at `b0d35e2`. This section is additive. No earlier sentence of this
+contract changes, and no earlier Q4 ascription, battery, receipt or amendment
+changes; the 158 restated ascriptions, the amendment A1 to A7 statements and
+the 93 named receipts stand as frozen.
+
+The contract gains six declarations, frozen in the new breaker-owned battery
+`WhatwgTest/Streams/Semantics/InvariantContract.lean` and recorded in section
+5.3 of `test/contracts/transition-kernel.contract.md`, which owns their
+declaration record. Every name is in `Whatwg.Streams.Semantics.Ordering`:
+
+```lean
+registrationIds : {α ε : Type} → Config α ε → List Nat
+  -- view; body pinned by `rfl`: c.registrations.map (fun r => r.id)
+RegistrationsFresh : {α ε : Type} → Config α ε → Prop
+  -- view; body pinned by `rfl`:
+  -- (registrationIds c).Nodup ∧ ∀ i ∈ registrationIds c, i < c.nextObserver
+step_registrationsFresh :
+  ∀ {α ε : Type} {c t : Config α ε} {d : Option (Decision α ε)},
+    RegistrationsFresh c → Step c d t → RegistrationsFresh t
+reaches_registrationsFresh :
+  ∀ {α ε : Type} {c t : Config α ε} {ds : List (Option (Decision α ε))},
+    Reaches c ds t → RegistrationsFresh c → RegistrationsFresh t
+initial_registrationsFresh :
+  ∀ {α ε : Type} (owner : Nat) (hwm : Writable.Size) (alg : Writable.Algorithms)
+    (promiseSeed errorSeed : Nat),
+    RegistrationsFresh (initial (α := α) (ε := ε) owner hwm alg promiseSeed errorSeed)
+reachable_registrations_nodup :
+  ∀ {α ε : Type} {c : Config α ε} {owner : Nat} {hwm : Writable.Size}
+    {alg : Writable.Algorithms} {promiseSeed errorSeed : Nat}
+    {ds : List (Option (Decision α ε))},
+    Reaches (initial (α := α) (ε := ε) owner hwm alg promiseSeed errorSeed) ds c →
+      (c.registrations.map (fun r => r.id)).Nodup
+```
+
+`RegistrationsFresh` is the first clause of the held P8a draft's
+`SerialsWellFormed`. With the cursor bound it is inductive, so the step
+theorem carries no reachability hypothesis, and the closure theorem is carried
+by `Kernel.Path.invariant` through the bridge `reaches_iff_path`.
+`reachable_registrations_nodup` discharges, at every configuration reachable
+from `initial`, the `(c.registrations.map (·.id)).Nodup` premise that
+amendment A4 put on `notifySettled_reactions_bridge` and
+`notifySettled_queued_serial`; those two statements do not change. Assurance
+route: the construction edge of CONFIGURATION-PG-ORDERING. Counterexample
+`WS-KERNEL-CE-006` is the `register` mutant that reuses an identity.
+
+`CellsWellFormed` is not added here; it stays a P8 obligation (CFG-CELLS).
+The docstring of `notifySettled` is corrected in slice W8a.5 to say that the
+owner clause holds by representation (`Reaction.promise` is a bare cell of the
+one `Config.owner`, and `register` admits only through `lookup`'s owner
+guard), and debt D38 is read with that sentence.
+
+Under the same packet, and outside this battery, the configuration also gains
+the bridges `step_iff_stage`, `reaches_iff_path`, `episodePrefix_iff_path` and
+`exclusive` (semantics edge), and the proofs of `reaches_append`,
+`fixed_external_word_prefix_comparable` and
+`fixed_external_word_normalized_unique` are re-derived from
+`Kernel.Path.append`, `Kernel.prefix_comparable` and `Kernel.normalized_unique`;
+their frozen statements do not change. The battery is declared red in
+`test/fixtures/trust-gate/known-red.txt` until slice W8a.3 lands.

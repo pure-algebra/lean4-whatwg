@@ -53,18 +53,15 @@ theorem reaches_append {α ε : Type} {c mid t : Config α ε}
     {left right : List (Option (Decision α ε))} :
     Reaches c left mid → Reaches mid right t → Reaches c (left ++ right) t := by
   intro hl hr
-  induction hl with
-  | nil _ => exact hr
-  | cons hstep _ ih => exact .cons hstep (ih hr)
+  exact reaches_iff_path.mpr ((reaches_iff_path.mp hl).append (reaches_iff_path.mp hr))
 
 /-- Class [A]. An episode is a derivation. Mask M1. -/
 theorem episodePrefix_reaches {α ε : Type} {c t : Config α ε}
     {labels : List (Option (Decision α ε))} :
     EpisodePrefix c labels t → Reaches c labels t := by
   intro h
-  induction h with
-  | nil _ => exact .nil _
-  | cons _ hstep _ ih => exact .cons hstep ih
+  exact reaches_iff_path.mpr
+    (Kernel.Path.mono (fun _ _ _ guarded => guarded.2) (episodePrefix_iff_path.mp h))
 
 /-! ## Determinism and exclusivity -/
 
@@ -74,7 +71,8 @@ theorem step_deterministic {α ε : Type} {c t u : Config α ε}
     {d : Option (Decision α ε)} :
     Step c d t → Step c d u → t = u := by
   intro h1 h2
-  exact Option.some.inj (h1 ▸ h2)
+  exact Kernel.graph_deterministic (Kernel.stage tick decide) c d t u
+    ((step_iff_stage c d t).mp h1) ((step_iff_stage c d u).mp h2)
 
 /-- Class [A]. Decision 7 and the `authorFrontier` gate: where the
 deterministic stage steps, no author decision is admitted. Mask M1. -/
@@ -126,6 +124,12 @@ theorem tick_decide_exclusive {α ε : Type} {c t : Config α ε} (d : Decision 
       | scriptBegin =>
           unfold decide
           cases ha : c.active <;> simp [hcontrol]
+
+/-- Class [A]. Decision 7 in the transition kernel's form: `tick_decide_exclusive`,
+the same condition, stated as `Kernel.Exclusive tick decide`. The hypothesis
+under which the two Decision-8 laws below are corollaries of the kernel's. Mask M1. -/
+theorem exclusive {α ε : Type} : Kernel.Exclusive (@tick α ε) decide :=
+  fun _ _ d h => tick_decide_exclusive d h
 
 /-! ## What a step does to the owner, the trace and the token FIFO
 
@@ -654,101 +658,15 @@ endpoint uniqueness only at normalized frontiers. The engine is
 `tick_decide_exclusive`: at every configuration either the deterministic stage
 steps and no decision is admitted, or the deterministic stage is stuck. So a
 derivation is forced by its external word up to how many silent steps it has
-taken, which is exactly what the two statements say. -/
+taken, which is exactly what the two statements say. Both are corollaries of
+`Kernel.prefix_comparable` and `Kernel.normalized_unique` under `exclusive`,
+carried to `Reaches` by `reaches_iff_path` and `step_iff_stage`. -/
 
-private theorem reaches_nil_eq {α ε : Type} {c t : Config α ε} :
-    Reaches c [] t → t = c := by
-  intro h
-  cases h
-  rfl
-
-private theorem reaches_cons_inv {α ε : Type} {c t : Config α ε}
-    {d : Option (Decision α ε)} {ds : List (Option (Decision α ε))} :
-    Reaches c (d :: ds) t → ∃ mid, Step c d mid ∧ Reaches mid ds t := by
-  intro h
-  cases h with
-  | cons hstep hrest => exact ⟨_, hstep, hrest⟩
-
-private theorem externalWord_nil_replicate {α ε : Type}
-    (l : List (Option (Decision α ε))) :
-    externalWord l = [] → l = List.replicate l.length none := by
-  induction l with
-  | nil => intro _; rfl
-  | cons a rest ih =>
-      intro h
-      cases a with
-      | none =>
-          have hrest : externalWord rest = [] := by simpa [externalWord] using h
-          simp only [List.length_cons, List.replicate_succ, List.cons.injEq, true_and]
-          exact ih hrest
-      | some d => simp [externalWord] at h
-
-private theorem strip {α ε : Type} :
-    ∀ (left right : List (Option (Decision α ε))) (c t u : Config α ε),
-      Reaches c left t → Reaches c right u → externalWord left = externalWord right →
-        (∃ n : Nat, Reaches t (List.replicate n none) u) ∨
-          (∃ n : Nat, Reaches u (List.replicate n none) t) := by
-  intro left
-  induction left with
-  | nil =>
-      intro right c t u hl hr hw
-      have ht : t = c := reaches_nil_eq hl
-      subst ht
-      have hnone : externalWord right = [] := hw.symm.trans rfl
-      have hrep := externalWord_nil_replicate right hnone
-      exact Or.inl ⟨right.length, by rw [← hrep]; exact hr⟩
-  | cons d left' ih =>
-      intro right c t u hl hr hw
-      obtain ⟨mid, hstep, hrest⟩ := reaches_cons_inv hl
-      cases d with
-      | none =>
-          have htick : tick c = some mid := hstep
-          cases right with
-          | nil =>
-              have hu : u = c := reaches_nil_eq hr
-              subst hu
-              have hnone : externalWord (none :: left') = [] := hw.trans rfl
-              have hrep := externalWord_nil_replicate (none :: left') hnone
-              exact Or.inr ⟨(none :: left').length, by rw [← hrep]; exact hl⟩
-          | cons e right' =>
-              obtain ⟨mid', hstep', hrest'⟩ := reaches_cons_inv hr
-              cases e with
-              | none =>
-                  have hmid : mid' = mid := step_deterministic hstep' hstep
-                  subst hmid
-                  refine ih right' _ t u hrest hrest' ?_
-                  simpa [externalWord] using hw
-              | some ee =>
-                  have hnone := tick_decide_exclusive ee htick
-                  have hcontra : decide c ee = some mid' := hstep'
-                  rw [hnone] at hcontra
-                  exact absurd hcontra (by simp)
-      | some dd =>
-          have hdec : decide c dd = some mid := hstep
-          have htick : tick c = none := by
-            cases htk : tick c with
-            | none => rfl
-            | some x =>
-                have hnone := tick_decide_exclusive dd htk
-                rw [hnone] at hdec
-                exact absurd hdec (by simp)
-          cases right with
-          | nil => exact absurd hw (by simp [externalWord])
-          | cons e right' =>
-              obtain ⟨mid', hstep', hrest'⟩ := reaches_cons_inv hr
-              cases e with
-              | none =>
-                  have hcontra : tick c = some mid' := hstep'
-                  rw [htick] at hcontra
-                  exact absurd hcontra (by simp)
-              | some ee =>
-                  have hpair : dd = ee ∧ externalWord left' = externalWord right' := by
-                    simpa [externalWord] using hw
-                  obtain ⟨hde, hw'⟩ := hpair
-                  subst hde
-                  have hmid : mid' = mid := step_deterministic hstep' hstep
-                  subst hmid
-                  exact ih right' _ t u hrest hrest' hw'
+/-- `Reaches` as a kernel derivation of the two-stage step itself. -/
+private theorem reaches_iff_stage_path {α ε : Type} {c t : Config α ε}
+    {labels : List (Option (Decision α ε))} :
+    Reaches c labels t ↔ Kernel.Path (Kernel.Graph (Kernel.stage tick decide)) c labels t :=
+  reaches_iff_path.trans (Kernel.Path.congr step_iff_stage)
 
 /-- Class [A]. Decision 8: under a fixed consumed external word two
 derivations from the same configuration are comparable, and the difference is
@@ -760,19 +678,10 @@ theorem fixed_external_word_prefix_comparable {α ε : Type} {c t u : Config α 
       (∃ n : Nat, Reaches t (List.replicate n none) u) ∨
         (∃ n : Nat, Reaches u (List.replicate n none) t) := by
   intro hl hr hw
-  exact strip left right c t u hl hr hw
-
-private theorem reaches_silent_normalized {α ε : Type} {t u : Config α ε} (n : Nat) :
-    Reaches t (List.replicate n none) u → Normalized t → u = t := by
-  intro h hn
-  cases n with
-  | zero => exact reaches_nil_eq (by simpa using h)
-  | succ m =>
-      rw [List.replicate_succ] at h
-      obtain ⟨mid, hstep, _⟩ := reaches_cons_inv h
-      have hcontra : tick t = some mid := hstep
-      rw [hn] at hcontra
-      exact absurd hcontra (by simp)
+  rcases Kernel.prefix_comparable exclusive left right c t u
+      (reaches_iff_stage_path.mp hl) (reaches_iff_stage_path.mp hr) hw with ⟨n, h⟩ | ⟨n, h⟩
+  · exact Or.inl ⟨n, reaches_iff_stage_path.mpr h⟩
+  · exact Or.inr ⟨n, reaches_iff_stage_path.mpr h⟩
 
 /-- Class [A]. Decision 8: endpoint uniqueness holds only at normalized
 frontiers, and normalization is neither completion nor promise settlement.
@@ -783,8 +692,7 @@ theorem fixed_external_word_normalized_unique {α ε : Type} {c t u : Config α 
       externalWord left = externalWord right →
       Normalized t → Normalized u → t = u := by
   intro hl hr hw hnt hnu
-  rcases fixed_external_word_prefix_comparable hl hr hw with ⟨n, h⟩ | ⟨n, h⟩
-  · exact (reaches_silent_normalized n h hnt).symm
-  · exact reaches_silent_normalized n h hnu
+  exact Kernel.normalized_unique exclusive
+    (reaches_iff_stage_path.mp hl) (reaches_iff_stage_path.mp hr) hw hnt hnu
 
 end Whatwg.Streams.Semantics.Ordering

@@ -440,3 +440,51 @@
 # green. Every receipt prints inside the R-11 ceiling; 17 reach
 # Classical.choice against the stricter R-U3 target, recorded as debt D42. All
 # three entries are removed. No entry remains.
+
+# W8a transition-kernel packet, frozen 2026-10-01 by the W8a breaker seat on
+# branch review/w8a-kernel-breaker (rulings R-W4 and R-W9).
+# Packet: test/contracts/transition-kernel.contract.md.
+# Witnesses: WS-KERNEL-CE-001 to 006, test/counterexamples/kernel/ATTACKS.md.
+#
+# SEVEN entries: five batteries and the two witness modules. Each is red only
+# because names the builder has not landed do not exist. Measured with
+# `lake env lean -DmaxErrors=10000 <file>` against main at b0d35e2: 92, 24, 10,
+# 16 and 15 diagnostics in the five batteries, every one an unknown identifier;
+# 42 in Counterexamples.Kernel.Path (34 unknown identifiers, and 8 "expected
+# type must not contain metavariables" or "unsolved goals" diagnostics from a
+# `by` block whose statement names an unknown constant) and 10 in
+# Counterexamples.Kernel.Invariants (9 unknown identifiers, 1 unsolved goal of
+# the same kind). No parse, import, type-mismatch or instance-synthesis
+# failure. The test root WhatwgTest also fails while these modules exist and
+# are not imported (module closure); the self-test tolerates that while this
+# list is not empty.
+#
+# Slice W8a.1 turns PathContract and Counterexamples.Kernel.Path green, W8a.2
+# BridgeContract, and W8a.3 the three InvariantContract modules and
+# Counterexamples.Kernel.Invariants. The builder removes each entry the moment
+# its module is green and adds the module's import to WhatwgTest.lean. A repair
+# that turns a module green by changing an ascription or a witness is a
+# refusal, not a landing.
+#
+# W8a.1 LANDED, 2026-10-01, by the W8a builder seat on branch
+# review/w8a-kernel-builder: Whatwg/Streams/Kernel.lean, imported from
+# Whatwg/Streams.lean. PathContract and Counterexamples.Kernel.Path elaborate
+# with no token changed, exit 0 and no diagnostic; every kernel declaration
+# reaches propext and Quot.sound at most. Both entries are removed and both
+# modules are imported from WhatwgTest.lean.
+#
+# W8a.2 LANDED, 2026-10-01, same seat and branch: the twelve bridges of
+# section 4 in the five Step.lean files and Semantics/Runs.lean, the fifteen
+# corollaries of section 6 re-derived from kernel laws, and the five private
+# helpers of Semantics/Runs.lean deleted. BridgeContract elaborates with no
+# token changed, exit 0 and no diagnostic, and every root-imported battery
+# still builds. Its entry is removed and it is imported from WhatwgTest.lean.
+#
+# W8a.3 LANDED, 2026-10-01, same seat and branch: Readable.QueueInv,
+# Writable.QueueInv and Semantics.Ordering.RegistrationsFresh with their
+# theorems, in the new modules Whatwg/Streams/{Readable,Writable,Semantics}/
+# Invariants.lean, each closure theorem carried by Kernel.Path.invariant.
+# The three InvariantContract modules and Counterexamples.Kernel.Invariants
+# elaborate with no token changed, exit 0 and no diagnostic. All four entries
+# are removed and the modules are imported from WhatwgTest.lean. No entry of
+# the W8a packet remains.

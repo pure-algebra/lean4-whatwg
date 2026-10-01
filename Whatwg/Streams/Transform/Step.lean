@@ -1,4 +1,5 @@
 import Whatwg.Streams.Transform.DefaultController
+import Whatwg.Streams.Kernel
 
 /-!
 # Coupled transform transitions
@@ -6,6 +7,11 @@ import Whatwg.Streams.Transform.DefaultController
 TRANSFORM-PG-BACKPRESSURE owns this finite local integration order. Component
 jobs execute through P4/P5; native ports are never foreign-answer decisions.
 Global promise/adoption order and reachable-state invariants remain open.
+
+Slice W8a (packet `test/contracts/transition-kernel.contract.md`) bridges
+`Step` and `Reaches` to `Whatwg.Streams.Kernel`; the composition laws of
+`Transform/Laws.lean` are corollaries of the kernel's through those bridges.
+Exclusivity of the coupled machine is not claimed.
 -/
 
 namespace Whatwg.Streams.Transform
@@ -117,5 +123,27 @@ inductive Reaches {α β ε : Type} :
   | cons {s middle last : State α β ε} {d : Option (Decision α β ε)}
       {ds : List (Option (Decision α β ε))} :
       Step s d middle → Reaches middle ds last → Reaches s (d :: ds) last
+
+/-- Kernel bridge, TRANSFORM-PG-BACKPRESSURE semantics edge: `Step` is the graph
+of the kernel's two-stage step over `tick` and `decide`, pointwise, by cases on
+the label (`WS-KERNEL-CE-004`). -/
+theorem step_iff_stage {α β ε : Type} (s : State α β ε) (d : Option (Decision α β ε))
+    (t : State α β ε) : Step s d t ↔ Kernel.Graph (Kernel.stage tick decide) s d t := by
+  cases d <;> exact Iff.rfl
+
+/-- Kernel bridge, TRANSFORM-PG-BACKPRESSURE semantics edge: the local
+derivations are the kernel's derivations of `Step`. -/
+theorem reaches_iff_path {α β ε : Type} {s t : State α β ε}
+    {ds : List (Option (Decision α β ε))} :
+    Reaches s ds t ↔ Kernel.Path Step s ds t := by
+  constructor
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first ih
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first ih
 
 end Whatwg.Streams.Transform

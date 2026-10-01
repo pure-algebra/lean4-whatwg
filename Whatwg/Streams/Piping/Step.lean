@@ -1,4 +1,5 @@
 import Whatwg.Streams.Piping.PipeTo
+import Whatwg.Streams.Kernel
 
 /-!
 # Forward-error candidate transitions
@@ -6,6 +7,11 @@ import Whatwg.Streams.Piping.PipeTo
 PIPING-PG-FORWARD-SHUTDOWN fixes this local deterministic schedule over
 canonical P5 operations. Its finite relational judgment has no fuel
 parameter; global scheduling and full pipe finalization remain open.
+
+Slice W8a (packet `test/contracts/transition-kernel.contract.md`) bridges
+`Step` and `Reaches` to `Whatwg.Streams.Kernel`; the nil, cons and append laws
+of `Piping/Laws.lean` are corollaries of the kernel's through those bridges.
+Exclusivity of the pipe schedule is not claimed.
 -/
 
 namespace Whatwg.Streams.Piping
@@ -97,5 +103,26 @@ inductive Reaches {α ε : Type} :
   | cons {s middle last : State α ε} {d : Option (Decision α ε)}
       {ds : List (Option (Decision α ε))} :
       Step s d middle → Reaches middle ds last → Reaches s (d :: ds) last
+
+/-- Kernel bridge, PIPING-PG-FORWARD-SHUTDOWN semantics edge: `Step` is the
+graph of the kernel's two-stage step over `tick` and `decide`, pointwise, by
+cases on the label (`WS-KERNEL-CE-004`). -/
+theorem step_iff_stage {α ε : Type} (s : State α ε) (d : Option (Decision α ε))
+    (t : State α ε) : Step s d t ↔ Kernel.Graph (Kernel.stage tick decide) s d t := by
+  cases d <;> exact Iff.rfl
+
+/-- Kernel bridge, PIPING-PG-FORWARD-SHUTDOWN semantics edge: the finite
+candidate runs are the kernel's derivations of `Step`. -/
+theorem reaches_iff_path {α ε : Type} {s t : State α ε} {ds : List (Option (Decision α ε))} :
+    Reaches s ds t ↔ Kernel.Path Step s ds t := by
+  constructor
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first ih
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first ih
 
 end Whatwg.Streams.Piping

@@ -959,21 +959,9 @@ theorem readTable_eq {α ε : Type} (s : State α ε) :
 theorem readTable_get {α ε : Type} (s : State α ε) (id : Nat) :
     Whatwg.Ecma262.Promise.Table.get (readTable s) id =
       (s.readPromises.find? (fun p => p.1 == id)).map Prod.snd := by
-  have key : ∀ (l : List (Nat × PromiseState (ReadResult α) ε)),
-      Option.map Whatwg.Ecma262.Promise.Cell.state
-          (Option.map Prod.snd
-            (List.find? (fun e => e.1 == id)
-              (l.map (fun p => (p.1, Whatwg.Ecma262.Promise.Cell.mk p.2 false))))) =
-        (l.find? (fun p => p.1 == id)).map Prod.snd := by
-    intro l
-    induction l with
-    | nil => rfl
-    | cons q rest ih =>
-        simp only [List.map_cons, List.find?_cons]
-        cases hb : (q.1 == id) with
-        | true => rfl
-        | false => exact ih
-  exact key s.readPromises
+  simp only [readTable, Whatwg.Ecma262.Promise.Table.get, Whatwg.Ecma262.Promise.Table.getCell,
+    List.find?_map, Option.map_map]
+  rfl
 
 /-! ## `E-22` (generalize, Q4): the three operations bridged onto the landed table
 
@@ -1026,21 +1014,13 @@ private theorem table_get_settle_other {value reason : Type}
         List.find? (fun e => e.1 == i) (l.map (fun e => if e.1 == a then (e.1, g e.2) else e)) =
           List.find? (fun e => e.1 == i) l := by
       intro g l
-      induction l with
-      | nil => rfl
-      | cons e rest ih =>
-          by_cases hb : (e.1 == a) = true
-          · have hea : e.1 = a := by simpa using hb
-            have hei : (e.1 == i) = false := by
-              simp only [beq_eq_false_iff_ne, ne_eq]
-              intro hh
-              exact hne (hh ▸ hea)
-            simp only [List.map_cons, if_pos hb, List.find?_cons, hei]
-            exact ih
-          · simp only [List.map_cons, if_neg hb, List.find?_cons]
-            cases hbi : (e.1 == i) with
-            | true => rfl
-            | false => exact ih
+      rw [Whatwg.Ecma262.Promise.find?_keyUpdate]
+      cases hf : l.find? (fun e => e.1 == i) with
+      | none => rfl
+      | some e =>
+          have hb := List.find?_some hf
+          have hi : e.1 = i := beq_iff_eq.mp hb
+          exact congrArg some (if_neg fun ha => hne (hi.symm.trans (beq_iff_eq.mp ha)))
     rw [Whatwg.Ecma262.Promise.Table.settle_pending _ _ _ hp]
     simp only [Whatwg.Ecma262.Promise.Table.get, Whatwg.Ecma262.Promise.Table.getCell]
     exact congrArg (Option.map Whatwg.Ecma262.Promise.Cell.state)

@@ -1,4 +1,5 @@
 import Whatwg.Streams.Semantics.Configuration
+import Whatwg.Streams.Kernel
 
 /-!
 # Semantics.Step.lean
@@ -24,6 +25,11 @@ Decision 6: the checkpoint dequeue is `takeSinkHead`, which removes the
 matching global token and the local mailbox head through the exact
 empty-control `Writable.tick`, leaves the local trace unchanged, and does not
 use the append-only `liftWritable` path.
+
+Slice W8a (packet `test/contracts/transition-kernel.contract.md`): `Step` is
+`Kernel.stage tick decide` up to a pointwise iff, and `Reaches` and
+`EpisodePrefix` are `Kernel.Path` derivations; the closure laws of
+`Semantics/Runs.lean` are corollaries of the kernel's through these bridges.
 -/
 
 namespace Whatwg.Streams.Semantics.Ordering
@@ -478,5 +484,47 @@ theorem takeSinkHead_canonical_tick {α ε : Type} (c t : Config α ε) (token :
                       exact ⟨by simp [Writable.tick, hcontrol, hm], rfl⟩
                     · simp [hk] at h
               · simp [hh] at h
+
+/-! ## Bridges to the transition kernel (slice W8a)
+
+Receipts on the semantics edge of CONFIGURATION-PG-ORDERING. `Step` matches on
+the label inside its own body, so the one-step bridge is a pointwise iff by
+cases on the label, not an equation of relations (`WS-KERNEL-CE-004`). -/
+
+/-- Class [A]. `Step` is the graph of the kernel's two-stage step over `tick`
+and `decide`. -/
+theorem step_iff_stage {α ε : Type} (s : Config α ε) (d : Option (Decision α ε))
+    (t : Config α ε) : Step s d t ↔ Kernel.Graph (Kernel.stage tick decide) s d t := by
+  cases d <;> exact Iff.rfl
+
+/-- Class [A]. The finite derivations over a decision tape are the kernel's
+derivations of `Step`. -/
+theorem reaches_iff_path {α ε : Type} {s t : Config α ε} {ds : List (Option (Decision α ε))} :
+    Reaches s ds t ↔ Kernel.Path Step s ds t := by
+  constructor
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first ih
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first ih
+
+/-- Class [A]. An episode prefix is a kernel derivation of `Step` restricted to
+sources that are not a checkpoint. -/
+theorem episodePrefix_iff_path {α ε : Type} {s t : Config α ε}
+    {ds : List (Option (Decision α ε))} :
+    EpisodePrefix s ds t ↔
+      Kernel.Path (fun c d u => c.active ≠ Active.checkpoint ∧ Step c d u) s ds t := by
+  constructor
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons active first _ ih => exact .cons ⟨active, first⟩ ih
+  · intro h
+    induction h with
+    | nil s => exact .nil s
+    | cons first _ ih => exact .cons first.1 first.2 ih
 
 end Whatwg.Streams.Semantics.Ordering

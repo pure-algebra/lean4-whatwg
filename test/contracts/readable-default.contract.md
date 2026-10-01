@@ -305,3 +305,45 @@ must prove; it does not claim production implementation, global reachability,
 full P4, M2 host equivalence, or a coverage increase. The known-red entries
 are included with the packet; imports into the test/audit roots and the full
 trust self-test belong to the coordinator's integration change.
+
+## W8a amendment: the readable queue invariant (2026-10-01, ruling R-W4)
+
+Appended by the W8a breaker seat on branch `review/w8a-kernel-breaker`, based
+on `main` at `b0d35e2`. This section is additive. No earlier sentence of this
+contract changes, and no earlier P4a ascription, battery, witness or receipt
+changes.
+
+The contract gains four declarations, frozen in the new breaker-owned battery
+`WhatwgTest/Streams/Readable/InvariantContract.lean` and recorded in section
+5.1 of `test/contracts/transition-kernel.contract.md`, which owns their
+declaration record:
+
+```lean
+Readable.QueueInv : {α ε : Type} → Readable.State α ε → Prop
+  -- view; body pinned by `rfl`:
+  -- Data.Queue.WF Readable.sizes s.queue ∧ Data.Queue.SizesAdmissible Readable.sizes s.queue
+Readable.step_queueInv :
+  ∀ {α ε : Type} {s t : Readable.State α ε} {d : Readable.Decision α ε},
+    Readable.QueueInv s → Readable.Step s d t → Readable.QueueInv t
+Readable.steps_queueInv :
+  ∀ {α ε : Type} {s t : Readable.State α ε} {ds : List (Readable.Decision α ε)},
+    Readable.Steps s ds t → Readable.QueueInv s → Readable.QueueInv t
+Readable.initial_queueInv :
+  ∀ {α ε : Type} (algorithms : Readable.Algorithms) (hwm : Readable.Size),
+    Readable.QueueInv (Readable.initial (α := α) (ε := ε) algorithms hwm)
+```
+
+`Readable.QueueInv` is the queue-with-sizes invariant of DATA-PG-QUEUE read off
+the readable `[[queue]]`. It is inductive: the step theorem carries no
+reachability hypothesis, and the closure theorem is carried by
+`Kernel.Path.invariant` through the bridge `Readable.steps_iff_path`.
+Assurance route: the construction edge of READABLE-PG-DEFAULT. Counterexample
+`WS-KERNEL-CE-005` is the `finishEnqueue` mutant that appends without
+`Data.enqueueValueWithSize`.
+
+Under the same packet, and outside this battery, the readable calculus also
+gains the bridges `Readable.step_eq_graph` and `Readable.steps_iff_path`
+(semantics edge), and the proofs of `steps_nil_iff`, `steps_cons_iff` and
+`steps_append_iff` are re-derived from the kernel; their frozen statements do
+not change. The battery is declared red in
+`test/fixtures/trust-gate/known-red.txt` until slice W8a.3 lands.

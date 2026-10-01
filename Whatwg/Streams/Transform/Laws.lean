@@ -796,7 +796,7 @@ theorem step_iff :
 theorem reaches_nil :
   ∀ {α β ε : Type} (s : State α β ε), Reaches s [] s := by
   intro α β ε s
-  exact Reaches.nil s
+  exact reaches_iff_path.mpr (Kernel.Path.nil s)
 
 /-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
 theorem reaches_cons :
@@ -805,7 +805,7 @@ theorem reaches_cons :
    Step s d middle → Reaches middle tape last →
    Reaches s (d :: tape) last := by
   intro α β ε s d middle last tape first rest
-  exact Reaches.cons first rest
+  exact reaches_iff_path.mpr (Kernel.Path.cons first (reaches_iff_path.mp rest))
 
 /-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
 theorem reaches_append :
@@ -814,9 +814,8 @@ theorem reaches_append :
    Reaches s before middle → Reaches middle after last →
    Reaches s (before ++ after) last := by
   intro α β ε s middle last before after hbefore hafter
-  induction hbefore with
-  | nil => exact hafter
-  | cons first _ ih => exact Reaches.cons first (ih hafter)
+  exact reaches_iff_path.mpr
+    ((reaches_iff_path.mp hbefore).append (reaches_iff_path.mp hafter))
 
 /-- Frozen derived component/judgment equation under TRANSFORM-PG-BACKPRESSURE. -/
 theorem tick_waitWritable_undershoot :
