@@ -80,8 +80,9 @@ when the fuel runs out.
 
 This module is on the gate's `metaprogrammingModules` list because it declares
 the command's syntax and its `command_elab` elaborator; it is bound by every
-other trust rule. The only token it adds to the table is `#whatwg_freeze`; the
-clause words are non-reserved, so no identifier anywhere becomes a keyword. It
+other trust rule. Of the tokens its syntax registers, only `#whatwg_freeze` is
+not already a base token; the clause words are non-reserved symbols, so no
+identifier anywhere becomes a keyword. It
 declares no persistent environment extension: `initialize` declares an `opaque`
 whose value Lean synthesises, which the gate refuses, so the registry lives in
 ordinary declarations, added by `Lean.addDecl` with the kernel check on. The
@@ -212,9 +213,11 @@ private def nameListText (names : List Name) : String :=
 private def isBlank (text : String) : Bool :=
   text.toList.all Char.isWhitespace
 
-/-- The command. The clause words are non-reserved symbols, so the only token
-this syntax adds to the table is `#whatwg_freeze`; the `mask` clause reads an
-identifier and an optional string, and the elaborator decides. -/
+/-- The command. The clause words are non-reserved symbols, so the only
+non-base token this syntax adds to the table is `#whatwg_freeze`; the `mask`
+clause reads an identifier and an optional string, and the elaborator decides
+(refusals F7 and F8), so that a malformed clause is an error `#guard_msgs` can
+pin rather than a parse error. -/
 syntax (name := freezeCommand) "#whatwg_freeze " "(" "@" ident " : " term ")"
   (&"axioms" "[" ident,* "]")?
   (&"mask" ident (str)?)?
