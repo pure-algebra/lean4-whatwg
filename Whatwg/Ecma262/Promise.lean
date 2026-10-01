@@ -1,5 +1,4 @@
 import Whatwg.Ecma262.Jobs
-import Whatwg.Infra
 
 /-!
 # ECMAScript promise objects
@@ -25,9 +24,10 @@ universe (`G-04`); thenable adoption and `NewPromiseResolveThenableJob`
 `Promise` constructor and the static resolve/reject helpers (`G-11`
 remainder).
 
-Layering (DB-11): this module imports `Whatwg.Ecma262.Jobs` and
-`Whatwg.Infra`, and nothing else. The reason parameter stays free
-(decision 2); `Whatwg.WebIdl.Exceptions` is the instantiation Streams uses.
+Layering (DB-11): this module imports `Whatwg.Ecma262.Jobs` and nothing else;
+DB-11's `Whatwg.Infra` is an upper bound it does not use (R-V3(a)). The reason
+parameter stays free (decision 2); `Whatwg.WebIdl.Exceptions` is the
+instantiation Streams uses.
 -/
 
 namespace Whatwg.Ecma262.Promise
@@ -239,8 +239,8 @@ theorem Table.fresh_get {value reason : Type} (t : Table value reason)
     | some v => simp [Table.getCell, hf] at hnone
   have htrue :
       ((fun (e : Nat × Cell value reason) => e.1 == t.next)
-        (t.next, Cell.mk outcome false)) = true := by
-    simp
+        (t.next, Cell.mk outcome false)) = true :=
+    beq_iff_eq.mpr rfl
   show Option.map Cell.state (Option.map Prod.snd
       (List.find? (fun e => e.1 == t.next)
         (t.entries ++ [(t.next, Cell.mk outcome false)]))) = some outcome
@@ -328,8 +328,9 @@ theorem Table.settle_handled {value reason : Type} (t : Table value reason) (id 
     (result : Except reason value) :
     (Table.getCell (Table.settle t id result) id).map Cell.handled =
       (Table.getCell t id).map Cell.handled := by
-  by_cases hp : Table.get t id = some State.pending
-  · have key : ∀ (g : Cell value reason → Cell value reason)
+  by_cases hpb : Table.isPending t id = true
+  · have hp : Table.get t id = some State.pending := (Table.isPending_iff t id).mp hpb
+    have key : ∀ (g : Cell value reason → Cell value reason)
         (l : List (Nat × Cell value reason)),
         List.find? (fun e => e.1 == id) (l.map (fun e => if e.1 == id then (e.1, g e.2) else e)) =
           (List.find? (fun e => e.1 == id) l).map (fun e => (e.1, g e.2)) := by
@@ -359,7 +360,7 @@ theorem Table.settle_handled {value reason : Type} (t : Table value reason) (id 
       | .ok v => State.fulfilled v
       | .error r => State.rejected r) c.handled) t.entries]
     cases List.find? (fun (e : Nat × Cell value reason) => e.1 == id) t.entries <;> rfl
-  · rw [Table.settle_other t id result hp]
+  · rw [Table.settle_other t id result (fun hp => hpb ((Table.isPending_iff t id).mpr hp))]
 
 /-! ### The handled bit — mask M1 -/
 
@@ -378,7 +379,9 @@ theorem Table.markHandled_idem {value reason : Type} (t : Table value reason) (i
   congr 1
   apply List.map_congr_left
   intro e _
-  by_cases hb : e.1 = id <;> simp [hb]
+  by_cases hb : (e.1 == id) = true
+  · simp only [Function.comp_apply, if_pos hb]
+  · simp only [Function.comp_apply, if_neg hb]
 
 /-- `G-02`: nothing reads the bit in this packet, and marking does not change
 the promise state. Mask M1. -/
@@ -1546,7 +1549,9 @@ theorem ResolvingFunctions.callResolveSelf_self {value reason : Type}
         some ({ f with alreadyResolved := true },
           Table.settle t f.promise (Except.error selfError)) := by
   intro h
-  simp [ResolvingFunctions.callResolveSelf, ResolvingFunctions.callReject, h]
+  have hb : (f.promise == f.promise) = true := beq_iff_eq.mpr rfl
+  rw [ResolvingFunctions.callResolveSelf, if_pos hb,
+    ResolvingFunctions.callReject_fresh f t selfError h]
 
 /-- Off the self branch the operation answers `none` — the `G-04` and `G-05`
 frontier — rather than guessing at a resolution it cannot inspect. Mask M1. -/
