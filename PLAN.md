@@ -4,8 +4,9 @@ Status, 2026-10-01: P0 to P3 are landed. One bounded representative of each
 of P4 to P7 (P4a, P5a, P6a, P7a), the promise slices Q0 to Q4 with the
 configuration-ordering restatement of P8a, URL U0 to U3, the Infra UTF-8
 codec and HTML H0 to H4 are on `main`. P8 proper is next, and P4 to P12
-remain open. Review lane V landed on 2026-10-01. "Current phase" below is the
-dated record; its entries are not in date order.
+remain open. Review lane V landed on 2026-10-01. Review lane W, rows 6 to 10
+of the same review, opened on 2026-10-01 in its design phase. "Current phase"
+below is the dated record; its entries are not in date order.
 
 ## Objective
 
@@ -203,6 +204,20 @@ their named homes, and the U3 tapes' UTF-8 profile discharged, so the U3
 graph's `encoding` obligation closes. Debt D42 holds the 17 receipts that
 still reach `Classical.choice` inside the R-11 ceiling; D43 holds the three
 global `@[simp]` attributes R-P27 re-froze.
+
+**Review lane W opened, 2026-10-01:** the operator opened rows 6 to 10 of the
+review's recommended order as slices W6 to W10: a freeze registry with pinned
+receipts, the declaration snapshot and masks as data (W6); a Lean graph ledger
+with the markdown edge table as its projection (W7); a generic transition
+kernel, one promise table and one job queue (W8); `Whatwg.Ecma262.Agent` with
+one step function, a `resolve` that triggers reactions and an
+`Effects.Signature` face (W9); and the retarget of P11 and P12 with a plan for
+one gate package shared by the four repositories (W10). The review marks each
+row as needing a ruling, so the lane starts with five design seats that
+change no production, test or tooling file (rulings R-W0 and R-W1 in
+`COORDINATION.md`). lean4-effect4 is read at `efcf1ae2`, the operator's rebase
+of 2026-10-01. Phase gates P8 to P12 are unchanged until the coordinator rules
+on the designs.
 
 **Review lane V landed, 2026-10-01** (rulings R-V6 to R-V12 in
 `COORDINATION.md`). No theorem statement, definition body or disposition
