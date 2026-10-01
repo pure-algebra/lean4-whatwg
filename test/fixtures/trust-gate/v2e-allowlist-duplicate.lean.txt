@@ -1,2 +1,2 @@
-  ⟨`TrustSelfTestPlant.repeatedExtension, "trust self-test plant V2e-X3: listed twice"⟩ ::
-  ⟨`TrustSelfTestPlant.repeatedExtension, "trust self-test plant V2e-X3: listed twice"⟩ ::
+  ⟨"TrustSelfTestPlant.repeatedExtension", "trust self-test plant V2e-X3: listed twice"⟩ ::
+  ⟨"TrustSelfTestPlant.repeatedExtension", "trust self-test plant V2e-X3: listed twice"⟩ ::

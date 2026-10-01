@@ -2011,9 +2011,10 @@ The terms of sections 2 and V2c.1 stand. Added:
 - *Loader*: the module `WhatwgGates.Trust.Load`, `WhatwgGates/Trust/Load.lean`,
   shared with `whatwg_declsnapshot` (R-W5) and `whatwg_ledger` (R-W6).
 - *In-tree command*: `#whatwg_streams_axiom_gate`, run by the root.
-- *Import set*: the modules the root's `import` lines name, read with the
-  gate's tokenizer from `WhatwgTest.lean` as the leading pairs of the atom
-  `import` and an identifier. The executable never imports the root itself.
+- *Import set*: the modules the root's header imports, read from
+  `WhatwgTest.lean` with Lean's own header parser (`Lean.Elab.parseImports`),
+  which stops at the first command, as the elaborator does. The executable
+  never imports the root itself.
 - *Module source*: an audited source of section 2 other than the root
   `WhatwgTest.lean` and the entry points under `whatwgbin/`; its module is its
   path below the project root read as a module name.
@@ -2107,8 +2108,14 @@ the extension allowlist, under the anchor
 -- trust-selftest: extension-allowlist entries are inserted below this line
 ```
 
-in the same shape, an entry naming one environment extension by its full name
-with a reason.
+in the same shape with one difference: an entry names its extension by the
+extension's printed name as a string literal, so that an entry line reads
+`` ⟨"Extension.Name", "reason"⟩ :: ``, and the element type's anonymous
+constructor takes that `String` and then the reason `String`. A private
+extension's name has a numeric component
+(measured: `_private.Lean.Namespace.0.Lean.namespacesExt`), which no name
+literal spells; the executable compares an entry with `toString` of the name
+`ModuleData.entries` records.
 
 The config module:
 
@@ -2152,11 +2159,24 @@ executables of lane W. Its behaviour:
    not read `LEAN_PATH`, so an audited module resolves to the built file the
    freshness check reads, whoever launched the process.
 2. Import. `importBuilt modules` is
-   `Lean.importModules (modules.map ({ module := · })) {} (loadExts := false)`:
-   no environment extension's import hook runs, no parser descriptor is
-   evaluated and no initializer of an imported module runs. The loader never
-   calls `Lean.enableInitializersExecution`, `Lean.Environment.evalConst` or
-   any other `unsafe` function, and declares nothing `unsafe` or `partial`.
+   `Lean.importModules (modules.map ({ module := · })) {} (loadExts := false)`
+   over the list its caller passes, one root or many: the executable passes
+   its import set, the declaration snapshot every module source but the
+   declared red ones, the ledger the three tree roots. No environment
+   extension's import hook runs, no parser descriptor is evaluated and no
+   initializer of an imported module runs. The loader never calls
+   `Lean.enableInitializersExecution`, `Lean.Environment.evalConst` or any
+   other `unsafe` function, and declares nothing `unsafe` or `partial`.
+   `sourceModules root trees` enumerates module sources from the file system,
+   so that a caller can import a module the root does not import (debt D61):
+   for each tree `t`, the module `t` when the file `t.lean` exists below `root`,
+   then the module of every file below the directory of `t` whose extension is
+   `lean` in any case, its path below `root` read as a module name; all in
+   ascending order of the module name's string. Measured with the prototype:
+   for the three audited trees it lists 221 modules on the validation tree (the
+   222 audited sources and the prototype's five module sources, less the six
+   entry points under `whatwgbin/`), and `importBuilt` of all but the root
+   imports them.
 3. Declarations. `moduleDeclarations env i` is the module data's `constNames`
    for module index `i`, in order, keeping exactly the names that
    `Environment.getModuleIdxFor?` attributes to `i` (the in-tree gate's read);
@@ -2196,6 +2216,7 @@ signature unchanged and the rest naming the prototype's inline steps:
 | `Gates.Trust.leanBuildDir` | `System.FilePath → System.FilePath` |
 | `Gates.Trust.loaderSearchPath` | `System.FilePath → System.FilePath → IO System.SearchPath` |
 | `Gates.Trust.initLoaderSearchPath` | `System.FilePath → IO Unit` |
+| `Gates.Trust.sourceModules` | `System.FilePath → List Lean.Name → IO (Array Lean.Name)` |
 | `Gates.Trust.importBuilt` | `Array Lean.Name → IO Lean.Environment` |
 | `Gates.Trust.moduleDeclarations` | `Lean.Environment → Nat → Array Lean.Name` |
 | `Gates.Trust.rawEntries` | `Lean.Environment → Nat → Lean.Name → Array Lean.EnvExtensionEntry` |
@@ -2255,10 +2276,10 @@ internal failure, with no verdict line.
 5. *Extension allowlist*: every extension that holds an entry from an audited
    module of the import set's environment is on the allowlist, and the
    allowlist's own checks.
-6. *Link closure*: the import closure of the entry point's `import` lines, read
-   lexically from `whatwgbin/TrustGate.lean` and closed over the imported
-   modules' headers, holds no listed metaprogramming module, whose code and
-   initializers would run in the executable's process at its start.
+6. *Link closure*: the import closure of the entry point's imports, read from
+   `whatwgbin/TrustGate.lean` with Lean's header parser and closed over the
+   imported modules' headers, holds no listed metaprogramming module, whose
+   code and initializers would run in the executable's process at its start.
 7. *Verdict*. With no finding, the summary line of section 7 with the counts
    the in-tree command computes, after `PASS whatwg_trustgate: `.
 

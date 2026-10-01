@@ -1,1 +1,1 @@
-  ⟨`TrustSelfTestPlant.blankExtension, " "⟩ ::
+  ⟨"TrustSelfTestPlant.blankExtension", " "⟩ ::

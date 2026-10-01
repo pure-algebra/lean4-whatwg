@@ -154,8 +154,9 @@ def unimportedPlantModule (probe : System.FilePath) : System.FilePath :=
   probe / "WhatwgTest" / "TrustSelfTestUnimported.lean"
 
 /-- The line of `WhatwgGates/TrustConfig.lean`, trimmed, after which an
-extension-allowlist entry `⟨`Extension.Name, "reason"⟩ ::` is inserted (addendum
-V2e.3). Frozen by the contract; the config module carries it exactly once. -/
+extension-allowlist entry `⟨"Extension.Name", "reason"⟩ ::` is inserted, the
+extension named by its printed name (addendum V2e.3). Frozen by the contract;
+the config module carries it exactly once. -/
 def extensionAllowlistAnchor : String :=
   "-- trust-selftest: extension-allowlist entries are inserted below this line"
 
