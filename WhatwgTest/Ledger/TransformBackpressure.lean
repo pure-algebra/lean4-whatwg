@@ -60,9 +60,9 @@ def transformBackpressure : Graph where
         .theorems [`Whatwg.Streams.Transform.coupled_write_read_enqueue,
           `Whatwg.Streams.Transform.coupled_error_during_transform,
           `Whatwg.Streams.Transform.coupled_positive_readable_capacity],
-        .receipts `WhatwgTest.Streams.Transform.BackpressureAxiomReport 118,
+        .receipts `WhatwgTest.Streams.Transform.BackpressureLaws 118,
         .receipt "P6a landing receipt"]
-      note := "The 115 frozen local equations and the three composed runs are proved; the 118 named receipts print." }
+      note := "The 115 frozen local equations and the three composed runs are proved; the 118 named receipts are frozen." }
     representation := {
       status := .requiredOpen
       remaining := [.named "full-state embeddings", .named "global ECMAScript job order",
@@ -87,10 +87,10 @@ def transformBackpressure : Graph where
       note := "This representative generates no target code; P11 owns lowering." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Streams.Transform.BackpressureAxiomReport 118,
+      grounds := [.receipts `WhatwgTest.Streams.Transform.BackpressureLaws 118,
         .gate .build, .receipt "P6a landing receipt", .ruling "R-V1", .ruling "R-V6",
         .ruling "R-V8"]
-      note := "The 118 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent implementation and proof review passed. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
+      note := "The 118 named receipts are frozen inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent implementation and proof review passed. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "the clause map and the test-side numerator witnesses"]

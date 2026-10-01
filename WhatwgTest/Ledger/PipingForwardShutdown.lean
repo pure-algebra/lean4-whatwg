@@ -55,9 +55,10 @@ def pipingForwardShutdown : Graph where
       grounds := [.modules [`Whatwg.Streams.Piping.Laws, `Whatwg.Streams.Piping.Runs],
         .theorems [`Whatwg.Streams.Piping.lifecycle_two_writes_abort_rejection,
           `Whatwg.Streams.Piping.lifecycle_write_rejection_retains_source],
-        .receipts `WhatwgTest.Streams.Piping.ShutdownAxiomReport 46,
+        .receipts `WhatwgTest.Streams.Piping.ShutdownLaws 44,
+        .receipts `WhatwgTest.Streams.Piping.ShutdownRuns 2,
         .receipt "P7a landing receipt"]
-      note := "The 44 frozen stage and requirements laws and the two composed runs are proved; the 46 named receipts print." }
+      note := "The 44 frozen stage and requirements laws and the two composed runs are proved; the 46 named receipts are frozen." }
     representation := {
       status := .requiredOpen
       remaining := [.named "full component and host representations"]
@@ -79,9 +80,10 @@ def pipingForwardShutdown : Graph where
       note := "No target generation; P11 owns lowering." }
     trust := {
       status := .requiredClosed
-      grounds := [.receipts `WhatwgTest.Streams.Piping.ShutdownAxiomReport 46, .gate .build,
+      grounds := [.receipts `WhatwgTest.Streams.Piping.ShutdownLaws 44,
+        .receipts `WhatwgTest.Streams.Piping.ShutdownRuns 2, .gate .build,
         .receipt "P7a landing receipt", .ruling "R-V1", .ruling "R-V6", .ruling "R-V8"]
-      note := "The 46 named receipts print inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent source, proof and landing review passed. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
+      note := "The 46 named receipts are frozen inside the R-11 ceiling; the exhaustive root audit, the builds, the gates and independent source, proof and landing review passed. The axiom gate holds `Whatwg.Streams` to `propext` and `Quot.sound` with no exception." }
     coverage := {
       status := .requiredOpen
       remaining := [.named "the coverage join for the full residual clause map and its numerator witnesses"]
