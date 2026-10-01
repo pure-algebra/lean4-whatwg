@@ -57,7 +57,7 @@ theorem check by the same key.
 | (a) data model | the types of section 3; invariants and their checkers below | 2.4, 2.6, 2.7 |
 | (b) reference checking | single-backtick names; existence and kind checked by the executable over `.olean` files | 2.5, 2.8 |
 | (c) placement and cost | data in `WhatwgTest/Ledger/`, code in `WhatwgGates/Ledger/`; the executable links no `Whatwg` object; import graph below | 2.5 |
-| (d) projection | `generated/graphs/<GRAPH-ID>.md`; `lake exe whatwg_ledger --write` regenerates, `lake exe whatwg_ledger` compares; files read at run time, so D49 does not apply | 2.6, 2.14 |
+| (d) projection | `generated/graphs/<GRAPH-ID>.md`; `lake exe whatwg_ledger --write` regenerates, `lake -q exe whatwg_ledger` compares; files read at run time, so D49 does not apply | 2.6, 2.14 |
 | (e) two graphs | `DATA-PG-QUEUE`, `PROMISE-PG-FIRST` and `CONFIGURATION-PG-ORDERING` encoded, rendered and compared | 2.10, 2.11 |
 | (f) rulings | edge tokens and the mention check, in the executable | 2.7, 2.9 |
 | (g) lean4-effect4 | the join, `wanted` and the cycle check port; the commands, the search and the ceiling do not (table below) | 2.13 |
@@ -131,7 +131,8 @@ declarations of `WhatwgTest`, as before, and by 222 of 2,368 in
 `WhatwgGates`, from 176 of 1,597; the new reach is in derived instances and
 the `Lean` API calls of `WhatwgGates.Ledger.Check`, which R-11 admits there.
 `lake exe whatwg_citations` and `lake exe whatwg_vendorseal` pass with the
-prototype and its three projections present. `[C]`
+prototype and its three projections present, and `lake env leanchecker`
+naming the seven prototype modules exits 0 in 16.1 s. `[C]`
 
 ### 2.3 Kernel evaluation of the invariants
 
@@ -188,7 +189,9 @@ import of the whole `WhatwgTest` environment and every check at about 1.4 s.
 `lake exe whatwg_ledger` takes 5.0 s, most of it Lake replaying the
 `WhatwgTest` library for `needs`, and prints 9,957 lines, because the replay
 reprints that library's stored information messages; `lake -q exe
-whatwg_ledger` takes 1.8 s and prints only the PASS line. `[C]`
+whatwg_ledger` takes 1.8 s and prints only the PASS line. In a scratch
+package whose executable `needs` a library with a false `rfl`, `lake -q exe`
+still prints the library's build errors. `[C]`
 
 ### 2.6 The reference pass on three graphs and one leaf
 
@@ -265,8 +268,8 @@ a graph by identifier (R-V6 `INFRA-PG-UTF8`; R-V8 `CONFIGURATION-PG-ORDERING`
 and `INFRA-PG-UTF8`), and five name one by identifier or document path
 (R-P20, R-U1, R-U5, R-V6, R-V8: seven graph mentions). R-P24, R-P27, R-U2
 and R-U4, which changed edges the current tables cite, name no graph by
-either. R-V8 names "the PROMISE, WRITABLE, TRANSFORM, PIPING and
-CONFIGURATION graphs" by short name only. A lexical check over today's
+either. The first sentence of R-V8 names five graphs by short name only
+("the PROMISE, WRITABLE, TRANSFORM, PIPING and CONFIGURATION graphs"). A lexical check over today's
 rulings therefore catches little; the token convention is for rulings from
 here on, and the seeding cites the past ones. `[C]`
 
@@ -538,7 +541,10 @@ refuses an unlisted ledger module that declares a command; the breaker may
 add one plant row that a ledger module spelling `elab` is refused, as a
 regression guard. The ledger modules sit under no strict prefix.
 
-`lake exe whatwg_trustselftest` with the prototype present: see section 8.
+`lake exe whatwg_trustselftest`, run with the prototype present in the
+worktree, exits 0 after 644 s with 82 PASS lines (its 81 checks and the
+summary) and no FAIL: every plant is still refused for its frozen reason and
+the tree with the ledger modules is accepted. `[C]`
 
 ## 6. Slices
 
@@ -679,8 +685,6 @@ every plant fails for its frozen reason.
 
 - The other eight graphs were not encoded; their counts in section 2.11 come
   from regular expressions over the tables, not from a ledger run.
-- `lake exe whatwg_trustselftest` was run with the prototype present; its
-  result is recorded below if it finished before this commit.
 - The dependencies between graphs were not seeded; the prototype records
   one (`CONFIGURATION-PG-ORDERING` on `PROMISE-PG-FIRST`). That the full set
   is acyclic is `[H]`.
@@ -688,9 +692,6 @@ every plant fails for its frozen reason.
   over imported `.olean` files was not tried `[H]`.
 - The run was measured on this Windows host only; CI time on Linux, and the
   rendering of the projections on a markdown host, were not checked.
-- `leanchecker` was not run over the prototype modules.
-- That `lake -q` still prints a build error of the `needs` target, and not
-  only the executable's output, was not tried `[H]`.
 - The module routing pass of slice D was not prototyped; the counts in
   section 2.12 come from a probe over the environment and a source grep.
 - No graph document, receipts log, router or contract was edited.
