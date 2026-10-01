@@ -1,6 +1,7 @@
 import Whatwg.Streams
 import Whatwg.Ecma262
 import Whatwg.WebIdl
+import WhatwgTest.Audit.Freeze
 
 /-!
 Breaker-owned Q4 interface battery: the DB-11 restatement of the held P8a
@@ -52,13 +53,13 @@ cannot be a field name; the draft was never elaborated and never found this.
 Anchor: `record.promise-capability-record`'s identity discipline as R-P13 fixed
 it (identities stay `Nat`, owner-qualified above them). -/
 
-#check (@Whatwg.Ecma262.Promise.Ref : Type)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref : Type)
 
-#check (@Whatwg.Ecma262.Promise.Ref.mk : Nat → Nat → Whatwg.Ecma262.Promise.Ref)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref.mk : Nat → Nat → Whatwg.Ecma262.Promise.Ref)
 
-#check (@Whatwg.Ecma262.Promise.Ref.owner : Whatwg.Ecma262.Promise.Ref → Nat)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref.owner : Whatwg.Ecma262.Promise.Ref → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Ref.cell : Whatwg.Ecma262.Promise.Ref → Nat)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Ref.cell : Whatwg.Ecma262.Promise.Ref → Nat)
 
 /-! ## [A] The startup envelope
 
@@ -66,9 +67,9 @@ Draft ascriptions 5–7. Streams-specific: it stands for the source's omitted
 `[[started]]` guard on `op.writable-stream-default-controller-advance-queue-if-needed`
 (271219..272322) and has no ECMA-262 or Web IDL counterpart. -/
 
-#check (@Semantics.Ordering.Startup : Type)
-#check (@Semantics.Ordering.Startup.pending : Semantics.Ordering.Startup)
-#check (@Semantics.Ordering.Startup.started : Semantics.Ordering.Startup)
+#whatwg_freeze (@Semantics.Ordering.Startup : Type)
+#whatwg_freeze (@Semantics.Ordering.Startup.pending : Semantics.Ordering.Startup)
+#whatwg_freeze (@Semantics.Ordering.Startup.started : Semantics.Ordering.Startup)
 
 /-! ## [R] The reaction phase
 
@@ -79,13 +80,13 @@ this packet; §2.5 of the contract records that the landed `react` and
 `performPromiseThen` instantiate the same field with a *registration* id, and
 marks the difference Q3b-sensitive. -/
 
-#check (@Whatwg.Ecma262.Promise.ReactionPhase : Type)
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.waiting : Whatwg.Ecma262.Promise.ReactionPhase)
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.queued :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase : Type)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.waiting : Whatwg.Ecma262.Promise.ReactionPhase)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.queued :
   Nat → Whatwg.Ecma262.Promise.ReactionPhase)
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.running :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.running :
   Nat → Whatwg.Ecma262.Promise.ReactionPhase)
-#check (@Whatwg.Ecma262.Promise.ReactionPhase.done : Whatwg.Ecma262.Promise.ReactionPhase)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.ReactionPhase.done : Whatwg.Ecma262.Promise.ReactionPhase)
 
 /-! ## [R] The registration record
 
@@ -106,7 +107,7 @@ Three of the six are renames with a stated change, recorded in §2.4:
 
 All six are Q3b-sensitive: fidelity finding F4 adds a `[[Capability]]` field. -/
 
-#check (@Whatwg.Ecma262.Promise.Reaction : Type → Type)
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction : Type → Type)
 
 -- Q4 amendment A1, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
 -- ruling R-P25 and builder note B1 (contract §11.1). Superseded text, frozen
@@ -126,21 +127,21 @@ All six are Q3b-sensitive: fidelity finding F4 adds a `[[Capability]]` field. -/
 -- the Q3b addendum's own battery `WhatwgTest/Ecma262/PromiseContract.lean`,
 -- and Q4 restates only the six P8a `Registration` ascriptions, so the class
 -- [R] count stays 15 and the 15 + 19 + 124 = 158 arithmetic of §2.1 stands.
-#check (@Whatwg.Ecma262.Promise.Reaction.mk :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.mk :
   ∀ {body : Type}, Nat → Nat → Whatwg.Ecma262.Promise.ReactionType → Option body →
     Option Whatwg.Ecma262.Promise.Capability →
     Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.Reaction body)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.id :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.id :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.promise :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.promise :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Nat)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.handler :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.handler :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Option body)
 
-#check (@Whatwg.Ecma262.Promise.Reaction.phase :
+#whatwg_freeze (@Whatwg.Ecma262.Promise.Reaction.phase :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body → Whatwg.Ecma262.Promise.ReactionPhase)
 
 /-! ## [A] The job payload and its token
@@ -154,14 +155,14 @@ token is not a reaction job. `Jobs.Queue` is payload-polymorphic by decision 4
 precisely so that its client supplies the payload, so `JobKind` and `Job` are
 that payload and stay here. §2.3 of the contract records the finding. -/
 
-#check (@Semantics.Ordering.JobKind : Type)
-#check (@Semantics.Ordering.JobKind.startup : Semantics.Ordering.JobKind)
-#check (@Semantics.Ordering.JobKind.sink : Writable.SinkKind → Nat → Semantics.Ordering.JobKind)
-#check (@Semantics.Ordering.JobKind.observer : Nat → Semantics.Ordering.JobKind)
-#check (@Semantics.Ordering.Job : Type)
-#check (@Semantics.Ordering.Job.mk : Nat → Semantics.Ordering.JobKind → Semantics.Ordering.Job)
-#check (@Semantics.Ordering.Job.serial : Semantics.Ordering.Job → Nat)
-#check (@Semantics.Ordering.Job.kind : Semantics.Ordering.Job → Semantics.Ordering.JobKind)
+#whatwg_freeze (@Semantics.Ordering.JobKind : Type)
+#whatwg_freeze (@Semantics.Ordering.JobKind.startup : Semantics.Ordering.JobKind)
+#whatwg_freeze (@Semantics.Ordering.JobKind.sink : Writable.SinkKind → Nat → Semantics.Ordering.JobKind)
+#whatwg_freeze (@Semantics.Ordering.JobKind.observer : Nat → Semantics.Ordering.JobKind)
+#whatwg_freeze (@Semantics.Ordering.Job : Type)
+#whatwg_freeze (@Semantics.Ordering.Job.mk : Nat → Semantics.Ordering.JobKind → Semantics.Ordering.Job)
+#whatwg_freeze (@Semantics.Ordering.Job.serial : Semantics.Ordering.Job → Nat)
+#whatwg_freeze (@Semantics.Ordering.Job.kind : Semantics.Ordering.Job → Semantics.Ordering.JobKind)
 
 /-! ## [B] The activation state
 
@@ -177,11 +178,11 @@ bare serial cannot supply. So `Active` stays here and `activeErase` below is
 the Q4-owned erasure onto the landed state, with
 `Jobs.RunCondition` (625769..626250, 626257..626350) reached through it. -/
 
-#check (@Semantics.Ordering.Active : Type)
-#check (@Semantics.Ordering.Active.script : Semantics.Ordering.Active)
-#check (@Semantics.Ordering.Active.intrinsic : Semantics.Ordering.Job → Semantics.Ordering.Active)
-#check (@Semantics.Ordering.Active.observer : Semantics.Ordering.Job → Semantics.Ordering.Active)
-#check (@Semantics.Ordering.Active.checkpoint : Semantics.Ordering.Active)
+#whatwg_freeze (@Semantics.Ordering.Active : Type)
+#whatwg_freeze (@Semantics.Ordering.Active.script : Semantics.Ordering.Active)
+#whatwg_freeze (@Semantics.Ordering.Active.intrinsic : Semantics.Ordering.Job → Semantics.Ordering.Active)
+#whatwg_freeze (@Semantics.Ordering.Active.observer : Semantics.Ordering.Job → Semantics.Ordering.Active)
+#whatwg_freeze (@Semantics.Ordering.Active.checkpoint : Semantics.Ordering.Active)
 
 /-! ## [A] The configuration event alphabet
 
@@ -189,24 +190,24 @@ Draft ascriptions 32–41, carried over unchanged. The only substitution is the
 class [R] one: `Event.registered` and `Event.observerCalled` carry
 `Whatwg.Ecma262.Promise.Ref` where the draft wrote `PromiseRef`. -/
 
-#check (@Semantics.Ordering.Event : Type → Type → Type)
-#check (@Semantics.Ordering.Event.writable :
+#whatwg_freeze (@Semantics.Ordering.Event : Type → Type → Type)
+#whatwg_freeze (@Semantics.Ordering.Event.writable :
   ∀ {α ε : Type}, Writable.Event α ε → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.registered :
+#whatwg_freeze (@Semantics.Ordering.Event.registered :
   ∀ {α ε : Type}, Nat → Whatwg.Ecma262.Promise.Ref → Nat → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.observerCalled :
+#whatwg_freeze (@Semantics.Ordering.Event.observerCalled :
   ∀ {α ε : Type}, Nat → Nat → Whatwg.Ecma262.Promise.Ref →
     Except (Boundary.Exception ε) Unit → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.observerReturned :
+#whatwg_freeze (@Semantics.Ordering.Event.observerReturned :
   ∀ {α ε : Type}, Nat → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.jobQueued :
+#whatwg_freeze (@Semantics.Ordering.Event.jobQueued :
   ∀ {α ε : Type}, Semantics.Ordering.Job → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.jobStarted :
+#whatwg_freeze (@Semantics.Ordering.Event.jobStarted :
   ∀ {α ε : Type}, Semantics.Ordering.Job → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.jobFinished :
+#whatwg_freeze (@Semantics.Ordering.Event.jobFinished :
   ∀ {α ε : Type}, Semantics.Ordering.Job → Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.scriptEntered : ∀ {α ε : Type}, Semantics.Ordering.Event α ε)
-#check (@Semantics.Ordering.Event.scriptReturned : ∀ {α ε : Type}, Semantics.Ordering.Event α ε)
+#whatwg_freeze (@Semantics.Ordering.Event.scriptEntered : ∀ {α ε : Type}, Semantics.Ordering.Event α ε)
+#whatwg_freeze (@Semantics.Ordering.Event.scriptReturned : ∀ {α ε : Type}, Semantics.Ordering.Event α ε)
 
 /-! ## [A] The configuration
 
@@ -217,27 +218,27 @@ class [R] substitution: `registrations` is a list of
 as the view; the FIFO obligation is stated over `Jobs.Queue` through
 `Semantics.Ordering.jobQueue` below. -/
 
-#check (@Semantics.Ordering.Config : Type → Type → Type)
-#check (@Semantics.Ordering.Config.mk :
+#whatwg_freeze (@Semantics.Ordering.Config : Type → Type → Type)
+#whatwg_freeze (@Semantics.Ordering.Config.mk :
   ∀ {α ε : Type}, Nat → Writable.State α ε → Semantics.Ordering.Startup →
     Semantics.Ordering.Active → List (Whatwg.Ecma262.Promise.Reaction Nat) → Nat →
     List Semantics.Ordering.Job → Nat → List (Semantics.Ordering.Event α ε) →
     Semantics.Ordering.Config α ε)
-#check (@Semantics.Ordering.Config.owner : ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat)
-#check (@Semantics.Ordering.Config.writable :
+#whatwg_freeze (@Semantics.Ordering.Config.owner : ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat)
+#whatwg_freeze (@Semantics.Ordering.Config.writable :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Writable.State α ε)
-#check (@Semantics.Ordering.Config.startup :
+#whatwg_freeze (@Semantics.Ordering.Config.startup :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Semantics.Ordering.Startup)
-#check (@Semantics.Ordering.Config.active :
+#whatwg_freeze (@Semantics.Ordering.Config.active :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Semantics.Ordering.Active)
-#check (@Semantics.Ordering.Config.registrations :
+#whatwg_freeze (@Semantics.Ordering.Config.registrations :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → List (Whatwg.Ecma262.Promise.Reaction Nat))
-#check (@Semantics.Ordering.Config.nextObserver :
+#whatwg_freeze (@Semantics.Ordering.Config.nextObserver :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat)
-#check (@Semantics.Ordering.Config.jobs :
+#whatwg_freeze (@Semantics.Ordering.Config.jobs :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → List Semantics.Ordering.Job)
-#check (@Semantics.Ordering.Config.nextJob : ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat)
-#check (@Semantics.Ordering.Config.trace :
+#whatwg_freeze (@Semantics.Ordering.Config.nextJob : ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat)
+#whatwg_freeze (@Semantics.Ordering.Config.trace :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → List (Semantics.Ordering.Event α ε))
 
 /-! ## [A] The decision alphabet
@@ -247,23 +248,23 @@ class [R] `Ref`. This is the one place the owner qualification is observable:
 `lookup` rejects a cross-owner address, and `Reaction.promise`'s bare `Nat` is
 the local half of it. -/
 
-#check (@Semantics.Ordering.Decision : Type → Type → Type)
-#check (@Semantics.Ordering.Decision.writable :
+#whatwg_freeze (@Semantics.Ordering.Decision : Type → Type → Type)
+#whatwg_freeze (@Semantics.Ordering.Decision.writable :
   ∀ {α ε : Type}, Writable.Decision α ε → Semantics.Ordering.Decision α ε)
-#check (@Semantics.Ordering.Decision.observe :
+#whatwg_freeze (@Semantics.Ordering.Decision.observe :
   ∀ {α ε : Type}, Whatwg.Ecma262.Promise.Ref → Nat → Semantics.Ordering.Decision α ε)
-#check (@Semantics.Ordering.Decision.observerReturn :
+#whatwg_freeze (@Semantics.Ordering.Decision.observerReturn :
   ∀ {α ε : Type}, Semantics.Ordering.Decision α ε)
-#check (@Semantics.Ordering.Decision.scriptReturn :
+#whatwg_freeze (@Semantics.Ordering.Decision.scriptReturn :
   ∀ {α ε : Type}, Semantics.Ordering.Decision α ε)
-#check (@Semantics.Ordering.Decision.scriptBegin :
+#whatwg_freeze (@Semantics.Ordering.Decision.scriptBegin :
   ∀ {α ε : Type}, Semantics.Ordering.Decision α ε)
 
 /-! ## [A] Initialization
 
 Draft ascription 59, unchanged. -/
 
-#check (@Semantics.Ordering.initial :
+#whatwg_freeze (@Semantics.Ordering.initial :
   ∀ {α ε : Type}, Nat → Writable.Size → Writable.Algorithms → Nat → Nat →
     Semantics.Ordering.Config α ε)
 
@@ -288,41 +289,41 @@ landed operations write a `Jobs.Queue (Jobs.ReactionJob …)`, while the P8a
 configuration has one heterogeneous token queue carrying startup, sink and
 observer tokens. §2.6 of the contract records that mismatch. -/
 
-#check (@Semantics.Ordering.lookup :
+#whatwg_freeze (@Semantics.Ordering.lookup :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Whatwg.Ecma262.Promise.Ref →
     Option (Writable.UnitPromise ε))
-#check (@Semantics.Ordering.lookupRegistration :
+#whatwg_freeze (@Semantics.Ordering.lookupRegistration :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat →
     Option (Whatwg.Ecma262.Promise.Reaction Nat))
-#check (@Semantics.Ordering.enqueueJob :
+#whatwg_freeze (@Semantics.Ordering.enqueueJob :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Semantics.Ordering.JobKind →
     Semantics.Ordering.Config α ε × Semantics.Ordering.Job)
-#check (@Semantics.Ordering.setRegistrationPhase :
+#whatwg_freeze (@Semantics.Ordering.setRegistrationPhase :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat → Whatwg.Ecma262.Promise.ReactionPhase →
     Semantics.Ordering.Config α ε)
-#check (@Semantics.Ordering.register :
+#whatwg_freeze (@Semantics.Ordering.register :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Whatwg.Ecma262.Promise.Ref → Nat →
     Option (Semantics.Ordering.Config α ε))
-#check (@Semantics.Ordering.notifySettled :
+#whatwg_freeze (@Semantics.Ordering.notifySettled :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Nat → Semantics.Ordering.Config α ε)
 
 /-! ## [A] The Streams-specific stages
 
 Draft ascriptions 66–71, carried over unchanged in content and in file. -/
 
-#check (@Semantics.Ordering.liftWritable :
+#whatwg_freeze (@Semantics.Ordering.liftWritable :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Writable.State α ε →
     Semantics.Ordering.Config α ε)
-#check (@Semantics.Ordering.preStartAllowed :
+#whatwg_freeze (@Semantics.Ordering.preStartAllowed :
   ∀ {α ε : Type}, Writable.Decision α ε → Bool)
-#check (@Semantics.Ordering.authorFrontier :
+#whatwg_freeze (@Semantics.Ordering.authorFrontier :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Bool)
-#check (@Semantics.Ordering.takeSinkHead :
+#whatwg_freeze (@Semantics.Ordering.takeSinkHead :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Semantics.Ordering.Job →
     Option (Semantics.Ordering.Config α ε))
-#check (@Semantics.Ordering.tick :
+#whatwg_freeze (@Semantics.Ordering.tick :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Option (Semantics.Ordering.Config α ε))
-#check (@Semantics.Ordering.decide :
+#whatwg_freeze (@Semantics.Ordering.decide :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Semantics.Ordering.Decision α ε →
     Option (Semantics.Ordering.Config α ε))
 
@@ -330,26 +331,26 @@ Draft ascriptions 66–71, carried over unchanged in content and in file. -/
 
 Draft ascriptions 72–78, carried over unchanged. -/
 
-#check (@Semantics.Ordering.Step :
+#whatwg_freeze (@Semantics.Ordering.Step :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Option (Semantics.Ordering.Decision α ε) →
     Semantics.Ordering.Config α ε → Prop)
-#check (@Semantics.Ordering.Reaches :
+#whatwg_freeze (@Semantics.Ordering.Reaches :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → List (Option (Semantics.Ordering.Decision α ε)) →
     Semantics.Ordering.Config α ε → Prop)
-#check (@Semantics.Ordering.Reaches.nil :
+#whatwg_freeze (@Semantics.Ordering.Reaches.nil :
   ∀ {α ε : Type} (s : Semantics.Ordering.Config α ε), Semantics.Ordering.Reaches s [] s)
-#check (@Semantics.Ordering.Reaches.cons :
+#whatwg_freeze (@Semantics.Ordering.Reaches.cons :
   ∀ {α ε : Type} {s mid t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)}
     {ds : List (Option (Semantics.Ordering.Decision α ε))},
     Semantics.Ordering.Step s d mid → Semantics.Ordering.Reaches mid ds t →
       Semantics.Ordering.Reaches s (d :: ds) t)
-#check (@Semantics.Ordering.EpisodePrefix :
+#whatwg_freeze (@Semantics.Ordering.EpisodePrefix :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → List (Option (Semantics.Ordering.Decision α ε)) →
     Semantics.Ordering.Config α ε → Prop)
-#check (@Semantics.Ordering.EpisodePrefix.nil :
+#whatwg_freeze (@Semantics.Ordering.EpisodePrefix.nil :
   ∀ {α ε : Type} (s : Semantics.Ordering.Config α ε), Semantics.Ordering.EpisodePrefix s [] s)
-#check (@Semantics.Ordering.EpisodePrefix.cons :
+#whatwg_freeze (@Semantics.Ordering.EpisodePrefix.cons :
   ∀ {α ε : Type} {s mid t : Semantics.Ordering.Config α ε}
     {d : Option (Semantics.Ordering.Decision α ε)}
     {ds : List (Option (Semantics.Ordering.Decision α ε))},
@@ -363,7 +364,7 @@ Draft ascription 79. The reuse table calls `queuedJobs` "direct"; it is a
 filter over the configuration's own event list and `Whatwg.Ecma262.Jobs` has
 no counterpart at all. It stays here. -/
 
-#check (@Semantics.Ordering.queuedJobs :
+#whatwg_freeze (@Semantics.Ordering.queuedJobs :
   ∀ {α ε : Type}, List (Semantics.Ordering.Event α ε) → List Semantics.Ordering.Job)
 
 /-! ## [A] The live M2 view
@@ -373,20 +374,20 @@ ruling about claim scope and belongs in no promise library (inventory group
 G); restating one of these rows in `Whatwg.Ecma262` or `Whatwg.WebIdl` would
 be a defect under R-P12. -/
 
-#check (@Semantics.Ordering.m2Allowed : ∀ {ε : Type}, Writable.VisibleEvent ε → Bool)
-#check (@Semantics.Ordering.M2LivePrefix : Type → Type)
-#check (@Semantics.Ordering.M2LivePrefix.mk :
+#whatwg_freeze (@Semantics.Ordering.m2Allowed : ∀ {ε : Type}, Writable.VisibleEvent ε → Bool)
+#whatwg_freeze (@Semantics.Ordering.M2LivePrefix : Type → Type)
+#whatwg_freeze (@Semantics.Ordering.M2LivePrefix.mk :
   ∀ {ε : Type}, Nat → (events : List (Writable.VisibleEvent ε)) →
     (∀ event ∈ events, Semantics.Ordering.m2Allowed event = true) →
       Semantics.Ordering.M2LivePrefix ε)
-#check (@Semantics.Ordering.M2LivePrefix.owner :
+#whatwg_freeze (@Semantics.Ordering.M2LivePrefix.owner :
   ∀ {ε : Type}, Semantics.Ordering.M2LivePrefix ε → Nat)
-#check (@Semantics.Ordering.M2LivePrefix.events :
+#whatwg_freeze (@Semantics.Ordering.M2LivePrefix.events :
   ∀ {ε : Type}, Semantics.Ordering.M2LivePrefix ε → List (Writable.VisibleEvent ε))
-#check (@Semantics.Ordering.M2LivePrefix.allowed :
+#whatwg_freeze (@Semantics.Ordering.M2LivePrefix.allowed :
   ∀ {ε : Type} (p : Semantics.Ordering.M2LivePrefix ε),
-    ∀ event ∈ p.events, Semantics.Ordering.m2Allowed event = true)
-#check (@Semantics.Ordering.observeLive :
+    ∀ event ∈ p.events, Semantics.Ordering.m2Allowed event = true) axioms []
+#whatwg_freeze (@Semantics.Ordering.observeLive :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Option (Semantics.Ordering.M2LivePrefix ε))
 
 /-! ## [A] The successful-control grammar
@@ -394,55 +395,55 @@ be a defect under R-P12. -/
 Draft ascriptions 87–102, carried over unchanged. These are predicates on the
 actual P5 `Writable.Control` list; nothing in them is promise-layer content. -/
 
-#check (@Semantics.Ordering.stagedRequests : ∀ {α ε : Type}, List (Writable.Control α ε) → List Nat)
-#check (@Semantics.Ordering.sinkMarkerCount : ∀ {α ε : Type}, List (Writable.Control α ε) → Nat)
-#check (@Semantics.Ordering.Suspensions : ∀ {α ε : Type}, List (Writable.Control α ε) → Prop)
-#check (@Semantics.Ordering.Suspensions.nil :
+#whatwg_freeze (@Semantics.Ordering.stagedRequests : ∀ {α ε : Type}, List (Writable.Control α ε) → List Nat)
+#whatwg_freeze (@Semantics.Ordering.sinkMarkerCount : ∀ {α ε : Type}, List (Writable.Control α ε) → Nat)
+#whatwg_freeze (@Semantics.Ordering.Suspensions : ∀ {α ε : Type}, List (Writable.Control α ε) → Prop)
+#whatwg_freeze (@Semantics.Ordering.Suspensions.nil :
   ∀ {α ε : Type}, Semantics.Ordering.Suspensions (α := α) (ε := ε) [])
-#check (@Semantics.Ordering.Suspensions.size :
+#whatwg_freeze (@Semantics.Ordering.Suspensions.size :
   ∀ {α ε : Type} (call : Nat) (chunk : α) {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest →
       Semantics.Ordering.Suspensions (.awaitSize call chunk :: rest))
-#check (@Semantics.Ordering.Suspensions.sinkIntrinsic :
+#whatwg_freeze (@Semantics.Ordering.Suspensions.sinkIntrinsic :
   ∀ {α ε : Type} (request : Nat) (chunk : α),
     Semantics.Ordering.Suspensions (ε := ε) [.awaitSink (.write request chunk)])
-#check (@Semantics.Ordering.Suspensions.sinkCall :
+#whatwg_freeze (@Semantics.Ordering.Suspensions.sinkCall :
   ∀ {α ε : Type} (request : Nat) (chunk : α) (call id : Nat)
     {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest → Semantics.Ordering.sinkMarkerCount rest = 0 →
       Semantics.Ordering.Suspensions
         (.awaitSink (.write request chunk) :: .returnPromise call id :: rest))
 
-#check (@Semantics.Ordering.SuccessfulControl :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl :
   ∀ {α ε : Type}, List (Writable.Control α ε) → Prop)
-#check (@Semantics.Ordering.SuccessfulControl.suspended :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.suspended :
   ∀ {α ε : Type} {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest → Semantics.Ordering.SuccessfulControl rest)
-#check (@Semantics.Ordering.SuccessfulControl.getSize :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.getSize :
   ∀ {α ε : Type} (call : Nat) (chunk : α) {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest →
       Semantics.Ordering.SuccessfulControl (.getSize call chunk :: rest))
-#check (@Semantics.Ordering.SuccessfulControl.afterSize :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.afterSize :
   ∀ {α ε : Type} (call : Nat) (chunk : α) (size : Writable.Size)
     {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest →
       Semantics.Ordering.SuccessfulControl (.afterSize call chunk size :: rest))
-#check (@Semantics.Ordering.SuccessfulControl.enqueue :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.enqueue :
   ∀ {α ε : Type} (chunk : α) (size : Writable.Size) (call id : Nat)
     {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest → Semantics.Ordering.SuccessfulControl
       (.enqueueWrite chunk size :: .returnPromise call id :: rest))
-#check (@Semantics.Ordering.SuccessfulControl.advanceCall :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.advanceCall :
   ∀ {α ε : Type} (call id : Nat) {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest →
       Semantics.Ordering.SuccessfulControl (.advance :: .returnPromise call id :: rest))
-#check (@Semantics.Ordering.SuccessfulControl.returnPromise :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.returnPromise :
   ∀ {α ε : Type} (call id : Nat) {rest : List (Writable.Control α ε)},
     Semantics.Ordering.Suspensions rest →
       Semantics.Ordering.SuccessfulControl (.returnPromise call id :: rest))
-#check (@Semantics.Ordering.SuccessfulControl.advanceIntrinsic :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.advanceIntrinsic :
   ∀ {α ε : Type}, Semantics.Ordering.SuccessfulControl (α := α) (ε := ε) [.advance])
-#check (@Semantics.Ordering.SuccessfulControl.react :
+#whatwg_freeze (@Semantics.Ordering.SuccessfulControl.react :
   ∀ {α ε : Type} (job : Writable.SinkJob α ε),
     Semantics.Ordering.SuccessfulControl [.react job])
 
@@ -450,10 +451,10 @@ actual P5 `Writable.Control` list; nothing in them is promise-layer content. -/
 
 Draft ascriptions 103–104, carried over unchanged. -/
 
-#check (@Semantics.Ordering.externalWord :
+#whatwg_freeze (@Semantics.Ordering.externalWord :
   ∀ {α ε : Type}, List (Option (Semantics.Ordering.Decision α ε)) →
     List (Semantics.Ordering.Decision α ε))
-#check (@Semantics.Ordering.Normalized : ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Prop)
+#whatwg_freeze (@Semantics.Ordering.Normalized : ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Prop)
 
 /-! ## Q4-owned bridging views
 
@@ -464,14 +465,14 @@ side: each names a landed carrier and lets the class [B] receipts in
 landed pattern exactly — `Writable.jobQueue`, `Writable.promiseTable`,
 `Transform.reactions`. -/
 
-#check (@Semantics.Ordering.jobQueue :
+#whatwg_freeze (@Semantics.Ordering.jobQueue :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε →
     Whatwg.Ecma262.Jobs.Queue Semantics.Ordering.Job)
 
-#check (@Semantics.Ordering.reactions :
+#whatwg_freeze (@Semantics.Ordering.reactions :
   ∀ {α ε : Type}, Semantics.Ordering.Config α ε → Whatwg.Ecma262.Promise.Reactions Nat)
 
-#check (@Semantics.Ordering.activeErase :
+#whatwg_freeze (@Semantics.Ordering.activeErase :
   Semantics.Ordering.Active → Whatwg.Ecma262.Jobs.Active)
 
 /-! Q4 amendment A4, 2026-09-07, breaker seat, branch `promise/q4-amend`, under
@@ -489,10 +490,10 @@ plain list equality. `phaseErase` is idempotent and no law reads the
 normalized payload; `notifySettled_queued_serial` in `OrderingLaws.lean`
 recovers it exactly, from the token FIFO's own supply. -/
 
-#check (@Semantics.Ordering.phaseErase :
+#whatwg_freeze (@Semantics.Ordering.phaseErase :
   Whatwg.Ecma262.Promise.ReactionPhase → Whatwg.Ecma262.Promise.ReactionPhase)
 
-#check (@Semantics.Ordering.reactionErase :
+#whatwg_freeze (@Semantics.Ordering.reactionErase :
   ∀ {body : Type}, Whatwg.Ecma262.Promise.Reaction body →
     Whatwg.Ecma262.Promise.Reaction body)
 
