@@ -479,7 +479,12 @@
 # helpers of Semantics/Runs.lean deleted. BridgeContract elaborates with no
 # token changed, exit 0 and no diagnostic, and every root-imported battery
 # still builds. Its entry is removed and it is imported from WhatwgTest.lean.
-WhatwgTest.Streams.Readable.InvariantContract
-WhatwgTest.Streams.Writable.InvariantContract
-WhatwgTest.Streams.Semantics.InvariantContract
-WhatwgTest.Streams.Counterexamples.Kernel.Invariants
+#
+# W8a.3 LANDED, 2026-10-01, same seat and branch: Readable.QueueInv,
+# Writable.QueueInv and Semantics.Ordering.RegistrationsFresh with their
+# theorems, in the new modules Whatwg/Streams/{Readable,Writable,Semantics}/
+# Invariants.lean, each closure theorem carried by Kernel.Path.invariant.
+# The three InvariantContract modules and Counterexamples.Kernel.Invariants
+# elaborate with no token changed, exit 0 and no diagnostic. All four entries
+# are removed and the modules are imported from WhatwgTest.lean. No entry of
+# the W8a packet remains.

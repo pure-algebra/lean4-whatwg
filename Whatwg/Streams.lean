@@ -49,6 +49,9 @@ import Whatwg.Streams.Semantics.Configuration
 import Whatwg.Streams.Semantics.Source
 import Whatwg.Streams.Semantics.Step
 import Whatwg.Streams.Semantics.Runs
+import Whatwg.Streams.Readable.Invariants
+import Whatwg.Streams.Writable.Invariants
+import Whatwg.Streams.Semantics.Invariants
 import Whatwg.Streams.Semantics.Frontier
 import Whatwg.Streams.Semantics.Mask
 import Whatwg.Streams.Semantics.Equivalence
