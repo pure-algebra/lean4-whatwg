@@ -10,9 +10,17 @@ was measured, and was then removed; none is on any branch.
 | Subject | Pin |
 | --- | --- |
 | this repository | `main` at `97a871522ce18f792449f51300c9d93288abb398` |
-| lean4-effect4 | `refactor/phase1-phase3` at `efcf1ae2f4d4ef7b599e5038572c66a977fe35b2` |
+| lean4-effect4 | `refactor/phase1-phase3` at `b9d0d19fcb0cd39e87ebd11d4458b34a137f6b75`; the survey was read at `efcf1ae2f4d4ef7b599e5038572c66a977fe35b2` (see below) |
 | `effects` | `a4ee7a14248ee5976039b73039319efa87834986` (v0.8.0), both repositories |
 | toolchain | `leanprover/lean4:v4.33.1` |
+
+lean4-effect4 moved during this seat, from `efcf1ae2` to `b9d0d19f`, a fast-forward of
+8 commits and 27 files. Sections 2.2 and 2.3 were read at `efcf1ae2` and are
+unaffected: none of the files they cite changed, and the three Lake pins and
+the toolchain are unchanged. `[C]`: `git -C …/lean4-effect4 diff --name-only
+efcf1ae2 b9d0d19f` over the cited files, and over `lakefile.toml`,
+`lake-manifest.json` and `lean-toolchain`, is empty. Section 3.7 reads
+`b9d0d19f`.
 
 Evidence labels follow the review: `[C]` measured by this seat, with its
 command; `[S]` read in source; `[H]` a hypothesis not tried. Masks M1 and M2
@@ -37,7 +45,8 @@ are DB-04's unless a sentence says `Effects.Trace.Mask.m1` or `m2`.
    stays and is re-described as the table view (`resolve_table`), under `WF`.
 4. `Agent.WF` states identity freshness and uniqueness, allocation of every
    stored reference, and "resolved functions only on settled promises"; every
-   operation must keep it.
+   operation must keep it. Each operation's law takes the handler-adequacy
+   shape lean4-effect4 uses at `b9d0d19f` (`StoreImplements`): section 3.7.
 5. The `Effects.Signature` face goes in a new tree `Whatwg.Signatures`, Lake
    library `WhatwgSignatures`, under the strict ceiling; the data model
    imports no `Effects` and no Infra. It offers a canonical handler into
@@ -76,6 +85,7 @@ are DB-04's unless a sentence says `Effects.Trace.Mask.m1` or `m2`.
 | namespace hazard | inside `namespace Whatwg.Effects.X`, `Effects.Handler` resolves to `Whatwg.Effects.Handler` once that exists | `lake env lean Shadow.lean` `[C]` |
 | D46 witness | at the agent after one `newPromise` from `Agent.empty`: store-level `react` then `resolve` leaves 0 jobs; agent-level leaves `[⟨0, .ok ()⟩]`; the hypotheses of `react_resolve_enqueues_wf` hold there; all by `rfl`, inside `propext`, `Quot.sound` | `lake env lean Witness040.lean` (appendix B) `[C]` |
 | `WF.settle` | `settle` keeps the seven prototype clauses: 185 non-blank lines with five reusable helpers, inside `propext`, `Quot.sound` | `lake env lean WFSettle.lean` (appendix B) `[C]` |
+| adequacy shape | `Agent.Le` (`refl`, `trans`), `Cert`, `pre`, `post`, `Implements`; `newPromise_implements` and `markHandled_implements` proved; lean4-effect4's `Protocol` and `WorldOrder` filled by constructor application, and `run_adequate` proved; inside `propext`, `Quot.sound` | `lake env lean Adequacy.lean`, `AdequacyGlue.lean` (appendix B) `[C]` |
 | choice traps | `rw [beq_self_eq_true]` at `Nat` reaches `Classical.choice`; `decide_eq_true rfl` reaches nothing; a `simp` that rewrites an `if` condition reached choice in `waitingOn_add_fulfill` until replaced by `List.filter_cons_of_pos` | probes `[C]` |
 
 The prototype took the face first as `Whatwg.Effects.Ecma262`, measured it,
@@ -126,7 +136,7 @@ The smallest provider API lean4-effect4 could import, once the slices land:
 | modules | `Whatwg.Ecma262.Agent` (data model and laws); optionally `Whatwg.Signatures.Ecma262` (face) |
 | types | `Agent.Agent value reason body`, `Agent.Op`, `Agent.Op.Answer`, `Agent.WF`; the landed `Promise.Table`, `Promise.State`, `Promise.Capability`, `Jobs.Queue`, `Jobs.ReactionJob`, `Jobs.Active` |
 | operations | `Agent.empty`, `Agent.step` and the nine named operations |
-| properties | every constant inside `propext`, `Quot.sound`, enforced by this repository's gate; all types in `Type`, matching `.{0, 0}`; `DecidableEq` and `Repr` on `Agent` given instances for the three parameters; no Infra, no `Effects` in the data model; `step` total; the D46, FIFO, run-to-completion and `WF` laws |
+| properties | every constant inside `propext`, `Quot.sound`, enforced by this repository's gate; all types in `Type`, matching `.{0, 0}`; `DecidableEq` and `Repr` on `Agent` given instances for the three parameters; no Infra, no `Effects` in the data model; `step` total; the D46, FIFO, run-to-completion and `WF` laws, and per operation `Agent.Implements` (section 3.7) |
 | sum route | `Whatwg.Signatures.Ecma262.sumHandler view update storeHandler`, given a field of `Stores` that holds an `Agent` |
 
 ### 2.3 The review's "Fit with lean4-effect4", sentence by sentence
@@ -459,6 +469,7 @@ Roles follow `docs/AGENT-ROUTING.md`. Routes:
 | `waitingOn_add_fulfill`, `react_resolve_enqueues`, `_wf`, `_exactly` | same | laws (D46) | `op.triggerpromisereactions`, `op.performpromisethen` | G (laws, counterexamples) |
 | `finishJob_settles_capability` | same | law (D17) | `op.newpromisereactionjob` steps 6 to 9 | G (laws) |
 | `startJob_running` | same | law | `requirement.jobs.3` | G (laws) |
+| `Le`, `Le.refl`, `Le.trans`, `Minted`, `Cert`, `pre`, `post`, `Implements`, the nine `*_implements`, `implements` (section 3.7) | same | adequacy laws | the rows of 3.2 | G (laws) |
 | `WebIdl.Agent.newPromise`, `resolve`, `reject`, `react`, `resolvedWith` | `Whatwg.WebIdl.Agent` | adapters | Web IDL `op.a-new-promise`, `op.resolve`, `op.reject`, `op.dfn-perform-steps-once-promise-is-settled`, `op.a-promise-resolved-with` | G (semantics) |
 | `WebIdl.Agent.resolve_view`, `react_resolve` | same | bridge, law | `op.resolve` | G (bridges, laws) |
 | `signature`, `handler`, `handlerAt`, `sumHandler`, `run` | `Whatwg.Signatures.Ecma262` | face (adapter) | — | G (targets) |
@@ -690,6 +701,128 @@ The three statements abbreviated in prose were printed in full and differ
 from the shown statement only as described. Line breaks were re-wrapped;
 no token changed.
 
+### 3.7 Laws in lean4-effect4's handler-adequacy shape
+
+State each operation's law in the shape lean4-effect4 uses for handler
+adequacy at `b9d0d19f`:
+
+- a well-formedness predicate that every operation keeps;
+- a pre the request must satisfy;
+- "the handler steps, no frontier";
+- the answer lies in the post, at a later state that is well formed again.
+
+The shape fits a promise and job-queue provider. It costs four small
+definitions and one theorem per operation. It leaves lean4-effect4 two
+constructor applications of glue. What follows is a reading of its source,
+not a claim about its intent.
+
+What its source has, read at `b9d0d19f` `[C]`:
+
+- `src/Effect4/Laws/Effects/Protocol.lean` is generic over an `Effects`
+  signature and imports only `Effects.Algebra.Sum`. It has:
+  - `WorldOrder W` (`le`, `refl`, `trans`);
+  - `Protocol W S` (`Cert`, `pre`, `post`);
+  - the judgment `Typed o Ψ w Q p`;
+  - `Protocol.sum` and `Typed.inl`/`inr`.
+  Decisions row 53 (open, recommended) moves it to `Effects/Protocol.lean`
+  "at the package's next release".
+- `src/Effect4/Laws/Program/Typed/Adequacy.lean` (new) has:
+  - `StoreTyped w`;
+  - `StoreImplements root op`: `∀ w cert, StoreTyped w → storePre root w op
+    cert → ∃ st' ans, syncOpStep op w.state = some (st', ans) ∧ ∃ w',
+    w.leHost w' ∧ w'.state = st' ∧ StoreTyped w' ∧ storePost w' op cert ans`;
+  - the handler rule `storeStep_typed`;
+  - one `*_implements` theorem per store row.
+  Decisions row 136 names the generic form: the 2026-09-05 review's
+  `Implements`.
+
+The design, additive to section 3.1. It goes in `Whatwg.Ecma262.Agent`, so it
+needs no `Effects` import.
+
+- `Agent.Le a a'`, the world order, with `Le.refl` and `Le.trans`. It says:
+  - an allocated cell stays allocated;
+  - a settled state never changes;
+  - the handled bit never clears;
+  - the three cursors grow;
+  - every stored function record survives;
+  - the settlement trace is a prefix.
+- `Agent.Cert op := Unit`. No ghost certificate is needed, because the table
+  is homogeneous in `value` and `reason`. A consumer that sets
+  `value := Val` and wants per-promise declared types keeps them in its own
+  world (its `«Π»`), not here.
+- `Agent.pre a op c` is exactly enabledness, so under it no step takes a
+  disabled branch: this is "no frontier" for a total step.
+  - `newPromise`: nothing;
+  - `resolve`, `reject`: `Minted a cap`, the capability's functions stored;
+  - `perform`, `markHandled`: the promise allocated;
+  - `startJob`: a checkpoint and a non-empty queue;
+  - `finishJob`: a job running;
+  - the script operations: their activation.
+- `Agent.post a' op c ans`, facts at the answering agent:
+  - `newPromise`: the capability is minted and pending;
+  - `resolve`, `reject`: the promise is settled;
+  - `perform`: the promise is handled, and with `derive` the capability is
+    minted;
+  - `markHandled`: the bit is set;
+  - `startJob`: the answer is the old queue head and the activation is that
+    job;
+  - `finishJob`: the agent is at a checkpoint and the capability's promise
+    is settled with the handler's result.
+- `Agent.Implements op := ∀ a c, WF a → pre a op c → Le a (step a op).1 ∧
+  WF (step a op).1 ∧ post (step a op).1 op c (step a op).2`. Nine
+  `*_implements` theorems assemble `Agent.implements : ∀ op, Implements op`.
+  The `WF.op` lemmas of section 3.5 become their middle conjuncts, not
+  separate work.
+- At program level, `run_adequate`: a program `Typed` under `⟨Cert, pre,
+  post⟩` and `⟨Le, Le.refl, Le.trans⟩`, run from a `WF` agent, ends `WF` with
+  its result predicate. It lands in the face once `Effects/Protocol.lean`
+  exists upstream and this repository moves its `effects` pin. Until then the
+  face does not copy `Typed`; a second owner of a generic law is what
+  `Whatwg/AGENTS.md` forbids.
+
+| This design | lean4-effect4 at `b9d0d19f` |
+| --- | --- |
+| `Agent.WF` | `StoreTyped` |
+| `Agent.Le` | `World.leHost` |
+| `Agent.Cert` (`Unit`) | `StoreCert op` |
+| `Agent.pre`, `Agent.post` | `storePre`, `storePost` |
+| `Agent.Implements op` | `StoreImplements root op` |
+| the nine `*_implements` | the per-row `*_implements` |
+| `run_adequate` | `storeStep_typed`, iterated along the run |
+| `step` total; `pre` is enabledness | "steps, no frontier": `syncOpStep … = some …` |
+
+Three differences.
+
+- Their step is partial. Ours is total with disabled branches, so their
+  `∃ st' ans` is our step's own components.
+- Their later world is any `w'` above `w` over the new store; ours is the
+  stepped agent, and `Le a (step a op).1` is a conjunct.
+- Their typing is "every value fits its declared type" over a heterogeneous
+  store. Ours is identity and reference coherence over a homogeneous one.
+
+Where the fit is weakest: posts about the activation (`startJob`,
+`finishJob`) are true at the answering agent only. `Typed.vis` reads the
+post there, which is all that is needed, but `Typed.mono` cannot transport
+them. That is right for a job, whose activation ends. Facts a continuation
+keeps for later (allocated, settled with a value, handled, minted) are
+upward closed in `Le`. Their `Test/Program/FramesNotKripke.lean` makes the
+same point for saved frames.
+
+Measured `[C]`:
+
+- `Adequacy.lean` (appendix B) defines `Le` with `refl` and `trans`, `Cert`,
+  `pre`, `post` (spelled out for `newPromise` and `markHandled`) and
+  `Implements`, and proves `newPromise_implements` and
+  `markHandled_implements`, over the appendix A.1 prototype. Axioms:
+  `propext`, `Quot.sound`.
+- `AdequacyGlue.lean` copies their `WorldOrder`, `Protocol` and `Typed` field
+  for field. It fills them by `⟨Cert, pre, post⟩` and `⟨Le, refl, trans⟩`
+  with no adapter, and proves `run_adequate` by a four-line induction
+  (axiom: `propext`). Its `Le`, `pre` and `post` are stubs with the same
+  types; types are what the glue checks.
+
+Cost: B2 gains `Le`, `pre`, `post` and nine `*_implements`, about 300 lines
+beyond the `WF` work `[H]`.
 ## 4. Effect on frozen surfaces
 
 | Surface | Count | Breaker amendment? |
@@ -754,6 +887,8 @@ it. If W7's ledger lands first, the graph is born there.
   - the declaration record of 3.6 and the fourteen `WF` clauses;
   - the alphabet and answers of 3.2;
   - the D46 law, the view laws, the lens and sum laws;
+  - `Agent.Le`, `Cert`, `pre`, `post`, `Implements` and the nine
+    `*_implements` statements of section 3.7;
   - the masks of each law;
   - decision 2's instance set.
 - Batteries, declared red in `test/fixtures/trust-gate/known-red.txt`:
@@ -783,7 +918,7 @@ it. If W7's ledger lands first, the graph is born there.
 | Slice | Fence | Depends on | Size |
 | --- | --- | --- | --- |
 | B1 record, operations, step, views, D46 | `Whatwg/Ecma262/Agent.lean`; the import and docstring of `Whatwg/Ecma262.lean`; the two `Promise.Reaction`/`Capability` docstrings in `Whatwg/Ecma262/Promise.lean` | breaker packet | about 500 lines; the prototype has 360 |
-| B2 invariant and lifted laws | `Whatwg/Ecma262/AgentLaws.lean` (new module, so B3 and B4 do not wait) | B1 | 900 to 1,200 lines `[H]`, from the measured `WF.settle` |
+| B2 invariant, lifted laws, adequacy (3.7) | `Whatwg/Ecma262/AgentLaws.lean` (new module, so B3 and B4 do not wait) | B1 | 1,200 to 1,500 lines `[H]`, from the measured `WF.settle` and `*_implements` |
 | B3 Web IDL verbs | `Whatwg/WebIdl/Agent.lean`; `Whatwg/WebIdl.lean`; two docstrings in `Whatwg/WebIdl/Promise.lean` | B1 | about 200 lines |
 | B4 face | `Whatwg/Signatures.lean`, `Whatwg/Signatures/Ecma262.lean`; one `[[lean_lib]]` block and `defaultTargets` in `lakefile.toml`; one import in `Whatwg.lean`. The `strictCeilingPrefixes` entry is applied by the coordinator, as R-V7 did for the word list | B1 | about 200 lines |
 
@@ -913,6 +1048,14 @@ and not P8. W9's face is the template.
     - (a) Forward with W10 — recommended.
     - (b) Wait for a lean4-effect4 request.
 
+11. **Law shape.**
+    - (a) State each operation's law as `Agent.Implements op` (`WF`, `pre`,
+      `Le`, `post`; section 3.7) — recommended. Cost: about 300 lines in B2.
+      Gain: lean4-effect4's `Protocol` is two constructor applications away,
+      and `run_adequate` follows by one induction.
+    - (b) Plain step equations only. Cost: every consumer rebuilds the pre,
+      post and world order from them.
+
 ## 8. Not checked
 
 - No breaker or builder work. That `perform`, `callFunctions`, `startJob`,
@@ -927,6 +1070,10 @@ and not P8. W9's face is the template.
   `whatwg` import. Lake's behaviour with two packages providing `Effects.*`
   (DI-90) is `[H]`.
 - The mask relation sentence of 3.4 is `[H]`.
+- Section 3.7: the posts of seven operations are `True` in the measurement,
+  and `AdequacyGlue.lean` copies lean4-effect4's generic judgment rather than
+  importing it. Whether lean4-effect4 wants `Unit` certificates, or wants
+  `value := Val` with typed promises, is theirs to say.
 - `lake exe whatwg_trustselftest`, `whatwg_vendorseal` and the full CI
   `leanchecker` step were not run with the prototypes. `lake build`, which
   runs the axiom gate, was.
@@ -2239,4 +2386,310 @@ end Whatwg.Ecma262.Agent
 #print axioms Whatwg.Ecma262.Agent.settle_notPending
 #print axioms Whatwg.Ecma262.Agent.trigger_clear_fulfill_ids
 #print axioms Whatwg.Ecma262.Agent.WF.settle
+```
+
+### B.7 `Adequacy.lean` (section 3.7)
+
+```lean
+import Whatwg.Ecma262.Agent
+
+/-! W9 measurement: the agent's laws in the handler-adequacy shape lean4-effect4 uses at
+`b9d0d19f` (`StoreTyped`, `StoreImplements`, `World.leHost`). Scratch only. -/
+
+namespace Whatwg.Ecma262.Agent
+
+open Whatwg.Ecma262
+
+/-- The world order: what a later agent keeps. Allocation, settled states, the handled bit,
+the cursors, the stored functions and the settlement order only grow. -/
+structure Le {value reason body : Type} (a a' : Agent value reason body) : Prop where
+  allocated : ∀ p, (a.table.getCell p).isSome = true → (a'.table.getCell p).isSome = true
+  settled : ∀ p s, a.table.get p = some s → s ≠ Promise.State.pending → a'.table.get p = some s
+  handled : ∀ p, (a.table.getCell p).map Promise.Cell.handled = some true →
+    (a'.table.getCell p).map Promise.Cell.handled = some true
+  tableNext : a.table.next ≤ a'.table.next
+  reactionsNext : a.reactions.next ≤ a'.reactions.next
+  functionCursor : a.nextFunction ≤ a'.nextFunction
+  minted : ∀ f ∈ a.functions, ∃ g ∈ a'.functions,
+    g.resolve = f.resolve ∧ g.reject = f.reject ∧ g.promise = f.promise
+  trace : a.settlements <+: a'.settlements
+
+theorem Le.refl {value reason body : Type} (a : Agent value reason body) : Le a a :=
+  ⟨fun _ h => h, fun _ _ h _ => h, fun _ h => h, Nat.le_refl _, Nat.le_refl _, Nat.le_refl _,
+    fun f hf => ⟨f, hf, rfl, rfl, rfl⟩, List.prefix_refl _⟩
+
+theorem Le.trans {value reason body : Type} {a b c : Agent value reason body}
+    (h₁ : Le a b) (h₂ : Le b c) : Le a c :=
+  ⟨fun p h => h₂.allocated p (h₁.allocated p h),
+    fun p s h hs => h₂.settled p s (h₁.settled p s h hs) hs,
+    fun p h => h₂.handled p (h₁.handled p h),
+    Nat.le_trans h₁.tableNext h₂.tableNext, Nat.le_trans h₁.reactionsNext h₂.reactionsNext,
+    Nat.le_trans h₁.functionCursor h₂.functionCursor,
+    fun f hf => by
+      obtain ⟨g, hg, h1, h2, h3⟩ := h₁.minted f hf
+      obtain ⟨g', hg', h1', h2', h3'⟩ := h₂.minted g hg
+      exact ⟨g', hg', h1'.trans h1, h2'.trans h2, h3'.trans h3⟩,
+    List.IsPrefix.trans h₁.trace h₂.trace⟩
+
+/-- A capability this agent minted: its functions are stored. -/
+def Minted {value reason body : Type} (a : Agent value reason body) (cap : Promise.Capability) :
+    Prop :=
+  ∃ f ∈ a.functions, f.resolve = cap.resolve ∧ f.reject = cap.reject ∧ f.promise = cap.promise
+
+/-- No ghost certificate is needed: the table is homogeneous in `value` and `reason`. -/
+abbrev Cert {value reason body : Type} (_ : Op value reason body) : Type := Unit
+
+/-- What each operation demands of the agent: exactly its enabledness, so that a request
+the pre admits never takes a disabled branch (no frontier). -/
+def pre {value reason body : Type} (a : Agent value reason body) :
+    (op : Op value reason body) → Cert op → Prop
+  | .newPromise, _ => True
+  | .resolve cap _, _ => Minted a cap
+  | .reject cap _, _ => Minted a cap
+  | .perform p _ _ _, _ => (a.table.get p).isSome = true
+  | .markHandled p, _ => (a.table.get p).isSome = true
+  | .startJob, _ => a.active = Jobs.Active.checkpoint ∧ a.queue.pending ≠ []
+  | .finishJob _, _ => ∃ s, a.active = Jobs.Active.job s
+  | .enterScript, _ => a.active = Jobs.Active.checkpoint
+  | .leaveScript, _ => a.active = Jobs.Active.script
+
+/-- What each operation promises of its answer, at the agent it answers in. Only the two
+operations the measurement proves are spelled out; the packet fills the others. -/
+def post {value reason body : Type} (a : Agent value reason body) :
+    (op : Op value reason body) → Cert op → op.Answer → Prop
+  | .newPromise, _, cap => Minted a cap ∧ a.table.get cap.promise = some Promise.State.pending
+  | .markHandled p, _, _ => (a.table.getCell p).map Promise.Cell.handled = some true
+  | _, _, _ => True
+
+/-- **The handler fulfils operation `op`** (the shape of lean4-effect4's `StoreImplements`):
+from a well-formed agent, a request its pre admits steps to a later, well-formed agent whose
+answer lies in the post. The step is total, so the existentials of `StoreImplements` are the
+step's own components. -/
+def Implements {value reason body : Type} (op : Op value reason body) : Prop :=
+  ∀ (a : Agent value reason body) (c : Cert op), WF a → pre a op c →
+    Le a (step a op).1 ∧ WF (step a op).1 ∧ post (step a op).1 op c (step a op).2
+
+/-- A cell lookup after an allocation, at an identity below the old cursor. -/
+private theorem getCell_fresh_old {value reason : Type} (t : Promise.Table value reason)
+    (o : Promise.State value reason) (p : Nat) (h : p < t.next) :
+    Promise.Table.getCell (Promise.Table.fresh t o).1 p = Promise.Table.getCell t p :=
+  Promise.Table.fresh_old t o p (Nat.ne_of_lt h)
+
+/-- Under `WF`, an allocated cell's identity is below the cursor. -/
+private theorem WF.getCell_lt {value reason body : Type} {a : Agent value reason body}
+    (hw : WF a) {p : Nat} (h : (a.table.getCell p).isSome = true) : p < a.table.next := by
+  unfold Promise.Table.getCell at h
+  cases hf : a.table.entries.find? (fun e => e.1 == p) with
+  | none => rw [hf] at h; cases h
+  | some e =>
+      have hb : (e.1 == p) = true :=
+        List.find?_some (p := fun (x : Nat × Promise.Cell value reason) => x.1 == p) hf
+      rw [← beq_iff_eq.mp hb]
+      exact hw.tableBelow e (List.mem_of_find?_eq_some hf)
+
+/-- **`newPromise` fulfils its row.** -/
+theorem newPromise_implements {value reason body : Type} :
+    Implements (Op.newPromise : Op value reason body) := by
+  intro a _ hw _
+  refine ⟨?_, WF.newPromise hw, ?_, ?_⟩
+  · refine ⟨fun p h => ?_, fun p s h _ => ?_, fun p h => ?_, Nat.le_succ _, Nat.le_refl _,
+      Nat.le_add_right _ 2, fun f hf => ⟨f, List.mem_append_left _ hf, rfl, rfl, rfl⟩,
+      List.prefix_refl _⟩
+    · have hlt := hw.getCell_lt h
+      show (Promise.Table.getCell (Promise.Table.fresh a.table _).1 p).isSome = true
+      rw [getCell_fresh_old a.table _ p hlt]
+      exact h
+    · have hsome : (a.table.getCell p).isSome = true := by
+        unfold Promise.Table.get at h
+        cases hc : a.table.getCell p with
+        | none => rw [hc] at h; cases h
+        | some _ => rfl
+      show Option.map Promise.Cell.state
+        (Promise.Table.getCell (Promise.Table.fresh a.table _).1 p) = some s
+      rw [getCell_fresh_old a.table _ p (hw.getCell_lt hsome)]
+      exact h
+    · have hsome : (a.table.getCell p).isSome = true := by
+        cases hc : a.table.getCell p with
+        | none => rw [hc] at h; cases h
+        | some _ => rfl
+      show Option.map Promise.Cell.handled
+        (Promise.Table.getCell (Promise.Table.fresh a.table _).1 p) = some true
+      rw [getCell_fresh_old a.table _ p (hw.getCell_lt hsome)]
+      exact h
+  · exact ⟨Promise.createResolvingFunctions a.table.next a.nextFunction,
+      List.mem_append_right _ (List.mem_singleton.mpr rfl), rfl, rfl, rfl⟩
+  · have hnone : Promise.Table.getCell a.table a.table.next = none := by
+      cases hc : Promise.Table.getCell a.table a.table.next with
+      | none => rfl
+      | some _ =>
+          have := hw.getCell_lt (p := a.table.next) (by rw [hc]; rfl)
+          exact absurd this (Nat.lt_irrefl _)
+    exact Promise.Table.fresh_get a.table Promise.State.pending hnone
+
+/-- **`markHandled` fulfils its row.** -/
+theorem markHandled_implements {value reason body : Type} (p : Nat) :
+    Implements (Op.markHandled p : Op value reason body) := by
+  intro a _ hw hpre
+  have hcell : ∀ q, Promise.Table.getCell (Promise.Table.markHandled a.table p) q =
+      (Promise.Table.getCell a.table q).map
+        (fun c => if q == p then Promise.Cell.mk c.state true else c) := by
+    intro q
+    unfold Promise.Table.getCell Promise.Table.markHandled
+    rw [List.find?_map]
+    have hcomp : ((fun (e : Nat × Promise.Cell value reason) => e.1 == q) ∘
+        (fun (e : Nat × Promise.Cell value reason) =>
+          if e.1 == p then (e.1, Promise.Cell.mk e.2.state true) else e)) =
+        (fun (e : Nat × Promise.Cell value reason) => e.1 == q) := by
+      funext e
+      show ((if e.1 == p then (e.1, Promise.Cell.mk e.2.state true) else e).1 == q) = (e.1 == q)
+      cases (e.1 == p) <;> rfl
+    rw [hcomp]
+    cases hf : List.find? (fun (e : Nat × Promise.Cell value reason) => e.1 == q) a.table.entries
+      with
+    | none => rfl
+    | some e =>
+        have hq : e.1 = q := beq_iff_eq.mp
+          (List.find?_some (p := fun (x : Nat × Promise.Cell value reason) => x.1 == q) hf)
+        show some (if e.1 == p then (e.1, Promise.Cell.mk e.2.state true) else e).2 =
+          some (if q == p then Promise.Cell.mk e.2.state true else e.2)
+        rw [hq]
+        cases (q == p) <;> rfl
+  refine ⟨?_, WF.markHandled hw p, ?_⟩
+  · refine ⟨fun q h => ?_, fun q s h _ => ?_, fun q h => ?_, Nat.le_refl _, Nat.le_refl _,
+      Nat.le_refl _, fun f hf => ⟨f, hf, rfl, rfl, rfl⟩, List.prefix_refl _⟩
+    · show (Promise.Table.getCell (Promise.Table.markHandled a.table p) q).isSome = true
+      rw [hcell q]
+      cases hc : Promise.Table.getCell a.table q with
+      | none => rw [hc] at h; cases h
+      | some _ => rfl
+    · show Promise.Table.get (Promise.Table.markHandled a.table p) q = some s
+      rw [markHandled_get]
+      exact h
+    · show (Promise.Table.getCell (Promise.Table.markHandled a.table p) q).map
+        Promise.Cell.handled = some true
+      rw [hcell q]
+      cases hc : Promise.Table.getCell a.table q with
+      | none => rw [hc] at h; cases h
+      | some c =>
+          rw [hc] at h
+          show some (if q == p then Promise.Cell.mk c.state true else c).handled = some true
+          cases (q == p) with
+          | true => rfl
+          | false => exact h
+  · have hsome : (a.table.getCell p).isSome = true := by
+      have h' : (a.table.get p).isSome = true := hpre
+      unfold Promise.Table.get at h'
+      cases hc : a.table.getCell p with
+      | none => rw [hc] at h'; cases h'
+      | some _ => rfl
+    exact Promise.Table.markHandled_marked a.table p hsome
+
+end Whatwg.Ecma262.Agent
+
+#print axioms Whatwg.Ecma262.Agent.Le.trans
+#print axioms Whatwg.Ecma262.Agent.newPromise_implements
+#print axioms Whatwg.Ecma262.Agent.markHandled_implements
+```
+
+### B.8 `AdequacyGlue.lean` (section 3.7)
+
+```lean
+import Effects.Algebra.Sum
+import Whatwg.Ecma262.Agent
+
+/-! W9 measurement: the glue lean4-effect4 would write. `WorldOrder`, `Protocol` and `Typed`
+below are copied, field for field, from lean4-effect4 `b9d0d19f`
+`src/Effect4/Laws/Effects/Protocol.lean` (a generic law of the free monad), only to check that
+the agent's `Cert`, `pre`, `post` and `Le` fill them with no adapter. Scratch only; nothing here
+is proposed for this repository. The agent definitions come from `Adequacy.lean`, inlined. -/
+
+namespace Probe
+
+open Effects
+
+universe u v w
+
+structure WorldOrder (W : Type w) where
+  le : W → W → Prop
+  refl : ∀ x, le x x
+  trans : ∀ {x y z}, le x y → le y z → le x z
+
+structure Protocol (W : Type w) (S : Signature.{u, v}) where
+  Cert : S.Op → Type v
+  pre : W → (op : S.Op) → Cert op → Prop
+  post : W → (op : S.Op) → Cert op → S.Answer op → Prop
+
+inductive Typed {W : Type w} {S : Signature.{u, v}} {A : Type v} (o : WorldOrder W)
+    (Ψ : Protocol W S) : W → (W → A → Prop) → Program S A → Prop
+  | pure {w : W} {Q : W → A → Prop} {a : A} (h : Q w a) : Typed o Ψ w Q (.pure a)
+  | vis {w : W} {Q : W → A → Prop} {op : S.Op} {k : S.Answer op → Program S A}
+      (cert : Ψ.Cert op) (hpre : Ψ.pre w op cert)
+      (hk : ∀ w', o.le w w' → ∀ ans, Ψ.post w' op cert ans → Typed o Ψ w' Q (k ans)) :
+      Typed o Ψ w Q (.vis op k)
+
+end Probe
+
+namespace Whatwg.Ecma262.Agent
+
+open Whatwg.Ecma262
+
+structure Le {value reason body : Type} (a a' : Agent value reason body) : Prop where
+  tableNext : a.table.next ≤ a'.table.next
+  trace : a.settlements <+: a'.settlements
+
+abbrev Cert {value reason body : Type} (_ : Op value reason body) : Type := Unit
+
+def pre {value reason body : Type} (a : Agent value reason body) :
+    (op : Op value reason body) → Cert op → Prop
+  | .startJob, _ => a.active = Jobs.Active.checkpoint ∧ a.queue.pending ≠ []
+  | _, _ => True
+
+def post {value reason body : Type} (_ : Agent value reason body) :
+    (op : Op value reason body) → Cert op → op.Answer → Prop
+  | _, _, _ => True
+
+def Implements {value reason body : Type} (op : Op value reason body) : Prop :=
+  ∀ (a : Agent value reason body) (c : Cert op), WF a → pre a op c →
+    Le a (step a op).1 ∧ WF (step a op).1 ∧ post (step a op).1 op c (step a op).2
+
+abbrev signature (value reason body : Type) : Effects.Signature.{0, 0} :=
+  ⟨Op value reason body, Op.Answer⟩
+
+/-- The protocol, by constructor application alone. -/
+def protocol (value reason body : Type) :
+    Probe.Protocol (Agent value reason body) (signature value reason body) :=
+  ⟨Cert, pre, post⟩
+
+/-- The world order, given `Le.refl` and `Le.trans`. -/
+def order (value reason body : Type) (refl : ∀ a : Agent value reason body, Le a a)
+    (trans : ∀ {a b c : Agent value reason body}, Le a b → Le b c → Le a c) :
+    Probe.WorldOrder (Agent value reason body) :=
+  ⟨Le, refl, trans⟩
+
+def run {value reason body α : Type} :
+    Effects.Program (signature value reason body) α → Agent value reason body →
+      α × Agent value reason body
+  | .pure x, a => (x, a)
+  | .vis op k, a => run (k (step a op).2) (step a op).1
+
+/-- **The handler rule, for whole programs.** A program typed under the agent's protocol, run
+from a well-formed agent by a handler that fulfils every row, ends well formed with its result
+predicate. The analogue of lean4-effect4's `storeStep_typed`, iterated along the run. -/
+theorem run_adequate {value reason body α : Type}
+    (refl : ∀ a : Agent value reason body, Le a a)
+    (trans : ∀ {a b c : Agent value reason body}, Le a b → Le b c → Le a c)
+    (impl : ∀ op : Op value reason body, Implements op)
+    {Q : Agent value reason body → α → Prop} {p : Effects.Program (signature value reason body) α}
+    {a : Agent value reason body}
+    (typed : Probe.Typed (order value reason body refl trans) (protocol value reason body) a Q p)
+    (hw : WF a) : Q (run p a).2 (run p a).1 ∧ WF (run p a).2 := by
+  induction typed with
+  | pure h => exact ⟨h, hw⟩
+  | @vis a0 _ op k cert hpre hk ih =>
+      obtain ⟨hle, hw', hpost⟩ := impl op a0 cert hw hpre
+      exact ih (step a0 op).1 hle (step a0 op).2 hpost hw'
+
+end Whatwg.Ecma262.Agent
+
+#print axioms Whatwg.Ecma262.Agent.run_adequate
 ```
