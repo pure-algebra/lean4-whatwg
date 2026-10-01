@@ -440,3 +440,20 @@
 # green. Every receipt prints inside the R-11 ceiling; 17 reach
 # Classical.choice against the stricter R-U3 target, recorded as debt D42. All
 # three entries are removed. No entry remains.
+
+# W6 freeze registry, the command (packet 1 of 2, ruling R-W5), frozen RED
+# 2026-10-01 by the W6 breaker seat on branch review/w6-freeze-breaker, based
+# on b0d35e2. Packet: test/contracts/freeze-registry.contract.md.
+# Implementation fence (builder 1, R-W8 wave 2a): the new module
+# WhatwgTest/Audit/Freeze.lean, its metaprogrammingModules entry as addendum
+# V2d of test/contracts/trust-gate-hardening.contract.md freezes it, and the
+# root imports of WhatwgTest.Audit.Freeze and WhatwgTest.Audit.FreezeContract
+# (R-W9: breakers do not edit WhatwgTest.lean).
+#
+# One entry. The battery is red for one reason only: it imports
+# WhatwgTest.Audit.Freeze, which does not exist yet. Against the design's
+# prototype command adapted to R-W5, the battery elaborates with exit 0; the
+# packet's section 15 records that run. The builder removes this entry the
+# moment the battery is green. Turning it green by editing the battery is a
+# refusal, not a landing.
+WhatwgTest.Audit.FreezeContract
