@@ -440,3 +440,27 @@
 # green. Every receipt prints inside the R-11 ceiling; 17 reach
 # Classical.choice against the stricter R-U3 target, recorded as debt D42. All
 # three entries are removed. No entry remains.
+
+# W10 trust-gate loader battery, frozen RED 2026-10-01 by the W10 trust breaker
+# seat of review lane W on branch review/w10-load-breaker, stacked on
+# review/w10-trust-breaker (rulings R-W7 and R-W9).
+# Contract: test/contracts/trust-gate-hardening.contract.md, addendum V2e.4.
+# Implementation fence: WhatwgGates/Trust/Load.lean (new), and this module's
+# root import in WhatwgTest.lean once it is green.
+#
+# One entry. The module is red only because the module it imports,
+# WhatwgGates.Trust.Load, does not exist yet; every ascription and every
+# #guard row elaborated and passed against the breaker's uncommitted prototype
+# of the loader. Turning it green by weakening an ascription, a sample trace or
+# an expected value is a refusal, not a landing. The branch stays off main
+# until the loader's builder turns the battery green (R-W9). The builder
+# removes this entry the moment it is.
+#
+# Measured on this branch, in a worktree whose root Lake replayed from cache
+# (debt D61): lake build failed exactly the targets
+# WhatwgTest.Audit.TrustLoadContract (bad import) and WhatwgGates.Trust.Load,
+# which Lake tries to build from the WhatwgGates glob and finds no source for.
+# The second has no source to excise, so it is not declared, and the trust
+# self-test is judged on main and on this branch once the battery is green, not
+# before (the coordinator's note to this seat, under R-W9).
+WhatwgTest.Audit.TrustLoadContract
