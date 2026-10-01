@@ -26,6 +26,16 @@ The status of every edge of this graph is recorded in the ledger module
 checked by `lake exe whatwg_ledger`. The table this section held before the
 ledger is in `docs/receipts/INFRA-PG-UTF8.md`.
 
+## The URL `encoding` obligation
+
+The URL `encoding` obligation, under ruling R-U5: R-U4's closure stands. The
+two facts `Whatwg.Url.Boundary.Utf8Encoding.tape` assumes are theorems of this
+owner, `Whatwg.Infra.Utf8.u3Profile_encoderTape` and
+`Whatwg.Infra.Utf8.u3Profile_decodeOrFail`. No declaration constructs a
+`Utf8Encoding` from this encoder, so its `bytes` field is unconstrained in every
+URL operation; that gap is debt D44, owed before U5 consumes the
+percent-encoding rows.
+
 ## Authority anchors
 
 Every row below is a byte-span SHA-256 recomputed by the breaker seat from

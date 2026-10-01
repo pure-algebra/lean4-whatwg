@@ -30,6 +30,14 @@ The status of every edge of this graph is recorded in the ledger module
 checked by `lake exe whatwg_ledger`. The table this section held before the
 ledger is in `docs/receipts/URL-PG-CENSUS.md`.
 
+## Claim scope
+
+This graph cannot close from a passing finite input, fixed-pin candidate
+count, or reproducible TSV alone. U2b and U2c's exact interfaces are owned by
+`docs/URL-CENSUS-INTERFACE.md` and `docs/URL-CENSUS-INPUT-INTERFACE.md`.
+The next packet must freeze the canonical-owner/declaration/assurance
+inputs and their generated joins. No URL coverage report is admitted here.
+
 ## Receipts
 
 `docs/receipts/URL-PG-CENSUS.md` holds the edge table of 2026-09-05, moved

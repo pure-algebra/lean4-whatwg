@@ -15,8 +15,12 @@ rulings.
 The trust cell's self-test is the `whatwg_trustselftest` executable: the
 table still spells the name ruling R-V3(c) removed (debt D60), and the typed
 `Gate` cannot. Ruling R-V8, the one ruling of `COORDINATION.md` that names
-this graph, is cited by the representation and trust cells. The graph's
-dependencies on the P4 to P7 graphs wait for their entries (slice B).
+this graph by identifier, is cited by the representation and trust cells.
+Ruling R-W14 adds grounds to the construction and semantics cells, with no
+status change: registration-identity freshness and the kernel bridges. The
+graph depends on `WRITABLE-PG-DEFAULT`, whose machine its configuration
+lifts (`Whatwg.Streams.Semantics.Configuration` imports
+`Whatwg.Streams.Writable.Laws`), and on `PROMISE-PG-FIRST`.
 -/
 
 namespace WhatwgTest.Ledger
@@ -27,7 +31,7 @@ def configurationOrdering : Graph where
   id := "CONFIGURATION-PG-ORDERING"
   document := "docs/CONFIGURATION-DAG.md"
   fence := [`Whatwg.Streams.Semantics.Configuration]
-  dependsOn := ["PROMISE-PG-FIRST"]
+  dependsOn := ["PROMISE-PG-FIRST", "WRITABLE-PG-DEFAULT"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -43,13 +47,24 @@ def configurationOrdering : Graph where
       remaining := [.named "CFG-START", .named "CFG-CELLS", .named "CFG-TOKENS",
         .named "CFG-STACK", .named "inductive reachable-state preservation", .debt "D38",
         .wanted `Whatwg.Streams.Semantics.Ordering.CellsWellFormed]
-      note := "Debt D38: `notifySettled_eq`'s owner conjunct rests on `CellsWellFormed`, which is not yet stated (CFG-CELLS)." }
+      grounds := [.ruling "R-W14",
+        .declarations [`Whatwg.Streams.Semantics.Ordering.RegistrationsFresh],
+        .theorems [`Whatwg.Streams.Semantics.Ordering.step_registrationsFresh,
+          `Whatwg.Streams.Semantics.Ordering.reaches_registrationsFresh,
+          `Whatwg.Streams.Semantics.Ordering.initial_registrationsFresh,
+          `Whatwg.Streams.Semantics.Ordering.reachable_registrations_nodup]]
+      note := "Debt D38: the owner clause of `CellsWellFormed` holds by representation, as the `notifySettled` docstring says since R-W14; its other clauses are not yet stated (CFG-CELLS). `RegistrationsFresh` holds at `initial` and is kept by every step, which discharges the `Nodup` premise of the two `notifySettled` bridges at every configuration reachable from `initial`; R-W14 adds it to this edge as a ground and changes no status." }
     semantics := {
       status := .requiredOpen
       remaining := [.named "CFG-EFFECTS",
         .named "CFG-FIFO (its PROCESS/ADVANCE corollary is still owed)", .named "CFG-RUNS",
         .named "the foreign profile", .named "the global scheduler", .named "the live frontiers"]
-      grounds := [.receipt "Q4 landing, second pass"] }
+      grounds := [.receipt "Q4 landing, second pass", .ruling "R-W14",
+        .theorems [`Whatwg.Streams.Semantics.Ordering.step_iff_stage,
+          `Whatwg.Streams.Semantics.Ordering.reaches_iff_path,
+          `Whatwg.Streams.Semantics.Ordering.episodePrefix_iff_path,
+          `Whatwg.Streams.Semantics.Ordering.exclusive]]
+      note := "The configuration's step and its two closures are bridged to `Whatwg.Streams.Kernel`, and its `tick` and `decide` are exclusive; R-W14 adds the bridges to this edge as grounds and changes no status." }
     laws := {
       status := .requiredOpen
       remaining := [

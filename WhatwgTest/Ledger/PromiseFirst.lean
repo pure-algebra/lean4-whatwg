@@ -75,14 +75,14 @@ def promiseFirst : Graph where
     counterexamples := {
       status := .requiredOpen
       remaining := [
-        .rows ⟨"WS-PROM-CE", 15, 15⟩ .seeded, .rows ⟨"WS-PROM-CE", 26, 26⟩ .seeded,
+        .rows ⟨"WS-PROM-CE", 26, 26⟩ .seeded,
         .rows ⟨"WS-PROM-CE", 33, 33⟩ .seeded, .rows ⟨"WS-PROM-CE", 36, 38⟩ .seeded]
       grounds := [
-        .rows ⟨"WS-PROM-CE", 1, 14⟩ .closed, .rows ⟨"WS-PROM-CE", 16, 25⟩ .closed,
+        .rows ⟨"WS-PROM-CE", 1, 25⟩ .closed, .ruling "R-W18",
         .rows ⟨"WS-PROM-CE", 27, 32⟩ .closed, .rows ⟨"WS-PROM-CE", 34, 35⟩ .closed,
         .rows ⟨"WS-PROM-CE", 39, 39⟩ .closed, .ruling "R-P24"]
       debts := ["D17"]
-      note := "`WS-PROM-CE-015`: no witness pins the absent `DecidableEq`; `WS-PROM-CE-026`: the capability is stored and never read (debt D17)." }
+      note := "`WS-PROM-CE-015` is closed by R-W18: the reaction type's `DecidableEq` is conditional and by ruling R-W3; `WS-PROM-CE-026`: the capability is stored and never read (debt D17)." }
     bridges := {
       status := .requiredClosed
       grounds := [

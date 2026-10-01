@@ -91,14 +91,14 @@ def promiseAgent : Graph where
       note := "The D46 law `react_resolve_enqueues` with `_wf` and `_exactly`, `finishJob_settles_capability` and `startJob_running` (B1 battery §§8 and 9); `Le`, `Cert`, `pre`, `post`, `Implements`, the nine `*_implements` and `implements`, and the lifted laws (B2 battery §§1, 3 to 6); and `WebIdl.Agent.react_resolve` (B3 battery §4) are landed and green (R-W16), which repairs debt D46. Debt D65 records what `Agent.WF` and the frozen posts leave unsaid, which addendum Q5b owes." }
     representation := {
       status := .requiredOpen
-      remaining := [.rows ⟨"WS-PROM-CE", 15, 15⟩ .seeded,
+      remaining := [
         .named "the independent review of slice Q5, before which R-W16 changes no edge"]
-      grounds := [.ruling "R-W3",
+      grounds := [.ruling "R-W3", .rows ⟨"WS-PROM-CE", 15, 15⟩ .closed, .ruling "R-W18",
         .declarations [`Whatwg.Ecma262.Agent.Agent, `Whatwg.Ecma262.Promise.Table,
           `Whatwg.Ecma262.Promise.Reactions, `Whatwg.Ecma262.Jobs.Queue,
           `Whatwg.Ecma262.Agent.instDecidableEqExcept],
         .modules [`WhatwgTest.Ecma262.AgentContract], .ruling "R-W16"]
-      note := "The record contains the landed `Promise.Table`, `Promise.Reactions` and reaction-job `Jobs.Queue` by value; three cursors, the job serial is the reaction identity, the queue payload is fixed and every type is in `Type` (R-W3); the instance set of B1 battery §1 includes the `#guard_msgs`-pinned refusal of a global `DecidableEq (Except ε α)`. R-W3 re-dispositions `WS-PROM-CE-015` at the Q5 landing; the register still holds it `SEEDED`." }
+      note := "The record contains the landed `Promise.Table`, `Promise.Reactions` and reaction-job `Jobs.Queue` by value; three cursors, the job serial is the reaction identity, the queue payload is fixed and every type is in `Type` (R-W3); the instance set of B1 battery §1 includes the `#guard_msgs`-pinned refusal of a global `DecidableEq (Except ε α)`. R-W18 records `WS-PROM-CE-015` `CLOSED`, the re-disposition R-W3 owed at the Q5 landing." }
     counterexamples := {
       status := .requiredOpen
       remaining := [.named "the independent review of slice Q5, before which R-W16 changes no edge"]
