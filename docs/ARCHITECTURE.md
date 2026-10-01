@@ -16,6 +16,15 @@ Nothing in `Whatwg/` depends on `WhatwgGates/`,
 `WhatwgTest/`, or `harness/`. `WhatwgGates/` depends on nothing in `Whatwg/`. The
 test tree imports both.
 
+Each standard is its own Lake library (ruling R-V3(d)): `WhatwgInfra`,
+`WhatwgEcma262`, `WhatwgWebIdl`, `WhatwgUrl`, `WhatwgHtml` and
+`WhatwgStreams`, each owning its root module `Whatwg.<Standard>` and every
+module under it, while the library `Whatwg` owns only the umbrella module
+`Whatwg`. No module belongs to two libraries, so `lake build WhatwgEcma262`
+builds that standard's import closure alone, and `lake build Whatwg` builds
+every production module through the umbrella's imports. Module names and
+namespaces are unchanged by the split.
+
 ## Planned source tree
 
 | Area | Public responsibility |

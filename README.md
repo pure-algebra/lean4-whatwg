@@ -48,6 +48,7 @@ checkout.
 
 ```text
 lake build                                         # libraries, the elaboration-time axiom gate, the gate executables
+lake build WhatwgStreams                           # one standard's library and its import closure; likewise WhatwgInfra, WhatwgEcma262, WhatwgWebIdl, WhatwgUrl, WhatwgHtml
 lake exe whatwg_vendorseal                         # vendor/ against generated/vendor-manifest.tsv, both directions
 lake exe whatwg_citations                          # no line-numbered citation into a protected authored document
 lake exe whatwg_urlinventory                       # generated/url-source-inventory.tsv against a regeneration from the sealed URL source

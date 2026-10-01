@@ -4,7 +4,9 @@ description = "WHATWG standards reified in Lean 4, one library per standard; Str
 keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
-defaultTargets = ["Whatwg", "WhatwgGates", "WhatwgTest",
+defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
+                  "WhatwgUrl", "WhatwgHtml", "WhatwgStreams",
+                  "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus"]
 
@@ -13,11 +15,50 @@ defaultTargets = ["Whatwg", "WhatwgGates", "WhatwgTest",
 # so that `lake --wfail build` and a plain `lake build` decide the same thing.
 leanOptions = { autoImplicit = false, relaxedAutoImplicit = false, warningAsError = true }
 
-# The production library: one root per standard under Whatwg/, all
-# reached from Whatwg.lean. Semantic declarations and proofs only.
+# The production libraries: one per standard, and the umbrella. Semantic
+# declarations and proofs only (ruling R-V3(d)). Each standard's library owns
+# its root module and every module under it, so `lake build WhatwgEcma262`
+# builds that standard's import closure and nothing else. `Whatwg` owns only
+# the umbrella module `Whatwg`, whose imports reach every standard's root, so
+# `lake build Whatwg` still builds the whole production tree. No module is
+# owned by two libraries: Lake counts every submodule of a library's root as
+# local to that library, so the umbrella declares no root and names its one
+# module by an exact glob (with `roots = ["Whatwg"]` it would claim every
+# `Whatwg.*` module beside the library that owns it).
 [[lean_lib]]
 name = "Whatwg"
-globs = ["Whatwg.*"]
+roots = []
+globs = ["Whatwg"]
+
+[[lean_lib]]
+name = "WhatwgInfra"
+roots = ["Whatwg.Infra"]
+globs = ["Whatwg.Infra.*"]
+
+[[lean_lib]]
+name = "WhatwgEcma262"
+roots = ["Whatwg.Ecma262"]
+globs = ["Whatwg.Ecma262.*"]
+
+[[lean_lib]]
+name = "WhatwgWebIdl"
+roots = ["Whatwg.WebIdl"]
+globs = ["Whatwg.WebIdl.*"]
+
+[[lean_lib]]
+name = "WhatwgUrl"
+roots = ["Whatwg.Url"]
+globs = ["Whatwg.Url.*"]
+
+[[lean_lib]]
+name = "WhatwgHtml"
+roots = ["Whatwg.Html"]
+globs = ["Whatwg.Html.*"]
+
+[[lean_lib]]
+name = "WhatwgStreams"
+roots = ["Whatwg.Streams"]
+globs = ["Whatwg.Streams.*"]
 
 # Repository gates implemented in Lean. Tooling, not semantics; audited for
 # totality and forbidden axioms under ruling R-11's ceiling, like every tree.
