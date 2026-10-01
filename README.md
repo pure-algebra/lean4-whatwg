@@ -65,7 +65,7 @@ lake exe whatwg_census --standard webidl --report  # the Web IDL coverage block,
 lake exe whatwg_census --standard ecma262          # the ECMA-262 promise and job census
 lake exe whatwg_census --standard ecma262 --report # the ES2026 coverage block, all-absent
 lake exe whatwg_trustselftest                      # planted trust-gate violations are each refused for the frozen reason
-lake env leanchecker Whatwg WhatwgTest WhatwgGates # every declaration of the three libraries replays in the kernel
+lake env leanchecker Whatwg WhatwgTest WhatwgGates # every built module under those three prefixes replays in the kernel
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.

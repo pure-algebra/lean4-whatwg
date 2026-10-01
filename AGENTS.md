@@ -128,7 +128,7 @@ orchestrate; they decide nothing.
 | `lake exe whatwg_vendorseal` | `vendor/` and `generated/vendor-manifest.tsv` agree in both directions; every path is valid on Windows |
 | `lake exe whatwg_citations` | no line-numbered citation into a protected authored document |
 | `lake exe whatwg_trustselftest` | every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name |
-| `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of the three libraries replays in the kernel |
+| `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of every built module under those three prefixes replays in the kernel |
 
 The axiom ceiling is Lean's standard base, `propext`, `Quot.sound`, and
 `Classical.choice`, for every tree (operator ruling R-11, 2026-09-02;

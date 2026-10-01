@@ -23,7 +23,9 @@ module under it, while the library `Whatwg` owns only the umbrella module
 `Whatwg`. No module belongs to two libraries, so `lake build WhatwgEcma262`
 builds that standard's import closure alone, and `lake build Whatwg` builds
 every production module through the umbrella's imports. Module names and
-namespaces are unchanged by the split.
+namespaces are unchanged by the split. A module placed directly under
+`Whatwg/` outside those six directories has no owning library and cannot be
+imported, so a new standard needs its own library entry in `lakefile.toml`.
 
 ## Planned source tree
 

@@ -9,11 +9,11 @@ import WhatwgTest.Audit.SpecCoverageRows
 
 `docs/SPEC-COVERAGE.md` owns the metric; this module is its numerator side.
 The frozen row list is `WhatwgTest/Audit/SpecCoverageRows.lean`, which
-`lake exe census --write` generates alongside
+`lake exe whatwg_census --write` generates alongside
 `generated/spec-algorithm-census.tsv` so that a table of several hundred rows (450 at P1.1) is never
 transcribed by hand. Both projections are covered by the census gate's
 byte-for-byte drift check, so neither can be edited without failing
-`lake exe census`.
+`lake exe whatwg_census`.
 
 The generated row list carries one fact per row, its joined disposition, and
 gates every row `absent` with no witness. What is authored here is the freeze,
@@ -23,19 +23,19 @@ witness theorems with their frozen statements.
 
 ## The emit, and why it is Lean data rather than a generated file
 
-`lake exe census --report` prints the coverage block from `emit` below. The
-census executable's root, `bin/Census.lean`, imports this module and hands
-`emit` to `Gates.Census.cli`; `Gates/` cannot import a test-side module, so
+`lake exe whatwg_census --report` prints the coverage block from `emit` below. The
+census executable's root, `whatwgbin/Census.lean`, imports this module and hands
+`emit` to `Gates.Census.cli`; `WhatwgGates/` cannot import a test-side module, so
 the direction is inverted at the entry point rather than inside the gate.
 
 The alternative the P1 landing left open was a generated projection under
 `generated/` written at elaboration. It was rejected: the state and witness
-columns of such a file are exactly the columns no `Gates/` code can
+columns of such a file are exactly the columns no `WhatwgGates/` code can
 recompute, so its drift gate could only ever re-derive the census-owned
 columns and the one number the estate quotes would sit on a hand-editable
 line. Compiled Lean data cannot drift from the module that declares it, and
 the checks below run before the executable that reads it can link. The cost
-is recorded in `Gates/AGENTS.md`: `lake exe census --write` now needs this
+is recorded in `WhatwgGates/AGENTS.md`: `lake exe whatwg_census --write` now needs this
 module to elaborate, so a census change that invalidates the freeze is
 repaired here in the same edit.
 
@@ -628,7 +628,7 @@ def statementSnapshot : List String := [
 /-! ## The emit
 
 The numerator's rows: the frozen row list with the claimed states and
-witnesses layered on. `bin/Census.lean` hands this to `Gates.Census.cli`,
+witnesses layered on. `whatwgbin/Census.lean` hands this to `Gates.Census.cli`,
 which prints the coverage block from it and cross-checks it against a fresh
 census regeneration. -/
 

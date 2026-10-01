@@ -11,10 +11,10 @@ frozen by section 6 of `test/contracts/webidl-census-q2.contract.md`.
 **Claim boundary.** At Q2 every row is `absent` and no row carries a witness.
 `emit` is exactly the generated all-`absent` scaffold
 `WhatwgTest/Audit/WebIdl/SpecCoverageRows.lean`, which
-`lake exe census --standard webidl --write` writes beside
+`lake exe whatwg_census --standard webidl --write` writes beside
 `generated/webidl-census.tsv`, so the row ids and the joined dispositions are
 the census's and are not retyped here. The block
-`lake exe census --standard webidl --report` prints therefore says that nothing
+`lake exe whatwg_census --standard webidl --report` prints therefore says that nothing
 is proved about `Whatwg.WebIdl`; quoting it as coverage is a defect. Slice Q3 is
 where the first witness lands, and until then
 `Gates.Census.verifyEmit` refuses a witness on an `absent` row and a
@@ -24,7 +24,7 @@ non-`absent` state on a row outside the denominator.
 the freeze `WhatwgTest/Audit/SpecCoverage.lean` carries for Streams: a census
 change that invalidates them fails this module's elaboration, so it is repaired
 in the same edit rather than discovered later. The cost is the one
-`Gates/AGENTS.md` records — building the census executable, and so every mode
+`WhatwgGates/AGENTS.md` records — building the census executable, and so every mode
 of it, needs this module to elaborate — and `--write` still does not read an
 emit, so a census the numerators have not caught up with is still regenerable.
 
@@ -48,7 +48,7 @@ census row id and the joined disposition, state `absent`, witness list empty. -/
 def rows : Array CoverageRow := SpecCoverageRows.rows
 
 /-- The numerator's rows. At Q2 it is the scaffold unchanged: no state is above
-`absent` and no row carries a witness. `bin/Census.lean` hands this to
+`absent` and no row carries a witness. `whatwgbin/Census.lean` hands this to
 `Gates.Census.cli` under the key `webidl`, which cross-checks it against a
 fresh census regeneration before `--report` prints a number. -/
 def emit : Array CoverageRow := rows

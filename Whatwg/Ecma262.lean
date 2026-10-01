@@ -29,15 +29,15 @@ Q3b builder seats:
   reaction-job record, the activation state and run condition, the DB-05
   specification/realizer pair for `requirement.hostenqueuepromisejob.3`, and
   the `Active`-threaded `startJob` and `completeJob` with the run-to-completion
-  specification `RunToCompletion` for `requirement.jobs.3`. It imports only
-  `Whatwg.Infra`.
+  specification `RunToCompletion` for `requirement.jobs.3`. It imports
+  nothing (ruling R-V3(a)).
 - `Whatwg/Ecma262/Promise.lean` — the promise state, settled-outcome and
   callback-return carriers, promise identity, the general promise table with
   its allocation, lookup, settle and mark-handled operations, the reaction
   records with their capability field and the two reaction lists,
   `TriggerPromiseReactions`, the capability record and the resolving
   functions, `PerformPromiseThen`, the reaction job's handler step and the
-  settlement trace. It imports `Whatwg.Ecma262.Jobs` and `Whatwg.Infra`.
+  settlement trace. It imports `Whatwg.Ecma262.Jobs` and nothing else.
 
 Still open, with their gap ids from the packet: `G-02` remainder (the
 handled-bit consumer and `HostPromiseRejectionTracker`), `G-04` (`IsPromise`

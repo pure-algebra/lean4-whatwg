@@ -11,10 +11,10 @@ and frozen by section 3 of `test/contracts/ecma262-census-q2.contract.md`.
 **Claim boundary.** At Q2 every row is `absent` and no row carries a witness.
 `emit` is exactly the generated all-`absent` scaffold
 `WhatwgTest/Audit/Ecma262/SpecCoverageRows.lean`, which
-`lake exe census --standard ecma262 --write` writes beside
+`lake exe whatwg_census --standard ecma262 --write` writes beside
 `generated/ecma262-census.tsv`, so the row ids and the joined dispositions are
 the census's and are not retyped here. The block
-`lake exe census --standard ecma262 --report` prints therefore says that
+`lake exe whatwg_census --standard ecma262 --report` prints therefore says that
 nothing is proved about `Whatwg.Ecma262`; quoting it as coverage is a defect.
 In particular the Q2 move of `clause.promise-objects` from `evidenceOnly` to
 `owned` puts that row inside the denominator so that it can be *owed* a
@@ -46,7 +46,7 @@ census row id and the joined disposition, state `absent`, witness list empty. -/
 def rows : Array CoverageRow := SpecCoverageRows.rows
 
 /-- The numerator's rows. At Q2 it is the scaffold unchanged: no state is above
-`absent` and no row carries a witness. `bin/Census.lean` hands this to
+`absent` and no row carries a witness. `whatwgbin/Census.lean` hands this to
 `Gates.Census.cli` under the key `ecma262`, which cross-checks it against a
 fresh census regeneration before `--report` prints a number. -/
 def emit : Array CoverageRow := rows
