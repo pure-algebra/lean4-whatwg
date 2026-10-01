@@ -7,14 +7,19 @@ Owner: the foreign-boundary answer shapes the pinned URL source calls out to,
 for the Encoding Standard operations named by `census/url/externals.tsv`.
 
 The Encoding Standard is pinned (`whatwg/encoding` at `67494fce`, ruling
-R-U1), but no UTF-8 core has landed yet, so `get an encoder`,
-`encode or fail`, the I/O queue, `UTF-8 encode`, and
-`UTF-8 decode without BOM or fail` have no semantic owner here until the
-Infra UTF-8 packet lands, and Infra explicitly defers to Encoding for all of
-them. DB-02 is the ruling that
-applies: a host is a decision, and a decision's answer is first-order data on a
-tape, never a modelled body. Every declaration below is such an answer shape.
-No encoder algorithm, no decoder algorithm, and no unpinned table is admitted.
+R-U1), and its UTF-8 core, `get an encoder`, `encode or fail`, the I/O queue,
+`UTF-8 encode` and `UTF-8 decode without BOM or fail`, is owned by
+`Whatwg.Infra.Text.Utf8` (graph `INFRA-PG-UTF8`, landed under ruling R-U4).
+The two facts `Utf8Encoding.tape` assumes by definition are theorems of that
+owner, `Whatwg.Infra.Utf8.u3Profile_encoderTape` and
+`Whatwg.Infra.Utf8.u3Profile_decodeOrFail`, and ruling R-U5 keeps the
+closure of the URL `encoding` obligation on that ground. No declaration
+constructs a `Utf8Encoding` from that encoder, so its `bytes` field is
+unconstrained in every URL operation (debt D44). DB-02 is the ruling that
+applies here: a host is a decision, and a decision's answer is first-order
+data on a tape, never a modelled body. Every declaration below is such an
+answer shape. This module declares no encoder algorithm, no decoder
+algorithm, and no unpinned table.
 
 Contract: `test/contracts/url-percent-encoding.contract.md`.
 Graph: `docs/URL-PERCENT-ENCODING-DAG.md` (`URL-PG-PERCENT`).

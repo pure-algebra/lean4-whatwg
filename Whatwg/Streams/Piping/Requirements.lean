@@ -12,8 +12,11 @@ Spec anchors: `pipe-chains`, `rs-abstract-ops`.
 
 Opens in P7.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares the P7a forward-error shutdown requirements frozen by
+`test/contracts/piping-shutdown.contract.md`: the write-link, snapshot, event
+and record types and the requirement predicates, `ForwardShutdownSpec` among
+them. Graph
+`PIPING-PG-FORWARD-SHUTDOWN` (`docs/PIPING-DAG.md`) owns their records.
 -/
 
 /-!

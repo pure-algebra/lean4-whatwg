@@ -5,13 +5,17 @@
 > infra`; it has no authored theorem numerator or coverage report yet. The two
 > standards never share a denominator.
 
-> URL bootstrap: `Whatwg.Url` has its own pinned source and declaration-free
-> scaffold (`docs/URL-PACKAGE-PLAN.md`). URL has no census, numerator, or
-> coverage report yet and contributes no rows to the Streams report. U2
-> establishes its separate denominator and checked reporting path.
+> URL: `Whatwg.Url` has its own pinned source (`docs/URL-PACKAGE-PLAN.md`)
+> and, since slice U3, declarations in `Whatwg/Url/PercentEncoding.lean` and
+> `Whatwg/Url/Boundary.lean`. Its authored source census is projected and
+> drift-checked by `lake exe urlcensus`, but URL has no admitted denominator,
+> numerator, or coverage report yet and contributes no rows to the Streams
+> report. The declaration/numerator join that would admit its denominator and
+> checked reporting path is still open (`docs/URL-CENSUS-DAG.md`).
 
-> Promise lane: `Whatwg.WebIdl` and `Whatwg.Ecma262` have pinned sources and
-> declaration-free roots (`docs/PROMISE-PACKAGE-PLAN.md`). Since the Q1 and
+> Promise lane: `Whatwg.WebIdl` and `Whatwg.Ecma262` have pinned sources and,
+> since slices Q3 and Q3b, declarations with proved laws
+> (`docs/PROMISE-PACKAGE-PLAN.md`, graph `PROMISE-PG-FIRST`). Since the Q1 and
 > Q2 landings of 2026-09-07 each has a generated, drift-checked census with a
 > denominator (Web IDL 124 rows, denominator 116; ES2026 77 rows, denominator
 > 75), an all-absent Lean numerator, and a coverage report printed by
@@ -156,9 +160,10 @@ commands' own bytes, replacing the placeholder blocks that stood here until Q2.
 Both are **all-`absent`**: `owned-with-green 0/116` and `green 0` are the whole
 content of the Web IDL claim, and `owned-with-green 0/75` and `green 0` the
 whole of the ES2026 one. Every row of both denominators is owed a witness and
-none has one. Nothing is proved about `Whatwg.WebIdl` or `Whatwg.Ecma262`;
-quoting either block as evidence of coverage is a defect. The Q3 packet lands
-the first witness.
+none has one. The Q3 and Q3b packets prove laws about `Whatwg.WebIdl` and
+`Whatwg.Ecma262` and cite census rows only as anchors for declarations, never
+as witnesses, so no row has moved; quoting either block as evidence of
+coverage is a defect.
 
 ```text
 WHATWG Web IDL (a652053f) coverage: denominator 116; owned-with-green 0/116;

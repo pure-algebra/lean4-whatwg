@@ -18,6 +18,39 @@ own module: a different pinned source is the semantic owner, and a graph whose
 theorem `Whatwg.Infra.Utf8.encode_ascii_eq_asciiEncode`; nothing else moves
 between them.
 
+## Current state
+
+This table describes commit `325d5d5` on 2026-09-30. Ruling R-U4 landed the
+packet on `main` as `854cc68` on 2026-09-07: all 119 ascriptions of
+`WhatwgTest/Infra/Utf8Laws.lean` green, the counterexample battery green, no
+statement of the frozen packet changed, and the R-11 ceiling held for every
+receipt, while the stricter R-U3 target is unmet for 17 receipts (debt D42).
+This document carried no landing record before this table. Ruling R-V4 sets
+the rule: an edge is `required-closed` only when every ground this document
+or a ruling in `COORDINATION.md` states for keeping it open is discharged by
+something named in the ground cell.
+
+| Edge | Status | Ground |
+| --- | --- | --- |
+| identity | `required-open` | The declaration snapshot that joins every public name, which has no generator (debt D47). The 80 interface ascriptions of `WhatwgTest/Infra/Utf8Contract.lean` elaborate |
+| construction | `required-open` | The decoder's reachable-state invariant (`bytesSeen ≤ bytesNeeded ≤ 3` and `codePoint ≤ 0x10FFFF` at every step of a run started from `initial`) has no run-level proof; at `325d5d5` it is still only a hypothesis of `decoderHandler_items_isScalarValue` |
+| semantics | `required-open` | No theorem relates a run of `processQueue` to a specification of UTF-8 independent of the transcription; R-U4 does not address this ground |
+| laws | `required-closed` | All 119 ascriptions of `WhatwgTest/Infra/Utf8Laws.lean` elaborate and are proved (R-U4) |
+| representation | `required-closed` | The three bridges the edge names are among the 119 laws R-U4 lands: `IoQueue.convertFrom_convertTo`, the `JsString.ofCodePoints` faces `decodeString_eq`, `decodeWithoutBomString_eq` and `decodeWithoutBomOrFailString_eq`, and `Utf8.scalars_val`. The `Array`/`ByteArray` realizer of `ByteSequence` is outside this packet by the edge's own statement |
+| counterexamples | `required-open` | `INFRA-UTF8-CE-001` to `INFRA-UTF8-CE-018` stand `SEEDED` in `test/counterexamples/infra/UTF8.md`, and no landing record moves them. They have no row in `test/counterexamples/REGISTER.md` (debt D45), and the witness module `WhatwgTest/Infra/Counterexamples/Utf8.lean` imports no production module (debt D50). R-U4 records the counterexample battery green |
+| bridges | `required-open` | Of the three obligations, (1) is closed by `encode_ascii_eq_asciiEncode`; (2), the decode half of ASCIIDEC's agreement note (isomorphic decode and UTF-8 decode agree on ASCII bytes), is not stated and stays owed; (3) is ruled by R-U5: R-U4's closure of the URL `encoding` obligation stands on the ground R-U3 gave it, the theorems `u3Profile_encoderTape` and `u3Profile_decodeOrFail`, and what that closure does not cover is debt D44, since no declaration constructs a `Whatwg.Url.Boundary.Utf8Encoding` from this encoder |
+| targets | `not-applicable` | This packet has no lowering and no generated code; P11 owns that obligation. The "Implementation considerations" section is `evidenceOnly` |
+| trust | `required-open` | Every receipt of `WhatwgTest/Infra/Utf8AxiomReport.lean` is inside the R-11 ceiling (R-U4), but the stricter target of R-U3, `propext` and `Quot.sound` only, is unmet for 17 of the 119 (debt D42): `encoderTail_continuation`, `encodeScalar_head_range`, `encodeScalar_tail_continuation`, `encode_startsWith_bom_iff`, `decoderHandler_error_none`, `decoderHandler_items_isScalarValue`, `processQueue_fuel_stable`, `decodeWithoutBom_truncated_one`, `isWellFormed_iff`, `decodeWithoutBomOrFail_encode`, `decodeWithoutBomOrFail_eq_some_imp`, `decodeWithoutBomString_encode`, `decodeWithoutBom_all_isScalarValue`, `decodeWithoutBom_encode`, `decodeWithoutBom_encodeScalars`, `decode_all_isScalarValue` and `encode_decodeWithoutBom`. Under repair in lane V (slice V5) |
+| coverage | `required-open` | The Encoding Standard has no census, denominator, numerator or report; the edge closes only after an Encoding census exists and `docs/SPEC-COVERAGE.md` admits it |
+
+The URL `encoding` obligation, under ruling R-U5: R-U4's closure stands. The
+two facts `Whatwg.Url.Boundary.Utf8Encoding.tape` assumes are theorems of this
+owner, `Whatwg.Infra.Utf8.u3Profile_encoderTape` and
+`Whatwg.Infra.Utf8.u3Profile_decodeOrFail`. No declaration constructs a
+`Utf8Encoding` from this encoder, so its `bytes` field is unconstrained in every
+URL operation; that gap is debt D44, owed before U5 consumes the
+percent-encoding rows.
+
 ## Authority anchors
 
 Every row below is a byte-span SHA-256 recomputed by the breaker seat from
@@ -103,21 +136,6 @@ stable names and root reachability stay fixed, and the contract records the one
 split already anticipated (`Text/IoQueue.lean`, when a second encoding is
 owned).
 
-## Ten edges
-
-| Edge | Status | Required evidence / reason |
-| --- | --- | --- |
-| identity | required-open | 80 exact interface ascriptions and the constructor census in `WhatwgTest/Infra/Utf8Contract.lean`; the declaration snapshot must join every public name, and the snapshot does not exist yet |
-| construction | required-open | `DecoderState.initial_eq`, the queue's `convertTo_eq` and `containsEndOfQueue_convertTo`, and the `processQueueFuel` sufficiency law; the reachable-state invariant of the decoder (`bytesSeen ≤ bytesNeeded ≤ 3` and `codePoint ≤ 0x10FFFF` at every step of a run started from `initial`) is stated only as a hypothesis of `decoderHandler_items_isScalarValue` today and owes a run-level proof |
-| semantics | required-open | the thirteen handler laws, the five `processItem`/`processQueue` laws, and the encoder's `encodeScalar_eq`; the pin's `<dl class=switch>` rows are covered one at a time, but no theorem yet relates a run of `processQueue` to a *specification* of UTF-8 independent of the transcription, which is what would make the transcription checkable rather than definitional |
-| laws | required-open | all 119 ascriptions of `WhatwgTest/Infra/Utf8Laws.lean` must elaborate and be proved; nothing is closed at the freeze |
-| representation | required-open | the `IoQueue` ↔ `List` bridge (`convertFrom_convertTo`), the `List CodePoint` ↔ `JsString` bridge through `ofCodePoints`, and the scalar-value bridge `scalars_val`; the `Array`/`ByteArray` realizer of `ByteSequence` remains undefined repository-wide and this packet does not open it |
-| counterexamples | required-open | `INFRA-UTF8-CE-001` … `018`. The twenty-one finite mutant theorems of `WhatwgTest/Infra/Counterexamples/Utf8.lean` are **green at the freeze**, but a green mutant model closes nothing: the edge closes when each row's named production statement is proved |
-| bridges | required-open | three obligations. (1) `encode_ascii_eq_asciiEncode` closes the UTF-8 half of ASCIIENC's note and with it the `bridges` edge of `INFRA-PG-TEXT` that `docs/INFRA-PROOF-PLAN.md` section 4.6 left open. (2) ASCIIDEC's note (isomorphic decode and UTF-8 decode agree on ASCII bytes) is **not** stated by this packet and stays owed. (3) `u3Profile_encoderTape` and `u3Profile_decodeOrFail` discharge the U3 tapes' UTF-8 profile, but the URL revision that turns `Whatwg.Url.Boundary.Utf8Encoding` and `Utf8DecodeOrFail` into views onto this owner is a separate change in a separate tree, and until it lands the `encoding` obligation of `docs/URL-PERCENT-ENCODING-DAG.md` stays open |
-| targets | not-applicable | this packet has no lowering and no generated code; P11 owns that obligation. The "Implementation considerations" section [141397,142563), SHA-256 `69780255b8ebd663b75307da96cc8e13ee00cd6972212c5327ac8013e3a07297`, describes buffer strategies for implementers and is `evidenceOnly` |
-| trust | required-open | all 119 named receipts in `WhatwgTest/Infra/Utf8AxiomReport.lean`, against the R-11 ceiling and against the Infra lane's stricter local target of `[propext, Quot.sound]` (`docs/CHOICE-REMOVAL.md`, `docs/INFRA-SCALAR-ASSURANCE.md`, `docs/INFRA-INTEGER-CONSTRUCTIVE.md`). No statement in the packet mentions `String`, so the one confirmed path into `Classical.choice` for stock Lean 4.33.1 is not in scope; a receipt that reaches it is reported with its dependency path and recorded as debt here |
-| coverage | required-open | the Encoding Standard has **no census, no denominator, no numerator and no report**. Nothing in this packet is coverage. The edge closes only after an Encoding census exists and `docs/SPEC-COVERAGE.md` admits it; the span table of the contract is the join key that census will use |
-
 ## Clause map and residual obligations
 
 | Anchors | Packet obligations | Residual obligation before whole-row green |
@@ -153,3 +171,11 @@ Specification byte-span cross-check, green witness command, intended red
 commands and the immutable packet commit are recorded in the contract's freeze
 receipt. The coordinator owns root and known-red integration and may append
 landing receipts; it may not weaken this packet.
+
+## Receipts
+
+`docs/receipts/INFRA-PG-UTF8.md` holds this graph's history, moved there
+verbatim under ruling R-V4: the freeze-time edge table. The landing record of
+this packet is ruling R-U4 in `COORDINATION.md`, with debt D42 beside it, and
+R-U5 rules on the URL `encoding` obligation; the "Current state" section above
+transcribes them.

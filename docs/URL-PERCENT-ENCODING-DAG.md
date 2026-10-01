@@ -10,6 +10,30 @@ that gap.
 `URL-PG-CENSUS` is a separate graph over source tooling. Nothing here closes an
 edge there, and nothing there closes an edge here.
 
+## Current state
+
+This table describes commit `325d5d5` on 2026-09-30. The U3 builder landing of
+2026-09-07, merged as `5732e77` and accepted by ruling R-U2, closed
+construction, semantics, laws and trust; rulings R-U4 and R-U5 later settled
+the `encoding` obligation. Ruling R-V4 sets the rule: an edge is
+`required-closed` only when every ground this document or a ruling in
+`COORDINATION.md` states for keeping it open is discharged by something named
+in the ground cell. Where a document and a later ruling disagree, the ruling
+wins and the cell names it.
+
+| Edge | Status | Ground |
+| --- | --- | --- |
+| identity | `required-open` | The per-declaration ownership record and the generated declaration snapshot join, which URL has never had and which has no generator (debt D47). `setOf_eq` and `setOf_injective` are proved |
+| construction | `required-closed` | The eight sets `extend`ed from the parent the census records, each membership sentence a theorem (`c0Control_mem_iff` to `form_mem_iff`), the four helpers with their laws, and steps 1, 2 and 7.3.2 (U3 landing, R-U2). Debt D26, recorded by R-U2's review: `decimalDigits` has no base-ten denotation law, so this closure over AFTER rests on the probe value 8253 |
+| semantics | `required-closed` | Percent-decode transcribed branch by branch (`percentDecodeBytes_nil`, `_other`, `_pair`, `_malformed_pair`, `_short`), `percentDecodeString_eq` and `followsUtf8Advice_iff`, the encoder answer tape as DB-02 data with `EncoderTape.terminated_iff` and `encodeLoop_nil`, and the loop and assembly laws ending in `percentEncodeAfterEncoding_eq` (U3 landing, R-U2). Debts D30 and D31 are recorded against `encodeLoop` and step 1's assertion |
+| laws | `required-closed` | All 95 ascriptions of `WhatwgTest/Url/PercentEncodingLaws.lean` are proved; thirteen are finite probes and close no clause on their own (U3 landing, R-U2). Debts D26, D28 and D29 are recorded against these laws |
+| representation | `required-open` | The declaration records (debt D47). The Encoding owner the landing waited on is ruled and landed (R-U1, R-U4); R-U5 records what that closure does not cover: no declaration constructs `Boundary.Utf8Encoding` from Infra's encoder (debt D44) |
+| counterexamples | `required-open` | `URL-PE-CE-006` is registered `SEEDED`: its first mutation, a fresh ISO-2022-JP encoder per code point, is unrepresentable while the encoder is a tape, and `Boundary.isStateful_iso2022jp` falsifies nothing (R-U2, debt D27). The other thirteen rows are `CLOSED`. Debt D50 records that the witness module `WhatwgTest/Url/Counterexamples/PercentEncoding.lean` imports no production module |
+| bridges | `required-open` | (a) ECMA-262's `encodeURIComponent`: the URL half is `component_complement`; the other half needs `ext.ecma262.encodeuricomponent`, outside the promise lane's census scope. (b) The Encoding Standard: the `encoding` obligation is closed (R-U4, R-U5; see "The encoding obligation" below), and debt D44 remains. WPT `url/` replay and any host profile are U9 work and are not claimed |
+| targets | `not-applicable` | U3 lowers nothing and introduces no generated-code relation; P11 owns the lowering machinery |
+| trust | `required-closed` | The 95 named receipts of `WhatwgTest/Url/PercentEncodingAxiomReport.lean` print inside the R-11 ceiling and none reaches `Classical.choice`; the root audit reaches both modules and `known-red.txt` holds no U3 entry (U3 landing, R-U2). No declaration under `Whatwg.Url` reaches `Classical.choice` at `325d5d5`, by the census script of appendix B of `docs/research/2026-09-30-implementation-review.md` |
+| coverage | `required-open` | URL has no admitted denominator, numerator or report; `docs/SPEC-COVERAGE.md` and `docs/URL-CENSUS-DAG.md` own the rest of the join |
+
 ## Authority anchors
 
 Every row below is a byte-span SHA-256 from the sealed URL census at
@@ -82,54 +106,26 @@ implementation helpers may be added without changing these signatures. Module
 splitting to respect dependency direction is permitted while stable names and
 root reachability stay fixed; `Whatwg/Url.lean` already imports both files.
 
-## Ten edges
-
-Status values below were set at the freeze and updated at the U3 builder landing
-of 2026-09-07; the "Landing" section after this table records the evidence for
-every change, edge by edge, with theorem names.
-
-| Edge | Status | Rows it must close | Required evidence / reason |
-| --- | --- | --- | --- |
-| identity | required-open | SET, AFTER | exact ascriptions and constructor census for the carrier, `SetName` and `setOf`; `setOf_eq` and `setOf_injective`; the per-declaration ownership record and the generated declaration snapshot join, which URL has never had |
-| construction | closed 2026-09-07 | C0, FRAG, QUERY, SQUERY, PATH, USER, COMP, FORM, ENCB, DECB, AFTER | the eight sets built by `extend` from the parent the census records; the four helpers; steps 1, 2 and 7.3.2; every definition total, structural, and free of a duplicate Infra carrier |
-| semantics | closed 2026-09-07 | DECB, DECS, ADVICE, AFTER | branch-by-branch transcription of percent-decode including both malformed cases; the encoder answer tape as DB-02 decision data with an unanswered tape as a live frontier; `renderAnswer`, `encodeLoop`, and the assembly; the boundary's own semantics stays out |
-| laws | closed 2026-09-07 | all twenty | the 95 frozen ascriptions of `WhatwgTest/Url/PercentEncodingLaws.lean`: membership, seven strict inclusions, the three rules, the syntax/encode composition, injectivity, the four round trips on their exact domains, the composition law, and the frozen non-idempotence. Thirteen of the 95 are finite probes and close no clause on their own |
-| representation | required-open | SET, DECS, U8CP, U8STR, ADVICE | every carrier reused from `Whatwg.Infra` with no copy: `Byte`, `ByteSequence`, `CodePoint`, `CodeUnit`, `JsString`, `ScalarValue`, `asciiEncode?`. The boundary records are answer shapes, not stored functions. Open until the declaration records exist and until the Encoding owner named below is settled |
-| counterexamples | required-open | ENCB, DECB, USER, COMP, FORM, RQF, RURI, C0, AFTER | `URL-PE-CE-001` through `URL-PE-CE-014`. The fifteen finite mutant witnesses are green at the freeze; the edge closes only when each attacked production statement is a proved law that mechanically rejects the mutant, and when the coordinator has registered the rows centrally |
-| bridges | required-open | RURI, ADVICE, DECS, U8CP, U8STR, AFTER | two named, unproved bridges. (a) ECMA-262's `encodeURIComponent`: the URL half is `component_complement`; the other half needs `ext.ecma262.encodeuricomponent`, which is outside the promise lane's census scope. (b) The Encoding Standard: `UTF-8 encode`, `UTF-8 decode without BOM or fail`, `get an encoder`, `encode or fail`, the I/O queue. See the encoding obligation below. WPT `url/` replay and any host profile are U9 and are not claimed here |
-| targets | not-applicable | — | U3 lowers nothing. RS-5 gives Stratum A two realizers, but the generated TypeScript realizer and the pinned host body are U9 work and P11 owns the lowering machinery. No generated-code relation is introduced, so there is no target obligation to leave open |
-| trust | closed 2026-09-07 | all twenty | the 95 named receipts of `WhatwgTest/Url/PercentEncodingAxiomReport.lean` inside the R-11 ceiling, plus the URL lane's choice-minimization objective: any receipt reaching `Classical.choice` is reported with its exact dependency path and a constructive attempt. The exhaustive root audit must reach both new modules, and the three known-red entries must be gone |
-| coverage | required-open | all twenty | URL has no admitted denominator, numerator, or report at all. This packet adds none and none is inferred from a green battery. The clause map below is the U3 half of the eventual join; `docs/SPEC-COVERAGE.md` and `docs/URL-CENSUS-DAG.md` own the rest |
-
-At the freeze: nine required-open edges and one not-applicable, with no edge closed. At the U3 builder landing of 2026-09-07: four closed (construction, semantics, laws, trust), five still required-open (identity, representation, counterexamples, bridges, coverage), one not-applicable (targets).
-
 ## The encoding obligation
 
-The Encoding Standard is pinned (`whatwg/encoding` at `67494fce`, sealed under
-`vendor/whatwg-encoding-67494fce/`, ruling R-U1 of 2026-09-07, one commit
-after this packet's builder branched), but no UTF-8 core has landed, so five
-operations the scoped rows call have no owner yet: `UTF-8 encode`, `UTF-8
-decode without BOM or fail`, `get an encoder`, `encode or fail`, and the I/O
-queue. Infra defers to Encoding for all of them; the Infra UTF-8 packet
-(`INFRA-PG-UTF8`) is their owner and closes this obligation. That packet must
-also discharge the two facts `Boundary.Utf8Encoding.tape` assumes by
+The obligation is closed, and debt D44 records what the closure does not
+cover (ruling R-U5). The Encoding Standard is pinned (`whatwg/encoding` at
+`67494fce`, ruling R-U1), and the Infra UTF-8 packet (`INFRA-PG-UTF8`) owns
+`UTF-8 encode`, `UTF-8 decode without BOM or fail`, `get an encoder`,
+`encode or fail` and the I/O queue in `Whatwg/Infra/Text/Utf8.lean`, landed
+under R-U4. R-U3 ruled that this obligation closes on that landing, and R-U4
+closed it, including the two facts `Boundary.Utf8Encoding.tape` assumes by
 definition (R-U2): UTF-8's `encode or fail` never fails, and it returns the
-whole encoding in a single call, so step 7's loop runs exactly once. The four
-round trips, `utf8PercentEncodeString_flatMap`, `_append`,
-`_isAsciiString` and `followsUtf8Advice_component` all factor through those
-two assumptions.
+whole encoding in a single call. The Infra owner proves them as
+`Whatwg.Infra.Utf8.u3Profile_encoderTape` and
+`Whatwg.Infra.Utf8.u3Profile_decodeOrFail`, and R-U5 keeps R-U4's closure on
+that ground.
 
-This packet does not invent an owner. It confines the gap to the `bridges` and
-`representation` edges by making the boundary's answer an explicit argument
-(`Boundary.Utf8Encoding`, `Boundary.EncoderTape`), so that seventeen of the
-twenty rows are fully owned and only DECS, U8CP and U8STR carry an unowned half.
-
-The contract's ratification request asks the operator to rule between pinning
-the Encoding Standard now, with its UTF-8 core landing in
-`Whatwg.Infra.Text.Codec` beside `isomorphicDecode` and `asciiEncode`, and
-deferring to U7 or U9. Until that ruling arrives this obligation stays open and
-no `utf8Encode` is declared anywhere. A URL-local UTF-8 codec would be the
-convenience carrier `Whatwg/AGENTS.md` forbids and would close no edge.
+The closure does not reach the URL declarations. No declaration constructs a
+`Boundary.Utf8Encoding` from Infra's encoder, so the record's `bytes` field is
+unconstrained in every URL operation, and DECS, U8CP and U8STR still take the
+UTF-8 answer as an argument. That is debt D44: the view onto the Infra owner is
+owed before U5 consumes the percent-encoding rows.
 
 ## Clause map and residual obligations
 
@@ -145,39 +141,6 @@ convenience carrier `Whatwg/AGENTS.md` forbids and would close no edge.
 | AFTER | steps 1, 2, 5, 6, 7 and 8 over the answer tape; the discharged non-ASCII assertion; the space-before-set order; the shortest decimal reference; the tape-split distribution law; the live-frontier reading of an unanswered tape | `get an encoder`, `encode or fail` and the I/O queue themselves; the U5 caller `op.parser-query`, whose buffering the ISO-2022-JP statefulness explains; the U7 caller `op.urlencoded-serializer` |
 | U8CP, U8STR | the collapse to a per-byte rendering with no error reference; the composition law; the two round trips and their two failure witnesses | `UTF-8 encode` itself; the five U5 and U4 callers |
 
-## Landing (builder seat, 2026-09-07, branch `url/u3-builder`)
-
-`Whatwg/Url/Boundary.lean` and `Whatwg/Url/PercentEncoding.lean` are
-implemented. No token of any ascription in the three batteries changed and no
-byte of the four battery files changed; the fifteen finite mutant witnesses of
-`WhatwgTest/Url/Counterexamples/PercentEncoding.lean` stayed green throughout.
-The measured commands are in the "U3 landing receipt" of
-`docs/URL-PACKAGE-PLAN.md`; that receipt is the only plan edit.
-
-### Edges that close, with their evidence
-
-| Edge | Closing evidence |
-| --- | --- |
-| construction | The eight sets are `extend`ed from exactly the parent the census records — `fragment`/`query` from `c0Control`, `specialQuery`/`path` from `query`, `userinfo` from `path`, `component` from `userinfo`, `form` from `component` — and each membership sentence is a theorem: `c0Control_mem_iff`, `fragment_mem_iff`, `query_mem_iff`, `specialQuery_mem_iff`, `path_mem_iff`, `userinfo_mem_iff`, `component_mem_iff`, `form_mem_iff`. The three inclusive ranges are ranges: the `userinfo`, `component` and `form` laws state them as `0x5B ≤ v ≤ 0x5D`, `0x24 ≤ v ≤ 0x26` and `0x27 ≤ v ≤ 0x29`. The four helpers land with `isHexByte_iff`, `hexValue_digit`, `hexValue_upper`, `hexValue_lower`, `upperHexDigit_isAsciiUpperHexDigit`, `decimalDigits_zero`, `decimalDigits_isAsciiDigits`, `decimalDigits_shortest`; steps 1, 2 and 7.3.2 with `encodingAssertion_iff`, `spaceAsPlus_iff`, `isomorph_val`. Totality is the root axiom gate's: no `partial`, `unsafe`, `sorry`, `native_decide` or `bv_decide` anywhere, `percentDecodeBytes` and `encodeLoop` structurally recursive on their own list argument and `decimalDigitsAux` fuel-bounded by the value it prints. No Infra carrier is redeclared. |
-| semantics | Percent-decode is transcribed branch by branch and each branch is a theorem: `percentDecodeBytes_nil` (step 1), `percentDecodeBytes_other` (step 2.1), `percentDecodeBytes_pair` (step 2.3), `percentDecodeBytes_malformed_pair` and `percentDecodeBytes_short` (both readings of step 2.2), with `percentDecodeBytes_length_le`, `percentDecodeBytes_percent_le`, `percentDecodeBytes_id_of_no_percent` and `percentDecodeBytes_not_idempotent` for the note. `percentDecodeString_eq` and `followsUtf8Advice_iff` compose DECS and ADVICE with the boundary's answers and nothing else. The encoder answer is DB-02 first-order data: `Boundary.EncodeAnswer`, `Boundary.EncoderTape`, `Boundary.EncoderTape.terminated_iff`, and `encodeLoop_nil` reads an unanswered tape as a live frontier rather than an error. The loop and assembly are `renderAnswer_none`, `renderAnswer_some`, `encodeLoop_terminal`, `encodeLoop_cons`, `encodeLoop_append`, `percentEncodeAfterEncoding_eq`. No encoder or decoder body is modelled. |
-| laws | All 95 ascriptions of `WhatwgTest/Url/PercentEncodingLaws.lean` elaborate and are proved: the eight membership laws, the seven inclusions (`c0Control_subset_fragment`, `c0Control_subset_query`, `query_subset_specialQuery`, `query_subset_path`, `path_subset_userinfo`, `userinfo_subset_component`, `component_subset_form`) each strict (`fragment_strict_c0Control`, `query_strict_c0Control`, `specialQuery_strict_query`, `path_strict_query`, `userinfo_strict_path`, `component_strict_userinfo`, `form_strict_component`), the three rules (`fragment_not_subset_query`, `query_not_subset_fragment`, `form_complement`, `component_complement`), the family identity (`setOf_eq`, `setOf_injective`, `setOf_includes_non_ascii`), the syntax/encode composition (`isPercentEncodedByte_iff`, `percentEncodeByte_eq`, `percentEncodeByte_upper`, `percentEncodeByte_isPercentEncodedByte`, `percentEncodeByte_injective`), the four round trips on their exact domains (`percentDecodeBytes_percentEncodeByte` unrestricted, `roundTrip_component` on every UTF-8 byte sequence, `roundTrip_form` off U+0020 with `roundTrip_form_space_fails` at its boundary, `roundTrip_query_fails`), the composition law (`utf8PercentEncodeString_flatMap`, `utf8PercentEncodeString_append`, `utf8PercentEncodeString_isAsciiString`, `utf8PercentEncodeCodePoint_eq`), and the frozen non-idempotence. Thirteen of the 95 are `_example` finite probes and close no clause on their own. |
-| trust | All 95 named receipts of `WhatwgTest/Url/PercentEncodingAxiomReport.lean` print inside the R-11 ceiling, and the URL lane's choice-minimization objective is met exactly: **none reaches `Classical.choice`**. Distribution: 42 with no axioms, 29 `[propext]`, 24 `[propext, Quot.sound]`. The exhaustive root audit reaches both new modules (`lake --wfail build WhatwgTest`, 200 modules and 13584 declarations), and the three `known-red.txt` entries are removed with the packet note kept, which `lake exe trustselftest` confirms as "declared red set matches the observed red set (0 module(s))". |
-
-### Edges that stay open, and why
-
-| Edge | Landed half | Why it stays open |
-| --- | --- | --- |
-| identity | `setOf_eq` and `setOf_injective` are proved, the latter through eight separating code points; the carrier, `SetName` and `setOf` elaborate at their exact frozen signatures. | The per-declaration ownership record and the generated declaration snapshot join, which URL has never had, still do not exist. Nothing in this packet creates them. |
-| representation | Every carrier is Infra's and none is copied: `Byte`, `ByteSequence`, `CodePoint`, `CodeUnit`, `JsString`, `ScalarValue`, `JsString.asciiEncode?`. The four boundary records are answer shapes with no stored function. | The declaration records above, and the Encoding owner, which is unruled. |
-| counterexamples | Every attacked production statement is now a proved law. `URL-PE-CE-001` → `upperHexDigit_isAsciiUpperHexDigit`, `percentEncodeByte_upper`; `-002` → `userinfo_mem_iff`; `-003`, `-004` → `percentDecodeBytes_short`; `-005` → `spaceAsPlus_iff`; `-006` → `Boundary.isStateful_iso2022jp`, `percentEncodeAfterEncoding_example_iso2022jp` (and the absence of any per-input-split law for a stateful encoder, against `utf8PercentEncodeString_append` for UTF-8); `-007` → `fragment_not_subset_query`, `query_not_subset_fragment`; `-008` → `isHexByte_iff`, `percentDecodeBytes_example_lowercase`; `-009` → `decimalDigits_shortest`; `-010` → `renderByte_plus`; `-011` → `encodeLoop_terminal`; `-012` → `component_complement`; `-013` → `percentDecodeBytes_malformed_pair`; `-014` → `c0Control_mem_iff`, `setOf_includes_non_ascii`. The fifteen finite witnesses stay green and byte-identical. | Registered centrally at the landing (R-U2): thirteen `CLOSED`, `URL-PE-CE-006` `SEEDED` because its first mutation, a fresh ISO-2022-JP encoder per code point, is unrepresentable while the encoder is a tape and `isStateful` a two-clause function; the review found `Boundary.isStateful_iso2022jp` falsifies nothing (debt D27). The edge stays required-open on that one row |
-| bridges | The URL-owned half of the ECMA-262 equivalence is `component_complement`. | Neither bridge is proved. `ext.ecma262.encodeuricomponent` is outside the promise lane's census scope, and the Encoding Standard's five operations have no owner here. See the encoding obligation above. |
-| coverage | None; none is claimed. | URL has no admitted denominator, numerator, or report. A green battery is a set of theorems, not a coverage state. |
-| targets | — | `not-applicable`, unchanged: U3 lowers nothing. |
-
-The **encoding obligation stays open exactly as stated above**. The three rows
-DECS, U8CP and U8STR keep their unowned UTF-8 half; no `utf8Encode` is declared
-anywhere, and the packet's `Boundary.Utf8Encoding` remains an answer record.
-
 ## Evidence ledger
 
 The measured freeze evidence, the intended-red diagnostics, and the immutable
@@ -185,3 +148,12 @@ packet commit are in the contract's "Freeze receipt". The measured landing
 evidence is in the "U3 landing receipt" of `docs/URL-PACKAGE-PLAN.md` and in the
 "Landing" section above. The coordinator owns root and known-red integration and
 may append a further landing receipt here; it may not weaken this packet.
+
+## Receipts
+
+`docs/receipts/URL-PG-PERCENT.md` holds this graph's history, moved there
+verbatim under ruling R-V4: the edge table as updated at the U3 builder
+landing, the encoding-obligation text that R-U5 supersedes, and the "Landing"
+section of the U3 builder seat with its closing and open edge tables. The
+"Landing" section the evidence ledger cites, and the landing rows that
+`docs/URL-PACKAGE-PLAN.md` cites, resolve there.

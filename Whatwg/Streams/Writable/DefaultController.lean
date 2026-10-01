@@ -13,8 +13,11 @@ Spec anchors: `ws-default-controller-class`,
 
 Opens in P5.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares the P5a administrative stages `externalFrontier`,
+`operationKind`, `operationRequest`, `operationPhase`, `setOperationPhase`,
+`attachSink`, `invokeSink` and `acceptAnswer`, and the internal step `tick`,
+frozen by `test/contracts/writable-default.contract.md`. Graph
+`WRITABLE-PG-DEFAULT` (`docs/WRITABLE-DAG.md`) owns their records.
 -/
 
 /-!

@@ -11,8 +11,11 @@ Spec anchors: `ws-abstract-ops`, `ws-abstract-ops-used-by-controllers`.
 
 Opens in P5.
 
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet.
+This module declares the P5a slot operations `ensureReadyRejected`,
+`updateBackpressure`, `desiredSize`, `getBackpressure`, `clearAlgorithms`,
+`closeQueuedOrInFlight` and `hasInFlight`, frozen by
+`test/contracts/writable-default.contract.md`. Graph `WRITABLE-PG-DEFAULT`
+(`docs/WRITABLE-DAG.md`) owns their records.
 -/
 
 /-!
