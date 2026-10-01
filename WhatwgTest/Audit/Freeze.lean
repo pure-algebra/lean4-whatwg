@@ -247,6 +247,8 @@ def elabFreeze : CommandElab := fun stx => do
     let type ← Term.elabType typeStx
     Term.synthesizeSyntheticMVarsNoPostponing
     let type ← instantiateMVars type
+    -- Lean has already reported the error that left this placeholder.
+    if type.hasSyntheticSorry then throwAbortCommand
     if type.hasExprMVar then
       throwErrorAt typeStx
         m!"freeze: the statement of {declaration} has an expression hole; write every argument"
