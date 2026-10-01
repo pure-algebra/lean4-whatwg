@@ -460,6 +460,14 @@ its parameter `accept`.
 Counts re-measured `[C]`: 217 `simp_all`, 271 bare `intros`, 96
 `first | rfl | (simp_all …` (114 occurrences of `first | rfl` in any form).
 
+In W8: `fun_cases` in the proofs W8a writes or re-proves, and the `find?`
+cleanup. Proposed as debts, outside W8: the `simp_all` and `first | rfl`
+cascades and anonymous `intros` in proofs W8 does not touch (a proof-only
+lane under R-V5's limits); the five local simp lists, which stay until a
+non-metaprogramming way to name a simp set exists; and the shadowing of
+`Decidable.decide` by the four `decide` functions, recorded in their
+docstrings.
+
 ### 2.9 Identifier types and `sizeCalled` (question h)
 
 Readable's `Event.sizeCalled (call algorithm : Nat) (chunk : α)` and
@@ -717,10 +725,12 @@ Counterexample seeds for `test/counterexamples/REGISTER.md`:
    a relational face; (b) costs a `lakefile.toml` library, an architecture
    row, a strict-prefix addition and a DB-11 amendment.
 3. **Assurance route of the kernel.** (a) local receipts linked to the laws
-   edge of the five calculus graphs; (b) its own graph. Recommend (a): the
-   kernel models no specification text and its laws are the composition
-   receipts those graphs already hold. Cost of (b): a sixth graph document
-   with ten edges for 31 generic declarations.
+   edge of the five calculus graphs, with an existing-type row for
+   `Kernel.Path` that names no spec anchor, on the precedent of
+   `Semantics/Step.lean`; (b) its own graph. Recommend (a): the kernel models
+   no specification text and its laws are the composition receipts those
+   graphs already hold. Cost of (b): a sixth graph document with ten edges
+   for 31 generic declarations.
 4. **Scope of new laws frozen in W8a.** (a) bridges and corollary re-proofs
    only; (b) plus the generic laws of 3.1; (c) plus per-calculus exclusivity
    and comparability. Recommend (b). (c) is false for Writable as measured,
