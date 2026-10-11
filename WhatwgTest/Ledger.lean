@@ -62,17 +62,28 @@ def infraInteger : Leaf where
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
 /-- The leaf-receipt record `SVG-LF-GRAMMAR`: the value-grammar library of slice S4a of
-`docs/SVG-PACKAGE-PLAN.md`, an exact representation with its laws proved once. It contributes
-to the representation edge of `SVG-PG-SEAM`. -/
+`docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b and S4c, each an exact
+representation whose laws the library proves once. It contributes to the representation edge
+of `SVG-PG-SEAM`. -/
 def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
   document := "docs/SVG-PACKAGE-PLAN.md"
-  declarations := [`Whatwg.Svg.Value.CharSet, `Whatwg.Svg.Value.Syn, `Whatwg.Svg.Value.Regex]
+  declarations := [`Whatwg.Svg.Value.CharSet, `Whatwg.Svg.Value.Syn, `Whatwg.Svg.Value.Regex,
+    `Whatwg.Svg.Value.Grammar, `Whatwg.Svg.Value.Magnitude, `Whatwg.Svg.Value.Decimal,
+    `Whatwg.Svg.Value.Point, `Whatwg.Svg.Value.Decimal.same_iff_reduce,
+    `Whatwg.Svg.Value.Arc, `Whatwg.Svg.Value.Command, `Whatwg.Svg.Value.Path,
+    `Whatwg.Svg.Value.PathData, `Whatwg.Svg.Value.Points, `Whatwg.Svg.Value.ViewBox,
+    `Whatwg.Svg.Value.Transform, `Whatwg.Svg.Value.TransformList]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
-      `Whatwg.Svg.Value.Syn.read_sound, `Whatwg.Svg.Value.Syn.print_matches],
-    .modules [`WhatwgTest.Svg.Grammar]]
+      `Whatwg.Svg.Value.Syn.read_sound, `Whatwg.Svg.Value.Syn.print_matches,
+      `Whatwg.Svg.Value.Grammar.read_print, `Whatwg.Svg.Value.Grammar.check_print,
+      `Whatwg.Svg.Value.Grammar.print_injective, `Whatwg.Svg.Value.Grammar.matches_of_check,
+      `Whatwg.Svg.Value.Decimal.isReduced_reduce, `Whatwg.Svg.Value.Decimal.reduce_of_isReduced,
+      `Whatwg.Svg.Value.Decimal.same_reduce, `Whatwg.Svg.Value.Decimal.same_iff_reduce],
+    .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
+      `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform]]
 
 /-- The ledger: the twelve graphs of slices A and B and the graph
 `SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9), the

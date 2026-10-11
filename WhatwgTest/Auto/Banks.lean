@@ -25,4 +25,14 @@ example {α : Type} [Universe α] {m n k : Mask α} (h : m.subset n = true) {a :
   fail_if_success aesop
   aesop (rule_sets := [Whatwg.Mask])
 
+/-! ## `Whatwg.Syn` -/
+
+open Whatwg.Svg.Value in
+-- Control: a description of typed parts, as in `Decimal.syn_total`. The default rule set does
+-- not know that each form of a description keeps totality, so the search fails without the
+-- clause and closes with it.
+example : (Syn.seq sign.opt natural).Total := by
+  fail_if_success aesop
+  aesop (rule_sets := [Whatwg.Syn])
+
 end WhatwgTest.Auto.Banks

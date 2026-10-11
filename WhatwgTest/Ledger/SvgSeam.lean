@@ -8,12 +8,14 @@ R-W6). The graph opened at slice S3b of `docs/SVG-PACKAGE-PLAN.md`, when the che
 admitted a tree that holds `svg`. Every ground names a theorem, a declaration or a module of
 the built tree, and each open item is a slice of that plan or a named gap.
 
-The fence is the ten modules of `Whatwg/Svg/` that declare a constant. The seam's own three
-modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt D57):
-this entry cites their theorems and does not fence them.
+The fence is the eleven modules of `Whatwg/Svg/` that declare a constant and are no value
+grammar: the ten of the schema and the position, and `Value/Attribute`, which says which
+grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`. The seam's
+own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
+D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4 and R-S9 to R-S14 of `COORDINATION.md` name this graph and
-change no edge's status, so the entry acknowledges the seven.
+No edge is closed. Rulings R-S4, R-S9 to R-S14 and R-S16 of `COORDINATION.md` name this graph
+and change no edge's status, so the entry acknowledges the eight.
 -/
 
 namespace WhatwgTest.Ledger
@@ -26,8 +28,8 @@ def svgSeam : Graph where
   fence := [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask, `Whatwg.Svg.Data.NameTable,
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
-    `Whatwg.Svg.Content.Context]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14"]
+    `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -48,16 +50,18 @@ def svgSeam : Graph where
       status := .requiredOpen
       remaining := [
         .named "a sentence of an SVG chapter that narrows a content model is not read, apart from the four readings of ruling SV-4",
-        .named "an attribute's value is not judged (slice S4)",
+        .named "`validIn` reads no SVG value: the value judgment `valuesOk` is a second algebra of the walk, beside the checker (ruling SV-30)",
+        .named "an attribute with no grammar takes any text: a length, a colour, a paint and a URL are not judged",
         .debt "D57"]
       grounds := [.declarations [`Whatwg.Html.Content.check, `Whatwg.Html.Content.validIn,
         `Whatwg.Html.Content.Pos.elementOk, `Whatwg.Svg.Content.Ctx.admits,
-        `Whatwg.Svg.Content.boundsOk, `Whatwg.Svg.Content.attrOk]]
-      note := "`validIn` is the run of the Boolean algebra `check` from an HTML position; the HTML checker's own fidelity to the standard is the HTML package's open edge." }
+        `Whatwg.Svg.Content.boundsOk, `Whatwg.Svg.Content.attrOk, `Whatwg.Svg.Value.valueOk,
+        `Whatwg.Html.Content.valuesWalk, `Whatwg.Html.Content.valuesOk]]
+      note := "`validIn` is the run of the Boolean algebra `check` from an HTML position, and `valuesOk` the run of `valuesWalk` over the namespace alone; the HTML checker's own fidelity to the standard is the HTML package's open edge." }
     laws := {
       status := .requiredOpen
       remaining := [
-        .named "the grammars of slices S4b and S4c: each owes the premise of the retraction, which the leaf `SVG-LF-GRAMMAR` proves once"]
+        .named "node V3b: the reader takes the longest match, as the sealed path grammar asks, and no theorem states that reading as a relation; a text of the expression that the reader refuses is in each grammar's battery"]
       grounds := [.theorems [`Whatwg.Svg.Data.Universe.forall_of_all,
         `Whatwg.Svg.Data.Mask.mem_union, `Whatwg.Svg.Data.Mask.mem_inter,
         `Whatwg.Svg.Data.Mask.mem_diff, `Whatwg.Svg.Data.Mask.mem_ofList,
@@ -70,19 +74,24 @@ def svgSeam : Graph where
         `Whatwg.Html.Content.validIn_svg, `Whatwg.Html.Content.no_svg_tag_breaks_out,
         `Whatwg.Html.Walk.relate, `Whatwg.Html.Content.Pos.isNone_refuse?,
         `Whatwg.Html.Content.explain_none_iff, `Whatwg.Html.Content.explainAt_path,
-        `Whatwg.Html.Print.decode_render, `Whatwg.Html.Print.renderIn_text_no_delim_of_svg]]
-      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law." }
+        `Whatwg.Html.Print.decode_render, `Whatwg.Html.Print.renderIn_text_no_delim_of_svg,
+        `Whatwg.Html.Content.isNone_explainValuesAt, `Whatwg.Html.Content.explainValues_none_iff,
+        `Whatwg.Html.Content.check_valueText, `Whatwg.Html.Content.valueOkByName_valueText]]
+      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, and V5 says that the text of a typed value passes its attribute's check with no evaluation." }
     representation := {
       status := .requiredOpen
       remaining := [
-        .named "the value grammars of slices S4b and S4c: the number, path data, `points`, `viewBox` and `transform`"]
-      grounds := [.theorems [`Whatwg.Svg.Data.NameTable.read_exact,
+        .named "the length: no grammar, and no slice of the plan holds it (debt D89)"]
+      grounds := [.theorems [`Whatwg.Svg.Value.valueOk_d, `Whatwg.Svg.Value.valueOk_points,
+        `Whatwg.Svg.Value.valueOk_viewBox, `Whatwg.Svg.Value.valueOk_transform,
+        `Whatwg.Svg.Value.valueOk_gradientTransform, `Whatwg.Svg.Value.valueOk_patternTransform,
+        `Whatwg.Svg.Data.NameTable.read_exact,
         `Whatwg.Svg.Data.NameTable.read_chars, `Whatwg.Svg.Schema.Tag.ofChars?_chars,
         `Whatwg.Svg.Schema.Tag.ofChars?_exact, `Whatwg.Svg.Schema.Attr.ofChars?_chars,
         `Whatwg.Svg.Schema.Attr.ofChars?_exact, `Whatwg.Html.Content.restore_tag,
         `Whatwg.Html.Content.restore_attr, `Whatwg.Html.Print.decodeNode?_render,
         `Whatwg.Html.Print.renderChars_injective_of_wf, `Whatwg.Html.Print.render_injective_of_wf]]
-      note := "The two name tables are exact embeddings (N1), the tree construction's tables restore every schema name from its lower-case form (N2), and the printer is an exact embedding of the well-formed trees, with SVG subtrees or without (P1, P3)." }
+      note := "The two name tables are exact embeddings (N1), the tree construction's tables restore every schema name from its lower-case form (N2), and the printer is an exact embedding of the well-formed trees, with SVG subtrees or without (P1, P3). Each of the six attributes with a grammar admits the text of every typed value of that grammar (V2 at the attribute); the grammars themselves are the leaf `SVG-LF-GRAMMAR`." }
     counterexamples := {
       status := .requiredOpen
       remaining := [
@@ -96,13 +105,14 @@ def svgSeam : Graph where
       note := "The graph emits no target code; the text the printer writes is under the representation edge." }
     trust := {
       status := .requiredOpen
-      remaining := [.named "the modules of slices S4b and S4c, which do not exist yet"]
+      remaining := [.named "`html!` runs a literal SVG value through its grammar and refuses a bad one, with no proof: the kernel cannot open a long `String` at a bearable cost, so the tree's type carries no evidence of its values (debt D92)"]
       grounds := [.modules [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
-        `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk, `Whatwg.Html.Schema.Foreign,
-        `Whatwg.Html.Content.Explain, `Whatwg.Html.Print.Render, `WhatwgTest.Svg.Schema,
-        `WhatwgTest.Svg.Context, `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain,
-        `WhatwgTest.Html.SvgPrint, `WhatwgTest.Html.SvgMarkup], .gate .build]
+        `Whatwg.Svg.Value.Attribute, `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk,
+        `Whatwg.Html.Schema.Foreign, `Whatwg.Html.Content.Explain, `Whatwg.Html.Content.Values,
+        `Whatwg.Html.Print.Render, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
+        `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain, `WhatwgTest.Html.SvgPrint,
+        `WhatwgTest.Html.SvgMarkup, `WhatwgTest.Html.SvgValues], .gate .build]
       note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen

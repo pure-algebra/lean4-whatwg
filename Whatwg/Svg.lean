@@ -9,6 +9,13 @@ import Whatwg.Svg.Schema.Readings
 import Whatwg.Svg.Schema.Universe
 import Whatwg.Svg.Content.Context
 import Whatwg.Svg.Value.Grammar
+import Whatwg.Svg.Value.Number
+import Whatwg.Svg.Value.Cohort
+import Whatwg.Svg.Value.Path
+import Whatwg.Svg.Value.Points
+import Whatwg.Svg.Value.ViewBox
+import Whatwg.Svg.Value.Transform
+import Whatwg.Svg.Value.Attribute
 
 /-!
 # Whatwg.Svg
@@ -29,9 +36,12 @@ The library has four layers:
 - `Whatwg.Svg.Content.Context` is the position in an SVG subtree, its transition, and the
   judgments of one node;
 - `Whatwg.Svg.Value.Grammar` is the one description that reads and prints an attribute value,
-  with its retraction and the soundness of its reader proved once (slice S4a).
+  with its retraction and the soundness of its reader proved once (slice S4a). Each grammar is
+  one value of it: `Number` (the number and the separators), `Path`, `Points`, `ViewBox` and
+  `Transform` (slices S4b and S4c). `Cohort` holds the law of a number's canonical value, and
+  `Attribute` says which grammar judges which attribute.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
-HTML tree is in `Whatwg.Html`; the grammars of the attribute values open at slice S4b.
+HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.
 `generated/svg-dangling.tsv` lists the names the definitions cite and never declare.
 -/

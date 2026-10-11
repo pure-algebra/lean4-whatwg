@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgHtml rows=4583 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgHtml rows=4625 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 Lean.Parser.Category.htmlAttr	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5f6347cce89be52c68443da16122aa64f8658af294659be40d9cec0b01a646d3	-	-	-	-	-	-	-	-
 Lean.Parser.Category.htmlName	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5f6347cce89be52c68443da16122aa64f8658af294659be40d9cec0b01a646d3	-	-	-	-	-	-	-	-
@@ -431,8 +431,11 @@ Whatwg.Html.Content.Ns.ctorIdx	Whatwg.Html.Svg	definition	generated	0	2f4bbe8968
 Whatwg.Html.Content.Ns.html	Whatwg.Html.Svg	constructor	authored	0	18dece1a69f5a92537b657ebc82809c0adf654a9b5756686f01de5dc6b1a19a8	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.html.elim	Whatwg.Html.Svg	definition	authored	1	37ec8cb5072336d21f0d2b2148ab476acb88a47e8209a6c972f93f548685c243	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.html.sizeOf_spec	Whatwg.Html.Svg	theorem	generated	0	11e53b37173848efad5db6960a97cc5410cc94dd56e1aa2bd15b9bb100376a3a	-	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.isNone_valuesReason?	Whatwg.Html.Content.Values	theorem	authored	0	2b82dc02001310256a8c2c12493e26d8f7ef2494e0e5f2128a91cd9531d475b9	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.noConfusion	Whatwg.Html.Svg	definition	authored	1	1fe2dc6480b26c03e92722bdefffc75a67bbcd6301f4c2d4ce76dc755f53ea0c	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.noConfusionType	Whatwg.Html.Svg	definition	generated	1	15200d9d18e7c46c190a92510c7e547f304045d75bbf0495bea5e4b7be7ef3af	-	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.ofElement	Whatwg.Html.Content.Values	definition	authored	0	bce0494badd9c07890d784a742bc63a697de03e1c3ff54c1ab3058254b5f2f03	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.ofElement.match_1	Whatwg.Html.Content.Values	definition	generated	1	d056c6cdd8375b80193fc0308984a541bb5abd53d9d3e747ffdf4490709322ab	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.ofNat	Whatwg.Html.Svg	definition	generated	0	da133212fc787f6d24be6c5827f6ddf2527d732fa7894bb55c1438d9409d23a5	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.ofNat_ctorIdx	Whatwg.Html.Svg	theorem	generated	0	f8d8d79b30b603956d6318657c0ef753e11587bfb23d2ddbe3bbf05d5f11624c	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.rec	Whatwg.Html.Svg	recursor	authored	1	299e98bb1be9e78b57b569b2200bb97082d8785a11d6ce7c2b04973f55ac6035	-	-	-	-	-	-	-	-
@@ -448,6 +451,12 @@ Whatwg.Html.Content.Ns.svg	Whatwg.Html.Svg	constructor	authored	0	18dece1a69f5a9
 Whatwg.Html.Content.Ns.svg.elim	Whatwg.Html.Svg	definition	authored	1	bbf89133b1d5eaa89293d2a09ca911b23c0114eac0affdaa93b2576c490d8746	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.svg.sizeOf_spec	Whatwg.Html.Svg	theorem	generated	0	811b4a3d90d325414ba3e47d1029abeda0fb96b4e498c1628e16af95fc471898	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Ns.toCtorIdx	Whatwg.Html.Svg	definition	generated	0	2f4bbe8968da27ed8adec3e54b209c2c0bcc72bc12681720a363243c5a253d85	-	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.valuesOk	Whatwg.Html.Content.Values	definition	authored	0	33c318ecef0c96da748a0e686db2df15f5d0241d5c8de240687f4a63b5503448	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.valuesOk.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	ee582566275302bf00934b372272f4569fd2cb225680363c8f8cedde38d80372	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.valuesOk.match_1	Whatwg.Html.Content.Values	definition	generated	1	d24afe6affc2f123e11ac6f14515685e2d02927bd00759c6173320c597a311be	-	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.valuesOk_svg	Whatwg.Html.Content.Values	theorem	authored	0	987e50009d8c31b001317aafbf4dbe279f3253a126ba29f2c79933bb04194e7e	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.valuesReason?	Whatwg.Html.Content.Values	definition	authored	0	baeb7993a1c7b789bb4892ce7e1247038fd64a51e78880226463749d2274d6c2	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.Ns.valuesReason?.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	ea410174a940ff7acc3c0432345b0ad7b456e081210f3cfa59bfa3dd17584bd7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.Pos	Whatwg.Html.Svg	inductive	authored	0	50bdba2d5863881f005509db232fe17f42bf02f6331fd501f1607c7d6004b6f7	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Pos.casesOn	Whatwg.Html.Svg	definition	authored	1	bd21e38f518c3e146ae52f1fc826b962b43dd8537dd5e3a2b99b94fc796c8635	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.Pos.child	Whatwg.Html.Svg	definition	authored	0	6842ce9905c7760aa8cf0d8131754778cba0e43816a77188727cac00e8e96d55	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -691,6 +700,7 @@ Whatwg.Html.Content.cats_scriptSupporting_subset_phrasing	Whatwg.Html.Content.La
 Whatwg.Html.Content.cats_sectioning_subset_flow	Whatwg.Html.Content.Lattice	theorem	authored	0	09fb2f8cf9ea141bc5475eb0f772ad52e2e86617e614467848c17d61ec11b8e3	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.check	Whatwg.Html.Content.Valid	definition	authored	0	c3b911db5842205006331cdd8d4dfeb5bda2f1ca0dd059664ff60fbed9c327cd	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.check.eq_1	Whatwg.Html.Content.Valid	theorem	generated	0	fc0855f8615dc501f1537b3e6312c3f717ab26f5e005f0674cf283e0db909f11	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.check_valueText	Whatwg.Html.Content.Values	theorem	authored	0	90114e034a9a84d35d44918cd7b5be0f4ec9a617abc2440b101ebf6682fc3509	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.childTags	Whatwg.Html.Content.Sequence	definition	authored	0	60fc699f714a42b68303afbd59587948331be7eae597c9b4ee223eec8ea22659	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.child_base_transparent	Whatwg.Html.Content.Context	theorem	authored	0	689a1f3d4885bf417fb56cd268509079a31c3bc656257165c17077412c6a6b81	propext	-	-	-	-	-	-	-
 Whatwg.Html.Content.child_excl_le	Whatwg.Html.Content.Context	theorem	authored	0	18877c4397930e316efd0ddaeb123e50a03050a6e1ef97b871c6962506112588	propext	-	-	-	-	-	-	-
@@ -706,6 +716,12 @@ Whatwg.Html.Content.explain.eq_1	Whatwg.Html.Content.Explain	theorem	generated	0
 Whatwg.Html.Content.explainAt	Whatwg.Html.Content.Explain	definition	authored	0	28c26c8cdd45f80bac4c1ee82f9a847b7a2806165be3f8332f211106ea8b915c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.explainAt_path	Whatwg.Html.Content.Explain	theorem	authored	0	ee8616e82d100bf724e03980a53656a47f9e53585074c435b774d51c9b909aeb	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.explainAt_path.match_1_9	Whatwg.Html.Content.Explain	definition	generated	0	b8a95bf65737ff2da7452d5e3e21a4ea70c2a7fbce3780b23d54ea0408740440	-	-	-	-	-	-	-	-
+Whatwg.Html.Content.explainValues	Whatwg.Html.Content.Values	definition	authored	0	227b06f60170e5d8ca921ff7d1836851d79a90e291194d85cb0822837bb2cd1f	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.explainValues.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	8f2f88f8e14a4739b7bc4885234d94aee337884dc4e8e7db84ea03f7ed1e4892	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.explainValuesAt	Whatwg.Html.Content.Values	definition	authored	0	64891aa516dbdc8575d18ce7cf91bcd3c8f730132ee45afd93e91105bc022900	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.explainValuesWalk	Whatwg.Html.Content.Values	definition	authored	0	78131880ff895dbda9d7386e758546409acdae533b96623964a41b64b68fdc8f	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.explainValuesWalk.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	eba289c243e60939a5865d338582f7590b34f1faebf01d3f4d0853a3b584a871	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.explainValues_none_iff	Whatwg.Html.Content.Values	theorem	authored	0	81ea63a3ca45d73b7d90f9caf9cf7fee321f39055a128efb8b96df71f4826e5b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.explainWalk	Whatwg.Html.Content.Explain	definition	authored	0	96f88d08d980c168451aab098c81302a98ebebec672584b03aa24266897f4d4e	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.explainWalk.eq_1	Whatwg.Html.Content.Explain	theorem	generated	0	b80fc3d4167ae96d252ebd9542ea0b23148bed6c9ac2b36af1b4751cc5be622b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.explain_none_iff	Whatwg.Html.Content.Explain	theorem	authored	0	7f8179e2b476c7f0e8338f96b972a3de9e67ac48762cc7549b1ef60dcc1db17e	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -792,6 +808,7 @@ Whatwg.Html.Content.isIntegrationName_of_unknown	Whatwg.Html.Svg	theorem	authore
 Whatwg.Html.Content.isIntegrationName_of_unknown.match_1_1	Whatwg.Html.Svg	definition	generated	0	78d85644fb9d85dbc499cbf458f7e803b8a3c15c1747d87d374725666de0fc0a	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_attrsReason?	Whatwg.Html.Content.Explain	theorem	authored	0	b0bc7a5fc48bd05c1368dfe00ac860c3cf2afed0fb73e49c27f37bff98c0f6ec	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_explainAt	Whatwg.Html.Content.Explain	theorem	authored	0	29274bc064f20a35ec0a68cdd62a9535841db03f9edfd631520fe5e313f4fe9c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.isNone_explainValuesAt	Whatwg.Html.Content.Values	theorem	authored	0	68aef74392de155f4b95c9b275d850d0f61d0086081f40a3c106ec7018105a25	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_firstFault	Whatwg.Html.Content.Explain	theorem	authored	0	1fd1990b5873035f2ceba152d3a4c6bb508d612a69d70d8a046f2c75f0014ea0	propext	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_firstFault.match_1_1	Whatwg.Html.Content.Explain	definition	generated	0	cc39d1e695d2c699a5787d29513f1e0b9e8f250ae531236a4130ac04df7c5681	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_firstRefusal	Whatwg.Html.Content.Explain	theorem	authored	0	75a191f4176b42829c17c557072e0626dc273b91dc0856d2a3d6204f05335b6c	propext	-	-	-	-	-	-	-
@@ -801,6 +818,7 @@ Whatwg.Html.Content.isNone_here	Whatwg.Html.Content.Explain	theorem	authored	0	7
 Whatwg.Html.Content.isNone_orElse	Whatwg.Html.Content.Explain	theorem	authored	0	43ae75f01a91cf0881546195734a913ac324d533e0a66c61d67407654174e5d1	-	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_svgAttrsReason?	Whatwg.Html.Content.Explain	theorem	authored	0	01d8104d586192c724d80d0a06f283283dad6cd4a3a553b4dc5e44b61f31c6b1	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.isNone_svgElementReason?	Whatwg.Html.Content.Explain	theorem	authored	0	74ceef9c6bfe8a5280f23e0521759ee70bcfb89da12670541a2000c50556d622	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.isNone_svgValuesReason?	Whatwg.Html.Content.Values	theorem	authored	0	4855a59ec035ab5c056820406105500e1140cff446e3c2766fd0fbe227b8a2a7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.isPrefixed	Whatwg.Html.Content.Valid	definition	authored	0	c54117b8df0b22432452b191be7b5ccd7d57adf00b6854de77a4fb8fbac8a9c5	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.lowerChars	Whatwg.Html.Svg	definition	authored	0	9049c3ed08ad7fec065f1b75836a90fd7d722f0492d521908fd5908883a6ac41	propext	-	-	-	-	-	-	-
 Whatwg.Html.Content.namespaceAttrOk	Whatwg.Html.Content.Valid	definition	authored	0	fe2e4625e03dae196a5ca51e988e2f1ab292a0259060be44b82f8c237c05d303	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -838,7 +856,12 @@ Whatwg.Html.Content.svgElementOk	Whatwg.Html.Content.Valid	definition	authored	0
 Whatwg.Html.Content.svgElementOk.eq_1	Whatwg.Html.Content.Explain	theorem	generated	0	665ea9964cfb8af675c05645a5f6b919e0216708740f1d4dc529d8a240d5097d	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.svgElementReason?	Whatwg.Html.Content.Explain	definition	authored	0	1a1f04eb80be087c130a6f06bb4c5822be18fb3b6a31af4b6c47058bc559e090	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.svgElementReason?.eq_1	Whatwg.Html.Content.Explain	theorem	generated	0	eefd5847dab0dd37b63ab4a74c0af00a1f264736c5e6c692b101f4438c500d43	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.svgValuesOk	Whatwg.Html.Content.Values	definition	authored	0	1cf9bc3db0cc44d9a5902894d2afcb927cd32e1da73c0e2332c2fc21ffb738c8	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.svgValuesOk_cons	Whatwg.Html.Content.Values	theorem	authored	0	20258da2eb49a5496bbd3279785f6fe4fa27515048659f417af1c8eca939df83	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.svgValuesOk_nil	Whatwg.Html.Content.Values	theorem	authored	0	118307533638a628a106e0b215e98c550fe0d0b190121de3cdb532f2cdd8b1dd	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.svgValuesReason?	Whatwg.Html.Content.Values	definition	authored	0	678c40ab4850d0529dd1aa0e79ba3ca893ab654cc015c3a7824d02b4161330b0	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.text_eq	Whatwg.Html.Content.Lattice	theorem	authored	0	c5c7f59d7b6e6913a9c4e1a898c26f2e828d93b0af8fe05294d7c07e37cb2729	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.toList_valueText	Whatwg.Html.Content.Values	theorem	authored	0	14f89f6cc07299714c4eeecfee13db9528b0f3d2089dc95db9c8ff90d121cce8	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.validAll	Whatwg.Html.Content.Valid	definition	authored	0	fcd928e8b47f777c1d4464c0036226a208e17c3c84ecf95a1f69aab08a57fccc	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.validAll.eq_1	Whatwg.Html.Content.Valid	theorem	generated	0	69f05a96711ad6d51d7abb420c9b8de3e74192170e7f2e5e43560a60fb93ea6d	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.validAllAt	Whatwg.Html.Content.Valid	definition	authored	0	9a31f3cc8da0bc01cc840f3db3f0d9bea9fd63c3f027a9a93a3930bbc9081c17	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -866,8 +889,27 @@ Whatwg.Html.Content.validIn_unknown	Whatwg.Html.Content.Valid	theorem	authored	0
 Whatwg.Html.Content.valueOk	Whatwg.Html.Content.Valid	definition	authored	0	b172706a9569a9c75e0b268b0d063e9e743655c22aa33b9b927691e1f99f369d	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.valueOk.match_1	Whatwg.Html.Content.Valid	definition	generated	1	1aad592f0e871aca5cfbd430bb2d04c8884afee47d7eecedf99905a943add489	propext	-	-	-	-	-	-	-
 Whatwg.Html.Content.valueOk.match_5	Whatwg.Html.Content.Valid	definition	generated	1	6ccf0c6b09c7137108d361cff7ce3a854d69b389515e0674a1076db667676793	-	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_d	Whatwg.Html.Content.Values	theorem	authored	0	f726ab5da5a853027c1412d113392dde2de273c7f2bbeae9e4385e8195a8a1b2	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_gradientTransform	Whatwg.Html.Content.Values	theorem	authored	0	0da37338238cfd7fb1fb621ef675320f09f7fc0bc435aa84cf149182467f9afc	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_patternTransform	Whatwg.Html.Content.Values	theorem	authored	0	6de744cb2f470424f83fb9bb471153c619ec490e0efd736b5d8cbced27915e6b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_points	Whatwg.Html.Content.Values	theorem	authored	0	c4018cd7e3add1856692e6c36fe28080cdd1ba3a188db4872b6fd9a8ff3a9890	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_transform	Whatwg.Html.Content.Values	theorem	authored	0	f608b239e4416a49aa6d2c261d5b36e32a257d1d1814fa18594fea4818f9d8c1	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_valueText	Whatwg.Html.Content.Values	theorem	authored	0	fe5b904bd3d048359f1650de68b5cfeeed7c048be9dc4c0b010640bf1c653327	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueOkByName_viewBox	Whatwg.Html.Content.Values	theorem	authored	0	5924ed54ee14842f85486ac111b0077199060597657ca606299d69ce1d37d35f	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.valueProblem?	Whatwg.Html.Content.Valid	definition	authored	0	4426faceedfb05805efe0f1edf9466874a7e9d6fb6d5e486bc1a7b68992ea531	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.valueProblem?.match_1	Whatwg.Html.Content.Valid	definition	generated	1	b170fe55eb8a1c3d74d8e98b4ce89089514e5a3310f73ea2fa28e55ca4d90c78	propext	-	-	-	-	-	-	-
+Whatwg.Html.Content.valueText	Whatwg.Html.Content.Values	definition	authored	0	aef0107f7ab2e0d1032a729ba6a870f5529549c248637cb3b03ff02b41eca22b	propext	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAllAt	Whatwg.Html.Content.Values	definition	authored	0	a0ce756e845ec9a038936f822249ef454a104fc6a972d96d2e44fe8f04ed89e3	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAllAt.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	f412ea6d7e8c896f592688324c88496e439c95dd34802b00656183f0c7a51f77	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAllAt_cons	Whatwg.Html.Content.Values	theorem	authored	0	7d76bcffac9d9006fff1fb70deaa20fe407bb5c218b36820f6a922bdddf66ac1	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAllAt_nil	Whatwg.Html.Content.Values	theorem	authored	0	4905418490470536a16a279c2516f9ad8e930d9012ad380b7488ca90d4dda483	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAt	Whatwg.Html.Content.Values	definition	authored	0	c0e7d36322057442ead4676ae53006cdd6c79258168c9d72e4116e474a2f8fde	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAt.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	c81099b07b1de46fa9aff6a226bc615161f394f2987a52f1e18b0125b6495f0a	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAt_element	Whatwg.Html.Content.Values	theorem	authored	0	29be9722cffddaa6025abcf465af2ac95121c58085ca13a98437b5f7ac4cd055	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesAt_text	Whatwg.Html.Content.Values	theorem	authored	0	4765ba3c425617b7da5d13a8b8f648fd0b5827295a30c7c4cf31c0da850671b9	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesOk	Whatwg.Html.Content.Values	definition	authored	0	ff75d78f7ff824e99db87577d7b8787e028aa5b7c04a014125faf5875b78ad95	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesWalk	Whatwg.Html.Content.Values	definition	authored	0	32bdeaf0de2645c25514545b4a38f567ad6b3bd3ae2ecb69c01cfa247a0a0669	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Content.valuesWalk.eq_1	Whatwg.Html.Content.Values	theorem	generated	0	614960faea1cd7522c1aa75d35f2c853f4eae871c14c7702ca4e88385c60a44c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.void_br	Whatwg.Html.Content.Lattice	theorem	authored	0	8e2d24f71aa158e573788c699b5c0d728602a847acb8d1f0a4cb6ede651f3c03	propext	-	-	-	-	-	-	-
 Whatwg.Html.Content.void_child_admitsWith_none	Whatwg.Html.Content.Context	theorem	authored	0	ef71d50c7acbe8785ac877a18202b42c84cc81c9ad8f1eada234798b1c071149	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.void_child_admits_none	Whatwg.Html.Content.Context	theorem	authored	0	c5d5fca57f90bfc576eb2afaf23db6ffc892fbfe6cb13512acba01dbeff680c2	propext,Quot.sound	-	-	-	-	-	-	-
@@ -4478,8 +4520,8 @@ Whatwg.Html.Syntax.elabHtml	Whatwg.Html.Syntax.Elaborator	definition	authored	0	
 Whatwg.Html.Syntax.elabHtml.match_1	Whatwg.Html.Syntax.Elaborator	definition	generated	1	6a778d770e82770500e6cec6e621c821fea79a4f482da26979023e5bc0be0580	propext	-	-	-	-	-	-	-
 Whatwg.Html.Syntax.elabHtml.match_3	Whatwg.Html.Syntax.Elaborator	definition	generated	1	63c5e3bb1a97438eb20d67d4d86f285747efc6fa2f59ec650e2a655396cba1c2	propext	-	-	-	-	-	-	-
 Whatwg.Html.Syntax.exclExpr	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5a78945bc34d8ddc4e3d5b0ca63012e5deebc98edda86cfdefb3dec8b2d8c914	propext	-	-	-	-	-	-	-
-Whatwg.Html.Syntax.foreignAttrs	Whatwg.Html.Syntax.Elaborator	definition	authored	0	7309f8fc48d24495169e6b278d28fe03a2c05834ed10f36b8015e814dc4fca94	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
-Whatwg.Html.Syntax.foreignAttrs.match_1	Whatwg.Html.Syntax.Elaborator	definition	generated	1	82e258c7d87196fa5f234728befcfbfba5940dac0b1e63d63a4785d3b50d6f70	-	-	-	-	-	-	-	-
+Whatwg.Html.Syntax.foreignAttrs	Whatwg.Html.Syntax.Elaborator	definition	authored	0	d2a1e1e310168d8d53b16b563e49d8f523bb1a3c69139cb0bc90ae9b0db9f752	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Syntax.foreignAttrs.match_1	Whatwg.Html.Syntax.Elaborator	definition	generated	1	6249e741b1f0b5f7e1a62ec45746c244f811d20c9c0cdd75013a2c530686e01c	-	-	-	-	-	-	-	-
 Whatwg.Html.Syntax.foreignChild	Whatwg.Html.Syntax.Elaborator	definition	authored	0	79db68114fdc042ff53d5a1bea4b95d0e0e8f5b0c98f23c0654463824bbb4da7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Syntax.foreignChild.match_1	Whatwg.Html.Syntax.Elaborator	definition	generated	1	726752314d537662f9bedad56ef78b024d06e3ac52cf857ef92f2e1123df58ab	propext	-	-	-	-	-	-	-
 Whatwg.Html.Syntax.foreignName?	Whatwg.Html.Syntax.Elaborator	definition	authored	0	ff936551b63c93436fb4059720efaa41ffc835662e738292504b8f6f21f2d3be	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-

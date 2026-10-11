@@ -171,6 +171,7 @@ def extensionAllowlist : List ExtensionAllowlistEntry :=
   -- trust-selftest: extension-allowlist entries are inserted below this line
   ⟨"Whatwg.Mask", "proof search: the rules of the Aesop bank Whatwg.Mask of the listed module Whatwg.Auto.RuleSets; a proof asks for the bank by name, and the term the search builds is kernel-checked and audited"⟩ ::
   ⟨"«aesop_Whatwg.Mask»", "proof search: the simp lemmas of the Aesop bank Whatwg.Mask; every rewrite simp makes is a proof the kernel checks"⟩ ::
+  ⟨"Whatwg.Syn", "proof search: the rules of the Aesop bank Whatwg.Syn of the listed module Whatwg.Auto.RuleSets; a proof asks for the bank by name, and the term the search builds is kernel-checked and audited"⟩ ::
   ⟨"_private.Lean.ExtraModUses.0.Lean.isExtraRevModUseExt", "bookkeeping: marks a module whose initializer its importers depend on, today the rule banks of the listed module Whatwg.Auto.RuleSets; Lean reads it to record import dependencies, and the kernel never reads it"⟩ ::
   ⟨"Lean.Compiler.LCNF.UnreachableBranches.functionSummariesExt", "compiler metadata: the dead-branch analysis's summary of each compiled function, read by the code generator only"⟩ ::
   ⟨"Lean.Compiler.LCNF.baseExt", "compiler metadata: each compiled function's LCNF body in the base phase, read by the code generator only"⟩ ::

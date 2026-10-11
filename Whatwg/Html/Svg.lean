@@ -1,6 +1,7 @@
 import Whatwg.Html.Content.Context
 import Whatwg.Html.Schema.Foreign
 import Whatwg.Svg.Content.Context
+import Whatwg.Svg.Value.Attribute
 
 /-!
 # Whatwg.Html.Svg

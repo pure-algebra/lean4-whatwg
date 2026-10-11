@@ -98,9 +98,12 @@ nothing else in the audited trees imports `Aesop` for its rules.
   control in `WhatwgTest/Auto/Banks.lean`, where the search without the clause
   fails. The control omits the clause; it never writes `-X`. A bank with no
   rule is deleted, and it returns with the lemma that needs it.
-- A bank is two environment extensions, `X` and `«aesop_X»`. The executable
-  trust gate refuses a registration until `extensionAllowlist` of
-  `WhatwgGates/TrustConfig.lean` names both, each with its reason.
+- A bank is two environment extensions: `X` holds its rules, and `«aesop_X»`
+  its simp lemmas. The executable trust gate refuses a registration until
+  `extensionAllowlist` of `WhatwgGates/TrustConfig.lean` names the extension
+  it writes to, with its reason. It also refuses an entry that no registration
+  uses: `Whatwg.Syn` holds rules and no simp lemma, so the list names `Whatwg.Syn`
+  alone.
 - Two instruments measure, and neither is a gate. `#whatwg_auto_census
   Some.Module using aesop` reports which theorems of a module the search closes
   from their statements. `#whatwg_bank_census` reports what each bank holds and

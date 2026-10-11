@@ -16,9 +16,12 @@ the lemma that needs it.
 
 - `Whatwg.Mask`: membership in a mask as a homomorphism into `Bool`
   (`Whatwg/Svg/Data/Mask.lean`).
+- `Whatwg.Syn`: a description of typed parts prints every value, one rule per form of a
+  description (`Whatwg/Svg/Value/Grammar.lean`). A grammar registers the totality of each
+  description it names.
 
 The declaration registers one environment extension and one simp extension per bank. It runs
 no proof and states no law.
 -/
 
-declare_aesop_rule_sets [Whatwg.Mask]
+declare_aesop_rule_sets [Whatwg.Mask, Whatwg.Syn]

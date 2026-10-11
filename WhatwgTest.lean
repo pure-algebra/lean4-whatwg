@@ -73,9 +73,15 @@ import WhatwgTest.Html.Svg
 import WhatwgTest.Html.Explain
 import WhatwgTest.Html.SvgPrint
 import WhatwgTest.Html.SvgMarkup
+import WhatwgTest.Html.SvgValues
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
+import WhatwgTest.Svg.Number
+import WhatwgTest.Svg.Path
+import WhatwgTest.Svg.Points
+import WhatwgTest.Svg.ViewBox
+import WhatwgTest.Svg.Transform
 import WhatwgTest.Auto.Banks
 import WhatwgTest.Audit.AutoCensus
 import WhatwgTest.Audit.BankCensus

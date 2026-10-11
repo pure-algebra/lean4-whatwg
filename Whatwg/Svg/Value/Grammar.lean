@@ -1,3 +1,5 @@
+import Whatwg.Auto.RuleSets
+
 /-!
 # Whatwg.Svg.Value.Grammar
 
@@ -29,6 +31,12 @@ ASCII is in no set, so no description reads one.
 `Syn.erase` is the regular expression of a description, and `Regex.Matches` its language.
 `Syn.read_sound` is the soundness of the reader (node V3a): what a successful read consumes is
 a text of that language. `Syn.print_matches` says that a printed value is one too.
+
+A `Grammar α` is a description with the two premises: `ok`, and `Syn.Total`, which says that
+every value is printable. A description of typed parts is total, and the bank `Whatwg.Syn`
+holds the rules that say so, one per form. Each value grammar of this package is one value of
+`Grammar`, so its retraction (`Grammar.read_print`), its check law and its soundness are the
+theorems of this module, stated once.
 
 What this module does not claim: that `read` accepts every text of the language (node V3b,
 open). A reader that commits to the longest match refuses a text that a backtracking reader
@@ -831,6 +839,136 @@ theorem print_matches {α : Type} (g : Syn α) : ∀ v : α, g.valid v = true �
   | map to back hlaw a iha => intro v hv; exact iha (back v) hv
   | skip a canonical iha => intro _ hv; exact iha canonical hv
 
+/-! ## Derived descriptions -/
+
+/-- `a`, or nothing. The reader tries `a` first. -/
+def opt {α : Type} (a : Syn α) : Syn (Option α) :=
+  .map (fun v => match v with | .inl x => some x | .inr _ => none)
+    (fun v => match v with | some x => .inl x | none => .inr ())
+    (fun b => by cases b <;> rfl) (.alt a .eps)
+
+/-- `a`, once or more: the first value and the ones after it. -/
+def many1 {α : Type} (a : Syn α) : Syn (α × List α) := .seq a (.many a)
+
+/-- `a`, then a part with nothing to keep. -/
+def left {α : Type} (a : Syn α) (b : Syn Unit) : Syn α :=
+  .map (fun p => p.1) (fun x => (x, ())) (fun _ => rfl) (.seq a b)
+
+/-- A part with nothing to keep, then `b`. -/
+def right {β : Type} (a : Syn Unit) (b : Syn β) : Syn β :=
+  .map (fun p => p.2) (fun y => ((), y)) (fun _ => rfl) (.seq a b)
+
+/-- `a (sep a)*`: `a` once or more, with `sep` before each one after the first. The value is
+the first `a` and the ones after it. -/
+def sepBy1 {α : Type} (a : Syn α) (sep : Syn Unit) : Syn (α × List α) :=
+  .seq a (.many (.right sep a))
+
+/-- The exact text. -/
+def lit : List Char → Syn Unit
+  | [] => .eps
+  | c :: cs => .right (.skip (.one (.single c)) c) (lit cs)
+
+/-! ## Descriptions that print every value -/
+
+/-- Every value is one the description can print. A description of typed parts is total: its
+characters are chosen by `back`, never by the caller. -/
+def Total {α : Type} (g : Syn α) : Prop := ∀ v, g.valid v = true
+
+theorem Total.eps : Syn.eps.Total := fun _ => rfl
+
+theorem Total.seq {α β : Type} {a : Syn α} {b : Syn β} (ha : a.Total) (hb : b.Total) :
+    (Syn.seq a b).Total := fun v => by
+  simp only [valid, ha v.1, hb v.2, Bool.and_self]
+
+theorem Total.alt {α β : Type} {a : Syn α} {b : Syn β} (ha : a.Total) (hb : b.Total) :
+    (Syn.alt a b).Total := fun v => by
+  cases v with
+  | inl x => exact ha x
+  | inr y => exact hb y
+
+theorem Total.many {α : Type} {a : Syn α} (ha : a.Total) : (Syn.many a).Total := fun xs => by
+  simp only [valid]
+  exact List.all_eq_true.mpr fun x _ => ha x
+
+theorem Total.map {α β : Type} {to : α → β} {back : β → α} {h : ∀ b, to (back b) = b}
+    {a : Syn α} (ha : a.Total) : (Syn.map to back h a).Total := fun v => ha (back v)
+
+/-- A part read in any spelling prints every value, when its canonical spelling is printable:
+a description of `Unit` has one value. -/
+theorem Total.of_unit {g : Syn Unit} (h : g.valid () = true) : g.Total := fun _ => h
+
+theorem Total.opt {α : Type} {a : Syn α} (ha : a.Total) : a.opt.Total :=
+  Total.map (Total.alt ha Total.eps)
+
+theorem Total.many1 {α : Type} {a : Syn α} (ha : a.Total) : a.many1.Total :=
+  Total.seq ha (Total.many ha)
+
+theorem Total.left {α : Type} {a : Syn α} {b : Syn Unit} (ha : a.Total) (hb : b.Total) :
+    (a.left b).Total := Total.map (Total.seq ha hb)
+
+theorem Total.right {β : Type} {a : Syn Unit} {b : Syn β} (ha : a.Total) (hb : b.Total) :
+    (a.right b).Total := Total.map (Total.seq ha hb)
+
+theorem Total.sepBy1 {α : Type} {a : Syn α} {sep : Syn Unit} (ha : a.Total) (hsep : sep.Total) :
+    (a.sepBy1 sep).Total := Total.seq ha (Total.many (Total.right hsep ha))
+
+attribute [aesop safe apply (rule_sets := [Whatwg.Syn])]
+  Total.eps Total.seq Total.alt Total.many Total.map Total.opt Total.many1 Total.left Total.right
+  Total.sepBy1
+
 end Syn
+
+/-! ## A grammar -/
+
+/-- A description with the two premises of its laws: one character decides each choice, and
+every value prints. A value grammar of this package is one value of this type, and its reader,
+its printer and its laws are the ones below. -/
+structure Grammar (α : Type) where
+  /-- The description. -/
+  syn : Syn α
+  /-- One character decides each choice: one evaluation. -/
+  ok : syn.ok = true
+  /-- Every value prints. -/
+  total : syn.Total
+
+namespace Grammar
+
+variable {α : Type}
+
+/-- Write the value: one spelling. -/
+def print (g : Grammar α) (v : α) : List Char := g.syn.print v
+
+/-- The value of a whole text, in any spelling the description reads. -/
+def read (g : Grammar α) (s : List Char) : Option α := g.syn.readAll s
+
+/-- The text is a spelling of some value. -/
+def check (g : Grammar α) (s : List Char) : Bool := g.syn.check s
+
+theorem check_eq (g : Grammar α) (s : List Char) : g.check s = (g.read s).isSome := rfl
+
+/-- Node V1 at a grammar, the retraction: a printed value reads back as the value. -/
+theorem read_print (g : Grammar α) (v : α) : g.read (g.print v) = some v :=
+  Syn.readAll_print g.syn g.ok v (g.total v)
+
+/-- Node V2 at a grammar: a printed value passes the check. -/
+theorem check_print (g : Grammar α) (v : α) : g.check (g.print v) = true :=
+  Syn.check_print g.syn g.ok v (g.total v)
+
+/-- The printer is an embedding: two values with one spelling are one value. -/
+theorem print_injective (g : Grammar α) {v w : α} (h : g.print v = g.print w) : v = w := by
+  have hv := g.read_print v
+  rw [h, g.read_print w] at hv
+  exact (Option.some.inj hv).symm
+
+/-- Node V3a at a grammar: a text that passes the check is a text of the language of the
+description's expression. -/
+theorem matches_of_check (g : Grammar α) {s : List Char} (h : g.check s = true) :
+    g.syn.erase.Matches s := Syn.matches_of_check g.syn h
+
+/-- A printed value is a text of that language. -/
+theorem print_matches (g : Grammar α) (v : α) : g.syn.erase.Matches (g.print v) :=
+  Syn.print_matches g.syn v (g.total v)
+
+end Grammar
 
 end Whatwg.Svg.Value

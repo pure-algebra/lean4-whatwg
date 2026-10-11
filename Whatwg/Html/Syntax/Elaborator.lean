@@ -85,10 +85,16 @@ node, with the reason the library gives.
 A name is kept exactly as written: `viewBox` is not `viewbox`. A name that is
 no Lean identifier is a string literal: `"xml:space"`, and `"in"`, `"from"`,
 `"by"` and `"end"`, which are Lean keywords. `<rect />` is an element with no
-child. A spliced attribute value, `x={e}`, is admitted on an SVG element,
-whose values the checker does not read before slice S4. On an HTML element
-below `foreignObject` a value is a literal, and no child is spliced inside an
-SVG subtree.
+child. A spliced attribute value, `x={e}`, is admitted on an SVG element: the
+checker reads no SVG value. On an HTML element below `foreignObject` a value
+is a literal, and no child is spliced inside an SVG subtree.
+
+A literal value of an SVG attribute that has a grammar (`d`, `points`,
+`viewBox` and the three transform attributes) is run through that grammar
+when the tree is built, and a bad one is refused at the attribute's token.
+That run is the elaborator's and not an obligation of the tree: the kernel
+cannot open a long `String` at a bearable cost
+(`Whatwg/Html/Content/Values.lean`). A spliced value is not run.
 
 ## What is not here
 
@@ -296,8 +302,12 @@ def foreignName? (stx : Syntax) : Option String :=
   else none
 
 /-- The attributes of an element in a foreign subtree: the pairs as values and as an
-expression. `spliced` says whether a spliced value is admitted on this element. -/
-def foreignAttrs (spliced : Bool) (stxs : Array Syntax) :
+expression. `isSvg` says that the element is an SVG element. On one, a spliced value is
+admitted, and a literal value is run through its attribute's grammar here
+(`Whatwg.Svg.Value.valueOkByName`) and refused at the attribute's token. That run is the
+elaborator's: the tree's obligation does not read an SVG value
+(`Whatwg/Html/Content/Values.lean`). -/
+def foreignAttrs (isSvg : Bool) (stxs : Array Syntax) :
     TermElabM (List (String × String) × Expr) := do
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
   let mut values : Array (String × String) := #[]
@@ -307,11 +317,15 @@ def foreignAttrs (spliced : Bool) (stxs : Array Syntax) :
     for part in stx[1].getArgs do
       markup := markup ++ "-" ++ nameString part[1]
     let opt := stx[2]
-    let (value, valueE) ← if opt.getNumArgs == 0 then pure ("", mkStrLit "") else
-      match opt[1].isStrLit? with
-      | some s => pure (s, mkStrLit s)
+    let literal? : Option String :=
+      if opt.getNumArgs == 0 then some "" else opt[1].isStrLit?
+    let (value, valueE) ← match literal? with
+      | some s =>
+        if isSvg && !Whatwg.Svg.Value.valueOkByName markup.toList s.toList then
+          throwErrorAt stx (Whatwg.Html.Content.Reason.describe (.attribute markup .value))
+        pure (s, mkStrLit s)
       | none =>
-        if spliced then pure ("", ← elabClosed opt[1][1] (mkConst ``String))
+        if isSvg then pure ("", ← elabClosed opt[1][1] (mkConst ``String))
         else throwErrorAt stx ("html!: the value of `" ++ markup ++
           "` is spliced on an HTML element inside an SVG subtree; write it as a literal")
     values := values.push (markup, value)
