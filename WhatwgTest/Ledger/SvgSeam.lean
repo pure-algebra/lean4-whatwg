@@ -12,8 +12,8 @@ The fence is the ten modules of `Whatwg/Svg/` that declare a constant. The seam'
 modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt D57):
 this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4 and R-S9 to R-S12 of `COORDINATION.md` name this graph and
-change no edge's status, so the entry acknowledges the five.
+No edge is closed. Rulings R-S4 and R-S9 to R-S13 of `COORDINATION.md` name this graph and
+change no edge's status, so the entry acknowledges the six.
 -/
 
 namespace WhatwgTest.Ledger
@@ -27,7 +27,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -39,7 +39,7 @@ def svgSeam : Graph where
     construction := {
       status := .requiredOpen
       remaining := [
-        .named "the `html!` term and the typed tree build no SVG subtree (slice S3e)"]
+        .named "the typed tree has no SVG element: `html!` builds an SVG subtree as one raw literal with one obligation"]
       grounds := [.declarations [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Content.Ctx, `Whatwg.Svg.Content.Ctx.child,
         `Whatwg.Html.Content.Pos, `Whatwg.Html.Content.Pos.child]]
@@ -96,13 +96,13 @@ def svgSeam : Graph where
       note := "The graph emits no target code; the text the printer writes is under the representation edge." }
     trust := {
       status := .requiredOpen
-      remaining := [.named "the modules of slices S3e to S4, which do not exist yet"]
+      remaining := [.named "the modules of slice S4, which do not exist yet"]
       grounds := [.modules [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
         `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk, `Whatwg.Html.Schema.Foreign,
         `Whatwg.Html.Content.Explain, `Whatwg.Html.Print.Render, `WhatwgTest.Svg.Schema,
         `WhatwgTest.Svg.Context, `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain,
-        `WhatwgTest.Html.SvgPrint], .gate .build]
+        `WhatwgTest.Html.SvgPrint, `WhatwgTest.Html.SvgMarkup], .gate .build]
       note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen

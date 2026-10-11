@@ -1,5 +1,6 @@
 import Lean
 import Whatwg.Html.Node.Typed
+import Whatwg.Html.Content.Explain
 
 /-!
 # Whatwg.Html.Node.Admit
@@ -20,6 +21,15 @@ decides only whether to mint the proof or to report. On a false obligation
 the tactic names the element (or text, or attribute) and describes the
 context in prose. When the goal is not of either shape, or is not closed,
 it falls back to `decide`.
+
+Since slice S3e of `docs/SVG-PACKAGE-PLAN.md` the tactic also closes a whole
+tree: a goal `validIn ctx n = true` or `validAll ctx ns = true` over a closed
+raw tree, with SVG subtrees or without. It reads the tree back as a value and
+evaluates the located refusal, `Whatwg.Html.Content.explain`. When the
+refusal is absent it closes the goal with `Eq.refl true`. Otherwise it reports
+the refusal: the node, its path and the reason. `explain_none_iff` says that
+this report is complete: the tactic has something to say exactly when the
+checker refuses.
 -/
 
 namespace Whatwg.Html.Admit
@@ -124,6 +134,42 @@ def rawAttrs? (e : Expr) : MetaM (Option (List (String × String))) :=
     let some v ← str? (p.getArg! 3) | return none
     return some (n, v)) 256 e
 
+/-- A closed raw node as a value, to `fuel` levels of nesting. -/
+def rawNode? : Nat → Expr → MetaM (Option Whatwg.Html.RawNode)
+  | 0, _ => return none
+  | fuel + 1, e => do
+    let e ← whnf e
+    if e.isAppOfArity ``Whatwg.Html.RawNode.element 3 then
+      let some name ← str? (e.getArg! 0) | return none
+      let some attrs ← rawAttrs? (e.getArg! 1) | return none
+      let some children ← list? (rawNode? fuel) 4096 (e.getArg! 2) | return none
+      return some (.element name attrs children)
+    if e.isAppOfArity ``Whatwg.Html.RawNode.text 1 then
+      let some s ← str? (e.getArg! 0) | return none
+      return some (.text s)
+    if e.isAppOfArity ``Whatwg.Html.RawNode.entity 1 then
+      let some s ← str? (e.getArg! 0) | return none
+      return some (.entity s)
+    if e.isAppOfArity ``Whatwg.Html.RawNode.comment 1 then
+      let some s ← str? (e.getArg! 0) | return none
+      return some (.comment s)
+    return none
+
+/-- A node in a few words, for a message. -/
+def nodeWords : Whatwg.Html.RawNode → String
+  | .element name _ _ => "<" ++ name ++ ">"
+  | .text _ => "text"
+  | .entity _ => "an entity"
+  | .comment _ => "a comment"
+
+/-- The message for a located refusal in a tree: the refused node, its path of child indices
+from the root, and the reason. -/
+def refusalMessage (root : Whatwg.Html.RawNode) (refusal : Whatwg.Html.Content.Refusal) : String :=
+  let what := match root.at? refusal.path with
+    | some node => nodeWords node
+    | none => "a node"
+  what ++ " at path " ++ toString refusal.path ++ ": " ++ refusal.reason.describe
+
 def reflTrue : Expr :=
   mkApp2 (mkConst ``Eq.refl [Level.succ Level.zero]) (mkConst ``Bool) (mkConst ``Bool.true)
 
@@ -160,6 +206,23 @@ syntax (name := admitsTactic) "admits" : tactic
   let ty ← instantiateMVars (← goal.getType)
   if ty.isAppOfArity ``Eq 3 then
     let lhs := ty.getArg! 1
+    if lhs.isAppOfArity ``Whatwg.Html.Content.validIn 2 then
+      if let some c ← ctx? 4096 (lhs.getArg! 0) then
+        if let some node ← rawNode? 4096 (lhs.getArg! 1) then
+          if let some refusal := Whatwg.Html.Content.explain c node then
+            throwError refusalMessage node refusal
+          goal.assign reflTrue
+          replaceMainGoal []
+          return
+    if lhs.isAppOfArity ``Whatwg.Html.Content.validAll 2 then
+      if let some c ← ctx? 4096 (lhs.getArg! 0) then
+        if let some nodes ← list? (rawNode? 4096) 4096 (lhs.getArg! 1) then
+          for node in nodes do
+            if let some refusal := Whatwg.Html.Content.explain c node then
+              throwError refusalMessage node refusal
+          goal.assign reflTrue
+          replaceMainGoal []
+          return
     if lhs.isAppOfArity ``Ctx.admits 2 then
       if let some c ← ctx? 4096 (lhs.getArg! 0) then
         if let some t ← tag? (lhs.getArg! 1) then

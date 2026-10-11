@@ -65,6 +65,31 @@ The root takes its context from the expected type, `Child ctx` or
 for `html`, `Ctx.flow` for flow content, `Ctx.phrasing` for phrasing
 content, `Ctx.metadata` for metadata content, and `Ctx.flow` otherwise.
 
+## SVG
+
+Since slice S3e of `docs/SVG-PACKAGE-PLAN.md` an `svg` element may stand
+where the context admits it, as a child or as the root:
+
+```lean
+def figure : Element .p Ctx.flow :=
+  html! <p><svg viewBox="0 0 10 10"><rect x="1" "xml:space"="preserve" /></svg></p>
+```
+
+The typed tree has no SVG element, so the subtree below `svg` is built as one
+raw literal, and one obligation says that it is valid where it stands. The
+kernel checks that obligation by evaluating the checker once over the
+subtree. Before that the elaborator evaluates the located refusal,
+`Whatwg.Html.Content.explainAt`, and reports it at the token of the refused
+node, with the reason the library gives.
+
+A name is kept exactly as written: `viewBox` is not `viewbox`. A name that is
+no Lean identifier is a string literal: `"xml:space"`, and `"in"`, `"from"`,
+`"by"` and `"end"`, which are Lean keywords. `<rect />` is an element with no
+child. A spliced attribute value, `x={e}`, is admitted on an SVG element,
+whose values the checker does not read before slice S4. On an HTML element
+below `foreignObject` a value is a literal, and no child is spliced inside an
+SVG subtree.
+
 ## What is not here
 
 Attribute values are `String`; comments and entities have no markup form.
@@ -89,6 +114,8 @@ syntax "meta" : htmlName
 syntax "class" : htmlName
 syntax "for" : htmlName
 syntax "open" : htmlName
+/-- A name that is no Lean identifier, such as `"xml:space`" or `"in`". -/
+syntax str : htmlName
 
 declare_syntax_cat htmlAttr
 /-- `name`, `name="literal"`, `name={term}`; dashes join names. -/
@@ -114,7 +141,7 @@ def nameString (stx : Syntax) : String :=
   match stx[0] with
   | .ident _ _ n _ => n.eraseMacroScopes.toString
   | .atom _ v => v
-  | _ => ""
+  | other => (other.isStrLit?).getD ""
 
 def ctorExpr (induct : Name) (idx : Nat) : MetaM Expr := do
   let info ← getConstInfoInduct induct
@@ -220,6 +247,113 @@ def rawAttrsTerm (attrs : Array AttrOut) : MetaM Expr := do
       (mkStrLit a.markup) a.value
   mkListLit pairT pairs
 
+/-! ## A foreign subtree -/
+
+/-- A foreign subtree as built from markup: each node as a value, as an expression, and with
+the token that names it. A spliced attribute value is the empty string in the value. -/
+inductive Built where
+  | node (raw : RawNode) (expr : Expr) (stx : Syntax) (kids : List Built)
+
+namespace Built
+
+def raw : Built → RawNode
+  | .node r _ _ _ => r
+
+def expr : Built → Expr
+  | .node _ e _ _ => e
+
+def stx : Built → Syntax
+  | .node _ _ s _ => s
+
+/-- The built node at a path of child indices. -/
+def at? : Built → List Nat → Option Built
+  | built, [] => some built
+  | .node _ _ _ kids, index :: rest =>
+    match kids[index]? with
+    | some kid => kid.at? rest
+    | none => none
+
+end Built
+
+/-- The name token, the attributes and the children of an element of markup. -/
+def markupParts (stx : Syntax) : TermElabM (Option (Syntax × Array Syntax × Array Syntax)) := do
+  if stx.isOfKind ``htmlVoid then
+    return some (stx[1], stx[2].getArgs, #[])
+  if stx.isOfKind ``htmlElem then
+    let name := nameString stx[1]
+    let closing := nameString stx[7]
+    unless closing == name do
+      throwErrorAt stx[7] ("closing tag </" ++ closing ++ "> does not match <" ++ name ++ ">")
+    return some (stx[1], stx[2].getArgs, stx[4].getArgs)
+  return none
+
+/-- The name of an element of markup that no HTML element has and a foreign element of the
+standard's category lists has: `svg`, or `math`. -/
+def foreignName? (stx : Syntax) : Option String :=
+  if stx.isOfKind ``htmlVoid || stx.isOfKind ``htmlElem then
+    let name := nameString stx[1]
+    if (Tag.ofName? name).isNone && (Tag.ofForeignName? name).isSome then some name else none
+  else none
+
+/-- The attributes of an element in a foreign subtree: the pairs as values and as an
+expression. `spliced` says whether a spliced value is admitted on this element. -/
+def foreignAttrs (spliced : Bool) (stxs : Array Syntax) :
+    TermElabM (List (String × String) × Expr) := do
+  let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
+  let mut values : Array (String × String) := #[]
+  let mut exprs : Array Expr := #[]
+  for stx in stxs do
+    let mut markup := nameString stx[0]
+    for part in stx[1].getArgs do
+      markup := markup ++ "-" ++ nameString part[1]
+    let opt := stx[2]
+    let (value, valueE) ← if opt.getNumArgs == 0 then pure ("", mkStrLit "") else
+      match opt[1].isStrLit? with
+      | some s => pure (s, mkStrLit s)
+      | none =>
+        if spliced then pure ("", ← elabClosed opt[1][1] (mkConst ``String))
+        else throwErrorAt stx ("html!: the value of `" ++ markup ++
+          "` is spliced on an HTML element inside an SVG subtree; write it as a literal")
+    values := values.push (markup, value)
+    exprs := exprs.push (mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) (mkConst ``String)
+      (mkConst ``String) (mkStrLit markup) valueE)
+  return (values.toList, ← mkListLit pairT exprs.toList)
+
+/-- Build a node of a foreign subtree that stands at the position `pos`. Names are kept as
+written, and the position moves by the seam's own transition. -/
+def foreignNode : Nat → Whatwg.Html.Content.Pos → Syntax → TermElabM Built
+  | 0, _, stx => throwErrorAt stx "html!: the document nests too deeply"
+  | fuel + 1, pos, stx => do
+    if stx.isOfKind ``htmlText then
+      let some s := stx[0].isStrLit? | throwErrorAt stx "html!: malformed text"
+      return .node (.text s) (mkApp (mkConst ``RawNode.text) (mkStrLit s)) stx []
+    if stx.isOfKind ``htmlSplice then
+      throwErrorAt stx "html!: a spliced child is not supported inside an SVG subtree"
+    let some (nameStx, attrStxs, kidStxs) ← markupParts stx
+      | throwErrorAt stx "html!: unsupported node"
+    let name := nameString nameStx
+    -- an SVG element: any element at an SVG position, and the foreign root at an HTML one
+    let isSvg := pos.ns == .svg || (Tag.ofName? name).isNone
+    let (attrs, attrsE) ← foreignAttrs isSvg attrStxs
+    let inner := pos.child name
+    let mut kids : Array Built := #[]
+    for kid in kidStxs do
+      kids := kids.push (← foreignNode fuel inner kid)
+    let childrenE ← mkListLit (mkConst ``RawNode) (kids.toList.map Built.expr)
+    return .node (.element name attrs (kids.toList.map Built.raw))
+      (mkApp3 (mkConst ``RawNode.element) (mkStrLit name) attrsE childrenE) nameStx kids.toList
+
+/-- Build the foreign subtree at an HTML position and refuse it where the checker does: at
+the token of the refused node, with the library's reason. -/
+def foreignChild (fuel : Nat) (ctx : Ctx) (stx : Syntax) : TermElabM Built := do
+  let built ← foreignNode fuel (.html ctx) stx
+  if let some refusal := Whatwg.Html.Content.explainAt (.html ctx) built.raw then
+    let culprit := (built.at? refusal.path).getD built
+    throwErrorAt culprit.stx
+      (Admit.nodeWords culprit.raw ++ ": " ++ refusal.reason.describe ++
+        (if refusal.path.isEmpty then " (the context is " ++ ctx.describe ++ ")" else ""))
+  return built
+
 /-! ## The walk -/
 
 structure Open where
@@ -284,6 +418,13 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
         steps := steps.push fun n rest hrest =>
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
             mkApp2 (mkConst ``Child.valid) innerE child, hrest]
+      else if (foreignName? kid).isSome then
+        -- an `svg` subtree: one raw literal, and one obligation the kernel evaluates
+        let built ← foreignChild fuel inner kid
+        raws := raws.push built.expr
+        steps := steps.push fun n rest hrest =>
+          mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
+            Admit.reflTrue, hrest]
       else
         let some k ← openOf kid | throwErrorAt kid "html!: unsupported node"
         let c := k.tag
@@ -312,7 +453,7 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
       else if kid.isOfKind ``htmlSplice then none
       else match Tag.ofName? (nameString kid[1]) with
         | some tg => some (Whatwg.Html.RawNode.element tg.markupText [] [])
-        | none => none
+        | none => (foreignName? kid).map fun name => Whatwg.Html.RawNode.element name [] []
     if o.kids.all (fun kid => !kid.isOfKind ``htmlSplice) then
       if let some problem := Whatwg.Html.Content.seqProblem? inner t kidTags then
         throwErrorAt o.nameStx problem
@@ -335,12 +476,23 @@ def defaultCtx (t : Tag) : Ctx :=
 
 @[term_elab htmlTerm] def elabHtml : TermElab := fun stx expectedType? => do
   let node := stx[1]
-  let some o ← openOf node | throwErrorAt node "html!: the root must be an element"
   let fuel := 4096
-  let t := o.tag
   let cache : CtxCache ← IO.mkRef {}
   let expectedType? ← tryPostponeIfHasMVars? expectedType?
   let expected := expectedType?.map fun e => e.consumeMData
+  if (foreignName? node).isSome then
+    -- a foreign root is a `Child` of its context: the expected one, or flow content
+    let mut ctx := Ctx.flow
+    let mut ctxE ← ctxExprCached cache Ctx.flow
+    if let some e := expected then
+      if e.isAppOfArity ``Child 1 then
+        if let some c ← Admit.ctx? 4096 (e.getArg! 0) then
+          ctx := c
+          ctxE := e.getArg! 0
+    let built ← foreignChild fuel ctx node
+    return mkApp3 (mkConst ``Child.mk) ctxE built.expr Admit.reflTrue
+  let some o ← openOf node | throwErrorAt node "html!: the root must be an element"
+  let t := o.tag
   if let some e := expected then
     if e.isAppOfArity ``Child 1 then
       if let some ctx ← Admit.ctx? 4096 (e.getArg! 0) then
