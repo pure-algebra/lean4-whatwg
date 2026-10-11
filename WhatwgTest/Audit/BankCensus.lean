@@ -47,7 +47,9 @@ syntax (name := bankCensus) "#whatwg_bank_census " str str : command
   let inTests ← clausesUnder tests
   let banks ← liftCoreM Aesop.Frontend.getDeclaredGlobalRuleSets
   let mut rows : Array String := #[]
-  for (name, rs, _, _) in banks.qsort (fun a b => a.1.toString < b.1.toString) do
+  for bank in banks.qsort (fun a b => a.1.toString < b.1.toString) do
+    let name := bank.1
+    let rs := bank.2.1
     unless (`Whatwg).isPrefixOf name do continue
     let rules := rs.ruleNames.foldl (fun n _ v => n + v.size) 0
     let simps := rs.simpTheorems.lemmaNames.fold (fun n _ => n + 1) 0
