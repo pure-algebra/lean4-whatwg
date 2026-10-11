@@ -71,6 +71,7 @@ import WhatwgTest.Html.MarkupBreakers
 import WhatwgTest.Html.MarkupBenchmark
 import WhatwgTest.Html.Svg
 import WhatwgTest.Html.Explain
+import WhatwgTest.Html.SvgPrint
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Auto.Banks
