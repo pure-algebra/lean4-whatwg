@@ -129,10 +129,14 @@ open Gates.DeclSnapshot
 -- R-W3), and the generator refuses a production module that belongs to no
 -- library, so the frozen seven became eight. Amended by the coordinator's
 -- ruling; no other row of this battery changes meaning.
+-- R-S4, 2026-10-11: a ninth library. Slice S2 of `docs/SVG-PACKAGE-PLAN.md` landed the
+-- Lake library `WhatwgSvg`, and the generator refuses a production module that belongs to
+-- no library. Amended by the seat under ruling R-S1; no other row changes meaning.
 #guard libraries ==
   [("Whatwg", `Whatwg), ("WhatwgInfra", `Whatwg.Infra), ("WhatwgEcma262", `Whatwg.Ecma262),
    ("WhatwgWebIdl", `Whatwg.WebIdl), ("WhatwgUrl", `Whatwg.Url), ("WhatwgHtml", `Whatwg.Html),
-   ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures)]
+   ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures),
+   ("WhatwgSvg", `Whatwg.Svg)]
 #guard roles ==
   ["canonical", "view", "adapter", "separate-calculus", "derived", "helper",
    "foreign-boundary", "target-only"]
@@ -507,7 +511,9 @@ private def emptyProjection (library : String) : String :=
    ("generated/declarations/WhatwgHtml.tsv", emptyProjection "WhatwgHtml"),
    ("generated/declarations/WhatwgStreams.tsv", streamsProjection),
    -- R-W17, 2026-10-01: the eighth library's file, empty in this fixture.
-   ("generated/declarations/WhatwgSignatures.tsv", emptyProjection "WhatwgSignatures")]
+   ("generated/declarations/WhatwgSignatures.tsv", emptyProjection "WhatwgSignatures"),
+   -- R-S4, 2026-10-11: the ninth library's file, empty in this fixture.
+   ("generated/declarations/WhatwgSvg.tsv", emptyProjection "WhatwgSvg")]
 
 /-! ### 6. The nine join failures
 

@@ -57,12 +57,13 @@ checkout.
 
 ```text
 lake build                                         # libraries, the elaboration-time axiom gate, the gate executables
-lake build WhatwgStreams                           # one standard's library and its import closure; likewise WhatwgInfra, WhatwgEcma262, WhatwgWebIdl, WhatwgUrl, WhatwgHtml
+lake build WhatwgStreams                           # one standard's library and its import closure; likewise WhatwgInfra, WhatwgEcma262, WhatwgWebIdl, WhatwgUrl, WhatwgHtml, WhatwgSvg
 lake exe whatwg_vendorseal                         # vendor/ against generated/vendor-manifest.tsv, both directions
 lake exe whatwg_citations                          # no line-numbered citation into a protected authored document
 lake exe whatwg_urlinventory                       # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
 lake exe whatwg_urlcensus                          # the authored URL census and its source assignments against a regeneration
 lake exe whatwg_htmlstandard                       # generated/html-standard-*.tsv and the generated Whatwg/Html/Schema modules against the sealed HTML Standard source
+lake exe whatwg_svgdefinitions                     # generated/svg-*.tsv and the generated Whatwg/Svg/Schema modules against the sealed SVG 2 definitions
 lake exe whatwg_census                             # the Streams census and coverage emit
 lake exe whatwg_census --report                    # the Streams coverage block from the Lean emit
 lake exe whatwg_census --standard infra            # the Infra definition census

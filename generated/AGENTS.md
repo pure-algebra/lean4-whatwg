@@ -18,6 +18,11 @@ exclude every `AGENTS.md`; they may neither create nor replace instructions.
   its type digest, axiom set, freeze entries and covering record, in
   `generated/declarations/<library>.tsv`, written by
   `lake exe whatwg_declsnapshot --write`;
+- schema projections of a pinned standard's own definitions: the HTML
+  Standard's element definitions and attribute indexes in
+  `generated/html-standard-*.tsv`, written by
+  `lake exe whatwg_htmlstandard --write`, and the SVG 2 definitions in
+  `generated/svg-*.tsv`, written by `lake exe whatwg_svgdefinitions --write`;
 - existing-type and spec-disposition snapshots;
 - graph-bearing owner obligation ledgers, leaf receipt indexes, and
   per-declaration assurance snapshots, among them the graph ledger's

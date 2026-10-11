@@ -4,17 +4,16 @@ import Whatwg.Html.Node.Combinators
 /-!
 # WhatwgTest.Html.CombinatorShape
 
-The drift check for `Whatwg/Html/Node/Combinators.lean`, which is produced
-from the schema rows by hand and not by the emitter, so `lake exe tyxmlschema`
-says nothing about it. This file inspects the compiled environment instead:
+A shape check of `Whatwg/Html/Node/Combinators.lean`, which
+`lake exe whatwg_htmlstandard` generates and checks for byte drift. That gate
+compares text. This file inspects the compiled environment instead:
 for every row of `Whatwg.Html.Schema.elements` the combinator
 `Whatwg.Html.E.<name>` must exist and return `Element tag ctx` with `tag` the
 row's tag and `ctx` a bound variable; and
 for every row of `Whatwg.Html.Schema.attributeCtors` that is not a prefix
 the helper `Whatwg.Html.A.<name>` must exist and build an `AttrVal.of` of
-the row's attribute. A schema change that the hand-maintained file
-does not follow fails this file with every disagreeing row listed, never a
-truncated list.
+the row's attribute. An emitter change that breaks a combinator's shape
+fails this file with every disagreeing row listed, never a truncated list.
 
 What this does not check: the children parameter, the labelled arguments of
 `html_sigs.mli`, and the attribute set each `_ha` auto-parameter names; those

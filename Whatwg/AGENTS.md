@@ -79,7 +79,8 @@ Every declaration in this tree is bound by the ceiling `propext`,
 `Quot.sound`, `Classical.choice` (ruling R-11). Under the module prefixes of
 the strict list in `WhatwgTest/Audit/AxiomGate.lean` (ruling R-V1:
 `Whatwg.Ecma262`, `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Infra.Text.Utf8`
-and `Whatwg.Streams` at the lane V landing) the ceiling is `propext` and
+and `Whatwg.Streams` at the lane V landing, then `Whatwg.Signatures` and
+`Whatwg.Svg`) the ceiling is `propext` and
 `Quot.sound` only, for authored, private and Lean-generated declarations
 alike; an exact exception beside the list, with its reason, is the only
 admission. `sorry`, `admit`, `native_decide`, `bv_decide`, `partial`,

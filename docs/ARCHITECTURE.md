@@ -17,7 +17,7 @@ Nothing in `Whatwg/` depends on `WhatwgGates/`,
 test tree imports both.
 
 Each standard is its own Lake library (ruling R-V3(d)): `WhatwgInfra`,
-`WhatwgEcma262`, `WhatwgWebIdl`, `WhatwgUrl`, `WhatwgHtml` and
+`WhatwgEcma262`, `WhatwgWebIdl`, `WhatwgUrl`, `WhatwgHtml`, `WhatwgSvg` and
 `WhatwgStreams`, each owning its root module `Whatwg.<Standard>` and every
 module under it, while the library `Whatwg` owns only the umbrella module
 `Whatwg`. The library `WhatwgSignatures` owns `Whatwg.Signatures` and every
@@ -42,6 +42,7 @@ in `lakefile.toml`.
 | `Whatwg/Url` | URL Standard: `PercentEncoding`, `Host`, `Record`, `Parser`, `Serializer`, `Origin`, `Rendering`, `FormUrlEncoded`, `Api/Url`, `Api/UrlSearchParams`, `Boundary`; U1 scaffold, of which `PercentEncoding` and `Boundary` carry the U3 percent-encoding declarations (graph `URL-PG-PERCENT`, `docs/URL-PERCENT-ENCODING-DAG.md`) and the other modules are still declaration-free; packets scheduled by `docs/URL-PACKAGE-PLAN.md` |
 | `Whatwg/Infra` | the Infra Standard: the value universe every other standard is indexed by (Stratum V); byte, code-point, UTF-16 string and text helpers imported from its root; `docs/INFRA-PROOF-PLAN.md` tracks the wider census and assurance work |
 | `Whatwg/Html` | the HTML content model ported from TyXML's row types under the HTML Standard's authority: `Schema` (authored source since 2026-09-06, first transcribed from TyXML at H2: tag and attribute universes, every named content and attribute set as a constructor-dispatch membership function, element and attribute rows; data and derived instances only), `Content` (admission, transparency, lattice, divergence rows), `Node` (raw and typed trees, erasure, combinators) and `Print` (escaping and rendering), which carry declarations, and `Syntax`, `Bridge` (declaration-free stubs) |
+| `Whatwg/Svg` | W3C SVG 2, not a WHATWG standard, for inline use in an HTML tree (`docs/SVG-PACKAGE-PLAN.md`): `Schema` (the element, category and attribute universes, each element's attribute sets and content model; generated from the sealed svgwg definitions by `lake exe whatwg_svgdefinitions`, with the four content models stated as a sentence read in the authored `Schema/Readings`; data only at slice S2). It imports no module of `Whatwg/Html`: the seam that admits `svg` in an HTML tree is `Whatwg/Html`'s and imports this library. Under the strict ceiling |
 | `Whatwg/Streams/Data` | queue-with-sizes, chunk universe, size functions, high-water marks, desired size |
 | `Whatwg/Streams/Strategy` | the IDL class surface that reads the strategy slots; the two strategy records, their size functions, and the extraction operations live in `Whatwg/Streams/Data/Strategy.lean` under `DATA-PG-QUEUE` (ownership repaired at the P3 landing, 2026-09-02) |
 | `Whatwg/Streams/Readable` | `ReadableStream` state, default controller, default reader, generic reader mixin, tee, async iteration |

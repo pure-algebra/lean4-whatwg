@@ -1,13 +1,15 @@
 /-!
-# Html.Svg.lean
+# Whatwg.Html.Svg
 
-Owner: nothing yet: SVG is a W3C standard, not a WHATWG one, and TyXML's `svg_types.mli` / `svg_sigs.mli` are pinned beside the HTML files. Ruling HP-9 defers a library until the HTML slices close; a future library would sit beside `Whatwg.Html`, not under it.
+Owner: the seam, the rules by which an HTML tree holds SVG content. The HTML Standard owns
+them: where `svg` stands, where the namespace changes, and how a foreign element is written.
+SVG 2 owns the elements themselves, and they are the library `Whatwg.Svg`, beside this one
+(ruling HP-9 of `docs/HTML-PACKAGE-PLAN.md`; `docs/SVG-PACKAGE-PLAN.md`).
 
-Schema anchors: `svg_types.mli`, `svg_sigs.mli`, `svg_f.ml` at the pin.
+Anchors in the pinned `source`: the section "SVG" of the embedded content chapter, the
+definition of an HTML integration point, and the fragment serialization algorithm.
 
-Opens in no slice yet.
-
-This breadth stub intentionally declares no semantic object. Its public
-surface is frozen only after the owning contract and counterexample packet
-(`docs/HTML-PACKAGE-PLAN.md`).
+This module declares nothing yet. Slice S3 of `docs/SVG-PACKAGE-PLAN.md` opens it. Until then
+`Whatwg.Html.Content.validIn` refuses `svg`, as it refuses every name that is not an HTML
+element.
 -/

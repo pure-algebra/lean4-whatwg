@@ -5,10 +5,11 @@ keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
 defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
-                  "WhatwgUrl", "WhatwgHtml", "WhatwgStreams", "WhatwgSignatures",
+                  "WhatwgUrl", "WhatwgHtml", "WhatwgSvg", "WhatwgStreams", "WhatwgSignatures",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_htmlstandard",
+                  "whatwg_svgdefinitions",
                   "whatwg_ledger", "whatwg_declsnapshot", "whatwg_trustgate"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
@@ -55,6 +56,14 @@ globs = ["Whatwg.Url.*"]
 name = "WhatwgHtml"
 roots = ["Whatwg.Html"]
 globs = ["Whatwg.Html.*"]
+
+# SVG 2, a W3C standard: the elements and attributes that an HTML tree holds
+# inline (docs/SVG-PACKAGE-PLAN.md). It imports no module of `Whatwg.Html`;
+# the seam in `Whatwg.Html` imports it.
+[[lean_lib]]
+name = "WhatwgSvg"
+roots = ["Whatwg.Svg"]
+globs = ["Whatwg.Svg.*"]
 
 [[lean_lib]]
 name = "WhatwgStreams"
@@ -125,6 +134,14 @@ root = "whatwgbin.TrustSelfTest"
 [[lean_exe]]
 name = "whatwg_htmlstandard"
 root = "whatwgbin.HtmlStandard"
+
+# The SVG 2 definitions as a projection (slice S2 of docs/SVG-PACKAGE-PLAN.md):
+# `generated/svg-*.tsv` and the four generated modules of `Whatwg/Svg/Schema/`,
+# regenerated from the sealed `vendor/w3c-svgwg-47e645ef/` and checked for
+# byte drift.
+[[lean_exe]]
+name = "whatwg_svgdefinitions"
+root = "whatwgbin.SvgDefinitions"
 
 # The P1 specification-algorithm census, and since slice Q2 the Web IDL and
 # ECMA-262 censuses, each with its coverage report.

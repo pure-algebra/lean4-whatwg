@@ -7,8 +7,12 @@ import WhatwgGates.Ecmarkup
 import WhatwgGates.UrlInventory
 import WhatwgGates.UrlCensus
 import WhatwgGates.UrlCensusInput
+import WhatwgGates.EmitLean
 import WhatwgGates.HtmlStandard
 import WhatwgGates.HtmlStandardEmit
+import WhatwgGates.Xml
+import WhatwgGates.SvgDefinitions
+import WhatwgGates.SvgDefinitionsEmit
 import WhatwgGates.TrustSelfTest
 import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render

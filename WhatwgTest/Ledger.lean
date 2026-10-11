@@ -61,9 +61,11 @@ def infraInteger : Leaf where
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
 /-- The ledger: the twelve graphs of slices A and B, the one leaf record, and
-the fourteen unrouted prefixes of slice D (ruling R-W22): the thirteen of debt
-D57, in the order of the contract's section 12, then `Whatwg.Streams.Kernel`,
-of debt D68. -/
+the fifteen unrouted prefixes: the fourteen of slice D (ruling R-W22), which
+are the thirteen of debt D57, in the order of the contract's section 12, and
+`Whatwg.Streams.Kernel`, of debt D68; then `Whatwg.Svg`, of debt D78
+(ruling R-S4), the generated SVG schema until its graph opens at slice S3 of
+`docs/SVG-PACKAGE-PLAN.md`. -/
 def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
     transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,
@@ -75,7 +77,8 @@ def ledger : Ledger where
     ⟨`Whatwg.Infra.Text.Codec, "D57"⟩, ⟨`Whatwg.Infra.Text.CodePoint, "D57"⟩,
     ⟨`Whatwg.Infra.Text.Order, "D57"⟩, ⟨`Whatwg.Infra.Text.Scan, "D57"⟩,
     ⟨`Whatwg.Infra.Text.String, "D57"⟩, ⟨`Whatwg.Infra.Text.Substring, "D57"⟩,
-    ⟨`Whatwg.Infra.Text.Whitespace, "D57"⟩, ⟨`Whatwg.Streams.Kernel, "D68"⟩]
+    ⟨`Whatwg.Infra.Text.Whitespace, "D57"⟩, ⟨`Whatwg.Streams.Kernel, "D68"⟩,
+    ⟨`Whatwg.Svg, "D78"⟩]
 
 /-- The ledger has no structural finding (contract section 4). -/
 theorem ledger_wellFormed : ledger.wellFormed = true := by decide +kernel

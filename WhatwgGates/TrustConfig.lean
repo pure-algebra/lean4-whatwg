@@ -55,7 +55,10 @@ declaration, which is the measurement.
 The five prefixes below have zero residue at the lane V landing; `Whatwg.Streams`
 joined at integration, with the R-V5 repair. `Whatwg.Html.Print` and the
 `String`-borne definitions of `Whatwg.Infra.{Namespaces,Text.Scalar,Text.String}`
-stay under R-11: they reach `Classical.choice` through core's `String` API. A
+stay under R-11: they reach `Classical.choice` through core's `String` API.
+`Whatwg.Svg` joined at slice S2 of `docs/SVG-PACKAGE-PLAN.md` (rulings SV-20 and
+R-S4), at zero residue: its schema is generated data whose name lookups read a
+`List Char`, and no declaration of it traverses a `String`. A
 prefix must lie inside the `Whatwg` tree, since R-V1 keeps `WhatwgTest` and
 `WhatwgGates` under R-11, and must cover at least one audited module, so that a
 misspelt prefix cannot make the strict ceiling vacuous. -/
@@ -66,6 +69,7 @@ def strictCeilingPrefixes : List Name :=
   , `Whatwg.Infra.Text.Utf8
   , `Whatwg.Streams
   , `Whatwg.Signatures
+  , `Whatwg.Svg
   ]
 
 /-- Exact strict-ceiling exceptions, one declaration each, written

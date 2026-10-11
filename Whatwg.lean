@@ -3,6 +3,7 @@ import Whatwg.Ecma262
 import Whatwg.WebIdl
 import Whatwg.Streams
 import Whatwg.Html
+import Whatwg.Svg
 import Whatwg.Url
 import Whatwg.Signatures
 
@@ -19,6 +20,8 @@ declarations landed with the promise slices Q3 and Q3b, graph
 `Whatwg.Streams` is the Streams Standard;
 `Whatwg.Html` is the HTML content model ported from TyXML under the HTML
 Standard's authority (scaffolded at H1 of `docs/HTML-PACKAGE-PLAN.md`);
+`Whatwg.Svg` is W3C SVG 2 for inline use beside it, a schema generated from the
+standard's own definitions (`docs/SVG-PACKAGE-PLAN.md`);
 `Whatwg.Url` is the URL Standard, whose percent-encoding packet (slice U3,
 graph `URL-PG-PERCENT`) is its first set of declarations
 (`docs/URL-PACKAGE-PLAN.md`);

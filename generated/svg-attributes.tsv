@@ -1,0 +1,339 @@
+#svg-attributes format=1 generator=Gates.SvgDefinitions inputs=vendor/w3c-svgwg-47e645ef rows=336 regenerate=lake exe whatwg_svgdefinitions --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from Scalable Vector Graphics (SVG) 2, https://w3c.github.io/svgwg/svg2-draft/, under the W3C Document License, https://www.w3.org/copyright/document-license-2023/
+#owner-kind	owner	attribute	animatable	elements	anchor
+element	a	href	yes		linking.html#AElementHrefAttribute
+element	a	target	yes		linking.html#AElementTargetAttribute
+element	a	download	no		linking.html#AElementDownloadAttribute
+element	a	ping	no		linking.html#AElementPingAttribute
+element	a	rel	no		linking.html#AElementRelAttribute
+element	a	hreflang	no		linking.html#AElementHreflangAttribute
+element	a	type	no		linking.html#AElementTypeAttribute
+element	a	referrerpolicy	no		linking.html#AElementReferrerpolicyAttribute
+element	image	href	yes		embedded.html#ImageElementHrefAttribute
+element	image	crossorigin	yes		embedded.html#ImageElementCrossoriginAttribute
+element	line	x1	yes		shapes.html#LineElementX1Attribute
+element	line	y1	yes		shapes.html#LineElementY1Attribute
+element	line	x2	yes		shapes.html#LineElementX2Attribute
+element	line	y2	yes		shapes.html#LineElementY2Attribute
+element	linearGradient	x1	yes		pservers.html#LinearGradientElementX1Attribute
+element	linearGradient	y1	yes		pservers.html#LinearGradientElementY1Attribute
+element	linearGradient	x2	yes		pservers.html#LinearGradientElementX2Attribute
+element	linearGradient	y2	yes		pservers.html#LinearGradientElementY2Attribute
+element	linearGradient	gradientUnits	yes		pservers.html#LinearGradientElementGradientUnitsAttribute
+element	linearGradient	gradientTransform	yes		pservers.html#LinearGradientElementGradientTransformAttribute
+element	linearGradient	spreadMethod	yes		pservers.html#LinearGradientElementSpreadMethodAttribute
+element	linearGradient	href	yes		pservers.html#LinearGradientElementHrefAttribute
+element	marker	refX	yes		painting.html#MarkerElementRefXAttribute
+element	marker	refY	yes		painting.html#MarkerElementRefYAttribute
+element	marker	markerUnits	yes		painting.html#MarkerUnitsAttribute
+element	marker	markerWidth	yes		painting.html#MarkerWidthAttribute
+element	marker	markerHeight	yes		painting.html#MarkerHeightAttribute
+element	marker	orient	yes		painting.html#OrientAttribute
+element	pattern	x	yes		pservers.html#PatternElementXAttribute
+element	pattern	y	yes		pservers.html#PatternElementYAttribute
+element	pattern	width	yes		pservers.html#PatternElementWidthAttribute
+element	pattern	height	yes		pservers.html#PatternElementHeightAttribute
+element	pattern	patternUnits	yes		pservers.html#PatternElementPatternUnitsAttribute
+element	pattern	patternContentUnits	yes		pservers.html#PatternElementPatternContentUnitsAttribute
+element	pattern	patternTransform	yes		pservers.html#PatternElementPatternTransformAttribute
+element	pattern	href	yes		pservers.html#PatternElementHrefAttribute
+element	polygon	points	yes		shapes.html#PolygonElementPointsAttribute
+element	polyline	points	yes		shapes.html#PolylineElementPointsAttribute
+element	radialGradient	cx	yes		pservers.html#RadialGradientElementCXAttribute
+element	radialGradient	cy	yes		pservers.html#RadialGradientElementCYAttribute
+element	radialGradient	r	yes		pservers.html#RadialGradientElementRAttribute
+element	radialGradient	fx	yes		pservers.html#RadialGradientElementFXAttribute
+element	radialGradient	fy	yes		pservers.html#RadialGradientElementFYAttribute
+element	radialGradient	fr	yes		pservers.html#RadialGradientElementFRAttribute
+element	radialGradient	gradientUnits	yes		pservers.html#RadialGradientElementGradientUnitsAttribute
+element	radialGradient	gradientTransform	yes		pservers.html#RadialGradientElementGradientTransformAttribute
+element	radialGradient	spreadMethod	yes		pservers.html#RadialGradientElementSpreadMethodAttribute
+element	radialGradient	href	yes		pservers.html#RadialGradientElementHrefAttribute
+element	script	type			interact.html#ScriptElementTypeAttribute
+element	script	href			interact.html#ScriptElementHrefAttribute
+element	script	crossorigin	yes		interact.html#ScriptElementCrossoriginAttribute
+element	stop	offset	yes		pservers.html#StopElementOffsetAttribute
+element	style	type			styling.html#StyleElementTypeAttribute
+element	style	media			styling.html#StyleElementMediaAttribute
+element	style	title			styling.html#StyleElementTitleAttribute
+element	svg	transform	yes		coords.html#TransformProperty
+element	symbol	refX	yes		struct.html#SymbolElementRefXAttribute
+element	symbol	refY	yes		struct.html#SymbolElementRefYAttribute
+element	text	x	yes		text.html#TextElementXAttribute
+element	text	y	yes		text.html#TextElementYAttribute
+element	text	dx	yes		text.html#TextElementDXAttribute
+element	text	dy	yes		text.html#TextElementDYAttribute
+element	text	rotate	yes		text.html#TextElementRotateAttribute
+element	text	textLength	yes		text.html#TextElementTextLengthAttribute
+element	textPath	path	yes		text.html#TextPathElementPathAttribute
+element	textPath	href	yes		text.html#TextPathElementHrefAttribute
+element	textPath	startOffset	yes		text.html#TextPathElementStartOffsetAttribute
+element	textPath	method	yes		text.html#TextPathElementMethodAttribute
+element	textPath	spacing	yes		text.html#TextPathElementSpacingAttribute
+element	textPath	side	yes		text.html#TextPathElementSideAttribute
+element	use	href	yes		struct.html#UseElementHrefAttribute
+element	feBlend	in2	yes		#element-attrdef-feblend-in2
+element	feBlend	mode	yes		#element-attrdef-feblend-mode
+element	feColorMatrix	type	yes		#element-attrdef-fecolormatrix-type
+element	feColorMatrix	values	yes		#element-attrdef-fecolormatrix-values
+element	feComposite	in2	yes		#element-attrdef-fecomposite-in2
+element	feComposite	operator	yes		#element-attrdef-fecomposite-operator
+element	feComposite	k1	yes		#element-attrdef-fecomposite-k1
+element	feComposite	k2	yes		#element-attrdef-fecomposite-k2
+element	feComposite	k3	yes		#element-attrdef-fecomposite-k3
+element	feComposite	k4	yes		#element-attrdef-fecomposite-k4
+element	feConvolveMatrix	order	yes		#element-attrdef-order
+element	feConvolveMatrix	kernelMatrix	yes		#element-attrdef-feconvolvematrix-kernelmatrix
+element	feConvolveMatrix	divisor	yes		#element-attrdef-feconvolvematrix-divisor
+element	feConvolveMatrix	bias	yes		#element-attrdef-feconvolvematrix-bias
+element	feConvolveMatrix	targetX	yes		#element-attrdef-feconvolvematrix-targetx
+element	feConvolveMatrix	targetY	yes		#element-attrdef-feconvolvematrix-targety
+element	feConvolveMatrix	edgeMode	yes		#element-attrdef-feconvolvematrix-edgemode
+element	feConvolveMatrix	kernelUnitLength	yes		#element-attrdef-feconvolvematrix-kernelunitlength
+element	feConvolveMatrix	preserveAlpha	yes		#element-attrdef-feconvolvematrix-preservealpha
+element	feDiffuseLighting	surfaceScale	yes		#element-attrdef-fediffuselighting-surfacescale
+element	feDiffuseLighting	diffuseConstant	yes		#element-attrdef-fediffuselighting-diffuseconstant
+element	feDiffuseLighting	kernelUnitLength	yes		#element-attrdef-fediffuselighting-kernelunitlength
+element	feDisplacementMap	in2	yes		#element-attrdef-fedisplacementmap-in2
+element	feDisplacementMap	scale	yes		#element-attrdef-fedisplacementmap-scale
+element	feDisplacementMap	xChannelSelector	yes		#element-attrdef-fedisplacementmap-xchannelselector
+element	feDisplacementMap	yChannelSelector	yes		#element-attrdef-fedisplacementmap-ychannelselector
+element	feDistantLight	azimuth	yes		#element-attrdef-fedistantlight-azimuth
+element	feDistantLight	elevation	yes		#element-attrdef-fedistantlight-elevation
+element	feDropShadow	stdDeviation	yes		#element-attrdef-fedropshadow-stddeviation
+element	feDropShadow	dx	yes		#element-attrdef-fedropshadow-dx
+element	feDropShadow	dy	yes		#element-attrdef-fedropshadow-dy
+element	feGaussianBlur	stdDeviation	yes		#element-attrdef-fegaussianblur-stddeviation
+element	feGaussianBlur	edgeMode	yes		#element-attrdef-fegaussianblur-edgemode
+element	feImage	xlink:href	yes		#element-attrdef-feimage-xlinkhref
+element	feImage	href	yes		#element-attrdef-feimage-href
+element	feImage	crossorigin			#element-attrdef-feimage-crossorigin
+element	feMorphology	operator	yes		#element-attrdef-femorphology-operator
+element	feMorphology	radius	yes		#element-attrdef-femorphology-radius
+element	feOffset	dx	yes		#element-attrdef-feoffset-dx
+element	feOffset	dy	yes		#element-attrdef-feoffset-dy
+element	fePointLight	x	yes		#element-attrdef-fepointlight-x
+element	fePointLight	y	yes		#element-attrdef-fepointlight-y
+element	fePointLight	z	yes		#element-attrdef-fepointlight-z
+element	feSpecularLighting	surfaceScale	yes		#element-attrdef-fespecularlighting-surfacescale
+element	feSpecularLighting	specularConstant	yes		#element-attrdef-fespecularlighting-specularconstant
+element	feSpecularLighting	specularExponent	yes		#element-attrdef-fespecularlighting-specularexponent
+element	feSpecularLighting	kernelUnitLength	yes		#element-attrdef-fespecularlighting-kernelunitlength
+element	feSpotLight	x	yes		#element-attrdef-fespotlight-x
+element	feSpotLight	y	yes		#element-attrdef-fespotlight-y
+element	feSpotLight	z	yes		#element-attrdef-fespotlight-z
+element	feSpotLight	pointsAtX	yes		#element-attrdef-fespotlight-pointsatx
+element	feSpotLight	pointsAtY	yes		#element-attrdef-fespotlight-pointsaty
+element	feSpotLight	pointsAtZ	yes		#element-attrdef-fespotlight-pointsatz
+element	feSpotLight	specularExponent	yes		#element-attrdef-fespotlight-specularexponent
+element	feSpotLight	limitingConeAngle	yes		#element-attrdef-fespotlight-limitingconeangle
+element	feTurbulence	baseFrequency	yes		#element-attrdef-feturbulence-basefrequency
+element	feTurbulence	numOctaves	yes		#element-attrdef-feturbulence-numoctaves
+element	feTurbulence	seed	yes		#element-attrdef-feturbulence-seed
+element	feTurbulence	stitchTiles	yes		#element-attrdef-feturbulence-stitchtiles
+element	feTurbulence	type	yes		#element-attrdef-feturbulence-type
+element	filter	x	yes		#element-attrdef-filter-x
+element	filter	y	yes		#element-attrdef-filter-y
+element	filter	width	yes		#element-attrdef-filter-width
+element	filter	height	yes		#element-attrdef-filter-height
+element	filter	filterUnits	yes		#element-attrdef-filter-filterunits
+element	filter	primitiveUnits	yes		#element-attrdef-filter-primitiveunits
+element	mask	x	yes		#element-attrdef-mask-x
+element	mask	y	yes		#element-attrdef-mask-y
+element	mask	width	yes		#element-attrdef-mask-width
+element	mask	height	yes		#element-attrdef-mask-height
+element	mask	maskUnits	yes		#element-attrdef-mask-maskunits
+element	mask	maskContentUnits	yes		#element-attrdef-mask-maskcontentunits
+element	clipPath	clipPathUnits	yes		#element-attrdef-clippath-clippathunits
+element	animateMotion	path			#AnimateMotionElementPathAttribute
+element	animateMotion	keyPoints			#KeyPointsAttribute
+element	animateMotion	rotate			#RotateAttribute
+element	animateMotion	origin			#OriginAttribute
+element	animateTransform	type			#AnimateTransformElementTypeAttribute
+element	mpath	href			#MPathElementHrefAttribute
+element	set	to			#SetElementToAttribute
+category	aria	aria-activedescendant			https://www.w3.org/TR/wai-aria-1.1/#aria-activedescendant
+category	aria	aria-atomic			https://www.w3.org/TR/wai-aria-1.1/#aria-atomic
+category	aria	aria-autocomplete			https://www.w3.org/TR/wai-aria-1.1/#aria-autocomplete
+category	aria	aria-busy			https://www.w3.org/TR/wai-aria-1.1/#aria-busy
+category	aria	aria-checked			https://www.w3.org/TR/wai-aria-1.1/#aria-checked
+category	aria	aria-colcount			https://www.w3.org/TR/wai-aria-1.1/#aria-colcount
+category	aria	aria-colindex			https://www.w3.org/TR/wai-aria-1.1/#aria-colindex
+category	aria	aria-colspan			https://www.w3.org/TR/wai-aria-1.1/#aria-colspan
+category	aria	aria-controls			https://www.w3.org/TR/wai-aria-1.1/#aria-controls
+category	aria	aria-current			https://www.w3.org/TR/wai-aria-1.1/#aria-current
+category	aria	aria-describedby			https://www.w3.org/TR/wai-aria-1.1/#aria-describedby
+category	aria	aria-details			https://www.w3.org/TR/wai-aria-1.1/#aria-details
+category	aria	aria-disabled			https://www.w3.org/TR/wai-aria-1.1/#aria-disabled
+category	aria	aria-dropeffect			https://www.w3.org/TR/wai-aria-1.1/#aria-dropeffect
+category	aria	aria-errormessage			https://www.w3.org/TR/wai-aria-1.1/#aria-errormessage
+category	aria	aria-expanded			https://www.w3.org/TR/wai-aria-1.1/#aria-expanded
+category	aria	aria-flowto			https://www.w3.org/TR/wai-aria-1.1/#aria-flowto
+category	aria	aria-grabbed			https://www.w3.org/TR/wai-aria-1.1/#aria-grabbed
+category	aria	aria-haspopup			https://www.w3.org/TR/wai-aria-1.1/#aria-haspopup
+category	aria	aria-hidden			https://www.w3.org/TR/wai-aria-1.1/#aria-hidden
+category	aria	aria-invalid			https://www.w3.org/TR/wai-aria-1.1/#aria-invalid
+category	aria	aria-keyshortcuts			https://www.w3.org/TR/wai-aria-1.1/#aria-keyshortcuts
+category	aria	aria-label			https://www.w3.org/TR/wai-aria-1.1/#aria-label
+category	aria	aria-labelledby			https://www.w3.org/TR/wai-aria-1.1/#aria-labelledby
+category	aria	aria-level			https://www.w3.org/TR/wai-aria-1.1/#aria-level
+category	aria	aria-live			https://www.w3.org/TR/wai-aria-1.1/#aria-live
+category	aria	aria-modal			https://www.w3.org/TR/wai-aria-1.1/#aria-modal
+category	aria	aria-multiline			https://www.w3.org/TR/wai-aria-1.1/#aria-multiline
+category	aria	aria-multiselectable			https://www.w3.org/TR/wai-aria-1.1/#aria-multiselectable
+category	aria	aria-orientation			https://www.w3.org/TR/wai-aria-1.1/#aria-orientation
+category	aria	aria-owns			https://www.w3.org/TR/wai-aria-1.1/#aria-owns
+category	aria	aria-placeholder			https://www.w3.org/TR/wai-aria-1.1/#aria-placeholder
+category	aria	aria-posinset			https://www.w3.org/TR/wai-aria-1.1/#aria-posinset
+category	aria	aria-pressed			https://www.w3.org/TR/wai-aria-1.1/#aria-pressed
+category	aria	aria-readonly			https://www.w3.org/TR/wai-aria-1.1/#aria-readonly
+category	aria	aria-relevant			https://www.w3.org/TR/wai-aria-1.1/#aria-relevant
+category	aria	aria-required			https://www.w3.org/TR/wai-aria-1.1/#aria-required
+category	aria	aria-roledescription			https://www.w3.org/TR/wai-aria-1.1/#aria-roledescription
+category	aria	aria-rowcount			https://www.w3.org/TR/wai-aria-1.1/#aria-rowcount
+category	aria	aria-rowindex			https://www.w3.org/TR/wai-aria-1.1/#aria-rowindex
+category	aria	aria-rowspan			https://www.w3.org/TR/wai-aria-1.1/#aria-rowspan
+category	aria	aria-selected			https://www.w3.org/TR/wai-aria-1.1/#aria-selected
+category	aria	aria-setsize			https://www.w3.org/TR/wai-aria-1.1/#aria-setsize
+category	aria	aria-sort			https://www.w3.org/TR/wai-aria-1.1/#aria-sort
+category	aria	aria-valuemax			https://www.w3.org/TR/wai-aria-1.1/#aria-valuemax
+category	aria	aria-valuemin			https://www.w3.org/TR/wai-aria-1.1/#aria-valuemin
+category	aria	aria-valuenow			https://www.w3.org/TR/wai-aria-1.1/#aria-valuenow
+category	aria	aria-valuetext			https://www.w3.org/TR/wai-aria-1.1/#aria-valuetext
+category	aria	role			struct.html#RoleAttribute
+category	conditional processing	requiredExtensions			struct.html#RequiredExtensionsAttribute
+category	conditional processing	systemLanguage			struct.html#SystemLanguageAttribute
+category	core	id			struct.html#IDAttribute
+category	core	tabindex			struct.html#SVGElementTabindexAttribute
+category	core	autofocus			struct.html#SVGElementAutofocusAttribute
+category	core	lang			struct.html#LangAttribute
+category	core	xml:space			struct.html#XMLSpaceAttribute
+category	core	class	yes		styling.html#ClassAttribute
+category	core	style			styling.html#StyleAttribute
+category	document event	onunload			interact.html#EventAttributes
+category	document event	onabort			interact.html#EventAttributes
+category	document event	onerror			interact.html#EventAttributes
+category	document event	onresize			interact.html#EventAttributes
+category	document event	onscroll			interact.html#EventAttributes
+category	window event	onafterprint			interact.html#EventAttributes
+category	window event	onbeforeprint			interact.html#EventAttributes
+category	window event	onhashchange			interact.html#EventAttributes
+category	window event	onmessage			interact.html#EventAttributes
+category	window event	onoffline			interact.html#EventAttributes
+category	window event	ononline			interact.html#EventAttributes
+category	window event	onpagehide			interact.html#EventAttributes
+category	window event	onpageshow			interact.html#EventAttributes
+category	window event	onpopstate			interact.html#EventAttributes
+category	window event	onstorage			interact.html#EventAttributes
+category	window event	onunload			interact.html#EventAttributes
+category	global event	oncancel			interact.html#EventAttributes
+category	global event	oncanplay			interact.html#EventAttributes
+category	global event	oncanplaythrough			interact.html#EventAttributes
+category	global event	onchange			interact.html#EventAttributes
+category	global event	onclick			interact.html#EventAttributes
+category	global event	onclose			interact.html#EventAttributes
+category	global event	oncopy			interact.html#EventAttributes
+category	global event	oncuechange			interact.html#EventAttributes
+category	global event	oncut			interact.html#EventAttributes
+category	global event	ondblclick			interact.html#EventAttributes
+category	global event	ondrag			interact.html#EventAttributes
+category	global event	ondragend			interact.html#EventAttributes
+category	global event	ondragenter			interact.html#EventAttributes
+category	global event	ondragexit			interact.html#EventAttributes
+category	global event	ondragleave			interact.html#EventAttributes
+category	global event	ondragover			interact.html#EventAttributes
+category	global event	ondragstart			interact.html#EventAttributes
+category	global event	ondrop			interact.html#EventAttributes
+category	global event	ondurationchange			interact.html#EventAttributes
+category	global event	onemptied			interact.html#EventAttributes
+category	global event	onended			interact.html#EventAttributes
+category	global event	onerror			interact.html#EventAttributes
+category	global event	onfocus			interact.html#EventAttributes
+category	global event	oninput			interact.html#EventAttributes
+category	global event	oninvalid			interact.html#EventAttributes
+category	global event	onkeydown			interact.html#EventAttributes
+category	global event	onkeypress			interact.html#EventAttributes
+category	global event	onkeyup			interact.html#EventAttributes
+category	global event	onload			interact.html#EventAttributes
+category	global event	onloadeddata			interact.html#EventAttributes
+category	global event	onloadedmetadata			interact.html#EventAttributes
+category	global event	onloadstart			interact.html#EventAttributes
+category	global event	onmousedown			interact.html#EventAttributes
+category	global event	onmouseenter			interact.html#EventAttributes
+category	global event	onmouseleave			interact.html#EventAttributes
+category	global event	onmousemove			interact.html#EventAttributes
+category	global event	onmouseout			interact.html#EventAttributes
+category	global event	onmouseover			interact.html#EventAttributes
+category	global event	onmouseup			interact.html#EventAttributes
+category	global event	onpaste			interact.html#EventAttributes
+category	global event	onpause			interact.html#EventAttributes
+category	global event	onplay			interact.html#EventAttributes
+category	global event	onplaying			interact.html#EventAttributes
+category	global event	onprogress			interact.html#EventAttributes
+category	global event	onratechange			interact.html#EventAttributes
+category	global event	onreset			interact.html#EventAttributes
+category	global event	onresize			interact.html#EventAttributes
+category	global event	onscroll			interact.html#EventAttributes
+category	global event	onseeked			interact.html#EventAttributes
+category	global event	onseeking			interact.html#EventAttributes
+category	global event	onselect			interact.html#EventAttributes
+category	global event	onshow			interact.html#EventAttributes
+category	global event	onstalled			interact.html#EventAttributes
+category	global event	onsubmit			interact.html#EventAttributes
+category	global event	onsuspend			interact.html#EventAttributes
+category	global event	ontimeupdate			interact.html#EventAttributes
+category	global event	ontoggle			interact.html#EventAttributes
+category	global event	onvolumechange			interact.html#EventAttributes
+category	global event	onwaiting			interact.html#EventAttributes
+category	global event	onwheel			interact.html#EventAttributes
+category	deprecated xlink	xlink:href			linking.html#XLinkHrefAttribute
+category	deprecated xlink	xlink:title			linking.html#XLinkTitleAttribute
+category	filter primitive	x	yes		#element-attrdef-filter-primitive-x
+category	filter primitive	y	yes		#element-attrdef-filter-primitive-y
+category	filter primitive	width	yes		#element-attrdef-filter-primitive-width
+category	filter primitive	height	yes		#element-attrdef-filter-primitive-height
+category	filter primitive	result	yes		#element-attrdef-filter-primitive-result
+category	transfer function element	type	yes		#element-attrdef-fecomponenttransfer-type
+category	transfer function element	tableValues	yes		#element-attrdef-fecomponenttransfer-tablevalues
+category	transfer function element	slope	yes		#element-attrdef-fecomponenttransfer-slope
+category	transfer function element	intercept	yes		#element-attrdef-fecomponenttransfer-intercept
+category	transfer function element	amplitude	yes		#element-attrdef-fecomponenttransfer-amplitude
+category	transfer function element	exponent	yes		#element-attrdef-fecomponenttransfer-exponent
+category	transfer function element	offset	yes		#element-attrdef-fecomponenttransfer-offset
+category	animation event	onbegin			http://w3c.github.io/svgwg/svg2-draft/interact.html#OnBeginEventAttribute
+category	animation event	onend			http://w3c.github.io/svgwg/svg2-draft/interact.html#OnEndEventAttribute
+category	animation event	onrepeat			http://w3c.github.io/svgwg/svg2-draft/interact.html#OnRepeatEventAttribute
+category	animation target element	href			#HrefAttribute
+category	animation attribute target	attributeName			#AttributeNameAttribute
+category	animation timing	begin			#BeginAttribute
+category	animation timing	dur			#DurAttribute
+category	animation timing	end			#EndAttribute
+category	animation timing	min			#MinAttribute
+category	animation timing	max			#MaxAttribute
+category	animation timing	restart			#RestartAttribute
+category	animation timing	repeatCount			#RepeatCountAttribute
+category	animation timing	repeatDur			#RepeatDurAttribute
+category	animation timing	fill			#FillAttribute
+category	animation value	calcMode			#CalcModeAttribute
+category	animation value	values			#ValuesAttribute
+category	animation value	keyTimes			#KeyTimesAttribute
+category	animation value	keySplines			#KeySplinesAttribute
+category	animation value	from			#FromAttribute
+category	animation value	to			#ToAttribute
+category	animation value	by			#ByAttribute
+category	animation addition	additive			#AdditiveAttribute
+category	animation addition	accumulate			#AccumulateAttribute
+standalone	-	x	yes	tspan	text.html#TextElementXAttribute
+standalone	-	y	yes	tspan	text.html#TextElementYAttribute
+standalone	-	dx	yes	tspan	text.html#TextElementDXAttribute
+standalone	-	dy	yes	tspan	text.html#TextElementDYAttribute
+standalone	-	rotate	yes	tspan	text.html#TextElementRotateAttribute
+standalone	-	textLength	yes	textPath, tspan	text.html#TextElementTextLengthAttribute
+standalone	-	lengthAdjust	yes	text, textPath, tspan	text.html#TextElementLengthAdjustAttribute
+standalone	-	viewBox	yes		coords.html#ViewBoxAttribute
+standalone	-	preserveAspectRatio	yes		coords.html#PreserveAspectRatioAttribute
+standalone	-	pathLength	yes		paths.html#PathLengthAttribute
+standalone	-	in	yes	feBlend, feColorMatrix, feComponentTransfer, feComposite, feConvolveMatrix, feDropShadow, feDiffuseLighting, feDisplacementMap, feGaussianBlur, feMergeNode, feMorphology, feOffset, feSpecularLighting, feTile	#element-attrdef-filter-primitive-in
+standalone	-	href		animate, animateMotion, animateTransform, set	#HrefAttribute
+standalone	-	timelinebegin		svg	#SVGElementTimelinebeginAttribute
+standalone	-	playbackorder		svg	#SVGElementPlaybackorderAttribute

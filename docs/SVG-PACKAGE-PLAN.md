@@ -1,7 +1,8 @@
 # Plan: `Whatwg.Svg`, inline SVG beside `Whatwg.Html`
 
-Status: **S0 and S1 executed, 2026-10-11** (the ledger is §8). Slices S2 to S4 are designed here
-and not built. Every ruling of §4 is a proposal until the owner rules.
+Status: **S0, S1 and S2 executed, 2026-10-11** (the ledger is §8). Slices S3 and S4 are designed
+here and not built. The owner left the open decisions to the seat on 2026-10-11, and §7 records
+each one as taken.
 
 This is the plan for inline SVG in the `whatwg` package. An HTML tree holds an SVG figure as
 checked, first-order data. The assignment is `docs/research/2026-10-11-svg-seat-brief.md`. The
@@ -89,16 +90,18 @@ reasons:
 
 ### 2.1 What the definitions hold
 
-An XML read at pin time gave these counts. The evidence word is "tested": a PowerShell script
-over the sealed bytes, not a gate. The gate of S2 recomputes each count.
+`lake exe whatwg_svgdefinitions` prints these counts, and the projections under `generated/`
+hold the rows. The evidence word is "reproduced": the gate recomputes them from the sealed
+bytes at every run.
 
 | Kind | Count | Note |
 | --- | --- | --- |
 | `element` | 63 | 32 names hold an upper-case letter |
 | `elementcategory` | 17 | each lists its member elements |
-| `attributecategory` | 17 | `presentation` is declared twice, in two files |
-| `attribute`, outside an element or a category | 14 | |
+| `attributecategory` | 17 | 16 categories: `presentation` is declared twice, in two files |
+| `attribute`, outside an element or a category | 14 | three list elements that do not cite them |
 | `property` | 117 | the presentation attributes are a list of these names |
+| attribute names in the schema | 321 | a name may take different values on different elements |
 
 Each element states its content model by one of five kinds:
 
@@ -115,15 +118,19 @@ attributes.
 
 ### 2.2 What the definitions get wrong or leave out
 
-The same read found eight dangling names:
+The gate finds ten dangling names, and `generated/svg-dangling.tsv` lists each with its citers:
 
 | Dangling name | Cited as | Cited by |
 | --- | --- | --- |
 | `altGlyphDef`, `color-profile`, `font`, `font-face` | element | `mask` |
-| `document element event` | attribute category | 35 elements |
-| `style` | attribute category | 21 elements |
+| `document element event` | attribute category | 34 elements |
+| `style` | attribute category | 20 elements |
 | `externalResourcesRequired` | attribute | `clipPath`, `filter`, `feImage` |
 | `transform` | attribute | `clipPath` |
+| `color-profile`, `kerning` | property | the second `presentation` entry |
+
+`transform` dangles only as a cited attribute. The first `presentation` entry lists it as a
+presentation attribute, so `clipPath` has it through that category.
 
 Five things are in no definitions file:
 
@@ -144,13 +151,15 @@ generated file of S2 carries that notice.
 
 ```text
 vendor/w3c-svgwg-47e645ef/         the sealed SVG 2 sources (S1)
-WhatwgGates/SvgDefinitions.lean    the XML reader, the projection, its check (S2)
-WhatwgGates/SvgDefinitionsEmit.lean  the schema modules' emitter (S2)
+WhatwgGates/Xml.lean               a total reader of the XML subset the sealed files use (S2)
+WhatwgGates/SvgDefinitions.lean    the rows, the four projections, the drift check (S2)
+WhatwgGates/SvgDefinitionsEmit.lean  the schema's resolution and the modules' emitter (S2)
+WhatwgGates/EmitLean.lean          the Lean spelling that the HTML and SVG emitters share (S2)
 whatwgbin/SvgDefinitions.lean      the entry point of `whatwg_svgdefinitions` (S2)
 generated/svg-*.tsv                the projection: elements, categories, attributes, dangling names (S2)
 Whatwg/Svg.lean                    root of the library `WhatwgSvg`
 Whatwg/Svg/
-  Schema/    Definitions  Tags  Categories  Attributes  ContentModel   generated (S2)
+  Schema/    Tags  Categories  Attributes  ContentModel                 generated (S2)
   Schema/    Readings                                                   authored, digest-pinned (S2)
   Content/   Admission                                                  one node's judgments (S3)
   Value/     Decimal  PathData  Points  ViewBox  Transform  Length      typed values (S4)
@@ -190,7 +199,7 @@ it does today.
 | SV-5 | the tree | `RawNode` is unchanged. A node's namespace is an inherited attribute of its path. The checker and the printer carry it down. |
 | SV-6 | layering | The library `WhatwgSvg` owns `Whatwg/Svg/` and imports nothing of `Whatwg.Html`. The tree walk stays in `Whatwg.Html`, in one mutual block. |
 | SV-7 | where `svg` stands | `svg` stands where the context's base is built on flow or phrasing content. None of the fifteen exclusions the HTML schema carries names it. |
-| SV-8 | integration points | The children of `foreignObject` are checked as flow content, and those of `title` as phrasing content. The HTML Standard says both. The children of `desc` are checked as flow content: this is the seat's reading. |
+| SV-8 | integration points | The children of `foreignObject` are checked as flow content, and those of `title` as phrasing content. The HTML Standard says both. The children of `desc` are checked as phrasing content too: this is a reading, and the smaller one. |
 | SV-9 | exclusions | The exclusions of the HTML context pass through an SVG subtree. `<a><svg><foreignObject><a>` is refused. |
 | SV-10 | MathML | `math` is refused with the reason "MathML is not modelled". No library is planned. |
 | SV-11 | names | A tree holds each name as the serializer writes it. The checker compares names exactly, so `viewbox` is not `viewBox`. |
@@ -202,7 +211,7 @@ it does today.
 | SV-17 | the printer | In an SVG subtree no element is void and no text is raw. The printer returns to the HTML rules at an integration point. |
 | SV-18 | numbers | A number is an exact decimal. No value of the library is a float. |
 | SV-19 | reader and checker | For each value grammar, the checker is the domain of the reader. The reader accepts every spelling the grammar admits, and the printer writes one. |
-| SV-20 | ceiling | `Whatwg.Svg` joins the strict prefixes at S2. A function that must traverse a `String` is an exact exception with its reason. S2 measures the residue first. |
+| SV-20 | ceiling | `Whatwg.Svg` is a strict prefix since S2, at zero residue. No declaration of it traverses a `String`: a lookup reads a `List Char`, and the seam converts. |
 | SV-21 | licence notice | Each generated file names its source and W3C's copyright (§2.3). |
 
 ## 5. Slices
@@ -211,7 +220,7 @@ it does today.
 | --- | --- | --- |
 | S0 | merge `origin/html-h7` into `html/svg` | done: ruling R-S2 of `COORDINATION.md` |
 | S1 | this plan; the pin, sealed and cross-checked | `lake exe whatwg_vendorseal` passes; the rows of `docs/PROVENANCE.md` and `SPEC-MANIFEST.md` |
-| S2 | the projection gate and the generated schema | the gate passes in both modes; the build and the gates of `AGENTS.md` pass; no theorem |
+| S2 | the projection gate and the generated schema | done: the gate passes in both modes; the build and the gates of `AGENTS.md` pass; no theorem |
 | S3 | the seam: the checker's SVG branch, the located refusal, the printer | the battery of §5.2 passes; the laws of §6 marked S3 are proved; every HTML battery passes unchanged |
 | S4 | the value grammars | each grammar's two laws are proved; the battery replays the specification's own examples |
 
@@ -242,18 +251,27 @@ bounds each loop.
 
 | Module | Holds |
 | --- | --- |
-| `Whatwg.Svg.Schema.Definitions` | the rows as data, as the standard's words |
 | `Whatwg.Svg.Schema.Tags` | `Tag`, `Tag.all`, `Tag.name`, and `Tag.ofChars?` as a character decision tree |
-| `Whatwg.Svg.Schema.Categories` | the element categories and each one's members |
-| `Whatwg.Svg.Schema.Attributes` | `Attr`, `Attr.name`, `Attr.ofChars?`, and each tag's attribute set |
-| `Whatwg.Svg.Schema.ContentModel` | each tag's kind, its admitted child tags as a resolved list, and whether it admits text |
+| `Whatwg.Svg.Schema.Categories` | `Category` and each one's members |
+| `Whatwg.Svg.Schema.Attributes` | `Attr`, `Attr.name`, `Attr.ofChars?`, `AttrCategory` with its members, and each tag's categories and own attributes |
+| `Whatwg.Svg.Schema.ContentModel` | `Tag.model`: the kind, the categories and elements as stated, the children as a resolved list, and what a read sentence adds |
 
-The slice also adds the Lake library `WhatwgSvg` and the executable. It adds the library to
-`Gates.DeclSnapshot.libraries`, which two battery rows pin: the seat amends both with a dated
-comment, on the precedent of R-W17. The ledger claims the new modules by a leaf record, since a
-passive finite alphabet closes with local receipts (`docs/AGENT-ROUTING.md`).
+As built, the slice differs from this design in three ways:
 
-S2 states no theorem. The round trips of the name tables are laws of S3, which consumes them.
+- No module repeats the raw rows in Lean. The four projections are the raw rows, and nothing in
+  Lean reads them a second time.
+- An attribute reaches an element in two directions. An element cites an attribute, or an
+  attribute outside every element lists the element. Three attributes list elements that do not
+  cite them, so `Tag.ownAttrs` is the union.
+- The ledger carries `Whatwg.Svg` as an unrouted prefix (debt D78), not as a leaf record. A leaf
+  record holds receipts, and S2 states no law. The graph of S3 fences these modules.
+
+The slice also adds the Lake library `WhatwgSvg` and the executable. `Gates.DeclSnapshot.libraries`
+holds nine, and the seat amended the two battery rows that pin the list, on the precedent of
+R-W17.
+
+S2 states no theorem. Its battery, `WhatwgTest/Svg/Schema.lean`, evaluates the round trips of
+the name tables over each census. S3 proves them, where the checker consumes them.
 
 ### 5.2 S3: the seam
 
@@ -379,9 +397,9 @@ SVG text states.
 
 ## 6. Anticipated proof graph
 
-S2 is passive data and closes with a leaf record. S3 is an admission, so it opens a proof graph,
-`SVG-PG-SEAM`, with its ten edges in the ledger. Each grammar of S4 is an exact representation
-and closes with a leaf record of its two laws.
+S2 is passive data and states no law. S3 is an admission, so it opens a proof graph,
+`SVG-PG-SEAM`, with its ten edges in the ledger, and that graph fences the schema modules. Each
+grammar of S4 is an exact representation and closes with a leaf record of its two laws.
 
 | Node | Statement | Kind | Planned evidence | Slice |
 | --- | --- | --- | --- | --- |
@@ -411,20 +429,25 @@ and closes with a leaf record of its two laws.
 - V3 is open. Until it is proved, the reader's fidelity to the grammar rests on finite examples.
 - CSS in a `style` element or attribute is never checked.
 
-## 7. Open decisions for the owner
+## 7. Decisions
 
-1. **The nine extra files of the pin** (§2). The brief named the definitions alone.
+The owner left these to the seat on 2026-10-11. Ruling R-S4 of `COORDINATION.md` records them.
+
+1. **The nine extra files of the pin** (§2) stay. The schema needs two of them, and S3 and S4
+   read the chapters.
 2. **SV-8, `desc`.** The HTML Standard narrows `foreignObject` and `title` and says nothing of
-   `desc`. The plan reads its children as flow content.
-3. **SV-20, the strict ceiling for `Whatwg.Svg`.** It costs exact exceptions at each `String`
-   crossing. `Whatwg.Html` is not strict.
-4. **The CSS pin of S4** (§5.3): pin CSS Transforms and CSS Values, or restrict the two grammars.
-5. **The slice after S4.** lean4-effect4 moves its pin to this branch and builds its pictures as
-   trees. That work is in its repository.
+   `desc`. Its children are checked as phrasing content, as those of `title` are. The smaller
+   reading can widen later without breaking a tree.
+3. **SV-20, the strict ceiling.** `Whatwg.Svg` is strict since S2, with no exception.
+4. **The CSS pin of S4** (§5.3) is decided when S4 opens. The choice is to pin CSS Transforms
+   and CSS Values, or to restrict the two grammars to what the sealed SVG text states.
+5. **The slice after S4** is in lean4-effect4's repository: it moves its pin to this branch and
+   builds its pictures as trees.
 
 ## 8. Ledger
 
 | Slice | Commit | Result |
 | --- | --- | --- |
 | S0 | `e74dc0d` on `html/svg`, 2026-10-11 | `origin/html-h7` merged; the record is ruling R-S2 of `COORDINATION.md` and the last ledger row of `docs/HTML-PACKAGE-PLAN.md` |
-| S1 | the commit that adds this file, 2026-10-11 | the pin `vendor/w3c-svgwg-47e645ef/`, thirteen files; every file matches its upstream blob hash; `lake exe whatwg_vendorseal` passes; the seal's digests equal those of `Get-FileHash`; this plan |
+| S1 | `9266dac`, 2026-10-11 | the pin `vendor/w3c-svgwg-47e645ef/`, thirteen files; every file matches its upstream blob hash; `lake exe whatwg_vendorseal` passes; the seal's digests equal those of `Get-FileHash`; this plan |
+| S2 | the commit after `9266dac`, 2026-10-11 | `lake exe whatwg_svgdefinitions`: four projections and four generated modules, byte-identical to a regeneration; 63 tags, 17 element categories, 321 attribute names, 16 attribute categories, four read sentences, ten dangling names; `Whatwg.Svg` strict with no exception; two batteries; the record is ruling R-S4 of `COORDINATION.md` |

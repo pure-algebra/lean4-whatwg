@@ -69,6 +69,7 @@ import WhatwgTest.Html.CombinatorShape
 import WhatwgTest.Html.Markup
 import WhatwgTest.Html.MarkupBreakers
 import WhatwgTest.Html.MarkupBenchmark
+import WhatwgTest.Svg.Schema
 import WhatwgTest.Audit.SpecCoverage
 import WhatwgTest.Audit.Infra.SpecCoverageRows
 import WhatwgTest.Audit.WebIdl.SpecCoverageRows
@@ -88,6 +89,7 @@ import WhatwgTest.Ledger
 import WhatwgTest.Audit.LedgerContract
 import WhatwgTest.Audit.LedgerRoutingContract
 import WhatwgTest.Audit.DeclSnapshotContract
+import WhatwgTest.Audit.XmlReader
 import WhatwgTest.Audit.AxiomGate
 
 /-!

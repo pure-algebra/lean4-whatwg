@@ -1,0 +1,13 @@
+#svg-dangling format=1 generator=Gates.SvgDefinitions inputs=vendor/w3c-svgwg-47e645ef rows=10 regenerate=lake exe whatwg_svgdefinitions --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from Scalable Vector Graphics (SVG) 2, https://w3c.github.io/svgwg/svg2-draft/, under the W3C Document License, https://www.w3.org/copyright/document-license-2023/
+#cited-as	name	cited-by
+element	color-profile	mask
+element	font	mask
+element	font-face	mask
+element	altGlyphDef	mask
+attribute category	document element event	a, circle, defs, desc, ellipse, foreignObject, g, image, line, linearGradient, marker, metadata, path, polygon, polyline, radialGradient, rect, script, stop, style, svg, switch, symbol, text, textPath, title, tspan, use, view, animate, animateMotion, animateTransform, mpath, set
+attribute category	style	feBlend, feColorMatrix, feComponentTransfer, feComposite, feConvolveMatrix, feDiffuseLighting, feDisplacementMap, feDropShadow, feFlood, feGaussianBlur, feImage, feMerge, feMorphology, feOffset, feSpecularLighting, feTile, feTurbulence, filter, mask, clipPath
+attribute	externalResourcesRequired	feImage, filter, clipPath
+attribute	transform	clipPath
+property	color-profile	category presentation
+property	kerning	category presentation
