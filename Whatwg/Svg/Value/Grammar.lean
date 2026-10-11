@@ -38,10 +38,14 @@ holds the rules that say so, one per form. Each value grammar of this package is
 `Grammar`, so its retraction (`Grammar.read_print`), its check law and its soundness are the
 theorems of this module, stated once.
 
-What this module does not claim: that `read` accepts every text of the language (node V3b,
-open). A reader that commits to the longest match refuses a text that a backtracking reader
-accepts, and `WhatwgTest/Svg/Grammar.lean` holds one. No matcher decides `Regex.Matches`
-here: the language is a relation, and the reader is the only decision procedure.
+What this module does not claim: that `read` accepts every text of the language. `ok` reads
+what the printer writes, and a reader that commits to the longest match refuses a text that a
+backtracking reader accepts: `WhatwgTest/Svg/Grammar.lean` holds one. Three modules build on
+this one. `Whatwg/Svg/Value/Greedy.lean` states the reader's rule as a relation and proves
+the reader against it (node V3b). `Whatwg/Svg/Value/Deterministic.lean` states the premise
+under which that rule's language is the expression's (node V3c).
+`Whatwg/Svg/Value/Refusal.lean` gives a refused text the offset at which no reading continues
+(node V6).
 -/
 
 namespace Whatwg.Svg.Value

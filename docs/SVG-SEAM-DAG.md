@@ -1,7 +1,7 @@
 # SVG seam assurance graph (`SVG-PG-SEAM`)
 
 Status: open, 2026-10-11. This document owns the graph for the admission of SVG content in an
-HTML tree. `docs/SVG-PACKAGE-PLAN.md` owns the slices, the rulings SV-1 to SV-30 and the list
+HTML tree. `docs/SVG-PACKAGE-PLAN.md` owns the slices, the rulings SV-1 to SV-33 and the list
 of anticipated nodes (its section 6).
 
 The graph opened at slice S3b, when `Whatwg.Html.Content.validIn` first accepted a tree that
@@ -41,9 +41,15 @@ document is in `docs/receipts/SVG-PG-SEAM.md`.
   that narrows a model is not read, apart from the four readings of ruling SV-4.
 - The HTML checker's own fidelity to the standard is the HTML package's edge, and it is open
   (debt D57). This graph bounds the change to that checker by two equations and no more.
-- `validIn` reads no SVG value (ruling SV-30). `valuesOk` judges the values of six attributes:
-  `d`, `points`, `viewBox` and the three transform attributes. Any other SVG attribute takes
-  any text, and CSS is never judged (ruling SV-14).
+- `validIn` reads no SVG value (ruling SV-30). `valuesOk` judges the values that the table of
+  `Whatwg/Svg/Value/Attribute.lean` gives a kind: `d`, `points`, `viewBox` and the three
+  transform attributes on any element, and `x1`, `y1`, `x2` and `y2` on `line` (ruling SV-32).
+  Any other SVG attribute takes any text, the geometry properties included, and CSS is never
+  judged (ruling SV-14).
+- The check of a length refuses some values that SVG admits: a unit the sealed table does not
+  name, `calc()`, a CSS comment and a CSS escape (ruling SV-31).
+- A refusal of a value names the offset at which no reading of its grammar continues. It does
+  not say that every text with that prefix is refused: that law is not proved.
 - A grammar's description is the seat's transcription of the sealed productions. No gate
   compares the two languages. Each grammar module names the productions it restructured.
 - `html!` runs a literal value through its grammar and proves nothing of it.

@@ -62,9 +62,10 @@ def infraInteger : Leaf where
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
 /-- The leaf-receipt record `SVG-LF-GRAMMAR`: the value-grammar library of slice S4a of
-`docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b and S4c, each an exact
-representation whose laws the library proves once. It contributes to the representation edge
-of `SVG-PG-SEAM`. -/
+`docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b to S4d, each an exact
+representation whose laws the library proves once, with the reader's rule as a relation, its
+bridge to the expression's language and the located refusal of a text. It contributes to the
+representation edge of `SVG-PG-SEAM`. -/
 def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
   document := "docs/SVG-PACKAGE-PLAN.md"
@@ -73,7 +74,10 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Point, `Whatwg.Svg.Value.Decimal.same_iff_reduce,
     `Whatwg.Svg.Value.Arc, `Whatwg.Svg.Value.Command, `Whatwg.Svg.Value.Path,
     `Whatwg.Svg.Value.PathData, `Whatwg.Svg.Value.Points, `Whatwg.Svg.Value.ViewBox,
-    `Whatwg.Svg.Value.Transform, `Whatwg.Svg.Value.TransformList]
+    `Whatwg.Svg.Value.Transform, `Whatwg.Svg.Value.TransformList, `Whatwg.Svg.Value.LengthUnit,
+    `Whatwg.Svg.Value.Length, `Whatwg.Svg.Value.Greedy, `Whatwg.Svg.Value.Syn.deterministic,
+    `Whatwg.Svg.Value.Syn.run,
+    `Whatwg.Svg.Value.Syn.explain]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -81,9 +85,15 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Grammar.read_print, `Whatwg.Svg.Value.Grammar.check_print,
       `Whatwg.Svg.Value.Grammar.print_injective, `Whatwg.Svg.Value.Grammar.matches_of_check,
       `Whatwg.Svg.Value.Decimal.isReduced_reduce, `Whatwg.Svg.Value.Decimal.reduce_of_isReduced,
-      `Whatwg.Svg.Value.Decimal.same_reduce, `Whatwg.Svg.Value.Decimal.same_iff_reduce],
+      `Whatwg.Svg.Value.Decimal.same_reduce, `Whatwg.Svg.Value.Decimal.same_iff_reduce,
+      `Whatwg.Svg.Value.Syn.greedy_iff_read, `Whatwg.Svg.Value.Syn.check_iff_greedy,
+      `Whatwg.Svg.Value.Syn.read_complete, `Whatwg.Svg.Value.Syn.check_iff_matches,
+      `Whatwg.Svg.Value.Syn.run_answer, `Whatwg.Svg.Value.Syn.explain_eq_none_iff,
+      `Whatwg.Svg.Value.Syn.explain_le, `Whatwg.Svg.Value.Grammar.explain_print],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
-      `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform]]
+      `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
+      `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Greedy, `WhatwgTest.Svg.Deterministic,
+      `WhatwgTest.Svg.Refusal]]
 
 /-- The ledger: the twelve graphs of slices A and B and the graph
 `SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9), the

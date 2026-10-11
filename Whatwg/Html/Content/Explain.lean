@@ -41,6 +41,10 @@ inductive AttrFault where
   | notTaken
   /-- The element takes the attribute, and the value is not of its kind. -/
   | value
+  /-- The value is not of its grammar, and no reading of the grammar continues at this offset
+  of the value (`Whatwg/Svg/Value/Refusal.lean`). The offset is the count of characters before
+  it, and the value's length when the value ends too soon. -/
+  | valueAt (offset : Nat)
   deriving DecidableEq, Repr, Inhabited
 
 /-- Why a node may not stand where it stands. -/
@@ -373,6 +377,9 @@ def Reason.describe : Reason → String
   | .attribute name .unknown => "the attribute `" ++ name ++ "` is no attribute of the schema"
   | .attribute name .notTaken => "the element does not take the attribute `" ++ name ++ "`"
   | .attribute name .value => "the value of the attribute `" ++ name ++ "` is not of its kind"
+  | .attribute name (.valueAt offset) =>
+    "the value of the attribute `" ++ name ++ "` is not of its kind: no reading continues after " ++
+      toString offset ++ (if offset == 1 then " character" else " characters")
   | .repeatedAttribute => "an attribute name repeats"
   | .order => "the children do not follow the element's content model"
   | .count => "the children do not hold a count of the element's content model"

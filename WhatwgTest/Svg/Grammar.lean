@@ -112,9 +112,10 @@ example : numbers.erase.Matches "12 3".toList := Syn.matches_of_check numbers (b
 example : numbers.erase.Matches (numbers.print twelveThree) :=
   Syn.print_matches numbers twelveThree (by decide)
 
--- The other direction is open (V3b). The language of `greedy` has the text `12`: one digit
--- for the star, one for the part after it. The reader commits to the longest match and
--- refuses it.
+-- The other direction needs a premise that `ok` is not (V3c: `Syn.deterministic`, whose
+-- battery is `WhatwgTest/Svg/Deterministic.lean`). The language of `greedy` has the text
+-- `12`: one digit for the star, one for the part after it. The reader commits to the longest
+-- match and refuses it.
 example : greedy.erase.Matches "12".toList :=
   .seq (l₁ := ['1']) (l₂ := ['2']) (.starCons (l₁ := ['1']) (l₂ := []) (.set (by decide)) .starNil)
     (.set (by decide))

@@ -131,9 +131,11 @@ example (p : Point) : Points.syn.erase.Matches (Points.grammar.print ⟨p, []⟩
 
 /-! ## A text of the language that the reader refuses
 
-The other direction of V3a is open (node V3b of the library). The language has `12` as a pair:
-the number `1`, no separator, and the number `2`. The reader takes the longest number, as the
-paragraph after the path data grammar asks, so it reads one coordinate and refuses the text. -/
+The other direction of V3a holds for a deterministic description (`Syn.read_complete`, node
+V3c of the library), and this one is not: `comma_wsp?` stands between two numbers. The
+language has `12` as a pair: the number `1`, no separator, and the number `2`. The reader takes
+the longest number, as the paragraph after the path data grammar asks, so it reads one
+coordinate and refuses the text. -/
 
 /-- One digit is a text of `coordinate`: no sign, one digit, no fraction and no exponent. -/
 theorem digit_matches {c : Char} (h : digitSet.mem c = true) : Decimal.syn.erase.Matches [c] :=

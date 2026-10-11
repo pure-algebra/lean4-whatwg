@@ -9,12 +9,16 @@ import Whatwg.Svg.Schema.Readings
 import Whatwg.Svg.Schema.Universe
 import Whatwg.Svg.Content.Context
 import Whatwg.Svg.Value.Grammar
+import Whatwg.Svg.Value.Greedy
+import Whatwg.Svg.Value.Deterministic
+import Whatwg.Svg.Value.Refusal
 import Whatwg.Svg.Value.Number
 import Whatwg.Svg.Value.Cohort
 import Whatwg.Svg.Value.Path
 import Whatwg.Svg.Value.Points
 import Whatwg.Svg.Value.ViewBox
 import Whatwg.Svg.Value.Transform
+import Whatwg.Svg.Value.Length
 import Whatwg.Svg.Value.Attribute
 
 /-!
@@ -37,9 +41,13 @@ The library has four layers:
   judgments of one node;
 - `Whatwg.Svg.Value.Grammar` is the one description that reads and prints an attribute value,
   with its retraction and the soundness of its reader proved once (slice S4a). Each grammar is
-  one value of it: `Number` (the number and the separators), `Path`, `Points`, `ViewBox` and
-  `Transform` (slices S4b and S4c). `Cohort` holds the law of a number's canonical value, and
-  `Attribute` says which grammar judges which attribute.
+  one value of it: `Number` (the number and the separators), `Path`, `Points`, `ViewBox`,
+  `Transform` and `Length` (slices S4b to S4d). `Cohort` holds the law of a number's canonical
+  value. `Greedy` states the reader's rule as a relation and proves the reader against it.
+  `Deterministic` proves that the reader of a deterministic description accepts exactly the
+  language of its expression, and `Refusal` gives a refused value the offset at which no
+  reading continues. `Attribute` is the table that says which grammar judges which attribute
+  on which element.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.

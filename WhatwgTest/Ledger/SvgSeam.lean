@@ -14,8 +14,8 @@ grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 to R-S14 and R-S16 of `COORDINATION.md` name this graph
-and change no edge's status, so the entry acknowledges the eight.
+No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16 and R-S17 of `COORDINATION.md` name this
+graph and change no edge's status, so the entry acknowledges the nine.
 -/
 
 namespace WhatwgTest.Ledger
@@ -29,7 +29,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -51,17 +51,20 @@ def svgSeam : Graph where
       remaining := [
         .named "a sentence of an SVG chapter that narrows a content model is not read, apart from the four readings of ruling SV-4",
         .named "`validIn` reads no SVG value: the value judgment `valuesOk` is a second algebra of the walk, beside the checker (ruling SV-30)",
-        .named "an attribute with no grammar takes any text: a length, a colour, a paint and a URL are not judged",
+        .named "an attribute with no kind in the table of `Whatwg/Svg/Value/Attribute.lean` takes any text: the geometry properties, whose chapter is not sealed (debt D93), a colour, a paint and a URL are not judged",
+        .named "the check of a length refuses some values that SVG admits: a unit the sealed table does not name, `calc()`, a CSS comment and a CSS escape (ruling SV-31)",
         .debt "D57"]
       grounds := [.declarations [`Whatwg.Html.Content.check, `Whatwg.Html.Content.validIn,
         `Whatwg.Html.Content.Pos.elementOk, `Whatwg.Svg.Content.Ctx.admits,
-        `Whatwg.Svg.Content.boundsOk, `Whatwg.Svg.Content.attrOk, `Whatwg.Svg.Value.valueOk,
+        `Whatwg.Svg.Content.boundsOk, `Whatwg.Svg.Content.attrOk, `Whatwg.Svg.Value.ValueKind,
+        `Whatwg.Svg.Value.kindOf, `Whatwg.Svg.Value.valueOk, `Whatwg.Svg.Value.explainValue,
         `Whatwg.Html.Content.valuesWalk, `Whatwg.Html.Content.valuesOk]]
       note := "`validIn` is the run of the Boolean algebra `check` from an HTML position, and `valuesOk` the run of `valuesWalk` over the namespace alone; the HTML checker's own fidelity to the standard is the HTML package's open edge." }
     laws := {
       status := .requiredOpen
       remaining := [
-        .named "node V3b: the reader takes the longest match, as the sealed path grammar asks, and no theorem states that reading as a relation; a text of the expression that the reader refuses is in each grammar's battery"]
+        .named "node V3c holds for a deterministic description alone: path data, `points`, `viewBox` and `transform` are not deterministic by design, their language is that of the rule `Greedy` (ruling SV-33), and a text of the bare expression that the reader refuses is in each grammar's battery",
+        .named "the offset of a refused value is not proved local: no theorem says that every text with that prefix is refused (debt D94)"]
       grounds := [.theorems [`Whatwg.Svg.Data.Universe.forall_of_all,
         `Whatwg.Svg.Data.Mask.mem_union, `Whatwg.Svg.Data.Mask.mem_inter,
         `Whatwg.Svg.Data.Mask.mem_diff, `Whatwg.Svg.Data.Mask.mem_ofList,
@@ -76,22 +79,22 @@ def svgSeam : Graph where
         `Whatwg.Html.Content.explain_none_iff, `Whatwg.Html.Content.explainAt_path,
         `Whatwg.Html.Print.decode_render, `Whatwg.Html.Print.renderIn_text_no_delim_of_svg,
         `Whatwg.Html.Content.isNone_explainValuesAt, `Whatwg.Html.Content.explainValues_none_iff,
-        `Whatwg.Html.Content.check_valueText, `Whatwg.Html.Content.valueOkByName_valueText]]
-      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, and V5 says that the text of a typed value passes its attribute's check with no evaluation." }
+        `Whatwg.Html.Content.check_valueText, `Whatwg.Html.Content.valueOkByName_valueText,
+        `Whatwg.Svg.Value.explainValue_eq_none_iff,
+        `Whatwg.Svg.Value.explainValueByName_eq_none_iff]]
+      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, V5 says that the text of a typed value passes its attribute's check with no evaluation, and V6 that the located refusal of a value is absent exactly when the value passes." }
     representation := {
       status := .requiredOpen
       remaining := [
-        .named "the length: no grammar, and no slice of the plan holds it (debt D89)"]
-      grounds := [.theorems [`Whatwg.Svg.Value.valueOk_d, `Whatwg.Svg.Value.valueOk_points,
-        `Whatwg.Svg.Value.valueOk_viewBox, `Whatwg.Svg.Value.valueOk_transform,
-        `Whatwg.Svg.Value.valueOk_gradientTransform, `Whatwg.Svg.Value.valueOk_patternTransform,
+        .named "no gate compares a transcribed grammar with the productions of its sealed chapter (debt D95)"]
+      grounds := [.theorems [`Whatwg.Svg.Value.valueOk_print, `Whatwg.Svg.Value.valueOkByName_chars,
         `Whatwg.Svg.Data.NameTable.read_exact,
         `Whatwg.Svg.Data.NameTable.read_chars, `Whatwg.Svg.Schema.Tag.ofChars?_chars,
         `Whatwg.Svg.Schema.Tag.ofChars?_exact, `Whatwg.Svg.Schema.Attr.ofChars?_chars,
         `Whatwg.Svg.Schema.Attr.ofChars?_exact, `Whatwg.Html.Content.restore_tag,
         `Whatwg.Html.Content.restore_attr, `Whatwg.Html.Print.decodeNode?_render,
         `Whatwg.Html.Print.renderChars_injective_of_wf, `Whatwg.Html.Print.render_injective_of_wf]]
-      note := "The two name tables are exact embeddings (N1), the tree construction's tables restore every schema name from its lower-case form (N2), and the printer is an exact embedding of the well-formed trees, with SVG subtrees or without (P1, P3). Each of the six attributes with a grammar admits the text of every typed value of that grammar (V2 at the attribute); the grammars themselves are the leaf `SVG-LF-GRAMMAR`." }
+      note := "The two name tables are exact embeddings (N1), the tree construction's tables restore every schema name from its lower-case form (N2), and the printer is an exact embedding of the well-formed trees, with SVG subtrees or without (P1, P3). Each name that the table gives a kind admits the text of every typed value of that kind (V2 at the table); the grammars themselves are the leaf `SVG-LF-GRAMMAR`." }
     counterexamples := {
       status := .requiredOpen
       remaining := [

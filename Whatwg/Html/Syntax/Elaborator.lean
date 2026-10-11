@@ -1,5 +1,6 @@
 import Lean
 import Std.Data.HashMap
+import Whatwg.Html.Content.Values
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
 
@@ -301,13 +302,13 @@ def foreignName? (stx : Syntax) : Option String :=
     if (Tag.ofName? name).isNone && (Tag.ofForeignName? name).isSome then some name else none
   else none
 
-/-- The attributes of an element in a foreign subtree: the pairs as values and as an
+/-- The attributes of the element `element` in a foreign subtree: the pairs as values and as an
 expression. `isSvg` says that the element is an SVG element. On one, a spliced value is
 admitted, and a literal value is run through its attribute's grammar here
-(`Whatwg.Svg.Value.valueOkByName`) and refused at the attribute's token. That run is the
-elaborator's: the tree's obligation does not read an SVG value
-(`Whatwg/Html/Content/Values.lean`). -/
-def foreignAttrs (isSvg : Bool) (stxs : Array Syntax) :
+(`Whatwg.Svg.Value.valueOkByName`) and refused at the attribute's token, with the offset at
+which no reading continues. That run is the elaborator's: the tree's obligation does not read
+an SVG value (`Whatwg/Html/Content/Values.lean`). -/
+def foreignAttrs (isSvg : Bool) (element : String) (stxs : Array Syntax) :
     TermElabM (List (String × String) × Expr) := do
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
   let mut values : Array (String × String) := #[]
@@ -321,8 +322,9 @@ def foreignAttrs (isSvg : Bool) (stxs : Array Syntax) :
       if opt.getNumArgs == 0 then some "" else opt[1].isStrLit?
     let (value, valueE) ← match literal? with
       | some s =>
-        if isSvg && !Whatwg.Svg.Value.valueOkByName markup.toList s.toList then
-          throwErrorAt stx (Whatwg.Html.Content.Reason.describe (.attribute markup .value))
+        if isSvg && !Whatwg.Svg.Value.valueOkByName element.toList markup.toList s.toList then
+          throwErrorAt stx (Whatwg.Html.Content.Reason.describe
+            (.attribute markup (Whatwg.Html.Content.valueFault element markup s)))
         pure (s, mkStrLit s)
       | none =>
         if isSvg then pure ("", ← elabClosed opt[1][1] (mkConst ``String))
@@ -348,7 +350,7 @@ def foreignNode : Nat → Whatwg.Html.Content.Pos → Syntax → TermElabM Built
     let name := nameString nameStx
     -- an SVG element: any element at an SVG position, and the foreign root at an HTML one
     let isSvg := pos.ns == .svg || (Tag.ofName? name).isNone
-    let (attrs, attrsE) ← foreignAttrs isSvg attrStxs
+    let (attrs, attrsE) ← foreignAttrs isSvg name attrStxs
     let inner := pos.child name
     let mut kids : Array Built := #[]
     for kid in kidStxs do

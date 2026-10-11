@@ -72,9 +72,11 @@ Readings of the sealed text:
   `PathDataBNF` lets a user agent accept one and forbids an author to write one.
 
 What this module does not claim: that the reader accepts every text of the description's
-expression (node V3b of the plan is open, and `WhatwgTest/Svg/Path.lean` holds `M10`); the
-error handling of `PathDataErrorHandling`, which renders a path up to its first error, where
-this reader refuses the whole text; or any meaning of a command. There is no current point
+expression. The description is not deterministic (`Syn.deterministic` of
+`Whatwg/Svg/Value/Deterministic.lean`, node V3c of the plan), the sealed rule above is the
+reader's, and `WhatwgTest/Svg/Path.lean` holds `M10`. Nor does it claim the error handling of
+`PathDataErrorHandling`, which renders a path up to its first error, where this reader refuses
+the whole text; or any meaning of a command. There is no current point
 here, no implicit lineto after a moveto, no absolute reading of a first `m`, and no adjustment
 of a radius. `PathData.none` and the empty path are two values, though the chapter gives them
 one rendering.
@@ -139,25 +141,12 @@ attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] flag_total letter_total
 
 /-- `coordinate_pair_double`: `coordinate_pair comma_wsp? coordinate_pair`, printed with a
 space between the pairs. -/
-def coordinatePairDouble : Syn (Point × Point) := .seq Point.syn (.right spaceSep Point.syn)
+abbrev coordinatePairDouble : Syn (Point × Point) := .seq Point.syn (.right spaceSep Point.syn)
 
 /-- `coordinate_pair_triplet`: three pairs, each `comma_wsp?` apart, printed with a space
 between two pairs. -/
-def coordinatePairTriplet : Syn (Point × Point × Point) :=
+abbrev coordinatePairTriplet : Syn (Point × Point × Point) :=
   .seq Point.syn (.seq (.right spaceSep Point.syn) (.right spaceSep Point.syn))
-
-/-- Every pair of pairs prints. -/
-theorem coordinatePairDouble_total : coordinatePairDouble.Total := by
-  unfold coordinatePairDouble
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every triplet of pairs prints. -/
-theorem coordinatePairTriplet_total : coordinatePairTriplet.Total := by
-  unfold coordinatePairTriplet
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])]
-  coordinatePairDouble_total coordinatePairTriplet_total
 
 /-- One `elliptical_arc_argument`: the typed value of the parameters
 `rx ry x-axis-rotation large-arc-flag sweep-flag x y` of `PathDataEllipticalArcCommands`. The
@@ -202,107 +191,54 @@ attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Arc.syn_total
 
 One description for each alternative of `drawto_command`, under the production's name. Each
 is a letter in either case, `wsp*`, and one argument group or more. The value is the case of
-the letter and the groups. -/
+the letter and the groups.
+
+A part of a larger description is an `abbrev`: the search that proves a grammar total
+(`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
 
 namespace Drawto
 
 /-- `moveto`: `("M" | "m") wsp* coordinate_pair_sequence`. -/
-def moveto : Syn (Bool × (Point × List Point)) :=
+abbrev moveto : Syn (Bool × (Point × List Point)) :=
   .seq (letter 'M' 'm' (by decide)) (.right wsps (Point.syn.sepBy1 spaceSep))
 
 /-- `closepath`: `"Z" | "z"`. -/
-def closepath : Syn Bool := letter 'Z' 'z' (by decide)
+abbrev closepath : Syn Bool := letter 'Z' 'z' (by decide)
 
 /-- `lineto`: `("L" | "l") wsp* coordinate_pair_sequence`. -/
-def lineto : Syn (Bool × (Point × List Point)) :=
+abbrev lineto : Syn (Bool × (Point × List Point)) :=
   .seq (letter 'L' 'l' (by decide)) (.right wsps (Point.syn.sepBy1 spaceSep))
 
 /-- `horizontal_lineto`: `("H" | "h") wsp* coordinate_sequence`. -/
-def horizontalLineto : Syn (Bool × (Decimal × List Decimal)) :=
+abbrev horizontalLineto : Syn (Bool × (Decimal × List Decimal)) :=
   .seq (letter 'H' 'h' (by decide)) (.right wsps (Decimal.syn.sepBy1 spaceSep))
 
 /-- `vertical_lineto`: `("V" | "v") wsp* coordinate_sequence`. -/
-def verticalLineto : Syn (Bool × (Decimal × List Decimal)) :=
+abbrev verticalLineto : Syn (Bool × (Decimal × List Decimal)) :=
   .seq (letter 'V' 'v' (by decide)) (.right wsps (Decimal.syn.sepBy1 spaceSep))
 
 /-- `curveto`: `("C" | "c") wsp* curveto_coordinate_sequence`. -/
-def curveto : Syn (Bool × ((Point × Point × Point) × List (Point × Point × Point))) :=
+abbrev curveto : Syn (Bool × ((Point × Point × Point) × List (Point × Point × Point))) :=
   .seq (letter 'C' 'c' (by decide)) (.right wsps (coordinatePairTriplet.sepBy1 spaceSep))
 
 /-- `smooth_curveto`: `("S" | "s") wsp* smooth_curveto_coordinate_sequence`. -/
-def smoothCurveto : Syn (Bool × ((Point × Point) × List (Point × Point))) :=
+abbrev smoothCurveto : Syn (Bool × ((Point × Point) × List (Point × Point))) :=
   .seq (letter 'S' 's' (by decide)) (.right wsps (coordinatePairDouble.sepBy1 spaceSep))
 
 /-- `quadratic_bezier_curveto`:
 `("Q" | "q") wsp* quadratic_bezier_curveto_coordinate_sequence`. -/
-def quadraticBezierCurveto : Syn (Bool × ((Point × Point) × List (Point × Point))) :=
+abbrev quadraticBezierCurveto : Syn (Bool × ((Point × Point) × List (Point × Point))) :=
   .seq (letter 'Q' 'q' (by decide)) (.right wsps (coordinatePairDouble.sepBy1 spaceSep))
 
 /-- `smooth_quadratic_bezier_curveto`: `("T" | "t") wsp* coordinate_pair_sequence`. -/
-def smoothQuadraticBezierCurveto : Syn (Bool × (Point × List Point)) :=
+abbrev smoothQuadraticBezierCurveto : Syn (Bool × (Point × List Point)) :=
   .seq (letter 'T' 't' (by decide)) (.right wsps (Point.syn.sepBy1 spaceSep))
 
 /-- `elliptical_arc`: `("A" | "a") wsp* elliptical_arc_argument_sequence`. -/
-def ellipticalArc : Syn (Bool × (Arc × List Arc)) :=
+abbrev ellipticalArc : Syn (Bool × (Arc × List Arc)) :=
   .seq (letter 'A' 'a' (by decide)) (.right wsps (Arc.syn.sepBy1 spaceSep))
 
-/-- Every reading of `moveto` prints. -/
-theorem moveto_total : moveto.Total := by
-  unfold moveto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `closepath` prints. -/
-theorem closepath_total : closepath.Total := by
-  unfold closepath
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `lineto` prints. -/
-theorem lineto_total : lineto.Total := by
-  unfold lineto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `horizontal_lineto` prints. -/
-theorem horizontalLineto_total : horizontalLineto.Total := by
-  unfold horizontalLineto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `vertical_lineto` prints. -/
-theorem verticalLineto_total : verticalLineto.Total := by
-  unfold verticalLineto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `curveto` prints. -/
-theorem curveto_total : curveto.Total := by
-  unfold curveto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `smooth_curveto` prints. -/
-theorem smoothCurveto_total : smoothCurveto.Total := by
-  unfold smoothCurveto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `quadratic_bezier_curveto` prints. -/
-theorem quadraticBezierCurveto_total : quadraticBezierCurveto.Total := by
-  unfold quadraticBezierCurveto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `smooth_quadratic_bezier_curveto` prints. -/
-theorem smoothQuadraticBezierCurveto_total : smoothQuadraticBezierCurveto.Total := by
-  unfold smoothQuadraticBezierCurveto
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every reading of `elliptical_arc` prints. -/
-theorem ellipticalArc_total : ellipticalArc.Total := by
-  unfold ellipticalArc
-  aesop (rule_sets := [Whatwg.Syn])
-
 end Drawto
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])]
-  Drawto.moveto_total Drawto.closepath_total Drawto.lineto_total Drawto.horizontalLineto_total
-  Drawto.verticalLineto_total Drawto.curveto_total Drawto.smoothCurveto_total
-  Drawto.quadraticBezierCurveto_total Drawto.smoothQuadraticBezierCurveto_total
-  Drawto.ellipticalArc_total
 
 /-! ## A command -/
 

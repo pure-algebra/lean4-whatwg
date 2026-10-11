@@ -82,6 +82,10 @@ import WhatwgTest.Svg.Path
 import WhatwgTest.Svg.Points
 import WhatwgTest.Svg.ViewBox
 import WhatwgTest.Svg.Transform
+import WhatwgTest.Svg.Length
+import WhatwgTest.Svg.Greedy
+import WhatwgTest.Svg.Deterministic
+import WhatwgTest.Svg.Refusal
 import WhatwgTest.Auto.Banks
 import WhatwgTest.Audit.AutoCensus
 import WhatwgTest.Audit.BankCensus

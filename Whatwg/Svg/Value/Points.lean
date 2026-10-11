@@ -60,8 +60,9 @@ What this module does not claim:
   wants the empty list tests for the empty text itself.
 - A CSS comment. The note after `attribute-css-value` says that one may stand in such a value.
   The reader takes none.
-- That the reader accepts every text of the expression's language (node V3b of the library,
-  open). `12` is a text of `coordinate coordinate`, and it is one coordinate to the reader.
+- That the reader accepts every text of the expression's language. The description is not
+  deterministic (`Syn.deterministic` of `Whatwg/Svg/Value/Deterministic.lean`, node V3c of the
+  library). `12` is a text of `coordinate coordinate`, and it is one coordinate to the reader.
 - That two values which draw one shape are equal. A number is a `Decimal`, so `1.50,2` and
   `1.5,2` are two values.
 

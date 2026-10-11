@@ -260,11 +260,12 @@ theorem sign_total : sign.Total := fun b => by
   revert b
   decide
 
-/-- `"." digit+`. -/
-def fraction : Syn (Fin 10 × List (Fin 10)) := .right (.lit ['.']) digit.many1
+/-- `"." digit+`. A part of a larger description is an `abbrev`: the search that proves a
+grammar total (`Whatwg.Syn`) reads through it, so a part states no totality lemma. -/
+abbrev fraction : Syn (Fin 10 × List (Fin 10)) := .right (.lit ['.']) digit.many1
 
 /-- `fractional-constant`: digits with or without a fraction, or a fraction alone. -/
-def fractionalConstant :
+abbrev fractionalConstant :
     Syn (((Fin 10 × List (Fin 10)) × Option (Fin 10 × List (Fin 10))) ⊕
       (Fin 10 × List (Fin 10))) :=
   .alt (.seq digit.many1 fraction.opt) fraction
@@ -273,20 +274,11 @@ def fractionalConstant :
 def exponentPart : Syn (Option (Option Bool × Nat)) :=
   (Syn.right (.skip (.one exponentSet) 'e') (.seq sign.opt natural)).opt
 
-theorem fraction_total : fraction.Total :=
-  Syn.Total.right (lit_total _ (by decide)) (Syn.Total.many1 digit_total)
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] sign_total fraction_total
-
-theorem fractionalConstant_total : fractionalConstant.Total := by
-  unfold fractionalConstant
-  aesop (rule_sets := [Whatwg.Syn])
-
 theorem exponentPart_total : exponentPart.Total :=
   Syn.Total.opt (Syn.Total.right (Syn.Total.of_unit (by decide))
     (Syn.Total.seq (Syn.Total.opt sign_total) natural_total))
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] fractionalConstant_total exponentPart_total
+attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] sign_total exponentPart_total
 
 /-- The exponent that a reading states. No exponent is zero. -/
 def exponentValue : Option (Option Bool × Nat) → Int

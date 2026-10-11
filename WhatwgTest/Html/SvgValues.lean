@@ -5,11 +5,13 @@ import WhatwgTest.Html.Svg
 # WhatwgTest.Html.SvgValues
 
 Readers, controls and finite evaluations of the judgment of SVG attribute values (slices S4b
-and S4c of `docs/SVG-PACKAGE-PLAN.md`; ruling SV-30): `Whatwg/Html/Content/Values.lean`, and
+to S4d of `docs/SVG-PACKAGE-PLAN.md`; ruling SV-30): `Whatwg/Html/Content/Values.lean`, and
 the run of a literal value in `html!` (`Whatwg/Html/Syntax/Elaborator.lean`).
 
 The judgment is beside the checker, not inside it. A control here shows each side of that
-line: a tree that `validIn` admits and `valuesOk` refuses, and a tree for the reverse.
+line: a tree that `validIn` admits and `valuesOk` refuses, and a tree for the reverse. A
+refusal names the offset in the value at which no reading continues, and one line shows that
+the offset is the furthest character a reading reached.
 
 What this battery does not claim: that `html!` proves a value. It runs the grammar on a
 literal and refuses a bad one. The last section shows the route that is a proof: the text of a
@@ -36,23 +38,39 @@ def badPath : RawNode := svg [el "path" [("d", "M 10 20 L 40")]]
 -- value.
 #guard validIn Ctx.flow badPath && !valuesOk badPath
 
--- Controls: one bad value of each other grammar, each on an element that takes the attribute.
+-- Controls: one bad value of each other kind, each on an element that takes the attribute.
 #guard !valuesOk (svg [el "polyline" [("points", "1 2 3")]])
 #guard !valuesOk (el "svg" [("viewBox", "0 0 -10 10")])
 #guard !valuesOk (svg [el "g" [("transform", "rotate(45deg)")]])
 #guard !valuesOk (svg [el "linearGradient" [("gradientTransform", "skew(1)")]])
 #guard !valuesOk (svg [el "pattern" [("patternTransform", "scale()")]])
 
--- An attribute with no grammar here takes any text. That is a limit of the package.
+-- The four coordinates of `line` are lengths: a number, a unit of the sealed table in either
+-- case, a percentage, and white space at both ends.
+#guard valuesOk (svg [el "line" [("x1", "0"), ("y1", "1.5em"), ("x2", "50%"), ("y2", " 10PX ")]])
+#guard validIn Ctx.flow (svg [el "line" [("x1", "0"), ("y1", "1.5em")]])
+
+-- Controls: white space before the unit, and a unit the sealed table does not name. The second
+-- is a length of CSS, and this package refuses it: CSS Values is not sealed (ruling SV-31).
+#guard !valuesOk (svg [el "line" [("x1", "10 px")]])
+#guard !valuesOk (svg [el "line" [("x1", "10rem")]])
+
+-- Control of the table's key: `x1` has a kind on `line` alone. On `linearGradient` its
+-- definition is in a chapter that is not sealed, and the value is not judged (ruling SV-32).
+#guard valuesOk (svg [el "linearGradient" [("x1", "ten")]])
+
+-- An attribute with no kind takes any text. That is a limit of the package: the geometry
+-- properties are lengths in SVG, and their chapter is not sealed.
 #guard valuesOk (svg [el "rect" [("x", "ten"), ("fill", "no colour"), ("class", "")]])
 
 -- Control, the reverse: the judgment is of SVG elements. An HTML element's values are the
 -- checker's, so an attribute named `d` on `p` passes here and is refused there.
 #guard valuesOk (el "p" [("d", "not a path")]) && !validIn Ctx.flow (el "p" [("d", "not a path")])
 
--- The judgment reads the name and the value and not the element: a bad `d` on `rect` is
--- refused here, and the checker refuses the attribute there by its name.
+-- `d` has one grammar wherever it stands: a bad `d` on `rect` is refused here, and the checker
+-- refuses the attribute there by its name. An element of no schema has no kind for any name.
 #guard !valuesOk (svg [el "rect" [("d", "x")]]) && !validIn Ctx.flow (svg [el "rect" [("d", "M 0 0")]])
+#guard valuesOk (svg [el "blob" [("d", "x")]]) && !validIn Ctx.flow (svg [el "blob" [("d", "x")]])
 
 -- Below an integration point the namespace is HTML again, and in an `svg` below that it is
 -- SVG again.
@@ -61,19 +79,30 @@ def badPath : RawNode := svg [el "path" [("d", "M 10 20 L 40")]]
 
 /-! ## The located refusal -/
 
--- The path of the element whose value is refused, and the attribute.
-#guard explainValues badPath == some ⟨[0], .attribute "d" .value⟩
+-- The path of the element whose value is refused, the attribute, and the offset in the value
+-- at which no reading continues. Here the value ends where a coordinate must follow.
+#guard explainValues badPath == some ⟨[0], .attribute "d" (.valueAt 12)⟩
 #guard explainValues picture == none
+
+-- The offset is the furthest character a reading reached, not where the reader stopped: the
+-- reader gives up the whole `L` command, and the fault is the `x` after its first coordinate.
+#guard explainValues (svg [el "path" [("d", "M 10 20 L 40 x")]]) ==
+  some ⟨[0], .attribute "d" (.valueAt 13)⟩
+#guard explainValues (svg [el "line" [("x1", "10 px")]]) == some ⟨[0], .attribute "x1" (.valueAt 3)⟩
 
 -- The first bad value in document order: an element's own attributes, then its children.
 #guard explainValues (el "svg" [("viewBox", "1 2 3")] [el "path" [("d", "L 1 1")]]) ==
-  some ⟨[], .attribute "viewBox" .value⟩
+  some ⟨[], .attribute "viewBox" (.valueAt 5)⟩
 #guard explainValues (svg [el "g" [] [el "path" [("d", "M 0 0")], el "path" [("d", "L 1 1")]]]) ==
-  some ⟨[0, 1], .attribute "d" .value⟩
+  some ⟨[0, 1], .attribute "d" (.valueAt 0)⟩
 
 -- Reader: the refusal is absent exactly when the judgment holds.
 example (n : RawNode) (h : explainValues n = none) : valuesOk n = true :=
   (explainValues_none_iff n).mp h
+
+-- The message of a refusal.
+#guard (Reason.attribute "d" (.valueAt 12)).describe ==
+  "the value of the attribute `d` is not of its kind: no reading continues after 12 characters"
 
 /-! ## `html!` runs a literal value -/
 
@@ -88,19 +117,19 @@ def icon : Child Ctx.flow :=
 
 #guard valuesOk icon.raw && validIn Ctx.flow icon.raw
 
-/-- error: the value of the attribute `d` is not of its kind -/
+/-- error: the value of the attribute `d` is not of its kind: no reading continues after 12 characters -/
 #guard_msgs (error) in
 example : Child Ctx.flow := html! <svg><path d="M 10 20 L 40" /></svg>
 
-/-- error: the value of the attribute `viewBox` is not of its kind -/
+/-- error: the value of the attribute `viewBox` is not of its kind: no reading continues after 6 characters -/
 #guard_msgs (error) in
 example : Child Ctx.flow := html! <svg viewBox="0 0 10"><rect /></svg>
 
-/-- error: the value of the attribute `transform` is not of its kind -/
+/-- error: the value of the attribute `transform` is not of its kind: no reading continues after 9 characters -/
 #guard_msgs (error) in
 example : Child Ctx.flow := html! <svg><g transform="rotate(45deg)"></g></svg>
 
-/-- error: the value of the attribute `points` is not of its kind -/
+/-- error: the value of the attribute `points` is not of its kind: no reading continues after 0 characters -/
 #guard_msgs (error) in
 example : Child Ctx.flow := html! <svg><polyline points /></svg>
 
@@ -113,26 +142,40 @@ def traced (d : String) : Child Ctx.flow := html! <svg><path d={d} /></svg>
 
 /-! ## A typed value needs no evaluation -/
 
--- Reader of `check_valueText`: the text of every typed path passes the check of `d`. The
--- value is not a literal, and nothing opens the text.
+-- Reader of `valueOkByName_valueText` (V5): the text of every typed path passes the check of
+-- `d` on `path`. The value is not a literal, and nothing opens the text. The two names are
+-- read by one evaluation each.
 example (p : PathData) :
-    valueOkByName "d".toList (valueText PathData.grammar p).toList = true :=
-  valueOkByName_d p
+    valueOkByName "path".toList "d".toList (valueText PathData.grammar p).toList = true :=
+  valueOkByName_valueText (t := .path) (a := .d) (k := .pathData) rfl "path" "d"
+    (by decide +kernel) (by decide +kernel) p
+
+-- The same at the kind that the table keys by the element: a typed length on `line`.
+example (l : Length) :
+    valueOkByName "line".toList "x1".toList (valueText Length.grammar l).toList = true :=
+  valueOkByName_valueText (t := .line) (a := .x1) (k := .length) rfl "line" "x1"
+    (by decide +kernel) (by decide +kernel) l
 
 -- The same through the walk: a tree that holds the text of any typed path and of any typed
 -- transform list is of its grammars. The two equations of the root are evaluations of the
--- name `svg`; the rest is the walk's unfolding and the two laws.
+-- name `svg`; the rest is the walk's unfolding and the law at two attributes.
 example (p : PathData) (ts : TransformList) :
     valuesOk (svg [el "path" [("d", valueText PathData.grammar p),
       ("transform", valueText TransformList.grammar ts)]]) = true := by
   have hroot : Ns.valuesOk .html "svg" [] = true := by decide +kernel
   have hstep : Ns.step .html "svg" = .svg := by decide +kernel
+  have hd : valueOkByName "path".toList "d".toList (valueText PathData.grammar p).toList = true :=
+    valueOkByName_valueText (t := .path) (a := .d) (k := .pathData) rfl "path" "d"
+      (by decide +kernel) (by decide +kernel) p
+  have ht : valueOkByName "path".toList "transform".toList
+      (valueText TransformList.grammar ts).toList = true :=
+    valueOkByName_valueText (t := .path) (a := .transform) (k := .transformList) rfl "path"
+      "transform" (by decide +kernel) (by decide +kernel) ts
   show valuesAt .html (.element "svg" [] [.element "path"
     [("d", valueText PathData.grammar p), ("transform", valueText TransformList.grammar ts)]
     []]) = true
   rw [valuesAt_element, hroot, hstep, valuesAllAt_cons, valuesAllAt_nil, valuesAt_element,
-    valuesAllAt_nil, Ns.valuesOk_svg, svgValuesOk_cons, svgValuesOk_cons, svgValuesOk_nil,
-    valueOkByName_d, valueOkByName_transform]
+    valuesAllAt_nil, Ns.valuesOk_svg, svgValuesOk_cons, svgValuesOk_cons, svgValuesOk_nil, hd, ht]
   rfl
 
 end WhatwgTest.Html.SvgValues

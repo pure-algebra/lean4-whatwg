@@ -78,8 +78,9 @@ What this module does not claim:
   `serialization-of-transform-functions` is for the CSS functions of the property, and it
   puts a space after each comma. The spelling here is this module's choice among the texts of
   the grammar.
-- That the reader takes every text of the description's expression (node V3b of the library,
-  open). A number is read to its longest match. Two numbers with nothing between them, such as
+- That the reader takes every text of the description's expression. The description is not
+  deterministic (`Syn.deterministic` of `Whatwg/Svg/Value/Deterministic.lean`, node V3c of the
+  library). A number is read to its longest match. Two numbers with nothing between them, such as
   `12` for `1` and `2`, are a text of the expression that the reader takes as one number. So
   the reader refuses `matrix(123456)`.
 
@@ -132,68 +133,39 @@ theorem argSep_total : argSep.Total := Syn.Total.of_unit (by decide)
 
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] wsps_total argSep_total
 
-/-! ## The arguments -/
+/-! ## The arguments
+
+A part of a larger description is an `abbrev`: the search that proves a grammar total
+(`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
 
 /-- `comma-wsp? number`: a number after another one. -/
-def next : Syn Decimal := .right argSep Decimal.syn
-
-/-- Every number after another one prints. -/
-theorem next_total : next.Total := by
-  unfold next
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] next_total
+abbrev next : Syn Decimal := .right argSep Decimal.syn
 
 /-- `number ( comma-wsp? number )?`: the arguments of `translate` and of `scale`. -/
-def oneOrTwo : Syn (Decimal × Option Decimal) := .seq Decimal.syn next.opt
+abbrev oneOrTwo : Syn (Decimal × Option Decimal) := .seq Decimal.syn next.opt
 
 /-- `number ( comma-wsp? number comma-wsp? number )?`: the arguments of `rotate`. -/
-def oneOrThree : Syn (Decimal × Option (Decimal × Decimal)) :=
+abbrev oneOrThree : Syn (Decimal × Option (Decimal × Decimal)) :=
   .seq Decimal.syn (Syn.seq next next).opt
 
 /-- Six numbers with `comma-wsp?` between two: the arguments of `matrix`. -/
-def six : Syn (Decimal × Decimal × Decimal × Decimal × Decimal × Decimal) :=
+abbrev six : Syn (Decimal × Decimal × Decimal × Decimal × Decimal × Decimal) :=
   .seq Decimal.syn (.seq next (.seq next (.seq next (.seq next next))))
-
-/-- Every argument list of `translate` and of `scale` prints. -/
-theorem oneOrTwo_total : oneOrTwo.Total := by
-  unfold oneOrTwo
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every argument list of `rotate` prints. -/
-theorem oneOrThree_total : oneOrThree.Total := by
-  unfold oneOrThree
-  aesop (rule_sets := [Whatwg.Syn])
-
-/-- Every argument list of `matrix` prints. -/
-theorem six_total : six.Total := by
-  unfold six
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] oneOrTwo_total oneOrThree_total six_total
 
 /-! ## The functions -/
 
 /-- Letters, then `wsp* "(" wsp* args wsp* ")"`: what the six productions of a function share.
 The letters are a whole name, or what is left of a name whose first letters are factored.
 Each `wsp*` prints as nothing. -/
-def call {α : Type} (letters : List Char) (args : Syn α) : Syn α :=
+abbrev call {α : Type} (letters : List Char) (args : Syn α) : Syn α :=
   .right (.lit letters)
     (.right wsps (.right (.lit ['(']) (.right wsps (.left args (.right wsps (.lit [')']))))))
-
-/-- A function prints every value, when its letters and its arguments do. -/
-theorem call_total {α : Type} {letters : List Char} {args : Syn α}
-    (hletters : (Syn.lit letters).Total) (hargs : args.Total) : (call letters args).Total := by
-  unfold call
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] call_total
 
 /-- The production `transform`, with the three names that open with `s` under one `s`, and
 the two that open with `skew` under one `kew`:
 `"matrix" M | "translate" T | "s" ("cale" T | "kew" ("X" K | "Y" K)) | "rotate" R`, where a
 capital is the arguments of that function between their parentheses. -/
-def spellings :
+abbrev spellings :
     Syn ((Decimal × Decimal × Decimal × Decimal × Decimal × Decimal) ⊕
       ((Decimal × Option Decimal) ⊕
         (((Decimal × Option Decimal) ⊕ (Decimal ⊕ Decimal)) ⊕
@@ -206,13 +178,6 @@ def spellings :
             (.right (.lit ['k', 'e', 'w'])
               (.alt (call ['X'] Decimal.syn) (call ['Y'] Decimal.syn)))))
         (call ['r', 'o', 't', 'a', 't', 'e'] oneOrThree)))
-
-/-- Every reading of a function prints. -/
-theorem spellings_total : spellings.Total := by
-  unfold spellings
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] spellings_total
 
 /-- The value of a reading: the alternative names the function. -/
 def ofReading :
@@ -276,15 +241,8 @@ theorem sep_total : sep.Total := Syn.Total.of_unit (by decide)
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] sep_total
 
 /-- The production `transforms` as a repetition: `transform (comma-wsp? transform)*`. -/
-def transforms : Syn (Transform × List Transform) :=
+abbrev transforms : Syn (Transform × List Transform) :=
   Transform.syn.sepBy1 sep
-
-/-- Every non-empty run of functions prints. -/
-theorem transforms_total : transforms.Total := by
-  unfold transforms
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] transforms_total
 
 /-- The value of a reading: no `transforms` is the empty list. -/
 def ofReading : Option (Transform × List Transform) → TransformList

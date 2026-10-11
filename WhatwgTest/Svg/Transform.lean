@@ -171,9 +171,9 @@ def reprint (s : String) : Option String := (value s).map text
 -- A number is read to its longest match, so a second point starts a second number.
 #guard value "scale(1.5.5)" == some [.scale ⟨15, -1⟩ (some ⟨5, -1⟩)]
 
--- Control (V3b, open): two numbers with nothing between them. The text `12` is of the
--- expression, as `1` and then `2` with an empty `comma-wsp?`. The reader takes `12` as one
--- number, and no second number is left.
+-- Control (V3c): the description is not deterministic, and two numbers with nothing between
+-- them show it. The text `12` is of the expression, as `1` and then `2` with an empty
+-- `comma-wsp?`. The reader takes `12` as one number, and no second number is left.
 example : (Syn.seq Decimal.syn Transform.next).erase.Matches "12".toList :=
   .seq (l₁ := ['1']) (l₂ := ['2']) (Decimal.grammar.matches_of_check (by decide +kernel))
     (.seq (l₁ := []) (l₂ := ['2']) (.altR .eps)

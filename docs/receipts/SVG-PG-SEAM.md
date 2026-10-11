@@ -16,3 +16,13 @@ The value grammars landed as the leaf `SVG-LF-GRAMMAR`, and the fence gained
 `validIn` reads no SVG value (ruling SV-30 of the plan). Ruling R-S16 of `COORDINATION.md`
 records what landed, the measurement behind SV-30, the commands run and their results. No edge
 closed.
+
+## Slice S4d, 2026-10-11
+
+The length landed as a grammar of the leaf `SVG-LF-GRAMMAR`, and the fenced
+`Whatwg/Svg/Value/Attribute.lean` became one table of kinds, keyed by the element and the
+attribute. The leaf gained the reader's rule as a relation (node V3b), its bridge to the
+expression's language for a deterministic description (V3c), and the located refusal of a text
+(V6), which the seam's refusal now carries as an offset. Ruling R-S17 of `COORDINATION.md`
+records what landed, the readings SV-31 to SV-33, the commands run and their results. No edge
+closed.

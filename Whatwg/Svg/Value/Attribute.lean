@@ -3,24 +3,43 @@ import Whatwg.Svg.Value.Path
 import Whatwg.Svg.Value.Points
 import Whatwg.Svg.Value.ViewBox
 import Whatwg.Svg.Value.Transform
+import Whatwg.Svg.Value.Length
+import Whatwg.Svg.Value.Refusal
 
 /-!
 # Whatwg.Svg.Value.Attribute
 
-Owner: which grammar judges the value of which attribute (slices S4b and S4c of
-`docs/SVG-PACKAGE-PLAN.md`; rulings SV-13 and SV-30). `valueOk` is the one function the seam
-calls. Six attributes have a grammar here:
+Owner: which grammar judges the value of which attribute (slices S4b to S4d of
+`docs/SVG-PACKAGE-PLAN.md`; rulings SV-13, SV-30, SV-31 and SV-32; point G5 of
+`docs/research/2026-10-11-svg-seat-guidance-3.md`). `kindOf` is the one table: it gives the
+kind of an attribute's value on an element. A `ValueKind` has its typed value, `carrier`, and
+its grammar. `valueOk` and `explainValue` are the two functions the seam calls, and both read
+the table.
 
-- `d`: path data, or `none` (`PathData.grammar`);
-- `points` (`Points.grammar`);
-- `viewBox` (`ViewBox.grammar`);
-- `transform`, `gradientTransform` and `patternTransform` (`TransformList.grammar`).
+| Attribute | On | Kind | Source at the pin |
+| --- | --- | --- | --- |
+| `d` | any element | `pathData` | `PathDataBNF`, `master/paths.html` |
+| `points` | any element | `points` | `DataTypePoints`, `master/shapes.html` |
+| `viewBox` | any element | `viewBox` | `ViewBoxAttribute`, `master/coords.html` |
+| `transform` | any element | `transformList` | `svg-syntax`, CSS Transforms 1 |
+| `gradientTransform`, `patternTransform` | any element | `transformList` | the same |
+| `x1`, `y1`, `x2`, `y2` | `line` | `length` | `LineElementX1Attribute`, `master/shapes.html` |
 
-An attribute with no grammar here takes any text. That is a limit of this package and no
-statement of SVG: a length, a colour, a paint and a URL are not judged.
+A row says "any element" where the name has one grammar wherever it stands. The four names of
+the last row have a second definition, on `linearGradient`, in a chapter that is not sealed. So
+the table gives them a kind on `line` alone, where the sealed table of `line` states it (ruling
+SV-32).
 
-Each law below says that the text of a typed value is admitted as its attribute's value. It
-is the grammar's `check_print`, so it holds for every value and evaluates no text.
+An attribute with no row takes any text. That is a limit of this package and no statement of
+SVG. The geometry properties (`x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx` and `ry`) are
+lengths in SVG, and their values are stated in the chapter `geometry.html`, which is not
+sealed: they are not judged. A colour, a paint and a URL are not judged.
+
+`valueOk_print` says that the text of a typed value is admitted wherever the table gives its
+kind. It is the grammar's `check_print`, so it holds for every value and evaluates no text.
+`explainValue` is the located refusal of a value: the offset at which no reading of the
+grammar continues (`Whatwg/Svg/Value/Refusal.lean`). `explainValue_eq_none_iff` says that it
+is absent exactly when `valueOk` holds.
 
 What this module does not claim: that an attribute stands on the right element, which
 `Whatwg.Svg.Content.attrOk` judges by the name; or that a value that passes means what its
@@ -31,53 +50,111 @@ namespace Whatwg.Svg.Value
 
 open Whatwg.Svg.Schema
 
-/-- The value is of the attribute's grammar, where this package holds the grammar. -/
-def valueOk : Attr → List Char → Bool
-  | .d, text => PathData.grammar.check text
-  | .points, text => Points.grammar.check text
-  | .viewBox, text => ViewBox.grammar.check text
-  | .transform, text => TransformList.grammar.check text
-  | .gradientTransform, text => TransformList.grammar.check text
-  | .patternTransform, text => TransformList.grammar.check text
-  | _, _ => true
+/-! ## The kinds -/
 
-/-- The same, by the attribute's name. A name that is no attribute's has no grammar: the seam
-judges the name, and this function passes the value. -/
-def valueOkByName (name value : List Char) : Bool :=
-  match Attr.ofChars? name with
-  | some a => valueOk a value
+/-- A kind of attribute value that this package holds a grammar for. -/
+inductive ValueKind where
+  /-- Path data, or `none`. -/
+  | pathData
+  /-- A list of coordinate pairs. -/
+  | points
+  /-- A rectangle of user space. -/
+  | viewBox
+  /-- A list of transform functions. -/
+  | transformList
+  /-- A number with a unit, a percentage or a number. -/
+  | length
+  deriving DecidableEq, Repr, Inhabited
+
+/-- The typed value of a kind. -/
+abbrev ValueKind.carrier : ValueKind → Type
+  | .pathData => PathData
+  | .points => Points
+  | .viewBox => ViewBox
+  | .transformList => TransformList
+  | .length => Length
+
+/-- The grammar of a kind. -/
+abbrev ValueKind.grammar : (k : ValueKind) → Grammar k.carrier
+  | .pathData => PathData.grammar
+  | .points => Points.grammar
+  | .viewBox => ViewBox.grammar
+  | .transformList => TransformList.grammar
+  | .length => Length.grammar
+
+/-- The kind of an attribute's value on an element, where the sealed text states its grammar
+and this package holds it. -/
+def kindOf (t : Tag) : Attr → Option ValueKind
+  | .d => some .pathData
+  | .points => some .points
+  | .viewBox => some .viewBox
+  | .transform => some .transformList
+  | .gradientTransform => some .transformList
+  | .patternTransform => some .transformList
+  | .x1 | .y1 | .x2 | .y2 =>
+    match t with
+    | .line => some .length
+    | _ => none
+  | _ => none
+
+/-! ## The check -/
+
+/-- The value is of the attribute's grammar, where the table gives the attribute a kind. -/
+def valueOk (t : Tag) (a : Attr) (text : List Char) : Bool :=
+  match kindOf t a with
+  | some k => k.grammar.check text
   | none => true
 
-/-- By its own name, an attribute's value is judged by its grammar. -/
-theorem valueOkByName_chars (a : Attr) (text : List Char) :
-    valueOkByName a.chars text = valueOk a text := by
-  rw [valueOkByName, Attr.ofChars?_chars]
+/-- The same, by the names of the element and of the attribute. A name that is no element's or
+no attribute's has no kind: the seam judges the names, and this function passes the value. -/
+def valueOkByName (element name value : List Char) : Bool :=
+  match Tag.ofChars? element, Attr.ofChars? name with
+  | some t, some a => valueOk t a value
+  | _, _ => true
 
-/-- The text of typed path data is a value of `d`. -/
-theorem valueOk_d (p : PathData) : valueOk .d (PathData.grammar.print p) = true :=
-  PathData.grammar.check_print p
+/-- By their own names, an element and an attribute give the table's judgment. -/
+theorem valueOkByName_chars (t : Tag) (a : Attr) (text : List Char) :
+    valueOkByName t.chars a.chars text = valueOk t a text := by
+  rw [valueOkByName, Tag.ofChars?_chars, Attr.ofChars?_chars]
 
-/-- The text of typed points is a value of `points`. -/
-theorem valueOk_points (p : Points) : valueOk .points (Points.grammar.print p) = true :=
-  Points.grammar.check_print p
+/-- Node V2 at the table: the text of a typed value is admitted wherever the table gives its
+kind. -/
+theorem valueOk_print {t : Tag} {a : Attr} {k : ValueKind} (h : kindOf t a = some k)
+    (v : k.carrier) : valueOk t a (k.grammar.print v) = true := by
+  rw [valueOk, h]
+  exact k.grammar.check_print v
 
-/-- The text of a typed rectangle is a value of `viewBox`. -/
-theorem valueOk_viewBox (v : ViewBox) : valueOk .viewBox (ViewBox.grammar.print v) = true :=
-  ViewBox.grammar.check_print v
+/-! ## The located refusal -/
 
-/-- The text of a typed transform list is a value of `transform`. -/
-theorem valueOk_transform (ts : TransformList) :
-    valueOk .transform (TransformList.grammar.print ts) = true :=
-  TransformList.grammar.check_print ts
+/-- Where a value is refused: the offset of the first character that no reading of the
+attribute's grammar continues. `none` when the value passes. -/
+def explainValue (t : Tag) (a : Attr) (text : List Char) : Option Nat :=
+  match kindOf t a with
+  | some k => k.grammar.explain text
+  | none => none
 
-/-- The text of a typed transform list is a value of `gradientTransform`. -/
-theorem valueOk_gradientTransform (ts : TransformList) :
-    valueOk .gradientTransform (TransformList.grammar.print ts) = true :=
-  TransformList.grammar.check_print ts
+/-- Node V6: the refusal of a value is absent exactly when the value passes. -/
+theorem explainValue_eq_none_iff (t : Tag) (a : Attr) (text : List Char) :
+    explainValue t a text = none ↔ valueOk t a text = true := by
+  rw [explainValue, valueOk]
+  cases kindOf t a with
+  | none => exact ⟨fun _ => rfl, fun _ => rfl⟩
+  | some k => exact k.grammar.explain_eq_none_iff text
 
-/-- The text of a typed transform list is a value of `patternTransform`. -/
-theorem valueOk_patternTransform (ts : TransformList) :
-    valueOk .patternTransform (TransformList.grammar.print ts) = true :=
-  TransformList.grammar.check_print ts
+/-- The same, by the names of the element and of the attribute. -/
+def explainValueByName (element name value : List Char) : Option Nat :=
+  match Tag.ofChars? element, Attr.ofChars? name with
+  | some t, some a => explainValue t a value
+  | _, _ => none
+
+theorem explainValueByName_eq_none_iff (element name value : List Char) :
+    explainValueByName element name value = none ↔ valueOkByName element name value = true := by
+  rw [explainValueByName, valueOkByName]
+  cases Tag.ofChars? element with
+  | none => exact ⟨fun _ => rfl, fun _ => rfl⟩
+  | some t =>
+    cases Attr.ofChars? name with
+    | none => exact ⟨fun _ => rfl, fun _ => rfl⟩
+    | some a => exact explainValue_eq_none_iff t a value
 
 end Whatwg.Svg.Value

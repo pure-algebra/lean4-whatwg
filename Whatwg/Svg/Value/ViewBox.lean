@@ -57,8 +57,10 @@ What this module does not claim:
   numbers.
 - A CSS comment. The note after `attribute-css-value` says that one may stand in such a value.
   The reader takes none.
-- That the reader accepts every text of the expression's language (node V3b of the library,
-  open). `0 0 12` is a text of four numbers in that language, and three numbers to the reader.
+- That the reader accepts every text of the expression's language. The description is not
+  deterministic (`Syn.deterministic` of `Whatwg/Svg/Value/Deterministic.lean`, node V3c of the
+  library), because `comma_wsp?` stands between two numbers. `0 0 12` is a text of four numbers
+  in that language, and three numbers to the reader.
 - What a value does. The transform of `ComputingAViewportsTransform`, the effect of
   `preserveAspectRatio` and the rule that a zero width disables rendering are not modelled.
 - That two values which denote one rectangle are equal. A number keeps its digits, so
@@ -102,14 +104,7 @@ attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] plus_total
 
 /-- A `<number>` that is not negative: `"+"? number`, printed with no sign. A minus sign is
 refused, before a zero too. -/
-def extent : Syn Magnitude := .right plus Magnitude.syn
-
-/-- Every `Magnitude` prints as an extent. -/
-theorem extent_total : extent.Total := by
-  unfold extent
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] extent_total
+abbrev extent : Syn Magnitude := .right plus Magnitude.syn
 
 /-! ## The value -/
 

@@ -443,7 +443,7 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-10 | MathML | `math` is refused with the reason "MathML is not modelled". No library is planned. |
 | SV-11 | names | A tree holds each name as the serializer writes it. The checker compares names exactly, so `viewbox` is not `viewBox`. |
 | SV-12 | `xmlns` | `xmlns` is admitted on an SVG element only with the SVG namespace as its value. `xmlns:xlink` is admitted only with the XLink namespace. The rule is the HTML Standard's, so it is in the seam. |
-| SV-13 | values before S4 | S3 admits an attribute by its name. Its value is unchecked text until S4 gives its grammar. Since S4 six attributes have one, and SV-30 says where it is judged. |
+| SV-13 | values before S4 | S3 admits an attribute by its name. Its value is unchecked text until S4 gives its grammar. Since S4 the table of SV-32 gives a kind to ten names, and SV-30 says where a value is judged. |
 | SV-14 | CSS | The `style` attribute, the `style` element's text and each presentation attribute's value are text. CSS is a foreign boundary. |
 | SV-15 | roles | `role` takes any text in S3. The graphics roles belong to a specification that is not pinned. |
 | SV-16 | located refusal | The library gives one refusal with a path and a reason. It is complete against `validIn`: the refusal is absent exactly when `validIn` is true. |
@@ -461,6 +461,9 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-28 | the arc's rotation | The three leading arguments of `elliptical_arc_argument` are the production `number`, which has no sign. So the rotation of an arc is unsigned, like its radii, and `a25,25 -30 0,1 50,-25` is refused. The grammar of SVG 1.1 gave the rotation a sign; the sealed grammar does not, and no one repairs it (seat, S4b). |
 | SV-29 | the number and the white space of `transform` | A number of the `transform` grammar is the production `coordinate` of path data, `sign? number`: SV-26 makes it SVG's own, and the sealed section's example carries a sign. Its white space is the four characters the section states, without U+000C (seat, S4c). |
 | SV-30 | where a value is judged | `validIn` reads no SVG value. The judgment of values is `valuesOk`, a second algebra of the walk, with its own located refusal. The kernel cannot open a long `String` at a bearable cost (§5.3, as built), and every proof of `validIn` is an evaluation by the kernel. A typed value's text is admitted by a theorem, and `html!` runs a literal's grammar when it builds the tree (seat, S4b). |
+| SV-31 | the length | A length is a number of SVG's own production with one of the ten kinds that the unit table of `SVGLength` names in the sealed `master/types.html`: no unit, a percentage, and `em`, `ex`, `px`, `cm`, `mm`, `in`, `pt` and `pc`. A unit is read in either case, as the sealed annotation on property values says, and white space is read at both ends. Another unit of CSS, a `calc()` expression, a CSS comment and a CSS escape are refused. SVG admits them by reference to CSS Values and CSS Syntax, which are not sealed (SV-26). So the check of a length refuses some values that SVG admits, and it admits none that SVG refuses by its grammar (seat, S4d). |
+| SV-32 | which attribute has which kind | One table gives the kind of a value from the element and the attribute. A name that has one grammar wherever it stands has its kind on any element: `d`, `points`, `viewBox` and the three transform attributes. `x1`, `y1`, `x2` and `y2` are lengths on `line` alone: the sealed table of `line` states their value, and their definition on `linearGradient` is in a chapter that is not sealed. The geometry properties (`x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx`, `ry`) are stated in `geometry.html`, which is not sealed, so they have no kind and take any text (seat, S4d). |
+| SV-33 | the completeness of the reader | The chapter's rule is that a production consumes as much as it can. `Greedy` states it as a relation: the meaning of a description as a parsing expression, with an ordered choice and a greedy repetition. V3b is `Greedy g s o ↔ g.read s = o`, so the reader is the rule's decision procedure and `check` decides the rule's language. The language of the bare expression is larger, and V3a is the link to it. The two agree for a description that passes `Syn.deterministic`, which is `Syn.ok` over the sets the reader reads: node V3c. A description that reads `comma_wsp?` between two numbers fails that test by design (seat, S4d, on the coordinator's notes: G2 of the second and section 4 of the third). |
 
 ## 5. Slices
 
@@ -477,6 +480,8 @@ seat's proposals of S1, changed where §3.1 changes them.
 | S4a | the grammar library and its generic laws | V1 and V3a are proved over the description |
 | S4b | the number, path data, `points` and `viewBox` | done: ruling R-S16. Each grammar's premise holds; the battery replays the chapter's own examples |
 | S4c | `transform`, after the CSS pin | done: rulings R-S15 and R-S16. The pin is sealed; the grammar's premise holds |
+| S4d | the length; one table of kinds; the located refusal of a value; the reader's rule as a relation, and its bridge to the expression's language | done: ruling R-S17. V3b, V3c and V6 are proved; the table of kinds is keyed by element and attribute |
+| S5 | typed values in the tree (G4 of the coordinator's third note; debt D92): a typed node beside `RawNode` whose SVG attribute holds a value of its kind; `toRaw` prints each value; one connector theorem gives `valuesOk` of every typed tree; `html!` emits typed nodes; the text route for typed attributes goes | not started. Exit: an `html!` literal with a long `d` carries a proof of its values, and no kernel evaluation opens a value's text |
 
 Each part lands as commits by explicit paths, with its narrow build, `lake build`, the axiom
 receipt and the gates it reaches. No part runs the trust self-test (ruling R-S5).
@@ -765,13 +770,53 @@ changed in six ways:
   that the text of a typed value passes its grammar's check: it is a theorem and opens no text.
   `html!` runs the grammar on a literal value and refuses a bad one at its token.
 - **The length is not here.** No slice of §5 names it, and it needs the units that the sealed
-  SVG text states. It is debt D89.
+  SVG text states. It is debt D89. Slice S4d pays it.
 - **V3b stays open, and it is narrower than the plan said.** Each grammar passes `ok` and still
   has a text of its expression that the reader refuses: `12` is two numbers to the expression
   and one to the reader. The sealed path grammar asks for that reading: a production consumes
   as much as it can. So the reader is the grammar's rule, and no theorem yet states the rule as
   a relation. The second note's G2 asks for `ok → (check ↔ Matches)`. The batteries refute it
-  for this `ok`.
+  for this `ok`. Slice S4d states the rule as a relation and proves the reader against it. It
+  also proves the note's claim under the premise that the note's own caution names.
+
+**As built (S4d).** Ruling R-S17 of `COORDINATION.md` is the record. The owner asked for the
+length and for a tighter implementation, and said that the coordinator's notes are the owner's.
+So the slice also does the two open points of the second note, G2 and G3, as the third note
+(`docs/research/2026-10-11-svg-seat-guidance-3.md`) restates them, and its G5. The third
+note's G4, a typed value in the tree, is slice S5.
+
+- **The length (SV-31).** `Value/Length.lean` holds `LengthUnit`, the ten kinds of the sealed
+  unit table, and `Length`, a `Decimal` with its kind. After a number, `e` opens an exponent or
+  the unit `em` or `ex`. The reader of a choice starts again where the choice began, so it reads
+  both, but `ok` is a test of one character. The description is therefore left-factored at that
+  `e`, and at the `p` of `px`, `pt` and `pc`.
+- **One table of kinds (SV-32, G5).** `Value/Attribute.lean` holds `ValueKind`, its typed
+  value `carrier`, its grammar, and `kindOf`, which gives the kind of an attribute's value on
+  an element. `valueOk` and `explainValue` read it. One law, `valueOk_print`, replaces the six
+  laws of S4b, and one law by name replaces the six of the seam: the text of a typed value is
+  admitted wherever the table gives its kind. The note's table is keyed by the attribute
+  alone. This one is keyed by the element too, because the sealed text states the length of
+  `x1` for `line` and not for `linearGradient`.
+- **The located refusal of a value (G3, node V6).** `Value/Refusal.lean` holds `Syn.run`, the
+  reader with its reach: the length of the shortest text the reading stood on. A part that the
+  reader tries and gives up keeps its reach. So the offset of a refusal is the furthest
+  character a reading got to, and it is found in the one reading. `Syn.explain` is absent
+  exactly when `check` holds. The seam's refusal carries the offset (`AttrFault.valueAt`), and
+  `html!` writes it in its message.
+- **The reader's rule as a relation (G2 restated, node V3b, SV-33).** `Value/Greedy.lean` holds
+  `Greedy`, the outcome of reading a text with a description as a parsing expression: an
+  ordered choice, and a repetition that goes on while its part succeeds and consumes a
+  character. An outcome is a refusal or a value with the text left, because a choice takes its
+  second alternative only when the first fails. `Greedy g s o ↔ g.read s = o`: the reader is
+  the rule's decision procedure, and `check` decides the rule's language.
+- **The bridge to the expression's language (node V3c).** `Value/Deterministic.lean` holds
+  `Syn.deterministic`, which is `ok` over the sets the reader reads, and proves that the reader
+  of a deterministic description reads every text of its expression's language. The number,
+  the coordinate and the length are deterministic. Path data, `points`, `viewBox` and
+  `transform` are not: each reads `comma_wsp?` between two numbers, by design.
+- **A part is an `abbrev`.** The search that proves a grammar total reads through a reducible
+  part. So a part of a description states no totality lemma of its own, and the modules lose
+  the lemmas that only fed the search.
 
 ## 6. Anticipated proof graph
 
@@ -806,9 +851,11 @@ Two consumers read these nodes. **D** is lean4-effect4's document builder,
 | V1 | `read (print v) = some v`, for each grammar | retraction | proved: generic, with one `decide` per grammar | S4a, S4b | P |
 | V2 | `check (print v) = true`, for each grammar | corollary of V1 | proved | S4b | P |
 | V3a | a string that `read` accepts is in the language of the description's expression | soundness of the reader | proved, generic | S4a | P |
-| V3b | `read` accepts every string of the sealed grammar under its rule that a production consumes as much as it can | completeness of the reader | open: the rule is not stated as a relation. Each battery replays the chapter's texts and holds one text of the bare expression that the reader refuses | S4b | P |
+| V3b | `Greedy g s o ↔ g.read s = o`: the reader decides the rule that a production consumes as much as it can, stated as a relation | completeness of the reader against the chapter's rule | proved, generic | S4d | P |
+| V3c | for a deterministic description, `check s = true ↔ Matches s`: the rule's language is the expression's | bridge to the expression's language | proved, generic, with one evaluation of `deterministic` per grammar. The number, the coordinate and the length are deterministic. Path data, `points`, `viewBox` and `transform` are not, and each battery holds a text of the bare expression that the reader refuses | S4d | P |
 | V4 | `explainValues n = none ↔ valuesOk n = true` | located refusal of a value | proved, as W1 | S4b | D, P |
 | V5 | the text of a typed value passes its attribute's check | corollary of V2 and of `String.toList_ofList` | proved: it evaluates no text | S4b | P |
+| V6 | `explainValue t a s = none ↔ valueOk t a s = true`, and the offset is a position of the text, no earlier than where the reader stopped | located refusal of one value | proved, generic, by the reader that carries its reach | S4d | D, P |
 | D1 | `a.Same b ↔ a.reduce = b.reduce` | the canonical value decides the cohort | proved, with `Same` an equivalence | S4b | P |
 
 **What the graph does not establish.**
@@ -823,10 +870,15 @@ Two consumers read these nodes. **D** is lean4-effect4's document builder,
 - The expression of a grammar is the seat's transcription of the chapter's BNF. No gate
   compares the two languages. V3a ties the reader to the transcription, not to the chapter.
 - V1 says that a printed value reads back. It does not say that a browser draws it as intended.
-- V3b is open. Until it is stated and proved, the completeness of the reader rests on finite
-  examples.
-- `validIn` says nothing of an SVG value (SV-30). `valuesOk` judges six attributes. An attribute
-  with no grammar here takes any text.
+- V3b ties the reader to the rule over the seat's transcription. V3c ties the rule's language
+  to the expression's for a deterministic description alone. Neither says that the
+  transcription is the chapter's grammar: that rests on each battery's replay of the chapter's
+  examples (debt D95).
+- V6 gives an offset. It does not say that every text with that prefix is refused: that law is
+  not proved.
+- `validIn` says nothing of an SVG value (SV-30). `valuesOk` judges the ten names of the table
+  of SV-32. An attribute with no kind takes any text, the geometry properties included.
+- The check of a length refuses some values that SVG admits (SV-31).
 - `html!` refuses a bad literal value and proves nothing of a good one. The tree's type carries
   no evidence of its values.
 - CSS in a `style` element or attribute is never checked.
@@ -887,4 +939,5 @@ builds its pictures as trees.
 | S3e | `d9bb3af`, 2026-10-11 | `html!` builds an `svg` subtree as one raw literal with one obligation and reports the located refusal at the refused token; `admits` closes or explains a whole tree; `WhatwgTest/Html/SvgMarkup.lean`; debt D83 stays for the node obligations; the record is ruling R-S13 |
 | S4a | `2c9ac8b`, 2026-10-11 | `Whatwg/Svg/Value/Grammar.lean`: `CharSet`, `Syn`, the reader and the printer; V1, V2 and V3a proved once over the description, under the strict ceiling; the leaf record `SVG-LF-GRAMMAR`; the battery `WhatwgTest/Svg/Grammar.lean`; the record is ruling R-S14 |
 | the CSS pin | `16942b1`, 2026-10-11 | `vendor/w3c-csswg-drafts-50337328/`, three files of `w3c/csswg-drafts` at `50337328`; every file matches its upstream blob hash; `lake exe whatwg_vendorseal` passes, and its digests equal those of `Get-FileHash`; section 2.4; rulings SV-28 and SV-29 are recorded for the grammars; the record is ruling R-S15 |
-| S4b and S4c | 2026-10-11 | `Grammar` and the bank `Whatwg.Syn`; `Value/Number.lean`, `Path.lean`, `Points.lean`, `ViewBox.lean`, `Transform.lean` and `Cohort.lean`, each a value of `Grammar` or its law; `Value/Attribute.lean` with six attributes; the seam's `Whatwg/Html/Content/Values.lean` with `valuesOk`, V4 and V5; `html!` runs a literal value; six batteries; `Whatwg.Svg` strict with no exception; rulings SV-28 to SV-30; debts D89 to D92; the record is ruling R-S16 |
+| S4b and S4c | `8d79c21`, 2026-10-11 | `Grammar` and the bank `Whatwg.Syn`; `Value/Number.lean`, `Path.lean`, `Points.lean`, `ViewBox.lean`, `Transform.lean` and `Cohort.lean`, each a value of `Grammar` or its law; `Value/Attribute.lean` with six attributes; the seam's `Whatwg/Html/Content/Values.lean` with `valuesOk`, V4 and V5; `html!` runs a literal value; six batteries; `Whatwg.Svg` strict with no exception; rulings SV-28 to SV-30; debts D89 to D92; the record is ruling R-S16 |
+| S4d | 2026-10-11 | `Value/Length.lean` with `Length.grammar`; `Value/Attribute.lean` as one table of kinds keyed by element and attribute; `Value/Refusal.lean` with V6, and the offset in the seam's refusal and in the message of `html!`; `Value/Greedy.lean` with V3b and `Value/Deterministic.lean` with V3c; a part of a description is an `abbrev`; four batteries new and the seam's extended; `Whatwg.Svg` strict with no exception; rulings SV-31 to SV-33; debts D89, D90 and D91 paid, D93 to D95 opened; slice S5 named for the third note's G4; the record is ruling R-S17 |

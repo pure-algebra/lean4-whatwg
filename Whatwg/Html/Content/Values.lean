@@ -3,16 +3,19 @@ import Whatwg.Html.Content.Explain
 /-!
 # Whatwg.Html.Content.Values
 
-Owner: the judgment of the attribute values of an SVG subtree (slices S4b and S4c of
+Owner: the judgment of the attribute values of an SVG subtree (slices S4b to S4d of
 `docs/SVG-PACKAGE-PLAN.md`; ruling SV-30). `valuesOk` says that each value of an SVG
-attribute in the tree is of the attribute's grammar, where `Whatwg.Svg.Value.valueOk` holds
-one: `d`, `points`, `viewBox` and the three transform attributes.
+attribute in the tree is of the attribute's grammar, where the table of
+`Whatwg/Svg/Value/Attribute.lean` gives the attribute a kind on its element: `d`, `points`,
+`viewBox`, the three transform attributes, and the four coordinates of `line`.
 
 The judgment is an algebra of the walk (`Whatwg/Html/Node/Walk.lean`), beside the checker
 `check` and the refusal `explainWalk`. Its state is the namespace alone: a value's grammar
-depends on the attribute's name and on nothing of the content model. `explainValues` is its
-located refusal, and `explainValues_none_iff` says that the refusal is absent exactly when the
-judgment holds: the walk's fusion law at `Option.isNone`, as for the checker.
+depends on the names of the element and of the attribute, and on nothing of the content model.
+`explainValues` is its located refusal: the path of the element, the attribute, and the offset
+in the value at which no reading of the grammar continues (`AttrFault.valueAt`).
+`explainValues_none_iff` says that the refusal is absent exactly when the judgment holds: the
+walk's fusion law at `Option.isNone`, as for the checker.
 
 ## Why this is not a part of `validIn`
 
@@ -29,10 +32,11 @@ So the value judgment is separate, and it has two routes that never open a long 
 
 - A value that a program builds is typed. `valueText` writes it, and `check_valueText` says
   that the text passes the grammar's check. It is a theorem of the grammar's retraction and of
-  `String.toList_ofList`, and it evaluates nothing.
+  `String.toList_ofList`, and it evaluates nothing. `valueOkByName_valueText` is the same law
+  under the names a tree holds, for every kind of the table.
 - A value that an author writes in `html!` is a literal. The elaborator runs the check on it
-  when it builds the tree, and refuses a bad value at the attribute's token. That run is not a
-  proof, and the tree's type does not carry it.
+  when it builds the tree, and refuses a bad value at the attribute's token, with the offset.
+  That run is not a proof, and the tree's type does not carry it.
 
 `valuesOk` itself evaluates in the kernel where the values are short.
 
@@ -44,7 +48,7 @@ value, which `attrOk` judges inside `validIn`.
 namespace Whatwg.Html.Content
 
 open Whatwg.Html (RawNode Walk)
-open Whatwg.Svg.Value (Grammar valueOkByName)
+open Whatwg.Svg.Value (Grammar ValueKind kindOf valueOkByName explainValueByName)
 
 /-! ## One element -/
 
@@ -54,25 +58,27 @@ def Ns.ofElement : Ns → String → Ns
   | .svg, _ => .svg
   | .html, name => Ns.step .html name
 
-/-- Each value of an SVG element's attributes is of its attribute's grammar. -/
-def svgValuesOk (attrs : List (String × String)) : Bool :=
-  attrs.all fun attr => valueOkByName attr.1.toList attr.2.toList
+/-- Each value of an SVG element's attributes is of its attribute's grammar on that element. -/
+def svgValuesOk (element : String) (attrs : List (String × String)) : Bool :=
+  attrs.all fun attr => valueOkByName element.toList attr.1.toList attr.2.toList
 
 /-- The value test of one element. An HTML element passes: `attrOk` judges its values. -/
 def Ns.valuesOk (ns : Ns) (name : String) (attrs : List (String × String)) : Bool :=
   match ns.ofElement name with
-  | .svg => svgValuesOk attrs
+  | .svg => svgValuesOk name attrs
   | .html => true
 
 /-- In an SVG subtree every element is an SVG element. -/
 theorem Ns.valuesOk_svg (name : String) (attrs : List (String × String)) :
-    Ns.valuesOk .svg name attrs = svgValuesOk attrs := rfl
+    Ns.valuesOk .svg name attrs = svgValuesOk name attrs := rfl
 
-theorem svgValuesOk_nil : svgValuesOk [] = true := rfl
+theorem svgValuesOk_nil (element : String) : svgValuesOk element [] = true := rfl
 
-theorem svgValuesOk_cons (attr : String × String) (rest : List (String × String)) :
-    svgValuesOk (attr :: rest) =
-      (valueOkByName attr.1.toList attr.2.toList && svgValuesOk rest) := rfl
+theorem svgValuesOk_cons (element : String) (attr : String × String)
+    (rest : List (String × String)) :
+    svgValuesOk element (attr :: rest) =
+      (valueOkByName element.toList attr.1.toList attr.2.toList && svgValuesOk element rest) :=
+  rfl
 
 /-! ## The judgment -/
 
@@ -112,19 +118,27 @@ theorem valuesAt_text (ns : Ns) (content : String) : valuesAt ns (.text content)
 
 /-! ## The located refusal -/
 
-/-- The first value of an SVG attribute list that its grammar refuses. -/
-def svgValuesReason? (attrs : List (String × String)) : Option Reason :=
-  firstFault (fun name value => valueOkByName name.toList value.toList) (fun _ _ => .value) attrs
+/-- What is wrong with a value that its grammar refuses: the offset at which no reading
+continues. A description for a message: `valueOkByName` decides, and no law reads the fault. -/
+def valueFault (element name value : String) : AttrFault :=
+  match explainValueByName element.toList name.toList value.toList with
+  | some offset => .valueAt offset
+  | none => .value
 
-theorem isNone_svgValuesReason? (attrs : List (String × String)) :
-    (svgValuesReason? attrs).isNone = svgValuesOk attrs :=
+/-- The first value of an SVG element's attribute list that its grammar refuses. -/
+def svgValuesReason? (element : String) (attrs : List (String × String)) : Option Reason :=
+  firstFault (fun name value => valueOkByName element.toList name.toList value.toList)
+    (valueFault element) attrs
+
+theorem isNone_svgValuesReason? (element : String) (attrs : List (String × String)) :
+    (svgValuesReason? element attrs).isNone = svgValuesOk element attrs :=
   isNone_firstFault _ _ attrs
 
 /-- Why the value test of one element fails; `none` when it holds. -/
 def Ns.valuesReason? (ns : Ns) (name : String) (attrs : List (String × String)) :
     Option Reason :=
   match ns.ofElement name with
-  | .svg => svgValuesReason? attrs
+  | .svg => svgValuesReason? name attrs
   | .html => none
 
 theorem Ns.isNone_valuesReason? (ns : Ns) (name : String) (attrs : List (String × String)) :
@@ -132,7 +146,7 @@ theorem Ns.isNone_valuesReason? (ns : Ns) (name : String) (attrs : List (String 
   simp only [Ns.valuesReason?, Ns.valuesOk]
   cases ns.ofElement name with
   | html => rfl
-  | svg => exact isNone_svgValuesReason? attrs
+  | svg => exact isNone_svgValuesReason? name attrs
 
 /-- The located refusal of the value judgment as an algebra of the walk. -/
 def explainValuesWalk : Walk Ns (Option Refusal) where
@@ -181,48 +195,15 @@ theorem check_valueText {α : Type} (g : Grammar α) (v : α) :
   rw [toList_valueText]
   exact g.check_print v
 
-/-- An attribute whose grammar is `g` admits the text of each typed value of `g`. -/
-theorem valueOkByName_valueText {α : Type} {g : Grammar α} {a : Whatwg.Svg.Schema.Attr}
-    (hgrammar : ∀ text, Whatwg.Svg.Value.valueOk a text = g.check text) (name : String)
-    (hname : Whatwg.Svg.Schema.Attr.ofChars? name.toList = some a) (v : α) :
-    valueOkByName name.toList (valueText g v).toList = true := by
-  simp only [valueOkByName, hname, hgrammar, check_valueText]
-
-/-! ## The six attributes
-
-The text of a typed value is admitted under its attribute's name. Each law is
-`valueOkByName_valueText` at one name. -/
-
-open Whatwg.Svg.Value
-
-/-- `d` admits the text of typed path data. -/
-theorem valueOkByName_d (p : PathData) :
-    valueOkByName "d".toList (valueText PathData.grammar p).toList = true :=
-  valueOkByName_valueText (a := .d) (fun _ => rfl) "d" (by decide +kernel) p
-
-/-- `points` admits the text of typed points. -/
-theorem valueOkByName_points (p : Points) :
-    valueOkByName "points".toList (valueText Points.grammar p).toList = true :=
-  valueOkByName_valueText (a := .points) (fun _ => rfl) "points" (by decide +kernel) p
-
-/-- `viewBox` admits the text of a typed rectangle. -/
-theorem valueOkByName_viewBox (v : ViewBox) :
-    valueOkByName "viewBox".toList (valueText ViewBox.grammar v).toList = true :=
-  valueOkByName_valueText (a := .viewBox) (fun _ => rfl) "viewBox" (by decide +kernel) v
-
-/-- `transform` admits the text of a typed transform list. -/
-theorem valueOkByName_transform (ts : TransformList) :
-    valueOkByName "transform".toList (valueText TransformList.grammar ts).toList = true :=
-  valueOkByName_valueText (a := .transform) (fun _ => rfl) "transform" (by decide +kernel) ts
-
-/-- `gradientTransform` admits the text of a typed transform list. -/
-theorem valueOkByName_gradientTransform (ts : TransformList) :
-    valueOkByName "gradientTransform".toList (valueText TransformList.grammar ts).toList = true :=
-  valueOkByName_valueText (a := .gradientTransform) (fun _ => rfl) "gradientTransform" (by decide +kernel) ts
-
-/-- `patternTransform` admits the text of a typed transform list. -/
-theorem valueOkByName_patternTransform (ts : TransformList) :
-    valueOkByName "patternTransform".toList (valueText TransformList.grammar ts).toList = true :=
-  valueOkByName_valueText (a := .patternTransform) (fun _ => rfl) "patternTransform" (by decide +kernel) ts
+/-- Node V5: an attribute admits the text of each typed value of its kind, on an element where
+the table gives it that kind. The two names are a tree's, and each is read by one evaluation of
+a short name; the value's text is never opened. -/
+theorem valueOkByName_valueText {t : Whatwg.Svg.Schema.Tag} {a : Whatwg.Svg.Schema.Attr}
+    {k : ValueKind} (hkind : kindOf t a = some k) (element name : String)
+    (helement : Whatwg.Svg.Schema.Tag.ofChars? element.toList = some t)
+    (hname : Whatwg.Svg.Schema.Attr.ofChars? name.toList = some a) (v : k.carrier) :
+    valueOkByName element.toList name.toList (valueText k.grammar v).toList = true := by
+  rw [valueOkByName, helement, hname, toList_valueText]
+  exact Whatwg.Svg.Value.valueOk_print hkind v
 
 end Whatwg.Html.Content
