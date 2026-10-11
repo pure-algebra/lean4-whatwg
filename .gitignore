@@ -4,3 +4,6 @@
 
 # Agent worktrees created by the Claude desktop app; never part of the tree.
 .claude/worktrees/
+
+# Full texts of the SVG theory packet: fetched papers, cited from the packet's README.
+docs/research/2026-10-11-svg-theory/texts/
