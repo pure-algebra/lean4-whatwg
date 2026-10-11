@@ -205,17 +205,19 @@ points M1 to M8 are the rules of the meta level. The packet
 states each point as the plan builds it. Where the review left a choice, the seat's choice is
 marked **Seat**.
 
-**T1. Validation is one top-down deterministic pass.** A `RawNode` is an unranked ordered tree.
-The checker is a tree automaton:
+**T1. Validation is one top-down pass.** A `RawNode` is an unranked ordered tree. The checker
+reads it once, from the root:
 
 - a state is a position: what may stand there;
 - the transition takes a position and an element's name to the position of its children;
 - acceptance at a node is a local test of the position, the name, the attributes and the
   children's names.
 
-A child's position is a function of its parent's position and its own name. This is a
-single-type tree grammar. So the pass never backtracks, the reachable positions are finite, and
-two such automata compose into one whose state is the sum of their states.
+A child's position is a function of its parent's position and its own name. So the grammar is
+single-type, in the sense of Murata, Lee, Mani and Kawaguchi, and one top-down pass validates
+it without backtracking. The seam of HTML and SVG is a new grammar of that kind. It is
+single-type because `Pos.child` is a function, and no closure theorem gives it. The reachable
+positions are finite, and the plan claims no bound on their number.
 
 **T2. The namespace is a component of the state.** The seam's position is a sum:
 
@@ -303,9 +305,11 @@ def Mask.mem [Universe α] (m : Mask α) (a : α) : Bool := m.bits.testBit (Univ
 ```
 
 Union is `|||`, intersection is `&&&`, and each law of membership is a core lemma
-(`Nat.testBit_or`, `Nat.testBit_and`, `Nat.testBit_xor`). The kernel evaluates these `Nat`
-operations natively. So one definition is the specification and the fast test, and a tactic
-reads a mask back as one literal. The index is Lean's own `ctorIdx`. The seat measured at the
+(`Nat.testBit_or`, `Nat.testBit_and`, `Nat.testBit_xor`). The kernel evaluates `|||`, `&&&`
+and the shifts natively on literals, and `Nat.testBit` unfolds to a shift and an `&&&`. So one
+definition is the specification and the fast test, and a tactic reads a mask back as one
+literal. `Nat` has no complement. A difference is written with `^^^`, and the top of a universe is
+`ofList all`. No law needs two masks with the same members to be equal. The index is Lean's own `ctorIdx`. The seat measured at the
 toolchain `v4.33.1` that these lemmas and an instance by `cases a <;> rfl` stay under the
 strict ceiling.
 
@@ -371,6 +375,27 @@ the `transform` list nest no production. So S4 is one library and a transcriptio
 **T9. The schema projection is a function of sealed bytes.** The drift gate is its evidence.
 A list attribute is split on commas and trimmed, because a category name holds a space. The
 reader normalises an attribute value as XML 1.0 section 3.3.3 says.
+
+### 3.2 What the theory packet corrects
+
+The research partner read each source that the review cites. Its packet is
+`docs/research/2026-10-11-svg-theory/README.md`. It contradicts or weakens the review at these
+points, and the plan reads each one as the sources state it:
+
+| Point | What the sources say | What the plan does |
+| --- | --- | --- |
+| T1, the name | The checker is no "top-down deterministic hedge automaton" of the cited texts. It is a single-type grammar, validated in one top-down pass. | §3.1 uses that name. |
+| T1, composition | The cited closure is under intersection. A sum of states is no closure result. | The seam is built by hand, and its law T2 is proved here. |
+| T1, enumeration | The states are finite, with an exponential bound once exclusions are in the state. | No proof enumerates the reachable positions. |
+| T3 | Only the test at one node is the paper's count expression. The paper's schema is local, and this model is not. | The plan says "count intervals" and cites the paper for the node's test alone. |
+| T4 | `Nat.testBit` is no kernel primitive, and `Nat` has no complement. | §3.1, T4, says what unfolds and what is native. |
+| T5 | The cited theorem is for ranked parse trees. "Paramorphism" carries no law. | W1 and W2 are the seat's proofs, in `Whatwg/Html/Node/Walk.lean`. W1 has the premise of equal transitions. |
+| T8 | No cited paper proves the retraction for free. Each proved round trip has an unambiguity premise. The retraction needs the reader to be complete on the printer's image. | `Syn.ok` is that premise (§5.3). A description is an inductive value, so it erases to its expression. |
+| T8, the lexer | Verbatim's lexer recurses on an accessibility proof. | The reader recurses on the description and on fuel. |
+| M4 | The kernel does unfold a definition by well-founded recursion. | The rule stands: recurse structurally. Its reason is the cost of the accessibility proof, which nobody here measured. |
+
+The packet's two facts about the toolchain agree with what the seat measured. The index
+function is `ctorIdx`, and Lean generates it for every inductive type.
 
 ## 4. Rulings
 
@@ -763,4 +788,4 @@ builds its pictures as trees.
 | S1 | `9266dac`, 2026-10-11 | the pin `vendor/w3c-svgwg-47e645ef/`, thirteen files; every file matches its upstream blob hash; `lake exe whatwg_vendorseal` passes; the seal's digests equal those of `Get-FileHash`; this plan |
 | S2 | `10c81a3`, 2026-10-11 | `lake exe whatwg_svgdefinitions`: four projections and four generated modules, byte-identical to a regeneration; 63 tags, 17 element categories, 321 attribute names, 16 attribute categories, four read sentences, ten dangling names; `Whatwg.Svg` strict with no exception; two batteries; the record is ruling R-S4 of `COORDINATION.md` |
 | revision | `f5201b8`, 2026-10-11 | the owner adopted the seat's review: sections 3.1, 4, 5.2, 5.3 and 6 rewritten on its model; SV-22 to SV-27; the record is ruling R-S6 of `COORDINATION.md` |
-| S3a | 2026-10-11, the commit after `f5201b8` | `Whatwg/Svg/Data/`: `Universe`, `Mask` and `NameTable` with U1, B1 and the generic half of N1; the schema regenerated with every set a mask; `Whatwg/Svg/Schema/Universe.lean`: four instances, two exact name tables (N1), three resolution laws (K1); `Whatwg/Svg/Content/Context.lean`: the position of T3, its transition and one node's judgments; two batteries; `Whatwg.Svg` strict with no exception; the record is ruling R-S7 of `COORDINATION.md` |
+| S3a | `ab1ed31`, 2026-10-11 | `Whatwg/Svg/Data/`: `Universe`, `Mask` and `NameTable` with U1, B1 and the generic half of N1; the schema regenerated with every set a mask; `Whatwg/Svg/Schema/Universe.lean`: four instances, two exact name tables (N1), three resolution laws (K1); `Whatwg/Svg/Content/Context.lean`: the position of T3, its transition and one node's judgments; two batteries; `Whatwg.Svg` strict with no exception; the record is ruling R-S7 of `COORDINATION.md` |
