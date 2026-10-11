@@ -12,8 +12,8 @@ The fence is the ten modules of `Whatwg/Svg/` that declare a constant. The seam'
 modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt D57):
 this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4 and R-S9 of `COORDINATION.md` name this graph and change no
-edge, so the entry acknowledges both.
+No edge is closed. Rulings R-S4, R-S9 and R-S10 of `COORDINATION.md` name this graph and
+change no edge, so the entry acknowledges the three.
 -/
 
 namespace WhatwgTest.Ledger
@@ -27,7 +27,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context]
-  acknowledged := ["R-S4", "R-S9"]
+  acknowledged := ["R-S4", "R-S9", "R-S10"]
   edges := {
     identity := {
       status := .requiredOpen

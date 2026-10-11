@@ -127,11 +127,14 @@ of V2c.2). Outside it the token pass refuses those keywords in code, and the
 environment pass refuses an audited module that registers a token, parser,
 syntax category, macro, elaborator or initializer, whatever spelled it, such as
 an `@[command_elab]` attribute. A listed module stays bound by every trust
-word: the list relaxes rule 1 and nothing else. It holds fourteen modules, each with its reason: the nine that
+word: the list relaxes rule 1 and nothing else. It holds seventeen modules, each with its reason: the nine that
 declare a `#…` command, the gate's own module and the freeze registry's
 included; the two constructive-contract batteries that run their receipts in `run_cmd`;
-and three of the HTML package (ruling R-S2), the tactic `admits` and the term
-`html!` under `Whatwg/Html` and the `run_cmd` shape check of the combinators; an entry that names no audited module source, one whose module
+three of the HTML package (ruling R-S2), the tactic `admits` and the term
+`html!` under `Whatwg/Html` and the `run_cmd` shape check of the combinators;
+and three of proof search (ruling R-S10): `Whatwg.Auto.RuleSets`, which declares the
+named Aesop rule banks, and the two instruments `WhatwgTest.Audit.AutoCensus` and
+`WhatwgTest.Audit.BankCensus`, each a `#…` command that no module of the tree runs; an entry that names no audited module source, one whose module
 neither spells a keyword nor registers anything, one with a blank reason, one
 listed twice, and one that names an entry point under `whatwgbin/` fail the
 build. A new elaboration-time battery that needs `elab` or `run_cmd` therefore

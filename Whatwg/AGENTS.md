@@ -91,7 +91,9 @@ macro or elaborator and runs no metaprogram, so `notation`, `macro`, `elab`,
 `run_cmd`, `#eval` and their siblings are refused here. Two modules are
 listed exceptions in `WhatwgGates/TrustConfig.lean`, each with its reason:
 `Whatwg.Html.Node.Admit` (the tactic `admits`) and
-`Whatwg.Html.Syntax.Elaborator` (the markup term `html!`). Every proof either
+`Whatwg.Html.Syntax.Elaborator` (the markup term `html!`). A third joined
+with ruling R-S10: `Whatwg.Auto.RuleSets`, which declares the named Aesop rule
+banks and no syntax (root `AGENTS.md`, "Proof search"). Every proof either
 builds is `Eq.refl true` or a term the kernel checks, and both stay inside
 every trust word. A listed module still declares no token that ends in `-`
 or `/`, and registers no option: the gate refuses both with no list to admit

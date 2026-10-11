@@ -130,6 +130,9 @@ def metaprogrammingModules : List MetaprogrammingModule :=
   ⟨`WhatwgTest.Infra.ScalarConstructiveContract, "runs receipt INFRA-SCALAR-CE-001 in run_cmd: Lean.collectAxioms over nine declarations"⟩ ::
   ⟨`Whatwg.Html.Node.Admit, "declares the tactic admits with syntax and a tactic elaborator: the auto-parameter of every generated combinator, which closes a schema obligation with Eq.refl true that the kernel then evaluates"⟩ ::
   ⟨`Whatwg.Html.Syntax.Elaborator, "declares the markup term html! with three syntax categories and a term elaborator, which builds an Element.ofRaw term whose every obligation the kernel checks"⟩ ::
+  ⟨`WhatwgTest.Audit.AutoCensus, "declares the instrument command #whatwg_auto_census with syntax and command_elab: it runs a tactic on each theorem statement of a module, rolls every attempt back, and reports; no module of the tree runs it"⟩ ::
+  ⟨`WhatwgTest.Audit.BankCensus, "declares the instrument command #whatwg_bank_census with syntax and command_elab: it reads the declared Aesop rule banks and the rule_sets clauses of the source text, and reports; no module of the tree runs it"⟩ ::
+  ⟨`Whatwg.Auto.RuleSets, "declares the named Aesop rule banks with declare_aesop_rule_sets, which registers one environment extension and one simp extension per bank in an initializer; it declares no syntax and no elaborator, and a proof that asks for a bank is kernel-checked and audited"⟩ ::
   ⟨`WhatwgTest.Html.CombinatorShape, "runs the combinator shape check in run_cmd: reads the compiled environment for the combinator of every element row and the helper of every attribute row"⟩ ::
   []
 
@@ -166,6 +169,9 @@ parser attribute of each syntax category that rule 1 reads from the parser
 extension. All three are held only by the two listed modules of that package. -/
 def extensionAllowlist : List ExtensionAllowlistEntry :=
   -- trust-selftest: extension-allowlist entries are inserted below this line
+  ⟨"Whatwg.Mask", "proof search: the rules of the Aesop bank Whatwg.Mask of the listed module Whatwg.Auto.RuleSets; a proof asks for the bank by name, and the term the search builds is kernel-checked and audited"⟩ ::
+  ⟨"«aesop_Whatwg.Mask»", "proof search: the simp lemmas of the Aesop bank Whatwg.Mask; every rewrite simp makes is a proof the kernel checks"⟩ ::
+  ⟨"_private.Lean.ExtraModUses.0.Lean.isExtraRevModUseExt", "bookkeeping: marks a module whose initializer its importers depend on, today the rule banks of the listed module Whatwg.Auto.RuleSets; Lean reads it to record import dependencies, and the kernel never reads it"⟩ ::
   ⟨"Lean.Compiler.LCNF.UnreachableBranches.functionSummariesExt", "compiler metadata: the dead-branch analysis's summary of each compiled function, read by the code generator only"⟩ ::
   ⟨"Lean.Compiler.LCNF.baseExt", "compiler metadata: each compiled function's LCNF body in the base phase, read by the code generator only"⟩ ::
   ⟨"Lean.Compiler.LCNF.impureSigExt", "compiler metadata: the impure-phase signature of each compiled function, read by the code generator only"⟩ ::

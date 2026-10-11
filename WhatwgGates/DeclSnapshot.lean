@@ -192,17 +192,18 @@ def recordsDirectory : String := "test/records"
 leaves only by a ruling (contract, section 12). -/
 def recordedPrefixes : List String := []
 
-/-- The nine production libraries, in file order, with the module each is
+/-- The ten production libraries, in file order, with the module each is
 rooted at. The umbrella `Whatwg` owns only its own module. `WhatwgSignatures`,
 the `Effects.Signature` faces of promise slice Q5, is the eighth since ruling
 R-W17: the snapshot packet and the Q5 packet were frozen in parallel.
 `WhatwgSvg`, SVG 2 for inline use, is the ninth since slice S2 of
-`docs/SVG-PACKAGE-PLAN.md` (ruling R-S4). -/
+`docs/SVG-PACKAGE-PLAN.md` (ruling R-S4). `WhatwgAuto`, the named Aesop rule
+banks, is the tenth (ruling R-S10). -/
 def libraries : List (String × Name) :=
   [("Whatwg", `Whatwg), ("WhatwgInfra", `Whatwg.Infra), ("WhatwgEcma262", `Whatwg.Ecma262),
    ("WhatwgWebIdl", `Whatwg.WebIdl), ("WhatwgUrl", `Whatwg.Url), ("WhatwgHtml", `Whatwg.Html),
    ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures),
-   ("WhatwgSvg", `Whatwg.Svg)]
+   ("WhatwgSvg", `Whatwg.Svg), ("WhatwgAuto", `Whatwg.Auto)]
 
 /-- The roles a record may give its declaration. -/
 def roles : List String :=

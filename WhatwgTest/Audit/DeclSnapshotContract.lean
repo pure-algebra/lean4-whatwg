@@ -132,11 +132,12 @@ open Gates.DeclSnapshot
 -- R-S4, 2026-10-11: a ninth library. Slice S2 of `docs/SVG-PACKAGE-PLAN.md` landed the
 -- Lake library `WhatwgSvg`, and the generator refuses a production module that belongs to
 -- no library. Amended by the seat under ruling R-S1; no other row changes meaning.
+-- R-S10, 2026-10-11: a tenth library, `WhatwgAuto`, the named Aesop rule banks.
 #guard libraries ==
   [("Whatwg", `Whatwg), ("WhatwgInfra", `Whatwg.Infra), ("WhatwgEcma262", `Whatwg.Ecma262),
    ("WhatwgWebIdl", `Whatwg.WebIdl), ("WhatwgUrl", `Whatwg.Url), ("WhatwgHtml", `Whatwg.Html),
    ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures),
-   ("WhatwgSvg", `Whatwg.Svg)]
+   ("WhatwgSvg", `Whatwg.Svg), ("WhatwgAuto", `Whatwg.Auto)]
 #guard roles ==
   ["canonical", "view", "adapter", "separate-calculus", "derived", "helper",
    "foreign-boundary", "target-only"]
@@ -513,7 +514,9 @@ private def emptyProjection (library : String) : String :=
    -- R-W17, 2026-10-01: the eighth library's file, empty in this fixture.
    ("generated/declarations/WhatwgSignatures.tsv", emptyProjection "WhatwgSignatures"),
    -- R-S4, 2026-10-11: the ninth library's file, empty in this fixture.
-   ("generated/declarations/WhatwgSvg.tsv", emptyProjection "WhatwgSvg")]
+   ("generated/declarations/WhatwgSvg.tsv", emptyProjection "WhatwgSvg"),
+   -- R-S10, 2026-10-11: the tenth library's file, empty in this fixture.
+   ("generated/declarations/WhatwgAuto.tsv", emptyProjection "WhatwgAuto")]
 
 /-! ### 6. The nine join failures
 

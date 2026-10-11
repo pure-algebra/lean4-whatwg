@@ -149,6 +149,17 @@ previous pins (hash `0168306`, Apache-2.0; effects `c28833b`, `v0.5.0`;
 typescript `fcbc05a`, `v0.2.0`), cross-checked 2026-09-05, are in this file's
 history.
 
+Ruling R-S10 added a fourth requirement on 2026-10-11, at the commit
+lean4-effect4 pins: `aesop` from
+`https://github.com/leanprover-community/aesop` at
+`3448c0bcc5ce01b2d1546e483ec3620e32df3d0e`. It brings `batteries` from
+`https://github.com/leanprover-community/batteries` at
+`4488d40d070b9700d4d5a6aa342f0d40c31b2a2d`, the commit of its tag `v4.33.0`,
+as an inherited dependency. Both were fetched that day by `lake update aesop`,
+which left the three earlier pins unchanged, and `git rev-parse HEAD` in each
+package directory answers the pinned commit. Both are under the Apache License
+2.0. Neither is vendored: `lake-manifest.json` holds the two commits.
+
 | Package | Commit / locally verified tag | Committed tree | License at this commit |
 | --- | --- | --- | --- |
 | `hash` | `c906b15dc3e94ebac0c10056270fbb345a1d2b6e`; no tag (`main`) | `15e4bde04887faf982eeca111f50be08eab86e1d` | MIT; `LICENSE` blob `1e7fe3f72d2c0baf370f7375bca9802594a9a6ef`, 1069 bytes, SHA-256 `c51d370d20b9c1b2906d5583a1e9c519eaaf5d2033010eecfc7788e399d8eecf` |

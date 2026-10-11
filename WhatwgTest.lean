@@ -72,6 +72,9 @@ import WhatwgTest.Html.MarkupBenchmark
 import WhatwgTest.Html.Svg
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
+import WhatwgTest.Auto.Banks
+import WhatwgTest.Audit.AutoCensus
+import WhatwgTest.Audit.BankCensus
 import WhatwgTest.Audit.SpecCoverage
 import WhatwgTest.Audit.Infra.SpecCoverageRows
 import WhatwgTest.Audit.WebIdl.SpecCoverageRows

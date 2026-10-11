@@ -5,7 +5,7 @@ keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
 defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
-                  "WhatwgUrl", "WhatwgHtml", "WhatwgSvg", "WhatwgStreams", "WhatwgSignatures",
+                  "WhatwgUrl", "WhatwgHtml", "WhatwgSvg", "WhatwgAuto", "WhatwgStreams", "WhatwgSignatures",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_htmlstandard",
@@ -64,6 +64,14 @@ globs = ["Whatwg.Html.*"]
 name = "WhatwgSvg"
 roots = ["Whatwg.Svg"]
 globs = ["Whatwg.Svg.*"]
+
+# Proof search for the law graphs: the named Aesop rule banks. The one library
+# that imports Aesop directly; a proof module imports its banks (ruling
+# R-S10).
+[[lean_lib]]
+name = "WhatwgAuto"
+roots = ["Whatwg.Auto"]
+globs = ["Whatwg.Auto.*"]
 
 [[lean_lib]]
 name = "WhatwgStreams"
@@ -206,3 +214,14 @@ rev = "a4ee7a14248ee5976039b73039319efa87834986"
 name = "typescript"
 git = "https://github.com/pure-algebra/lean4-typescript"
 rev = "6afc9b841603796c16b266c0b8b92ded37a9445c"
+
+# Proof search for the law graphs: the named rule banks of
+# `Whatwg/Auto/RuleSets.lean` and the census instruments beside them (owner
+# direction of 2026-10-11, ruling R-S10 of COORDINATION.md). The commit is the
+# one lean4-effect4 pins, the release for this toolchain; it brings
+# `batteries`. A proof that the search finds is a term the kernel checks, and
+# the axiom gate holds it to its tree's ceiling like any other.
+[[require]]
+name = "aesop"
+git = "https://github.com/leanprover-community/aesop"
+rev = "3448c0bcc5ce01b2d1546e483ec3620e32df3d0e"

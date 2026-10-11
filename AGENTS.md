@@ -19,6 +19,7 @@ full, then open only the authority documents named for the current task.
 | `test/contracts/` | frozen contract packets and their executable falsifiers |
 | `test/counterexamples/` | central counterexample register and durable witnesses |
 | `Whatwg/Streams/` | library declarations and proofs |
+| `Whatwg/Auto/` | the named Aesop rule banks that the proofs of every standard ask for ("Proof search" below) |
 | `WhatwgTest/Streams/` | Lean tests, attacks, receipts, and the axiom gate |
 | `WhatwgGates/` | repository gates implemented in Lean |
 | `WhatwgTest/Ledger/` | the graph ledger: the ten edges of every proof graph, with their status, grounds and open items, as checked Lean data (ruling R-W6); `generated/graphs/` is its projection |
@@ -72,6 +73,55 @@ graph. `docs/AGENT-ROUTING.md` owns the full threshold.
 
 Breadth precedes depth: every major category receives a designed
 representative slice before one category is developed far beyond the others.
+
+## Proof search
+
+Proof search is `aesop` (`https://github.com/leanprover-community/aesop`), used as
+lean4-effect4 uses it and pinned at the commit it pins (owner direction of
+2026-10-11, ruling R-S10 of `COORDINATION.md`). `Whatwg/Auto/RuleSets.lean`
+declares the named rule banks. A proof module imports that module, and
+nothing else in the audited trees imports `Aesop` for its rules.
+
+- Register a lemma in the named bank that fits it, beside the lemma. Ask for a
+  bank by name: `aesop (rule_sets := [Whatwg.Mask])`. Register nothing in the
+  `default` rule set, which every call pays for.
+- For a definition or an equation, use
+  `@[aesop norm simp (rule_sets := [X])]`. For a fact, use `safe` or `unsafe`
+  with the builder that fits it: `constructors` or `cases` for an inductive
+  predicate, `destruct` for an inversion that consumes its hypothesis, and
+  `forward` for an implication whose hypothesis stays useful.
+- Introduce induction hypotheses by hand, and hand them to the call:
+  `aesop (add safe forward [ih1, ih2])`.
+- Keep a rule that creates metavariables, such as a transitivity, in the call
+  that needs it. It never goes in a bank.
+- A bank lands with a theorem that closes only with its clause, and with a
+  control in `WhatwgTest/Auto/Banks.lean`, where the search without the clause
+  fails. The control omits the clause; it never writes `-X`. A bank with no
+  rule is deleted, and it returns with the lemma that needs it.
+- A bank is two environment extensions, `X` and `«aesop_X»`. The executable
+  trust gate refuses a registration until `extensionAllowlist` of
+  `WhatwgGates/TrustConfig.lean` names both, each with its reason.
+- Two instruments measure, and neither is a gate. `#whatwg_auto_census
+  Some.Module using aesop` reports which theorems of a module the search closes
+  from their statements. `#whatwg_bank_census` reports what each bank holds and
+  who names it. `workshop/AutoCensus.lean` and `workshop/BankCensus.lean` hold
+  an invocation of each: run one with `lake env lean` after `lake build`. Run
+  the auto census before you rewrite proofs against a bank.
+- Prefer a short searched proof to a long unpacked one. Take a proof's case
+  list from the definition it is about (`fun_induction`, `fun_cases`), not from
+  `cases a <;> cases b`.
+- The axiom gate holds a searched proof to its tree's ceiling like any other.
+  Under a strict prefix, check what the search reaches: `simp` at
+  `(x == x) = true` for `String` or `Nat`, and `aesop` on the negative
+  hypotheses of a catch-all, both reach `Classical.choice`.
+- Do not write by hand, in a new or touched proof: `simp_all`, `first | …` or
+  `try`. A fallback that fails silently into an unsolved goal hides a missing
+  lemma. A `simp` names its lemmas: `simp only [...]`.
+
+The proof graph stays data in the graph ledger (`WhatwgTest/Ledger/`): a
+planned theorem is a `wanted` item of its edge, and a proved one is a ground.
+lean4-effect4 plans with goals whose body is a placeholder; this repository's
+trust gate refuses that word everywhere, so no such goal is declared here.
 
 ## Authority order
 

@@ -66,7 +66,9 @@ def infraInteger : Leaf where
 one leaf record, and the fourteen unrouted prefixes of slice D (ruling
 R-W22): the thirteen of debt D57, in the order of the contract's section 12,
 and `Whatwg.Streams.Kernel`, of debt D68. The prefix `Whatwg.Svg` of debt
-D78 (ruling R-S4) is gone: the fence of `SVG-PG-SEAM` owns its modules. -/
+D78 (ruling R-S4) is gone: the fence of `SVG-PG-SEAM` owns its modules.
+The rule banks of `Whatwg.Auto` (ruling R-S10) declare no constant that a
+graph routes, so no prefix names them. -/
 def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
     transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,

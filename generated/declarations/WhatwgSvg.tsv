@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgSvg rows=1652 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgSvg rows=1653 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 Whatwg.Svg.Content.Content	Whatwg.Svg.Content.Context	inductive	authored	0	50bdba2d5863881f005509db232fe17f42bf02f6331fd501f1607c7d6004b6f7	-	-	-	-	-	-	-	-
 Whatwg.Svg.Content.Content.casesOn	Whatwg.Svg.Content.Context	definition	authored	1	ec85af42764af02e42698ff8b5e58ba281a06be64cb8fdd8d6de91802cc8b6f0	-	-	-	-	-	-	-	-
@@ -89,6 +89,7 @@ Whatwg.Svg.Data.Mask.mem_of_subset	Whatwg.Svg.Data.Mask	theorem	authored	0	7405c
 Whatwg.Svg.Data.Mask.mem_single	Whatwg.Svg.Data.Mask	theorem	authored	0	49693c3206675eb3272e1bf897bb1602e25262a955e8cfaca1e3a2d647aae7b6	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Data.Mask.mem_toList	Whatwg.Svg.Data.Mask	theorem	authored	0	a99c520102323b9a74f7e80de6ddd209cf49e0b3ea177afd36ed928532edf8a2	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Data.Mask.mem_union	Whatwg.Svg.Data.Mask	theorem	authored	0	d9822b9a2e1fae0d1caa6c692285f6f13573d5ac94693b72f5aed8c099deb65b	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Svg.Data.Mask.mem_union_of_subset	Whatwg.Svg.Data.Mask	theorem	authored	0	eb391ecec76d4fc3d93449a36cdac0e060a6ef651b0ce97fe7b22270a89bf0b9	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Data.Mask.mk	Whatwg.Svg.Data.Mask	constructor	authored	0	7eb4c21d6317ac12e1d5de9592cc574445d4f9e510e872b52b61f51d2d1bbd6f	-	-	-	-	-	-	-	-
 Whatwg.Svg.Data.Mask.mk.inj	Whatwg.Svg.Data.Mask	theorem	generated	0	f922bb6de8cfa9c1940f4e803d4391bce0e00d5741c2c20d14479dda32235c87	-	-	-	-	-	-	-	-
 Whatwg.Svg.Data.Mask.mk.injEq	Whatwg.Svg.Data.Mask	theorem	generated	0	d07335c45c4d5441187ee27a54280851bc763c46e35abb1ce4e07db06ab1df71	propext	-	-	-	-	-	-	-

@@ -1,0 +1,28 @@
+import Whatwg.Svg
+
+/-!
+# WhatwgTest.Auto.Banks
+
+The fixtures of the named Aesop rule banks (`Whatwg/Auto/RuleSets.lean`; ruling R-S10 of
+`COORDINATION.md`). A bank lands with a theorem that closes only with its clause. This battery
+holds the control for each bank: the same goal, where the search without the clause fails and
+the search with it closes.
+
+A line here is a control of the bank, not of the law: the law is the theorem beside the bank's
+rules, and this module restates none.
+-/
+
+namespace WhatwgTest.Auto.Banks
+
+open Whatwg.Svg.Data
+
+/-! ## `Whatwg.Mask` -/
+
+-- Control: the goal of `Mask.mem_union_of_subset`. The default rule set does not know the
+-- laws of membership, so the search fails without the clause and closes with it.
+example {α : Type} [Universe α] {m n k : Mask α} (h : m.subset n = true) {a : α}
+    (ha : (m.union k).mem a = true) : (n.union k).mem a = true := by
+  fail_if_success aesop
+  aesop (rule_sets := [Whatwg.Mask])
+
+end WhatwgTest.Auto.Banks

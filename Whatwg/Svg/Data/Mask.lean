@@ -1,3 +1,4 @@
+import Whatwg.Auto.RuleSets
 import Whatwg.Svg.Data.Universe
 
 /-!
@@ -116,6 +117,23 @@ theorem mem_of_subset {m n : Mask α} (h : m.subset n = true) {a : α} (ha : m.m
   have hand : (m.bits &&& n.bits).testBit (Universe.index a) = true := by rw [hbits]; exact ha
   rw [Nat.testBit_and, Bool.and_eq_true] at hand
   exact hand.2
+
+/-! ## The bank `Whatwg.Mask`
+
+The laws above are the rules of the Aesop bank `Whatwg.Mask` (`Whatwg/Auto/RuleSets.lean`).
+The equations of membership are normalisation rules, and `mem_of_subset` is a forward rule. A
+proof about members asks for the bank: `aesop (rule_sets := [Whatwg.Mask])`. -/
+
+attribute [aesop norm simp (rule_sets := [Whatwg.Mask])] mem_empty mem_union mem_inter mem_diff
+  mem_single mem_insert mem_ofList mem_toList
+
+attribute [aesop safe forward (rule_sets := [Whatwg.Mask])] mem_of_subset
+
+/-- A member of a union stays one when the left set grows. The proof is the bank's: it closes
+only with the clause (`WhatwgTest/Auto/Banks.lean` holds the fixture that omits it). -/
+theorem mem_union_of_subset {m n k : Mask α} (h : m.subset n = true) {a : α}
+    (ha : (m.union k).mem a = true) : (n.union k).mem a = true := by
+  aesop (rule_sets := [Whatwg.Mask])
 
 end Mask
 
