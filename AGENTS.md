@@ -193,22 +193,35 @@ orchestrate; they decide nothing.
 | `lake exe whatwg_ledger` | every reference of the graph ledger resolves against the built modules and the authored files; a ruling of `COORDINATION.md` that names a graph is cited or acknowledged by that graph; a register row's status agrees with the cells that cite it; every module under `Whatwg` that declares a constant has exactly one owner, a graph's fence, a leaf record or an unrouted prefix that cites a debt (ruling R-W22); `generated/graphs/`, with its `INDEX.md`, is byte-identical to a fresh rendering |
 | `lake exe whatwg_declsnapshot` | `generated/declarations/` is byte-identical to a fresh snapshot of the built production libraries, and declaration records, freeze entries and census rows join under the rules of `test/contracts/declaration-snapshot.contract.md` |
 | `lake exe whatwg_trustgate` | run after `lake build`: every audited module has a built `.olean` that matches its source, its trace and the options `lakefile.toml` fixes; every pass of the in-tree gate holds over the built modules, read with no extension loaded and no audited code run; every environment extension an audited module writes to is on the exact allowlist of `WhatwgGates/TrustConfig.lean`; the executable links no audited metaprogramming module (ruling R-W7, addendum V2e of `test/contracts/trust-gate-hardening.contract.md`) |
-| `lake exe whatwg_trustselftest` | every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name |
+| `lake exe whatwg_trustselftest` | run after `lake build`: every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name; each plant is judged in one process by the gate library's own run over a planted view of the built tree (addendum V2g of `test/contracts/trust-gate-hardening.contract.md`, ruling R-T1) |
 | `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of every built module under those three prefixes replays in the kernel |
 
-Every row applies to every change except two (rulings R-W25 and R-S5).
+Every row applies to every change except two (rulings R-W25, R-S5 and R-T1).
 
-The trust self-test is outside the development cycle (owner direction of
-2026-10-11, ruling R-S5). It takes about eighteen minutes, and no slice runs
-it. A check that takes more than about a minute does not join the cycle: a
-slice uses another verification, and says which. The self-test tests the
-gate's own code, not the tree. So only a change to that code owes it
-(`WhatwgGates/Trust/`, `WhatwgTest/Audit/AxiomGate.lean`, the self-test and
-the two entry points, and the fixtures under `test/fixtures/trust-gate/`
-other than `known-red.txt`), and whoever lands such a change runs it once.
+The trust self-test is back in the development cycle (ruling R-T1,
+2026-10-11). `lake exe whatwg_trustselftest` judges all 92 rows in one
+process and builds the tree for none: about 40 seconds after `lake build`. A
+check that takes more than about a minute does not join the cycle (ruling
+R-S5), and this one now meets that bound. It tests the gate's own code and
+data, not the tree's theorems, so a slice runs it when it changes one of
+`WhatwgGates/Trust/`, `WhatwgGates/TrustConfig.lean`,
+`WhatwgGates/TrustSelfTest.lean`, `WhatwgGates/TrustSelfTest/`,
+`WhatwgTest/Audit/AxiomGate.lean`, the two entry points, the fixtures under
+`test/fixtures/trust-gate/` other than `known-red.txt`, the trust contract,
+`lakefile.toml`, `lake-manifest.json` or `lean-toolchain`, and the coordinator
+runs it at each merge.
 
-A change to the gate's data is verified by the gates that read the data.
-That is an entry of `WhatwgGates/TrustConfig.lean`, a target of
+The one-plant run, `lake exe whatwg_trustselftest --each`, takes about
+eighteen minutes and stays outside the cycle. It builds a copy of the tree
+once for each plant and judges it with both gates, so it is the reference.
+The default run does not show two things it shows: the in-tree command's
+verdict on most planted trees, and that Lean accepts each plant. Whoever
+changes `WhatwgTest/Audit/AxiomGate.lean`, a fixture or `lean-toolchain` runs
+it once. A row that fails in the default run is judged alone with
+`--each --rows <label>`.
+
+A change to the gate's data is also verified by the gates that read the
+data. That is an entry of `WhatwgGates/TrustConfig.lean`, a target of
 `lakefile.toml`, or a pin. The in-tree gate of `lake build` judges the tree
 with the new data. `lake exe whatwg_trustgate` takes about four seconds: it
 refuses a list entry that is stale, blank, repeated or not needed, a strict
