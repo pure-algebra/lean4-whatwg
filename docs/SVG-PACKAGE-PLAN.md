@@ -50,8 +50,9 @@ library gives `validIn` as a Boolean and no refusal. S3 moves that walk into the
 3. **The definitions files** of that commit are the draft's machine-readable index. The chapter
    files are the same authority in prose. Where the two disagree, the projection records a row.
    No one repairs a sealed file or a projection.
-4. **CSS Transforms 1** owns the `transform` value, which SVG 2 cites. It is not pinned yet:
-   S4c seals it (SV-26). No other CSS specification is an authority of this package.
+4. **CSS Transforms 1** owns the `transform` value, which SVG 2 cites. It is pinned at
+   `w3c/csswg-drafts` commit `50337328` (SV-26, §2.4). No other CSS specification is an
+   authority of this package.
 5. **Browsers and validators** give host observations under a named profile. They repair no
    statement.
 
@@ -146,6 +147,31 @@ Five things are in no definitions file:
 version permits a derived work in software and in its documentation. Such a work carries a
 notice: it names W3C as the copyright holder and names the source by title and address. Each
 generated file of S2 carries that notice.
+
+### 2.4 The CSS pin
+
+`vendor/w3c-csswg-drafts-50337328/` holds three files of `w3c/csswg-drafts` at commit
+`50337328484f7fcdd9ab6fe9ded6011815b1707e` (2026-10-10), the head of `main` at pin time:
+`css-transforms-1/Overview.bs` (73,009 bytes), `LICENSE.md` and `README.markdown`. Slice S4c
+sealed it (SV-26). `docs/PROVENANCE.md` records the fetch, the cross-check and the licence.
+
+The package reads one section of the source: "Syntax of the SVG transform attribute", with the
+anchor `svg-syntax`. Its grammar is a list of productions, each under an id that opens with
+`svg-`. Three facts of that section shape slice S4c:
+
+- The section says that the three attributes `transform`, `patternTransform` and
+  `gradientTransform` take this syntax, and not the syntax of the CSS property.
+- Its `wsp` is four characters, stated in prose: U+0009, U+000A, U+000D and U+0020. The `wsp`
+  of path data has a fifth, U+000C. The section's railroad diagrams are informative by its own
+  statement, and the diagram of `wsp` lists another set.
+- It defines no production `number`. It points at `<number-token>` of CSS Syntax 3, which is
+  not sealed. SV-26 rules that a number is SVG's own production. The section's own example
+  `translate(-10, 20)` carries a sign, so the production is `coordinate`, which is
+  `sign? number` (SV-29).
+
+The licence is not the one of the SVG pin: `LICENSE.md` names the W3C Software and Document
+License. A derived work states what it took, so the grammar module of S4c carries that
+statement.
 
 ## 3. Target shape
 
@@ -432,6 +458,8 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-25 | value grammars | A value grammar is a regular expression as data. One invertible description reads and prints it (T8). |
 | SV-26 | the CSS pin | `w3c/csswg-drafts` is pinned at one commit, and only the CSS Transforms 1 source is sealed. A number is SVG's own `number` production. No CSS Values file is pinned. A length takes only what the sealed SVG text states (owner ruling). |
 | SV-27 | unknown names | An element whose name is in neither schema is refused at every position. This holds under `metadata` too, whose model is `any`: the checker knows no rule for the subtree. |
+| SV-28 | the arc's rotation | The three leading arguments of `elliptical_arc_argument` are the production `number`, which has no sign. So the rotation of an arc is unsigned, like its radii, and `a25,25 -30 0,1 50,-25` is refused. The grammar of SVG 1.1 gave the rotation a sign; the sealed grammar does not, and no one repairs it (seat, S4b). |
+| SV-29 | the number and the white space of `transform` | A number of the `transform` grammar is the production `coordinate` of path data, `sign? number`: SV-26 makes it SVG's own, and the sealed section's example carries a sign. Its white space is the four characters the section states, without U+000C (seat, S4c). |
 
 ## 5. Slices
 
@@ -810,4 +838,5 @@ builds its pictures as trees.
 | S3c | `8ad963d`, 2026-10-11 | `Whatwg/Html/Content/Explain.lean`: `Reason`, `Refusal`, the refusal algebra, `explain`; C3 by the walk's fusion law and C4 by its new induction law W3; the battery `WhatwgTest/Html/Explain.lean`; the record is ruling R-S11 |
 | S3d | `f987a6c`, 2026-10-11 | `Whatwg/Html/Print/Render.lean` rewritten around the walk: the print state, `wfIn`, the decoder in a namespace; P1, P2 and P3 for trees that hold SVG; the existing print battery unchanged and `WhatwgTest/Html/SvgPrint.lean` new; the record is ruling R-S12 |
 | S3e | `d9bb3af`, 2026-10-11 | `html!` builds an `svg` subtree as one raw literal with one obligation and reports the located refusal at the refused token; `admits` closes or explains a whole tree; `WhatwgTest/Html/SvgMarkup.lean`; debt D83 stays for the node obligations; the record is ruling R-S13 |
-| S4a | 2026-10-11 | `Whatwg/Svg/Value/Grammar.lean`: `CharSet`, `Syn`, the reader and the printer; V1, V2 and V3a proved once over the description, under the strict ceiling; the leaf record `SVG-LF-GRAMMAR`; the battery `WhatwgTest/Svg/Grammar.lean`; the record is ruling R-S14 |
+| S4a | `2c9ac8b`, 2026-10-11 | `Whatwg/Svg/Value/Grammar.lean`: `CharSet`, `Syn`, the reader and the printer; V1, V2 and V3a proved once over the description, under the strict ceiling; the leaf record `SVG-LF-GRAMMAR`; the battery `WhatwgTest/Svg/Grammar.lean`; the record is ruling R-S14 |
+| the CSS pin | 2026-10-11 | `vendor/w3c-csswg-drafts-50337328/`, three files of `w3c/csswg-drafts` at `50337328`; every file matches its upstream blob hash; `lake exe whatwg_vendorseal` passes, and its digests equal those of `Get-FileHash`; section 2.4; rulings SV-28 and SV-29 are recorded for the grammars; the record is ruling R-S15 |
