@@ -20,7 +20,8 @@ Data and derived instances only: no proof lives here.
 
 namespace Whatwg.Html.Schema
 
-/-- Flow content, by the `Categories` entries of the projection. -/
+/-- Flow content, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.flow : Tag → Bool
   | .link | .«meta» | .article | .«section» | .nav | .aside | .h1 | .h2
   | .h3 | .h4 | .h5 | .h6 | .hgroup | .header | .footer | .address
@@ -32,10 +33,11 @@ def Cats.flow : Tag → Bool
   | .del | .picture | .img | .iframe | .embed | .object | .video | .audio
   | .map | .area | .table | .form | .label | .input | .button | .select
   | .datalist | .textarea | .output | .progress | .meter | .fieldset | .details | .dialog
-  | .script | .noscript | .template | .slot | .canvas => true
+  | .script | .noscript | .template | .slot | .canvas | .math | .svg => true
   | _ => false
 
-/-- Phrasing content, by the `Categories` entries of the projection. -/
+/-- Phrasing content, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.phrasing : Tag → Bool
   | .link | .«meta» | .a | .em | .strong | .small | .s | .cite
   | .q | .dfn | .abbr | .ruby | .«data» | .time | .code | .var
@@ -43,36 +45,44 @@ def Cats.phrasing : Tag → Bool
   | .bdi | .bdo | .span | .br | .wbr | .ins | .del | .picture
   | .img | .iframe | .embed | .object | .video | .audio | .map | .area
   | .label | .input | .button | .select | .datalist | .textarea | .output | .progress
-  | .meter | .selectedcontent | .script | .noscript | .template | .slot | .canvas => true
+  | .meter | .selectedcontent | .script | .noscript | .template | .slot | .canvas | .math
+  | .svg => true
   | _ => false
 
-/-- Heading content, by the `Categories` entries of the projection. -/
+/-- Heading content, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.heading : Tag → Bool
   | .h1 | .h2 | .h3 | .h4 | .h5 | .h6 | .hgroup => true
   | _ => false
 
-/-- Sectioning content, by the `Categories` entries of the projection. -/
+/-- Sectioning content, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.sectioning : Tag → Bool
   | .article | .«section» | .nav | .aside => true
   | _ => false
 
-/-- Interactive content, with the conditional cases read as interactive, by the `Categories` entries of the projection. -/
+/-- Interactive content, with the conditional cases read as interactive, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.interactive : Tag → Bool
   | .a | .img | .iframe | .embed | .video | .audio | .label | .input
   | .button | .select | .textarea | .details => true
   | _ => false
 
-/-- Metadata content, by the `Categories` entries of the projection. -/
+/-- Metadata content, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.metadata : Tag → Bool
   | .title | .base | .link | .«meta» | .style | .script | .noscript | .template => true
   | _ => false
 
-/-- Embedded content, by the `Categories` entries of the projection. -/
+/-- Embedded content, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.embedded : Tag → Bool
-  | .picture | .img | .iframe | .embed | .object | .video | .audio | .canvas => true
+  | .picture | .img | .iframe | .embed | .object | .video | .audio | .canvas
+  | .math | .svg => true
   | _ => false
 
-/-- Palpable content, with the conditional cases read as palpable, by the `Categories` entries of the projection. -/
+/-- Palpable content, with the conditional cases read as palpable, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.palpable : Tag → Bool
   | .article | .«section» | .nav | .aside | .h1 | .h2 | .h3 | .h4
   | .h5 | .h6 | .hgroup | .header | .footer | .address | .p | .pre
@@ -83,10 +93,11 @@ def Cats.palpable : Tag → Bool
   | .bdo | .span | .ins | .del | .picture | .img | .iframe | .embed
   | .object | .video | .audio | .map | .table | .form | .label | .input
   | .button | .select | .textarea | .output | .progress | .meter | .fieldset | .details
-  | .canvas => true
+  | .canvas | .math | .svg => true
   | _ => false
 
-/-- Script-supporting elements, by the `Categories` entries of the projection. -/
+/-- Script-supporting elements, by the `Categories` entries of the projection, and by the
+foreign items of the standard's category list. -/
 def Cats.scriptSupporting : Tag → Bool
   | .script | .template => true
   | _ => false
@@ -163,7 +174,7 @@ def Base.name : Base → String
   | .flow_with_summary => "flow_with_summary"
   | .only_link_style_meta_strict => "only_link_style_meta_strict"
 
-/-- `flow`: 86 of 114 tags. -/
+/-- `flow`: 88 of 116 tags. -/
 def Bases.flow : Tag → Bool
   | .link | .«meta» | .article | .«section» | .nav | .aside | .h1 | .h2
   | .h3 | .h4 | .h5 | .h6 | .hgroup | .header | .footer | .address
@@ -175,10 +186,10 @@ def Bases.flow : Tag → Bool
   | .del | .picture | .img | .iframe | .embed | .object | .video | .audio
   | .map | .area | .table | .form | .label | .input | .button | .select
   | .datalist | .textarea | .output | .progress | .meter | .fieldset | .details | .dialog
-  | .script | .noscript | .template | .slot | .canvas | .pcdata => true
+  | .script | .noscript | .template | .slot | .canvas | .math | .svg | .pcdata => true
   | _ => false
 
-/-- `phrasing`: 56 of 114 tags. -/
+/-- `phrasing`: 58 of 116 tags. -/
 def Bases.phrasing : Tag → Bool
   | .link | .«meta» | .a | .em | .strong | .small | .s | .cite
   | .q | .dfn | .abbr | .ruby | .«data» | .time | .code | .var
@@ -186,49 +197,50 @@ def Bases.phrasing : Tag → Bool
   | .bdi | .bdo | .span | .br | .wbr | .ins | .del | .picture
   | .img | .iframe | .embed | .object | .video | .audio | .map | .area
   | .label | .input | .button | .select | .datalist | .textarea | .output | .progress
-  | .meter | .selectedcontent | .script | .noscript | .template | .slot | .canvas | .pcdata => true
+  | .meter | .selectedcontent | .script | .noscript | .template | .slot | .canvas | .math
+  | .svg | .pcdata => true
   | _ => false
 
-/-- `metadata`: 8 of 114 tags. -/
+/-- `metadata`: 8 of 116 tags. -/
 def Bases.metadata : Tag → Bool
   | .title | .base | .link | .«meta» | .style | .script | .noscript | .template => true
   | _ => false
 
-/-- `text`: 1 of 114 tags. -/
+/-- `text`: 1 of 116 tags. -/
 def Bases.text : Tag → Bool
   | .pcdata => true
   | _ => false
 
-/-- `nothing`: 0 of 114 tags. -/
+/-- `nothing`: 0 of 116 tags. -/
 def Bases.nothing : Tag → Bool := fun _ => false
 
-/-- `document`: 1 of 114 tags. -/
+/-- `document`: 1 of 116 tags. -/
 def Bases.document : Tag → Bool
   | .html => true
   | _ => false
 
-/-- `only_head_body_strict`: 2 of 114 tags. -/
+/-- `only_head_body_strict`: 2 of 116 tags. -/
 def Bases.only_head_body_strict : Tag → Bool
   | .head | .body => true
   | _ => false
 
-/-- `only_p_h1_h2_h3_h4_h5_h6`: 9 of 114 tags. -/
+/-- `only_p_h1_h2_h3_h4_h5_h6`: 9 of 116 tags. -/
 def Bases.only_p_h1_h2_h3_h4_h5_h6 : Tag → Bool
   | .h1 | .h2 | .h3 | .h4 | .h5 | .h6 | .p | .script
   | .template => true
   | _ => false
 
-/-- `only_li`: 3 of 114 tags. -/
+/-- `only_li`: 3 of 116 tags. -/
 def Bases.only_li : Tag → Bool
   | .li | .script | .template => true
   | _ => false
 
-/-- `only_dt_dd_div`: 5 of 114 tags. -/
+/-- `only_dt_dd_div`: 5 of 116 tags. -/
 def Bases.only_dt_dd_div : Tag → Bool
   | .dt | .dd | .div | .script | .template => true
   | _ => false
 
-/-- `flow_with_figcaption`: 87 of 114 tags. -/
+/-- `flow_with_figcaption`: 89 of 116 tags. -/
 def Bases.flow_with_figcaption : Tag → Bool
   | .link | .«meta» | .article | .«section» | .nav | .aside | .h1 | .h2
   | .h3 | .h4 | .h5 | .h6 | .hgroup | .header | .footer | .address
@@ -240,10 +252,11 @@ def Bases.flow_with_figcaption : Tag → Bool
   | .ins | .del | .picture | .img | .iframe | .embed | .object | .video
   | .audio | .map | .area | .table | .form | .label | .input | .button
   | .select | .datalist | .textarea | .output | .progress | .meter | .fieldset | .details
-  | .dialog | .script | .noscript | .template | .slot | .canvas | .pcdata => true
+  | .dialog | .script | .noscript | .template | .slot | .canvas | .math | .svg
+  | .pcdata => true
   | _ => false
 
-/-- `phrasing_with_rp_rt`: 58 of 114 tags. -/
+/-- `phrasing_with_rp_rt`: 60 of 116 tags. -/
 def Bases.phrasing_with_rp_rt : Tag → Bool
   | .link | .«meta» | .a | .em | .strong | .small | .s | .cite
   | .q | .dfn | .abbr | .ruby | .rt | .rp | .«data» | .time
@@ -252,40 +265,40 @@ def Bases.phrasing_with_rp_rt : Tag → Bool
   | .del | .picture | .img | .iframe | .embed | .object | .video | .audio
   | .map | .area | .label | .input | .button | .select | .datalist | .textarea
   | .output | .progress | .meter | .selectedcontent | .script | .noscript | .template | .slot
-  | .canvas | .pcdata => true
+  | .canvas | .math | .svg | .pcdata => true
   | _ => false
 
-/-- `only_source_img`: 4 of 114 tags. -/
+/-- `only_source_img`: 4 of 116 tags. -/
 def Bases.only_source_img : Tag → Bool
   | .source | .img | .script | .template => true
   | _ => false
 
-/-- `only_caption_colgroup_thead_tbody_tfoot_tr`: 8 of 114 tags. -/
+/-- `only_caption_colgroup_thead_tbody_tfoot_tr`: 8 of 116 tags. -/
 def Bases.only_caption_colgroup_thead_tbody_tfoot_tr : Tag → Bool
   | .caption | .colgroup | .tbody | .thead | .tfoot | .tr | .script | .template => true
   | _ => false
 
-/-- `only_col_template_strict`: 2 of 114 tags. -/
+/-- `only_col_template_strict`: 2 of 116 tags. -/
 def Bases.only_col_template_strict : Tag → Bool
   | .col | .template => true
   | _ => false
 
-/-- `only_tr`: 3 of 114 tags. -/
+/-- `only_tr`: 3 of 116 tags. -/
 def Bases.only_tr : Tag → Bool
   | .tr | .script | .template => true
   | _ => false
 
-/-- `only_td_th`: 4 of 114 tags. -/
+/-- `only_td_th`: 4 of 116 tags. -/
 def Bases.only_td_th : Tag → Bool
   | .td | .th | .script | .template => true
   | _ => false
 
-/-- `only_button_option_optgroup_hr_noscript`: 7 of 114 tags. -/
+/-- `only_button_option_optgroup_hr_noscript`: 7 of 116 tags. -/
 def Bases.only_button_option_optgroup_hr_noscript : Tag → Bool
   | .hr | .button | .optgroup | .option | .script | .noscript | .template => true
   | _ => false
 
-/-- `phrasing_with_option`: 57 of 114 tags. -/
+/-- `phrasing_with_option`: 59 of 116 tags. -/
 def Bases.phrasing_with_option : Tag → Bool
   | .link | .«meta» | .a | .em | .strong | .small | .s | .cite
   | .q | .dfn | .abbr | .ruby | .«data» | .time | .code | .var
@@ -294,15 +307,15 @@ def Bases.phrasing_with_option : Tag → Bool
   | .img | .iframe | .embed | .object | .video | .audio | .map | .area
   | .label | .input | .button | .select | .datalist | .option | .textarea | .output
   | .progress | .meter | .selectedcontent | .script | .noscript | .template | .slot | .canvas
-  | .pcdata => true
+  | .math | .svg | .pcdata => true
   | _ => false
 
-/-- `only_legend_option_noscript_div`: 6 of 114 tags. -/
+/-- `only_legend_option_noscript_div`: 6 of 116 tags. -/
 def Bases.only_legend_option_noscript_div : Tag → Bool
   | .div | .option | .legend | .script | .noscript | .template => true
   | _ => false
 
-/-- `flow_with_legend`: 87 of 114 tags. -/
+/-- `flow_with_legend`: 89 of 116 tags. -/
 def Bases.flow_with_legend : Tag → Bool
   | .link | .«meta» | .article | .«section» | .nav | .aside | .h1 | .h2
   | .h3 | .h4 | .h5 | .h6 | .hgroup | .header | .footer | .address
@@ -314,10 +327,11 @@ def Bases.flow_with_legend : Tag → Bool
   | .del | .picture | .img | .iframe | .embed | .object | .video | .audio
   | .map | .area | .table | .form | .label | .input | .button | .select
   | .datalist | .textarea | .output | .progress | .meter | .fieldset | .legend | .details
-  | .dialog | .script | .noscript | .template | .slot | .canvas | .pcdata => true
+  | .dialog | .script | .noscript | .template | .slot | .canvas | .math | .svg
+  | .pcdata => true
   | _ => false
 
-/-- `phrasing_with_heading`: 63 of 114 tags. -/
+/-- `phrasing_with_heading`: 65 of 116 tags. -/
 def Bases.phrasing_with_heading : Tag → Bool
   | .link | .«meta» | .h1 | .h2 | .h3 | .h4 | .h5 | .h6
   | .hgroup | .a | .em | .strong | .small | .s | .cite | .q
@@ -326,10 +340,11 @@ def Bases.phrasing_with_heading : Tag → Bool
   | .bdo | .span | .br | .wbr | .ins | .del | .picture | .img
   | .iframe | .embed | .object | .video | .audio | .map | .area | .label
   | .input | .button | .select | .datalist | .textarea | .output | .progress | .meter
-  | .selectedcontent | .script | .noscript | .template | .slot | .canvas | .pcdata => true
+  | .selectedcontent | .script | .noscript | .template | .slot | .canvas | .math | .svg
+  | .pcdata => true
   | _ => false
 
-/-- `flow_with_summary`: 87 of 114 tags. -/
+/-- `flow_with_summary`: 89 of 116 tags. -/
 def Bases.flow_with_summary : Tag → Bool
   | .link | .«meta» | .article | .«section» | .nav | .aside | .h1 | .h2
   | .h3 | .h4 | .h5 | .h6 | .hgroup | .header | .footer | .address
@@ -341,10 +356,11 @@ def Bases.flow_with_summary : Tag → Bool
   | .del | .picture | .img | .iframe | .embed | .object | .video | .audio
   | .map | .area | .table | .form | .label | .input | .button | .select
   | .datalist | .textarea | .output | .progress | .meter | .fieldset | .details | .summary
-  | .dialog | .script | .noscript | .template | .slot | .canvas | .pcdata => true
+  | .dialog | .script | .noscript | .template | .slot | .canvas | .math | .svg
+  | .pcdata => true
   | _ => false
 
-/-- `only_link_style_meta_strict`: 3 of 114 tags. -/
+/-- `only_link_style_meta_strict`: 3 of 116 tags. -/
 def Bases.only_link_style_meta_strict : Tag → Bool
   | .link | .«meta» | .style => true
   | _ => false
@@ -378,7 +394,8 @@ def Base.contains : Base → Tag → Bool
 
 /-- The own base of an element: what its children are checked against when
 it is not transparent (a transparent element's own base is its reading in
-flow context, used at a root). `nothing` for text. -/
+flow context, used at a root). `nothing` for text and for a foreign tag,
+whose children the seam checks. -/
 def Tag.ownBase : Tag → Base
   | .html => .only_head_body_strict
   | .head => .metadata
@@ -493,6 +510,8 @@ def Tag.ownBase : Tag → Base
   | .template => .flow
   | .slot => .flow
   | .canvas => .flow
+  | .math => .nothing
+  | .svg => .nothing
   | .pcdata => .nothing
 
 /-- The descendant exclusions an element adds to its context. -/

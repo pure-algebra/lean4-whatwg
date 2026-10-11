@@ -2,7 +2,7 @@
 
 # Graph ledger index
 
-Totals: 12 graph(s), 120 edges (68 required-open, 39 required-closed, 13 not-applicable), 1 leaf record(s), 15 unrouted prefix(es).
+Totals: 13 graph(s), 130 edges (77 required-open, 39 required-closed, 14 not-applicable), 1 leaf record(s), 14 unrouted prefix(es).
 
 ## Graphs
 
@@ -20,6 +20,7 @@ Totals: 12 graph(s), 120 edges (68 required-open, 39 required-closed, 13 not-app
 | [`URL-PG-PERCENT`](URL-PG-PERCENT.md) | `docs/URL-PERCENT-ENCODING-DAG.md` | 5 | 4 | 1 |
 | [`URL-PG-CENSUS`](URL-PG-CENSUS.md) | `docs/URL-CENSUS-DAG.md` | 8 | 0 | 2 |
 | [`PROMISE-PG-AGENT`](PROMISE-PG-AGENT.md) | `docs/PROMISE-AGENT-DAG.md` | 10 | 0 | 0 |
+| [`SVG-PG-SEAM`](SVG-PG-SEAM.md) | `docs/SVG-SEAM-DAG.md` | 9 | 0 | 1 |
 
 ## Leaf records
 
@@ -45,4 +46,3 @@ Totals: 12 graph(s), 120 edges (68 required-open, 39 required-closed, 13 not-app
 | `Whatwg.Infra.Text.Substring` | D57 |
 | `Whatwg.Infra.Text.Whitespace` | D57 |
 | `Whatwg.Streams.Kernel` | D68 |
-| `Whatwg.Svg` | D78 |

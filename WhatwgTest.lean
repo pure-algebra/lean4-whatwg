@@ -69,6 +69,7 @@ import WhatwgTest.Html.CombinatorShape
 import WhatwgTest.Html.Markup
 import WhatwgTest.Html.MarkupBreakers
 import WhatwgTest.Html.MarkupBenchmark
+import WhatwgTest.Html.Svg
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Audit.SpecCoverage

@@ -25,7 +25,7 @@ open Whatwg.Html.Schema
 theorem Tag.mem_all (t : Tag) : t ∈ Tag.all := by cases t <;> decide
 theorem Base.mem_all (b : Base) : b ∈ Base.all := by cases b <;> decide
 
-theorem Tag.all_length : Tag.all.length = 114 := by decide
+theorem Tag.all_length : Tag.all.length = 116 := by decide
 theorem Tag.all_nodup : Tag.all.Nodup := by decide +kernel
 theorem Base.all_nodup : Base.all.Nodup := by decide +kernel
 

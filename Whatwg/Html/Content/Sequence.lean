@@ -381,10 +381,12 @@ end
 
 end Seq
 
-/-- The tag a raw node counts as in a sequence: its element tag, `pcdata`
-for text and entities, none for a comment or an unknown name. -/
+/-- The tag a raw node counts as in a sequence: its element tag, or its
+foreign tag when its name is a foreign element's (`svg`); `pcdata` for text
+and entities; none for a comment or an unknown name. A foreign child takes
+a place in a sequence as any flow or phrasing child does. -/
 def RawNode.tag? : RawNode → Option Tag
-  | .element name _ _ => Tag.ofName? name
+  | .element name _ _ => (Tag.ofName? name).orElse fun _ => Tag.ofForeignName? name
   | .text _ => some .pcdata
   | .entity _ => some .pcdata
   | .comment _ => none

@@ -10,6 +10,7 @@ import WhatwgTest.Ledger.InfraScalar
 import WhatwgTest.Ledger.UrlPercent
 import WhatwgTest.Ledger.UrlCensus
 import WhatwgTest.Ledger.PromiseAgent
+import WhatwgTest.Ledger.SvgSeam
 
 /-!
 # WhatwgTest.Ledger
@@ -60,16 +61,16 @@ def infraInteger : Leaf where
     .ascriptions `WhatwgTest.Infra.IntegerConstructiveContract 9,
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
-/-- The ledger: the twelve graphs of slices A and B, the one leaf record, and
-the fifteen unrouted prefixes: the fourteen of slice D (ruling R-W22), which
-are the thirteen of debt D57, in the order of the contract's section 12, and
-`Whatwg.Streams.Kernel`, of debt D68; then `Whatwg.Svg`, of debt D78
-(ruling R-S4), the generated SVG schema until its graph opens at slice S3 of
-`docs/SVG-PACKAGE-PLAN.md`. -/
+/-- The ledger: the twelve graphs of slices A and B and the graph
+`SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9), the
+one leaf record, and the fourteen unrouted prefixes of slice D (ruling
+R-W22): the thirteen of debt D57, in the order of the contract's section 12,
+and `Whatwg.Streams.Kernel`, of debt D68. The prefix `Whatwg.Svg` of debt
+D78 (ruling R-S4) is gone: the fence of `SVG-PG-SEAM` owns its modules. -/
 def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
     transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,
-    promiseAgent]
+    promiseAgent, svgSeam]
   leaves := [infraInteger]
   unrouted := [⟨`Whatwg.Html, "D57"⟩, ⟨`Whatwg.Infra.Namespaces, "D57"⟩,
     ⟨`Whatwg.Infra.Bytes.Byte, "D57"⟩, ⟨`Whatwg.Infra.Bytes.Sequence, "D57"⟩,
@@ -77,8 +78,7 @@ def ledger : Ledger where
     ⟨`Whatwg.Infra.Text.Codec, "D57"⟩, ⟨`Whatwg.Infra.Text.CodePoint, "D57"⟩,
     ⟨`Whatwg.Infra.Text.Order, "D57"⟩, ⟨`Whatwg.Infra.Text.Scan, "D57"⟩,
     ⟨`Whatwg.Infra.Text.String, "D57"⟩, ⟨`Whatwg.Infra.Text.Substring, "D57"⟩,
-    ⟨`Whatwg.Infra.Text.Whitespace, "D57"⟩, ⟨`Whatwg.Streams.Kernel, "D68"⟩,
-    ⟨`Whatwg.Svg, "D78"⟩]
+    ⟨`Whatwg.Infra.Text.Whitespace, "D57"⟩, ⟨`Whatwg.Streams.Kernel, "D68"⟩]
 
 /-- The ledger has no structural finding (contract section 4). -/
 theorem ledger_wellFormed : ledger.wellFormed = true := by decide +kernel

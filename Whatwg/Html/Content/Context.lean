@@ -184,6 +184,26 @@ theorem admits_antitone {x y : Exclusions} (h : x.le y = true) (b : Base) (e : L
     rw [hy.2] at this
     exact absurd this (by decide)
 
+/-- Larger exclusions exclude more, given the element's attributes. -/
+theorem excludedWith_mono {x y : Exclusions} (h : x.le y = true) (t : Tag)
+    (attrs : List (String × String)) (hx : Ctx.excludedWith x t attrs = true) :
+    Ctx.excludedWith y t attrs = true := by
+  rw [Ctx.excludedWith_eq_spec] at hx ⊢
+  exact any_hit_mono x.flags y.flags (Ctx.hitsWith t attrs) rfl h hx
+
+/-- Admission with attributes is antitone in the exclusions, for one base and extras. -/
+theorem admitsWith_antitone {x y : Exclusions} (h : x.le y = true) (b : Base) (e : List Tag)
+    (t : Tag) (attrs : List (String × String))
+    (hy : Ctx.admitsWith ⟨b, y, e⟩ t attrs = true) : Ctx.admitsWith ⟨b, x, e⟩ t attrs = true := by
+  simp only [Ctx.admitsWith, Bool.and_eq_true, Bool.not_eq_true'] at hy ⊢
+  refine ⟨hy.1, ?_⟩
+  cases hxt : Ctx.excludedWith x t attrs with
+  | false => rfl
+  | true =>
+    have hyt := excludedWith_mono h t attrs hxt
+    rw [hy.2] at hyt
+    exact Bool.noConfusion hyt
+
 /-- With no attributes, a conditional category holds only where its condition
 holds of nothing; the attribute-free `admits` is not `admitsWith c t []` in
 general, and the two are related only by `admitsWith_le_admits` below. -/

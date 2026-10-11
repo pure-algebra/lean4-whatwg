@@ -240,10 +240,141 @@ def attrSetOf (outs : List AttrOut) (element : String) : List String :=
   ((outs.filter fun o => o.global || o.elements.contains element).map (·.markup)).eraseDups ++
     extraAttrs.map (·.1)
 
+/-! ## Foreign content -/
+
+/-- A foreign element that a category list names: `SVG svg` or `MathML math`. -/
+structure ForeignTag where
+  name : String
+  vocabulary : String
+  categories : List String
+  deriving Repr, Inhabited
+
+/-- What the standard says of foreign content: the foreign elements of its category lists, and
+the tables of its tree construction. `digest` is over every span read, in reading order. -/
+structure ForeignData where
+  tags : List ForeignTag
+  breakout : List String
+  svgTagNames : List (String × String)
+  svgAttrNames : List (String × String)
+  foreignAttrs : List (String × String)
+  svgIntegrationPoints : List String
+  digest : String
+  deriving Repr, Inhabited
+
+/-- The text after the one occurrence of `start`, up to the next `stop`. -/
+def spanAfter (text start stop what : String) : Except String String :=
+  match text.splitOn start with
+  | [_, after] => pure (upTo after stop)
+  | _ => throw s!"html standard emit: {what} was not found exactly once"
+
+/-- A text without its HTML comments. -/
+def stripComments (s : String) : String :=
+  match s.splitOn "<!--" with
+  | [] => ""
+  | first :: rest =>
+    first ++ String.join (rest.map fun piece =>
+      match piece.splitOn "-->" with
+      | [] => ""
+      | _ :: after => "-->".intercalate after)
+
+/-- The contents of each `<code …>…</code>` of a text, in order. -/
+def codeCells (s : String) : List String :=
+  ((s.splitOn "<code").drop 1).map fun piece =>
+    upTo (match piece.splitOn ">" with | [] => "" | _ :: after => ">".intercalate after) "</code>"
+
+/-- The rows of a table's body, each as its `<code>` cells. -/
+def tableCells (table : String) : List (List String) :=
+  let body := match table.splitOn "<tbody>" with | [] => "" | _ :: after => "<tbody>".intercalate after
+  ((body.splitOn "<tr>").drop 1).map codeCells
+
+/-- The category lists of "Kinds of content": each heading, with the category it lists. -/
+def categoryHeadings : List (String × String) :=
+  [("<h6>Metadata content</h6>", catMetadata), ("<h6>Flow content</h6>", catFlow),
+   ("<h6>Sectioning content</h6>", catSectioning), ("<h6>Heading content</h6>", catHeading),
+   ("<h6>Phrasing content</h6>", catPhrasing), ("<h6>Embedded content</h6>", catEmbedded),
+   ("<h6>Interactive content</h6>", catInteractive),
+   ("<h6 id=\"palpable-content\">Palpable content</h6>", catPalpable),
+   ("<h6>Script-supporting elements</h6>", catScriptSupporting)]
+
+/-- A foreign item of a category list, `<span>SVG <code>svg</code></span>`: the vocabulary and
+the element name. An item of any other shape is no foreign item. -/
+def foreignItem (item : String) : Option (String × String) :=
+  if !item.startsWith "<span>" then none else
+  match (upTo (dropChars item 6) "</span>").splitOn " <code>" with
+  | [vocabulary, rest] => some (vocabulary, upTo rest "</code>")
+  | _ => none
+
+/-- Everything the standard says of foreign content that the schema holds (rulings SV-7 and
+SV-17 of `docs/SVG-PACKAGE-PLAN.md`). Each span is found by an anchor that occurs once. -/
+def foreignOf (text : String) : Except String ForeignData := do
+  let mut spans : List String := []
+  -- the category lists
+  let mut found : List (String × String × String) := []
+  for (heading, category) in categoryHeadings do
+    let list ← spanAfter text heading "</ul>" s!"the category list under {heading}"
+    spans := spans ++ [list]
+    for item in (list.splitOn "<li>").drop 1 do
+      match foreignItem item with
+      | some (vocabulary, name) =>
+        unless vocabulary == "SVG" || vocabulary == "MathML" do
+          throw s!"html standard emit: the category list under {heading} names the unknown vocabulary `{vocabulary}`"
+        found := found ++ [(name, vocabulary, category)]
+      | none => pure ()
+  let names := (found.map (·.1)).eraseDups
+  let tags := names.map fun name =>
+    { name
+      vocabulary := ((found.find? (·.1 == name)).map (·.2.1)).getD ""
+      categories := (found.filter (·.1 == name)).map (·.2.2) : ForeignTag }
+  -- the start tags that end foreign content
+  let breakoutSpan ← spanAfter text "<dt>A start tag whose tag name is one of: <!--\"a\",-->" "</dt>"
+    "the list of start tags that end foreign content"
+  let quoted := (stripComments breakoutSpan).splitOn "\""
+  let breakout := (quoted.zipIdx.filter fun (_, i) => i % 2 == 1).map (·.1)
+  -- the three tables of the tree construction
+  let pairs (table what : String) : Except String (List (String × String)) :=
+    (tableCells table).mapM fun cells =>
+      match cells with
+      | [lower, restored] => pure (lower, restored)
+      | _ => throw s!"html standard emit: a row of {what} does not hold two names"
+  let tagSpan ← spanAfter text "SVG elements that are not all lowercase.)" "</table>"
+    "the table of SVG tag names"
+  let attrSpan ← spanAfter text "<dfn>adjust SVG attributes</dfn>" "</table>"
+    "the table of SVG attribute names"
+  let foreignSpan ← spanAfter text "<dfn>adjust foreign attributes</dfn>" "</table>"
+    "the table of foreign attributes"
+  let svgTagNames ← pairs tagSpan "the table of SVG tag names"
+  let svgAttrNames ← pairs attrSpan "the table of SVG attribute names"
+  let foreignAttrs ← (((foreignSpan.splitOn "<tbody>").drop 1 |> "<tbody>".intercalate).splitOn "<tr>" |>.drop 1).mapM
+    fun row =>
+      match codeCells row, row.splitOn "<span>" with
+      | name :: _, [_, namespaced] => pure (name, upTo namespaced "</span>")
+      | _, _ => throw "html standard emit: a row of the table of foreign attributes was not read"
+  -- the integration points
+  let pointSpan ← spanAfter text "<dfn>HTML integration point</dfn>" "</ul>"
+    "the list of HTML integration points"
+  let svgIntegrationPoints := ((pointSpan.splitOn "<li>").drop 1).filterMap fun item =>
+    match item.splitOn "<span>SVG <code>" with
+    | [_, rest] => some (upTo rest "</code>")
+    | _ => none
+  spans := spans ++ [breakoutSpan, tagSpan, attrSpan, foreignSpan, pointSpan]
+  if tags.isEmpty || breakout.isEmpty || svgTagNames.isEmpty || svgAttrNames.isEmpty ||
+      foreignAttrs.isEmpty || svgIntegrationPoints.isEmpty then
+    throw "html standard emit: a table of foreign content was read as empty"
+  return { tags, breakout, svgTagNames, svgAttrNames, foreignAttrs, svgIntegrationPoints
+           digest := Gates.Sha256.hexDigestOfString (String.join spans) }
+
+/-- A foreign tag as a row that states its categories and nothing else, so that category
+membership is one function over elements and foreign tags. -/
+def ForeignTag.row (f : ForeignTag) : Row :=
+  { name := f.name, line := 0, digest := "", categories := f.categories, contexts := []
+    contentModel := [], attributes := [] }
+
 /-! ## The schema -/
 
 structure Schema where
   rows : List Row
+  catRows : List Row
+  foreign : ForeignData
   attrs : List AttrOut
   tags : List String
   voidTags : List String
@@ -267,15 +398,20 @@ def build (root : System.FilePath) : IO Schema := do
   let rows := rowsOf text
   let g ← Gates.HtmlStandard.generate root
   let attrs := attrOuts (rows.map (·.name)) g.attrs
-  let tags := rows.map (·.name) ++ [textTag]
   let lift {α} : Except String α → IO α
     | .ok v => pure v
     | .error e => throw <| IO.userError e
+  let foreign ← lift (foreignOf text)
+  for f in foreign.tags do
+    if rows.any (·.name == f.name) || f.name == textTag then
+      throw <| IO.userError s!"html standard emit: the foreign element `{f.name}` has the name of an HTML tag"
+  let tags := rows.map (·.name) ++ foreign.tags.map (·.name) ++ [textTag]
+  let catRows := rows ++ foreign.tags.map (·.row)
   let (voidTags, voidDigest) ← lift (voidList text)
   -- bases: the seeds, then every element's own base, deduplicated by members
   let mut bases : Array Base := #[]
   let addBase (bs : Array Base) (k : BaseKind) (plusTags plusCats : List String) : Array Base × String :=
-    let members := tags.filter (baseAdmits rows k plusTags plusCats)
+    let members := tags.filter (baseAdmits catRows k plusTags plusCats)
     match bs.find? (·.members == members) with
     | some b => (bs, b.name)
     | none =>
@@ -301,7 +437,8 @@ def build (root : System.FilePath) : IO Schema := do
   for (_, _, k) in Whatwg.Html.Schema.Readings.baseOverrides do
     let (bs, _) := addBase bases k [] []
     bases := bs
-  return { rows, attrs, tags, voidTags, voidDigest, elements := elements.toList, bases := bases.toList }
+  return { rows, catRows, foreign, attrs, tags, voidTags, voidDigest, elements := elements.toList,
+           bases := bases.toList }
 
 /-! ## Emission -/
 
@@ -316,16 +453,16 @@ def header (moduleName : String) (summary : String) (imports : List String := []
   "Data and derived instances only: no proof lives here.\n-/\n\n"
 
 def baseOfName (s : Schema) (k : BaseKind) (plusTags plusCats : List String) : String :=
-  let members := s.tags.filter (baseAdmits s.rows k plusTags plusCats)
+  let members := s.tags.filter (baseAdmits s.catRows k plusTags plusCats)
   match s.bases.find? (·.members == members) with
   | some b => b.name
   | none => baseName k plusTags plusCats
 
 def emitTags (s : Schema) : String :=
   header "Whatwg.Html.Schema.Tags"
-    "The element-tag universe: every element the HTML Standard defines at the\npin, in the order of `source`, and `pcdata`, the text pseudo-tag." ++
+    "The element-tag universe: every element the HTML Standard defines at the\npin, in the order of `source`; the foreign elements that its category lists\nname, `MathML math` and `SVG svg`; and `pcdata`, the text pseudo-tag. A\nforeign tag and `pcdata` have no markup name: no HTML element has one's name." ++
   "namespace Whatwg.Html.Schema\n\n" ++
-  emitEnum "Tag" "An element tag of the standard, or text." s.tags ++
+  emitEnum "Tag" "An element tag of the standard, a foreign element of its category lists, or text." s.tags ++
   emitAll "Tag.all" "Every tag, in source order." "Tag" s.tags ++
   emitStringFn "Tag.variantName" "The tag's name: its markup name, or `pcdata` for text." "Tag" (s.tags.map fun t => (t, t)) ++
   "/-- The markup name of an element tag; `none` for text. -/\ndef Tag.markupName : Tag → Option String\n" ++
@@ -333,6 +470,11 @@ def emitTags (s : Schema) : String :=
   "/-- The tag of a markup name spelled as characters; `none` for any other\nlist. A `List Char` match compiles to a character-by-character decision\ntree, which the kernel walks in about the same time for every name, where a\n`String` match compares against every earlier arm (performance review §4). -/\ndef Tag.ofChars? : List Char → Option Tag\n" ++
   "\n".intercalate (s.rows.map fun r => s!"  | {charsPattern r.name} => some .{ctorName r.name}") ++ "\n  | _ => none\n\n" ++
   "/-- The tag of a markup name; `none` for any other string. -/\ndef Tag.ofName? (s : String) : Option Tag := Tag.ofChars? s.toList\n\n" ++
+  "/-- The name of a foreign element of the category lists (\"Kinds of content\"); `none` for an\nHTML element and for text. -/\ndef Tag.foreignName : Tag → Option String\n" ++
+  "\n".intercalate (s.foreign.tags.map fun f => s!"  | .{ctorName f.name} => some \"{f.name}\"") ++ "\n  | _ => none\n\n" ++
+  "/-- The foreign tag of a name spelled as characters; `none` for any other list. -/\ndef Tag.ofForeignChars? : List Char → Option Tag\n" ++
+  "\n".intercalate (s.foreign.tags.map fun f => s!"  | {charsPattern f.name} => some .{ctorName f.name}") ++ "\n  | _ => none\n\n" ++
+  "/-- The foreign tag of a name; `none` for any other string. -/\ndef Tag.ofForeignName? (s : String) : Option Tag := Tag.ofForeignChars? s.toList\n\n" ++
   emitBoolSet "Tag.isVoid"
     (s!"The void elements, from the standard's own list (`Void elements` in the\nsyntax section, span digest `{s.voidDigest}`).") "Tag" s.voidTags s.tags ++
   emitBoolSet "Tag.isTransparent" "The transparent elements: their content is their context's, minus what they exclude (`Whatwg.Html.Schema.Readings.transparents`)." "Tag"
@@ -355,8 +497,8 @@ def emitFamilies (s : Schema) : String := Id.run do
       ("Cats.metadata", catMetadata, "Metadata content"), ("Cats.embedded", catEmbedded, "Embedded content"),
       ("Cats.palpable", catPalpable, "Palpable content, with the conditional cases read as palpable"),
       ("Cats.scriptSupporting", catScriptSupporting, "Script-supporting elements")] do
-    out := out ++ emitBoolSet fn (doc ++ ", by the `Categories` entries of the projection.") "Tag"
-      (s.rows.filter (hasCat · cat) |>.map (·.name)) s.tags
+    out := out ++ emitBoolSet fn (doc ++ ", by the `Categories` entries of the projection, and by the\nforeign items of the standard's category list.") "Tag"
+      (s.catRows.filter (hasCat · cat) |>.map (·.name)) s.tags
   out := out ++ emitBoolSet "Cats.media" "The media elements, `audio` and `video`." "Tag" mediaElements s.tags
   for (fn, cat, doc) in [("Tag.interactiveIf", catInteractive, "interactive content"), ("Tag.flowIf", catFlow, "flow content"), ("Tag.phrasingIf", catPhrasing, "phrasing content")] do
     let rows := s.rows.filterMap fun r => (conditionFor r cat).map fun c => (r.name, c)
@@ -370,8 +512,9 @@ def emitFamilies (s : Schema) : String := Id.run do
     out := out ++ emitBoolSet s!"Bases.{b.name}" s!"`{b.name}`: {b.members.length} of {s.tags.length} tags." "Tag" b.members s.tags
   out := out ++ "/-- Membership, dispatching to the base's own function. -/\ndef Base.contains : Base → Tag → Bool\n" ++
     "\n".intercalate (names.map fun n => s!"  | .{ctorName n}, t => Bases.{n} t") ++ "\n\n"
-  out := out ++ "/-- The own base of an element: what its children are checked against when\nit is not transparent (a transparent element's own base is its reading in\nflow context, used at a root). `nothing` for text. -/\ndef Tag.ownBase : Tag → Base\n" ++
-    "\n".intercalate (s.elements.map fun e => s!"  | .{ctorName e.row.name} => .{ctorName e.baseName}") ++ "\n  | .pcdata => .nothing\n\n"
+  out := out ++ "/-- The own base of an element: what its children are checked against when\nit is not transparent (a transparent element's own base is its reading in\nflow context, used at a root). `nothing` for text and for a foreign tag,\nwhose children the seam checks. -/\ndef Tag.ownBase : Tag → Base\n" ++
+    "\n".intercalate (s.elements.map fun e => s!"  | .{ctorName e.row.name} => .{ctorName e.baseName}") ++ "\n" ++
+    String.join (s.foreign.tags.map fun f => s!"  | .{ctorName f.name} => .nothing\n") ++ "  | .pcdata => .nothing\n\n"
   out := out ++ "/-- The descendant exclusions an element adds to its context. -/\ndef Tag.ownExcl : Tag → Exclusions\n" ++
     "\n".intercalate (s.elements.filterMap fun e =>
       let t := Whatwg.Html.Schema.Readings.transparents.find? (·.name == e.row.name)
@@ -545,9 +688,43 @@ def emitCombinators (s : Schema) : String := Id.run do
   out := out ++ "end Whatwg.Html.A\n"
   return out
 
+/-- A list of strings as a Lean literal, wrapped at about a hundred columns. -/
+def stringList (items : List String) : String := Id.run do
+  let mut done : List String := []
+  let mut current := ""
+  for item in items do
+    if current.isEmpty then current := item
+    else if current.length + item.length > 92 then
+      done := done ++ [current ++ ","]
+      current := item
+    else current := current ++ ", " ++ item
+  if !current.isEmpty then done := done ++ [current]
+  return "[" ++ "\n   ".intercalate done ++ "]"
+
+def emitForeign (s : Schema) : String :=
+  let f := s.foreign
+  let pair (p : String × String) : String := s!"({p.1.quote}, {p.2.quote})"
+  header "Whatwg.Html.Schema.Foreign"
+    ("What the standard says of foreign content, as data: the foreign elements of its category\nlists, the start tags that end foreign content, the names that its tree construction\nrestores, and the SVG integration points. The seam `Whatwg/Html/Svg.lean` reads these\n(rulings SV-7 and SV-17 of `docs/SVG-PACKAGE-PLAN.md`). The spans read have the SHA-256\n`" ++ f.digest ++ "`.") ++
+  "namespace Whatwg.Html.Schema.Foreign\n\n" ++
+  "/-- The foreign elements that the category lists name: each name with its vocabulary. -/\ndef vocabulary : List (String × String) :=\n  " ++
+    stringList (f.tags.map fun t => pair (t.name, t.vocabulary)) ++ "\n\n" ++
+  "/-- The start tags that end foreign content (\"in foreign content\"). A start tag `font`\nwith a `color`, `face` or `size` attribute ends it too. -/\ndef breakout : List String :=\n  " ++
+    stringList (f.breakout.map String.quote) ++ "\n\n" ++
+  "/-- The SVG element names that the tree construction restores: the lower-case tag name,\nand the element name. -/\ndef svgTagNames : List (String × String) :=\n  " ++
+    stringList (f.svgTagNames.map pair) ++ "\n\n" ++
+  "/-- The SVG attribute names that \"adjust SVG attributes\" restores: the lower-case name,\nand the attribute name. -/\ndef svgAttrNames : List (String × String) :=\n  " ++
+    stringList (f.svgAttrNames.map pair) ++ "\n\n" ++
+  "/-- The attributes that \"adjust foreign attributes\" places in a namespace: the name as a\ndocument writes it, and the namespace. -/\ndef foreignAttrs : List (String × String) :=\n  " ++
+    stringList (f.foreignAttrs.map pair) ++ "\n\n" ++
+  "/-- The SVG elements that are HTML integration points. -/\ndef svgIntegrationPoints : List String :=\n  " ++
+    stringList (f.svgIntegrationPoints.map String.quote) ++ "\n\n" ++
+  "end Whatwg.Html.Schema.Foreign\n"
+
 def modulePaths : List String :=
   ["Whatwg/Html/Schema/Tags.lean", "Whatwg/Html/Schema/Families.lean", "Whatwg/Html/Schema/Attributes.lean",
-   "Whatwg/Html/Schema/ContentModel.lean", "Whatwg/Html/Node/Combinators.lean"]
+   "Whatwg/Html/Schema/ContentModel.lean", "Whatwg/Html/Node/Combinators.lean",
+   "Whatwg/Html/Schema/Foreign.lean"]
 
 structure Emitted where
   schema : Schema
@@ -555,13 +732,15 @@ structure Emitted where
 
 def emitModules (root : System.FilePath) : IO Emitted := do
   let s ← build root
-  return { schema := s, files := modulePaths.zip [emitTags s, emitFamilies s, emitAttributes s, emitContentModel s, emitCombinators s] }
+  return { schema := s, files := modulePaths.zip [emitTags s, emitFamilies s, emitAttributes s, emitContentModel s, emitCombinators s,
+      emitForeign s] }
 
 def summarize (s : Schema) : String :=
   let authored := (s.elements.filter fun e => e.reading.startsWith "authored").length
   s!"html standard emit: {s.rows.length} elements ({s.rows.length - authored} read from their sentence, {authored} authored readings), " ++
   s!"{s.bases.length} bases, {s.voidTags.length} void tags, " ++
-  s!"{(attrNames s.attrs).length} attributes from {s.attrs.length} index rows, {s.rows.length} attribute sets\n"
+  s!"{(attrNames s.attrs).length} attributes from {s.attrs.length} index rows, {s.rows.length} attribute sets, " ++
+  s!"{s.foreign.tags.length} foreign tags, {s.foreign.breakout.length} start tags that end foreign content\n"
 
 /-- Write the modules; called by `Gates.HtmlStandard` after the projection. -/
 def write (root : System.FilePath) : IO UInt32 := do
@@ -595,7 +774,7 @@ def check (root : System.FilePath) : IO (List String) := do
   return failures
 
 def usage : String :=
-  "usage: lake exe whatwg_htmlstandard          check the two projections, the data module and the five generated modules against a regeneration\n" ++
+  "usage: lake exe whatwg_htmlstandard          check the two projections, the data module and the six generated modules against a regeneration\n" ++
   "       lake exe whatwg_htmlstandard --write  regenerate all of them from the sealed HTML Standard source"
 
 /-- Command-line entry, invoked by `whatwgbin/HtmlStandard.lean`: the projection
@@ -608,7 +787,7 @@ def cli (args : List String) : IO UInt32 := do
     if rc != 0 then return rc
     let failures ← check root
     if failures.isEmpty then
-      IO.println "PASS html standard emit: the five generated schema modules are byte-identical to a fresh emission"
+      IO.println "PASS html standard emit: the six generated schema modules are byte-identical to a fresh emission"
       return 0
     for f in failures do IO.eprintln f
     IO.eprintln "FAIL html standard emit"
