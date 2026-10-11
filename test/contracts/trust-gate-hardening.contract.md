@@ -2677,3 +2677,327 @@ rows; every new check is red for its declared reason; nothing else fails.
   plant of the self-test: in the validation run none wrote an extension the
   unmodified tree does not, and a later benign plant that does is reported to
   the coordinator, not listed.
+
+## Addendum V2g (2026-10-11)
+
+Status: the self-test redesign seat, 2026-10-11, on branch `html/svg`. The
+addendum is appended; no earlier sentence of this file is changed. Where it and
+an earlier section differ, the addendum governs, and V2g.8 names each place.
+Under ruling R-S1 the seat that builds a change writes its contract text, so
+this addendum was written with the code it describes and was never red.
+
+Authority: ruling R-S5 at the end of `COORDINATION.md`, which took the
+self-test out of the development cycle because it runs for eighteen minutes,
+and its debt D79, which names the remedy: judge the plants in process, by the
+passes of the gate library, with no build for each. Ruling R-T1 there records
+the landing. Design:
+`docs/research/2026-10-11-trust-selftest-in-process-design.md`.
+
+This file holds no addendum V2f. Commit `07fdb0e` of the branch
+`review/w10-selftest-paring` gives that name to its own text, which batches
+the plants over 22 builds; it was not landed (R-S5(e)). The letter is left to
+it so that the two are not confused.
+
+The addendum changes how the default run makes and judges the plants. It
+changes no fixture, no frozen fragment and no line of a pass. The rows of
+`acceptancePlants`, `rejectionPlants` and `executablePlants` keep their label,
+fixture, target, placement, fragments and executable expectation, and gain two
+fields that only the default run reads (V2g.2, V2g.5).
+
+### V2g.1 The two runs
+
+`lake exe whatwg_trustselftest` is the in-process run of this addendum. It
+copies no tree and runs no `lake build` of the tree. It reads the built tree
+as it stands, so it is run after `lake build`, and it refuses a tree whose
+built files are not its sources' (V2g.5).
+
+`lake exe whatwg_trustselftest --each` is the one-plant run of sections 9 to
+V2e.9, unchanged in what it requires: one build and one run of the executable
+gate for each plant, in a throwaway copy. It is the reference. A row that
+fails in process is judged again with it, and V2g.6 lists what only it shows.
+
+### V2g.2 A row's judgement
+
+Each row carries a `judgement`, one of five. The class is what the row's
+finding depends on.
+
+| Judgement | Class | Rows |
+| --- | --- | --- |
+| `passes`, the row editing no configuration | text | 43 |
+| `passes`, the row editing the configuration module | configuration data | 6 |
+| `compiled` | compiled environment | 31, of which 6 also plant a configuration entry |
+| `leanRefuses` | real build | 5 |
+| `lakeOptions` | real build | 3 |
+| `freshness` | real build | 2 |
+
+With the two narrow runs, which are run as they are, that is 92 rows.
+
+- Text: `partial declaration`, `unsafe declaration`, V2-T01 to V2-T17, V2b-T01
+  to V2b-T13, V2c-M01 to V2c-M03, V2c-C1 to V2c-C3, V2c-R1, V2c-R2,
+  `unreachable test module`, V2e-F3, V2e-K1.
+- Configuration data: V2-S3, V2-X2, V2c-L1, V2e-X1, V2e-X2, V2e-X3.
+- Compiled environment: the eight acceptance rows; `native_decide in the
+  production tree`, V2-E1 to V2-E7; V2-S1; V2c-E01, V2d-E1, V2e-G1; V2c-B1,
+  V2c-T1, V2c-T2, V2c-T3; V2e-U1; and, with a configuration entry, V2-S4,
+  V2-S5, V2-S6, V2-X1, V2c-L2, V2c-L3.
+- `leanRefuses`: `sorry in the production tree`, `malformed string literal`,
+  `malformed raw string literal`, `malformed decimal literal`, `unterminated
+  comment`.
+- `lakeOptions`: V2e-O1, V2e-O2, V2e-O3.
+- `freshness`: V2e-F1, V2e-F2.
+
+A row is tagged `compiled` when a fragment it names can only come from a
+declaration, a registration, a token or an extension entry of a built module,
+and every acceptance row is, because an acceptance says that Lean accepts the
+plant. The run refuses an acceptance row with no compiled plant, and a `passes`
+row with no fragment.
+
+### V2g.3 The planted view and the gate's run
+
+The edits. The run makes a row's edits, the after-build ones included, in
+texts held in memory, by the rules of sections 9, V2c.9 and V2e.9 and with the
+functions the one-plant run uses on its copy. An edit that cannot be made, a
+missing or repeated anchor among them, prints the row's "could not plant"
+line. Nothing is written into the checkout; the files the run needs on disk
+are written to a throwaway directory outside it.
+
+The run of the passes. `Gates.Trust.runPasses` is split.
+`Gates.Trust.runPassesOver` takes the project root, the list of audited
+sources and a function that scans one source, and holds every pass in the
+order of section 3 as V2c.1 extends it. `runPasses` finds the root, lists the
+sources on disk and calls it, so the in-tree command and the executable print
+what they printed. The self-test calls `runPassesOver` with the sources on
+disk and the row's new files, and with a scan that reads a planted text from
+memory. A plant is therefore judged by the run both judges of the tree make.
+
+The host's reads are the executable's (V2e.5, step 4): the token table rebuilt
+from `Lean.Parser.builtinTokenTable` and the raw global `.token` entries, the
+raw scoped `.token` entries, no root constants, and the executable's own
+axiom traversal, every audited declaration first and in order.
+
+The executable's other steps. Before the passes the run calls step 0,
+`buildConfigurationFindings`, over a directory that holds the planted
+`lakefile.toml`, when the row plants one. After them it calls step 5,
+`allowlistFindings`. A row's findings are those of the three, in that order.
+Steps 1, 2 and 6 are judged once, over the unmodified tree (V2g.5).
+
+A configuration entry. A list fixture is one or more entries of the form
+`⟨name, "reason"⟩ ::`, where the name is a name literal or, for the extension
+allowlist, a string literal. The run reads them with Lean's tokenizer and puts
+them, in order, at the head of the list the row's anchor names: the four
+anchors of sections 10, V2c.9 and V2e.3 name `strictCeilingExceptions`,
+`sourceTokenExemptions`, `metaprogrammingModules` and `extensionAllowlist`. The
+text of the configuration module with the fixture after its anchor is planted
+as a source as well.
+
+A compiled plant. A planted module is a planted source under an audited tree
+or one of the roots `Whatwg.lean` and `WhatwgGates.lean`; the test root, the
+entry points under `whatwgbin/` and the configuration module are not compiled.
+`lean` compiles each one alone, its module name read from its path, with the
+search path of the loader (V2e.4) and the `-D` options that the trace of
+module `Whatwg` records. Rows that plant the same text at the same module
+share one compile. An acceptance row and a `compiled` rejection row require
+exit code 0.
+
+The environment. The run imports the root's import set once, with no
+extension loaded. For a compiled row it resumes that import, from the state
+`Lean.importModulesCore` left, over the import set of the planted root, with
+each plant's built file given by path, so that only the plant is read. A plant
+appended to an existing module replaces it: such a row resumes from an earlier
+state, taken before the replaced modules and the modules that import them were
+loaded, and the importers are read again. When the planted environment's
+token table differs from the built tree's, every source is scanned again with
+it.
+
+### V2g.4 The real-build rows
+
+- `leanRefuses`. `lean` must refuse the planted module: a non-zero exit code
+  and, when the row names fragments, one of them in its output. That is the
+  in-tree half of sections 9 and V2e.6, where the build stops before the gate
+  runs. The executable's half is that it stops at freshness: step 1,
+  `freshnessFindings`, runs over a directory that holds the planted source,
+  the module's trace and its built file, and must meet the row's executable
+  expectation.
+- `lakeOptions`. The run writes a package of one empty module `Whatwg`. Its
+  `lakefile.toml` is the planted one reduced to the lines of the package table
+  that set `name`, `leanOptions`, `moreLeanArgs` or `weakLeanArgs`, and the
+  whole table that holds the line `name = "Whatwg"`. `lake build Whatwg` must
+  succeed there; step 1 must have no finding over it; and the findings of step
+  2, `optionFindings`, over the trace Lake wrote must meet the row's
+  expectation. The same package with no plant is a control, and steps 1 and 2
+  must have no finding over it.
+- `freshness`. Step 1 runs over a directory that holds the row's module as its
+  after-build edits leave it: the source, planted or as it is; the trace; and
+  the built file unless the row removes it.
+- The narrow runs of section 11 are run in the checkout and judged as before.
+
+### V2g.5 The in-tree command, and the controls
+
+The in-tree twin. A rejection row may carry `inTreeOnly`: the fragments of its
+list that the in-tree command alone prints, from the constants the root has
+declared or from the post-command check of V2c.5. Two rows do: V2c-R1, "the
+root module WhatwgTest has declared a constant when the gate runs", and
+V2c-M03, "the gate command of WhatwgTest.lean did not run the gate". For such a
+row the run also elaborates the planted root with `lean`: the audited sources
+are copied to a directory of their own with the row's texts in place, the
+built tree is on the search path, and each compiled plant's built file is
+given in a module setup file. The command must exit with a non-zero code and
+print every fragment of `inTreeOnly`.
+
+The controls, each one `PASS` line:
+
+1. `test/fixtures/trust-gate/known-red.txt` declares no module. A red module
+   has no built file, so a tree that declares one is judged with `--each`.
+2. Steps 0 to 2 of the executable have no finding over the checkout: every
+   module source has a built file and a fresh trace with the package's
+   options.
+3. The run of V2g.3 over the view with no plant has no finding and returns a
+   summary.
+4. `lake exe whatwg_trustgate` accepts the checkout and prints that summary.
+5. The narrow run V2-N1 prints that summary: the in-tree command and the
+   in-process run agree on the unmodified tree.
+6. The one-module package with no plant, when a `lakeOptions` row is judged.
+
+### V2g.6 What the in-process run does not show
+
+In addition to sections 13, V2b.6, V2c.7 and V2e.7. The one-plant run shows
+each of these.
+
+- The in-tree command's verdict on a planted tree, beyond the two twins and
+  control 5. The in-process judge is the library with the executable's reads.
+  The reads the in-tree command makes otherwise, the loaded token table and
+  `Lean.collectAxioms`, are exercised on the unmodified tree only.
+- That Lean accepts the plant of a text row or of a configuration row. A text
+  row is judged on its text, and a list entry is read from its fixture's text;
+  the configuration module is not compiled with it. That a fixture elaborates
+  changes with the fixture or the toolchain.
+- The plant's own tokens, for a text row. Seven text rows declare a `macro`,
+  an `elab` or a `notation` (V2-T03, V2-T04, V2-T08, V2-T09, V2-T10, V2b-T10,
+  V2c-M01), and the built tree's token table does not hold their tokens. In
+  six of the fixtures the declared token is spelled only inside a string
+  literal. In V2b-T10 it is also the tactic the `example` runs, and it carries
+  no refused word whether it is read as an identifier or as a keyword.
+- The executable's whole run on a planted tree: its steps are called one at a
+  time on planted data, and its whole run is control 4.
+- A dependent of a replaced module compiled against the plant. The plant is
+  compiled alone, and the modules that import it are read as they were built.
+- For a text row that plants a new module, the built environment does not hold
+  the module, so the closure pass also reports its source as unreachable. That
+  finding is the harness's. Only `unreachable test module` and V2e-F3 name its
+  fragment, and each plants a source the root does not import.
+
+### V2g.7 Lines, flags and exit codes
+
+```text
+usage: lake exe whatwg_trustselftest [--each] [--rows <label-prefix>]... [--jobs <n>]
+```
+
+- No flag: the in-process run. `--each`: the one-plant run.
+- `--rows <label-prefix>`, repeatable, in either run: only the rows whose
+  label begins with a prefix are judged; the controls always run. A prefix
+  that begins no row label is a usage error.
+- `--jobs <n>`: how many `lean` processes the in-process run starts at a time;
+  four when absent.
+
+The in-process run prints the control lines, then one line for each row in the
+order of the one-plant run, each ending in its class, `[in process: <class>]`:
+`PASS trust gate accepted <label>`, `PASS planted <label> rejected with the
+expected diagnostic: <fragment>`, or `PASS executable gate refused <label> with
+the expected diagnostic: <fragment>` (`with every expected diagnostic:
+[<fragments>]` for a row that requires all). A twin prints `PASS in-tree command
+refused <label> with every diagnostic only it prints: [<fragments>]` after its
+row. A failed row prints one `FAIL` line and under it every finding the run
+had, or the last lines of the process that failed. `NOTE` lines on standard
+error give the time of each phase.
+
+Exit code 0 when every check passes, 1 when one fails, 2 for a usage error.
+
+### V2g.8 Changes to earlier sections
+
+- Sections 1, V2b.7, V2c.9, V2d.4 and V2e.2 name the harness's mechanism as
+  breaker-owned. R-S1 ends the breaker step, and this seat changed the harness
+  under R-S5's debt D79. `WhatwgGates/TrustSelfTest.lean` keeps the rows and the
+  one-plant run; `WhatwgGates/TrustSelfTest/InProcess.lean` is the default run
+  and the command line; the entry point `whatwgbin/TrustSelfTest.lean` imports
+  the configuration module and hands `Gates.TrustConfig.config` to it, as
+  `whatwgbin/TrustGate.lean` does. The self-test executable is no default
+  target, so an after-anchor plant of the one-plant run does not rebuild it.
+- V2e.3: the configuration module is imported by the gate module and by two
+  entry points, where that section names one.
+- V2e.5 and V2e.13, "the library's passes": `runPassesOver` is the run, and
+  `runPasses` its call over the sources on disk.
+- Sections 15, V2b.9 and V2c.11, on standard output being block-buffered in a
+  captured log: both runs flush standard output after each row.
+- Section 9 and V2e.9, the order of the run: unchanged under `--each`. The
+  module-closure row has the label `unreachable test module` in both runs.
+- `copyTree` creates each directory once.
+
+### V2g.9 Receipt
+
+Both runs were made on one tree: `html/svg` at `ab1ed31` with this change, in
+the seat's worktree, Windows 11, `leanprover/lean4:v4.33.1`,
+`LEAN_NUM_THREADS=4`, on 2026-10-11.
+
+| Run | Exit | `PASS` lines | `FAIL` lines | Wall time |
+| --- | --- | --- | --- | --- |
+| `lake exe whatwg_trustselftest` | 0 | 101 | 0 | 36.1 s |
+| `lake exe whatwg_trustselftest --each` | 0 | 178 | 0 | 1,175.6 s |
+
+The 101 lines are six controls, 92 rows, two in-tree twins and the verdict. The
+178 are seven control lines, two lines for each of the 78 rows that both gates
+judge, one for each of the other 14, and the verdict.
+
+The same rows pass. A script read both logs: each of the 92 rows of the default
+run has, in the one-plant log, the `PASS` line of each judge that run makes for
+it, and the one-plant log passes no row the default run does not list. For each
+of the 65 rejection rows that the gate judges in process, the in-tree command of
+the one-plant run met the same fragment.
+
+Time by class. The one-plant column is read from a time stamp on each line of
+its log. The default column is the judging in the process; the processes it
+starts run beside the judging and are listed apart.
+
+| Class | Rows | `--each` | Default run, judging |
+| --- | --- | --- | --- |
+| Text | 43 | 566 s | 9.5 s |
+| Configuration data | 6 | 84 s | 1.3 s |
+| Compiled environment | 31 | 421 s | 19.8 s |
+| Real build | 12 | 50 s | under 0.1 s |
+| Controls, and the copy of the tree | | 55 s | 4.0 s to import, scan and traverse once |
+| Whole run | 92 | 1,176 s | 36 s |
+
+Beside the judging the default run started 33 compiles by `lean`, 51 s of
+process time four at a time; two elaborations of a planted root, 16 s; and one
+task of `lake` processes, 18 s: the executable gate, four one-module packages
+and the two narrow runs.
+
+Negative controls, each one default run. With eight fixtures made harmless
+(the refused word removed, a modifier added to an acceptance fixture, the axiom
+made a theorem, another list entry, an empty build option, an empty root plant,
+no unification hint, an allowlist entry listed once) the run failed exactly the
+ten rows that plant them and one twin, and passed the rest. With six one-line
+mutants, four in the gate library (one refused word dropped, `@[extern]` not
+read, a stale strict exception admitted, every extension admitted) and two in
+the in-tree wrapper (no root constants handed in, the post-command check never
+firing), the run failed exactly V2b-T03, V2-E3, V2-S4, V2e-U1 and the two
+twins; only the twins saw the two wrapper mutants.
+
+At the landing. The branch was rebased onto `html/svg` at `8ad963d`, three
+slices of seat SVG later, where the tree imports Aesop and Batteries: 2,837
+modules where the receipt tree had 2,662. There the default run exits 0 with
+101 `PASS` lines in 40.8 s (40.2 s and 39.9 s one slice earlier). The
+one-plant run was not repeated: it tests the gate's code, which the three
+slices did not change.
+
+On the first of those trees, `a5b9e50`, the default run failed one control: the
+in-tree command counted 109 declarations of `WhatwgTest` that reach
+`Classical.choice`, and the executable and the in-process run 110. The one
+declaration is `WhatwgTest.Audit.BankCensus.elabBankCensus.match_1`, the
+matcher of a tuple pattern over Aesop's rule sets, in a module that slice had
+just added. `Lean.collectAxioms` and the executable's traversal walk the same
+constants in different orders, and around a dependency cycle outside the audited
+trees they can record different axioms for one constant. The one-plant run
+makes the same comparison on every accepted tree, so it would have failed
+there too. The landing removes that matcher, three lines with the same
+behaviour, and both gates then count 109 of 5,267; the disagreement itself is
+debt D87 of ruling R-T1.

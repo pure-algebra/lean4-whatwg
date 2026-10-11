@@ -85,6 +85,12 @@ read of an extension is `getModuleEntries` or `getModuleIREntries`, which an
 import fills in whether or not it loads the extensions, so a host that imports
 with `loadExts := false` can run every pass.
 
+The audited sources are a third input. `runPasses` reads them from disk.
+`runPassesOver` takes the project root, the source list and a scan function, and
+holds every pass and their order; `runPasses` calls it. The trust self-test calls
+it with a planted source list and a scan that answers a planted text from memory
+(addendum V2g of the contract), so a plant is judged by the run both hosts make.
+
 ## Two ceilings, one structure
 
 Before R-V1 the gate held two ceilings with the same three axioms, a
@@ -160,20 +166,22 @@ def reportFindings {m : Type → Type} [Monad m] (host : Host m)
   host.report findings
   return findings.isEmpty
 
-/-- Every pass, in order, over the project that holds `sourceFile`, the file the
-gate runs for, whose text is `sourceText` (contract section 3, as addendum V2c.1
+/-- Every pass, in order, over the audited `sources` of the project at
+`projectRoot`, each read through `scan`, for the file the gate runs for,
+`sourceFile`, whose text is `sourceText` (contract section 3, as addendum V2c.1
 extends it). Each pass hands its findings to `host.report`; the summary is
 returned only when no pass has a finding. The error is a failure that stops the
-run: a source file with no parent directory, or an environment whose module
-tables disagree. -/
-def runPasses {m : Type → Type} [Monad m] [MonadLiftT IO m] (config : Config)
+run: an environment whose module tables disagree.
+
+`runPasses` calls it with the sources on disk. The trust self-test calls it with
+a planted source list and a `scan` that answers a planted text from memory
+(addendum V2g), so that a plant is judged by this run and not by a copy of it. -/
+def runPassesOver {m : Type → Type} [Monad m] [MonadLiftT IO m] (config : Config)
     (host : Host m) (environment : Environment) (reads : HostReads)
+    (projectRoot : System.FilePath) (sources : AuditedSources)
+    (scan : System.FilePath → m SourceScan)
     (sourceFile : System.FilePath) (sourceText : String) :
     ExceptT String m (Option Summary) := do
-  let some sourceDirectory := sourceFile.parent
-    | throwThe String "Whatwg axiom gate: source file has no parent directory"
-  let projectRoot ← findProjectRoot sourceDirectory
-  let sources ← auditedSources projectRoot
   let tokenTable := reads.tokenTable
   let mut clean := true
 
@@ -190,7 +198,7 @@ def runPasses {m : Type → Type} [Monad m] [MonadLiftT IO m] (config : Config)
   -- pass 5 judges, so each source is tokenized once.
   let mut scans : Array SourceScan := #[]
   for source in sources.modules ++ sources.entryPoints do
-    scans := scans.push (← scanSource environment tokenTable source)
+    scans := scans.push (← (scan source : m _))
   clean := (← reportFindings host (modifierFindings scans)) && clean
 
   -- After pass 2, token-table hygiene (rule 2).
@@ -239,5 +247,21 @@ def runPasses {m : Type → Type} [Monad m] [MonadLiftT IO m] (config : Config)
       exceptionCount :=
         config.strictCeilingExceptions.length + config.privateStrictCeilingExceptions.length
       exemptionCount := config.sourceTokenExemptions.length }
+
+/-- Every pass, in order, over the project that holds `sourceFile`, the file the
+gate runs for, whose text is `sourceText`: `runPassesOver` with the audited
+sources read from disk. The error is a failure that stops the run: a source file
+with no parent directory, or an environment whose module tables disagree. -/
+def runPasses {m : Type → Type} [Monad m] [MonadLiftT IO m] (config : Config)
+    (host : Host m) (environment : Environment) (reads : HostReads)
+    (sourceFile : System.FilePath) (sourceText : String) :
+    ExceptT String m (Option Summary) := do
+  let some sourceDirectory := sourceFile.parent
+    | throwThe String "Whatwg axiom gate: source file has no parent directory"
+  let projectRoot ← findProjectRoot sourceDirectory
+  let sources ← auditedSources projectRoot
+  runPassesOver config host environment reads projectRoot sources
+    (fun source => monadLift (scanSource environment reads.tokenTable source))
+    sourceFile sourceText
 
 end Gates.Trust

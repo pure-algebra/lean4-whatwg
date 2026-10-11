@@ -19,6 +19,7 @@ on:
       - 'WhatwgGates/Trust/**'
       - 'WhatwgGates/TrustConfig.lean'
       - 'WhatwgGates/TrustSelfTest.lean'
+      - 'WhatwgGates/TrustSelfTest/**'
       - 'WhatwgGates/Common.lean'
       - 'WhatwgTest/Audit/AxiomGate.lean'
       - 'WhatwgTest/Audit/SpecCoverage.lean'
@@ -36,6 +37,7 @@ on:
       - 'WhatwgGates/Trust/**'
       - 'WhatwgGates/TrustConfig.lean'
       - 'WhatwgGates/TrustSelfTest.lean'
+      - 'WhatwgGates/TrustSelfTest/**'
       - 'WhatwgGates/Common.lean'
       - 'WhatwgTest/Audit/AxiomGate.lean'
       - 'WhatwgTest/Audit/SpecCoverage.lean'
@@ -63,5 +65,14 @@ jobs:
       # build of the roots it touches.
       - name: Build every default target
         run: lake --wfail build
-      - name: Trust-gate self-test (planted violations, controls and narrow runs)
+      # Ruling R-T1 (2026-10-11). The default run judges every plant in one
+      # process and builds the tree for none; it is the run of the development
+      # cycle. The one-plant run builds a copy of the tree for each plant and is
+      # the reference, so this workflow, which runs only when the gate's own
+      # paths change, makes both.
+      - name: Trust-gate self-test, in process (planted violations, controls and narrow runs)
         run: lake exe whatwg_trustselftest
+      - name: Trust-gate self-test, one plant per build (the reference)
+        # Runs when the step above fails too: it is the reference for that failure.
+        if: ${{ !cancelled() }}
+        run: lake exe whatwg_trustselftest --each

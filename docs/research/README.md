@@ -71,6 +71,12 @@ later decisions cite, so that nothing depends on a session transcript.
   over the built `.olean` files; and P12 retargeted to the
   `Effects.Signature` face, with P11's exit gate left to the operator.
 
+## Trust self-test (2026-10-11)
+
+| Document | State | Findings that decisions rest on |
+| --- | --- | --- |
+| `2026-10-11-trust-selftest-in-process-design.md` | landed with ruling R-T1 | The one-plant self-test spends its eighteen minutes in Lake, the elaborator and the linker: the gate's own work on a planted tree is about 4 s (import 1.0 s, token scan 1.4 s, axiom traversal 0.75 s). Of its 92 rows, 43 depend only on a source's text, 6 on a list entry of the configuration, 31 on a compiled declaration, registration, token or extension entry, and 12 on a real build. `lean` compiles a plant directly, without Lake, in 0.6 s to 1.9 s. `Lean.importModulesCore` keeps its state, so one process can add a plant to an imported tree in about 5 ms and `finalizeImport` in about 150 ms; a second full import in one process would copy every built file, because the first holds each mapped at its base address. The in-tree command runs over a planted root under plain `lean`, with the sources copied beside it and a module setup file naming the plant, in 8 s. The default run built on these judges every row in 36 s; its section 7 lists what only the one-plant run shows. |
+
 ## How to add a pass
 
 One file per document, named by date and subject. Every number carries its

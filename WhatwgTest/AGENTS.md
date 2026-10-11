@@ -150,7 +150,12 @@ gate is a command inside the tree it audits, its module also registers linters
 that check, after the root's commands, that the gate's own elaborator ran it,
 and run every pass themselves when it did not.
 `test/contracts/trust-gate-hardening.contract.md` freezes this behaviour and
-`lake exe whatwg_trustselftest` plants its violations.
+`lake exe whatwg_trustselftest` plants its violations: in one process by
+default, with the library's run over planted texts, and once for each plant in a
+built copy of the tree with `--each` (addendum V2g, ruling R-T1). A change to
+this tree's gate module `WhatwgTest/Audit/AxiomGate.lean` owes the `--each` run
+once, because the default run puts the in-tree command over two planted trees
+only.
 
 Before handoff, run the narrow file directly and the default Lake build. Link
 the exact command and result to the affected proof-graph edge or leaf receipt;

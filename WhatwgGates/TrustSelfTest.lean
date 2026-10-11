@@ -1,3 +1,4 @@
+import Std.Data.HashSet
 import WhatwgGates.Common
 
 /-!
@@ -40,6 +41,19 @@ check fails for the one frozen reason "could not run". The rows whose labels
 begin `V2e-` are judged by the executable alone: some edit the probe after the
 build (a stale source, a removed `.olean`), some edit `lakefile.toml`, and one
 adds a source the root does not import while Lake replays the root.
+
+## Two runs
+
+Since addendum V2g of the contract (ruling R-S6, debt D79) this module holds the
+rows and the one-plant run, and `WhatwgGates/TrustSelfTest/InProcess.lean` holds
+the default run. `lake exe whatwg_trustselftest` judges every row in one
+process, by the gate library's own run over a planted view of the built tree,
+and builds the tree for none; a row's `judgement` says how. `lake exe
+whatwg_trustselftest --each` is the run described above, one build and one run
+of the executable gate for each plant: the reference when a row fails in process,
+and what a change to the in-tree command, to a fixture or to the toolchain pin
+owes. `--rows <label-prefix>`, repeatable and in either run, judges only the rows
+whose label begins with a prefix; the controls always run.
 
 ## Cost
 
@@ -171,11 +185,18 @@ owns the one umbrella module: a key inserted after it belongs to that library
 def lakefileUmbrellaAnchor : String :=
   "name = \"Whatwg\""
 
+/-- Copy every regular file below `source` to the same place below
+`destination`. Each directory is created once: creating it again for every file
+it holds took most of the copy's time on a build directory of 4,000 files. -/
 def copyTree (source destination : System.FilePath) : IO Unit := do
+  let mut created : Std.HashSet String := {}
   for file in ← regularFilesBelow source do
     let relative ← relativeTo source file
     let target := destination / relative
-    if let some parent := target.parent then IO.FS.createDirAll parent
+    if let some parent := target.parent then
+      unless created.contains parent.toString do
+        IO.FS.createDirAll parent
+        created := created.insert parent.toString
     IO.FS.writeBinFile target (← IO.FS.readBinFile file)
 
 def makeProbe (root : System.FilePath) : IO System.FilePath := do
@@ -451,6 +472,30 @@ def failClosedUmbrella : ExecutableExpectation :=
   .refusesAny ["Whatwg trust gate: module Whatwg has no built .olean",
                "Whatwg trust gate: module Whatwg is stale"]
 
+/-- How the in-process run judges a row (addendum V2g of the contract, ruling
+R-S6). The one-plant run ignores it. A row's class in the sense of that addendum
+follows from it: `passes` is a text row, or a configuration row when the row
+edits the configuration module; `compiled` is a compiled row; the other three
+are real-build rows. -/
+inductive Judgement where
+  /-- The gate library's run over the planted texts and the planted
+  configuration value, with the built environment as it stands. -/
+  | passes
+  /-- The same run after `lean` has compiled the row's planted modules and they
+  are imported with the built tree. -/
+  | compiled
+  /-- Lean itself must refuse the planted module, with the row's fragment where
+  it has one, and the executable's freshness step must refuse the edited
+  source (the five rows of addendum V2e.6). -/
+  | leanRefuses
+  /-- Lake builds a one-module package from the planted `lakefile.toml`, and the
+  executable's recorded-options step reads the trace it writes. -/
+  | lakeOptions
+  /-- The executable's freshness step over the row's module as its edits leave
+  the source and the build directory. -/
+  | freshness
+  deriving BEq
+
 structure Plant where
   label : String
   fixtureName : String
@@ -467,6 +512,13 @@ structure Plant where
   one: acceptance for a row of `acceptancePlants`, refusal with `expected` for
   a row of `rejectionPlants`. -/
   executable : Option ExecutableExpectation := none
+  /-- How the in-process run judges the row (addendum V2g, 2026-10-11). -/
+  judgement : Judgement := .passes
+  /-- The fragments of `expected` that the in-tree command alone prints, from a
+  read or a check only an elaborating process makes. The in-process run cannot
+  print them, so for such a row it also elaborates the planted root with `lean`
+  and requires every one of them (addendum V2g, 2026-10-11). -/
+  inTreeOnly : List String := []
 
 /-- The plant's edits: its own fixture first, then `alsoEdits`. -/
 def Plant.edits (plant : Plant) : List Edit :=
@@ -485,27 +537,32 @@ def checkPlant (root probe : System.FilePath) (plant : Plant) (judge : IO Bool) 
 
 def acceptancePlants : List Plant :=
   [{ label := "comments, strings, and numeric projections", fixtureName := "benign.lean.txt",
-     target := auditSource, expected := [] },
+     target := auditSource, expected := [], judgement := .compiled },
    -- Rulings R-V1 and R-V2; test/contracts/trust-gate-hardening.contract.md.
    { label := "V2-A1 refused trust words in comments, documentation, strings and name literals, and identifiers that only contain them",
-     fixtureName := "benign-trust-tokens.lean.txt", target := productionRoot, expected := [] },
+     fixtureName := "benign-trust-tokens.lean.txt", target := productionRoot, expected := [],
+     judgement := .compiled },
    { label := "V2-A2 an opaque with an authored body in the production tree",
-     fixtureName := "env-authored-opaque.lean.txt", target := productionRoot, expected := [] },
+     fixtureName := "env-authored-opaque.lean.txt", target := productionRoot, expected := [],
+     judgement := .compiled },
    { label := "V2-S2 a theorem reaching Classical.choice in a new module under WhatwgTest",
      fixtureName := "strict-choice.lean.txt", target := testPlantModule, expected := [],
-     placement := .newModule }]
+     placement := .newModule, judgement := .compiled }]
   -- Addendum V2b of test/contracts/trust-gate-hardening.contract.md (ruling R-V6).
   ++ [{ label := "V2b-A1 the added trust words in comments, documentation, strings and name literals, identifiers that only contain them, a local named stop, an ordinary set_option, and #guard_msgs around #check_failure",
-        fixtureName := "benign-trust-tokens-v2b.lean.txt", target := productionRoot, expected := [] }]
+        fixtureName := "benign-trust-tokens-v2b.lean.txt", target := productionRoot, expected := [],
+        judgement := .compiled }]
   -- Addendum V2c of test/contracts/trust-gate-hardening.contract.md (ruling R-V10).
   ++ [{ label := "V2c-A1 the one configuration shape the tree uses, simp (config := { zetaDelta := true })",
-        fixtureName := "v2c-config-control.lean.txt", target := productionRoot, expected := [] },
+        fixtureName := "v2c-config-control.lean.txt", target := productionRoot, expected := [],
+        judgement := .compiled },
       { label := "V2c-A2 the new keywords and the identifier config in comments, strings, longer identifiers and an ordinary parameter",
-        fixtureName := "v2c-benign.lean.txt", target := productionRoot, expected := [] }]
+        fixtureName := "v2c-benign.lean.txt", target := productionRoot, expected := [],
+        judgement := .compiled }]
   -- Addendum V2d of test/contracts/trust-gate-hardening.contract.md (ruling R-W5).
   ++ [{ label := "V2d-A1 a module that only uses the freeze command #whatwg_freeze, not a listed metaprogramming module",
         fixtureName := "v2d-freeze-use.lean.txt", target := testPlantModule, expected := [],
-        placement := .newModule }]
+        placement := .newModule, judgement := .compiled }]
 
 /-- Under the package-wide `warningAsError = true` (ruling R-6 in
 `docs/SHA256-DAG.md`), Lean's own "declaration uses `sorry`" warning is
@@ -521,21 +578,27 @@ def rejectionPlants : List Plant :=
    { label := "sorry in the production tree", fixtureName := "sorry.lean.txt",
      target := productionRoot,
      expected := ["reaches forbidden axiom sorryAx", "declaration uses `sorry`"],
-     executable := some failClosedUmbrella }, -- addendum V2e.6
+     executable := some failClosedUmbrella, -- addendum V2e.6
+     judgement := .leanRefuses },
    { label := "native_decide in the production tree", fixtureName := "native-decide.lean.txt",
-     target := productionRoot, expected := ["(native_decide auxiliary)"] },
+     target := productionRoot, expected := ["(native_decide auxiliary)"],
+     judgement := .compiled },
    { label := "malformed string literal", fixtureName := "malformed-string.lean.txt",
      target := productionRoot, expected := [],
-     executable := some failClosedUmbrella }, -- addendum V2e.6
+     executable := some failClosedUmbrella, -- addendum V2e.6
+     judgement := .leanRefuses },
    { label := "malformed raw string literal", fixtureName := "malformed-raw-string.lean.txt",
      target := productionRoot, expected := [],
-     executable := some failClosedUmbrella }, -- addendum V2e.6
+     executable := some failClosedUmbrella, -- addendum V2e.6
+     judgement := .leanRefuses },
    { label := "malformed decimal literal", fixtureName := "malformed-decimal.lean.txt",
      target := productionRoot, expected := [],
-     executable := some failClosedUmbrella }, -- addendum V2e.6
+     executable := some failClosedUmbrella, -- addendum V2e.6
+     judgement := .leanRefuses },
    { label := "unterminated comment", fixtureName := "malformed-comment.lean.txt",
      target := productionRoot, expected := [],
-     executable := some failClosedUmbrella }, -- addendum V2e.6
+     executable := some failClosedUmbrella, -- addendum V2e.6
+     judgement := .leanRefuses },
    -- Rulings R-V1 and R-V2; test/contracts/trust-gate-hardening.contract.md.
    -- Each row below names exactly one fragment: the contract freezes which
    -- layer reports each plant, so no second layer's wording is admitted.
@@ -543,27 +606,34 @@ def rejectionPlants : List Plant :=
    { label := "V2-E1 an axiom added through Lean.addDecl in a new test module",
      fixtureName := "env-declared-axiom.lean.txt", target := testPlantModule,
      placement := .newModule,
-     expected := ["declaration plantedDeclaredAxiom is an axiom; no audited tree declares one"] },
+     expected := ["declaration plantedDeclaredAxiom is an axiom; no audited tree declares one"],
+     judgement := .compiled },
    { label := "V2-E2 a declared axiom in the production tree",
      fixtureName := "env-production-axiom.lean.txt", target := productionRoot,
-     expected := ["declaration plantedProductionAxiom is an axiom; no audited tree declares one"] },
+     expected := ["declaration plantedProductionAxiom is an axiom; no audited tree declares one"],
+     judgement := .compiled },
    { label := "V2-E3 @[extern] attached through the attribute API in a new test module",
      fixtureName := "env-extern.lean.txt", target := testPlantModule, placement := .newModule,
-     expected := ["declaration plantedExternTarget is `@[extern]`"] },
+     expected := ["declaration plantedExternTarget is `@[extern]`"],
+     judgement := .compiled },
    { label := "V2-E4 @[implemented_by] attached through the attribute API in a new test module",
      fixtureName := "env-implemented-by.lean.txt", target := testPlantModule,
      placement := .newModule,
-     expected := ["declaration plantedImplementedTarget is `@[implemented_by]`"] },
+     expected := ["declaration plantedImplementedTarget is `@[implemented_by]`"],
+     judgement := .compiled },
    { label := "V2-E5 @[implemented_by] under its escaped name in the production tree",
      fixtureName := "env-escaped-implemented-by.lean.txt", target := productionRoot,
-     expected := ["declaration plantedEscapedTarget is `@[implemented_by]`"] },
+     expected := ["declaration plantedEscapedTarget is `@[implemented_by]`"],
+     judgement := .compiled },
    { label := "V2-E6 an opaque with no body in the production tree",
      fixtureName := "env-bodyless-opaque.lean.txt", target := productionRoot,
-     expected := ["declaration plantedBodylessOpaque is an `opaque` with no authored body"] },
+     expected := ["declaration plantedBodylessOpaque is an `opaque` with no authored body"],
+     judgement := .compiled },
    { label := "V2-E7 a parameterised opaque with no body in a new tooling module",
      fixtureName := "env-bodyless-opaque-parameterised.lean.txt", target := toolingPlantModule,
      placement := .newModule,
-     expected := ["declaration plantedParameterisedOpaque is an `opaque` with no authored body"] },
+     expected := ["declaration plantedParameterisedOpaque is an `opaque` with no authored body"],
+     judgement := .compiled },
    -- The source-token pass, in commands that leave no constant behind.
    { label := "V2-T01 native_decide inside an example in the production tree",
      fixtureName := "token-native-decide.lean.txt", target := productionRoot,
@@ -625,7 +695,8 @@ def rejectionPlants : List Plant :=
    { label := "V2-S1 a theorem reaching Classical.choice in a new module under Whatwg.Ecma262",
      fixtureName := "strict-choice.lean.txt", target := strictPlantModule,
      placement := .newModule,
-     expected := ["declaration TrustSelfTestPlant.plantedChoice reaches Classical.choice under the strict ceiling of Whatwg.Ecma262"] },
+     expected := ["declaration TrustSelfTestPlant.plantedChoice reaches Classical.choice under the strict ceiling of Whatwg.Ecma262"],
+     judgement := .compiled },
    { label := "V2-S3 a strict-ceiling exception naming no declaration",
      fixtureName := "strict-exception-missing.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
@@ -635,26 +706,30 @@ def rejectionPlants : List Plant :=
      placement := .afterAnchor strictExceptionAnchor,
      alsoEdits := [{ target := strictPlantModule, fixtureName := "strict-choice-free.lean.txt",
                      placement := .newModule }],
-     expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoiceFree; it does not reach Classical.choice"] },
+     expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoiceFree; it does not reach Classical.choice"],
+     judgement := .compiled },
    { label := "V2-S5 a strict-ceiling exception naming a declaration under no strict prefix",
      fixtureName := "strict-exception-nonstrict.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
      alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                      placement := .newModule }],
-     expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoice; its module WhatwgTest.TrustSelfTestPlant is under no strict prefix"] },
+     expected := ["stale strict-ceiling exception for TrustSelfTestPlant.plantedChoice; its module WhatwgTest.TrustSelfTestPlant is under no strict prefix"],
+     judgement := .compiled },
    { label := "V2-S6 a strict-ceiling exception whose reason is blank",
      fixtureName := "strict-exception-unreasoned.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor strictExceptionAnchor,
      alsoEdits := [{ target := strictPlantModule, fixtureName := "strict-choice.lean.txt",
                      placement := .newModule }],
-     expected := ["strict-ceiling exception for TrustSelfTestPlant.plantedChoice carries no reason"] },
+     expected := ["strict-ceiling exception for TrustSelfTestPlant.plantedChoice carries no reason"],
+     judgement := .compiled },
    -- The source-token exemption list and its staleness check.
    { label := "V2-X1 a source-token exemption for a module that names no refused token",
      fixtureName := "token-exemption-stale.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor tokenExemptionAnchor,
      alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                      placement := .newModule }],
-     expected := ["stale source-token exemption for WhatwgTest.TrustSelfTestPlant; its source contains no refused token"] },
+     expected := ["stale source-token exemption for WhatwgTest.TrustSelfTestPlant; its source contains no refused token"],
+     judgement := .compiled },
    { label := "V2-X2 a source-token exemption naming no module",
      fixtureName := "token-exemption-missing.lean.txt", target := trustConfigSource, -- addendum V2e.3
      placement := .afterAnchor tokenExemptionAnchor,
@@ -723,30 +798,36 @@ def rejectionPlants : List Plant :=
         placement := .newModule,
         expected := ["TrustSelfTestPlant.lean contains an authored `macro_rules` metaprogramming keyword",
                      "registers a macro but is not a listed metaprogramming module",
-                     "the gate command of WhatwgTest.lean did not run the gate"] },
+                     "the gate command of WhatwgTest.lean did not run the gate"],
+        inTreeOnly := ["the gate command of WhatwgTest.lean did not run the gate"] },
       { label := "V2c-E01 an elaborator registered through @[command_elab], a token no source spells",
         fixtureName := "v2c-meta-attr-command-elab.lean.txt", target := testPlantModule,
         placement := .newModule,
-        expected := ["registers an elaborator but is not a listed metaprogramming module"] },
+        expected := ["registers an elaborator but is not a listed metaprogramming module"],
+        judgement := .compiled },
       { label := "V2c-B1 a shadow token (native_decide hiding the word native_decide from the gate",
         fixtureName := "v2c-token-shadow-decl.lean.txt", target := testPlantModule,
         placement := .newModule,
         alsoEdits := [{ target := strictPlantModule, fixtureName := "v2c-token-shadow-use.lean.txt",
                         placement := .newModule }],
         expected := ["token `(native_decide` of the final token table is not inert",
-                     "TrustSelfTestPlant.lean contains an authored `syntax` metaprogramming keyword"] },
+                     "TrustSelfTestPlant.lean contains an authored `syntax` metaprogramming keyword"],
+        judgement := .compiled },
       { label := "V2c-T1 a token that cuts a refused word short ((nat begins native)",
         fixtureName := "v2c-token-cut-word.lean.txt", target := testPlantModule,
         placement := .newModule,
-        expected := ["token `(nat` of the final token table is not inert"] },
+        expected := ["token `(nat` of the final token table is not inert"],
+        judgement := .compiled },
       { label := "V2c-T2 a token that hides a comment opener (rvV2cTok/-)",
         fixtureName := "v2c-token-comment-opener.lean.txt", target := testPlantModule,
         placement := .newModule,
-        expected := ["of the final token table is not inert"] },
+        expected := ["of the final token table is not inert"],
+        judgement := .compiled },
       { label := "V2c-T3 a token that hides a whole refused word (+native)",
         fixtureName := "v2c-token-hidden-native.lean.txt", target := testPlantModule,
         placement := .newModule,
-        expected := ["token `+native` of the final token table is not inert"] },
+        expected := ["token `+native` of the final token table is not inert"],
+        judgement := .compiled },
       { label := "V2c-C1 the native flag through a config anonymous constructor in the production tree",
         fixtureName := "v2c-config-anon-ctor.lean.txt", target := productionRoot,
         expected := ["Whatwg.lean contains a non-literal `config` option"] },
@@ -761,7 +842,8 @@ def rejectionPlants : List Plant :=
         fixtureName := "v2c-root-before-gate.lean.txt", target := testRoot,
         placement := .beforeRootGate,
         expected := ["the root WhatwgTest.lean contains a command other than imports and #whatwg_streams_axiom_gate",
-                     "the root module WhatwgTest has declared a constant when the gate runs"] },
+                     "the root module WhatwgTest has declared a constant when the gate runs"],
+        inTreeOnly := ["the root module WhatwgTest has declared a constant when the gate runs"] },
       { label := "V2c-R2 a declaration after the gate command in the root",
         fixtureName := "v2c-root-after-gate.lean.txt", target := testRoot,
         expected := ["#whatwg_streams_axiom_gate is not the last command of the root",
@@ -775,18 +857,21 @@ def rejectionPlants : List Plant :=
         placement := .afterAnchor metaprogrammingModuleAnchor,
         alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                         placement := .newModule }],
-        expected := ["stale metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant; its source declares no syntax, macro or elaborator and registers nothing"] },
+        expected := ["stale metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant; its source declares no syntax, macro or elaborator and registers nothing"],
+        judgement := .compiled },
       { label := "V2c-L3 a metaprogramming-module entry whose reason is blank",
         fixtureName := "v2c-meta-module-blank.lean.txt", target := trustConfigSource, -- addendum V2e.3
         placement := .afterAnchor metaprogrammingModuleAnchor,
         alsoEdits := [{ target := testPlantModule, fixtureName := "strict-choice.lean.txt",
                         placement := .newModule }],
-        expected := ["metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant carries no reason"] }]
+        expected := ["metaprogramming-module entry for WhatwgTest.TrustSelfTestPlant carries no reason"],
+        judgement := .compiled }]
   -- Addendum V2d of test/contracts/trust-gate-hardening.contract.md (ruling R-W5).
   ++ [{ label := "V2d-E1 a second command elaborator for WhatwgTest.Audit.Freeze.freezeCommand in an unlisted module",
         fixtureName := "v2d-freeze-second-elaborator.lean.txt", target := testPlantModule,
         placement := .newModule,
-        expected := ["module WhatwgTest.TrustSelfTestPlant registers an elaborator but is not a listed metaprogramming module"] }]
+        expected := ["module WhatwgTest.TrustSelfTestPlant registers an elaborator but is not a listed metaprogramming module"],
+        judgement := .compiled }]
 
 /-- A row the executable alone judges (addendum V2e.9). Its `edits` are made
 before `lake build`, whose result is recorded and not judged; its `afterBuild`
@@ -797,6 +882,8 @@ structure ExecutablePlant where
   edits : List Edit := []
   afterBuild : List Edit := []
   expectation : ExecutableExpectation
+  /-- How the in-process run judges the row (addendum V2g, 2026-10-11). -/
+  judgement : Judgement := .passes
 
 /-- The executable-only rows of addendum V2e.9, in their frozen order. The first
 runs right after a green build, so that Lake replays the root. -/
@@ -811,30 +898,35 @@ def executablePlants : List ExecutablePlant :=
                  placement := .newModule }],
      expectation := .refusesAll
        ["module WhatwgTest.TrustSelfTestPlant registers a macro but is not a listed metaprogramming module",
-        "module WhatwgTest.TrustSelfTestPlant registers an initializer but is not a listed metaprogramming module"] },
+        "module WhatwgTest.TrustSelfTestPlant registers an initializer but is not a listed metaprogramming module"],
+     judgement := .compiled },
    { label := "V2e-U1 unif_hint in an unlisted module, an environment extension off the allowlist (debt D56)",
      edits := [{ target := testPlantModule, fixtureName := "v2e-unif-hint.lean.txt",
                  placement := .newModule }],
      expectation := .refusesAny
-       ["module WhatwgTest.TrustSelfTestPlant has entries in environment extension Lean.Meta.unificationHintExtension, which is not on the extension allowlist"] },
+       ["module WhatwgTest.TrustSelfTestPlant has entries in environment extension Lean.Meta.unificationHintExtension, which is not on the extension allowlist"],
+     judgement := .compiled },
    { label := "V2e-O1 moreLeanArgs with -DwarningAsError=false on the library Whatwg (debt D51)",
      edits := [{ target := lakefileSource, fixtureName := "v2e-more-lean-args-warning.toml.txt",
                  placement := .afterAnchor lakefileUmbrellaAnchor }],
      expectation := .refusesAny
-       ["module Whatwg was compiled with the refused option -DwarningAsError=false"] },
+       ["module Whatwg was compiled with the refused option -DwarningAsError=false"],
+     judgement := .lakeOptions },
    { label := "V2e-O2 moreLeanArgs with a debug option, warn.sorry and a non-option argument on the library Whatwg (debt D51)",
      edits := [{ target := lakefileSource, fixtureName := "v2e-more-lean-args-debug.toml.txt",
                  placement := .afterAnchor lakefileUmbrellaAnchor }],
      expectation := .refusesAll
        ["module Whatwg was compiled with the refused option -Ddebug.skipKernelTC=true",
         "module Whatwg was compiled with the refused option -Dwarn.sorry=false",
-        "module Whatwg was compiled with the argument -j1"] },
+        "module Whatwg was compiled with the argument -j1"],
+     judgement := .lakeOptions },
    { label := "V2e-O3 leanOptions with warningAsError = false on the library Whatwg (debt D51)",
      edits := [{ target := lakefileSource, fixtureName := "v2e-lean-options-warning.toml.txt",
                  placement := .afterAnchor lakefileUmbrellaAnchor }],
      expectation := .refusesAll
        ["module Whatwg was not compiled with -DwarningAsError=true",
-        "module Whatwg was compiled with the refused option -DwarningAsError=false"] },
+        "module Whatwg was compiled with the refused option -DwarningAsError=false"],
+     judgement := .lakeOptions },
    { label := "V2e-K1 a non-empty weakLeanArgs in lakefile.toml, which Lake keeps out of every trace",
      edits := [{ target := lakefileSource, fixtureName := "v2e-weak-lean-args.toml.txt",
                  placement := .afterAnchor lakefilePackageAnchor }],
@@ -842,10 +934,10 @@ def executablePlants : List ExecutablePlant :=
        ["lakefile.toml sets weakLeanArgs, which Lake keeps out of every trace"] },
    { label := "V2e-F1 a source edited after the build (a stale module)",
      afterBuild := [reelaborate productionRoot],
-     expectation := .refusesAny ["module Whatwg is stale"] },
+     expectation := .refusesAny ["module Whatwg is stale"], judgement := .freshness },
    { label := "V2e-F2 a built .olean removed after the build",
      afterBuild := [{ target := builtOlean, fixtureName := "", placement := .remove }],
-     expectation := .refusesAny ["module Whatwg has no built .olean"] },
+     expectation := .refusesAny ["module Whatwg has no built .olean"], judgement := .freshness },
    { label := "V2e-X1 an extension-allowlist entry naming no extension any audited module writes",
      edits := [{ target := trustConfigSource, fixtureName := "v2e-allowlist-stale.lean.txt",
                  placement := .afterAnchor extensionAllowlistAnchor }],
@@ -1062,7 +1154,42 @@ def checkExecutablePlant (root probe : System.FilePath) (plant : ExecutablePlant
     IO.eprintln s!"FAIL could not plant {plant.label}: {error}"
     return false
 
-def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
+/-- The module-closure row: a test module no root imports. The one-plant run
+writes it into a directory of its own and removes the directory afterwards. -/
+def unreachableLabel : String := "unreachable test module"
+
+/-- The fragment both judges must print for the module-closure row. -/
+def unreachableFragments : List String :=
+  ["is not reachable from the WhatwgTest audit root"]
+
+/-- The file of the module-closure row. -/
+def unreachableSource (probe : System.FilePath) : System.FilePath :=
+  probe / "WhatwgTest" / "Planted" / "Unreachable.lean"
+
+/-- Which rows a run judges (`--rows`): every row, or each row whose label
+begins with one of `labelPrefixes`. The declared red set and the controls are
+not rows and always run. -/
+structure Selection where
+  labelPrefixes : List String := []
+
+def Selection.includes (selection : Selection) (label : String) : Bool :=
+  selection.labelPrefixes.isEmpty ||
+    selection.labelPrefixes.any fun labelPrefix => label.startsWith labelPrefix
+
+/-- Every row's label, in the order of the one-plant run. -/
+def rowLabels : List String :=
+  acceptancePlants.map (·.label) ++ rejectionPlants.map (·.label) ++ [unreachableLabel] ++
+    executablePlants.map (·.label) ++ narrowRuns.map (·.label)
+
+/-- Standard output is block-buffered when it is captured, so a row's lines are
+flushed before its standard-error lines can overtake them. -/
+def flushOutput : IO Unit := do
+  (← IO.getStdout).flush
+
+/-- The one-plant run (`--each`): every selected row in its frozen order, each
+plant made, built and judged alone by both gates. -/
+def run (root : System.FilePath) (probe : System.FilePath) (selection : Selection := {}) :
+    IO Bool := do
   -- 0. The declared red set must be exactly the failing set.
   let declared ← knownRed root
   let (_, output) ← build probe
@@ -1092,61 +1219,73 @@ def run (root : System.FilePath) (probe : System.FilePath) : IO Bool := do
   -- Addendum V2e: the executable accepts the same tree with the same counts.
   let twin ← expectExecutable probe "the unmodified source tree" .accepts
     (summaryOf? controlOutput)
+  flushOutput
   let mut allOk := controlOk && twin
   for plant in acceptancePlants do
-    let ok ← checkPlant root probe plant (judgeAcceptance probe plant)
-    allOk := allOk && ok
+    if selection.includes plant.label then
+      let ok ← checkPlant root probe plant (judgeAcceptance probe plant)
+      allOk := allOk && ok
+      flushOutput
   -- 3. Planted rejections.
   for plant in rejectionPlants do
-    let ok ← checkPlant root probe plant (judgeRejection probe plant)
-    allOk := allOk && ok
+    if selection.includes plant.label then
+      let ok ← checkPlant root probe plant (judgeRejection probe plant)
+      allOk := allOk && ok
+      flushOutput
   -- 4. Module closure: a source file not reachable from the test root.
-  let unreachable := probe / "WhatwgTest" / "Planted" / "Unreachable.lean"
-  IO.FS.createDirAll (probe / "WhatwgTest" / "Planted")
-  IO.FS.writeFile unreachable (← IO.FS.readFile (fixture root "unreachable.lean.txt"))
-  let ok ← try
-      let closureFragments := ["is not reachable from the WhatwgTest audit root"]
-      let inTree ← expectRejection probe "unreachable test module" closureFragments
-      let twin ← expectExecutable probe "unreachable test module"
-        (.refusesAny closureFragments) none
-      pure (inTree && twin)
-    finally
-      IO.FS.removeDirAll (probe / "WhatwgTest" / "Planted")
-  allOk := allOk && ok
+  if selection.includes unreachableLabel then
+    let unreachableDirectory := probe / "WhatwgTest" / "Planted"
+    IO.FS.createDirAll unreachableDirectory
+    IO.FS.writeFile (unreachableSource probe) (← IO.FS.readFile (fixture root "unreachable.lean.txt"))
+    let ok ← try
+        let inTree ← expectRejection probe unreachableLabel unreachableFragments
+        let twin ← expectExecutable probe unreachableLabel
+          (.refusesAny unreachableFragments) none
+        pure (inTree && twin)
+      finally
+        IO.FS.removeDirAll unreachableDirectory
+    allOk := allOk && ok
+    flushOutput
   -- 5. Final green control after every restoration.
   let (ok, restoredOutput) ← expectAcceptanceOutput probe "the restored source tree"
   let twin ← expectExecutable probe "the restored source tree" .accepts
     (summaryOf? restoredOutput)
   allOk := allOk && ok && twin
+  flushOutput
   -- Addendum V2e.9: the executable-only rows, the first right after that green
   -- build, then a control of the tree they leave.
   for plant in executablePlants do
-    let ok ← checkExecutablePlant root probe plant
-    allOk := allOk && ok
+    if selection.includes plant.label then
+      let ok ← checkExecutablePlant root probe plant
+      allOk := allOk && ok
+      flushOutput
   let afterLabel := "the restored source tree after the executable-only rows"
   let (ok, afterOutput) ← expectAcceptanceOutput probe afterLabel
   let twin ← expectExecutable probe afterLabel .accepts (summaryOf? afterOutput)
   allOk := allOk && ok && twin
+  flushOutput
   -- 6. Narrow runs over the restored, fully built tree.
   for narrow in narrowRuns do
-    let ok ← expectNarrowRun probe narrow
-    allOk := allOk && ok
+    if selection.includes narrow.label then
+      let ok ← expectNarrowRun probe narrow
+      allOk := allOk && ok
+  flushOutput
   return allOk
 
-/-- Command-line entry, invoked by `whatwgbin/TrustSelfTest.lean`. -/
-def cli (args : List String) : IO UInt32 := do
-  unless args.isEmpty do
-    IO.eprintln "usage: lake exe whatwg_trustselftest" -- R-V3(c), 2026-10-01
-    return 2
-  let root ← Gates.Common.projectRoot
+/-- The one-plant run from the checkout at `root`, in a throwaway copy that is
+removed afterwards; the entry of `--each`. -/
+def runEach (root : System.FilePath) (selection : Selection := {}) : IO UInt32 := do
   let probe ← makeProbe root
   IO.println s!"NOTE probe copy at {probe}"
   let ok ← try
-      run root probe
+      run root probe selection
     finally
       IO.FS.removeDirAll probe
   if ok then
-    IO.println "PASS trust self-test: every planted declaration was rejected for its stated reason, every control was accepted, the executable gate met every row's expectation, and every narrow run exited 0 with its frozen summary"
+    let scope :=
+      if selection.labelPrefixes.isEmpty then ""
+      else s!" (only the rows whose label begins with one of {selection.labelPrefixes})"
+    IO.println s!"PASS trust self-test{scope}: every planted declaration was rejected for its stated reason, every control was accepted, the executable gate met every row's expectation, and every narrow run exited 0 with its frozen summary"
     return 0
   IO.eprintln "FAIL trust self-test"
   return 1

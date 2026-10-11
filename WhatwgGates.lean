@@ -14,6 +14,7 @@ import WhatwgGates.Xml
 import WhatwgGates.SvgDefinitions
 import WhatwgGates.SvgDefinitionsEmit
 import WhatwgGates.TrustSelfTest
+import WhatwgGates.TrustSelfTest.InProcess
 import WhatwgGates.Ledger.Model
 import WhatwgGates.Ledger.Render
 import WhatwgGates.Ledger.Check

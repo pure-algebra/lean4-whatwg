@@ -74,17 +74,21 @@ lake exe whatwg_census --standard ecma262 --report # the ES2026 coverage block, 
 lake exe whatwg_trustgate                          # after lake build: the axiom gate's passes over the built modules, run from outside the tree
 lake exe whatwg_ledger                             # after lake build: the graph ledger's references, and generated/graphs against a fresh rendering
 lake exe whatwg_declsnapshot                       # after lake build: generated/declarations against a fresh snapshot of the production libraries
-lake exe whatwg_trustselftest                      # planted trust-gate violations are each refused for the frozen reason
+lake exe whatwg_trustselftest                      # after lake build: planted trust-gate violations are each refused for the frozen reason, judged in one process
 lake env leanchecker Whatwg WhatwgTest WhatwgGates # every built module under those three prefixes replays in the kernel
 ```
 
 Every gate is Lean. Shell files, where they exist, only orchestrate.
 
 `lake exe whatwg_trustselftest` (not a default target) plants known violations
-in a throwaway copy and checks that the axiom gate rejects each. It tests the
-gate's own code, so it runs after a change to the gate, its configuration, its
-fixtures, `lakefile.toml` or a pin, and in CI from its own workflow on those
-paths (ruling R-W25); it is not part of every change. The WP-7 rename-parity receipt was
+and checks that the trust gate rejects each for its frozen reason. It judges
+them in one process, by the gate library's own run over a planted view of the
+built tree, in about 40 seconds (ruling R-T1). It tests the gate's own code, so
+it runs after a change to the gate, its configuration, its fixtures,
+`lakefile.toml` or a pin, and in CI from its own workflow on those paths; it is
+not part of every change. `lake exe whatwg_trustselftest --each` is the
+reference run: one build of a throwaway copy for each plant, judged by both
+gates, in about eighteen minutes. The WP-7 rename-parity receipt was
 retired on 2026-09-03: it had proved what it was written to prove.
 
 ## Where to start
