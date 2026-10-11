@@ -16,7 +16,7 @@ full, then open only the authority documents named for the current task.
 | `docs/SPEC-COVERAGE.md` | definition, vocabulary, and the one report format of specification coverage |
 | `docs/PROVENANCE.md` | every pin: digest, fetch command, cross-check, license |
 | `docs/SHA256-DAG.md` | pointer: the SHA-256 proof graph lives in lean4-hash, which the gates require |
-| `test/contracts/` | breaker-authored contracts and executable falsifiers |
+| `test/contracts/` | frozen contract packets and their executable falsifiers |
 | `test/counterexamples/` | central counterexample register and durable witnesses |
 | `Whatwg/Streams/` | library declarations and proofs |
 | `WhatwgTest/Streams/` | Lean tests, attacks, receipts, and the axiom gate |
@@ -30,25 +30,37 @@ If two files appear to own the same fact, stop and repair the ownership map.
 
 More than one agent may edit this worktree at once. Direct messaging is not a
 durable ownership record, so every agent reads `COORDINATION.md` before
-writing and records a file claim there before freezing a packet or changing a
-shared surface.
+writing and records a file claim there before changing a shared surface.
 
 ## Development order
 
-1. Freeze the public declaration record, existing-type disposition with its
-   specification anchor, and assurance route.
-2. A breaker, in a separate process, commits the contract and red battery, and
-   declares the red modules in `test/fixtures/trust-gate/known-red.txt`.
-3. The builder implements without editing that packet or battery, and removes
-   the known-red entries when the battery turns green.
-4. Run the narrow test, `lake build`, the axiom receipt, and the gates under
-   "Gates" below that apply to every change.
-5. An independent reviewer checks model intent, proof trust, spec fidelity,
+Design first, then land in slices, as lean4-effect4 does (owner direction of
+2026-10-11, ruling R-S1 of `COORDINATION.md`). There is no breaker step: a
+slice does not wait for a contract packet and a red battery frozen by a
+separate process, and a new slice declares no module in
+`test/fixtures/trust-gate/known-red.txt`.
+
+1. Write the design as a plan or a research note. It names the public
+   declaration record, the existing-type disposition with its specification
+   anchor, and the assurance route.
+2. Land the design in slices, each as commits by explicit paths after a narrow
+   build of the modules it touches. The seat that builds a slice writes its
+   battery with it. A battery line is a reader (a law applied at a real
+   carrier), a control (a red case that shows why a premise stands or where a
+   law stops) or a finite evaluation that no theorem covers; it restates no
+   theorem.
+3. A landing owes the narrow test, `lake build`, the axiom receipt, and the
+   gates under "Gates" below that the change reaches.
+4. An independent reviewer checks model intent, proof trust, spec fidelity,
    and claim scope.
-6. Close the required assurance route: a proof graph for semantic or
+5. Close the required assurance route: a proof graph for semantic or
    cutover-bearing work, or local signature and theorem receipts for a trivial
    finite leaf. No category or cutover may hide an open graph edge or leaf
    receipt.
+
+The contracts, batteries and register rows frozen before 2026-10-11 stay as
+they are written. Their statements are the record of what landed; a later
+slice amends one with a dated reason and needs no second seat to do it.
 
 Every exported declaration receives a lightweight ownership, disposition, and
 duplicate-prevention record. A proof graph is mandatory for admission or
@@ -58,8 +70,8 @@ recursive invariants, external semantic equivalence, and declarations that
 directly gate cutover. Empty stubs have no declaration to record and need no
 graph. `docs/AGENT-ROUTING.md` owns the full threshold.
 
-Breadth precedes depth: every major category receives a frozen representative
-contract before one category is developed far beyond the others.
+Breadth precedes depth: every major category receives a designed
+representative slice before one category is developed far beyond the others.
 
 ## Authority order
 

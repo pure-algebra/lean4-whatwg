@@ -81,14 +81,13 @@ The consumer's code is in `C:\Users\kokok\Dev\lean4-effect4`. Read it with
   `generated/svg-*.tsv` and `Whatwg/Svg/Schema/*.lean`, under the drift gate.
 - This is passive data: no theorem.
 
-**S3, the seam.** It starts only after a breaker freezes its packet (`AGENTS.md`, "Development
-order"). The behaviour:
+**S3, the seam.** The behaviour:
 
 - `validIn` admits `svg` where the HTML Standard does.
 - It checks the subtree with the SVG checker, and returns to HTML at an integration point.
 - The serializer escapes the text of an SVG `style` child.
 
-Write the packet's proposal into the plan, with these red cases:
+Write its design into the plan. The slice's battery holds these cases:
 
 - `<p><svg>` admitted;
 - `<svg><div>` refused;
@@ -98,4 +97,6 @@ Write the packet's proposal into the plan, with these red cases:
 
 **S4, the values.** `d` (path data), `viewBox`, `transform`, `points`, numbers and lengths.
 
-This seat does S0, S1 and S2. S3 and S4 wait for a breaker's packet.
+This seat does S0 to S4 in order and stops after each. No slice waits for a breaker: the owner
+dropped that step on 2026-10-11 (ruling R-S1 of `COORDINATION.md`), and the seat works to the
+standard of lean4-effect4's `AGENTS.md`.
