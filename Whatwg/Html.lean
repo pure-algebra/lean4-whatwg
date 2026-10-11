@@ -1,52 +1,67 @@
 import Whatwg.Html.Schema
 import Whatwg.Html.Content.Admission
-import Whatwg.Html.Content.Transparent
+import Whatwg.Html.Content.Context
+import Whatwg.Html.Content.Valid
 import Whatwg.Html.Content.Lattice
-import Whatwg.Html.Content.Divergence
 import Whatwg.Html.Node.Raw
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Erasure
+import Whatwg.Html.Node.Admit
+import Whatwg.Html.Node.Evidence
 import Whatwg.Html.Node.Combinators
 import Whatwg.Html.Print.Escape
 import Whatwg.Html.Print.Render
 import Whatwg.Html.Syntax.Elaborator
-import Whatwg.Html.Bridge.Tyxml
 import Whatwg.Html.Svg
 import Whatwg.Html.Audit.Receipts
 
 /-!
 # Whatwg.Html
 
-The HTML content model as a typed document algebra: a finite tag universe,
-named content sets composed by inclusion, a decidable child-admission
-relation, tag-indexed trees whose admission obligations are discharged at
-construction, and a serializer. The schema is ported from OCaml TyXML, whose
-polymorphic-variant row types encode the same content model; the HTML
-Standard is the semantic owner against which every departure of that port is
-recorded.
+The HTML content model as one decidable checker over raw trees and a typed
+front end proven sound against it. A position is a context: a base, the
+descendant exclusions inherited from every ancestor, and the labelled
+direct children its parent admits; `Whatwg.Html.Content.validIn` decides
+whether a raw tree may stand at a position, and `Whatwg.Html.Content.Doc`
+is the trees it accepts. The typed tree of `Whatwg.Html.Node` carries the
+proofs that make its erasure valid (`Element.valid`), the combinators and
+the `html!` elaborator build it with diagnostics at the token, and the
+serializer prints it. The schema is generated from the HTML Standard's
+own element definitions and attribute indexes with an authored reading of
+its prose sentences (`Whatwg.Html.Schema.Readings`); OCaml TyXML is the
+reference for the shape of the library and a cross-check, and nothing here
+is a theorem about it (rulings HP-12 and HP-13).
 
 Authority pins (`SPEC-MANIFEST.md`, `docs/PROVENANCE.md`):
 
-- TyXML 4.6.0, `ocsigen/tyxml` commit
-  `d2916535536f2134bad7793a598ba5b7327cae41`: the transcription source from
-  which the `Schema` modules were first generated at H2. The pin, its
-  projection and the drift gate were retired on 2026-09-06; the schema is
-  authored source now, and TyXML is cited only as the origin of its shape.
 - The HTML Standard, `whatwg/html` commit
   `746f2ede8a56bc01204e0f9cc23da33b37c6fbab` ("Review Draft Publication:
   July 2026"), `source` sealed under `vendor/whatwg-html-746f2ede/`: the
-  semantic owner of every content model, and the reference every divergence
-  row cites by span digest.
+  semantic owner and the source of the schema. The projection
+  `generated/html-standard-elements.tsv`, the attribute projection
+  `generated/html-standard-attributes.tsv` and the generated modules under
+  `Whatwg.Html.Schema` are regenerated and checked by `lake exe whatwg_htmlstandard`;
+  the readings of the standard's prose sentences are authored in
+  `WhatwgGates/HtmlStandardEmit.lean`, each pinned to the span digest it reads.
+- TyXML 4.6.0, `ocsigen/tyxml` commit
+  `d2916535536f2134bad7793a598ba5b7327cae41`, sealed under
+  `vendor/tyxml-d2916535/`: the reference. Its projection
+  `generated/tyxml-html-schema.tsv` (`lake exe tyxmlschema`) is a
+  cross-check; nothing under `Whatwg/` reads it.
 
-This root is the breadth scaffold of `docs/HTML-PACKAGE-PLAN.md` with H2 and
-H3 landed: `Whatwg.Html.Schema` holds the generated data (tags, attributes,
-content sets, element rows) behind the projection's drift gate,
-`Whatwg.Html.Content` holds the lattice, transparent coherence and the
-admission relation, `Whatwg.Html.Node` holds the raw tree, the tag-indexed
-tree, its 111 element combinators and erasure, and H4 adds
-`Whatwg.Html.Print` with the escaper, the serializer, and the decoder that
-inverts the serializer on the sublanguage its own output determines.
-`Whatwg.Html.Syntax`, `Whatwg.Html.Bridge`, `Whatwg.Html.Svg` and
-`Whatwg.Html.Audit` are still a docstring and nothing else. Every semantic
-declaration after this arrives behind a frozen contract packet.
+`Whatwg.Html.Schema` holds the generated data (tags, content sets, the
+attribute universe with its value kinds and per-element sets, element rows
+with their readings and digests) behind the drift gate,
+`Whatwg.Html.Content` holds the categories and bases, the contexts, the
+admission relation and the checker, `Whatwg.Html.Node` holds the raw tree,
+the context-indexed typed tree with its soundness theorem, the `admits`
+tactic that discharges its obligations by compiled evaluation and a
+kernel-checked `Eq.refl`, its generated combinators and erasure, and
+`Whatwg.Html.Print` holds the escaper and the serializer on the standard's
+fragment serialization algorithm, and the decoder that inverts the
+serializer on the sublanguage its own output determines.
+H5 adds `Whatwg.Html.Syntax`, the `html!` markup elaborator, with
+`Whatwg.Html.Node.Evidence`, the erased evidence it attaches to a raw
+literal. `Whatwg.Html.Svg` and `Whatwg.Html.Audit` are still a docstring
+and nothing else.
 -/

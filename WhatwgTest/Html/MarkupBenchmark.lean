@@ -1,0 +1,60 @@
+import Whatwg.Html.Syntax.Elaborator
+
+/-!
+# WhatwgTest.Html.MarkupBenchmark
+
+The cost bound of slice H5: a document of 501 nodes (one `ul`, 250 `li`,
+250 text runs) written through `html!`. Measured on this pin by bisecting
+`maxHeartbeats` (largest failing, smallest passing), in the option's units
+of a thousand heartbeats:
+
+| Route | Fails at | Passes at | Bound set here |
+| --- | --- | --- | --- |
+| noncomputable (a fresh `Eq.refl true` per node) | 117 | 120 | 200 (the default) |
+| computable | not re-measured | | 1000 |
+| noncomputable, every `li` with two attributes (500 attribute obligations) | 190 | 193 | not pinned |
+
+A second proof route, one auxiliary lemma per distinct obligation behind the
+option `whatwg.html.memo`, measured 142 and 147 on the first row's document.
+It left the tree when the package merged with the trust gate (slice S0 of
+`docs/research/2026-10-11-svg-seat-brief.md`): a registered option is an
+`opaque` whose value Lean synthesises, which the gate refuses, and the route
+was the slower one.
+
+Reading (figures after the context-indexed core of H7 and its sequence
+obligations; before them 114 and 642). Elaboration and kernel checking
+together cost about 0.25 per node, and about 0.15 per attribute in the
+kernel's evaluation of `attrsOk`, which matches an attribute name by a
+character decision tree (`Attr.ofChars?`) and reads the attribute's own
+rows (`Attr.indexRows`),
+against about 12 per node through the combinators
+(`WhatwgTest/Html/DecideBenchmark.lean`), so a document of five hundred
+nodes elaborates within the default budget with room to spare. The
+kernel's `whnf` cache already makes a repeated obligation free within
+one declaration, which is why the lemma route bought nothing. The
+computable row adds the compiler: LCNF on a value of some fifteen hundred
+constructor applications, about twelve milliseconds of wall time by the
+profiler and about 530 thousand heartbeats, which is Lean's compiler on
+any literal of that size and not the elaborator's doing; the evidence is
+already one constant to it. A computable document above roughly a hundred
+and fifty nodes therefore needs `set_option maxHeartbeats`, and that is
+recorded in the elaborator's docstring. Each bound carries a margin so that
+ordinary machine-to-machine variation does not turn the gate red.
+
+These are finite probes about this document, not a theorem about the
+elaborator.
+-/
+
+namespace WhatwgTest.Html.MarkupBenchmark
+
+open Whatwg.Html
+open Whatwg.Html.Schema (Tag)
+open Whatwg.Html.Content (Ctx)
+
+set_option maxHeartbeats 200 in
+noncomputable example : Element .ul Ctx.flow := html! <ul><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li></ul>
+
+set_option maxHeartbeats 1000 in
+example : Element .ul Ctx.flow := html! <ul><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li><li>"item"</li></ul>
+
+end WhatwgTest.Html.MarkupBenchmark

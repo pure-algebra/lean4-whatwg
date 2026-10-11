@@ -4,16 +4,14 @@ import Whatwg.Html.Node.Erasure
 /-!
 # WhatwgTest.Html.Builders
 
-Positive probes for slice H3.3–H3.4: constructions that must elaborate. Every
-`example` below is a construction whose `by decide` obligations — one child
-admission per child, one attribute admission per element — were all
-discharged, so the file failing to elaborate is the gate. A construction is
-evidence about the sealed TyXML 4.6.0 projection at one point; the quantified
-statements are the theorems in `Whatwg.Html.Node.Erasure` and
-`Whatwg.Html.Content`.
-
-`WhatwgTest/Html/Breakers.lean` holds the mirror image: the constructions that
-must be rejected, each with the obligation that rejects it.
+Positive probes for the combinators over the context-indexed typed tree
+(slice H7, ruling HP-13): constructions that must elaborate. Every
+`example` below is a construction whose obligations, one admission per
+child and one attribute obligation per element, were discharged by the
+`admits` tactic, so the file failing to elaborate is the gate. The
+quantified statement behind every construction is `Element.valid` of
+`Whatwg.Html.Node.Typed`: what elaborates here is a raw tree the checker
+`validIn` accepts.
 
 The repository's elaboration-time axiom gate in `WhatwgTest.lean` audits every
 declaration compiled here, so no per-file axiom report is written.
@@ -22,162 +20,97 @@ declaration compiled here, so no per-file axiom report is written.
 namespace WhatwgTest.Html.Builders
 
 open Whatwg.Html
-open Whatwg.Html.Schema (Tag ContentSet Attr)
+open Whatwg.Html.Schema (Tag Attr)
+open Whatwg.Html.Content (Ctx)
 
-/-! ## A whole document
+/-! ## A whole document -/
 
-TyXML's `html : ?a -> [< head] elt wrap -> [< body] elt wrap -> [> html] elt`,
-with the required `title` heading the metadata of `head`. -/
-
-/-- A minimal document: `html`, `head` with its `title` and a `meta`, `body`
-with a heading and a paragraph. -/
-example : Element .html .html_content_fun :=
+example : Element .html Ctx.document :=
   E.html
-    (E.head (E.title (E.txt "Slice H3"))
-      [E.el (E.«meta» [A.a_charset "utf-8"]),
-       E.el (E.link "stylesheet" "/site.css")])
-    (E.body
+    [E.el (E.head
+      [E.el (E.title [E.txt "Slice H7"]),
+       E.el (E.«meta» [A.a_charset "utf-8"]),
+       E.el (E.link [A.a_rel "stylesheet", A.a_href "/site.css"])]),
+     E.el (E.body
       [E.el (E.h1 [E.txt "Content models"]),
-       E.el (E.p [E.txt "A paragraph of ", E.el (E.em [E.txt "phrasing"]), E.txt " content."])])
+       E.el (E.p [E.txt "A paragraph of ", E.el (E.em [E.txt "phrasing"]), E.txt " content."])])]
 
-/-! ## Void elements
+/-- The same document, as a document of the checker. -/
+example : Content.Doc Ctx.document :=
+  (E.html [E.el (E.head [E.el (E.title [E.txt "t"])]), E.el (E.body [])]).toDoc
 
-The fifteen void tags take no children argument at all, so a void element is
-built from attributes alone. -/
+/-! ## Void and childless elements, and the attribute helpers -/
 
-/-- `img` carries TyXML's two required labelled arguments. -/
-example : Element .img .notag := E.img "/logo.png" "The logo"
+example : Element .img Ctx.flow := E.img [A.a_src "/logo.png", A.a_alt "The logo"]
+example : Element .br Ctx.phrasing := E.br [A.a_class "spacer"]
+example : Element .input Ctx.phrasing := E.input [A.a_type "text", A.a_name "q"]
+example : Element .hr Ctx.flow := E.hr
+example : Element .details Ctx.flow := E.details [E.el (E.summary [E.txt "s"])] [A.a_open]
+example : Element .iframe Ctx.flow := E.iframe [A.a_src "/frame"]
 
-/-- `br` with an attribute from `br_attrib`. -/
-example : Element .br .notag := E.br [A.a_class "spacer"]
+/-- A typed keyword helper, its string variant, a custom data attribute and an
+ARIA attribute. -/
+example : Element .p Ctx.flow :=
+  E.p [E.txt "x"] [A.a_dir .rtl, A.a_id "p1", A.data_ "role" "nav", A.aria_ "label" "Intro"]
+example : Element .p Ctx.flow := E.p [E.txt "x"] [A.a_dir_str "auto"]
+example : (E.p (ctx := Ctx.flow) [] [A.data_ "role" "nav"]).toRaw = .element "p" [("data-role", "nav")] [] := rfl
 
-/-- `input` with two attributes from `input_attrib`. -/
-example : Element .input .notag := E.input [A.a_input_type "text", A.a_name "q"]
+/-! ## Transparency and the descendant exclusions, computed by `Ctx.child` -/
 
-/-- `hr` with no attributes at all. -/
-example : Element .hr .notag := E.hr
+/-- A link in a paragraph: its children are checked with interactive content
+and `a` excluded. -/
+example : Element .p Ctx.flow :=
+  E.p [E.txt "See ", E.el (E.a [E.txt "the spec"] [A.a_href "/spec"]), E.txt "."]
 
-/-! ## A deep phrasing chain
+/-- The same link under `div` may hold a `div`: the base is inherited. -/
+example : Element .div Ctx.flow :=
+  E.div [E.el (E.a [E.el (E.div [E.txt "block link"])] [A.a_href "/x"])]
 
-Each step re-checks the child against the parent's own content set, which is
-`phrasing` at every level here. -/
+example : Ctx.child Ctx.phrasing .a = { base := .phrasing, excl := { interactive := true, a := true } } := by decide
 
-/-- `p → span → strong → em → txt`. -/
-example : Element .p .phrasing :=
-  E.p [E.el (E.span [E.el (E.strong [E.el (E.em [E.txt "deep"])])])]
+/-- Interactive content is decided with the attributes: a link without `href`
+is not interactive and may stand in a `button`; an `input` in the hidden
+state is not interactive and may stand in a link. -/
+example : Element .button Ctx.flow := E.button [E.el (E.a [E.txt "x"])]
+example : Element .a Ctx.flow := E.a [E.el (E.input [A.a_type "hidden", A.a_name "t"])] [A.a_href "/x"]
+example : Ctx.admitsWith (Ctx.child Ctx.flow .button) .a [] = true := by decide
+example : Ctx.admitsWith (Ctx.child Ctx.flow .button) .a [("href", "/x")] = false := by decide
+example : Ctx.child Ctx.flow .a = { base := .flow, excl := { interactive := true, a := true } } := by decide
+/-- Exclusions accumulate through every element, not only transparent ones. -/
+example : (Ctx.child (Ctx.child Ctx.flow .dfn) .span).excl = { dfn := true } := by decide
 
-/-! ## Transparency (ruling HP-4)
+/-! ## Lists, tables, and the labelled children -/
 
-The transparent combinators are polymorphic in their content parameter. In a
-child position `Child.of` assigns that parameter `childSet set t`, which is
-TyXML's payload for `t` in `set`. -/
+example : Element .ul Ctx.flow :=
+  E.ul [E.el (E.li [E.txt "one"]), E.el (E.li [E.txt "two"]), E.el (E.script [E.txt "// script-supporting"])]
 
-/-- `childSet` at the two contexts the probes below use. -/
-example : childSet .phrasing .a = ContentSet.phrasing_without_interactive := rfl
-
-/-- The same link in a flow context resolves to the flow payload instead. -/
-example : childSet .flow5 .a = ContentSet.flow5_without_interactive := rfl
-
-/-- `p → a → span → txt`: the link's children are checked against
-`phrasing_without_interactive`, which names `Span`. -/
-example : Element .p .phrasing :=
-  E.p [E.el (E.a [E.el (E.span [E.txt "link text"])])]
-
-/-- `div → a → p`: the same link in a flow context is checked against
-`flow5_without_interactive`, which names `P`. The identical `a` term is
-rejected under `p` (see `WhatwgTest/Html/Breakers.lean`). -/
-example : Element .div .flow5 :=
-  E.div [E.el (E.a [E.el (E.p [E.txt "block link"])] [A.a_href "/target"])]
-
-/-- `del` and `ins` are transparent in the same way, and their payload in a
-flow context is the unrestricted `flow5`. -/
-example : Element .div .flow5 :=
-  E.div [E.el (E.del [E.el (E.div [])]), E.el (E.ins [E.el (E.p [])])]
-
-/-- `canvas`, `map`, `object_`, `audio` and `video` complete the eight. -/
-example : Element .div .flow5 :=
-  E.div
-    [E.el (E.canvas [E.el (E.p [])]),
-     E.el (E.map [E.el (E.div [])] [A.a_name "m"]),
-     E.el (E.object_ [E.el (E.p [])] [E.param []]),
-     E.el (E.audio [E.el (E.p [])] (src := some "/a.ogg") (srcs := [E.source []])),
-     E.el (E.video [E.el (E.p [])])]
-
-/-! ## Lists and tables -/
-
-/-- `ul` admits `li` and nothing else. -/
-example : Element .ul .ul_content_fun :=
-  E.ul [E.el (E.li [E.txt "one"]), E.el (E.li [E.txt "two"]), E.el (E.li [E.txt "three"])]
-
-/-- `table` admits `tr`, and takes TyXML's four optional labelled arguments. -/
-example : Element .table .table_content_fun :=
+example : Element .table Ctx.flow :=
   E.table
-    [E.el (E.tr [E.el (E.td [E.txt "cell"]), E.el (E.th [E.txt "head"])])]
-    (caption := some (E.caption [E.txt "A table"]))
+    [E.el (E.caption [E.txt "Totals"]),
+     E.el (E.thead [E.el (E.tr [E.el (E.th [E.txt "h"])])]),
+     E.el (E.tbody [E.el (E.tr [E.el (E.td [E.txt "1"])])])]
 
-/-- `tablex` is the second `Table` constructor: same tag, `tbody` children. -/
-example : Element .table .tablex_content_fun :=
-  E.tablex [E.el (E.tbody [E.el (E.tr [E.el (E.td [E.txt "cell"])])])]
+/-- `source` and `track` are admitted under `video` as its labelled direct
+children, through the context's extras. -/
+example : Element .video Ctx.flow :=
+  E.video [E.el (E.source [A.a_src "/v.webm"]), E.txt "fallback"] [A.a_controls]
 
-/-! ## Other labelled forms -/
+example : Element .map Ctx.flow :=
+  E.map [E.el (E.area [A.a_alt "A", A.a_href "/a"]), E.el (E.p [E.txt "x"])] [A.a_name "m"]
 
-/-- `details` takes its required `summary` first. -/
-example : Element .details .flow5 :=
-  E.details (E.summary [E.txt "More"]) [E.el (E.p [E.txt "Detail."])]
+/-! ## The standard's own rules -/
 
-/-- `select` admits `optgroup` and `option`; `option` is `unary`. -/
-example : Element .select .select_content_fun :=
-  E.select
-    [E.el (E.option (E.txt "One")),
-     E.el (E.optgroup "Group" [E.el (E.option (E.txt "Two"))])]
+example : Element .figure Ctx.flow :=
+  E.figure [E.el (E.img [A.a_src "/a.png", A.a_alt "A"]), E.el (E.figcaption [E.txt "Caption"])]
+example : Element .summary (Ctx.child Ctx.flow .details) := E.summary [E.el (E.h2 [E.txt "More"])]
+example : Element .search Ctx.flow := E.search [E.el (E.p [E.txt "q"])]
+example : Element .p Ctx.flow := E.p [E.el (E.data [E.txt "one"] [A.a_value "1"]), E.el (E.bdi [E.txt "x"])]
 
-/-- `figure` places its optional caption first. -/
-example : Element .figure .flow5 :=
-  E.figure [E.el (E.p [E.txt "body"])] (figcaption := some (E.figcaption [E.txt "cap"]))
+/-! ## Erasure -/
 
-/-- `picture` takes its required `img` first. -/
-example : Element .picture .picture_content_fun :=
-  E.picture (E.img "/p.png" "p") [E.el (E.source [])]
-
-/-- `bdo` carries its required direction. -/
-example : Element .bdo .phrasing := E.bdo "rtl" [E.txt "טקסט"]
-
-/-- `svg` takes neither children nor an attribute obligation (ruling HP-9). -/
-example : Element .svg .notag := E.svg
-
-/-! ## Erasure probes
-
-Each is `rfl`: `Element.toRaw` is the markup name, the attribute markup names
-and the already-erased children. -/
-
-/-- A text child under a `div`. -/
-example : (E.div [E.txt "hi"]).toRaw = RawNode.element "div" [] [RawNode.text "hi"] := rfl
-
-/-- A void element with an attribute, whose markup name comes from
-`attributeCtors`. -/
-example : (E.br [A.a_class "spacer"]).toRaw
-    = RawNode.element "br" [("class", "spacer")] [] := rfl
-
-/-- `img`'s two required labelled arguments lead its attribute list. -/
-example : (E.img "/logo.png" "The logo").toRaw
-    = RawNode.element "img" [("src", "/logo.png"), ("alt", "The logo")] [] := rfl
-
-/-- `tablex` erases to the markup name `table`, which it shares with
-`table`. -/
-example : (E.tablex).toRaw = RawNode.element "table" [] [] := rfl
-
-/-- One nested step, through `Child.of`. -/
-example : (E.div [E.el (E.p [E.txt "x"])]).toRaw
-    = RawNode.element "div" [] [RawNode.element "p" [] [RawNode.text "x"]] := rfl
-
-/-- An entity child. -/
-example : (E.p [E.entity "nbsp"]).toRaw
-    = RawNode.element "p" [] [RawNode.entity "nbsp"] := rfl
-
-/-- The raw-tree measures on a small document. -/
-example : (E.div [E.el (E.p [E.txt "x"]), E.el (E.br)]).toRaw.size = 4 := rfl
-
-/-- The same document is three levels deep. -/
-example : (E.div [E.el (E.p [E.txt "x"]), E.el (E.br)]).toRaw.depth = 3 := rfl
+example : (E.p (ctx := Ctx.flow) [E.txt "x"]).toRaw = .element "p" [] [.text "x"] := rfl
+example : (E.br (ctx := Ctx.phrasing) [A.a_class "spacer"]).toRaw = .element "br" [("class", "spacer")] [] := rfl
+example : (E.img (ctx := Ctx.flow) [A.a_src "/a.png", A.a_alt "A"]).toRaw =
+    .element "img" [("src", "/a.png"), ("alt", "A")] [] := rfl
 
 end WhatwgTest.Html.Builders

@@ -87,7 +87,14 @@ admission. `sorry`, `admit`, `native_decide`, `bv_decide`, `partial`,
 axioms are rejected by the same gate, inside an `example` included. Code in
 this tree is object-level (ruling R-V10): it declares no syntax, notation,
 macro or elaborator and runs no metaprogram, so `notation`, `macro`, `elab`,
-`run_cmd`, `#eval` and their siblings are refused here.
+`run_cmd`, `#eval` and their siblings are refused here. Two modules are
+listed exceptions in `WhatwgGates/TrustConfig.lean`, each with its reason:
+`Whatwg.Html.Node.Admit` (the tactic `admits`) and
+`Whatwg.Html.Syntax.Elaborator` (the markup term `html!`). Every proof either
+builds is `Eq.refl true` or a term the kernel checks, and both stay inside
+every trust word. A listed module still declares no token that ends in `-`
+or `/`, and registers no option: the gate refuses both with no list to admit
+them.
 
 What takes a proof over the strict ceiling, as lane V measured it: `by_cases`
 on a proposition with no `Decidable` instance; a `simp` that closes `n == n`

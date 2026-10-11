@@ -62,6 +62,7 @@ lake exe whatwg_vendorseal                         # vendor/ against generated/v
 lake exe whatwg_citations                          # no line-numbered citation into a protected authored document
 lake exe whatwg_urlinventory                       # generated/url-source-inventory.tsv against a regeneration from the sealed URL source
 lake exe whatwg_urlcensus                          # the authored URL census and its source assignments against a regeneration
+lake exe whatwg_htmlstandard                       # generated/html-standard-*.tsv and the generated Whatwg/Html/Schema modules against the sealed HTML Standard source
 lake exe whatwg_census                             # the Streams census and coverage emit
 lake exe whatwg_census --report                    # the Streams coverage block from the Lean emit
 lake exe whatwg_census --standard infra            # the Infra definition census

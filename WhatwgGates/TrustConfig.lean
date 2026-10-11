@@ -100,12 +100,15 @@ comment, where `lake exe whatwg_trustselftest` plants its entries too. The gate
 refuses an entry that names no audited module source, one whose source spells no
 metaprogramming keyword and whose module registers nothing, one with a blank
 reason, one listed twice, and one that names an entry point under `whatwgbin/`.
-It holds eleven modules: the eight that declare a `#…` gate command, the two
+It holds fourteen modules: the eight that declare a `#…` gate command, the two
 constructive-contract batteries that run a receipt in `run_cmd` (both groups
-since the V2c landing), and, since the W6 landing (ruling R-W7(b), addendum
+since the V2c landing), since the W6 landing (ruling R-W7(b), addendum
 V2d), `WhatwgTest.Audit.Freeze`, which declares the registry command
-`#whatwg_freeze`. A battery that only uses that command registers nothing and
-needs no entry. The list moved here from `WhatwgTest/Audit/AxiomGate.lean` with
+`#whatwg_freeze`, and, since the HTML package of `origin/html-h7` merged
+(slice S0 of seat SVG, ruling R-S1), three of that package: the tactic
+`admits` and the markup term `html!`, the first metaprogramming modules under
+`Whatwg`, and the combinator shape check. A battery that only uses a listed
+module's command, tactic or term registers nothing and needs no entry. The list moved here from `WhatwgTest/Audit/AxiomGate.lean` with
 the factor of addendum V2e.3, entries and reasons unchanged; the gate library
 lists no module of its own. -/
 def metaprogrammingModules : List MetaprogrammingModule :=
@@ -121,6 +124,9 @@ def metaprogrammingModules : List MetaprogrammingModule :=
   ⟨`WhatwgTest.Audit.Ecma262.EcmarkupScanner, "declares the gate command #ecmarkup_scanner_gate with elab"⟩ ::
   ⟨`WhatwgTest.Infra.IntegerConstructiveContract, "runs receipt INFRA-INTEGER-CE-001 in run_cmd: Lean.collectAxioms over nine range proofs"⟩ ::
   ⟨`WhatwgTest.Infra.ScalarConstructiveContract, "runs receipt INFRA-SCALAR-CE-001 in run_cmd: Lean.collectAxioms over nine declarations"⟩ ::
+  ⟨`Whatwg.Html.Node.Admit, "declares the tactic admits with syntax and a tactic elaborator: the auto-parameter of every generated combinator, which closes a schema obligation with Eq.refl true that the kernel then evaluates"⟩ ::
+  ⟨`Whatwg.Html.Syntax.Elaborator, "declares the markup term html! with three syntax categories and a term elaborator, which builds an Element.ofRaw term whose every obligation the kernel checks"⟩ ::
+  ⟨`WhatwgTest.Html.CombinatorShape, "runs the combinator shape check in run_cmd: reads the compiled environment for the combinator of every element row and the helper of every attribute row"⟩ ::
   []
 
 /-- The environment extensions an audited module's built file may hold entries in
@@ -146,7 +152,14 @@ kernel-checked and audited by the environment and axiom passes. *Bookkeeping*
 *read by a pass*: the parser extension, the command-elaborator attribute and the
 `init` attribute, which rule 1 reads, and the per-module axiom tables, which the
 in-tree command reads through `Lean.collectAxioms` and the executable never does.
-A later entry needs a reason the coordinator accepts, as an exemption does. -/
+A later entry needs a reason the coordinator accepts, as an exemption does.
+
+Three entries joined when the HTML package of `origin/html-h7` merged (slice S0
+of seat SVG, ruling R-S1), which makes 54: the tactic-elaborator and
+term-elaborator attributes, which rule 1 reads as it reads the
+command-elaborator attribute, and the attribute extension, which holds the
+parser attribute of each syntax category that rule 1 reads from the parser
+extension. All three are held only by the two listed modules of that package. -/
 def extensionAllowlist : List ExtensionAllowlistEntry :=
   -- trust-selftest: extension-allowlist entries are inserted below this line
   ⟨"Lean.Compiler.LCNF.UnreachableBranches.functionSummariesExt", "compiler metadata: the dead-branch analysis's summary of each compiled function, read by the code generator only"⟩ ::
@@ -158,7 +171,9 @@ def extensionAllowlist : List ExtensionAllowlistEntry :=
   ⟨"Lean.Compiler.inlineAttrs", "compiler metadata: inline, noinline and macro_inline marks, which steer the code generator; the kernel checks the declaration's own body"⟩ ::
   ⟨"Lean.Elab.Command.commandElabAttribute", "read by a pass: command elaborators, today the gate and freeze commands of listed metaprogramming modules; rule 1 refuses one outside the list"⟩ ::
   ⟨"Lean.Elab.Structural.eqnInfoExt", "elaboration hint: what Lean needs to state the equation lemmas of a structurally recursive definition on demand; each lemma is a kernel-checked theorem"⟩ ::
+  ⟨"Lean.Elab.Tactic.tacticElabAttribute", "read by a pass: tactic elaborators, today the tactic admits of the listed module Whatwg.Html.Node.Admit; rule 1 refuses one outside the list, and a proof a tactic builds is kernel-checked and audited"⟩ ::
   ⟨"Lean.Elab.Term.elabAsElim", "elaboration hint: the elab_as_elim tag, today on the generated .elim eliminators of enumerations, which changes only how an application elaborates"⟩ ::
+  ⟨"Lean.Elab.Term.termElabAttribute", "read by a pass: term elaborators, today the markup term html! of the listed module Whatwg.Html.Syntax.Elaborator; rule 1 refuses one outside the list, and a term an elaborator builds is kernel-checked and audited"⟩ ::
   ⟨"Lean.Elab.WF.eqnInfoExt", "elaboration hint: the equation-lemma data of a definition by well-founded recursion (Whatwg.Infra.Text.Order); each lemma is a kernel-checked theorem"⟩ ::
   ⟨"Lean.IR.declMapExt", "compiler metadata: each compiled function's IR, which the interpreter and the code generator run; the kernel never reads it"⟩ ::
   ⟨"Lean.Linter.deprecatedAttr", "bookkeeping: deprecated marks, today on the generated toCtorIdx aliases, which make Lean warn at a use"⟩ ::
@@ -171,6 +186,7 @@ def extensionAllowlist : List ExtensionAllowlistEntry :=
   ⟨"Lean.Meta.matcherLikeExt", "compiler metadata: the generated match_on_same_ctor auxiliaries the code generator inlines like matchers"⟩ ::
   ⟨"Lean.Meta.simpExtension", "elaboration hint: simp lemmas; every rewrite simp makes is a proof the kernel checks"⟩ ::
   ⟨"Lean.Parser.parserExtension", "read by a pass: tokens, syntax kinds, categories and parsers, today of listed metaprogramming modules; rule 1 refuses one outside the list and token-table hygiene tests every token"⟩ ::
+  ⟨"Lean.attributeExtension", "read by a pass: attributes made from a builder, today the parser attribute of each syntax category of the listed module Whatwg.Html.Syntax.Elaborator; rule 1 reads the category from the parser extension and refuses one outside the list"⟩ ::
   ⟨"Lean.auxRecExt", "elaboration hint: the tag on generated auxiliary recursors such as casesOn and brecOn, which are kernel-checked definitions"⟩ ::
   ⟨"Lean.backwardDefeqAttr", "elaboration hint: the backward_defeq tag on rfl theorems, which dsimp reads only under an option; a dsimp step is a proof the kernel checks"⟩ ::
   ⟨"Lean.declRangeExt", "bookkeeping: each declaration's source range"⟩ ::

@@ -1,0 +1,270 @@
+#html-standard-attributes format=1 generator=Gates.HtmlStandard inputs=vendor/whatwg-html-746f2ede/source input-sha256=c985a14d1871fe862de386f5af92b5da84068267c6095ef0379c069ae85f9cde rows=268 regenerate=lake exe whatwg_htmlstandard --write
+#attribute	kind	elements	description	value	span-sha256
+abbr	attribute	th	Alternative label to use for the header cell when referencing the cell in other contexts	Text*	cd3b72ce99e40cd3a6f67674cc4d6a279508d7e758b0a3d09e251a7312c19d12
+accept	attribute	input	Hint for expected file type in file upload controls	Set of comma-separated tokens* consisting of valid MIME type strings with no parameters or audio/*, video/*, or image/*	c31ee3363c93bfa817f81bc2bba9da0077c3fc6483ec33425e5d634e2ecd69a8
+accept-charset	attribute	form	Character encodings to use for form submission	ASCII case-insensitive match for "UTF-8"	442fc3f3a1fd4503fcd131cb7e535c6c7d27fe9088589254748245560d032968
+accesskey	attribute	HTML elements	Keyboard shortcut to activate or focus element	Ordered set of unique space-separated tokens, none of which are identical to another, each consisting of one code point in length	c1097ac3d14ee5414fd9f4f6ffc8b12887d1adb5b9fdf3e87f6c7ae4e9d8ee15
+action	attribute	form	URL to use for form submission	Valid non-empty URL potentially surrounded by spaces	92dc99c99dc315a9404d8fa9d869c6b295abdf50045f26249342f6d6e6b006e5
+allow	attribute	iframe	Permissions policy to be applied to the iframe's contents	Serialized permissions policy	533173d46a1936d3a2967f77e9b8e83b8ed3f941cb37b3d950bc3758a1f1c39b
+allowfullscreen	attribute	iframe	Whether to allow the iframe's contents to use requestFullscreen()	Boolean attribute	0a7299f0981dc5b31b2014fd93d84c7ac2306d41455e3142ac0997d7988dbe94
+alpha	attribute	input	Allow the color's alpha component to be set	Boolean attribute	93cf7c7c9c7bbb5fbaec71c9ef4cdb66d0aa6b89cc2918b945163812d30810a5
+alt	attribute	area; img; input	Replacement text for use when images are not available	Text*	de30599df6a5ed1b7f9d3ebcf097cddc6c47ffbe4a0a2d71148f01807b8f8dfd
+as	attribute	link	Destination for a preload request (for rel="preload" and rel="modulepreload")	Preload destination, for rel="preload"; module preload destination, for rel="modulepreload"	7bb18d4fb6ef8f97ecccc71b8cdb933d568d85cb7fd53796475af06df74e2ea4
+async	attribute	script	Execute script when available, without blocking while fetching	Boolean attribute	c607962248b759f4583cd6ed25033457c67c35afaa5e469873e7c32a81bb4849
+autocapitalize	attribute	HTML elements	Recommended autocapitalization behavior (for supported input methods)	"on"; "off"; "none"; "sentences"; "words"; "characters"	b6fc958d088051f039014e77d224e49f2f6837e61fefdcfadd318bfc86211708
+autocomplete	attribute	form	Default setting for autofill feature for controls in the form	"on"; "off"	e358c288dc84dc83f1be5051bdcb2471d69387f8574dbec38bea7c2ab066bacc
+autocomplete	attribute	input; select; textarea	Hint for form autofill feature	Autofill field name and related tokens*	15d858095fc44cd0689b3ed353dae9b1ba34ee7e3cccb22599623f0dfdb3318b
+autocorrect	attribute	HTML elements	Recommended autocorrection behavior (for supported input methods)	"on"; "off"; the empty string	84c913fbbf8e72abe96b4a45da59429154ca70b7255198e0b7394c4b7e60500e
+autofocus	attribute	HTML elements	Automatically focus the element when the page is loaded	Boolean attribute	d5c61372d15731a696b9700b7db88205791541aae66f10e07c295e246d0a4dbd
+autoplay	attribute	audio; video	Hint that the media resource can be started automatically when the page is loaded	Boolean attribute	5bce8c2ffdbf5ebbe4f220ffe96939b16f9cf1ecfd0d136c20dbd4775a662f98
+blocking	attribute	link; script; style	Whether the element is potentially render-blocking	Unordered set of unique space-separated tokens*	8cab0aa9fd7bd97342f35453dd96530f21ab60807752e217c41414e7d935bb9c
+charset	attribute	meta	Character encoding declaration	"utf-8"	8018d78cf0436d85e8b2659dcce728985261efaabdf5c6427c59e4d978222eb4
+checked	attribute	input	Whether the control is checked	Boolean attribute	68b1309ea2ca7f0748a9754b6065b4c0b593c75d1521a720c4db1f3cf38a5991
+cite	attribute	blockquote; del; ins; q	Link to the source of the quotation or more information about the edit	Valid URL potentially surrounded by spaces	866ef036c16cbdada070577172de0c2e07f34ef16ff36c9717057c8546afa175
+class	attribute	HTML elements	Classes to which the element belongs	Set of space-separated tokens	8911f7265db621b4ae1beaacb52d28acc6632a9add5a85e18123f3fe5c2cdd6a
+closedby	attribute	dialog	Which user actions will close the dialog	"any"; "closerequest"; "none";	506fa479de2538ff08dd99af38df06645c2cfe11671c4cd85057d37039425280
+color	attribute	link	Color to use when customizing a site's icon (for rel="mask-icon")	CSS <color>	5feaed15ce33a3f7e81b194007dd353322be17b4efdfc32c719363f361c590e7
+colorspace	attribute	input	The color space of the serialized color	"limited-srgb"; "display-p3"	1d00f00f055103ebefc83e0d30956af7628287e96e2cd57a483c4e523b4db270
+cols	attribute	textarea	Maximum number of characters per line	Valid non-negative integer greater than zero	cebe0bed3deb5151f0761b65dbd7b568ee3e9bc7368c90d2d89fe8838eb8922b
+colspan	attribute	td; th	Number of columns that the cell is to span	Valid non-negative integer greater than zero	741041ad09d1260c12c55f19f4f59c124692b38ec8d24c7bfb5ace74a0891cd3
+command	attribute	button	Indicates to the targeted element which action to take.	"toggle-popover"; "show-popover"; "hide-popover"; "close"; "request-close"; "show-modal"; a custom command keyword	4a73e5c5c4ebcddb68cd5b77f896000d75541d1866c87f35617d822acb976b93
+commandfor	attribute	button	Targets another element to be invoked.	ID*	b2e33f2db88d67120110acc3d1a2e6afa5a1d170e3606b57c63136a5ad11ccfb
+content	attribute	meta	Value of the element	Text*	a2896189bbbca2a7e63b89550c931afa333647bd2c91e9a958203d63eb853d18
+contenteditable	attribute	HTML elements	Whether the element is editable	"true"; "false"; "plaintext-only"; the empty string	2ae04aef726bb28e349e9a3a9b3e4b601fc265ade908b76d188128ca4b8aa750
+controls	attribute	audio; video img;	Show user agent controls	Boolean attribute	8584725f97184c07d3d7b1c7ece1e5b23faa3e4fb72a4acf19d7dfe7dd7dfce5
+coords	attribute	area	Coordinates for the shape to be created in an image map	Valid list of floating-point numbers*	ffa99b318b117b4d13f87253735501eea53f8e887c6c4ae93125efb23679d912
+crossorigin	attribute	audio; img; link; script; video	How the element handles crossorigin requests	"anonymous"; "use-credentials"; the empty string	d8d67b04eccd536093bcecb805949b877aca41cffb127d61c39b1e8b2914676b
+data	attribute	object	Address of the resource	Valid non-empty URL potentially surrounded by spaces	12f6b3ca7353dd6e921867e9bc5d82f41cda0a9a29bfe00166731103744410d2
+datetime	attribute	del; ins	Date and (optionally) time of the change	Valid date string with optional time	3a07e10a96cc403fa3b7af07d01289900a73e386f117d2d7861375df5347ea64
+datetime	attribute	time	Machine-readable value	Valid month string, valid date string, valid yearless date string, valid time string, valid local date and time string, valid time-zone offset string, valid global date and time string, valid week string, valid non-negative integer, or valid duration string	fcc31e28725d32b93e7e8dd81483f67e97e3f1636aed8f1afa7b7abd6027d419
+decoding	attribute	img	Decoding hint to use when processing this image for presentation	"sync"; "async"; "auto"	cb9011485ff9d290e74ccd393ae9fa41e16cbb5caffa830c444b4969f2e256c7
+default	attribute	track	Enable the track if no other text track is more suitable	Boolean attribute	861dfb8157b72740131ae364f8385ba2e831497a4025aba929adc1212db4cb2f
+defer	attribute	script	Defer script execution	Boolean attribute	93a4045b26702240a913163292b6360d4f309c16b2237f55bb2028ec74eaaed9
+dir	attribute	HTML elements	The text directionality of the element	"ltr"; "rtl"; "auto"	aa5a085e910c9c23629a32379eaa8e3e3338ee67d7bc71d36a180062ad627b7c
+dir	attribute	bdo	The text directionality of the element	"ltr"; "rtl"	95ee524aa178b0ef24ef621da351317be9d1ce6a65fb47f5bd16980485209d68
+dirname	attribute	input; textarea	Name of form control to use for sending the element's directionality in form submission	Text*	f76e81a5a721e9e9d3a84bb11f51b263f7d20afc493234bf8411fc56cc57db32
+disabled	attribute	button; input; optgroup; option; select; textarea; form-associated custom elements	Whether the form control is disabled	Boolean attribute	292477a45fabcf9d650064a57fc831fab562a0f5278499d3701d5cbc0424db94
+disabled	attribute	fieldset	Whether the descendant form controls, except any inside legend, are disabled	Boolean attribute	cfb76cf936aa582db398b317d41d2b2fcaf51f812f034f2130db86ecfc88d11c
+disabled	attribute	link	Whether the link is disabled	Boolean attribute	af97e98a17ec89285780f33dad8e3878573415696f1f202d4129a61997bada90
+download	attribute	a; area	Whether to download the resource instead of navigating to it, and its filename if so	Text	55fc6e72eed481ee13cddf2ba93b016400b804c74d66506128f9d2d34f0f8a8e
+draggable	attribute	HTML elements	Whether the element is draggable	"true"; "false"	3897f6bcef8b5ffc56606b028c3e49d195c36f9a3c58c6637e54898cadea4f8f
+enctype	attribute	form	Entry list encoding type to use for form submission	"application/x-www-form-urlencoded"; "multipart/form-data"; "text/plain"	5d16da344f11e21c7a9c1374f17f7826ff3623382c0a0270b361a600d3e9b453
+enterkeyhint	attribute	HTML elements	Hint for selecting an enter key action	"enter"; "done"; "go"; "next"; "previous"; "search"; "send"	06117371d2dc7e6d100a1061f64ea3b914da1e5c83b7d28fc7ae0a0797fdd0a8
+fetchpriority	attribute	img; link; script	Sets the priority for fetches initiated by the element	"auto"; "high"; "low"	7d5b440b477b6bbf8680093c93035223c148d5c529902cbda9c4b5b4b5baf943
+for	attribute	label	Associate the label with form control	ID*	6ec22bd737e7264b172a4c5982a410ed532b9ec9e410ecbe008632b065c41189
+for	attribute	output	Specifies controls from which the output was calculated	Unordered set of unique space-separated tokens consisting of IDs*	671e8fa71c12935a0a8982a203b53eb731fbd3cbb2f9325c271c6f060ae90dfa
+form	attribute	button; fieldset; input; object; output; select; textarea; form-associated custom elements	Associates the element with a form element	ID*	8c591bd5b9aad1b9726b331239e1f327a9f20dec815b238d406811ea0a9eeb83
+formaction	attribute	button; input	URL to use for form submission	Valid non-empty URL potentially surrounded by spaces	67073d295bb9f4656c6558c225ee7749dcde869a558d67ab5d1205f7875ff35e
+formenctype	attribute	button; input	Entry list encoding type to use for form submission	"application/x-www-form-urlencoded"; "multipart/form-data"; "text/plain"	2c40a4f07b62d51be795227d125626244572150049b0d4975b8af84e70d8fbd3
+formmethod	attribute	button; input	Variant to use for form submission	"get"; "post"; "dialog"	86ff9ea63bc27bd29438cf32cd80619bf6767178edd475857da1519cf638cb22
+formnovalidate	attribute	button; input	Bypass form control validation for form submission	Boolean attribute	15a40ead7e1443eae9b917cfaf301321e41ef1ca2189a77701ab771b94ae801a
+formtarget	attribute	button; input	Navigable for form submission	Valid navigable target name or keyword	7781ba141c99d04bef23201b093ff34d59c81fcaaa0760b82d7d3a97c309f481
+headers	attribute	td; th	The header cells for this cell	Unordered set of unique space-separated tokens consisting of IDs*	e651c870810ac77dacca95cc2e8a4517a4d38b62b9fe231fd9f52e1d21883c3e
+headingoffset	attribute	HTML elements	Offsets heading levels for descendants	Valid non-negative integer between 0 and 8	ca8f4d9b5ecbd4125f479a9c5d7bf4a22115cb5e6b1ec80918a63a0b48695906
+headingreset	attribute	HTML elements	Prevents a heading offset computation from traversing beyond the element with the attribute	Boolean attribute	261e04e794f0560ffcc9105bc800cb0d475681f939820f87852b3d3fac0d346c
+height	attribute	canvas; embed; iframe; img; input; object; source (in picture); video	Vertical dimension	Valid non-negative integer	a73d2bd21aa28407b9c51e59af54478ae01f8e9d0b09c69ca56c9f90e0d0a8d8
+hidden	attribute	HTML elements	Whether the element is relevant	"until-found"; "hidden"; the empty string	5b1a12bbfc78e399b8646983bba67503abf5a38ab9c3c2ee47eb88a2a1304602
+high	attribute	meter	Low limit of high range	Valid floating-point number*	29699c35e250c3abf581108a3d2c1963aad745dfd50caad055726c4c1cd7462a
+href	attribute	a; area	Address of the hyperlink	Valid URL potentially surrounded by spaces	6d363e02875f23536d1072a44a1bd728e03e48a7eacc67e80af94502db0534d5
+href	attribute	link	Address of the hyperlink	Valid non-empty URL potentially surrounded by spaces	cd4a060b8fcf3e9c3a808fb0fcc5ac336384777abf9369e27a8fd804a2e0e329
+href	attribute	base	Document base URL	Valid URL potentially surrounded by spaces	dd639e5a80214dd7a4cd31891067e0c75c18e35c0ce88c4cc5e0d4f68558cff1
+hreflang	attribute	a; link	Language of the linked resource	Valid BCP 47 language tag	77f7b883c7f298e503a55eb07c294deb1d76faaeb727a5fa1161ee4287fefdb5
+http-equiv	attribute	meta	Pragma directive	"content-type"; "default-style"; "refresh"; "x-ua-compatible"; "content-security-policy"	f349deaa30b92ba855b9164f25ccf47b1f50539e6daaaca5b23785f95566d209
+id	attribute	HTML elements	The element's ID	Text*	ac1b3eecf004cd965083964d9981c1d8b796e4a7c3a5bcccf56ee7f0264cfcb6
+imagesizes	attribute	link	Image sizes for different page layouts (for rel="preload")	Valid source size list	bfe6066c0cbd766bdbda19bc2f8ede99a0e8ba2d31ab3df1986439191c314395
+imagesrcset	attribute	link	Images to use in different situations, e.g., high-resolution displays, small monitors, etc. (for rel="preload")	Comma-separated list of image candidate strings	c899880bbcab74ef1aa4ec575986d275d8999ecb5cb4948418c5df2009caf4c9
+inert	attribute	HTML elements	Whether the element is inert.	Boolean attribute	66bbeb0617885b6a1f7b687534a73acceddc9babc245c58f7d225f8b7008163c
+inputmode	attribute	HTML elements	Hint for selecting an input modality	"none"; "text"; "tel"; "email"; "url"; "numeric"; "decimal"; "search"	704dc6e1fb2e06384419ba85a5c5342f38a024d7f8066123fa800c43f261f4be
+integrity	attribute	link; script	Integrity metadata used in Subresource Integrity checks SRI	Text	240dec54e14f86fb8eb18ee35067a7575e6b4d612de83ca1020a96b230506b9e
+is	attribute	HTML elements	Creates a customized built-in element	Valid custom element name of a defined customized built-in element	c26f8b604d37d308b846dda1858689700a0b4f8bb10b90354cdfa3d3c0046f29
+ismap	attribute	img	Whether the image is a server-side image map	Boolean attribute	e30baf0535024ffb507c0bd02278493a2b6df03cf0b1d7f14552366cbd60fa33
+itemid	attribute	HTML elements	Global identifier for a microdata item	Valid URL potentially surrounded by spaces	05997a2d81552c08fbec36fae4eb31b0f9de966b66324feda80040c6600d06a3
+itemprop	attribute	HTML elements	Property names of a microdata item	Unordered set of unique space-separated tokens consisting of valid absolute URLs, defined property names, or text*	98ee4d49c2ea600e7098df4b70c54cb98ad95d1d2917129f0b2982bd329cfa74
+itemref	attribute	HTML elements	Referenced elements	Unordered set of unique space-separated tokens consisting of IDs*	da0cad1bbfc098482c7f46dd053926b01025270722210890f4b3ddc5e0caa7b7
+itemscope	attribute	HTML elements	Introduces a microdata item	Boolean attribute	e7f1e0dc128ba45558afad012dc2a8e29ebe6da5287647b012fc0506ba734811
+itemtype	attribute	HTML elements	Item types of a microdata item	Unordered set of unique space-separated tokens consisting of valid absolute URLs*	26906359dc993a7c76fbd3bb5a25a45dffb0655add53288d1e7e88288921c8c1
+kind	attribute	track	The type of text track	"subtitles"; "captions"; "descriptions"; "chapters"; "metadata"	7047081bbe36db3b23635f210d7ba20d30c9495e65d5a9ccaa41d89e3a5a4eb7
+label	attribute	optgroup; option; track	User-visible label	Text	34c75c2ebf09ec1b6bf05f37dce1be9b7feb1f0a6d83f047b1ab0f1e1b58eb2d
+lang	attribute	HTML elements	Language of the element	Valid BCP 47 language tag or the empty string	df3c8da79658fda65e1cc5605b2e16194bde2cb5dcb7942887e363516a5df25d
+list	attribute	input	List of autocomplete options	ID*	7a62b3ca262b35955c6563207a373db520a273eb7f95fb5f986b7306f35e850c
+loading	attribute	iframe; img; audio; video	Used when determining loading deferral	"lazy"; "eager"	652c5588653c22692d16f0e8c0ea0995cf85f30fafc5d7fd34f6778ea1ea89b0
+loop	attribute	audio; video	Whether to loop the media resource	Boolean attribute	51afd62a2b1c679de43ef14e2210a7029d19ee87a4560d7ef911864376cac50b
+low	attribute	meter	High limit of low range	Valid floating-point number*	65773a565815af0de43a9cba8f01b6d93ddb0c1e0b1739b2e1928c8fd55abca1
+max	attribute	input	Maximum value	Varies*	74a2157ec0ab5d102e27d13384b0cc0e8b47a8715ab927c7facbc9622767e01e
+max	attribute	meter; progress	Upper bound of range	Valid floating-point number*	7216d59e447a305b658392767672126aa5fac3cceafd877c219719f2786ba807
+maxlength	attribute	input; textarea	Maximum length of value	Valid non-negative integer	e2d345e39efcbb6436b13c5e8b50e1f4e64a9853405680451b73b89a9c0eb104
+media	attribute	link; meta; source; style	Applicable media	Valid media query list	29c34ee5a2724703bf650a48d237fdec401587035eb4fdb44ff5d0e5a4f05293
+method	attribute	form	Variant to use for form submission	"get"; "post"; "dialog"	8c3414a7c25535ef52f542b24b6e8b87225deb34a62aeb112be337cbe5a5d6ca
+min	attribute	input	Minimum value	Varies*	8a010eddd8822f36356da33b1b90305014441c588f42560427a87ef5bd0b53d3
+min	attribute	meter	Lower bound of range	Valid floating-point number*	a201e5a8264ff4f2de847e92f813a3ce385239e6a16ad31114253749fe918d7f
+minlength	attribute	input; textarea	Minimum length of value	Valid non-negative integer	16be6638fef58077ff4c1c646df2aaafd7c303c195aeac2ab2ea130289466f81
+multiple	attribute	input; select	Whether to allow multiple values	Boolean attribute	ca39224160749180446e32776a24c4c142e88a2c43f6014609aced1dc01306d6
+muted	attribute	audio; video	Whether to mute the media resource by default	Boolean attribute	021f77f33b3f65c6fbe388e2d628cc1dadc03292c119e3aaba003d68f2a7744f
+name	attribute	button; fieldset; input; output; select; textarea; form-associated custom elements	Name of the element to use for form submission and in the form.elements API form.elements API. -->	Text*	8fdfe437aa885d278e7b0f00f948e0ed27f6fc5444cd15405c1ecd5e66daa21a
+name	attribute	details	Name of group of mutually-exclusive details elements	Text*	470f2edce2b2e968919ab1b510ed3603fec5cca3f706982f4b0c0d68e4fe026d
+name	attribute	form	Name of form to use in the document.forms API	Text*	80053ba440466a8be025e7a2289773b428dde92a72f80e3ad68d98c7948679ef
+name	attribute	iframe; object	Name of content navigable	Valid navigable target name or keyword	9d1b176df2e2ac7280e5750770a5c72f0df6e70715b3c9e19b71560e3180f932
+name	attribute	map	Name of image map to reference from the usemap attribute	Text*	21c0b448edfa899176189a512b78de634c2d382bb96a03805d80fa0bf4dc90ac
+name	attribute	meta	Metadata name	Text*	d72562f51e0c63625716bba8ad9c42a1e5e4e5cc608ece469518d5e439bee10c
+name	attribute	slot	Name of shadow tree slot	Text	f25cdb41a36b430e2165011e99007a6de458eecbe8542a8f56c8e399a1e97432
+nomodule	attribute	script	Prevents execution in user agents that support module scripts	Boolean attribute	1b3918c244471b074de54cee945d110257a5c09ff22b74c5fbb8242a2112b145
+nonce	attribute	HTML elements	Cryptographic nonce used in Content Security Policy checks CSP	Text	0880e1d8c6b415cec296dfb70ef39ca61318645fa50875a76ee6e398d8af1346
+novalidate	attribute	form	Bypass form control validation for form submission	Boolean attribute	6d5223ccedc005a42b5534ec06aecdd61196551bfb374330bdc303c75980d362
+open	attribute	details	Whether the details are visible	Boolean attribute	6b43b958f02c66c2e5742576dfae5545f9b9df7b1db370ef4a4b516f0e3007c9
+open	attribute	dialog	Whether the dialog box is showing	Boolean attribute	94fbaa80d3a5947eb4638810271a156bacff560cd9b180e00a87aa476c1d3d11
+optimum	attribute	meter	Optimum value in gauge	Valid floating-point number*	7c855fbc8292bc3b116da7cc00edb888edfac85ff1bbba103e911435f81f1df8
+pattern	attribute	input	Pattern to be matched by the form control's value	Regular expression matching the JavaScript Pattern production	82d1f547a419ed29d8f17a69f335bfb4c9399e8d9f6712a5e4e7a42ccffc57cb
+ping	attribute	a; area	URLs to ping	Set of space-separated tokens consisting of valid non-empty URLs	c9ac210c8937158afe84df1e7dc0d1085ca4e3d9242fd31a336de8d61e88ce27
+placeholder	attribute	input; textarea	User-visible label to be placed within the form control	Text*	a971e492d5a7919be2a357e8667a35e5a3437bb3e3ccd3985d7d1402cab7f634
+playsinline	attribute	video	Encourage the user agent to display video content within the element's playback area	Boolean attribute	0eaf4f72c67be0396ee92a1b2df5c2cb7f8ddf29126a7b1cfef90f3804037bfd
+popover	attribute	HTML elements	Makes the element a popover element	"auto"; "manual"; "hint"; the empty string	fe82e6048adcb66aa1669b1e64bf1a2f50fa624d91f0fe54ef814dc448532454
+popovertarget	attribute	button; input	Targets a popover element to toggle, show, or hide	ID*	d7621a6287c09c77078895f2618549508ed956158abd4a2b003739eb875f8bb0
+popovertargetaction	attribute	button; input	Indicates whether a targeted popover element is to be toggled, shown, or hidden	"toggle"; "show"; "hide"	39a47c7351c28500c787ce81a1ca65fba19d9ed22ebc5e48d133624229425256
+poster	attribute	video	Poster frame to show prior to video playback	Valid non-empty URL potentially surrounded by spaces	0a3ae37f99a9d6e20a30b59781bc72d5d7de367792175741e163e5ade0fc7d92
+preload	attribute	audio; video	Hints how much buffering the media resource will likely need	"none"; "metadata"; "auto"; the empty string	688f863bf6f0ff8de4383c77b43062956b56703d209ff805970334306508b0d2
+readonly	attribute	input; textarea	Whether to allow the value to be edited by the user	Boolean attribute	5d0ea25b5507d4f8c0e0e7ec8a928353b82fafde99e82cc62773ca0fc4b7a5cc
+readonly	attribute	form-associated custom elements	Affects willValidate, plus any behavior added by the custom element author	Boolean attribute	b902b3cf62b4612895c18099aebb6856210878fe1caa9e696cd2e7846e85acb9
+referrerpolicy	attribute	a; area; iframe; img; link; script	Referrer policy for fetches initiated by the element	Referrer policy	6b132459b15592da018af33385d8fc2fd159c579cd8d6e15ab23cd521e1dd10e
+rel	attribute	a; area	Relationship between the location in the document containing the hyperlink and the destination resource	Unordered set of unique space-separated tokens*	2323debeaf092a72fafe4cee8add179ea1930d81dd9115ab5563e725cc0e6a2c
+rel	attribute	link	Relationship between the document containing the hyperlink and the destination resource	Unordered set of unique space-separated tokens*	9afab806b350e7fdab868241c0a6be2e144688e868dfdffbd653efc727aa3d3f
+required	attribute	input; select; textarea	Whether the control is required for form submission	Boolean attribute	42f039b0dc0bd2b5bdc9274f487e2056c635f073a7803bd2e0583e4115c4e09c
+reversed	attribute	ol	Number the list backwards	Boolean attribute	d6b548030983bfbd045d01afa70911ae4c7db68f3f111fdabd1aeff4dd39c80a
+rows	attribute	textarea	Number of lines to show	Valid non-negative integer greater than zero	2f392a2c58dc407d32c9f1be6fb9811ad5ee07bc457c6736b8576319d06fd4cd
+rowspan	attribute	td; th	Number of rows that the cell is to span	Valid non-negative integer	e2813bffcbb0a49dd744e71e87e9f8e5e15c818c83a096ff4d66a541947deecf
+sandbox	attribute	iframe	Security rules for nested content	Unordered set of unique space-separated tokens, ASCII case-insensitive, consisting of "allow-downloads" "allow-forms" "allow-modals" "allow-orientation-lock" "allow-pointer-lock" "allow-popups" "allow-popups-to-escape-sandbox" "allow-presentation" "allow-same-origin" "allow-scripts" "allow-top-navigation" "allow-top-navigation-by-user-activation" "allow-top-navigation-to-custom-protocols"	b3b52b179fe8f423a3328775e9af88c7ceecc4e45cc07eb15152c47ef977606f
+scope	attribute	th	Specifies which cells the header cell applies to	"row"; "col"; "rowgroup"; "colgroup"	bcf40ae3cfcd4b8d66eb54df4eb4dd65b54d64274953eefe6e3740951418e923
+selected	attribute	option	Whether the option is selected by default	Boolean attribute	007c2fd98c15f1b29f29e2363b3535c3fcafe5ae42aeca44d8199e43a01b4967
+shadowrootclonable	attribute	template	Sets clonable on a declarative shadow root	Boolean attribute	8a657b6c013ec20af56b876cca6e919cc7c16bcfd524b2056b53c29f93eaea3a
+shadowrootcustomelementregistry	attribute	template	Enables declarative shadow roots to indicate they will use a custom element registry	Boolean attribute	90506a0d24c4f9a59a6619e99cd2516bf62e67679620de5625a6036aa6ae54f3
+shadowrootdelegatesfocus	attribute	template	Sets delegates focus on a declarative shadow root	Boolean attribute	4775d488c04ad6b80a1c8299175aa32d4d77158c47c02fdf67730771939b0067
+shadowrootmode	attribute	template	Enables streaming declarative shadow roots	"open"; "closed"	6619fb3efc2618a8d3400ed9dcf13d00e91cd612c6b87c85d9c7af8a19cbd60b
+shadowrootserializable	attribute	template	Sets serializable on a declarative shadow root	Boolean attribute	ce0f580bc4d5ae6382075e80e496d5f36673e641cfb2992d56fcdda2bb7ba00e
+shadowrootslotassignment	attribute	template	Sets slot assignment on a declarative shadow root	"named"; "manual"	4901faf05e1265efafc3eb00c9bc404bb2ae66530b575c118f1a0f6196cf8007
+shape	attribute	area	The kind of shape to be created in an image map	"circle"; "default"; "poly"; "rect"	31b9a0e5a9352deb08c8ed9e7f9e89157d8dc7a3be1638bd913bae2544701a5a
+size	attribute	input; select	Size of the control	Valid non-negative integer greater than zero	dd11cbcae9bab661e699467543ad9f24ca0931cb847ed91595e1b125b56bd5f6
+sizes	attribute	link	Sizes of the icons (for rel="icon")	Unordered set of unique space-separated tokens, ASCII case-insensitive, consisting of sizes*	fa661f255052ad51f68a73c220c8462c4252d5cb78043e1dbfe01e6dd1998b0a
+sizes	attribute	img; source	Image sizes for different page layouts	Valid source size list	255300f16bc6541bb8a34f98f6d2087b02b671255312008aaedd99685391d50c
+slot	attribute	HTML elements	The element's desired slot	Text	2bea8b349cc213ba82b2d1fae4f81abbe5824960221d1d166718cf255198e3de
+span	attribute	col; colgroup	Number of columns spanned by the element	Valid non-negative integer greater than zero	1998a04a356d5c997119a203f321a5f42f170324ff9fbefef3ab0b31543f1c66
+spellcheck	attribute	HTML elements	Whether the element is to have its spelling and grammar checked	"true"; "false"; the empty string	fc1641ea78e6e4b5437c5204f702121c84c9ed1d58d544a726e7a15bafe8d317
+src	attribute	audio; embed; iframe; img; input; script; source (in video or audio); track; video	Address of the resource	Valid non-empty URL potentially surrounded by spaces	f6755cbbc1a0cb78421d255e870379bbc102ea4c00de624436765ca70c0786a2
+srcdoc	attribute	iframe	A document to render in the iframe	The source of an iframe srcdoc document*	1f99539ef182fff927d3f664634a5241f58381665475a2e5f925a71d4388f3a5
+srclang	attribute	track	Language of the text track	Valid BCP 47 language tag	39554b0fb639f11ea9d4f427842ef9937ec4a5cfa85033cd3abfce31c33f18f7
+srcset	attribute	img; source	Images to use in different situations, e.g., high-resolution displays, small monitors, etc.	Comma-separated list of image candidate strings	7e36e5c1087cc3173ce3d2e56a9b33351aec7f78c5a83250c075608c2ed80871
+start	attribute	ol	Starting value of the list	Valid integer	44a2a7415c309734689005d52dd78aefc28590017107e89ddd3ac342359fb5aa
+step	attribute	input	Granularity to be matched by the form control's value	Valid floating-point number greater than zero, or "any"	41873030e715cab34155481d3c23523d802c697bb8fa48c351810ec43c6e4840
+style	attribute	HTML elements	Presentational and formatting instructions	CSS declarations*	1319aea9870ef7ea10e122d7dff112e1880f5d9afb3fe0ca18ab1cadf5407633
+tabindex	attribute	HTML elements	Whether the element is focusable and sequentially focusable, and the relative order of the element for the purposes of sequential focus navigation	Valid integer	1e90bebc8f3c45471a061694c5ce35763325bf30a7438b3c01f314e9f4e2e17a
+target	attribute	a; area	Navigable for hyperlink navigation	Valid navigable target name or keyword	da078da06ab69b4823be1ef67c2f530ce753d31b39c1f26d292e0830ac04baa4
+target	attribute	base	Default navigable for hyperlink navigation and form submission	Valid navigable target name or keyword	e8230b337eb25d07244ff245ec9d812ea04fe144cb1e230c855c009c8cf25b8f
+target	attribute	form	Navigable for form submission	Valid navigable target name or keyword	2d1fb89c232ea6b64237732bc63d785b8f6b0744099cb12f1f0c3a2ac1ea5ebc
+title	attribute	HTML elements	Advisory information for the element	Text	84dbad1019a8929c1f8b4da99d3f2d513124c9f6431555bada592c5ea6c9e36e
+title	attribute	abbr; dfn	Full term or expansion of abbreviation	Text	ad8f01d9cdb835d2faa6b25eb305cd760122f70fa0eacf2567a81e1108c54baf
+title	attribute	input	Description of pattern (when used with pattern attribute)	Text	2a4670214f8b38b917adf09e1fb425f5a843413c3166c1c0c229946a11765f92
+title	attribute	link	Title of the link	Text	9998ddd83bdce4f38db92483b107a3039c24d217eefc6cf4c09476f2c367e184
+title	attribute	link; style	CSS style sheet set name	Text	673e463212bf794cac2ec200c64d67384de65fedeece9961612433d313fb7e21
+translate	attribute	HTML elements	Whether the element is to be translated when the page is localized	"yes"; "no"; the empty string	cfc91481ddb0d84c2ebe854898115d9fefb8cf411d6ba3db0e62142bb7beb0af
+type	attribute	a; link	Hint for the type of the referenced resource	Valid MIME type string	78e799c784f24cc6b457c02c9c0ce5b4898182bc0f403c847e48dbec6499071f
+type	attribute	button	Type of button	"submit"; "reset"; "button"	2520f10477ac89800a19ef8136c3eea77fd86909cb96ae97a042863d78bc827c
+type	attribute	embed; object; source	Type of embedded resource	Valid MIME type string	417b72ff3de26647e123c54d078e9cd39b8c0788808928ac46ed0fd5ef1e366a
+type	attribute	input	Type of form control	input type keyword	0def6d88bb4ee415229c772bda51795a26ab6ec04d69e71dcfed60716cedae1a
+type	attribute	ol	Kind of list marker	"1"; "a"; "A"; "i"; "I"	3bc337f8e0e457401ea2c1efc0da51272de3ef7e309a2a84d2d8df1d4311cd0a
+type	attribute	script	Type of script	"module"; "importmap"; "speculationrules"; a valid MIME type string that is not a JavaScript MIME type essence match	1538c5dad42f318042fb49c5e2e7b411498c1a34447fdccaec0c44adbb82773e
+usemap	attribute	img	Name of image map to use	Valid hash-name reference*	c06f11c6a8fe6ed07daf8fbaeda18563107e9185c7d8ca9c985872d3307139cc
+value	attribute	button; option	Value to be used for form submission	Text	8b323ae16c51d3040526e11626637976f6e3542921d76528e15754dfe82e2483
+value	attribute	data	Machine-readable value	Text*	6180563e23a0515104d05bca52e7888d9ac634e1f437044a2969bf6e93555877
+value	attribute	input	Value of the form control	Varies*	4e7f48543d4c99d00dbfe0da75fac6626e90f46d9c001bf3254f0ab8742e160b
+value	attribute	li	Ordinal value of the list item	Valid integer	8907a93b8db1e911bc8dac48be6014df40497dee07f9b59825a81a88d39e3d5b
+value	attribute	meter; progress	Current value of the element	Valid floating-point number	d0455296f4069752b9992e3f7ea383ca495be0d0bb4cf685c85aec262d11259a
+width	attribute	canvas; embed; iframe; img; input; object; source (in picture); video	Horizontal dimension	Valid non-negative integer	5ab8d9a0147e1938f5b1e7a4b9fa779760c33db3f52b9b27731fbaa24253a3d9
+wrap	attribute	textarea	How the value of the form control is to be wrapped for form submission	"soft"; "hard"	36c34b93b90ddcc3486b71d0e053a2477d783476107ad4450d1bf13822892cfa
+writingsuggestions	attribute	HTML elements	Whether the element can offer writing suggestions or not.	"true"; "false"; the empty string	24631212434dac2edff44289af46e7d92b547787ad24616f0380ddece57b97db
+onafterprint	handler	body	afterprint event handler for Window object	Event handler content attribute	bd936947645b09627dae89198a30beef91a0fb742bf974655345c6b6c0dc15d8
+onauxclick	handler	HTML elements	auxclick event handler	Event handler content attribute	4d429b007766f7fcd64c0ae943bc0ee5f0434a9bd038e3938fce208b5ee890c1
+onbeforeinput	handler	HTML elements	beforeinput event handler	Event handler content attribute	ebebe39d6364e8db5e05b4c6f906af9fbf5b0cac9823bea645a011d0f3712a9e
+onbeforematch	handler	HTML elements	beforematch event handler	Event handler content attribute	87bb5c4c74dd85adb6d6e77e5a62dfb84c3280a8f67f313e6c8c5c8d77e6aaf6
+onbeforeprint	handler	body	beforeprint event handler for Window object	Event handler content attribute	56329ac5e8b3030b7323bf80542e2eb072f74e0feb73911ac85ac48eb8afc8f4
+onbeforeunload	handler	body	beforeunload event handler for Window object	Event handler content attribute	5c84084cf562a61303cfcc6750ac1fcd092bfbb132774bb872c76143d8b8f6d8
+onbeforetoggle	handler	HTML elements	beforetoggle event handler	Event handler content attribute	08a97dc499c634f79367bcb4c858218293ba52df4138e6cc0d171b1d0a19f491
+onblur	handler	HTML elements	blur event handler	Event handler content attribute	d352a29fcab4f901cd714a9751759ea73885bd927537cbeceea11675d9130ae7
+oncancel	handler	HTML elements	cancel event handler	Event handler content attribute	c329748ca644b5dd5ba346576b33e3c37ca3adc45e640780e6395a0d1770aa3e
+oncanplay	handler	HTML elements	canplay event handler	Event handler content attribute	18a57a0ba4b14b583ea8d120d5e0a2bd0373a5f6ce85fc67dee59f732e8de295
+oncanplaythrough	handler	HTML elements	canplaythrough event handler	Event handler content attribute	96487607ccf60876088ff048ea52e6224fa5df3eda12607c551629f4e4e4e5ee
+onchange	handler	HTML elements	change event handler	Event handler content attribute	c9838d73cf5ead16c862f7a62b2484d8af7137b5e37cac7b3d277d5b638c2c39
+onclick	handler	HTML elements	click event handler	Event handler content attribute	aa06a8e90deff90304f0fb0c36dac5d73e6fcc0e2f699c1cb4375d26d955cb99
+onclose	handler	HTML elements	close event handler	Event handler content attribute	b61f7e46c332ecc8301b7a672006c4ac3502ce839097e87002db8cbd6787cb70
+oncommand	handler	HTML elements	command event handler	Event handler content attribute	d0673b05572bbf2a438f99d4fabd0344f65dcf22e375477a86fd44a3bb46d7b1
+oncontextlost	handler	HTML elements	contextlost event handler	Event handler content attribute	24ae4c17917f3ebb426d9cbe67158c4be9626cf475b7c28d35c4550803dfd928
+oncontextmenu	handler	HTML elements	contextmenu event handler	Event handler content attribute	cbb02583d5c5d3860c6e719cfa4b2ba9dbe1a4fa95d6b3bdffedd0aae77e13ec
+oncontextrestored	handler	HTML elements	contextrestored event handler	Event handler content attribute	9d71c7272579079e69af428dcdca21d7bd2d27f3dac2fccfb0aa697bbea27f4e
+oncopy	handler	HTML elements	copy event handler	Event handler content attribute	8e1a9f3a07e630b7e5c0af732f0e1c140fec70af95959b73081b2011ee2fdbb8
+oncuechange	handler	HTML elements	cuechange event handler	Event handler content attribute	808610db9c80fe733c97a802e3647ccb85d98427ca505ceee6ba48922f46499e
+oncut	handler	HTML elements	cut event handler	Event handler content attribute	b373eebe0976c4945ae8d3c087fc24b177ea6780cbec27999255045eae96a860
+ondblclick	handler	HTML elements	dblclick event handler	Event handler content attribute	9f369c23d487d50c82a8c28bac20ae477b3be62dbf52f34ba068cace5449b88e
+ondrag	handler	HTML elements	drag event handler	Event handler content attribute	c86f021e8bd95c1cda0941e68201fb7ab1a9abeb6b2d49525fdfa9d6b0febb90
+ondragend	handler	HTML elements	dragend event handler	Event handler content attribute	d9881d5335a28d674801704ea75614822b57ff9ac41202d0fe589ffaa185298f
+ondragenter	handler	HTML elements	dragenter event handler	Event handler content attribute	eddfbfe74851a71f6415969630297654241d585c4c9b65ff39cdc0a6ae4a7e8c
+ondragleave	handler	HTML elements	dragleave event handler	Event handler content attribute	3e0f957e0c14619a90eb2ed792489621425e3035606d0e682d31499bf976049e
+ondragover	handler	HTML elements	dragover event handler	Event handler content attribute	e8ccac8d0ad7e85ff6f8f5a5e6f484e4aa8cfa3ea982d053127d0ebcbf25056a
+ondragstart	handler	HTML elements	dragstart event handler	Event handler content attribute	172ed43341d44c511884a20f2d5379f40adc5ee6b957049bd58f40ab7e0cc6f5
+ondrop	handler	HTML elements	drop event handler	Event handler content attribute	c02d8f186b90c810a92bed10325195aa5b4373d57106511a9a75163aca4f4df8
+ondurationchange	handler	HTML elements	durationchange event handler	Event handler content attribute	e9dce1c34fe16b6ff3e95f1fa6fbb861f16f27d9be6c0913f81bf755ebefac99
+onemptied	handler	HTML elements	emptied event handler	Event handler content attribute	d1a36be44883e6854a4a2aba5a6d33db8ef5c9cfc81c42ba53f15cd4c952abd2
+onended	handler	HTML elements	ended event handler	Event handler content attribute	f4e3b82bcebc97c912d26ea76894ddd3b96d044d68539306b19926adcdd9f5ae
+onerror	handler	HTML elements	error event handler	Event handler content attribute	9d21004f6bfbc74bb9db59bd5cdd3eae6c5791c5936cc8367170cde3d5b09a00
+onfocus	handler	HTML elements	focus event handler	Event handler content attribute	21c0388d8046310c069872d62d9a4b67e229df06cd265d0a670f6be4852d4e99
+onformdata	handler	HTML elements	formdata event handler	Event handler content attribute	941a3c4f60b748407b43f555d653aae6919c94e39c6091f430cd6bd49dd6c51e
+onhashchange	handler	body	hashchange event handler for Window object	Event handler content attribute	d29c419b0cff2d563689d107bfc7c2cf7a3c6812b99eb3e9e5f180d7fb834de1
+oninput	handler	HTML elements	input event handler	Event handler content attribute	6d5d1b3f4f477e90360be926d5f0ea23cdd23fc390ed152f9966cc0222e6e181
+oninvalid	handler	HTML elements	invalid event handler	Event handler content attribute	c6df0ee399d4412f2389ba0b889fbe3d2d0f3760badd1e2f47de4439fa24861a
+onkeydown	handler	HTML elements	keydown event handler	Event handler content attribute	84a3ed889e1533ad45a1dd21bcee7e5f15fdb491acdf7b51056a82d8b03d8279
+onkeypress	handler	HTML elements	keypress event handler	Event handler content attribute	6a4b2079ecb631b312805ce3db0b21aca6a104e07856362ce5c65c78d0c16ae9
+onkeyup	handler	HTML elements	keyup event handler	Event handler content attribute	c70c05f835b109414e0df64ac0286488731956467625a3ef9e03409e26b07597
+onlanguagechange	handler	body	languagechange event handler for Window object	Event handler content attribute	961067f061b1adc4e584cc9fe4f4fe0c8624d23b0268705a27317e4986646bd5
+onload	handler	HTML elements	load event handler	Event handler content attribute	b3d0be4f3a27a827d89b319f74c827871e97d5319de77ad123a2ccd01f362264
+onloadeddata	handler	HTML elements	loadeddata event handler	Event handler content attribute	3a849f993edbe26e95f27b779b2782202b2fbc4d998fa8bd5685469b3d64cd1c
+onloadedmetadata	handler	HTML elements	loadedmetadata event handler	Event handler content attribute	50147d80b48ecd1a375edbc214af6cc49953f0058ca9506994fca5fe7edf7770
+onloadstart	handler	HTML elements	loadstart event handler	Event handler content attribute	95925a9b4a8c365f3f603d006e74fa6b1e38bea4183689a296f0b3ebf4f3c19a
+onmessage	handler	body	message event handler for Window object	Event handler content attribute	3d6fdef28adc3e8b53d01cb7ccd9832f90c7008eaa4b0f23f5bb554e6baf0fc6
+onmessageerror	handler	body	messageerror event handler for Window object	Event handler content attribute	3364919bbda8a0bedfda053b302d776ed48c02c048c9a141a5687980e9065fa0
+onmousedown	handler	HTML elements	mousedown event handler	Event handler content attribute	8c3af6117e6ee899aa22a68cf0f5fb902f18367d2c99dc134ff307c61ee2219e
+onmouseenter	handler	HTML elements	mouseenter event handler	Event handler content attribute	b925a767979b8a7ca063d6d8b489033237f0eccf57ed6d3efb801fb8b15318da
+onmouseleave	handler	HTML elements	mouseleave event handler	Event handler content attribute	2f9b002679b40ac71c1df042380bf4863e43c3d633178483f20624baebe82348
+onmousemove	handler	HTML elements	mousemove event handler	Event handler content attribute	52287b5ecbbbe8352a47d2c5969971e3f574674b7371da9af4d74c7611115057
+onmouseout	handler	HTML elements	mouseout event handler	Event handler content attribute	c44afe3d966bd19266e3b766b2338e829bfc25c327fe8b8b6e2d80a6f405bca4
+onmouseover	handler	HTML elements	mouseover event handler	Event handler content attribute	cfbb170d3494814f48aaf37447ce8444811a3d9f0eb650e2a020b735c2611f94
+onmouseup	handler	HTML elements	mouseup event handler	Event handler content attribute	9a6ce058ffcb962ff5e6e0a1d7f8cdb2ddc96ddc725c48256df0ad6895bdb564
+onoffline	handler	body	offline event handler for Window object	Event handler content attribute	f12ab8079b39073629d0e956db143169ef8593d7037d11fc1c6fdbe0bbcf9dca
+ononline	handler	body	online event handler for Window object	Event handler content attribute	5b8917b989ee18147792120567733ac688eea4edac9ecedf5ba7e9bb1f82eb15
+onpagehide	handler	body	pagehide event handler for Window object	Event handler content attribute	9abf8e2f5b4da4511436fb5518ff35aed835e4c0c6967314f1467661a4a38f80
+onpagereveal	handler	body	pagereveal event handler for Window object	Event handler content attribute	b0faba1c8c81b9a5d8a2a82be69e37ad976edb1b301d5ec11b7454c2f6cbc819
+onpageshow	handler	body	pageshow event handler for Window object	Event handler content attribute	174347b49341051b52a3ead1f35823b1a0c806ab9dcf292abcfe81d8b7e2c939
+onpageswap	handler	body	pageswap event handler for Window object	Event handler content attribute	95e5978128f6bcca65a275091668a91f58707d605f06e6196d929aa0b16486b0
+onpaste	handler	HTML elements	paste event handler	Event handler content attribute	748286f91578cefee04728e5451f243874a7f643a45a1725235dd60745465991
+onpause	handler	HTML elements	pause event handler	Event handler content attribute	e67900a0dbc6970bb04fde79e31dae2d0d3667889543782d38bfbec11ba53794
+onplay	handler	HTML elements	play event handler	Event handler content attribute	ba98deca2b5bc3fa1441b816456a06803811f31fabe4dd0e2f1b824b14b573d6
+onplaying	handler	HTML elements	playing event handler	Event handler content attribute	a5ccbc3152475940aa454e1be2284007f20d4efbf9ed63d948e2de3eb23f159f
+onpopstate	handler	body	popstate event handler for Window object	Event handler content attribute	cd74c187d266d4a274603d273f5a8a223dbaa51982c77f8f81945cd4459b69a8
+onprogress	handler	HTML elements	progress event handler	Event handler content attribute	96b920c196e7eb095cc1fe9a18b882b14eb063ae6c78e5162fa04f5418f43a13
+onratechange	handler	HTML elements	ratechange event handler	Event handler content attribute	10ff5b7e9f961c1e3b90b02b244524d6ccbd422b4c0d21d1468e553eecd83110
+onreset	handler	HTML elements	reset event handler	Event handler content attribute	e6c9365ba11caf86c2a25ca744f191c5f4ed490e9736438733a389b9d9ba27a8
+onresize	handler	HTML elements	resize event handler	Event handler content attribute	f5468399710b9fd129bd7cfa78099d16e632dde3ac42f053baa8ed9a5faf7f2f
+onrejectionhandled	handler	body	rejectionhandled event handler for Window object	Event handler content attribute	84b66a6c1780632f59a9a2c4a3ab5c600ef0e17a2a5b91c0ddea6927cbfc772f
+onscroll	handler	HTML elements	scroll event handler	Event handler content attribute	bfb52bf3b1de7389f385b0e791169ce57c73dd0fb0a95eccd14f968d2ee40b3e
+onscrollend	handler	HTML elements	scrollend event handler	Event handler content attribute	4681f732dae111834cef10a1332c4529c0eb043d754493c5f35ac3f4073d2de7
+onsecuritypolicyviolation	handler	HTML elements	securitypolicyviolation event handler	Event handler content attribute	cb910188220d9438cd5a2d1728a0ec5a3ec4aa4b1af59b427fd31491a7e1cc22
+onseeked	handler	HTML elements	seeked event handler	Event handler content attribute	709eeea6e4357fc9a7dc9d6ecd4e7b539bb44b2f8bc76654b2b3a658095ae5b3
+onseeking	handler	HTML elements	seeking event handler	Event handler content attribute	cdb01c8359f46d193f7d6e14e3c5134ddabbc696c508b87d731aab9e83e673b2
+onselect	handler	HTML elements	select event handler	Event handler content attribute	ce0ca10da0fc004f93c28c3fb3ccb2a69cfe552109de50d95a73a23a2f49f8ee
+onslotchange	handler	HTML elements	slotchange event handler	Event handler content attribute	ff665ca60f52fd2e7e644830bdedb6113756aee30b1faa6d78a2549caf849090
+onstalled	handler	HTML elements	stalled event handler	Event handler content attribute	0d14dd1cf2173ae73b492475f4e69afeb95239cc2d942f898b0978c349b6cdf3
+onstorage	handler	body	storage event handler for Window object	Event handler content attribute	2f58444cc1e007a0b71ef768ff374b222be55a5c618e179e4970d4f15f85bb7e
+onsubmit	handler	HTML elements	submit event handler	Event handler content attribute	669a4986a6d26235b3ed58ab269f5b20f10cb1deea69bf255715b8ec25ca5bab
+onsuspend	handler	HTML elements	suspend event handler	Event handler content attribute	8ed6984c306160a0362653ad8eee31c29a7e68762b4ecd8b6f424c758302d339
+ontimeupdate	handler	HTML elements	timeupdate event handler	Event handler content attribute	c46b3018f90883fbb016e2ff91878ce8d412fde5a28801f62c07150a603ef3f9
+ontoggle	handler	HTML elements	toggle event handler	Event handler content attribute	fb6ee9dbfec2b789881253ab05277c2b1a0a8279a7a2c6e5fb8f10b9963412fc
+onunhandledrejection	handler	body	unhandledrejection event handler for Window object	Event handler content attribute	8fb9ecf36ad0597e92c8790981bf16073976ff5fce47453a4d736af7e94556ae
+onunload	handler	body	unload event handler for Window object	Event handler content attribute	5e41ebafe07698aee61a178aa2df65e300120f1d79e0449a7efefd0734aaabe4
+onvolumechange	handler	HTML elements	volumechange event handler	Event handler content attribute	98395997a8a676a5ea312159b3e1764f5a3c0ab0404d5e60c0152ed2fa5b45d0
+onwaiting	handler	HTML elements	waiting event handler	Event handler content attribute	330a6de2676aac4945d1746744c4e492063ea450d2e4c7fec3d95957b3bf7234
+onwheel	handler	HTML elements	wheel event handler	Event handler content attribute	0ec7404b91b764a85fa9fde61fbc77f856d27dcf8e2972b29c5dad496b8d8743

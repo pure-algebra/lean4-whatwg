@@ -8,8 +8,8 @@ defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
                   "WhatwgUrl", "WhatwgHtml", "WhatwgStreams", "WhatwgSignatures",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
-                  "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_ledger",
-                  "whatwg_declsnapshot", "whatwg_trustgate"]
+                  "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_htmlstandard",
+                  "whatwg_ledger", "whatwg_declsnapshot", "whatwg_trustgate"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
 # invented from a free variable, and every warning is an error at elaboration
@@ -117,6 +117,14 @@ root = "whatwgbin.UrlCensus"
 [[lean_exe]]
 name = "whatwg_trustselftest"
 root = "whatwgbin.TrustSelfTest"
+
+# The HTML Standard's element definitions as a projection (slice H6):
+# `generated/html-standard-elements.tsv` and `Whatwg/Html/Schema/Standard.lean`
+# regenerated from the sealed `vendor/whatwg-html-746f2ede/source` and
+# checked for byte drift. Port fidelity is stated against these rows.
+[[lean_exe]]
+name = "whatwg_htmlstandard"
+root = "whatwgbin.HtmlStandard"
 
 # The P1 specification-algorithm census, and since slice Q2 the Web IDL and
 # ECMA-262 censuses, each with its coverage report.

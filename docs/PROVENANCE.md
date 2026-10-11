@@ -42,6 +42,31 @@ order), and on 2026-09-06 the vendor tree, the projection
 schema modules are authored source from that date; the HTML Standard is the
 sole authority. TyXML bootstrapped the shape and has no further role.
 
+The HTML Standard element projection `generated/html-standard-elements.tsv`
+and the generated module `Whatwg/Html/Schema/Standard.lean` are produced by
+`lake exe whatwg_htmlstandard --write` from the sealed
+`vendor/whatwg-html-746f2ede/source` (SHA-256
+`c985a14d1871fe862de386f5af92b5da84068267c6095ef0379c069ae85f9cde`, which
+the gate refuses to deviate from): one row per element name of every
+`<dl class="element">` block, with the block's line, the SHA-256 of the
+bytes between its open tag and its `</dl>` as the span digest, and the
+`Categories`, `Contexts`, `Content model` and `Content attributes` entries
+as the standard's words with markup removed; likewise
+`generated/html-standard-attributes.tsv`, one row per row of the standard's
+attribute index (`attributes-1`) and event-handler index
+(`ix-event-handlers`) with the row's span digest; and from those rows the
+schema modules `Whatwg/Html/Schema/{Tags,Families,Attributes,ContentModel}.lean`
+and `Whatwg/Html/Node/Combinators.lean` (`WhatwgGates/HtmlStandardEmit.lean`,
+reading the authored `Whatwg/Html/Schema/Readings.lean`, whose readings of
+the standard's prose sentences are each pinned to the digest of the block
+they read, and reading each `Value` cell as a kind by the cell's leading
+words and quoted items). `lake exe
+whatwg_htmlstandard` fails on any byte of drift in any output. Cross-check at the
+pin: a Python regular-expression pass found the same 179 attribute and 89
+handler rows. Cross-check at the pin: a Python
+regular-expression pass over the same file found the same 107 blocks and
+the same 113 element names (`menu`'s block is spelled `<dl class=element>`).
+
 Vendored licenses: WHATWG Streams, Infra, HTML, URL, Web IDL, and Encoding Standards, CC-BY 4.0 with BSD-3-Clause for
 portions incorporated into source code (`vendor/whatwg-streams-b9ba9f49/LICENSE`,
 `85dc6f5ccb57a6fe8c33d158f9fc8fc7ee5655a5d3db2cdd131c6a3d0f48a864`); reference
