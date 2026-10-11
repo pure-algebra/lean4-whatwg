@@ -2,8 +2,10 @@ import Whatwg.Html.Schema
 import Whatwg.Html.Content.Admission
 import Whatwg.Html.Content.Context
 import Whatwg.Html.Content.Valid
+import Whatwg.Html.Content.Explain
 import Whatwg.Html.Content.Lattice
 import Whatwg.Html.Node.Raw
+import Whatwg.Html.Node.Walk
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit

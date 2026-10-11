@@ -21,7 +21,9 @@ algebras is an instance:
 - `Walk.transport` (W2): a map of states that commutes with the transitions, through which the
   node maps factor, carries one run to the other.
 
-`Walk.simulation` states both at once, and the two laws are its corollaries.
+`Walk.simulation` states both at once, and the two laws are its corollaries. A third law,
+`Walk.relate` (W3), is induction over the walk: a relation between a node and its result
+holds of the run when every node map preserves it.
 
 This module names no schema and no position. It does not say what any algebra computes.
 -/
@@ -150,6 +152,49 @@ theorem transport (A : Walk S R) (B : Walk S' R) (f : S → S')
   simulation A B f id hstep
     (fun s name attrs children results => by rw [List.map_id]; exact helement s name attrs children results)
     htext hentity hcomment s node
+
+/-! ## A relation that every node map preserves -/
+
+/-- Each node of a list stands in the relation to the result at its place. -/
+inductive Related (P : RawNode → R → Prop) : List RawNode → List R → Prop where
+  | nil : Related P [] []
+  | cons {node : RawNode} {result : R} {nodes : List RawNode} {results : List R} :
+      P node result → Related P nodes results → Related P (node :: nodes) (result :: results)
+
+mutual
+
+/-- W3: a relation between a node and its result holds of the run, when every node map
+preserves it. The element's map may assume it of each child with that child's result. -/
+theorem relate (w : Walk S R) (P : RawNode → R → Prop)
+    (helement : ∀ s name attrs children results, Related P children results →
+      P (.element name attrs children) (w.element s name attrs children results))
+    (htext : ∀ s content, P (.text content) (w.text s content))
+    (hentity : ∀ s name, P (.entity name) (w.entity s name))
+    (hcomment : ∀ s content, P (.comment content) (w.comment s content)) :
+    ∀ (s : S) (node : RawNode), P node (w.run s node)
+  | s, .element name attrs children => by
+    rw [run_element]
+    exact helement s name attrs children _
+      (relateAll w P helement htext hentity hcomment (w.step s name) children)
+  | s, .text content => by rw [run]; exact htext s content
+  | s, .entity name => by rw [run]; exact hentity s name
+  | s, .comment content => by rw [run]; exact hcomment s content
+
+/-- The same over a forest: each node stands in the relation to its own result. -/
+theorem relateAll (w : Walk S R) (P : RawNode → R → Prop)
+    (helement : ∀ s name attrs children results, Related P children results →
+      P (.element name attrs children) (w.element s name attrs children results))
+    (htext : ∀ s content, P (.text content) (w.text s content))
+    (hentity : ∀ s name, P (.entity name) (w.entity s name))
+    (hcomment : ∀ s content, P (.comment content) (w.comment s content)) :
+    ∀ (s : S) (nodes : List RawNode), Related P nodes (w.runAll s nodes)
+  | s, [] => by rw [runAll_nil]; exact .nil
+  | s, node :: rest => by
+    rw [runAll_cons]
+    exact .cons (relate w P helement htext hentity hcomment s node)
+      (relateAll w P helement htext hentity hcomment s rest)
+
+end
 
 /-- An algebra over one state, read over another through a map of states. -/
 def comap (B : Walk S' R) (step : S → String → S) (f : S → S') : Walk S R where

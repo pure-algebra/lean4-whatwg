@@ -12,8 +12,8 @@ The fence is the ten modules of `Whatwg/Svg/` that declare a constant. The seam'
 modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt D57):
 this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 and R-S10 of `COORDINATION.md` name this graph and
-change no edge, so the entry acknowledges the three.
+No edge is closed. Rulings R-S4, R-S9, R-S10 and R-S11 of `COORDINATION.md` name this graph
+and change no edge's status, so the entry acknowledges the four.
 -/
 
 namespace WhatwgTest.Ledger
@@ -27,7 +27,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context]
-  acknowledged := ["R-S4", "R-S9", "R-S10"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -57,8 +57,6 @@ def svgSeam : Graph where
     laws := {
       status := .requiredOpen
       remaining := [
-        .wanted `Whatwg.Html.Content.explain_none_iff,
-        .named "the located refusal's path names a node of the tree (slice S3c)",
         .named "the decoder inverts the printer on a well-formed tree that holds SVG (slice S3d)"]
       grounds := [.theorems [`Whatwg.Svg.Data.Universe.forall_of_all,
         `Whatwg.Svg.Data.Mask.mem_union, `Whatwg.Svg.Data.Mask.mem_inter,
@@ -69,8 +67,10 @@ def svgSeam : Graph where
         `Whatwg.Html.Walk.transport, `Whatwg.Html.Content.Pos.child_ns,
         `Whatwg.Html.Content.Pos.excl_le_child, `Whatwg.Html.Content.Pos.elementOk_antitone,
         `Whatwg.Html.Content.validIn_element_eq, `Whatwg.Html.Content.validIn_unknown,
-        `Whatwg.Html.Content.validIn_svg, `Whatwg.Html.Content.no_svg_tag_breaks_out]]
-      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2 and N3 of the plan's section 6 are proved." }
+        `Whatwg.Html.Content.validIn_svg, `Whatwg.Html.Content.no_svg_tag_breaks_out,
+        `Whatwg.Html.Walk.relate, `Whatwg.Html.Content.Pos.isNone_refuse?,
+        `Whatwg.Html.Content.explain_none_iff, `Whatwg.Html.Content.explainAt_path]]
+      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4 and N3 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law." }
     representation := {
       status := .requiredOpen
       remaining := [
@@ -95,11 +95,12 @@ def svgSeam : Graph where
       note := "The graph emits no target code; the text the printer writes is slice S3d, under the representation edge." }
     trust := {
       status := .requiredOpen
-      remaining := [.named "the modules of slices S3c to S4, which do not exist yet"]
+      remaining := [.named "the modules of slices S3d to S4, which do not exist yet"]
       grounds := [.modules [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
         `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk, `Whatwg.Html.Schema.Foreign,
-        `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context, `WhatwgTest.Html.Svg], .gate .build]
+        `Whatwg.Html.Content.Explain, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
+        `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain], .gate .build]
       note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen
