@@ -659,6 +659,21 @@ choice and each repetition, the next character decides. One `decide` discharges 
 then lands the regular expression, its matcher and V3a, and proves V1 per grammar in S4b. The
 claims of §6 then say so.
 
+**As built (S4a).** The risk did not come about: V1 is proved over `Syn`. The library is
+`Whatwg/Svg/Value/Grammar.lean`, and its leaf record in the ledger is `SVG-LF-GRAMMAR`. It
+differs from the design above in four ways:
+
+- A description has seven forms: `eps`, `one`, `seq`, `alt`, `many`, `map` and `skip`. `map`
+  carries the proof that its reading undoes its writing. `skip` reads a part in every spelling
+  and prints its canonical one, which is how a reader takes more spellings than a printer
+  writes.
+- The printer is total. `Syn.valid g v` says that the value is one the description can print,
+  and it is the second premise of V1.
+- `Syn.ok` is computed from five facts of a description: whether a print or a read may be
+  empty, what a print and a read may open with, and what may continue the reader past a print.
+- No matcher decides `Regex.Matches`. The language is a relation, and the reader is the only
+  decision procedure. `Syn.print_matches` is added: a printed value is a text of the language.
+
 **S4b and S4c. The grammars.** Each grammar is one small module: the typed value, the
 description, the proof of `ok`, and three corollaries.
 
@@ -794,4 +809,5 @@ builds its pictures as trees.
 | proof search | `a5b9e50`, 2026-10-11 | Aesop at lean4-effect4's pin; the library `WhatwgAuto` with the bank `Whatwg.Mask`, its theorem and its control; the instruments `#whatwg_auto_census` and `#whatwg_bank_census`; the rules in the root `AGENTS.md`; the record is ruling R-S10. The proofs of S3c onward ask for a bank where one fits |
 | S3c | `8ad963d`, 2026-10-11 | `Whatwg/Html/Content/Explain.lean`: `Reason`, `Refusal`, the refusal algebra, `explain`; C3 by the walk's fusion law and C4 by its new induction law W3; the battery `WhatwgTest/Html/Explain.lean`; the record is ruling R-S11 |
 | S3d | `f987a6c`, 2026-10-11 | `Whatwg/Html/Print/Render.lean` rewritten around the walk: the print state, `wfIn`, the decoder in a namespace; P1, P2 and P3 for trees that hold SVG; the existing print battery unchanged and `WhatwgTest/Html/SvgPrint.lean` new; the record is ruling R-S12 |
-| S3e | 2026-10-11 | `html!` builds an `svg` subtree as one raw literal with one obligation and reports the located refusal at the refused token; `admits` closes or explains a whole tree; `WhatwgTest/Html/SvgMarkup.lean`; debt D83 stays for the node obligations; the record is ruling R-S13 |
+| S3e | `d9bb3af`, 2026-10-11 | `html!` builds an `svg` subtree as one raw literal with one obligation and reports the located refusal at the refused token; `admits` closes or explains a whole tree; `WhatwgTest/Html/SvgMarkup.lean`; debt D83 stays for the node obligations; the record is ruling R-S13 |
+| S4a | 2026-10-11 | `Whatwg/Svg/Value/Grammar.lean`: `CharSet`, `Syn`, the reader and the printer; V1, V2 and V3a proved once over the description, under the strict ceiling; the leaf record `SVG-LF-GRAMMAR`; the battery `WhatwgTest/Svg/Grammar.lean`; the record is ruling R-S14 |

@@ -12,8 +12,8 @@ The fence is the ten modules of `Whatwg/Svg/` that declare a constant. The seam'
 modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt D57):
 this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4 and R-S9 to R-S13 of `COORDINATION.md` name this graph and
-change no edge's status, so the entry acknowledges the six.
+No edge is closed. Rulings R-S4 and R-S9 to R-S14 of `COORDINATION.md` name this graph and
+change no edge's status, so the entry acknowledges the seven.
 -/
 
 namespace WhatwgTest.Ledger
@@ -27,7 +27,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -57,7 +57,7 @@ def svgSeam : Graph where
     laws := {
       status := .requiredOpen
       remaining := [
-        .named "the laws of the value grammars: the retraction and the soundness of each reader (slice S4)"]
+        .named "the grammars of slices S4b and S4c: each owes the premise of the retraction, which the leaf `SVG-LF-GRAMMAR` proves once"]
       grounds := [.theorems [`Whatwg.Svg.Data.Universe.forall_of_all,
         `Whatwg.Svg.Data.Mask.mem_union, `Whatwg.Svg.Data.Mask.mem_inter,
         `Whatwg.Svg.Data.Mask.mem_diff, `Whatwg.Svg.Data.Mask.mem_ofList,
@@ -75,7 +75,7 @@ def svgSeam : Graph where
     representation := {
       status := .requiredOpen
       remaining := [
-        .named "the value grammars and their retractions (slice S4)"]
+        .named "the value grammars of slices S4b and S4c: the number, path data, `points`, `viewBox` and `transform`"]
       grounds := [.theorems [`Whatwg.Svg.Data.NameTable.read_exact,
         `Whatwg.Svg.Data.NameTable.read_chars, `Whatwg.Svg.Schema.Tag.ofChars?_chars,
         `Whatwg.Svg.Schema.Tag.ofChars?_exact, `Whatwg.Svg.Schema.Attr.ofChars?_chars,
@@ -96,7 +96,7 @@ def svgSeam : Graph where
       note := "The graph emits no target code; the text the printer writes is under the representation edge." }
     trust := {
       status := .requiredOpen
-      remaining := [.named "the modules of slice S4, which do not exist yet"]
+      remaining := [.named "the modules of slices S4b and S4c, which do not exist yet"]
       grounds := [.modules [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
         `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk, `Whatwg.Html.Schema.Foreign,

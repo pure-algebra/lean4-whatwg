@@ -75,6 +75,7 @@ import WhatwgTest.Html.SvgPrint
 import WhatwgTest.Html.SvgMarkup
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
+import WhatwgTest.Svg.Grammar
 import WhatwgTest.Auto.Banks
 import WhatwgTest.Audit.AutoCensus
 import WhatwgTest.Audit.BankCensus

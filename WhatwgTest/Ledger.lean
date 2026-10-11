@@ -61,9 +61,22 @@ def infraInteger : Leaf where
     .ascriptions `WhatwgTest.Infra.IntegerConstructiveContract 9,
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
+/-- The leaf-receipt record `SVG-LF-GRAMMAR`: the value-grammar library of slice S4a of
+`docs/SVG-PACKAGE-PLAN.md`, an exact representation with its laws proved once. It contributes
+to the representation edge of `SVG-PG-SEAM`. -/
+def svgGrammar : Leaf where
+  id := "SVG-LF-GRAMMAR"
+  document := "docs/SVG-PACKAGE-PLAN.md"
+  declarations := [`Whatwg.Svg.Value.CharSet, `Whatwg.Svg.Value.Syn, `Whatwg.Svg.Value.Regex]
+  parent := some ("SVG-PG-SEAM", .representation)
+  receipts := [
+    .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
+      `Whatwg.Svg.Value.Syn.read_sound, `Whatwg.Svg.Value.Syn.print_matches],
+    .modules [`WhatwgTest.Svg.Grammar]]
+
 /-- The ledger: the twelve graphs of slices A and B and the graph
 `SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9), the
-one leaf record, and the fourteen unrouted prefixes of slice D (ruling
+two leaf records, and the fourteen unrouted prefixes of slice D (ruling
 R-W22): the thirteen of debt D57, in the order of the contract's section 12,
 and `Whatwg.Streams.Kernel`, of debt D68. The prefix `Whatwg.Svg` of debt
 D78 (ruling R-S4) is gone: the fence of `SVG-PG-SEAM` owns its modules.
@@ -73,7 +86,7 @@ def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
     transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,
     promiseAgent, svgSeam]
-  leaves := [infraInteger]
+  leaves := [infraInteger, svgGrammar]
   unrouted := [⟨`Whatwg.Html, "D57"⟩, ⟨`Whatwg.Infra.Namespaces, "D57"⟩,
     ⟨`Whatwg.Infra.Bytes.Byte, "D57"⟩, ⟨`Whatwg.Infra.Bytes.Sequence, "D57"⟩,
     ⟨`Whatwg.Infra.Primitive.Singleton, "D57"⟩, ⟨`Whatwg.Infra.Text.Case, "D57"⟩,

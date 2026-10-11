@@ -8,6 +8,7 @@ import Whatwg.Svg.Schema.ContentModel
 import Whatwg.Svg.Schema.Readings
 import Whatwg.Svg.Schema.Universe
 import Whatwg.Svg.Content.Context
+import Whatwg.Svg.Value.Grammar
 
 /-!
 # Whatwg.Svg
@@ -17,7 +18,7 @@ standard, as the schema an HTML tree's SVG subtree is checked against. The plan 
 `docs/SVG-PACKAGE-PLAN.md`. The authority is SVG 2 at the pin `vendor/w3c-svgwg-47e645ef/`
 (`SPEC-MANIFEST.md`).
 
-At slice S3a the library has three layers:
+The library has four layers:
 
 - `Whatwg.Svg.Data` names no schema: a finite universe, a set as a mask over it, and a name
   table with its two laws;
@@ -26,9 +27,11 @@ At slice S3a the library has three layers:
   drift. `Readings` is authored: it reads the four content models that the definitions state
   as a sentence. `Universe` is authored: it says what the generated data is an instance of;
 - `Whatwg.Svg.Content.Context` is the position in an SVG subtree, its transition, and the
-  judgments of one node.
+  judgments of one node;
+- `Whatwg.Svg.Value.Grammar` is the one description that reads and prints an attribute value,
+  with its retraction and the soundness of its reader proved once (slice S4a).
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
-HTML tree is in `Whatwg.Html` and opens at slice S3b; the attribute value grammars open at S4.
+HTML tree is in `Whatwg.Html`; the grammars of the attribute values open at slice S4b.
 `generated/svg-dangling.tsv` lists the names the definitions cite and never declare.
 -/
