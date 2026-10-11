@@ -146,15 +146,26 @@ orchestrate; they decide nothing.
 | `lake exe whatwg_trustselftest` | every planted trust-gate violation is refused for its frozen reason, every control is accepted, and the gate runs by relative file name |
 | `lake env leanchecker Whatwg WhatwgTest WhatwgGates` | every declaration of every built module under those three prefixes replays in the kernel |
 
-Every row applies to every change except two (ruling R-W25). The trust
-self-test tests the gate's own code: run it when a change touches that code
+Every row applies to every change except two (rulings R-W25 and R-S5).
+
+The trust self-test is outside the development cycle (owner direction of
+2026-10-11, ruling R-S5). It takes about eighteen minutes, and no slice runs
+it. A check that takes more than about a minute does not join the cycle: a
+slice uses another verification, and says which. The self-test tests the
+gate's own code, not the tree. So only a change to that code owes it
 (`WhatwgGates/Trust/`, `WhatwgTest/Audit/AxiomGate.lean`, the self-test and
-the two entry points), its configuration `WhatwgGates/TrustConfig.lean`, its
-fixtures under `test/fixtures/trust-gate/` other than `known-red.txt`,
-`lakefile.toml` or a pin; the coordinator also runs it once at a lane's
-close. A slice that touches none of these does not run it. A seat runs
-`leanchecker` over the module prefixes it added or changed, and the
-coordinator runs it over the three trees at each merge.
+the two entry points, and the fixtures under `test/fixtures/trust-gate/`
+other than `known-red.txt`), and whoever lands such a change runs it once.
+
+A change to the gate's data is verified by the gates that read the data.
+That is an entry of `WhatwgGates/TrustConfig.lean`, a target of
+`lakefile.toml`, or a pin. The in-tree gate of `lake build` judges the tree
+with the new data. `lake exe whatwg_trustgate` takes about four seconds: it
+refuses a list entry that is stale, blank, repeated or not needed, a strict
+prefix that covers no module, and a lakefile that weakens an option.
+
+A seat runs `leanchecker` over the module prefixes it added or changed, and
+the coordinator runs it over the three trees at each merge.
 
 The axiom ceiling is Lean's standard base, `propext`, `Quot.sound`, and
 `Classical.choice`, for every tree (operator ruling R-11, 2026-09-02;
