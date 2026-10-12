@@ -62,7 +62,7 @@ machine-readable definitions, so the pin is the repository commit.
 
 ## 2. The pin
 
-`vendor/w3c-svgwg-47e645ef/` holds thirteen files of `w3c/svgwg` at commit
+`vendor/w3c-svgwg-47e645ef/` holds fourteen files of `w3c/svgwg` at commit
 `47e645ef7cb61490e6975ddbcfa1997c9e972cc3` (2026-10-07). `docs/PROVENANCE.md` records the fetch
 and the cross-check. `generated/vendor-manifest.tsv` holds each digest.
 
@@ -78,16 +78,20 @@ and the cross-check. `generated/vendor-manifest.tsv` holds each digest.
 | `master/paths.html` | 52,259 | the path data grammar |
 | `master/shapes.html` | 37,360 | the `points` value |
 | `master/coords.html` | 149,848 | the `viewBox` value; `transform` by reference to CSS |
-| `master/types.html` | 140,699 | the attribute syntax notation |
+| `master/types.html` | 140,699 | the attribute syntax notation, and the kinds of a length |
+| `master/geometry.html` | 17,517 | the values of the geometry properties (sealed at slice S5) |
 | `LICENSE.md`, `README.md` | 152 and 999 | the licence pointer |
 
-**The brief asked for `master/definitions*.xml`.** The pin holds nine more files, for three
+**The brief asked for `master/definitions*.xml`.** The pin holds ten more files, for four
 reasons:
 
 - `master/publish.xml` lists the definitions files of SVG 2. It names a fifth file, under
   `specs/animations/`. That file declares the category `animation`, which 20 content models cite.
 - The definitions hold no value grammar. The grammars of S4 are in four chapter files.
 - The `data-*` rule and the ARIA roles are in `master/struct.html` alone.
+- The values of `x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx` and `ry` are in
+  `master/geometry.html` alone. The owner asked for that file at slice S5, and it is from the
+  same commit as the rest.
 
 ### 2.1 What the definitions hold
 
@@ -902,7 +906,7 @@ a debt of `COORDINATION.md` (ruling R-S6):
 The owner ruled on 2026-10-11, as `docs/research/2026-10-11-svg-owner-rulings.md` relays. Ruling
 R-S6 of `COORDINATION.md` records it.
 
-1. **The nine extra files of the pin** (§2) are accepted. The pin stays thirteen files.
+1. **The nine extra files of the pin** (§2) are accepted. The pin stayed thirteen files until slice S5, when the owner added `master/geometry.html` from the same commit.
 2. **SV-8, `desc`.** Its children are checked as phrasing content, as those of `title` are.
 3. **SV-20, the strict ceiling.** `Whatwg.Svg` is strict from its first module.
 4. **SV-26, the CSS pin.** One commit of `w3c/csswg-drafts`, and only the CSS Transforms 1
