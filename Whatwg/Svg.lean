@@ -61,6 +61,11 @@ import Whatwg.Svg.Scene.Tree
 import Whatwg.Svg.Scene.Between
 import Whatwg.Svg.Scene.Branch
 import Whatwg.Svg.Scene.Score
+import Whatwg.Svg.Scene.Plan
+import Whatwg.Svg.Scene.Row
+import Whatwg.Svg.Scene.Scale
+import Whatwg.Svg.Scene.Metrics
+import Whatwg.Svg.Scene.Label
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
 import Whatwg.Svg.Geometry.Stack
@@ -134,6 +139,14 @@ The library has five layers:
   `Branch` is the width of each branch of a fork, with the law that the branches together
   carry what the trunk carries. `Score` puts tracks in order in time, with the law that a thing
   does not appear before what it comes from.
+
+  Since slice S14: `Plan` is the motion of a join as one value, what a kept thing does, how a
+  new thing enters and how an old one leaves, with the law that the step's last moment is the
+  new picture. `Row` is a row whose lengths change: its edges move, so it tiles, keeps its
+  length and keeps its gaps at every moment. `Scale` is a quantity as a length, with the values
+  that the rounding ties. `Metrics` is what a host says of a face, and the width of a text as
+  two bounds. `Label` fits a label to a room, and never shows two labels that differ as one
+  text.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.

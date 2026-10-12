@@ -37,26 +37,20 @@ that reading starts and where it ends, so that the last moment of a step is the 
   segment (`Change.at_morph`), and a shape that is only moved changes as a shift does
   (`Change.at_morph_move`). **The end law of a track**: a track that is over stands at the end
   of its change (`Track.at_done`), and it is at rest there where it settles
-  (`Track.atRest_of_done`).
+  (`Track.atRest_of_done`). A track that is over stays over (`Track.done_of_le`).
 - Motions. When every track is over, the poses are the ends of the changes
   (`Motion.poses_done`). A motion held inside a step is over at the step's end
-  (`Motion.within_done`), and at rest there where its tracks settle (`Motion.within_atRest`).
-  Its tracks are the motion's with their transitions held (`Motion.mem_within`), and a pose of
-  a key is the pose of a track with that key (`Motion.mem_posesOf`).
-- The motion of a join. Every arriving track settles (`Motion.arrive_settles`). There is one
-  arriving track for each new thing (`Motion.length_arrive`), with the key of a new thing
-  (`Motion.mem_arrive_key`). A departing track has the key of an old thing that no new thing
-  has (`Motion.mem_depart_key`). **The end law of a step** (`Motion.arrive_end`): with proper
-  easings, every arriving thing is at rest at the step's end.
-- The things of a join, each in its own way. `Motion.arrive` is `Motion.arriveWith` with one
-  transition for every kept thing and one growth for every new one
-  (`Motion.arrive_eq_arriveWith`). The four laws above hold of `arriveWith`
-  (`Motion.arriveWith_settles`, `Motion.length_arriveWith`, `Motion.mem_arriveWith_key`,
-  `Motion.arriveWith_end`), where each new thing enters by a change that ends at rest.
+  (`Motion.within_done`). Where its tracks settle it is at rest there
+  (`Motion.within_atRest`), and at every later moment (`Motion.within_after`). Its tracks are
+  the motion's with their transitions held (`Motion.mem_within`). A pose of a key is the pose
+  of a track with that key (`Motion.mem_posesOf`), and a key with no track has no pose
+  (`Motion.still_of_no_track`).
 - Tracks started later. A delayed motion has the same tracks with the same keys and changes
   (`Motion.length_delayed`, `Motion.delayed_keys`, `Motion.delayed_changes`), each started later
   by what its key is given (`Motion.delayed_delays`). Held inside its step, it is at rest at
   the step's end (`Motion.delayed_within_atRest`).
+
+The tracks of a join, and the end law of a step, are in `Whatwg/Svg/Scene/Plan.lean`.
 
 Every law here depends on `propext` and `Quot.sound` at most.
 -/
@@ -445,6 +439,11 @@ theorem atRest_of_done {κ : Type} (tr : Track κ) (t : Nat) (h : tr.Done t) (hs
   rw [at_done tr t h]
   exact hs
 
+/-- **A track that is over stays over**: it is over at every later moment. -/
+theorem done_of_le {κ : Type} {tr : Track κ} {t u : Nat} (h : tr.Done t) (htu : t ≤ u) :
+    tr.Done u :=
+  ⟨h.1, Nat.le_trans h.2 htu⟩
+
 end Track
 
 /-! ## Motions -/
@@ -463,14 +462,21 @@ theorem within_done {κ : Type} (m : Motion κ) (hp : ∀ tr ∈ m, tr.timing.ea
   obtain ⟨tr0, h0, rfl⟩ := List.mem_map.mp htr
   exact ⟨hp tr0 h0, Transition.within_end tr0.timing⟩
 
-/-- A motion held inside a step, with proper easings and tracks that settle, has every thing
-at rest at the step's end. -/
-theorem within_atRest {κ : Type} (m : Motion κ) (hp : ∀ tr ∈ m, tr.timing.ease.Proper)
-    (hs : ∀ tr ∈ m, tr.Settles) : ∀ tr ∈ m.within, (tr.at 1000).AtRest := by
+/-- **A motion held inside a step is at rest at the step's end and at every later moment**,
+with proper easings and tracks that settle. -/
+theorem within_after {κ : Type} (m : Motion κ) (hp : ∀ tr ∈ m, tr.timing.ease.Proper)
+    (hs : ∀ tr ∈ m, tr.Settles) {t : Nat} (ht : 1000 ≤ t) :
+    ∀ tr ∈ m.within, (tr.at t).AtRest := by
   intro tr htr
-  have hd : tr.Done 1000 := within_done m hp tr htr
+  have hd : tr.Done t := Track.done_of_le (within_done m hp tr htr) ht
   obtain ⟨tr0, h0, rfl⟩ := List.mem_map.mp htr
-  exact Track.atRest_of_done _ 1000 hd (hs tr0 h0)
+  exact Track.atRest_of_done _ t hd (hs tr0 h0)
+
+/-- A motion held inside a step, with proper easings and tracks that settle, has every thing
+at rest at the step's end: `within_after` at the moment `1000`. -/
+theorem within_atRest {κ : Type} (m : Motion κ) (hp : ∀ tr ∈ m, tr.timing.ease.Proper)
+    (hs : ∀ tr ∈ m, tr.Settles) : ∀ tr ∈ m.within, (tr.at 1000).AtRest :=
+  within_after m hp hs (Nat.le_refl 1000)
 
 /-- A track of a motion held inside a step is a track of the motion with its transition
 held. -/
@@ -485,131 +491,15 @@ theorem mem_posesOf {κ : Type} [BEq κ] (m : Motion κ) (key : κ) (t : Nat) {p
   obtain ⟨tr, htr, rfl⟩ := List.mem_map.mp h
   exact ⟨tr, (List.mem_filter.mp htr).1, (List.mem_filter.mp htr).2, rfl⟩
 
-/-- A track of the arriving things is the shift of a kept pair or the growth of a new thing. -/
-theorem mem_arrive {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move enter : Transition) {tr : Track κ} (h : tr ∈ arrive key place j move enter) :
-    (∃ p ∈ j.update, tr = ⟨key p.2, .shift (place p.1 - place p.2) 0, move⟩) ∨
-      ∃ n ∈ j.enter, tr = ⟨key n, .grow 0 1000, enter⟩ := by
-  rcases List.mem_append.mp h with hu | he
-  · obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hu
-    exact Or.inl ⟨p, hp, rfl⟩
-  · obtain ⟨n, hn, rfl⟩ := List.mem_map.mp he
-    exact Or.inr ⟨n, hn, rfl⟩
-
-/-- Every arriving track settles: a kept thing ends on its place, and a new thing ends at its
-whole size. -/
-theorem arrive_settles {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move enter : Transition) : ∀ tr ∈ arrive key place j move enter, tr.Settles := by
-  intro tr htr
-  rcases mem_arrive key place j move enter htr with ⟨_, _, rfl⟩ | ⟨_, _, rfl⟩
-  · exact rfl
-  · exact rfl
-
-/-- There is one arriving track for each thing of the new picture. -/
-theorem length_arrive {κ α : Type} [BEq κ] (key : α → κ) (place : α → IVec) (old new : List α)
-    (move enter : Transition) :
-    (arrive key place (join key old new) move enter).length = new.length := by
-  rw [arrive, List.length_append, List.length_map, List.length_map, Nat.add_comm]
-  exact length_enter_add_update key old new
-
-/-- An arriving track has the key of a thing of the new picture. -/
-theorem mem_arrive_key {κ α : Type} [BEq κ] [LawfulBEq κ] (key : α → κ) (place : α → IVec)
-    (old new : List α) (move enter : Transition) {tr : Track κ}
-    (h : tr ∈ arrive key place (join key old new) move enter) : ∃ n ∈ new, key n = tr.key := by
-  rcases mem_arrive key place (join key old new) move enter h with
-    ⟨⟨o, n⟩, hp, rfl⟩ | ⟨n, hn, rfl⟩
-  · exact ⟨n, (mem_update key old new hp).2.1, rfl⟩
-  · exact ⟨n, ((mem_enter key old new).mp hn).1, rfl⟩
-
-/-- A departing track has the key of a thing of the old picture that no thing of the new
-picture has. -/
-theorem mem_depart_key {κ α : Type} [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α)
-    (leave : Transition) {tr : Track κ} (h : tr ∈ depart key (join key old new) leave) :
-    ∃ o ∈ old, key o = tr.key ∧ ∀ n ∈ new, key n ≠ tr.key := by
-  obtain ⟨o, ho, rfl⟩ := List.mem_map.mp h
-  exact ⟨o, ((mem_exit key old new).mp ho).1, rfl, ((mem_exit key old new).mp ho).2⟩
-
-/-- **The end law of a step.** With proper easings, every arriving thing is at rest at the
-end of the step: the kept things stand on their new places and the new things have their whole
-size, so the step's last moment is the next picture. -/
-theorem arrive_end {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move enter : Transition) (hm : move.ease.Proper) (he : enter.ease.Proper) :
-    ∀ tr ∈ (arrive key place j move enter).within, (tr.at 1000).AtRest := by
-  refine within_atRest (arrive key place j move enter) (fun tr h => ?_)
-    (arrive_settles key place j move enter)
-  rcases mem_arrive key place j move enter h with ⟨_, _, rfl⟩ | ⟨_, _, rfl⟩
-  · exact hm
-  · exact he
-
-/-! ### Each thing in its own way -/
-
-/-- The arriving tracks with one transition for every kept thing and one growth for every new
-one are the arriving tracks, each in its own way, that give every thing the same. -/
-theorem arrive_eq_arriveWith {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move enter : Transition) :
-    arrive key place j move enter =
-      arriveWith key place j (fun _ => move) (fun _ => (.grow 0 1000, enter)) := rfl
-
-/-- A track of the arriving things, each in its own way, is the shift of a kept pair or the
-change of a new thing. -/
-theorem mem_arriveWith {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move : α → Transition) (enter : α → Change × Transition) {tr : Track κ}
-    (h : tr ∈ arriveWith key place j move enter) :
-    (∃ p ∈ j.update, tr = ⟨key p.2, .shift (place p.1 - place p.2) 0, move p.2⟩) ∨
-      ∃ n ∈ j.enter, tr = ⟨key n, (enter n).1, (enter n).2⟩ := by
-  rcases List.mem_append.mp h with hu | he
-  · obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hu
-    exact Or.inl ⟨p, hp, rfl⟩
-  · obtain ⟨n, hn, rfl⟩ := List.mem_map.mp he
-    exact Or.inr ⟨n, hn, rfl⟩
-
-/-- There is one arriving track for each thing of the new picture, whatever way each takes. -/
-theorem length_arriveWith {κ α : Type} [BEq κ] (key : α → κ) (place : α → IVec)
-    (old new : List α) (move : α → Transition) (enter : α → Change × Transition) :
-    (arriveWith key place (join key old new) move enter).length = new.length := by
-  rw [arriveWith, List.length_append, List.length_map, List.length_map, Nat.add_comm]
-  exact length_enter_add_update key old new
-
-/-- Every arriving track settles, where each new thing enters by a change that ends at rest: a
-kept thing ends on its place. -/
-theorem arriveWith_settles {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move : α → Transition) (enter : α → Change × Transition)
-    (h : ∀ n, (enter n).1.stop.AtRest) :
-    ∀ tr ∈ arriveWith key place j move enter, tr.Settles := by
-  intro tr htr
-  rcases mem_arriveWith key place j move enter htr with ⟨_, _, rfl⟩ | ⟨n, _, rfl⟩
-  · exact rfl
-  · exact h n
-
-/-- Every arriving track has a proper easing, where every transition given has one. -/
-theorem arriveWith_proper {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move : α → Transition) (enter : α → Change × Transition)
-    (hm : ∀ a, (move a).ease.Proper) (he : ∀ n, (enter n).2.ease.Proper) :
-    ∀ tr ∈ arriveWith key place j move enter, tr.timing.ease.Proper := by
-  intro tr htr
-  rcases mem_arriveWith key place j move enter htr with ⟨p, _, rfl⟩ | ⟨n, _, rfl⟩
-  · exact hm p.2
-  · exact he n
-
-/-- An arriving track has the key of a thing of the new picture, whatever way each takes. -/
-theorem mem_arriveWith_key {κ α : Type} [BEq κ] [LawfulBEq κ] (key : α → κ) (place : α → IVec)
-    (old new : List α) (move : α → Transition) (enter : α → Change × Transition) {tr : Track κ}
-    (h : tr ∈ arriveWith key place (join key old new) move enter) :
-    ∃ n ∈ new, key n = tr.key := by
-  rcases mem_arriveWith key place (join key old new) move enter h with
-    ⟨⟨o, n⟩, hp, rfl⟩ | ⟨n, hn, rfl⟩
-  · exact ⟨n, (mem_update key old new hp).2.1, rfl⟩
-  · exact ⟨n, ((mem_enter key old new).mp hn).1, rfl⟩
-
-/-- **The end law of a step, each thing in its own way.** With proper easings and changes that
-end at rest, every arriving thing is at rest at the end of the step. -/
-theorem arriveWith_end {κ α : Type} (key : α → κ) (place : α → IVec) (j : Join α)
-    (move : α → Transition) (enter : α → Change × Transition)
-    (hm : ∀ a, (move a).ease.Proper) (he : ∀ n, (enter n).2.ease.Proper)
-    (hs : ∀ n, (enter n).1.stop.AtRest) :
-    ∀ tr ∈ (arriveWith key place j move enter).within, (tr.at 1000).AtRest :=
-  within_atRest (arriveWith key place j move enter)
-    (arriveWith_proper key place j move enter hm he) (arriveWith_settles key place j move enter hs)
+/-- **A key with no track has no pose**, at any moment: a reader draws its thing as it is. -/
+theorem still_of_no_track {κ : Type} [BEq κ] [LawfulBEq κ] (m : Motion κ) (k : κ) (t : Nat)
+    (h : ∀ tr ∈ m, tr.key ≠ k) : m.posesOf k t = [] := by
+  have hf : m.filter (fun tr => tr.key == k) = [] :=
+    eq_nil_of_no_mem fun tr htr =>
+      h tr (List.mem_filter.mp htr).1 (beq_iff_eq.mp (List.mem_filter.mp htr).2)
+  show (m.filter fun tr => tr.key == k).map (fun tr => tr.at t) = []
+  rw [hf]
+  rfl
 
 /-! ### Tracks started later -/
 

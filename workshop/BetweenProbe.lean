@@ -1,6 +1,7 @@
 import Whatwg.Html.Node.SvgMotion
 import Whatwg.Html.Print.Picture
 import Whatwg.Svg.Geometry.Outline
+import Whatwg.Svg.Scene.Plan
 
 /-! A probe of what holds at every moment of a step (module M1 of
 `docs/research/2026-10-12-pictures-craft-modules.md`). Run it from the repository root after
@@ -52,14 +53,14 @@ def settle : Easing :=
 
 def stepMs : Nat := 1600
 
-/-- The tracks of the step: the box that leaves fades, and each kept box moves by the
-transition that `timing` gives its key. -/
+/-- The tracks of the step, from one plan: the box that leaves fades, and each kept box whose
+place changed moves by the transition that `timing` gives its key. The box that stays where it
+is has no track. -/
 def motion (timing : String → Transition) : Motion String :=
-  let j := join Item.key before after
-  Motion.within
-    (Motion.arriveWith Item.key (fun i => ⟨i.x, 0⟩) j (fun i => timing i.key)
-        (fun _ => (.fade 0 1000, {})) ++
-      j.exit.map fun o => ⟨o.key, .fade 1000 0, { duration := 250, ease := Easing.cubicIn }⟩)
+  Motion.within <| Motion.ofJoin Item.key (join Item.key before after)
+    { kept := fun o n => Plan.moving (fun i => ⟨i.x, 0⟩) (timing n.key) o n
+      enter := fun _ => [(.fade 0 1000, {})]
+      leave := fun _ => [(.fade 1000 0, { duration := 250, ease := Easing.cubicIn })] }
 
 /-- 1. One timing, an easing in range. -/
 def together : Motion String := motion fun _ => { delay := 250, duration := 600, ease := settle }

@@ -32,9 +32,11 @@ the floor of, in exact numbers, is said in `Whatwg/Svg/Geometry/Easing.lean`.
   of shape between two lists of segments of whole units (ruling SV-68): an edge between two
   things that move differently changes so, and stays joined to both.
 - `Track`: a key, a change and a transition. `Motion`: a list of tracks.
-- `Motion.arrive` and `Motion.depart`: the tracks of a join. A kept thing moves from its old
-  place, a new thing grows, an old thing shrinks. `Motion.arriveWith` takes each new thing's
-  entrance from the thing, and `Motion.delayed` starts each track later by its key.
+- `Motion.within` holds every track inside a step of a thousand, and `Motion.delayed` starts
+  each track later by its key.
+
+The tracks of a join, what each kept, new and old thing does, are in
+`Whatwg/Svg/Scene/Plan.lean`: `Motion.ofJoin` of a `Plan`.
 
 The laws are in `Whatwg/Svg/Scene/Motion/Laws.lean`. The first is the end law: a track whose
 transition is over stands at the end of its change (`Track.at_done`), so a step's last moment
@@ -273,7 +275,7 @@ abbrev Motion (κ : Type) : Type := List (Track κ)
 
 namespace Motion
 
-variable {κ α : Type}
+variable {κ : Type}
 
 /-- Every key with its pose, track by track, at the moment `t`. -/
 def poses (m : Motion κ) (t : Nat) : List (κ × Pose) := m.map fun tr => (tr.key, tr.at t)
@@ -285,31 +287,11 @@ def posesOf [BEq κ] (m : Motion κ) (key : κ) (t : Nat) : List Pose :=
 /-- The motion with every transition held inside a step of a thousand. -/
 def within (m : Motion κ) : Motion κ := m.map fun tr => { tr with timing := tr.timing.within }
 
-/-- The tracks of the things of a join that are in the new picture. A kept thing moves from
-its old place to its new one, by `move`. A new thing grows from nothing, by `enter`. -/
-def arrive (key : α → κ) (place : α → IVec) (j : Join α) (move enter : Transition) : Motion κ :=
-  j.update.map (fun p => ⟨key p.2, .shift (place p.1 - place p.2) 0, move⟩) ++
-    j.enter.map (fun n => ⟨key n, .grow 0 1000, enter⟩)
-
-/-- **The tracks of the things of a join that are in the new picture, each in its own way.** A
-kept thing moves from its old place by the transition that `move` gives it. A new thing enters
-by the change and the transition that `enter` gives it: a box may grow, a line draw itself, a
-row appear. -/
-def arriveWith (key : α → κ) (place : α → IVec) (j : Join α) (move : α → Transition)
-    (enter : α → Change × Transition) : Motion κ :=
-  j.update.map (fun p => ⟨key p.2, .shift (place p.1 - place p.2) 0, move p.2⟩) ++
-    j.enter.map (fun n => ⟨key n, (enter n).1, (enter n).2⟩)
-
 /-- **The motion with each track started later**, by what `later` gives its key: things that
 enter one after another, level by level or row by row. Hold the result in its step with
 `within`. -/
 def delayed (m : Motion κ) (later : κ → Nat) : Motion κ :=
   m.map fun tr => { tr with timing := { tr.timing with delay := tr.timing.delay + later tr.key } }
-
-/-- The tracks of the things of a join that leave: an old thing shrinks to nothing, by
-`leave`. -/
-def depart (key : α → κ) (j : Join α) (leave : Transition) : Motion κ :=
-  j.exit.map fun o => ⟨key o, .grow 1000 0, leave⟩
 
 end Motion
 

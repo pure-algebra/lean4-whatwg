@@ -462,3 +462,33 @@ the browser's animation over five still pictures from the kit's own reading.
 **What follows.** `docs/research/2026-10-12-pictures-craft-modules.md` ranks sixteen modules.
 The first says what holds at every moment of a step: a gap that both pictures have is a gap
 of every moment between them, where the things take one timing and the easing stays in range.
+
+## 13. Slice S14: a plan for a step, and what a row keeps
+
+Everything here is under `Whatwg/Svg/Scene/`, inside your axiom rule (`propext` and
+`Quot.sound`).
+
+- **`Plan`** replaces `Motion.arriveWith` and `Motion.depart`, which are gone. A plan says what
+  a kept thing does, how a new thing enters and how an old one leaves, each as a list of
+  changes with their transitions. `Motion.ofJoin key (join key old new) plan` is the step. With
+  `plan.Settles` and `plan.Proper`, `Motion.ofJoin_end` is your `sample_end`: at the step's end
+  and after, every thing of the new list is at rest. `Join.drawn` is the list your sampler
+  builds by hand: the leaving things until the end, then the new list. The port in
+  `WhatwgTest/Html/SvgMotion.lean` shows your five-thing step on it.
+- **`Row`** is for a rank whose boxes change their widths. `Row.between e s s' ws ws'` moves
+  the edges. At every eased progress the row tiles and has the mixed length, and a gap that
+  both pictures have is that gap exactly, on a spring that overshoots too. Mixing each width by
+  itself loses a pixel of the rank at some moments, and a stagger of kept boxes loses the gap:
+  `row.html` shows both with your gap of 16.
+- **`Scale`** takes a quantity to a length and names the values that the rounding shows as
+  one (`Scale.ties`, `Scale.groups`), for a legend that says "3 and deeper".
+- **`Metrics`** and **`Label`**. A face is numbers that a host measures once; your grid of
+  cells is `Metrics.mono`, with no host. `Label.fitAll` fits the labels of a picture to their
+  rooms and never shows two different labels as one text: where the only cut that fits would
+  read as both, each becomes a sign.
+- **One finding for you** (`branch.html`). At the exponent two and your default wobble of 350
+  per mille a branch is in places wider than its trunk. The proved room for a fork of two is
+  171.
+
+Not done: no function of the kit puts the poses of a moment on a thing yet. It is the next
+slice, with a step that resumes from where things stand when a new request interrupts it.

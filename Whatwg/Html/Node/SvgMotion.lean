@@ -12,7 +12,7 @@ a change and a transition. A program that draws every moment itself reads a trac
 animations, so a step is one picture and its tracks, and no row of pictures.
 
 ```
-let m := (Motion.arrive key place j move enter ++ Motion.depart key j leave).within
+let m := (Motion.ofJoin key j plan).within         -- the tracks of a join: `Scene/Plan.lean`
 Svg.svg [] (Svg.styleSheet m.sheet :: marks)       -- one `@keyframes` rule for each track
 Svg.path d (m.attrs k 600)                         -- the thing with the key `k`, in a step of 600 ms
 ```

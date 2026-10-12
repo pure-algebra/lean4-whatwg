@@ -20,7 +20,8 @@ three selections. These laws say that it sorts every thing, and where each thing
   (`join_nil_left`, `join_nil_right`). A list joined to itself has no thing that enters and no
   thing that exits (`enter_self`, `exit_self`).
 - Distinct keys stay distinct among the entering things and among the exiting ones
-  (`distinct_enter`, `distinct_exit`).
+  (`distinct_enter`, `distinct_exit`). With distinct keys, two things of a list with one key are
+  one thing (`eq_of_distinct`).
 
 The key is of any type with an equality test. A law that needs the test to be lawful says so,
 and the others hold of any test. Every law here depends on `propext` and `Quot.sound` at most.
@@ -56,6 +57,17 @@ theorem length_filter_add_filterMap {α β : Type} (p : α → Bool) (f : α →
       have hp : ¬p a = true := fun h => Bool.false_ne_true ((hs a b hf).symm.trans h)
       rw [List.filter_cons_of_neg hp, List.filterMap_cons_some hf, List.length_cons,
         List.length_cons, ← Nat.add_assoc, ih]
+
+/-- A `flatMap` whose every result has `k` members at most gives `k` members at most for each
+member of the list. -/
+theorem length_flatMap_le {α β : Type} (f : α → List β) (k : Nat) : ∀ l : List α,
+    (∀ a ∈ l, (f a).length ≤ k) → (l.flatMap f).length ≤ k * l.length
+  | [], _ => Nat.le_refl 0
+  | a :: l, h => by
+    have h1 := length_flatMap_le f k l fun x hx => h x (List.mem_cons_of_mem a hx)
+    have h2 := h a List.mem_cons_self
+    rw [List.flatMap_cons, List.length_append, List.length_cons, Nat.mul_add, Nat.mul_one]
+    omega
 
 /-- The things of a list that pass a test keep distinct keys. -/
 theorem distinct_filter {α κ : Type} (key : α → κ) {l : List α} (hd : Distinct key l)
@@ -225,5 +237,20 @@ theorem distinct_enter {α κ : Type} [BEq κ] (key : α → κ) (old new : List
 theorem distinct_exit {α κ : Type} [BEq κ] (key : α → κ) (old new : List α)
     (hd : Distinct key old) : Distinct key (join key old new).exit :=
   distinct_filter key hd _
+
+/-- **With distinct keys, two things of a list with one key are one thing.** The key of a
+thing names it. -/
+theorem eq_of_distinct {α κ : Type} (key : α → κ) : ∀ (l : List α), Distinct key l →
+    ∀ (a b : α), a ∈ l → b ∈ l → key a = key b → a = b
+  | [], _, _, _, ha, _, _ => nomatch ha
+  | x :: rest, hd, a, b, ha, hb, hk => by
+    have hd' : key x ∉ rest.map key ∧ (rest.map key).Nodup := List.nodup_cons.mp hd
+    rcases List.mem_cons.mp ha with ea | ra
+    · rcases List.mem_cons.mp hb with eb | rb
+      · exact ea.trans eb.symm
+      · exact absurd (List.mem_map.mpr ⟨b, rb, hk.symm.trans (congrArg key ea)⟩) hd'.1
+    · rcases List.mem_cons.mp hb with eb | rb
+      · exact absurd (List.mem_map.mpr ⟨a, ra, hk.trans (congrArg key eb)⟩) hd'.1
+      · exact eq_of_distinct key rest hd'.2 a b ra rb hk
 
 end Whatwg.Svg.Scene

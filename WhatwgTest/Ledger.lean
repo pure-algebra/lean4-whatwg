@@ -11,6 +11,7 @@ import WhatwgTest.Ledger.UrlPercent
 import WhatwgTest.Ledger.UrlCensus
 import WhatwgTest.Ledger.PromiseAgent
 import WhatwgTest.Ledger.SvgSeam
+import WhatwgTest.Ledger.SvgMotion
 
 /-!
 # WhatwgTest.Ledger
@@ -68,10 +69,11 @@ bridge to the expression's language and the located refusal of a text. Since sli
 holds the geometry on those values: exact arithmetic, the cursor of a path with the pen, and
 a transform on a point. Since slice S11 it holds the exact geometry in `Rat`: the number of a
 value, a cubic segment, a box, an affine map, outlines, a root, the curves of d3-shape as
-segments, and the writer of segments. Since slice S12 it holds the layer with no rational
-number, `Whatwg.Svg.Scene` (things that move, the join by key, motion as data), the seam
-between whole units and exact numbers, and a stroke of varying width. It contributes to the representation edge of
-`SVG-PG-SEAM`. -/
+segments, and the writer of segments. Since slice S12 it holds the seam between whole units and
+exact numbers, and a stroke of varying width. From slice S12 to slice S13 it also held the layer
+with no rational number, `Whatwg.Svg.Scene`: since slice S14 the passive data of that layer is
+the leaf `SVG-LF-SCENE` and motion is the graph `SVG-PG-MOTION` (ruling SV-79). It contributes
+to the representation edge of `SVG-PG-SEAM`. -/
 def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
   document := "docs/SVG-PACKAGE-PLAN.md"
@@ -99,14 +101,10 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Affine, `Whatwg.Svg.Value.Cubic.roundRect,
     `Whatwg.Svg.Value.Cubic.roundRect_within, `Whatwg.Svg.Value.sqrtDown,
     `Whatwg.Svg.Value.sqrtDown_mul_self_le, `Whatwg.Svg.Value.Pen.cubic,
-    `Whatwg.Svg.Scene.IVec, `Whatwg.Svg.Scene.Moves, `Whatwg.Svg.Scene.join,
-    `Whatwg.Svg.Scene.join_new, `Whatwg.Svg.Scene.Easing, `Whatwg.Svg.Scene.Track,
-    `Whatwg.Svg.Scene.Track.at_done, `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid,
-    `Whatwg.Svg.Scene.Easing.segment_pointAt, `Whatwg.Svg.Value.Curve.smooth_windows,
+    `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid, `Whatwg.Svg.Value.Curve.smooth_windows,
     `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Noise.two_band,
     `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move,
-    `Whatwg.Svg.Value.stack, `Whatwg.Svg.Scene.Tree, `Whatwg.Svg.Scene.Kept,
-    `Whatwg.Svg.Scene.Share, `Whatwg.Svg.Scene.Motion.Respects]
+    `Whatwg.Svg.Value.stack]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -152,36 +150,16 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Curve.chained_cubics, `Whatwg.Svg.Value.Curve.cubics_last,
       `Whatwg.Svg.Value.Curve.cardinal_starts, `Whatwg.Svg.Value.Curve.closed_cubicsClosed,
       `Whatwg.Svg.Value.Curve.cubics_move, `Whatwg.Svg.Value.Shape.endPoint_line,
-      `Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
-      `Whatwg.Svg.Scene.Commutes.transport, `Whatwg.Svg.Scene.join_new,
-      `Whatwg.Svg.Scene.join_old, `Whatwg.Svg.Scene.length_enter_add_update,
-      `Whatwg.Svg.Scene.mem_update_iff, `Whatwg.Svg.Scene.Easing.stopsAt_stop,
-      `Whatwg.Svg.Scene.Easing.proper_cubic, `Whatwg.Svg.Scene.Transition.at_done,
-      `Whatwg.Svg.Scene.Track.at_done, `Whatwg.Svg.Scene.Motion.within_atRest,
-      `Whatwg.Svg.Scene.Motion.length_arrive, `Whatwg.Svg.Scene.Motion.arrive_end,
       `Whatwg.Svg.Value.Vec.toGrid_ofGrid, `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid,
       `Whatwg.Svg.Value.Vec.snap_add_ofGrid, `Whatwg.Svg.Scene.Commutes.grid,
-      `Whatwg.Svg.Value.mix_eq_floor, `Whatwg.Svg.Scene.Easing.segment_pointAt,
-      `Whatwg.Svg.Scene.Easing.cubicAt_eq_floor, `Whatwg.Svg.Value.Curve.smooth_windows,
+      `Whatwg.Svg.Value.mix_eq_floor, `Whatwg.Svg.Value.Curve.smooth_windows,
       `Whatwg.Svg.Value.Curve.smooth_cubics_cardinal, `Whatwg.Svg.Value.Cubic.pointAt_near,
       `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Cubic.chord_error,
       `Whatwg.Svg.Value.Noise.two_band, `Whatwg.Svg.Value.Stroke.closed_stroke,
       `Whatwg.Svg.Value.Stroke.stroke_move, `Whatwg.Svg.Value.Stroke.organic_band,
       `Whatwg.Svg.Value.Stroke.commutes_onGrid, `Whatwg.Svg.Value.Curve.through_move,
       `Whatwg.Svg.Value.stack_lengths, `Whatwg.Svg.Value.stack_apart,
-      `Whatwg.Svg.Value.ports_move, `Whatwg.Svg.Scene.Easing.cubicOf_eq_floor,
-      `Whatwg.Svg.Scene.Transition.at_cubic, `Whatwg.Svg.Scene.Tree.spans_within,
-      `Whatwg.Svg.Scene.Tree.spansAll_apart, `Whatwg.Svg.Scene.Tree.spans_shift,
-      `Whatwg.Svg.Scene.Tree.spans_values, `Whatwg.Svg.Scene.Easing.of_thousand,
-      `Whatwg.Svg.Scene.mix_shift, `Whatwg.Svg.Scene.ICubic.mix_move,
-      `Whatwg.Svg.Scene.Change.at_morph, `Whatwg.Svg.Scene.Motion.length_arriveWith,
-      `Whatwg.Svg.Scene.Motion.arriveWith_end, `Whatwg.Svg.Scene.Motion.delayed_within_atRest,
-      `Whatwg.Svg.Scene.mix_gap, `Whatwg.Svg.Scene.mix_mem,
-      `Whatwg.Svg.Scene.Easing.bounded_at, `Whatwg.Svg.Scene.Transition.bounded_at,
-      `Whatwg.Svg.Scene.Kept.moment, `Whatwg.Svg.Scene.grow_clear,
-      `Whatwg.Svg.Scene.rootDown_pow_le, `Whatwg.Svg.Scene.lt_rootDown_succ_pow,
-      `Whatwg.Svg.Scene.Motion.finish_le, `Whatwg.Svg.Scene.Motion.delayed_respects,
-      `Whatwg.Svg.Scene.Motion.reduced_settles, `Whatwg.Svg.Scene.Motion.fit_finish],
+      `Whatwg.Svg.Value.ports_move],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,
@@ -189,9 +167,43 @@ def svgGrammar : Leaf where
       `WhatwgTest.Svg.Deterministic,
       `WhatwgTest.Svg.Refusal, `WhatwgTest.Svg.D3Shape]]
 
-/-- The ledger: the twelve graphs of slices A and B and the graph
-`SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9), the
-two leaf records, and the fourteen unrouted prefixes of slice D (ruling
+/-- The leaf-receipt record `SVG-LF-SCENE`: the passive data of the layer with no rational
+number, `Whatwg.Svg.Scene`, under the strict axiom ceiling (ruling SV-79 of
+`docs/SVG-PACKAGE-PLAN.md`). A thing that moves and the law of a stored result, the join of two
+lists by key, the placement of a tree, the share of a branch, a row whose lengths change, a scale
+with its ties, what a host says of a face, and a label fitted to a room. Each is a value with
+its laws and has no reading in time: motion, which has one, is the graph `SVG-PG-MOTION`. The
+record is standalone. -/
+def svgScene : Leaf where
+  id := "SVG-LF-SCENE"
+  document := "docs/SVG-PACKAGE-PLAN.md"
+  declarations := [`Whatwg.Svg.Scene.IVec, `Whatwg.Svg.Scene.Moves, `Whatwg.Svg.Scene.join,
+    `Whatwg.Svg.Scene.join_new, `Whatwg.Svg.Scene.Tree, `Whatwg.Svg.Scene.Share,
+    `Whatwg.Svg.Scene.Row.between, `Whatwg.Svg.Scene.Scale, `Whatwg.Svg.Scene.Metrics,
+    `Whatwg.Svg.Scene.Piece, `Whatwg.Svg.Scene.Label.fit]
+  parent := none
+  receipts := [
+    .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
+      `Whatwg.Svg.Scene.Commutes.transport, `Whatwg.Svg.Scene.join_new,
+      `Whatwg.Svg.Scene.join_old, `Whatwg.Svg.Scene.length_enter_add_update,
+      `Whatwg.Svg.Scene.mem_update_iff, `Whatwg.Svg.Scene.Tree.spans_within,
+      `Whatwg.Svg.Scene.Tree.spansAll_apart, `Whatwg.Svg.Scene.Tree.spans_shift,
+      `Whatwg.Svg.Scene.Tree.spans_values, `Whatwg.Svg.Scene.rootDown_pow_le,
+      `Whatwg.Svg.Scene.lt_rootDown_succ_pow, `Whatwg.Svg.Scene.Row.tiles_between,
+      `Whatwg.Svg.Scene.Row.between_conserves, `Whatwg.Svg.Scene.Row.between_mem,
+      `Whatwg.Svg.Scene.Scale.at_mono, `Whatwg.Svg.Scene.Scale.linear_strict,
+      `Whatwg.Svg.Scene.Scale.at_lt_or_tie, `Whatwg.Svg.Scene.Metrics.width_draws,
+      `Whatwg.Svg.Scene.Metrics.fits_draws, `Whatwg.Svg.Scene.Metrics.width_append,
+      `Whatwg.Svg.Scene.Metrics.fits_any, `Whatwg.Svg.Scene.Metrics.tabular_aligns,
+      `Whatwg.Svg.Scene.Label.fit_fits, `Whatwg.Svg.Scene.Label.fit_subsequence,
+      `Whatwg.Svg.Scene.Label.fit_mono, `Whatwg.Svg.Scene.Label.fitAmong_alone,
+      `Whatwg.Svg.Scene.Label.fitAll_distinct],
+    .gate .build]
+
+/-- The ledger: the twelve graphs of slices A and B, the graph
+`SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9) and the
+graph `SVG-PG-MOTION` of its slice S14 (ruling R-S29), the three leaf
+records, and the fourteen unrouted prefixes of slice D (ruling
 R-W22): the thirteen of debt D57, in the order of the contract's section 12,
 and `Whatwg.Streams.Kernel`, of debt D68. The prefix `Whatwg.Svg` of debt
 D78 (ruling R-S4) is gone: the fence of `SVG-PG-SEAM` owns its modules.
@@ -200,8 +212,8 @@ graph routes, so no prefix names them. -/
 def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
     transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,
-    promiseAgent, svgSeam]
-  leaves := [infraInteger, svgGrammar]
+    promiseAgent, svgSeam, svgMotion]
+  leaves := [infraInteger, svgGrammar, svgScene]
   unrouted := [⟨`Whatwg.Html, "D57"⟩, ⟨`Whatwg.Infra.Namespaces, "D57"⟩,
     ⟨`Whatwg.Infra.Bytes.Byte, "D57"⟩, ⟨`Whatwg.Infra.Bytes.Sequence, "D57"⟩,
     ⟨`Whatwg.Infra.Primitive.Singleton, "D57"⟩, ⟨`Whatwg.Infra.Text.Case, "D57"⟩,

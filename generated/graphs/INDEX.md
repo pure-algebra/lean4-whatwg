@@ -2,7 +2,7 @@
 
 # Graph ledger index
 
-Totals: 13 graph(s), 130 edges (77 required-open, 39 required-closed, 14 not-applicable), 2 leaf record(s), 14 unrouted prefix(es).
+Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-applicable), 3 leaf record(s), 14 unrouted prefix(es).
 
 ## Graphs
 
@@ -21,13 +21,15 @@ Totals: 13 graph(s), 130 edges (77 required-open, 39 required-closed, 14 not-app
 | [`URL-PG-CENSUS`](URL-PG-CENSUS.md) | `docs/URL-CENSUS-DAG.md` | 8 | 0 | 2 |
 | [`PROMISE-PG-AGENT`](PROMISE-PG-AGENT.md) | `docs/PROMISE-AGENT-DAG.md` | 10 | 0 | 0 |
 | [`SVG-PG-SEAM`](SVG-PG-SEAM.md) | `docs/SVG-SEAM-DAG.md` | 9 | 0 | 1 |
+| [`SVG-PG-MOTION`](SVG-PG-MOTION.md) | `docs/SVG-MOTION-DAG.md` | 10 | 0 | 0 |
 
 ## Leaf records
 
 | Leaf | Document | Parent | Declarations |
 | --- | --- | --- | ---: |
 | `INFRA-LF-INTEGER` | `docs/INFRA-INTEGER-CONSTRUCTIVE.md` | standalone | 9 |
-| `SVG-LF-GRAMMAR` | `docs/SVG-PACKAGE-PLAN.md` | `SVG-PG-SEAM` representation | 70 |
+| `SVG-LF-GRAMMAR` | `docs/SVG-PACKAGE-PLAN.md` | `SVG-PG-SEAM` representation | 58 |
+| `SVG-LF-SCENE` | `docs/SVG-PACKAGE-PLAN.md` | standalone | 11 |
 
 ## Unrouted prefixes
 

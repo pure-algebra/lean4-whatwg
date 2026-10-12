@@ -1,4 +1,4 @@
-import Whatwg.Svg.Scene.Motion.Laws
+import Whatwg.Svg.Scene.Plan
 import Whatwg.Html.Node.SvgMotion
 
 /-!
@@ -15,9 +15,10 @@ choreography (`Choreography`) under the consumer's names, and copies the consume
 **What the kit carries.** The consumer wrote for itself a mix of two values, seven easings, a
 transition with its timing, a join by key, and a sample of a step with its end law. All of it
 is now in the kit, in whole numbers and under the strict ceiling as the consumer has it:
-`Whatwg/Svg/Scene/Join.lean`, `Whatwg/Svg/Scene/Motion.lean` and their laws. What is here is
-what the consumer brings: its two tables, its seven names, its default numbers, the levels of
-a layout, and the things of a scene.
+`Whatwg/Svg/Scene/Join.lean`, `Whatwg/Svg/Scene/Motion.lean` and `Whatwg/Svg/Scene/Plan.lean`,
+with their laws. What is here is what the consumer brings: its two tables, its seven names, its
+default numbers, the levels of a layout, the things of a scene, and one `Plan` that says what
+each thing of a step does.
 
 | The consumer's | Here |
 | --- | --- |
@@ -31,20 +32,21 @@ a layout, and the things of a scene.
 | `Transition.within_end`, `within_at_end`, `after_at_end` | the kit's, under the same names |
 | `Join`, `join`, `join_new`, `join_old` | the kit's, for a key of any type |
 | `Choreography`, `Choreography.norm` | the same, of kit transitions, by `Transition.per` |
-| `placedAt`, `routeAt` | a track of `Motion.arriveWith` for each thing; `Seen.under` |
+| `placedAt`, `routeAt` | the tracks that `plan` gives the things of the new scene; `Seen.under` |
 | `levels`, `slot`, `start` | `levels`, `slot`, `lateness` |
-| `drawAt`, `expandAt` | `entrance`, started later by `Motion.delayed` |
-| `gone`, `retracting` | `Motion.depart` |
+| `drawAt`, `expandAt` | `entrance`, started later by `lateness`, in the plan's `enter` |
+| `gone`, `retracting` | the plan's `leave`, and `Join.drawn` |
 | `sampleLaid` | `motion`, the tracks of the step, and `sample`, their reading |
 | `Laid.AtRest` | `Pose.AtRest`, and `Thing.still` |
-| `placedAt_end`, `routeAt_end`, `sampleLaid_end` | `arriving_end`, `motion_end`, `sample_end` |
+| `placedAt_end`, `routeAt_end`, `sampleLaid_end` | `motion_end`, `sample_end` |
 
 **The laws.** The consumer's end law is `sampleLaid_end`: the layout at a step's end is the
-next frame's. Here it is three statements. Every track of a thing of the new scene is at rest
-at the end (`arriving_end`, a case of `Motion.delayed_within_atRest`). Every other track is of a
-thing that the new scene does not have (`motion_end`, by `Motion.mem_depart_key`). So the scene
-read at the end is the new scene (`sample_end`). A kept thing under its track stands where the
-consumer's `lerp` puts it (`under_shift`, by `mix_shift`).
+next frame's. A step here is one `Plan` of the kit (`plan`). It settles (`plan_settles`), and it
+is proper where the choreography is (`plan_proper`). The kit's laws of a plan then give the two
+statements. At the end every track is at rest, or is of a thing that the new scene does not
+have (`motion_end`, by `Motion.staying_end` and `Motion.mem_leaving_key`). The scene read at the
+end is the new scene (`sample_end`, by `Motion.ofJoin_end` and `Join.drawn_end`). A kept thing
+under its track stands where the consumer's `lerp` puts it (`under_shift`, by `mix_shift`).
 
 **The easings.** Four of the seven read as the consumer's at every moment. `linear` is
 `Easing.linear` (`kit_linear`, up to `1000`), `in_` is `Easing.cubicIn` (`kit_in`), and
@@ -76,8 +78,9 @@ much; no theorem states it.
   So the end law asks that the easings be proper (`Choreography.Proper`), which the consumer's
   seven are (`Ease.kit_proper`).
 - *A kept route.* The consumer draws a kept route whole at its new place from the step's
-  start. Here every kept thing has a track, so a kept route moves with its target.
-- *A route that leaves.* The consumer's retracts toward its source. `Motion.depart` shrinks
+  start. Here a kept thing whose place changed has a track, so a kept route moves with its
+  target. A kept thing that stands where it stood has no track.
+- *A route that leaves.* The consumer's retracts toward its source. The plan here shrinks
   every thing that leaves.
 - *The default easing.* A transition of the consumer eases in and out where none is named. A
   transition of the kit is then linear. No default of the choreography leaves it unnamed.
@@ -364,30 +367,22 @@ def lateness (c : Choreography) (ls : List Int) (n : Thing) : Nat :=
     | .route => 0
     | .box => slot c ls * 40 / 100
 
-/-- The tracks of the things of a join that are in the new scene, before their delay. A kept
-thing moves from its old place by `move`. -/
-def entering (c : Choreography) (j : Join Thing) : Motion String :=
-  Motion.arriveWith Thing.key Thing.place j (fun _ => c.move) (entrance c (levels j.enter))
-
-/-- How much later the track of a key starts: a new thing by its level, a kept thing not at
-all. -/
-def later (c : Choreography) (j : Join Thing) (k : String) : Nat :=
-  ((j.enter.find? fun n => n.key == k).map (lateness c (levels j.enter))).getD 0
-
-/-- **The tracks of the things of the new scene**: the consumer's `placedAt` and `routeAt` over
-the new layout. A kept thing moves from its old place. A new route draws itself and a new box
-grows, each at its level's time. -/
-def arriving (c : Choreography) (old new : List Thing) : Motion String :=
-  (entering c (join Thing.key old new)).delayed (later c (join Thing.key old new))
-
-/-- **The tracks of the things that leave**: the consumer's `gone` and `retracting`. -/
-def leaving (c : Choreography) (old new : List Thing) : Motion String :=
-  Motion.depart Thing.key (join Thing.key old new) c.leave
+/-- **The plan of a step**: what each thing of a join does. It is the consumer's `placedAt` and
+`routeAt` over the new layout, and its `gone` and `retracting`. A kept thing moves from its old
+place by `move`, where its place changed. A new route draws itself and a new box grows, each
+started at its level's time. An old thing shrinks by `leave`. -/
+def plan (c : Choreography) (j : Join Thing) : Plan Thing where
+  kept := Plan.moving Thing.place c.move
+  enter := fun n =>
+    let e := entrance c (levels j.enter) n
+    [(e.1, { e.2 with delay := e.2.delay + lateness c (levels j.enter) n })]
+  leave := fun _ => [(.grow 1000 0, c.leave)]
 
 /-- **The motion of a step** from an old scene to a new one, in the choreography's per mille
 of its step: what the consumer's `sampleLaid` samples. -/
 def motion (c : Choreography) (old new : List Thing) : Motion String :=
-  (arriving c.norm old new ++ leaving c.norm old new).within
+  (Motion.ofJoin Thing.key (join Thing.key old new)
+    (plan c.norm (join Thing.key old new))).within
 
 /-- A new thing enters by a transition of the choreography, so by a proper easing. -/
 theorem entrance_proper (c : Choreography) (ls : List Int) (n : Thing) (h : c.Proper) :
@@ -408,45 +403,42 @@ theorem entrance_settles (c : Choreography) (ls : List Int) (n : Thing) :
     | box => exact rfl
     | route => exact rfl
 
-/-- There is one arriving track for each thing of the new scene. -/
-theorem length_arriving (c : Choreography) (old new : List Thing) :
-    (arriving c old new).length = new.length :=
-  (Motion.length_delayed (entering c (join Thing.key old new)) _).trans
-    (Motion.length_arriveWith Thing.key Thing.place old new (fun _ => c.move) _)
+/-- **The plan of a step settles**: a kept thing ends on its place, a route drawn whole and a
+box at its whole size. -/
+theorem plan_settles (c : Choreography) (j : Join Thing) : (plan c j).Settles :=
+  ⟨Plan.moving_settles Thing.place c.move, fun n _ h =>
+    List.mem_singleton.mp h ▸ entrance_settles c (levels j.enter) n⟩
 
-/-- **The end law of the arriving things.** At the end of a step every track of a thing of the
-new scene is at rest: a kept thing on its place, a route drawn whole, a box at its whole size.
-It is the consumer's end law `sampleLaid_end` in the kit's terms, with its two steps
-`placedAt_end` and `routeAt_end`; `sample_end` below states it in the consumer's own form. -/
-theorem arriving_end (c : Choreography) (old new : List Thing) (h : c.Proper) :
-    ∀ tr ∈ (arriving c old new).within, (tr.at 1000).AtRest :=
-  Motion.delayed_within_atRest (entering c (join Thing.key old new)) _
-    (Motion.arriveWith_proper Thing.key Thing.place _ (fun _ => c.move) (entrance c _)
-      (fun _ => h.1) fun n => entrance_proper c _ n h)
-    (Motion.arriveWith_settles Thing.key Thing.place _ (fun _ => c.move) (entrance c _) fun n =>
-      entrance_settles c _ n)
+/-- **The plan of a step is proper**, where the choreography is. -/
+theorem plan_proper (c : Choreography) (j : Join Thing) (h : c.Proper) : (plan c j).Proper :=
+  ⟨Plan.moving_proper Thing.place c.move h.1,
+    fun n _ hm => List.mem_singleton.mp hm ▸ entrance_proper c (levels j.enter) n h,
+    fun _ _ hm => List.mem_singleton.mp hm ▸ h.2.1⟩
 
-/-- A leaving track has the key of no thing of the new scene. -/
-theorem leaving_key (c : Choreography) (old new : List Thing) {tr : Track String}
-    (h : tr ∈ leaving c old new) : ∀ n ∈ new, n.key ≠ tr.key := by
-  obtain ⟨_, _, _, hn⟩ := Motion.mem_depart_key Thing.key old new c.leave h
-  exact hn
-
-/-- The motion of a step is its arriving tracks and its leaving ones, each held in the step. -/
-theorem motion_eq (c : Choreography) (old new : List Thing) :
-    motion c old new = (arriving c.norm old new).within ++ (leaving c.norm old new).within :=
-  List.map_append
+/-- There is one track at most for each thing of the new scene, and none for a kept thing that
+stands where it stood. -/
+theorem staying_le (c : Choreography) (old new : List Thing) :
+    (Motion.staying Thing.key (join Thing.key old new)
+      (plan c (join Thing.key old new))).length ≤ new.length := by
+  have h := Motion.length_staying_le Thing.key old new (plan c (join Thing.key old new)) 1
+    (Plan.length_moving_le Thing.place c.move) (fun _ => Nat.le_refl 1)
+  rw [Nat.one_mul] at h
+  exact h
 
 /-- **The end law of a step.** At the end of a step every track is at rest, or is of a thing
-that the new scene does not have. -/
+that the new scene does not have: a kept thing on its place, a route drawn whole, a box at its
+whole size. It is the consumer's end law `sampleLaid_end` in the kit's terms, with its two steps
+`placedAt_end` and `routeAt_end`; `sample_end` below states it in the consumer's own form. -/
 theorem motion_end (c : Choreography) (old new : List Thing) (h : c.Proper) :
     ∀ tr ∈ motion c old new, (tr.at 1000).AtRest ∨ ∀ n ∈ new, n.key ≠ tr.key := by
   intro tr htr
-  rw [motion_eq] at htr
+  rw [motion, Motion.ofJoin_within] at htr
   rcases List.mem_append.mp htr with ha | hl
-  · exact Or.inl (arriving_end c.norm old new (c.norm_proper h) tr ha)
+  · exact Or.inl (Motion.staying_end Thing.key _ _ (plan_settles _ _)
+      (plan_proper _ _ (c.norm_proper h)) tr ha)
   · obtain ⟨tr0, h0, rfl⟩ := Motion.mem_within _ hl
-    exact Or.inr (leaving_key c.norm old new (tr := tr0) h0)
+    obtain ⟨_, _, _, hn⟩ := Motion.mem_leaving_key Thing.key old new _ h0
+    exact Or.inr hn
 
 /-! ## A moment of a step -/
 
@@ -469,13 +461,12 @@ def Seen.under (s : Seen) : Pose → Seen
   | .reveal part => { s with reveal := part }
   | _ => s
 
-/-- **The scene at the moment `t` of a step**: the consumer's `sampleLaid`. The things that
-leave come first, until the step's end; then the things of the new scene. Each is drawn under
-the poses of its key. -/
+/-- **The scene at the moment `t` of a step**: the consumer's `sampleLaid`. The things drawn
+are those of `Join.drawn`: the things that leave come first, until the step's end, and then the
+things of the new scene. Each is drawn under the poses of its key. -/
 def sample (c : Choreography) (old new : List Thing) (t : Nat) : List Seen :=
-  let m := motion c old new
-  let see (n : Thing) : Seen := (m.posesOf n.key t).foldl Seen.under n.still
-  (if 1000 ≤ t then [] else (join Thing.key old new).exit.map see) ++ new.map see
+  ((join Thing.key old new).drawn new t).map fun n =>
+    ((motion c old new).posesOf n.key t).foldl Seen.under n.still
 
 /-- **A kept thing under its track stands where the consumer's `placedAt` puts it**: at the
 consumer's `lerp` of its old place and its new one. -/
@@ -511,13 +502,11 @@ theorem foldl_under_atRest (n : Thing) :
 thing of it on its place, at its whole size and drawn whole, and no other thing. -/
 theorem sample_end (c : Choreography) (old new : List Thing) (h : c.Proper) :
     sample c old new 1000 = new.map Thing.still := by
-  show (if 1000 ≤ 1000 then [] else _) ++ new.map _ = new.map Thing.still
-  rw [if_pos (Nat.le_refl 1000), List.nil_append]
-  refine List.map_congr_left fun n hn => foldl_under_atRest n _ fun p hp => ?_
-  obtain ⟨tr, htr, hk, rfl⟩ := Motion.mem_posesOf _ _ _ hp
-  rcases motion_end c old new h tr htr with hr | hne
-  · exact hr
-  · exact absurd (beq_iff_eq.mp hk).symm (hne n hn)
+  show ((join Thing.key old new).drawn new 1000).map _ = new.map Thing.still
+  rw [Join.drawn_end _ _ (Nat.le_refl 1000)]
+  exact List.map_congr_left fun n hn => foldl_under_atRest n _
+    (Motion.ofJoin_end Thing.key old new _ (plan_settles _ _)
+      (plan_proper _ _ (c.norm_proper h)) hn (Nat.le_refl 1000))
 
 /-! ## A step of five things -/
 

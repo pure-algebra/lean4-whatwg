@@ -15,8 +15,8 @@ own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.H
 D57): this entry cites their theorems and does not fence them.
 
 No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21 and R-S23 to
-R-S28 of `COORDINATION.md` name this graph and change no edge's status, so the entry
-acknowledges the eighteen.
+R-S29 of `COORDINATION.md` name this graph and change no edge's status, so the entry
+acknowledges the nineteen.
 -/
 
 namespace WhatwgTest.Ledger
@@ -30,7 +30,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24", "R-S25", "R-S26", "R-S27", "R-S28"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24", "R-S25", "R-S26", "R-S27", "R-S28", "R-S29"]
   edges := {
     identity := {
       status := .requiredOpen
