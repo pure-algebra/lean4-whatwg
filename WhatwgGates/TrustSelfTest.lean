@@ -199,6 +199,18 @@ def copyTree (source destination : System.FilePath) : IO Unit := do
         created := created.insert parent.toString
     IO.FS.writeBinFile target (← IO.FS.readBinFile file)
 
+/-- Give every file below `directory` the right to be executed. `copyTree` copies contents and
+no access rights, so a copied executable has lost it, and outside Windows Lake then cannot start
+the file: `lake exe` finds the copy up to date and fails to run it. Windows keeps no such right,
+and nothing is done there. -/
+def markExecutable (directory : System.FilePath) : IO Unit := do
+  if System.Platform.isWindows then return
+  unless ← directory.isDir do return
+  let all : IO.AccessRight := { read := true, write := true, execution := true }
+  let others : IO.AccessRight := { read := true, execution := true }
+  for file in ← regularFilesBelow directory do
+    IO.setAccessRights file { user := all, group := others, other := others }
+
 def makeProbe (root : System.FilePath) : IO System.FilePath := do
   let base : System.FilePath ←
     match ← IO.getEnv "TMPDIR" with
@@ -220,6 +232,9 @@ def makeProbe (root : System.FilePath) : IO System.FilePath := do
     if ← source.isDir then
       copyTree source (probe / cached)
       IO.println s!"NOTE probe seeded from {cached}"
+  -- The seeded executables must run: the probe calls `lake exe whatwg_trustgate`, and Lake
+  -- does not relink a file it finds up to date.
+  markExecutable (probe / ".lake" / "build" / "bin")
   return probe
 
 def lakeCommand : String :=
