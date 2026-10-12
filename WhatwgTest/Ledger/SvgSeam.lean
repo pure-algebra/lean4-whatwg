@@ -14,9 +14,9 @@ grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21, R-S23 and R-S24
-of `COORDINATION.md` name this graph and change no edge's status, so the entry acknowledges
-the fourteen.
+No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21 and R-S23 to
+R-S25 of `COORDINATION.md` name this graph and change no edge's status, so the entry
+acknowledges the fifteen.
 -/
 
 namespace WhatwgTest.Ledger
@@ -30,7 +30,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24", "R-S25"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -130,16 +130,18 @@ def svgSeam : Graph where
         `Whatwg.Svg.Value.Attribute, `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk,
         `Whatwg.Html.Schema.Foreign, `Whatwg.Html.Content.Explain, `Whatwg.Html.Content.Values,
         `Whatwg.Html.Print.Render, `Whatwg.Html.Print.Xml,
-        `Whatwg.Html.Print.Xml.Productions, `Whatwg.Html.Node.Svg,
+        `Whatwg.Html.Print.Xml.Productions, `Whatwg.Html.Print.Picture, `Whatwg.Html.Node.Svg,
+        `Whatwg.Html.Node.SvgPaint, `Whatwg.Html.Node.SvgBuild, `Whatwg.Html.Node.SvgNest,
         `Whatwg.Html.Node.SvgRead,
         `Whatwg.Html.Node.SvgKeys, `Whatwg.Html.Node.SvgValid,
         `Whatwg.Html.Syntax.Elaborator, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
         `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain, `WhatwgTest.Html.SvgPrint,
         `WhatwgTest.Html.SvgMarkup, `WhatwgTest.Html.SvgValues, `WhatwgTest.Html.SvgNode,
         `WhatwgTest.Html.SvgRead, `WhatwgTest.Html.SvgKeys, `WhatwgTest.Html.SvgValid,
-        `WhatwgTest.Html.SvgBenchmark, `WhatwgTest.Html.SvgPicture, `WhatwgTest.Html.SvgXml],
+        `WhatwgTest.Html.SvgBenchmark, `WhatwgTest.Html.SvgPicture, `WhatwgTest.Html.SvgXml,
+        `WhatwgTest.Html.SvgKit],
         .gate .build]
-      note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
+      note := "The four layers `Whatwg.Svg.Data`, `Schema`, `Content` and `Value` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; `Whatwg.Svg.Geometry` and the seam's modules are under the ceiling of ruling R-11 (ruling R-S25)." }
     coverage := {
       status := .requiredOpen
       remaining := [

@@ -6,8 +6,8 @@ are the record; this note is a map, and it claims nothing they do not. Sections 
 written after slice S5, which the owner pushed. Section 7 says what slice S6 adds. Section 8
 is slice S7: a fresh seat ported `tools/Tools/View/Output.lean` to the typed node with this
 note as its only guide, and section 3 is rewritten from what it found. Section 9 is slice S8:
-the writer of XML, which a `.svg` file needs, and the typed place of a text. S6 to S8 are
-committed and not pushed.
+the writer of XML, which a `.svg` file needs, and the typed place of a text. Section 10 is
+slice S10: the kit a writer of pictures uses, and the first thing to read.
 
 **First, what to know.** A picture is now a typed tree. An attribute that has a grammar holds a
 typed value, and the values of every typed tree pass their grammars by one law. The structure
@@ -256,3 +256,51 @@ the sealed document at every code point. Nothing a caller writes changes by it.
 
 **For the module graph.** `Whatwg/Svg/Value/Grammar.lean` holds the definitions and
 `Whatwg/Svg/Value/Grammar/Laws.lean` the laws. Nothing in this note's sections changes by it.
+## 10. Slice S10: a kit for writing pictures
+
+Everything in sections 3 and 8 still holds. This slice adds the layer above it, so a writer
+states what it draws and not how an element is spelt. `WhatwgTest/Html/SvgKit.lean` is
+`tools/Tools/View/Output.lean` on the kit, read at `707b9a01`, with `picture_okIn` proved.
+
+**Numbers.** `Decimal` has `+`, `-`, `*`, `<`, `≤`, `min` and `max`, and literals: `(13.25 :
+Decimal)`. `Decimal.fixed 3 n` is `n` thousandths. `Decimal.ofQuotient num den places` and
+`d.divRound den places` are the two roundings, a half going up. An `Int`, a `Nat` or a
+`Decimal` stands where a `Length` is expected, and `AutoExtent.clamp v` writes a negative size
+as zero. A sum keeps its places: `0.5 + 0.5` prints `1.0`, and `.trim` makes it `1`.
+
+**Paths.**
+
+```
+Pen.begin p0 |>.lineTo p1 |>.curveTo c1 c2 p2 |>.arcTo 5 5 false true p3 |>.close |>.path
+Shape.link .bumpY a b          -- d3's vertical link
+Shape.bumpY 0.3 a b            -- the same with a reach
+Shape.line (.cardinal 0 3) ps  -- a spline, its controls rounded to 3 places
+Shape.area .stepAfter top base
+```
+
+`Pen.join pens` is one path of several closed parts. Every curve ends at its last point
+exactly, and `Pen.current` is the current point of the path chapter.
+
+**Elements and attributes.**
+
+```
+Svg.rect b.x0 b.y0 (.clamp (b.x1 - b.x0)) (.clamp (b.y1 - b.y0))
+  ([.className "e4-fill", .fill (Rgb.ofNat 0x14110d), .fillOpacity 0.5] ++ SvgAttr.dataKey? key)
+Svg.text x y content [.fontFamily "serif", .fontSize 14, .textAnchor .middle]
+Svg.clipped "c0" [Svg.rect 0 0 20 10] children
+(Svg.Frame.mk W H ratio).svg [.className "e4-view"] marks
+```
+
+**A flat list of calls.** `SvgNode.nest wrap calls` makes the forest of marks, starts and ends,
+and `SvgNode.okAllAt_nest_of_calls` proves it for every list from one case split on the
+writer's own calls and one lemma for the wrapper.
+
+**Text.** `n.render` is the markup for a page. `n.renderXml?` is the text of a file, and
+`none` for a tree that is no XML: a control character in a text, or a data key that is no XML
+name.
+
+**Changed.** A custom data attribute's key may hold no white space, quotation mark, `/`, `<`,
+`=` or `>`: such a key passed before and was written as broken markup.
+
+Where the port's text differs from `Dev.svg`'s is as in section 8, and one more: an edge with
+a reach is computed exactly, where `Graph.lean` rounds each control down to a thousandth.

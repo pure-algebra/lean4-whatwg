@@ -83,6 +83,7 @@ import WhatwgTest.Html.SvgValid
 import WhatwgTest.Html.SvgBenchmark
 import WhatwgTest.Html.SvgPicture
 import WhatwgTest.Html.SvgXml
+import WhatwgTest.Html.SvgKit
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar

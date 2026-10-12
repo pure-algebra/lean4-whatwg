@@ -58,7 +58,11 @@ joined at integration, with the R-V5 repair. `Whatwg.Html.Print` and the
 stay under R-11: they reach `Classical.choice` through core's `String` API.
 `Whatwg.Svg` joined at slice S2 of `docs/SVG-PACKAGE-PLAN.md` (rulings SV-20 and
 R-S4), at zero residue: its schema is generated data whose name lookups read a
-`List Char`, and no declaration of it traverses a `String`. A
+`List Char`, and no declaration of it traverses a `String`. Since slice S10 (ruling R-S25) the
+entry is its four layers `Whatwg.Svg.Data`, `Whatwg.Svg.Schema`, `Whatwg.Svg.Content` and
+`Whatwg.Svg.Value`, and not `Whatwg.Svg.Geometry`: that layer computes with numbers, and under
+R-11 it uses the arithmetic of core (`Rat`, `Nat.sqrt`, `grind`), whose lemmas reach
+`Classical.choice`, where the strict ceiling would have it prove them again. A
 prefix must lie inside the `Whatwg` tree, since R-V1 keeps `WhatwgTest` and
 `WhatwgGates` under R-11, and must cover at least one audited module, so that a
 misspelt prefix cannot make the strict ceiling vacuous. -/
@@ -69,7 +73,10 @@ def strictCeilingPrefixes : List Name :=
   , `Whatwg.Infra.Text.Utf8
   , `Whatwg.Streams
   , `Whatwg.Signatures
-  , `Whatwg.Svg
+  , `Whatwg.Svg.Data
+  , `Whatwg.Svg.Schema
+  , `Whatwg.Svg.Content
+  , `Whatwg.Svg.Value
   ]
 
 /-- Exact strict-ceiling exceptions, one declaration each, written

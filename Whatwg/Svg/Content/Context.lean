@@ -90,11 +90,21 @@ def boundsOk (t : Tag) (children : List Tag) : Bool :=
   t.model.bounds.all fun b =>
     decide (b.atLeast ≤ b.tags.count children) && decide (b.tags.count children ≤ b.atMost)
 
-/-- A custom data attribute's name: `data-`, then at least one character, and no ASCII
-upper-case letter. Every SVG element takes one (`master/struct.html`, `DataAttributes`, which
+/-- A character that the name of a custom data attribute may hold after `data-`. The HTML
+Standard asks that the name is a valid attribute local name and holds no ASCII upper-case
+letter: so no ASCII white space, no NUL, and none of `/`, `=` and `>`. The three characters
+`"`, `'` and `<` are refused as well: the syntax of an attribute name in markup has none of
+them, and a name that held one would not be written as one attribute. -/
+def dataNameChar (c : Char) : Bool :=
+  !c.isUpper &&
+    !(c == ' ' || c == '\t' || c == '\n' || c == '\x0c' || c == '\r' || c == '\x00' ||
+      c == '"' || c == '\'' || c == '/' || c == '<' || c == '=' || c == '>')
+
+/-- A custom data attribute's name: `data-`, then at least one character, each a
+`dataNameChar`. Every SVG element takes one (`master/struct.html`, `DataAttributes`, which
 cites the HTML requirement on the name). -/
 def isDataName : List Char → Bool
-  | 'd' :: 'a' :: 't' :: 'a' :: '-' :: c :: rest => (c :: rest).all fun ch => !ch.isUpper
+  | 'd' :: 'a' :: 't' :: 'a' :: '-' :: c :: rest => (c :: rest).all dataNameChar
   | _ => false
 
 /-- The element takes an attribute of this name: a custom data attribute, or an attribute

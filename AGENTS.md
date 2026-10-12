@@ -242,8 +242,10 @@ binds every declaration whose module is under a prefix of the strict list in
 `WhatwgGates/TrustConfig.lean` (rulings R-V1 and R-W19): `Whatwg.Ecma262`,
 `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Infra.Text.Utf8` and `Whatwg.Streams`
 since the lane V landing, `Whatwg.Signatures` since the Q5 landing
-(rulings R-W3 and R-W16), and `Whatwg.Svg` since slice S2 of
-`docs/SVG-PACKAGE-PLAN.md` (ruling R-S4). A declaration there that reaches `Classical.choice` is
+(rulings R-W3 and R-W16), and the four layers `Whatwg.Svg.Data`, `Whatwg.Svg.Schema`,
+`Whatwg.Svg.Content` and `Whatwg.Svg.Value` since slice S2 of `docs/SVG-PACKAGE-PLAN.md`
+(ruling R-S4; `Whatwg.Svg.Geometry` is under R-11 since ruling R-S25, so that it uses the
+arithmetic of core). A declaration there that reaches `Classical.choice` is
 admitted only by an exact exception beside the list, with its reason, and an
 exception that has outlived its reason fails the build. `sorryAx`,
 `Lean.ofReduceBool`, `Lean.ofReduceNat`, `Lean.trustCompiler`, and the

@@ -12,6 +12,9 @@ import Whatwg.Html.Node.Svg
 import Whatwg.Html.Node.SvgRead
 import Whatwg.Html.Node.SvgKeys
 import Whatwg.Html.Node.SvgValid
+import Whatwg.Html.Node.SvgPaint
+import Whatwg.Html.Node.SvgBuild
+import Whatwg.Html.Node.SvgNest
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
@@ -19,6 +22,7 @@ import Whatwg.Html.Node.Combinators
 import Whatwg.Html.Print.Escape
 import Whatwg.Html.Print.Render
 import Whatwg.Html.Print.Xml
+import Whatwg.Html.Print.Picture
 import Whatwg.Html.Syntax.Elaborator
 import Whatwg.Html.Svg
 import Whatwg.Html.Audit.Receipts
@@ -80,5 +84,10 @@ judges the structure of a typed tree by its tags and its keys
 on the raw tree, and `Child.ofSvg` places a typed tree in the typed HTML tree.
 `Whatwg.Html.Print.Xml` writes the XML serialization of a tree, which a file that holds one
 picture needs, on the algorithm of DOM Parsing and Serialization.
+A program writes a picture with `Whatwg.Html.Node.SvgBuild` (a constructor for each common
+element, a clipped group and the frame of a picture), `Whatwg.Html.Node.SvgPaint` (colours and
+the presentation attributes, with typed arguments) and `Whatwg.Html.Node.SvgNest` (a flat list
+of drawing calls as a forest, with the theorem that it passes when its marks do), and prints it
+with `Whatwg.Html.Print.Picture`.
 `Whatwg.Html.Audit` is still a docstring and nothing else.
 -/

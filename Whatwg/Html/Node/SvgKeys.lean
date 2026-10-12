@@ -68,11 +68,14 @@ def Key.name : Key → String
   | .xmlns => "xmlns"
   | .xmlnsXlink => "xmlns:xlink"
 
-/-- What follows `data-` makes a custom data attribute's name: at least one character, and no
-ASCII upper-case letter (`Whatwg.Svg.Content.isDataName`). -/
+/-- What follows `data-` makes a custom data attribute's name: at least one character, each
+one that such a name may hold (`Whatwg.Svg.Content.dataNameChar`): no ASCII upper-case letter,
+no white space, and no character that ends or splits an attribute name in markup. A key that
+passes is written as one attribute by both printers. The XML serialization asks more of a
+name, so `Print.Xml.ok` may still refuse a key that passes here, such as `a@b`. -/
 def dataKeyOk (k : String) : Bool :=
   match k.toList with
-  | c :: rest => (c :: rest).all fun ch => !ch.isUpper
+  | c :: rest => (c :: rest).all Whatwg.Svg.Content.dataNameChar
   | [] => false
 
 /-- The element takes an attribute of this key: an attribute of the schema that the definitions

@@ -64,8 +64,10 @@ def infraInteger : Leaf where
 /-- The leaf-receipt record `SVG-LF-GRAMMAR`: the value-grammar library of slice S4a of
 `docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b to S5, each an exact
 representation whose laws the library proves once, with the reader's rule as a relation, its
-bridge to the expression's language and the located refusal of a text. It contributes to the
-representation edge of `SVG-PG-SEAM`. -/
+bridge to the expression's language and the located refusal of a text. Since slice S10 it also
+holds the geometry on those values: exact arithmetic, the cursor of a path with the pen and
+the curves, and a transform on a point. It contributes to the representation edge of
+`SVG-PG-SEAM`. -/
 def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
   document := "docs/SVG-PACKAGE-PLAN.md"
@@ -80,7 +82,13 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.LengthList, `Whatwg.Svg.Value.NumberList,
     `Whatwg.Svg.Value.Greedy, `Whatwg.Svg.Value.Syn.deterministic,
     `Whatwg.Svg.Value.Syn.run,
-    `Whatwg.Svg.Value.Syn.explain]
+    `Whatwg.Svg.Value.Syn.explain,
+    `Whatwg.Svg.Value.Decimal.fixed, `Whatwg.Svg.Value.Decimal.mul_add,
+    `Whatwg.Svg.Value.Decimal.compare, `Whatwg.Svg.Value.AutoExtent.clamp,
+    `Whatwg.Svg.Value.Decimal.add_same, `Whatwg.Svg.Value.Cursor, `Whatwg.Svg.Value.Pen,
+    `Whatwg.Svg.Value.Pen.cursor_path, `Whatwg.Svg.Value.Curve,
+    `Whatwg.Svg.Value.Curve.run_through, `Whatwg.Svg.Value.Matrix,
+    `Whatwg.Svg.Value.Matrix.apply_mul]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -98,7 +106,17 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Syn.explain_le, `Whatwg.Svg.Value.Grammar.explain_print,
       `Whatwg.Svg.Value.Syn.run_local, `Whatwg.Svg.Value.Syn.explain_local,
       `Whatwg.Svg.Value.Grammar.explain_local,
-      `Whatwg.Svg.Value.Extent.print_eq_length],
+      `Whatwg.Svg.Value.Extent.print_eq_length,
+      `Whatwg.Svg.Value.Decimal.add_assoc, `Whatwg.Svg.Value.Decimal.mul_assoc,
+      `Whatwg.Svg.Value.Decimal.mul_add, `Whatwg.Svg.Value.Decimal.add_same,
+      `Whatwg.Svg.Value.Decimal.mul_same, `Whatwg.Svg.Value.Decimal.roundQuotient_bound,
+      `Whatwg.Svg.Value.Decimal.compare_eq_iff_same, `Whatwg.Svg.Value.Decimal.le_trans,
+      `Whatwg.Svg.Value.Decimal.le_total, `Whatwg.Svg.Value.Decimal.add_le_add_right,
+      `Whatwg.Svg.Value.Path.cursor_ofSubpaths_append, `Whatwg.Svg.Value.Pen.cursor_path,
+      `Whatwg.Svg.Value.Curve.run_through, `Whatwg.Svg.Value.Shape.cursor_line,
+      `Whatwg.Svg.Value.Shape.cursor_area, `Whatwg.Svg.Value.Matrix.apply_mul,
+      `Whatwg.Svg.Value.TransformList.image?_append,
+      `Whatwg.Svg.Value.PanZoom.image?_toList, `Whatwg.Svg.Value.PanZoom.apply_andThen],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,

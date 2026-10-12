@@ -23,6 +23,18 @@ import Whatwg.Svg.Value.Length
 import Whatwg.Svg.Value.Extent
 import Whatwg.Svg.Value.Lists
 import Whatwg.Svg.Value.Attribute
+import Whatwg.Svg.Geometry.Arith
+import Whatwg.Svg.Geometry.Arith.Laws
+import Whatwg.Svg.Geometry.Arith.Same
+import Whatwg.Svg.Geometry.Order
+import Whatwg.Svg.Geometry.Convert
+import Whatwg.Svg.Geometry.Cursor
+import Whatwg.Svg.Geometry.Pen
+import Whatwg.Svg.Geometry.Pen.Laws
+import Whatwg.Svg.Geometry.Shape
+import Whatwg.Svg.Geometry.Shape.Laws
+import Whatwg.Svg.Geometry.Affine
+import Whatwg.Svg.Geometry.Affine.Laws
 
 /-!
 # Whatwg.Svg
@@ -32,7 +44,7 @@ standard, as the schema an HTML tree's SVG subtree is checked against. The plan 
 `docs/SVG-PACKAGE-PLAN.md`. The authority is SVG 2 at the pin `vendor/w3c-svgwg-47e645ef/`
 (`SPEC-MANIFEST.md`).
 
-The library has four layers:
+The library has five layers:
 
 - `Whatwg.Svg.Data` names no schema: a finite universe, a set as a mask over it, and a name
   table with its two laws;
@@ -51,6 +63,15 @@ The library has four layers:
   exactly the language of its expression, and `Refusal` gives a refused value the offset at
   which no reading continues. `Attribute` is the table that says which grammar judges which
   attribute on which element, and gives the type of an attribute's value.
+- `Whatwg.Svg.Geometry` is what a program computes with, on those typed values (slice S10).
+  It is under the repository's ordinary axiom ceiling, so that it can use the arithmetic of
+  Lean's core library; the four layers above stay under the strict one. `Arith` is the exact
+  sum, difference and product of the numbers, with the rounded quotients, `Order` their order,
+  and `Convert` a number where a typed value stands. `Cursor` is what a path means for the
+  point it has reached, by the path chapter; `Pen` builds a path call by call, and `Shape`
+  draws the curves of d3-shape through a list of points, each with the law of where it ends.
+  `Affine` is what a transform does to a point, in the order that CSS Transforms gives a
+  list, with the view that is moved and scaled.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.
