@@ -1,0 +1,1499 @@
+﻿<!doctype html>
+<html>
+<head><meta charset=UTF-8>
+<title>DOM Parsing and Serialization</title>
+<style>
+/* Switch statement */
+dl.switch dt::before {
+    content: "↪ ";
+    margin-left: 1em;
+}
+/* Better spacing around various lists (implied paragraph children) */
+ol > li, section:not(#toc) ul > li, section dl > dt {
+    margin: 1em 0;
+}
+var { color: maroon; }
+/* domintro styling */
+dl.domintro {
+    background-color: rgb(221, 255, 221);
+    padding: 1em 0.5em 1em 2em;
+    clear: both;
+}
+dl.domintro dt {
+    color: black;
+}
+dl.domintro > dd {
+    color: green;
+}
+dl.domintro::before {
+    float: right;
+    background-color: white;
+    display: block;
+    border: 2px solid black;
+    color: green;
+    margin-top: -20px;
+    padding: 2px;
+    content: "This box is non-normative. Implementation requirements are given below this box.";
+}
+</style>
+<script src="https://www.w3.org/Tools/respec/respec-w3c" class="remove" defer></script>
+<script type="text/javascript" src="respecConfig.js" class='remove'></script>
+</head>
+<body>
+
+<section id="abstract">
+  This specification defines APIs for the parsing and serializing of HTML and XML-based DOM nodes
+  for web applications.
+</section>
+
+<section id="sotd"></section>
+
+<section id="crec" class="introductory">
+  <h2>Candidate Recommendation Exit Criteria</h2>
+
+  This specification will not advance to Proposed Recommendation before the spec's
+  <a href="http://w3c-test.org/domparsing/">test suite</a> is completed and two or more independent
+  implementations pass each test, although no single implementation must pass each test. We expect
+  to meet this criteria no sooner than 24 October 2014. The group will also create an
+  <a href="https://dvcs.w3.org/hg/innerhtml/raw-file/tip/implementationReport.html">Implementation
+  Report</a>.
+</section>
+
+<section id="conformance">
+  <p>This specification depends on the Infra Standard. [[!INFRA]]
+
+  <p>The IDL fragments in this specification must be interpreted as required for conforming IDL
+  fragments, as described in the Web IDL specification. [[!WEBIDL]]
+
+  <p>Requirements phrased in the imperative as part of algorithms (such as "strip any leading space
+  characters" or "return false and terminate these steps") are to be interpreted with the meaning of
+  the key word ("must", "should", "may", etc) used in introducing the algorithm.
+
+  <p>Conformance requirements phrased as algorithms or specific steps may be implemented in any
+  manner, so long as the end result is equivalent. (In particular, the algorithms defined in this
+  specification are intended to be easy to follow, and not intended to be performant.)
+
+  <p>User agents may impose implementation-specific limits on otherwise unconstrained inputs, e.g.
+  to prevent denial of service attacks, to guard against running out of memory, or to work around
+  platform-specific limitations.
+
+  <p>When a method or an attribute is said to call another method or attribute, the user agent must
+  invoke its internal API for that attribute or method so that e.g. the author can't change the
+  behavior by overriding attributes or methods with custom properties or functions in ECMAScript.
+  [[ECMA-262]]
+
+  <p>If an algorithm calls into another algorithm, any exception that is thrown by the latter
+  (unless it is explicitly caught), must cause the former to terminate, and the exception to be
+  propagated up to its caller.
+</section>
+
+<section>
+  <h2>Extensibility</h2>
+
+  <p>Vendor-specific proprietary extensions to this specification are strongly discouraged. Authors
+  must not use such extensions, as doing so reduces interoperability and fragments the user base,
+  allowing only users of specific user agents to access the content in question.
+
+  <p>If vendor-specific extensions are needed, the members should be prefixed by vendor-specific
+  strings to prevent clashes with future versions of this specification. Extensions must be defined
+  so that the use of extensions neither contradicts nor causes the non-conformance of functionality
+  defined in the specification.
+
+  <p>When vendor-neutral extensions to this specification are needed, either this specification can
+  be updated accordingly, or an extension specification can be written that overrides the
+  requirements in this specification. Such an extension specification becomes an
+  <dfn class="export">applicable specification</dfn> for the purposes of conformance requirements in this
+  specification.
+  <!-- http://www.w3.org/mid/17E341CD-E790-422C-9F9A-69347EE01CEB@iki.fi -->
+</section>
+
+<section><h2>Introduction</h2>
+
+  <p>A document object model (DOM) is an in-memory representation of various types of {{Node}}s
+  where each {{Node}} is connected in a tree. The [[HTML]] and [[DOM]] specifications describe
+  DOM and its {{Node}}s in greater detail.
+
+  <p><dfn>Parsing</dfn> is the term used for converting a string representation of a DOM into an
+  actual DOM, and <dfn>Serializing</dfn> is the term used to transform a DOM back into a string.
+  This specification concerns itself with defining various APIs for both parsing and serializing a
+  DOM.
+
+  <div class=example>For example: the {{Element.innerHTML}} API is a common way to both
+  parse and serialize a DOM (it does both). If a particular {{Node}} has the following in-memory
+  DOM:
+  <pre>
+    HTMLDivElement (nodeName: "div")
+    ┃
+    ┣━ HTMLSpanElement (nodeName: "span")
+    ┃  ┃
+    ┃  ┗━ Text (data: "some ")
+    ┃
+    ┗━ HTMLElement (nodeName: "em")
+       ┃
+       ┗━ Text (data: "text!")
+  </pre>
+  And the <code>HTMLDivElement</code> node is stored in a variable <code><var>myDiv</var></code>,
+  then to serialize <code><var>myDiv</var></code>'s children simply <em>get</em> (read) the
+  {{Element.innerHTML}} property (this triggers the serialization):
+
+  <pre class=javascript>
+    var serializedChildren = myDiv.innerHTML;
+    // serializedChildren has the value:
+    // "&lt;span>some &lt;/span>&lt;em>text!&lt;/em>"
+  </pre>
+
+  <p>To parse new children for <code><var>myDiv</var></code> from a string (replacing its existing
+  children), simply <em>set</em> the {{Element.innerHTML}} property (this triggers
+  parsing of the assigned string):
+
+  <pre class=javascript>
+    myDiv.innerHTML = "&lt;span>new&lt;/span>&lt;em>children!&lt;/em>";
+  </pre>
+  </div>
+
+  <p>This specification describes two flavors of <a>parsing</a> and <a>serializing</a>: HTML and
+  XML (with XHTML being a type of XML). Each follows the rules of its respective markup language.
+  The above example shows HTML parsing and serialization. The specific algorithms for HTML parsing
+  and serializing are defined in the [[HTML]] specification. This specification contains the
+  algorithm for XML serializing. The grammar for XML parsing is described in the [[XML10]]
+  specification.
+
+  <p><dfn>Round-tripping</dfn> a DOM means to serialize and then immediately parse the serialized
+  string back into a DOM. Ideally, this process does not result in any data loss with respect to the
+  identity and attributes of the {{Node}} in the DOM.
+
+  <a>Round-tripping</a> is especially tricky for an XML serialization, which must be concerned with
+  preserving the {{Node}}'s namespace identity in the serialization (wereas namespaces are
+  ignored in HTML).
+
+  <div class=example>Consider the XML serialization of the following in-memory DOM:
+  <pre>
+    Element (nodeName: "root")
+    ┃
+    ┗━ HTMLScriptElement (nodeName: "script")
+       ┃
+       ┗━ Text (data: "alert('hello world')")
+  </pre>
+  An XML serialization must include the {{HTMLScriptElement}}'s [=Element/namespace=] in order to
+  preserve the identity of the [^script^] element, and to allow the serialized string to
+  <a data-lt="round-tripping">round-trip</a> through an XML parser. Assuming that <code>root</code>
+  is in a variable named <var>root</var>:
+
+  <pre class=javascript>
+    var xmlSerialization = new XMLSerializer().serializeToString(root);
+    // xmlSerialization has the value:
+    // "&lt;root>&lt;script xmlns="http://www.w3.org/1999/xhtml">alert('hello world')&lt;/script>&lt;/root>"
+  </pre>
+  </div>
+
+</section><!-- end introduction -->
+
+<section><h1>APIs for parsing and serializing DOM</h1>
+
+<section><h2>The {{DOMParser}} interface</h2>
+
+  <span id="dom-domparser"></span>
+  <span id="dom-domparser-parsefromstring"></span>
+  <span id="idl-def-supportedtype"></span>
+  <span id="dom-supportedtype-text/html"></span>
+  <span id="dom-supportedtype-text/xml"></span>
+  <span id="dom-supportedtype-application/xml"></span>
+  <span id="dom-supportedtype-application/xhtml+xml"></span>
+  <span id="dom-supportedtype-image/svg+xml"></span>
+
+  <p>The definition of {{DOMParser}} has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#domparser">the HTML Standard</a>.</p>
+
+</section><!-- end DOMParser interface -->
+
+<section><h2>The {{XMLSerializer}} interface</h2>
+  <span id="dom-xmlserializer"></span>
+  <span id="dom-xmlserializer-constructor"></span>
+  <span id="dom-xmlserializer-serializetostring"></span>
+
+  <p>The definition of {{XMLSerializer}} has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#xmlserializer">the HTML Standard</a>.</p>
+
+</section><!-- end XMLSerializer interface -->
+
+<section><h2>The <code>InnerHTML</code> mixin</h2>
+
+  <span id="dom-innerhtml"></span>
+
+  <p>The definition of {{Element.innerHTML}} has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#the-innerhtml-property">the HTML Standard</a>.</p>
+
+</section><!-- end InnerHTML mixin -->
+
+<section><h2>Extensions to the {{Element}} interface</h2>
+
+  <!-- outerHTML -->
+
+  <span id="dom-element-outerhtml"></span>
+
+  <p>The definition of {{Element.outerHTML}} has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#the-outerhtml-property">the HTML Standard</a>.</p>
+
+  <!-- insertAdjacentHTML -->
+
+  <span id="dom-element-insertadjacenthtml"></span>
+
+  <p>The definition of {{Element.insertAdjacentHTML}} has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#the-insertadjacenthtml()-method">the HTML Standard</a>.</p>
+
+</section><!-- end Extensions to the Element interface -->
+
+<section><h2>Extensions to the {{Range}} interface</h2>
+
+  <span id="dom-range-createcontextualfragment"></span>
+
+  <p>The definition of {{Range.createContextualFragment()}} has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#the-createcontextualfragment()-method">the HTML Standard</a>.</p>
+
+</section><!-- end Extensions to the Range interface -->
+
+
+<!-- Dropping this extention as it is not implemented, nor does it appear that any browser
+     is currently interested in supporting it. Perhaps it can come back in a V2 of this spec
+     if browsers become interested.
+<section><h2>Extensions to the <code><a>Text</a></code> interface</h2>
+
+  <pre class="idl">
+    partial interface Text {
+      attribute boolean serializeAsCDATA;
+    };
+  </pre>
+
+  <dl class=domintro>
+    <dt><var>text</var> . <a data-link-for="Text">serializeAsCDATA</a> [ = <var>value</var> ]
+    <dd>Controls whether, in XML, this node is serialized as a CDATA section.
+  </dl>
+
+  <p><code><a>Text</a></code> nodes have an additional associated flag, the
+  <dfn>serialize as CDATA flag</dfn>.
+
+  <p>The <dfn data-dfn-for="Text"><code>serializeAsCDATA</code></dfn> attribute must return true if the
+  <a>context object</a> has its <a>serialize as CDATA flag</a> set, or false otherwise.
+
+  <p>Setting the <a data-link-for="Text">serializeAsCDATA</a> attribute must, if the new value is true, set
+  the <a>context object</a>'s <a>serialize as CDATA flag</a>, or unset it otherwise.
+
+</section>--><!-- end Extensions to the Text interface -->
+
+</section><!-- end APIs for DOM Parsing and Serializing -->
+
+<section><h1>Algorithms for parsing and serializing</h1>
+
+<section><h2>Parsing</h2>
+
+  <span id="dfn-fragment-parsing-algorithm"></span>
+
+  <p>The definition of <a data-lt="fragment parsing algorithm steps">fragment parsing algorithm</a> has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-parsing-algorithm-steps">the HTML Standard</a>.</p>
+
+</section><!-- end Parsing -->
+
+<section><h2>Serializing</h2>
+
+  <span id="dfn-fragment-serializing-algorithm"></span>
+
+  <p>The definition of <a data-lt="fragment serializing algorithm steps">fragment serializing algorithm</a> has moved to <a href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-serializing-algorithm-steps">the HTML Standard</a>.</p>
+
+<section><h2>XML Serialization</h2>
+
+  <p>An <a>XML serialization</a> differs from an HTML serialization in the following ways:
+
+  <ul>
+    <li>{{Element}}s and <a data-cite="dom">attributes</a> will always be serialized such
+    that their namespace is preserved. In some cases this means that an existing
+    prefix, prefix declaration attribute or default namespace declaration attribute
+    might be dropped, substituted or changed. An HTML serialization does not attempt to
+    preserve the namespace.
+
+    <li>{{Element}}s not in the <a>HTML namespace</a> containing no [=tree/children=], are
+    serialized using the <a>empty-element tag</a> syntax (i.e., according to the XML
+    <a>EmptyElemTag</a> production).
+  </ul>
+
+  <p>Otherwise, the algorithm for producing an <a>XML serialization</a> is designed to produce a
+  serialization that is compatible with the <a>HTML parser</a>. For example, elements in the
+  <a>HTML namespace</a> that contain no [=tree/children=] are serialized with an explicit begin and
+  end tag rather than using the <a>empty-element tag</a> syntax.
+
+  <div class="algorithm">
+  <p>To produce an <dfn>XML serialization</dfn> of a {{Node}} <var>node</var> given
+  a boolean <var>require well-formed</var>, run the following steps:
+
+  <ol>
+    <li>
+      <p>Let |namespace:namespace| be null.
+
+      <p class="note"><var>namespace</var> tracks the <a>XML serialization</a> algorithm's current
+      default namespace. It is changed when either an {{Element}} has a default namespace
+      declaration, or the algorithm generates a default namespace declaration for the {{Element}} to
+      match its own namespace.
+      The algorithm assumes no namespace (null) to start.
+
+    <li>Let |prefix map:namespace prefix map| be «» (a <a>namespace prefix map</a>).
+
+    <li><a>Add</a> "<code>xml</code>" to <var>prefix map</var> given the <a>XML namespace</a>.
+
+    <li>
+      <p>Let |prefix index:integer| be 1.
+      <p class="note"><var>prefix index</var> is used to generate a new unique prefix when no
+      suitable existing namespace prefix is available to serialize a node's [=Element/namespace=]
+      (or the [=Attr/namespace=] of one of the <a data-cite="dom">attributes</a> in
+      <var>node</var>'s [=Element/attribute list=]).
+      See the <a>generate a prefix</a> algorithm.
+
+    <li>Return the result of running the <a>XML serialization algorithm</a> given <var>node</var>,
+    <var>namespace</var>, <var>prefix map</var>, a mutable reference to <var>prefix index</var>, and
+    <var>require well-formed</var>.
+    If an <dfn data-lt="throw an exception">exception</dfn> occurs during the execution of the
+    algorithm, then catch that exception and throw an {{"InvalidStateError"}} {{DOMException}}.
+  </ol>
+  </div>
+
+  <div class="algorithm">
+  <p>The <dfn>XML serialization algorithm</dfn>, given
+  a {{Node}} |node:Node|,
+  a string |namespace:string|,
+  a [=namespace prefix map=] |prefix map:namespace prefix map|,
+  a mutable reference to an integer |prefix index:mutable reference to an integer|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li><p>If <var>node</var>'s interface is:</p>
+
+    <dl class=switch>
+      <dt>{{Element}}
+      <dd>Run the algorithm for <a>XML serializing an Element node</a> given |node|, |namespace|,
+        |namespace prefix map|, |prefix index| and <var>require well-formed</var>.
+
+      <dt>{{Document}}
+      <dd>Run the algorithm for <a>XML serializing a Document node</a> given |node|, |namespace|,
+        |namespace prefix map|, |prefix index| and <var>require well-formed</var>.
+
+      <dt>{{Comment}}
+      <dd>Run the algorithm for <a>XML serializing a Comment node</a> given |node| and
+        <var>require well-formed</var>.
+
+      <dt>{{CDATASection}}
+      <dd>Run the algorithm for <a>XML serializing a CDATASection node</a> given |node| and
+        <var>require well-formed</var>.
+
+      <dt>{{Text}}
+      <dd>Run the algorithm for <a>XML serializing a Text node</a> given |node| and
+        <var>require well-formed</var>.
+
+      <dt>{{DocumentFragment}}
+      <dd>Run the algorithm for <a>XML serializing a DocumentFragment node</a> given |node|,
+        |namespace|, |namespace prefix map|, |prefix index| and <var>require well-formed</var>.
+
+      <dt>{{DocumentType}}
+      <dd>Run the algorithm for <a>XML serializing a DocumentType node</a> given |node| and
+        <var>require well-formed</var>.
+
+      <dt>{{ProcessingInstruction}}
+      <dd>Run the algorithm for <a>XML serializing a ProcessingInstruction node</a> given |node| and
+        <var>require well-formed</var>.
+
+      <dt>{{Attr}}
+      <dd>Return the empty string.
+
+      <dt>Anything else
+      <dd>Throw a {{TypeError}}. Only {{Node}}s and {{Attr}}s can be serialized by this algorithm.
+    </dl>
+  </ol>
+  </div>
+
+  <p class=note>Each of the above referenced algorithms are detailed in the sections that follow.</p>
+
+<section><h2>XML serializing an Element node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing an Element node</dfn>, given
+  an {{Element}} |node:Element|,
+  a string |namespace:string|,
+  a [=namespace prefix map=] |prefix map:namespace prefix map|,
+  a mutable reference to an integer |prefix index:mutable reference to an integer|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>If <var>require well-formed</var> is true,
+    and <var>node</var>'s [=Element/local name=] contains the character
+    "<code>:</code>" (U+003A COLON) or does not match the XML <a>Name</a> production, then
+    <a>throw an exception</a>.
+    <span class="note">(The serialization of <var>node</var> would not be well-formed.)</span>
+
+    <li>Let |markup:string| be "<code>&lt;</code>" (U+003C LESS-THAN SIGN).
+
+    <li>Let |qualified name:string| be the empty string.
+
+    <li>Let |skip end tag:boolean| be false.
+
+    <li>Let |ignore namespace definition attribute:boolean| be false.
+
+    <li>Let |map:namespace prefix map| be the result of <a>copy a namespace prefix map</a> given
+    <var>prefix map</var>.
+
+    <li>
+    <p>Let |local prefixes map:map| be « » (an [=ordered map=] from strings to strings).
+
+    <p class="note">Its keys will be prefixes, and its values will be namespaces. In this map,
+    the null namespace is represented by the empty string.
+
+    <p class=note>This map is local to each element. It is used to ensure there are no conflicting
+    prefixes if a new namespace prefix attribute needs to be
+    <a data-lt="generate a prefix">generated</a>.
+    It is also used to enable skipping of duplicate prefix definitions when
+    <a data-lt="XML serialization of the attributes">writing an element's attributes</a>: the map
+    allows the algorithm to distinguish between a prefix in the <a>namespace prefix map</a> that
+    might be locally-defined (to the current {{Element}}) and one that is not.</p>
+
+    <li>Let <var>local default namespace</var> be the result of
+    <a>recording the namespace information</a> for <var>node</var>'s [=Element/attribute list=]
+    given <var>map</var> and <var>local prefixes map</var>.
+
+    <p class="note">The above step will update <var>map</var> with any found namespace prefix
+    definitions, add the found prefix definitions to <var>local prefixes map</var> and
+    return the value of a default namespace attribute (which can be empty) if one exists.
+    Otherwise it returns null.</p>
+
+    <li>Let <var>inherited ns</var> be <var>namespace</var>.
+
+    <p class="note"><var>inherited ns</var> will be passed down as the namespace argument
+    when serializing <var>node</var>'s [=tree/children=].
+
+    <li>Let <var>ns</var> be <var>node</var>'s [=Element/namespace=].
+
+    <li>If <var>inherited ns</var> is <var>ns</var>, then:
+
+    <p class="note"><var>node</var> is in the current default namespace. The steps below
+    serialize <var>node</var> without a prefix (even if it had one), and drop any default
+    namespace declaration. An exception is made if <var>node</var> is in the [=XML namespace=],
+    in which case the "`xml:`" prefix is used; this prefix does not need to be declared and no
+    effort is made to declare it.
+
+    <ol>
+      <li>If <var>local default namespace</var> is not null, then set
+      <var>ignore namespace definition attribute</var> to true.
+
+      <li>If <var>ns</var> is the <a>XML namespace</a>, then append the concatenation of
+      "<code>xml:</code>" and <var>node</var>'s [=Element/local name=] to <var>qualified name</var>.
+
+      <li>Otherwise, append <var>node</var>'s [=Element/local name=] to <var>qualified name</var>.
+
+      <li>Append <var>qualified name</var> to <var>markup</var>.
+    </ol>
+
+    <li>Otherwise:
+
+    <p class="note"><var>inherited ns</var> is not equal to <var>ns</var>; <var>node</var>'s
+    own [=Element/namespace=] is different from the context namespace.
+    To differentiate <var>node</var>'s namespace from the context namespace, the steps below
+    will use a namespace prefix if one is available; if not, they will use or introduce a
+    default namespace declaration.
+
+    <ol>
+      <li>Let <var>prefix</var> be <var>node</var>'s [=Element/namespace prefix=].
+
+      <li>Let <var>candidate prefix</var> be the result of
+      <a>retrieving a preferred prefix string</a> <var>prefix</var> from <var>map</var> given
+      <var>ns</var>.
+
+      <p class=note><var>candidate prefix</var> will be null if no prefix was found that maps
+      to <var>ns</var> (not even <var>prefix</var>). In that case, this algorithm will
+      generate a new `xmlns` attribute and <a>add</a> any new prefix to <var>map</var> below.
+
+      <li>If <var>prefix</var> is "<code>xmlns</code>", then:
+      <ol>
+        <li>If <var>require well-formed</var> is true, then <a>throw an exception</a>.
+        <span class=note>An {{Element}} with [=Element/namespace prefix=] "<code>xmlns</code>"
+        will not legally round-trip in a conforming <a>XML parser</a>.</span>
+
+        <li>Set <var>candidate prefix</var> to <var>prefix</var>.
+      </ol>
+      <!-- Found a suitable prefix to use, either locally, or inherited through a parent node that
+      matches the node's namespace. This prefix will be used in serialization even if the node
+      doesn't have a real prefix. -->
+      <li><dfn>Found a suitable namespace prefix</dfn>: if <var>candidate prefix</var> is not
+      null, then:
+
+      <p class="note">Either <var>node</var> or one of its ancestors defines that
+      <var>candidate prefix</var> maps to <var>node</var>'s [=Element/namespace=].
+
+      <p class=note>The following could serialize a different prefix than <var>node</var>'s
+      existing [=Element/namespace prefix=], if any. However, this only happens if this prefix
+      does not map to the correct namespace, as the <a>retrieving a preferred prefix string</a>
+      algorithm already tried to match the existing prefix.</p>
+
+      <div class="issue" data-number="52"></div>
+
+      <ol>
+        <li>Append the concatenation of <var>candidate prefix</var>, "<code>:</code>"
+        (U+003A COLON), and <var>node</var>'s [=Element/local name=] to <var>qualified name</var>.
+
+        <li>If <var>local default namespace</var> is not null (<var>node</var> has a default
+        namespace declaration attribute) and is not the
+        <a>XML namespace</a>, then:
+        <ol>
+          <li>If <var>local default namespace</var> is the empty string, set
+          <var>inherited ns</var> to null.
+          <li>Otherwise, set <var>inherited ns</var> to <var>local default namespace</var>.
+        </ol>
+
+        <p class="note">It is possible that <var>inherited ns</var> differs from
+        <var>node</var>'s [=Element/namespace=].
+
+        <p class=note>Any default namespace definitions or namespace prefixes that define the
+        <a>XML namespace</a> are omitted when serializing <a data-cite="dom">attributes</a> in
+        <var>node</var>'s [=Element/attribute list=].</p>
+
+        <li>Append <var>qualified name</var> to <var>markup</var>.
+      </ol>
+
+      <li>Otherwise, if <var>prefix</var> is not null, then:
+
+      <p class=note>By this step, there is no namespace or prefix mapping declaration in
+      <var>node</var> (or any parent {{Node}} visited by this algorithm) that defines
+      a prefix that maps to <var>node</var>'s [=Element/namespace=]; otherwise the step labelled
+      <a>Found a suitable namespace prefix</a> would have been followed. Ideally we would use
+      <var>node</var>'s [=Element/namespace prefix=]. However, it could be the case that
+      <var>node</var> already declares its own prefix as mapping to something else than its own
+      namespace. In that case we will [=generating a prefix|generate a new prefix=] as a last
+      resort. In either case, the sub-steps that follow will serialize a new namespace prefix
+      declaration for the prefix we end up using.</p>
+
+      <ol>
+        <li>If <var>local prefixes map</var> [=map/contains=] <var>prefix</var>,
+        then set <var>prefix</var> to the result of <a>generating a prefix</a> given
+        <var>map</var>, <var>ns</var>, and <var>prefix index</var>.
+
+        <li><a>Add</a> <var>prefix</var> to <var>map</var> given <var>ns</var>.
+
+        <li>Append the concatenation of <var>prefix</var>, "<code>:</code>" (U+003A COLON), and
+        <var>node</var>'s [=Element/local name=] to <var>qualified name</var>.
+
+        <li>Append <var>qualified name</var> to <var>markup</var>.
+
+        <li>Append the following to <var>markup</var>, in the order listed:
+
+        <p class=note>The following serializes a namespace prefix declaration for <var>prefix</var>
+        which was just added to <var>map</var>.</p>
+
+        <ol>
+          <li>"<code> </code>" (U+0020 SPACE);
+
+          <li>"<code>xmlns:</code>";
+
+          <li><var>prefix</var>;
+
+          <li>"<code>="</code>" (U+003D EQUALS SIGN, U+0022 QUOTATION MARK);
+
+          <li>The result of <a>serializing an attribute value</a> given <var>ns</var> and
+          <var>require well-formed</var>;
+
+          <li>"<code>"</code>" (U+0022 QUOTATION MARK).
+        </ol>
+
+        <li>If <var>local default namespace</var> is not null (<var>node</var> has a
+        default namespace declaration attribute), then:
+
+        <ol>
+          <li>If <var>local default namespace</var> is the empty string, set
+          <var>inherited ns</var> to null.
+          <li>Otherwise, set <var>inherited ns</var> to <var>local default namespace</var>.
+        </ol>
+      </ol>
+
+      <li>Otherwise, if <var>local default namespace</var> is null, or
+      <var>local default namespace</var> is not null and its value is not equal
+      to <var>ns</var>, then:
+
+      <p class=note>At this point, the namespace for this node still needs to be serialized, but
+      there's no [=Element/namespace prefix=] (or <var>candidate prefix</var>) available; the
+      following uses the default namespace declaration to define the namespace—optionally replacing
+      an existing default declaration if present.</p>
+
+      <ol>
+        <li>Set <var>ignore namespace definition attribute</var> to true.
+
+        <li>Append <var>node</var>'s [=Element/local name=] to <var>qualified name</var>.
+
+        <li>Set <var>inherited ns</var> to <var>ns</var>.
+
+        <p class=note>The new default namespace will be used in the serialization to define
+        <var>node</var>'s [=Element/namespace=] and act as the context namespace for its
+        [=tree/children=].</p>
+
+        <li>Append <var>qualified name</var> to <var>markup</var>.
+
+        <li>Append the following to <var>markup</var>, in the order listed:
+
+        <p class=note>The following serializes the new (or replacement) default namespace
+        definition.</p>
+
+        <ol>
+          <li>"<code> </code>" (U+0020 SPACE);
+
+          <li>"<code>xmlns</code>";
+
+          <li>"<code>="</code>" (U+003D EQUALS SIGN, U+0022 QUOTATION MARK);
+
+          <li>The result of <a>serializing an attribute value</a> given <var>ns</var> and
+          <var>require well-formed</var>;
+
+          <li>"<code>"</code>" (U+0022 QUOTATION MARK).
+        </ol>
+      </ol>
+
+      <!-- Finally, regardless of prefix, the node has a local default namespace that matches 'ns'.
+      So, we'll just use that and drop the prefix -->
+      <li>Otherwise:
+
+      <p class="note"><var>local default namespace</var> is <var>ns</var>.
+
+      <ol>
+        <li>Append <var>node</var>'s [=Element/local name=] to <var>qualified name</var>.
+
+        <li>Set <var>inherited ns</var> to <var>ns</var>.
+
+        <li>Append <var>qualified name</var> to <var>markup</var>.
+      </ol>
+
+      <p class=note>All of the combinations where <var>ns</var> is not equal to
+      <var>inherited ns</var> are handled above such that <var>node</var> will be serialized
+      preserving its original [=Element/namespace=].</p>
+    </ol>
+
+    <li>Append to <var>markup</var> the result of the [=XML serialization of the attributes=] of
+    <var>node</var> given <var>map</var>, <var>prefix index</var>, <var>local prefixes map</var>,
+    <var>ignore namespace definition attribute</var>, and <var>require well-formed</var>.
+
+    <li>If <var>ns</var> is the <a>HTML namespace</a>, and <var>node</var>'s [=tree/children=]
+    [=set/is empty=], and <var>node</var>'s [=Element/local name=] is one of the following:
+    "<code>area</code>",
+    "<code>base</code>",
+    "<code>basefont</code>",
+    "<code>bgsound</code>",
+    "<code>br</code>",
+    "<code>col</code>",
+    "<code>embed</code>",
+    "<code>frame</code>",
+    "<code>hr</code>",
+    "<code>img</code>",
+    "<code>input</code>",
+    "<code>keygen</code>",
+    "<code>link</code>",
+    "<code>menuitem</code>",
+    "<code>meta</code>",
+    "<code>param</code>",
+    "<code>source</code>",
+    "<code>track</code>",
+    "<code>wbr</code>";
+    then append the following to <var>markup</var>, in the order listed:
+    <ol>
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li>"<code>/</code>" (U+002F SOLIDUS).
+    </ol>
+    and set <var>skip end tag</var> to true.
+
+    <li>If <var>ns</var> is not the <a>HTML namespace</a>, and <var>node</var>'s [=tree/children=]
+    [=set/is empty=], then append "<code>/</code>" (U+002F SOLIDUS) to <var>markup</var>
+    and set <var>skip end tag</var> to true.
+
+    <li>Append "<code>&gt;</code>" (U+003E GREATER-THAN SIGN) to <var>markup</var>.
+
+    <li>If <var>skip end tag</var> is true, then return <var>markup</var>.
+    <span class="note"><var>node</var> is a leaf node.</span>
+
+    <li>If <var>ns</var> is the <a>HTML namespace</a>, and <var>node</var>'s
+    [=Element/local name=] is "<code>template</code>" (this is a [^template^] element), append to
+    <var>markup</var> the result of <a>XML serializing a DocumentFragment node</a> given
+    <var>node</var>'s <a>template contents</a> (a {{DocumentFragment}}),
+    <var>inherited ns</var>, <var>map</var>, <var>prefix index</var>, and
+    <var>require well-formed</var>.
+
+    <p class=note>This allows <a>template content</a> to round-trip, given the rules for
+    <a>parsing XHTML documents</a>.</p>
+
+    <li>
+      <p>Otherwise, [=set/for each=] <var>child</var> of <var>node</var>'s [=tree/children=]:
+      <ol>
+        <li>Append to <var>markup</var> the result of running the <a>XML serialization algorithm</a>
+        given |child|, <var>inherited ns</var>, <var>map</var>, <var>prefix index</var>, and
+        <var>require well-formed</var>.
+      </ol>
+
+    <li>Append the following to <var>markup</var>, in the order listed:
+    <ol>
+      <li>"<code>&lt;/</code>" (U+003C LESS-THAN SIGN, U+002F SOLIDUS);
+
+      <li><var>qualified name</var>;
+
+      <li>"<code>&gt;</code>" (U+003E GREATER-THAN SIGN).
+    </ol>
+
+    <li>Return <var>markup</var>.
+  </ol>
+  </div>
+
+<section><h2>Recording the namespace</h2>
+
+  <div class="algorithm">
+  <p class="note">This following algorithm will update the <a>namespace prefix map</a> with any
+  found namespace prefix definitions, add the found prefix definitions to
+  <var>local prefixes map</var>, and return a local default namespace value defined by a default
+  namespace attribute if one exists. Otherwise it returns null.</p>
+
+  <p>When <dfn>recording the namespace information</dfn> for a [=list=] of
+  <a data-cite="dom">attributes</a> |attributes|, given a <a>namespace prefix map</a> <var>map</var>
+  and an [=ordered map=] <var>local prefixes map</var>, run the following steps:
+
+  <ol>
+    <li>Let <var>default namespace attr value</var> be null.
+
+    <li>[=list/For each=] <var>attr</var> of <var>attributes</var>:
+
+    <p class="note">The following conditional steps find namespace prefixes. Only
+    <a data-cite="dom">attributes</a> in the <a>XMLNS namespace</a> are considered (e.g.,
+    <a data-cite="dom">attributes</a> made to look like namespace declarations via
+    {{Element/setAttribute(qualifiedName, value)|setAttribute("xmlns:pretend-prefix",
+    "pretend-namespace")}} are not included).</p>
+
+    <ol>
+      <li>Let <var>attribute namespace</var> be <var>attr</var>'s [=Attr/namespace=].
+
+      <li>Let <var>attribute prefix</var> be <var>attr</var>'s [=Attr/namespace prefix=].
+
+      <li>If <var>attribute namespace</var> is the <a>XMLNS namespace</a>, then:
+      <ol>
+        <li>If <var>attribute prefix</var> is null (<var>attr</var> is a default namespace
+        declaration), set <var>default namespace attr value</var> to <var>attr</var>'s
+        [=Attr/value=], and [=iteration/continue=].
+
+        <li>Otherwise:
+        <ol>
+          <li class="note"><var>attribute prefix</var> is not null and <var>attr</var> is a namespace
+          prefix definition.
+
+          <li>Let <var>prefix definition</var> be <var>attr</var>'s [=Attr/local name=].
+
+          <li>Let <var>namespace definition</var> be <var>attr</var>'s [=Attr/value=].
+
+          <li>If <var>namespace definition</var> is the <a>XML namespace</a>, then
+          [=iteration/continue=].
+
+          <p class=note><a>XML namespace</a> definitions in prefixes are completely ignored (in
+          order to avoid unnecessary work when there might be prefix conflicts).
+          {{Element}}s in the <a>XML namespace</a> are always handled uniformly by prefixing (and
+          overriding if necessary) the element's [=Element/local name=] with the reserved
+          "<code>xml</code>" prefix.</p>
+
+          <li>If <var>namespace definition</var> is the empty string (the declarative form of
+          having no namespace), then set <var>namespace definition</var> to null.
+
+          <li>If <var>prefix definition</var> is <a>found</a> in <var>map</var> given
+          <var>namespace definition</var>, then [=iteration/continue=].
+
+          <p class=note>This step avoids adding duplicate prefix definitions for the same namespace
+          in <var>map</var>. This has the side-effect of avoiding later serialization of
+          duplicate namespace prefix declarations in any descendant nodes.</p>
+
+          <li><a>Add</a> <var>prefix definition</var> to <var>map</var> given
+          <var>namespace definition</var>.
+
+          <li>If <var>namespace definition</var> is null, then set <var>namespace definition</var> to
+          the empty string.
+
+          <li>Set <var>local prefixes map</var>[<var>prefix definition</var>] to
+          <var>namespace definition</var>.
+        </ol>
+      </ol>
+    </ol>
+    <li>Return <var>default namespace attr value</var>.
+
+    <p class=note>The empty string is a legitimate return value and is not converted to
+    null.</p>
+  </ol>
+  </div>
+
+</section><!-- Recording the namespace -->
+
+<section><h2>The Namespace Prefix Map</h2>
+
+  <p>A <dfn>namespace prefix map</dfn> is an <a>ordered map</a> from <a>strings</a> or null
+  to <a>lists</a> of <a>strings</a>.</p>
+
+  <div class="note">
+  <p>The keys are namespaces, with null representing no namespace; the values are
+  <a>lists</a> of prefixes that map to that namespace.
+
+  <p>An empty <a>namespace prefix map</a> will be created at the start of the
+  <a>XML serialization</a> algorithm. Whenever a new {{Element}} is encountered, the map will be
+  cloned (<a>copy a namespace prefix map</a>) and new associations will be added for that
+  {{Element}} (primarily in <a>recording the namespace information</a>, but also when adding
+  new namespace declarations because no prefix is available for a particular namespace).
+
+  <p>The last seen prefix for a given namespace is at the end of its respective [=list=].
+  When serializing, the [=Element=]'s [=Element/namespace prefix=] will be used if it is in the
+  [=list=]; otherwise the last prefix in the [=list=] is used. See
+  <a>retrieve a preferred prefix string</a> for additional details.</p>
+  </div>
+
+  <div class="algorithm">
+  <p>To <dfn>copy a namespace prefix map</dfn> <var>map</var>:
+  <ol>
+    <li>Let |copy| be a new [=namespace prefix map=].
+    <li>
+      <p>[=map/For each=] |key| → |value| in <var>map</var>:
+      <ol>
+        <li>Set |copy|[|key|] to a [=list/clone=] of |value|.
+      </ol>
+    <li>Return |copy|.
+  </ol>
+  </div>
+
+  <div class="algorithm">
+  <p>To <dfn data-lt="retrieving a preferred prefix string">retrieve a preferred prefix string</dfn>
+  <var>preferred prefix</var> (a string or null) from the <a>namespace prefix map</a> <var>map</var>
+  given a namespace <var>ns</var>:
+
+  <ol>
+    <li>If <var>map</var> does not [=map/contain=] <var>ns</var>, return null.
+
+    <li>Let <var>candidates</var> be <var>map</var>[<var>ns</var>].
+
+    <li>[=Assert=]: <var>candidates</var> [=list/is not empty=].</li>
+
+    <li>
+      <p>If <var>prefix</var> is not null, then:
+      <ol>
+        <li>
+          <p>[=list/For each=] <var>prefix</var> of <var>candidates</var>:
+
+          <ol>
+            <li>If <var>prefix</var> is <var>preferred prefix</var>, return <var>prefix</var>.
+          </ol>
+      </ol>
+    <li>Return <var>candidates</var>[[=list/size=] of <var>candidates</var> - 1].
+  </ol>
+  </div>
+
+  <div class="algorithm">
+  <p>To check if a string <var>prefix</var> is <dfn>found</dfn> in a <a>namespace prefix map</a>
+  <var>map</var> given a namespace <var>ns</var>:
+
+  <ol>
+    <li>If <var>map</var> does not [=map/contain=] <var>ns</var>, return false.
+
+    <li>Let <var>candidates</var> be <var>map</var>[<var>ns</var>].
+
+    <li>If |candidates| [=list/contains=] <var>prefix</var>, return true, otherwise return false.
+  </ol>
+  </div>
+
+  <div class="algorithm">
+  <p>To <dfn>add</dfn> a string <var>prefix</var> to a <a>namespace prefix map</a> <var>map</var>
+  given a namespace <var>ns</var>:
+
+  <ol>
+    <li>
+      <p>If |map| does not [=map/contain=] |ns|:
+      <ol>
+        <li>Let |candidates| be « |prefix| ».
+        <li>Set |map|[|ns|] to |candidates|.
+      </ol>
+    <li>
+      <p>Otherwise:
+      <ol>
+        <li>Let |candidates| be |map|[|ns|].
+        <li>[=list/Append=] |prefix| to |candidates|.
+      </ol>
+  </ol>
+  </div>
+
+  <p class=note>The steps in <a>retrieve a preferred prefix string</a> use the <a>list</a> to track
+  the most recently used prefix associated with a given namespace, which will be the prefix at the
+  end of the list. This list can contain duplicates of the same prefix seen earlier (and that's
+  OK).</p>
+
+</section><!-- The Namespace Prefix Map -->
+
+<section><h2>Serializing an Element's attributes</h2>
+
+  <div class="algorithm">
+  <p>The <dfn>XML serialization of the attributes</dfn> of an {{Element}}
+  <var>element</var> given a <a>namespace prefix map</a> <var>map</var>,
+  a mutable reference to an integer <var>prefix index</var>,
+  an [=ordered map=] <var>local prefixes map</var>,
+  a boolean <var>ignore namespace definition attribute</var>, and
+  a boolean <var>require well-formed</var>, is the result of the following algorithm:
+
+  <ol>
+    <li>Let <var>result</var> be the empty string.
+
+    <li>Let <var>localname set</var> be « » (an empty [=ordered set=]).
+
+    <p class="note"><var>localname set</var> will contain tuples of unique attribute
+    (namespace, local name) pairs, and is populated as each <var>attr</var> is processed. If
+    <var>require well-formed</var> is true, it is used to enforce the well-formed constraint
+    that an element cannot have two attributes with the same [=Attr/namespace=] and
+    [=Attr/local name=]. This can occur when two otherwise identical attributes on the same
+    element differ only by their prefix values. If <var>require well-formed</var> is false,
+    <var>localname set</var> is unnecessary.
+
+    <li>[=list/For each=] <var>attr</var> of <var>element</var>'s [=Element/attribute list=]:
+    <ol>
+      <li>Let <var>attribute namespace</var> be <var>attr</var>'s [=Attr/namespace=].
+
+      <li>Let |attrName| be a new tuple (|attribute namespace|, <var>attr</var>'s
+      [=Attr/local name=]).
+
+      <li>If <var>require well-formed</var> is true, and <var>localname set</var> [=set/contains=]
+      |attrName|, then <a>throw an exception</a>. <span class="note">The serialization of
+      <var>attr</var> would not be well-formed.</span>
+
+      <li>[=set/Append=] |attrName| to <var>localname set</var>.
+
+      <!-- Check for an unregistered attribute namespace, and if so, serialize a definition for it -->
+      <li>Let <var>candidate prefix</var> be null.
+
+      <li>If <var>attribute namespace</var> is not null, then:
+      <ol>
+        <li>Let |prefix| be <var>attr</var>'s [=Attr/namespace prefix=].
+
+        <li>Set <var>candidate prefix</var> to the result of
+        <a>retrieving a preferred prefix string</a> |prefix| from <var>map</var> given
+        <var>attribute namespace</var>.
+
+        <li>If <var>attribute namespace</var> is the <a>XMLNS namespace</a>, then:
+        <ol>
+          <li>If any of the following are true, then [=iteration/continue=]:
+          <ul>
+            <li><var>attr</var>'s [=Attr/value=] is the <a>XML namespace</a>;
+
+            <p class=note>The <a>XML namespace</a> cannot be redeclared and survive
+            <a>round-tripping</a> (unless it defines the prefix "<code>xml</code>"). To avoid this
+            problem, this algorithm always prefixes elements in the <a>XML namespace</a> with
+            "<code>xml</code>" and drops any related definitions as seen in the above condition.</p>
+
+            <li>|prefix| is null and <var>ignore namespace definition attribute</var> is true (the
+            {{Element}}'s default namespace attribute is to be skipped);
+
+            <li>|prefix| is not null and either
+            <ul>
+              <li><var>local prefixes map</var> does not [=map/contain=] <var>attr</var>'s
+              [=Attr/local name=], or
+
+              <li><var>local prefixes map</var> does [=map/contain=] <var>attr</var>'s
+              [=Attr/local name=], but
+              <var>local prefixes map</var>[<var>attr</var>'s [=Attr/local name=]] is not
+              <var>attr</var>'s [=Attr/value=]
+            </ul>
+            and furthermore that <var>attr</var>'s [=Attr/local name=] is <a>found</a> in
+            <var>map</var> given <var>attr</var>'s [=Attr/value=] (the current namespace prefix
+            definition was exactly defined previously—on an ancestor element, not |element|).
+          </ul>
+
+          <li>If <var>require well-formed</var> is true, and <var>attr</var>'s [=Attr/value=] is the
+          <a>XMLNS namespace</a>, then [=throw an exception=].
+          <span class="note">The serialization of this attribute would produce invalid XML
+          because the <a>XMLNS namespace</a> is reserved and cannot be applied as an
+          element's namespace via XML parsing.</span>
+
+          <p class=note>DOM APIs do allow creation of elements in the <a>XMLNS namespace</a> but
+          with strict qualifications.</p>
+
+          <li>If <var>require well-formed</var> is true, and <var>attr</var>'s [=Attr/value=] is the
+          empty string, then [=throw an exception=].
+          <span class="note">Namespace prefix declarations cannot be used to undeclare a
+          namespace (use a default namespace declaration instead).</span>
+
+          <li>If |prefix| is "<code>xmlns</code>", then set <var>candidate prefix</var> to
+          "<code>xmlns</code>".
+        </ol>
+
+        <li>Otherwise (<var>attribute namespace</var> is not the <a>XMLNS namespace</a>),
+        if <var>candidate prefix</var> is null:
+
+        <ol>
+          <li>If |prefix| is not null and |local prefixes map| does not [=map/contain=]
+          |prefix|, set |candidate prefix| to |prefix|.
+
+          <li>Otherwise, set <var>candidate prefix</var> to the result of
+          <a>generating a prefix</a> given <var>map</var>, <var>attribute namespace</var>,
+          and <var>prefix index</var>.
+
+          <li>[=Add=] |candidate prefix| to |map| given |attribute namespace|.
+
+          <li>Let |map value| be the empty string if |attribute namespace| is null, and
+          |attribute namespace| otherwise.
+
+          <li>[=map/Set=] |local prefixes map|[|candidate prefix|] to |map value|.
+
+          <li>Append the following to <var>result</var>, in the order listed:
+          <ol>
+            <li>"<code> </code>" (U+0020 SPACE);
+
+            <li>"<code>xmlns:</code>";
+
+            <li><var>candidate prefix</var>;
+
+            <li>"<code>="</code>" (U+003D EQUALS SIGN, U+0022 QUOTATION MARK);
+
+            <li>The result of <a>serializing an attribute value</a> given
+            <var>attribute namespace</var> and <var>require well-formed</var>;
+
+            <li>"<code>"</code>" (U+0022 QUOTATION MARK).
+          </ol>
+        </ol>
+      </ol>
+      <!-- A namespace prefix has been set by this point if it needed to be set -->
+      <li>Append "<code> </code>" (U+0020 SPACE) to <var>result</var>.
+
+      <li>If <var>candidate prefix</var> is not null, then append to <var>result</var>
+      the concatenation of <var>candidate prefix</var> and "<code>:</code>" (U+003A COLON).
+
+      <li>If <var>require well-formed</var> is true, and <var>attr</var>'s [=Attr/local name=]
+      contains the character "<code>:</code>" (U+003A COLON) or does not match the XML <a>Name</a>
+      production or equals "<code>xmlns</code>" and <var>attribute namespace</var> is null, then
+      <a>throw an exception</a>.
+      <span class="note">The serialization of <var>attr</var> would not be well-formed.</span>
+
+      <li>Append the following to <var>result</var>, in the order listed:
+      <ol>
+        <li><var>attr</var>'s [=Attr/local name=];
+
+        <li>"<code>="</code>" (U+003D EQUALS SIGN, U+0022 QUOTATION MARK);
+
+        <li>The result of <a>serializing an attribute value</a> given <var>attr</var>'s
+        [=Attr/value=] and <var>require well-formed</var>;
+
+        <li>"<code>"</code>" (U+0022 QUOTATION MARK).
+      </ol>
+    </ol>
+    <li>Return <var>result</var>.
+  </ol>
+  </div>
+
+  <div class="algorithm">
+  <p>When <dfn>serializing an attribute value</dfn> given a string or null |attribute value| and a
+  boolean <var>require well-formed</var>, run the following steps:
+
+  <ol>
+    <li>If <var>require well-formed</var> is true, and
+    <var>attribute value</var> contains characters that are not matched by the XML <a>Char</a>
+    production, then <a>throw an exception</a>.
+    <span class="note">The serialization of <var>attribute value</var> would not be
+    well-formed.</span>
+
+    <li>If <var>attribute value</var> is null, then return the empty string.
+
+    <li>Otherwise, return <var>attribute value</var>, first replacing any occurrences of the
+    following:
+    <ol>
+      <li>"<code>&amp;</code>" with "<code>&amp;amp;</code>"
+
+      <li>"<code>&quot;</code>" with "<code>&amp;quot;</code>"
+
+      <li>"<code>&lt;</code>" with "<code>&amp;lt;</code>"
+
+      <li>U+0009 CHARACTER TABULATION with "<code>&amp;#9;</code>"
+
+      <li>U+000A LINE FEED (LF) with "<code>&amp;#xA;</code>"
+
+      <li>U+000D CARRIAGE RETURN (CR) with "<code>&amp;#xD;</code>"
+    </ol>
+    <p class="note">This matches behavior present in browsers, and goes above and beyond the grammar
+    requirement in the XML specification's <a>AttValue</a> production by also replacing
+    "<code>&gt;</code>" characters.</p>
+  </ol>
+  </div>
+
+</section><!-- Serializing an Element's attributes -->
+
+<section><h2>Generating namespace prefixes</h2>
+
+  <div class="algorithm">
+  <p>To <dfn data-lt="generating a prefix">generate a prefix</dfn> given a
+  <a>namespace prefix map</a> <var>map</var>, a string <var>new namespace</var>, and a mutable
+  reference to an integer <var>prefix index</var>:
+
+  <ol>
+    <li>Let <var>generated prefix</var> be the concatenation of "<code>ns</code>" and the
+    current numerical value of <var>prefix index</var>.
+
+    <li>Increment the value of <var>prefix index</var> by one.
+
+    <li><a>Add</a> <var>generated prefix</var> to <var>map</var> given <var>new namespace</var>.
+
+    <li>Return the value of <var>generated prefix</var>.
+  </ol>
+  </div>
+
+  <div class="issue" data-number="44"></div>
+
+</section><!-- Generating namespace prefixes -->
+
+</section><!-- XML serializing an Element node -->
+
+<section><h2>XML serializing a Document node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a Document node</dfn>, given
+  a {{Document}} |node:Document|,
+  a string |namespace:string|,
+  a [=namespace prefix map=] |prefix map:namespace prefix map|,
+  a mutable reference to an integer |prefix index:mutable reference to an integer|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>If <var>require well-formed</var> is true, and <var>node</var>'s [=document element=] is
+    null, then <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>Otherwise:
+    <ol>
+      <li>Let <var>serialized document</var> be the empty string.
+
+      <li>
+        <p>[=set/For each=] <var>child</var> of <var>node</var>'s [=tree/children=]:
+        <ol>
+          <li>Append to <var>serialized document</var> the result of running the
+          <a>XML serialization algorithm</a> given |child|, <var>inherited ns</var>, <var>map</var>,
+          <var>prefix index</var>, and <var>require well-formed</var>.
+        </ol>
+
+        <p class=note>This will serialize any number of {{ProcessingInstruction}} and {{Comment}}
+        nodes both before and after the [=document element=], as well as at most one
+        {{DocumentType}} node. ({{Text}} nodes are not allowed as children of a {{Document}}.)
+
+      <li>Return <var>serialized document</var>.
+    </ol>
+  </ol>
+  </div>
+
+</section><!-- XML serializing a Document node -->
+
+<section><h2>XML serializing a Comment node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a Comment node</dfn>, given
+  a {{Comment}} |node:Comment|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>If <var>require well-formed</var> is true, and <var>node</var>'s [=CharacterData/data=]
+    contains characters that are not matched by the XML <a>Char</a> production or contains
+    "<code>--</code>" (two adjacent U+002D HYPHEN-MINUS characters) or ends with a
+    "<code>-</code>" (U+002D HYPHEN-MINUS) character, then <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>Otherwise, return the concatenation of "<code>&lt;!--</code>", <var>node</var>'s
+    [=CharacterData/data=], and "<code>--></code>".
+  </ol>
+  </div>
+
+</section><!-- XML serializing a Comment node -->
+
+<section><h2>XML serializing a CDATASection node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a CDATASection node</dfn>, given
+  a {{CDATASection}} |node:CDATASection|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>Let <var>markup</var> be the concatenation of "<code>&lt;![CDATA[</code>",
+    <var>node</var>'s [=CharacterData/data=], and "<code>]]></code>".
+
+    <li>Return <var>markup</var>.
+  </ol>
+  </div>
+</section><!-- XML serializing a CDATASection node -->
+
+<section><h2>XML serializing a Text node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a Text node</dfn>, given
+  a {{Text}} |node:Text|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>Let <var>markup</var> be <var>node</var>'s [=CharacterData/data=].
+
+    <li>If <var>require well-formed</var> is true, and <var>markup</var> contains characters that
+    are not matched by the XML <a>Char</a> production, then <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>Replace any occurrences of "<code>&amp;</code>" in <var>markup</var> by
+    "<code>&amp;amp;</code>".
+
+    <li>Replace any occurrences of "<code>&lt;</code>" in <var>markup</var> by
+    "<code>&amp;lt;</code>".
+
+    <li>Replace any occurrences of "<code>&gt;</code>" in <var>markup</var> by
+    "<code>&amp;gt;</code>".
+
+    <li>Return <var>markup</var>.
+  </ol>
+  </div>
+
+</section><!-- XML serializing a Text node -->
+
+<section><h2>XML serializing a DocumentFragment node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a DocumentFragment node</dfn>, given
+  a {{DocumentFragment}} |node:DocumentFragment|,
+  a string |namespace:string|,
+  a [=namespace prefix map=] |prefix map:namespace prefix map|,
+  a mutable reference to an integer |prefix index:mutable reference to an integer|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>Let <var>markup</var> be the empty string.
+
+    <li>
+      <p>[=set/For each=] <var>child</var> of <var>node</var>'s [=tree/children=]:
+      <ol>
+        <li>Append to <var>markup</var> the result of running the <a>XML serialization algorithm</a>
+        given |child|, <var>inherited ns</var>, <var>map</var>, <var>prefix index</var>, and
+        <var>require well-formed</var>.
+      </ol>
+
+    <li>Return <var>markup</var>.
+  </ol>
+  </div>
+
+</section><!-- XML serializing a DocumentFragment node -->
+
+<section><h2>XML serializing a DocumentType node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a DocumentType node</dfn>, given
+  a {{DocumentType}} |node:DocumentType|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>If <var>require well-formed</var> is true, and <var>node</var>'s [=DocumentType/public ID=]
+    contains characters that are not matched by the XML <a>PubidChar</a> production, then
+    <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>If <var>require well-formed</var> is true, and <var>node</var>'s [=DocumentType/system ID=]
+    contains characters that are not matched by the XML <a>Char</a> production or that contains
+    both a "<code>"</code>" (U+0022 QUOTATION MARK) and a "<code>'</code>" (U+0027 APOSTROPHE),
+    then <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>Let <var>markup</var> be the empty string.
+
+    <li>Append "<code>&lt;!DOCTYPE</code>" to <var>markup</var>.
+
+    <li>Append "<code> </code>" (U+0020 SPACE) to <var>markup</var>.
+
+    <li>Append <var>node</var>'s [=DocumentType/name=] to <var>markup</var>.
+    <span class="note">For a <var>node</var> belonging to an <a>HTML document</a>, the
+    name will be all lowercase.</span>
+
+    <li>If <var>node</var>'s [=DocumentType/public ID=] is not the empty string, then append
+    the following, in the order listed, to <var>markup</var>:
+    <ol>
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li>"<code>PUBLIC</code>";
+
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li>the [=serialization of the ID=] <var>node</var>'s [=DocumentType/public ID=].
+    </ol>
+
+    <li>If <var>node</var>'s [=DocumentType/system ID=] is not the empty string and
+    <var>node</var>'s [=DocumentType/public ID=] is the empty string, then append the
+    following, in the order listed, to <var>markup</var>:
+    <ol>
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li>"<code>SYSTEM</code>".
+    </ol>
+
+    <li>If <var>node</var>'s [=DocumentType/system ID=] is not the empty string, then append
+    the following, in the order listed, to <var>markup</var>:
+    <ol>
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li>the [=serialization of the ID=] <var>node</var>'s [=DocumentType/system ID=].
+    </ol>
+
+    <!-- Removing internalSubset serialization steps as this property is not supported by DOM4. Also,
+         optional requirements don't help improve interoperability:
+    <li>Optional: if <var>node</var> has an (historical) <code><a>internalSubset</a></code> and
+    the <code><a>internalSubset</a></code> attribute's value is a non-empty string, then append the
+    following, in the order listed, to <var>markup</var>:
+    <ol>
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li>"<code>[</code>" (U+005B LEFT SQUARE BRACKET);
+
+      <li><var>node</var>'s <code><a>internalSubset</a></code> attribute;
+
+      <li>"<code>]</code>" (U+005D RIGHT SQUARE BRACKET);
+    </ol>
+    <p class=note>A <var>node</var> belonging to an <a>HTML document</a> will never have an
+    <code><a>internalSubset</a></code> because any <code><a>internalSubset</a></code> markup is
+    ignored by the HTML parser.</p>
+    -->
+    <li>Append "<code>&gt;</code>" (U+003E GREATER-THAN SIGN) to <var>markup</var>.
+
+    <li>Return <var>markup</var>.
+  </ol>
+  </div>
+
+  <div class="algorithm">
+  <p>The <dfn>serialization of the ID</dfn> |id:string| is the result of the following steps:
+  <ol>
+    <li>If |id| contains "<code>"</code>" (U+0022 QUOTATION MARK), let |q| be
+    "<code>'</code>" (U+0027 APOSTROPHE), and let |q| be "<code>"</code>" (U+0022 QUOTATION MARK)
+    otherwise.
+    <li>Return the concatenation of |q|, |id|, and |q|.
+  </ol>
+  </div>
+
+</section><!-- XML serializing a DocumentType node -->
+
+<section><h2>XML serializing a ProcessingInstruction node</h2>
+
+  <div class="algorithm">
+  <p>The algorithm for <dfn>XML serializing a ProcessingInstruction node</dfn>, given
+  a {{ProcessingInstruction}} |node:ProcessingInstruction|,
+  and
+  a boolean <var>require well-formed</var>,
+  must run the following steps:
+
+  <ol>
+    <li>If <var>require well-formed</var> is true, and <var>node</var>'s
+    [=ProcessingInstruction/target=] contains a "<code>:</code>" (U+003A COLON)
+    character or is an <a>ASCII case-insensitive</a> match for "<code>xml</code>", then
+    <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>If <var>require well-formed</var> is true, and <var>node</var>'s [=CharacterData/data=]
+    contains characters that are not matched by the XML
+    <a>Char</a> production or contains "<code>?></code>" (U+003F QUESTION MARK,
+    U+003E GREATER-THAN SIGN), then <a>throw an exception</a>.
+    <span class="note">The serialization of <var>node</var> would not be well-formed.</span>
+
+    <li>Let <var>markup</var> be the concatenation of the following, in the order listed:
+    <ol>
+      <li>"<code>&lt;?</code>" (U+003C LESS-THAN SIGN, U+003F QUESTION MARK);
+
+      <li><var>node</var>'s [=ProcessingInstruction/target=];
+
+      <li>"<code> </code>" (U+0020 SPACE);
+
+      <li><var>node</var>'s [=CharacterData/data=];
+
+      <li>"<code>?></code>" (U+003F QUESTION MARK, U+003E GREATER-THAN SIGN).
+    </ol>
+
+    <li>Return <var>markup</var>.
+  </ol>
+  </div>
+
+</section><!-- XML serializing a ProcessingInstruction node -->
+
+</section><!-- XML Serialization -->
+
+</section><!-- Serializing -->
+
+</section><!-- Algorithms for parsing and serializing -->
+
+
+
+
+<section class=appendix>
+  <h2>Dependencies</h2>
+
+  The HTML specification [[!HTML]] defines the following terms used in this document:
+
+  <ul>
+    <li>Parsing concepts:
+        <dfn><a href="https://www.w3.org/TR/html5/single-page.html#html-parser">HTML parser</a></dfn>;
+        <dfn><a href="https://www.w3.org/TR/html5/single-page.html#parsing-xhtml-documents">parsing XHTML documents</a></dfn>;
+        <dfn><a href="https://www.w3.org/TR/html5/single-page.html#xml-parser">XML parser</a></dfn>
+    <li>The [^template^]'s <dfn data-lt="template content"><a href="https://www.w3.org/TR/html5/single-page.html#template-contents">template contents</a></dfn>
+    <li>The <dfn><a href="https://html.spec.whatwg.org/dynamic-markup-insertion.html#dom-element-innerhtml">innerHTML</a></dfn> property;
+    <li>The <dfn><a href="https://html.spec.whatwg.org/dynamic-markup-insertion.html#dom-element-outerhtml">outerHTML</a></dfn> property;
+    <li>The <dfn><a href="https://html.spec.whatwg.org/dynamic-markup-insertion.html#dom-element-insertadjacenthtml">insertAdjacentHTML</a></dfn> method;
+  </ul>
+
+  The following terms used in this document are defined by [[XML10]]:
+
+  <ul>
+    <li>The <dfn><a href="https://www.w3.org/TR/xml/#NT-AttValue"><code>AttValue</code></a></dfn>,
+        <dfn><a href="https://www.w3.org/TR/xml/#NT-Char"><code>Char</code></a></dfn>,
+        <dfn><a href="https://www.w3.org/TR/xml/#NT-EmptyElemTag"><code>EmptyElemTag</code></a></dfn>,
+        <dfn><a href="https://www.w3.org/TR/xml/#NT-Name"><code>Name</code></a></dfn> and
+        <dfn><a href="https://www.w3.org/TR/xml/#NT-PubidChar"><code>PubidChar</code></a></dfn> productions
+    <li><dfn><a href="https://www.w3.org/TR/xml/#dt-eetag">empty-element tag</a></dfn>
+  </ul>
+</section>
+
+<section class=appendix>
+  <h2>Revision History</h2>
+
+  The following is an informative summary of the changes since the last publication of this
+  specification. A complete revision history of the Editor's Drafts of this specification can be
+  found at the
+  <a href="https://github.com/w3c/DOM-Parsing/commits/gh-pages">W3C Github Repository</a> and older
+  revisions at the
+  <a href="https://dvcs.w3.org/hg/innerhtml/summary/">W3C Mercurial server</a>.
+
+  <ul>
+    <li>2016-06 WD - Editorial restructuring of the document; monolithic XML serialization algorithm
+    factored into sections. Dependencies clarified. XML Serialization algorithm updated to get
+    closer to interoperable browser behavior.
+
+    <li><a href="https://dvcs.w3.org/hg/innerhtml/raw-file/tip/LC2_comments.html">Incorporated
+      non-normative changes from previous Last Call document.</a>
+  </ul>
+</section>
+
+<section class=appendix>
+  <h2>Acknowledgements</h2>
+
+  <p>We acknowledge with gratitude the original work of Ms2ger and others at the WHATWG, who created
+  and maintained the original DOM Parsing and Serialization Living Standard upon which this
+  specification is based.
+
+  <p>Thanks to
+  C. Scott Ananian,
+  Victor Costan,
+  Aryeh Gregor,
+  Anne van Kesteren,
+  Arkadiusz Michalski,
+  Simon Pieters,
+  Henri Sivonen,
+  Josh Soref
+  and Boris Zbarsky,
+  for their useful comments.
+
+  <p>Special thanks to Ian Hickson for first defining the <a data-link-for="Element">innerHTML</a> and <a data-link-for="Element">outerHTML</a>
+  attributes, and the <a data-link-for="Element">insertAdjacentHTML</a> method in [[HTML]] and his useful comments.
+</section>
+
+</body>
+</html>
