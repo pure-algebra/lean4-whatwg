@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgHtml rows=5449 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgHtml rows=5456 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 Lean.Parser.Category.htmlAttr	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5f6347cce89be52c68443da16122aa64f8658af294659be40d9cec0b01a646d3	-	-	-	-	-	-	-	-
 Lean.Parser.Category.htmlName	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5f6347cce89be52c68443da16122aa64f8658af294659be40d9cec0b01a646d3	-	-	-	-	-	-	-	-
@@ -4694,11 +4694,15 @@ Whatwg.Html.Svg.Frame.userWidth	Whatwg.Html.Node.SvgBuild	definition	authored	0	
 Whatwg.Html.Svg.Frame.userWidth.eq_1	Whatwg.Html.Node.SvgBuild	theorem	generated	0	1ae723a4b195b8437ace5e3df221e6bc45acec9a6e4f594641bcb5d22ec7b5bc	-	-	-	-	-	-	-	-
 Whatwg.Html.Svg.Frame.viewBox	Whatwg.Html.Node.SvgBuild	definition	authored	0	332f95a07a5db0b32531d48b77e1f3005c66b254a82ff152df02b870a54b48da	-	-	-	-	-	-	-	-
 Whatwg.Html.Svg.Frame.width	Whatwg.Html.Node.SvgBuild	definition	authored	0	4e74b9e886227a7d6cad066be7022749103175ad90ca8246789f65e1cc4c53ca	-	-	-	-	-	-	-	-
+Whatwg.Html.Svg.box	Whatwg.Html.Node.SvgDraw	definition	authored	0	b741c5d3807532398055c7a383d425e1d29e82b142673d01a3d71fc79a584ac7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.circle	Whatwg.Html.Node.SvgBuild	definition	authored	0	641b2d16fd54942a3cd61f2e27e01bb0e7344a11e695f568bd30e127e2b52b41	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.clipPath	Whatwg.Html.Node.SvgBuild	definition	authored	0	6b9909244f1f494408b41cb69e8d303819dd041a218e70ae9be220c22cc8ff48	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.clipped	Whatwg.Html.Node.SvgBuild	definition	authored	0	fe7d96c6e5750095c754bfbdd8469873cbc50363beca30fd7354fb95e5977ca3	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.clipped.eq_1	Whatwg.Html.Node.SvgNest	theorem	generated	0	6463eedd790269cb489210bbc206b8dca314e26c1d5ea2faf4e7013bbb7ef252	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.cubics	Whatwg.Html.Node.SvgDraw	definition	authored	0	56b96e90973ae1c2b61b29d27f5e826a7b5878eb1a1fb6714fa7a05c307ea1db	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.curve	Whatwg.Html.Node.SvgDraw	definition	authored	0	6021d4e10056fdb617965edf352b1570ed5ae4eb23a08711cfb8e19a6dd1c5a7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.defs	Whatwg.Html.Node.SvgBuild	definition	authored	0	08b5d944c2fe9305dda32d1be85f363ba4b9271419dcf17b0a25118274cb5edb	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.dot	Whatwg.Html.Node.SvgDraw	definition	authored	0	43823860b7a829e257c219c89ccecf52d17961df0b60a4eaf38b45a9a433b989	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.ellipse	Whatwg.Html.Node.SvgBuild	definition	authored	0	12a5202a10f409d913ff95d35cdb486da208a5783fff78b03244c315161b7509	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.g	Whatwg.Html.Node.SvgBuild	definition	authored	0	4d8894f8b525cc25470484311a225b514f106a30aff4587a13f5373943eb68fb	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.g.eq_1	Whatwg.Html.Node.SvgBuild	theorem	generated	0	bec6b937c3d66ee863e8b1a9dad82e0bc4abaf371273dbe5ba0d4a823fd14ff7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -4710,13 +4714,16 @@ Whatwg.Html.Svg.instInhabitedFrame	Whatwg.Html.Node.SvgBuild	definition	authored
 Whatwg.Html.Svg.instInhabitedFrame.default	Whatwg.Html.Node.SvgBuild	definition	generated	0	ba4c1753b2fdf7d5515b28d790dbabc6abaaee4fbce32e7eda22e001611354bd	-	-	-	-	-	-	-	-
 Whatwg.Html.Svg.instReprFrame	Whatwg.Html.Node.SvgBuild	definition	authored	0	497336fb84584e9502da6b75bd4cfae3689e87358b79f196da082afbada2b1fd	-	-	-	-	-	-	-	-
 Whatwg.Html.Svg.instReprFrame.repr	Whatwg.Html.Node.SvgBuild	definition	authored	0	90dab08137c071b577a993370f792a51a6f1145b1c52bac6c00676ed9a2ba9e9	-	-	-	-	-	-	-	-
+Whatwg.Html.Svg.label	Whatwg.Html.Node.SvgDraw	definition	authored	0	9f0448777a0df5a6a193b902c54671b172205074fcdd597537bfb74af4d3f260	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.line	Whatwg.Html.Node.SvgBuild	definition	authored	0	c074c346732c44e1f57bb32b89afa98fc523f441ade8b98281a838b713894599	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.loops	Whatwg.Html.Node.SvgDraw	definition	authored	0	b9e7310ec513b83e17e3f39094cab7bb89f5919f1093e98924bff0a5674fb8f0	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.okAllAt_clipped	Whatwg.Html.Node.SvgNest	theorem	authored	0	b2c5c387733966f25dafd4c216664b49a2e7c4cae074894d513b842f802e53ad	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.okAt_g	Whatwg.Html.Node.SvgBuild	theorem	authored	0	ac559f9cd33c6ad6bd92b283a7eb480367a381b1155647749ad3275d17b5c961	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.path	Whatwg.Html.Node.SvgBuild	definition	authored	0	744a91ef62405ca8991989c8471ed8fc5d57d98ffd6f02a5e9cd8a37552571dc	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.polygon	Whatwg.Html.Node.SvgBuild	definition	authored	0	65343c12ba2f0320f438834e40f958de75621ffc358a31be7fd977e5be2c61d6	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.polyline	Whatwg.Html.Node.SvgBuild	definition	authored	0	65cc9efbf9f3433b4a1605210d09fdcd470fb15c375a769d7884f835c061ea63	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.rect	Whatwg.Html.Node.SvgBuild	definition	authored	0	f4ca5bab1ef707264f725e6411e42e5eee1cdded123529cfdb8570decfd53a9f	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.segment	Whatwg.Html.Node.SvgDraw	definition	authored	0	d53465b3c3f4cdf0fba7233807e933b2e06169e9916b185884c1f826deaa7c7b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.svg	Whatwg.Html.Node.SvgBuild	definition	authored	0	64224fcf89365292729160e374d65a0f1cefa2178f8ef20f69f176631ac49c39	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.text	Whatwg.Html.Node.SvgBuild	definition	authored	0	28c08697b0dbada7af189a6647e940a8880be4cba9c5a34f66574860dd4e1d44	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr	Whatwg.Html.Node.Svg	inductive	authored	0	1dedc28c139807ab2ead767b5d80a2a56d900b52e50fb043eb5bd851c5bab6be	propext	-	-	-	-	-	-	-

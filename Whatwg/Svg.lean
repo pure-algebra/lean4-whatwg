@@ -31,10 +31,22 @@ import Whatwg.Svg.Geometry.Convert
 import Whatwg.Svg.Geometry.Cursor
 import Whatwg.Svg.Geometry.Pen
 import Whatwg.Svg.Geometry.Pen.Laws
-import Whatwg.Svg.Geometry.Shape
-import Whatwg.Svg.Geometry.Shape.Laws
 import Whatwg.Svg.Geometry.Affine
 import Whatwg.Svg.Geometry.Affine.Laws
+import Whatwg.Svg.Geometry.Vec
+import Whatwg.Svg.Geometry.Rational
+import Whatwg.Svg.Geometry.Rational.Laws
+import Whatwg.Svg.Geometry.Cubic
+import Whatwg.Svg.Geometry.Cubic.Laws
+import Whatwg.Svg.Geometry.Box
+import Whatwg.Svg.Geometry.Affine.Map
+import Whatwg.Svg.Geometry.Outline
+import Whatwg.Svg.Geometry.Outline.Laws
+import Whatwg.Svg.Geometry.Root
+import Whatwg.Svg.Geometry.Root.Laws
+import Whatwg.Svg.Geometry.Write
+import Whatwg.Svg.Geometry.Shape
+import Whatwg.Svg.Geometry.Shape.Laws
 
 /-!
 # Whatwg.Svg
@@ -68,10 +80,21 @@ The library has five layers:
   Lean's core library; the four layers above stay under the strict one. `Arith` is the exact
   sum, difference and product of the numbers, with the rounded quotients, `Order` their order,
   and `Convert` a number where a typed value stands. `Cursor` is what a path means for the
-  point it has reached, by the path chapter; `Pen` builds a path call by call, and `Shape`
-  draws the curves of d3-shape through a list of points, each with the law of where it ends.
-  `Affine` is what a transform does to a point, in the order that CSS Transforms gives a
-  list, with the view that is moved and scaled.
+  point it has reached, by the path chapter, and `Pen` builds a path call by call. `Affine` is
+  what a transform does to a point, in the order that CSS Transforms gives a list, with the
+  view that is moved and scaled.
+
+  Since slice S11 the geometry itself is exact: it computes in `Rat`, the rational numbers of
+  core, and a number is rounded once, where it is written. `Vec` is a point and `Rational` the
+  number that a typed value denotes, with the three roundings that write one. `Cubic` is one
+  cubic Bézier segment, with the point at a parameter, the part between two parameters, and
+  its velocity; `Box` a box, with the theorem that the box of a segment's four points holds
+  the segment; `Affine.Map` an affine map with its inverse, the exact rotations, the map of a
+  view box onto a viewport, and a segment under a map; `Outline` a box with round corners, a
+  frame and an ellipse as segments; `Root` a square root to a number of places, and the
+  normal of a segment. `Write` turns segments
+  into a `Path` and a box into a `ViewBox`. `Shape` is the curves of d3-shape through a list
+  of points, as segments: each form in d3's three ways, from end to end, open and closed.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.

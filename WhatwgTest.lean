@@ -84,6 +84,7 @@ import WhatwgTest.Html.SvgBenchmark
 import WhatwgTest.Html.SvgPicture
 import WhatwgTest.Html.SvgXml
 import WhatwgTest.Html.SvgKit
+import WhatwgTest.Html.SvgStroke
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
@@ -98,6 +99,7 @@ import WhatwgTest.Svg.Lists
 import WhatwgTest.Svg.Greedy
 import WhatwgTest.Svg.Deterministic
 import WhatwgTest.Svg.Refusal
+import WhatwgTest.Svg.D3Shape
 import WhatwgTest.Auto.Banks
 import WhatwgTest.Audit.AutoCensus
 import WhatwgTest.Audit.BankCensus

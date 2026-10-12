@@ -65,8 +65,10 @@ def infraInteger : Leaf where
 `docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b to S5, each an exact
 representation whose laws the library proves once, with the reader's rule as a relation, its
 bridge to the expression's language and the located refusal of a text. Since slice S10 it also
-holds the geometry on those values: exact arithmetic, the cursor of a path with the pen and
-the curves, and a transform on a point. It contributes to the representation edge of
+holds the geometry on those values: exact arithmetic, the cursor of a path with the pen, and
+a transform on a point. Since slice S11 it holds the exact geometry in `Rat`: the number of a
+value, a cubic segment, a box, an affine map, outlines, a root, the curves of d3-shape as
+segments, and the writer of segments. It contributes to the representation edge of
 `SVG-PG-SEAM`. -/
 def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
@@ -87,8 +89,14 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Decimal.compare, `Whatwg.Svg.Value.AutoExtent.clamp,
     `Whatwg.Svg.Value.Decimal.add_same, `Whatwg.Svg.Value.Cursor, `Whatwg.Svg.Value.Pen,
     `Whatwg.Svg.Value.Pen.cursor_path, `Whatwg.Svg.Value.Curve,
-    `Whatwg.Svg.Value.Curve.run_through, `Whatwg.Svg.Value.Matrix,
-    `Whatwg.Svg.Value.Matrix.apply_mul]
+    `Whatwg.Svg.Value.Curve.chained_cubics, `Whatwg.Svg.Value.Matrix,
+    `Whatwg.Svg.Value.Matrix.apply_mul,
+    `Whatwg.Svg.Value.Vec, `Whatwg.Svg.Value.Decimal.toRat,
+    `Whatwg.Svg.Value.Decimal.same_iff_toRat, `Whatwg.Svg.Value.Cubic,
+    `Whatwg.Svg.Value.Cubic.between_pointAt, `Whatwg.Svg.Value.Box,
+    `Whatwg.Svg.Value.Affine, `Whatwg.Svg.Value.Cubic.roundRect,
+    `Whatwg.Svg.Value.Cubic.roundRect_within, `Whatwg.Svg.Value.sqrtDown,
+    `Whatwg.Svg.Value.sqrtDown_mul_self_le, `Whatwg.Svg.Value.Pen.cubic]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -113,16 +121,33 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Decimal.compare_eq_iff_same, `Whatwg.Svg.Value.Decimal.le_trans,
       `Whatwg.Svg.Value.Decimal.le_total, `Whatwg.Svg.Value.Decimal.add_le_add_right,
       `Whatwg.Svg.Value.Path.cursor_ofSubpaths_append, `Whatwg.Svg.Value.Pen.cursor_path,
-      `Whatwg.Svg.Value.Curve.run_through, `Whatwg.Svg.Value.Shape.cursor_line,
-      `Whatwg.Svg.Value.Shape.cursor_area, `Whatwg.Svg.Value.Matrix.apply_mul,
+      `Whatwg.Svg.Value.Matrix.apply_mul,
       `Whatwg.Svg.Value.TransformList.image?_append,
-      `Whatwg.Svg.Value.PanZoom.image?_toList, `Whatwg.Svg.Value.PanZoom.apply_andThen],
+      `Whatwg.Svg.Value.PanZoom.image?_toList, `Whatwg.Svg.Value.PanZoom.apply_andThen,
+      `Whatwg.Svg.Value.Decimal.toRat_add, `Whatwg.Svg.Value.Decimal.toRat_mul,
+      `Whatwg.Svg.Value.Decimal.same_iff_toRat, `Whatwg.Svg.Value.Decimal.le_iff_toRat,
+      `Whatwg.Svg.Value.Decimal.ofRat_div_pow, `Whatwg.Svg.Value.Decimal.toRat_ofRat_le,
+      `Whatwg.Svg.Value.Vec.round_fixed,
+      `Whatwg.Svg.Value.Cubic.between_pointAt, `Whatwg.Svg.Value.Cubic.map_pointAt,
+      `Whatwg.Svg.Value.Cubic.between_velocity, `Whatwg.Svg.Value.Box.contains_lerp,
+      `Whatwg.Svg.Value.Cubic.contains_pointAt, `Whatwg.Svg.Value.Cubic.includes_between,
+      `Whatwg.Svg.Value.Affine.apply_mul, `Whatwg.Svg.Value.Affine.inverse_apply,
+      `Whatwg.Svg.Value.Affine.normSq_turn, `Whatwg.Svg.Value.Cubic.transform_pointAt,
+      `Whatwg.Svg.Value.TransformList.toVec_image?,
+      `Whatwg.Svg.Value.Cubic.closed_roundRect, `Whatwg.Svg.Value.Cubic.roundRect_within,
+      `Whatwg.Svg.Value.sqrtDown_mul_self_le, `Whatwg.Svg.Value.lt_sqrtDown_succ,
+      `Whatwg.Svg.Value.Vec.dist_move, `Whatwg.Svg.Value.Cubic.offsetAt_move,
+      `Whatwg.Svg.Value.Pen.current_cubic, `Whatwg.Svg.Value.Pen.done_cubics,
+      `Whatwg.Svg.Value.Path.endPoint_ofCubics,
+      `Whatwg.Svg.Value.Curve.chained_cubics, `Whatwg.Svg.Value.Curve.cubics_last,
+      `Whatwg.Svg.Value.Curve.cardinal_starts, `Whatwg.Svg.Value.Curve.closed_cubicsClosed,
+      `Whatwg.Svg.Value.Curve.cubics_move, `Whatwg.Svg.Value.Shape.endPoint_line],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,
       `WhatwgTest.Svg.Greedy,
       `WhatwgTest.Svg.Deterministic,
-      `WhatwgTest.Svg.Refusal]]
+      `WhatwgTest.Svg.Refusal, `WhatwgTest.Svg.D3Shape]]
 
 /-- The ledger: the twelve graphs of slices A and B and the graph
 `SVG-PG-SEAM` of slice S3b of `docs/SVG-PACKAGE-PLAN.md` (ruling R-S9), the

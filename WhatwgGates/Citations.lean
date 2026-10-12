@@ -13,8 +13,9 @@ continuously, so a name plus a line number silently retargets whenever a
 section above it grows or shrinks, and the citing sentence keeps asserting a
 claim the target no longer makes.
 
-The gate scans every authored text file outside `vendor/`, `.lake/`, and
-`.git/` and rejects a token that names a protected document together with a
+The gate scans every authored text file outside `vendor/`, `.lake/`,
+`analysis/.lake/` (the fetched packages of the analysis package, Mathlib among
+them) and `.git/` and rejects a token that names a protected document together with a
 line number, in either the full-path or the basename spelling followed by a
 colon and a digit. Cite a section heading, an obligation ID, a proof-graph
 node, or a short quoted phrase instead.
@@ -58,7 +59,7 @@ def scannedExtensions : List String :=
 
 /-- Skipped tree roots, relative to the repository root. -/
 def skippedPrefixes : List String :=
-  ["vendor/", ".lake/", ".git/"]
+  ["vendor/", ".lake/", "analysis/.lake/", ".git/"]
 
 private def isPathChar (c : Char) : Bool :=
   c.isAlphanum || c == '_' || c == '-' || c == '.' || c == '/'

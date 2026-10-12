@@ -24,6 +24,7 @@ full, then open only the authority documents named for the current task.
 | `WhatwgGates/` | repository gates implemented in Lean |
 | `WhatwgTest/Ledger/` | the graph ledger: the ten edges of every proof graph, with their status, grounds and open items, as checked Lean data (ruling R-W6); `generated/graphs/` is its projection |
 | `harness/` | host conformance evidence |
+| `analysis/` | a Lake package of its own that requires Mathlib: theorems over the real numbers about the geometry of `Whatwg/Svg/Geometry/` (ruling SV-58 of `docs/SVG-PACKAGE-PLAN.md`). No library, test or gate imports it, and it is outside the trust gates |
 | `generated/` | deterministic projections only; never hand-edited |
 | `vendor/` | sealed pinned third-party bytes; never edited |
 

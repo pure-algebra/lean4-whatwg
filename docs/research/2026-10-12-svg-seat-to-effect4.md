@@ -7,7 +7,8 @@ written after slice S5, which the owner pushed. Section 7 says what slice S6 add
 is slice S7: a fresh seat ported `tools/Tools/View/Output.lean` to the typed node with this
 note as its only guide, and section 3 is rewritten from what it found. Section 9 is slice S8:
 the writer of XML, which a `.svg` file needs, and the typed place of a text. Section 10 is
-slice S10: the kit a writer of pictures uses, and the first thing to read.
+slice S10: the kit a writer of pictures uses, and the first thing to read. Section 11 is
+slice S11: exact geometry, for the code that computes edges and outlines.
 
 **First, what to know.** A picture is now a typed tree. An attribute that has a grammar holds a
 typed value, and the values of every typed tree pass their grammars by one law. The structure
@@ -304,3 +305,110 @@ name.
 
 Where the port's text differs from `Dev.svg`'s is as in section 8, and one more: an edge with
 a reach is computed exactly, where `Graph.lean` rounds each control down to a thousandth.
+
+## 11. Slice S11: exact geometry
+
+Sections 3, 8 and 10 still hold, with one change to section 10: a curve is now a list of
+segments, and `Shape.bumpY r a b` is `Shape.link (.bumpY r) a b`. This slice is for
+`tools/Tools/View/Graph.lean` and `Organic.lean`, which compute edges and outlines as lists of
+cubic segments in whole thousandths, with a division rounded down at each step.
+
+**What to know.** The kit's geometry computes in `Rat`, the rational numbers of core. Nothing
+is rounded until a number is written into a path, and it is rounded once there, to the nearest
+thousandth unless you ask for other places. A count of thousandths enters with `Vec.fixed 3 x y`
+and is written back as the same count (`Vec.round_fixed`). A law about a computation is an
+equation of values, and `grind` proves the algebra, so the laws you prove by hand on `Int`
+are one line each or are in the kit already.
+
+**The same shapes, by name.**
+
+| lean4-effect4 | The kit (`open Whatwg.Svg.Value`) |
+| --- | --- |
+| `Cubic`, four `Int × Int` | `Cubic`, four `Vec`: the same fields `p0 p1 p2 p3` |
+| `Cubic.move dx dy`, `move_move`, `move_zero` | `Cubic.move ⟨dx, dy⟩`, `Cubic.move_move`, `Cubic.move_zero` |
+| `Cubic.scale r`, `scale_move` | `Cubic.scale r`, `Cubic.scale_move` |
+| `Cubic.size` | `Cubic.taxi` |
+| `lerp`, `lerpPt`, a step per mille | `Vec.lerp a b t`, with `t` from `0` to `1` |
+| `Cubic.upTo t` | `c.upTo t`; also `c.after t`, `c.split t`, `c.between a b` |
+| `Grow.at_ c t` | `c.pointAt t` |
+| `Grow.dir c t` | `c.direction t`; `c.velocity t` is the derivative |
+| `Grow.normal d` | `Vec.normal d`; of a zero direction it is zero, where yours is `(1000, 0)` |
+| `Grow.dist a b` | `Vec.dist a b` |
+| `Grow.isqrt n` | `sqrtDown q places`: for a count `n` of `10 ^ -2p`, `isqrt n` is `10 ^ p` times `sqrtDown (n / 100 ^ p) p` |
+| `Grow.line a b`, `Graph.straight a b` | `Cubic.line a b` draws the same line with another pace: its point at `t` is `t` of the way along, where yours, `⟨a, a, b, b⟩`, is `3t² - 2t³` of the way. Write `⟨a, a, b, b⟩` to keep your pace; both are written as a lineto |
+| `Grow.roundRect x y w h r` | `Cubic.roundRect (Box.ofSize ⟨x, y⟩ w h) r` |
+| `Grow.ring` | `Cubic.ring` |
+| a quarter arc by `KAPPA` | `Cubic.corner a c b`, the corner `c` between the ends; `Cubic.kappa` is `0.5523` |
+| `Grow.segmentThrough p0 p1 p2 p3` | `Curve.cardinalSegment (1 / 6) p0 p1 p2 p3` |
+| `Grow.through qs` | `Curve.windows (Curve.cardinalSegment (1 / 6)) (Curve.doubled qs)` |
+| `Graph.stepDown L a b` | `(Curve.bumpY r).cubics [a, b]`, and `.linear`, `.stepY` |
+| `Rect`, `Rect.Disjoint`, `Rect.holds`, `Rect.move` | `Box`, `Box.Disjoint`, `Box.Contains`, `Box.move` |
+| a curve and a shape of `Dev.svg` | `Svg.cubics [c] attrs`, `Svg.loops paths attrs` |
+
+**The laws you need not prove again.**
+
+| Yours | The kit's |
+| --- | --- |
+| `upTo_move`, `at_move`, `dir_move` | `Cubic.move_upTo`, `Cubic.move_pointAt`, `Cubic.move_direction` |
+| `dist_shift` | `Vec.dist_move` |
+| `segmentThrough_shift`, `throughFrom_shift`, `through_shift` | `Curve.cardinalSegment_move`, `Curve.windows_map` with `Curve.doubled_map`; `Curve.cubics_move` is the same law for the kit's own curves |
+| `line_shift` | `Cubic.move_line` |
+| `lerp_shift`, `lerp_end` | `Vec.lerp_add`, `Vec.lerp_one` |
+| a moved segment's size, a moved box by its corner | `Cubic.move_taxi`, `Box.ofSize_move` |
+
+**What is new to you.**
+
+- `Cubic.between_pointAt`: the point at `s` of the part from `a` to `b` is the point of the
+  whole at `a + s (b - a)`. A reveal of part of an edge is exact.
+- `Cubic.contains_pointAt`: the box of a segment's four points holds the segment, so the box
+  of an outline is a fold of `Cubic.box`, and `Box.viewBox` writes it rounded outwards.
+- `Curve.cubicsClosed`, `cubicsOpen`: d3's closed and open curves.
+- `Affine`: a map with an inverse, a quarter turn, an exact rotation (`Affine.turn`), and
+  `Affine.fit`, the map of a view box onto a viewport, for a point of the pointer.
+- `Curve.chained_cubics` and `Pen.done_cubics`: a curve is a chain, and a chain is written as
+  one subpath.
+
+**Where the numbers differ from yours.** You round down at each division, and the kit rounds
+once, to the nearest, when it writes. So a control point can differ by a thousandth. Where
+your numbers are whole thousandths and no division is in the way, the text is the same.
+
+**The port.** `WhatwgTest/Html/SvgStroke.lean` is `Organic.lean` and the edge code of
+`Graph.lean` on the kit, read at `707b9a01`, by a seat that had this section as its only
+guide. The definitions are 63 lines for your 114, and the move law with its steps 60 for your
+92; nine of your lemmas are the kit's. It proves what you guard: da Vinci's rule for every
+count, and that a stroke is a closed outline. What it found:
+
+- `grind` proves the algebra, but give it no opaque application to unfold: generalize a call
+  such as `valueNoise seed wave s` first, or it unfolds the hash without end.
+- Your spline repeats each end, and the kit's `Curve.cubics` reflects them, so the laws of
+  `Curve.cubics` do not reach `through`. The port proves its own (`through_move`,
+  `chained_through`, `closed_outline`). A form with repeated ends, and a stroke with a width
+  along it, are the next things the kit owes you.
+- `Cubic.samples` gives points; a stroke wants a point, a direction and a length run so far.
+  The port keeps your `samples` and `runningLengths`.
+- A stroke along a straight segment has its knots evenly along it, where yours has them at
+  your pace; with noise the knots differ by up to three pixels along the line, and the line
+  drawn is the same width.
+
+**Your axiom rule and the kit's numbers.** Your view code is held to `propext` and
+`Quot.sound`. In core Lean at this toolchain the definition `Rat.add` reaches
+`Classical.choice`, and so do `Rat.mul`, `Rat.div` and every law about them, `Rat.add_comm`
+included. So a module under your rule cannot call the kit's geometry, and no way of writing a
+proof changes that. Two things follow. A module of yours that computes curves takes the
+ordinary three axioms, as this repository's geometry does (ruling R-S25). And what your strict
+modules prove about a picture, that a moved call lowers to moved device calls, that a stored
+stroke is the stroke, that every key enters, updates or exits, is about structure and needs no
+number: the kit will have those laws in a layer of their own, for your own types to be
+instances of. A trial of that layer has its cache law with no axiom at all.
+
+**Speed.** Interpreted, your stroke on the kit takes 12.5 ms along eleven segments. A point of a
+segment costs about six times what it costs in whole numbers. Rounding the side points to
+thousandths before the outline is fitted keeps every number under 32 bits, and the move law
+holds through that rounding for every move by whole pixels.
+
+**d3's own tests.** `WhatwgTest/Svg/D3Shape.lean` runs 130 of d3-shape's curve assertions
+against the kit. Every number agrees at six places. Two outlines differ, both the area of an
+open spline through three points.
+
+`docs/research/2026-10-12-pictures-seams-and-mathlib.md` has each seam between your data and
+the kit's, what was tried at it, and the modules that follow, motion as data among them.

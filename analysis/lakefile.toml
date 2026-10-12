@@ -1,0 +1,31 @@
+name = "whatwg_analysis"
+version = "0.1.0"
+description = "Theorems over the real numbers about the exact geometry of whatwg. This package requires Mathlib; the library it is about does not."
+license = "MIT"
+defaultTargets = ["WhatwgAnalysis"]
+
+# The options of the library this package is about (its ruling R-6).
+leanOptions = { autoImplicit = false, relaxedAutoImplicit = false, warningAsError = true }
+
+# Mathlib at the release for this toolchain. It pins Batteries and Aesop at the revisions that
+# the library pins.
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.1"
+
+# The modules of the library that the theorems are about, compiled from the library's own
+# sources into this package's build tree. Nothing of this package is written into the
+# library's build tree, and the library's lakefile names neither this package nor Mathlib.
+# Only what a theorem imports is built: the geometry and what it stands on. The glob names
+# every module under `Whatwg` because Lake builds an import of this library only when a glob
+# matches it; this package builds the library's target for none of them.
+[[lean_lib]]
+name = "WhatwgCore"
+srcDir = ".."
+roots = ["Whatwg"]
+globs = ["Whatwg.+"]
+
+# The theorems.
+[[lean_lib]]
+name = "WhatwgAnalysis"

@@ -15,6 +15,7 @@ import Whatwg.Html.Node.SvgValid
 import Whatwg.Html.Node.SvgPaint
 import Whatwg.Html.Node.SvgBuild
 import Whatwg.Html.Node.SvgNest
+import Whatwg.Html.Node.SvgDraw
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
@@ -88,6 +89,8 @@ A program writes a picture with `Whatwg.Html.Node.SvgBuild` (a constructor for e
 element, a clipped group and the frame of a picture), `Whatwg.Html.Node.SvgPaint` (colours and
 the presentation attributes, with typed arguments) and `Whatwg.Html.Node.SvgNest` (a flat list
 of drawing calls as a forest, with the theorem that it passes when its marks do), and prints it
-with `Whatwg.Html.Print.Picture`.
+with `Whatwg.Html.Print.Picture`. `Whatwg.Html.Node.SvgDraw` has the elements of a picture
+from exact geometry: a path of cubic segments, of closed outlines or of a curve through
+points, a `rect` of a box, and a `circle`, a `line` and a `text` at points.
 `Whatwg.Html.Audit` is still a docstring and nothing else.
 -/
