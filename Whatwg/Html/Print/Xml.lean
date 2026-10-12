@@ -1,4 +1,5 @@
 import Whatwg.Html.Node.Raw
+import Whatwg.Html.Print.Xml.Productions
 import Whatwg.Html.Svg
 
 /-!
@@ -46,7 +47,10 @@ namespace (`Whatwg.Html.Schema.Foreign.foreignAttrs`, generated from the sealed 
 and for which the reading above holds: each local name is a `Name` with no colon, no attribute
 name repeats, each value, text and comment is of the production `Char`, a comment holds no
 `--` and does not end with `-`, an `xmlns:xlink` attribute holds the XLink namespace, and no
-node is a named character reference, which XML does not define.
+node is a named character reference, which XML does not define. `Name` and `Char` are the
+productions of XML 1.0 that the algorithm cites: `isName` and `isChar` of
+`Whatwg/Html/Print/Xml/Productions.lean`, which the gate `lake exe whatwg_xmlproductions`
+compares with the sealed document.
 
 What is proved here is of the two escapers, as for the HTML ones: no `<` survives in a text,
 no `<` or `"` in a value, and each output decodes to its input, so each escaper is an
@@ -61,8 +65,6 @@ What this module does not claim:
   library, so no retraction is stated: debt D107. `WhatwgTest/Html/SvgXml.lean` reads each
   ASCII fixture back with the reader of the gates, `Gates.Xml.read`, which is a finite check.
 - anything of a tree that `ok` refuses. `render` still answers a text there.
-- the productions `Char` and `Name`. The algorithm cites them from XML 1.0, which is not
-  sealed (debt D105): they are transcribed here from the fifth edition, sections 2.2 and 2.3.
 
 Copyright (c) 2026 World Wide Web Consortium. This file includes material copied from or
 derived from DOM Parsing and Serialization, https://w3c.github.io/DOM-Parsing/, under the W3C
@@ -74,34 +76,7 @@ namespace Whatwg.Html.Print.Xml
 open Whatwg.Html (RawNode)
 open Whatwg.Html.Content (Ns)
 
-/-! ## The productions of XML that the algorithm cites -/
-
-/-- The code point of the character is in the closed range. -/
-def between (lo hi : Nat) (c : Char) : Bool := decide (lo ≤ c.toNat) && decide (c.toNat ≤ hi)
-
-/-- The production `Char` of XML 1.0: a tab, a line feed, a carriage return, and every code
-point from U+0020 but the surrogates, U+FFFE and U+FFFF. -/
-def isChar (c : Char) : Bool :=
-  c == '\t' || c == '\n' || c == '\r' || between 0x20 0xD7FF c || between 0xE000 0xFFFD c ||
-    between 0x10000 0x10FFFF c
-
-/-- The production `NameStartChar`. -/
-def isNameStartChar (c : Char) : Bool :=
-  c == ':' || between 0x41 0x5A c || c == '_' || between 0x61 0x7A c || between 0xC0 0xD6 c ||
-    between 0xD8 0xF6 c || between 0xF8 0x2FF c || between 0x370 0x37D c ||
-    between 0x37F 0x1FFF c || between 0x200C 0x200D c || between 0x2070 0x218F c ||
-    between 0x2C00 0x2FEF c || between 0x3001 0xD7FF c || between 0xF900 0xFDCF c ||
-    between 0xFDF0 0xFFFD c || between 0x10000 0xEFFFF c
-
-/-- The production `NameChar`. -/
-def isNameChar (c : Char) : Bool :=
-  isNameStartChar c || c == '-' || c == '.' || between 0x30 0x39 c || between 0xB7 0xB7 c ||
-    between 0x300 0x36F c || between 0x203F 0x2040 c
-
-/-- The production `Name`. -/
-def isName : List Char → Bool
-  | [] => false
-  | c :: rest => isNameStartChar c && rest.all isNameChar
+/-! ## A name under "require well-formed" -/
 
 /-- A local name that the algorithm serializes under "require well-formed": a `Name` that
 holds no colon. -/

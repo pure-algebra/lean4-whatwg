@@ -1,5 +1,6 @@
 import WhatwgGates
 import WhatwgGates.SvgGrammar
+import WhatwgGates.XmlProductions
 import WhatwgTest.Url.InventoryContract
 import WhatwgTest.Url.Counterexamples.Inventory
 import WhatwgTest.Url.CensusContract

@@ -9,7 +9,7 @@ defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_htmlstandard",
-                  "whatwg_svgdefinitions", "whatwg_svggrammar",
+                  "whatwg_svgdefinitions", "whatwg_svggrammar", "whatwg_xmlproductions",
                   "whatwg_ledger", "whatwg_declsnapshot", "whatwg_trustgate"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
@@ -157,6 +157,13 @@ root = "whatwgbin.SvgDefinitions"
 [[lean_exe]]
 name = "whatwg_svggrammar"
 root = "whatwgbin.SvgGrammar"
+
+# The gate of debt D105 (ruling SV-42 of docs/SVG-PACKAGE-PLAN.md): the productions `Char`,
+# `NameStartChar`, `NameChar` and `Name` of the sealed XML 1.0 and their functions in
+# `Whatwg/Html/Print/Xml/Productions.lean` agree, the first three at every code point.
+[[lean_exe]]
+name = "whatwg_xmlproductions"
+root = "whatwgbin.XmlProductions"
 
 # The P1 specification-algorithm census, and since slice Q2 the Web IDL and
 # ECMA-262 censuses, each with its coverage report.

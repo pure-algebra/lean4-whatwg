@@ -475,8 +475,9 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-37 | a transcribed grammar against its chapter | The sealed `master/paths.html` states the grammar of path data as one EBNF block. The gate `lake exe whatwg_svggrammar` reads that block from the sealed bytes, turns `svg_path` and each production below it into a regular expression, and decides by derivatives that it has the language of the erased expression of the library's description. It is unverified code: its PASS is that procedure's verdict and no theorem, and it carries controls that must differ. It compares bare expressions. The reader's rule is V3b. No other sealed chapter states a grammar in that notation, so `points`, `viewBox`, `transform` and the length have no such gate. |
 | SV-38 | a size from an integer | A size has no negative value (SV-35). `Magnitude.ofInt?` and `AutoExtent.ofInt?` answer `none` for a negative integer, and the library clamps nothing: a writer that wants zero writes `.ofNat v.toNat` and says so. A numeral is a size, `.attr .width 30`, as it is a length. |
 | SV-39 | a superseded node is withdrawn | Node V5, the check of a typed value's text under two written names, served a caller who built a raw tree by hand. Since S5 a caller builds a typed tree, and `SvgAttr.valueOk_toPair` states the same fact at a typed attribute with no premise on names. V5 and its two helper equations are removed at S7, with the reason dated in ruling R-S21. |
-| SV-40 | the XML serialization | DOM Parsing and Serialization owns it: the pinned HTML Standard names "XML serialization" and gives it to that document. `Whatwg/Html/Print/Xml.lean` writes it for a tree of this package, read as the DOM that the tree construction makes of it: an element below `svg` in the SVG namespace, any other in the HTML namespace, no element with a prefix, and the eleven names of "adjust foreign attributes" in their namespaces. The writer is the algorithm at such a DOM, by an argument that the module states step by step, and not by a transcription of the algorithm over a DOM. `Xml.ok` is the tree for which "require well-formed" throws nothing. The productions `Char` and `Name` are transcribed from XML 1.0, which is not sealed. |
+| SV-40 | the XML serialization | DOM Parsing and Serialization owns it: the pinned HTML Standard names "XML serialization" and gives it to that document. `Whatwg/Html/Print/Xml.lean` writes it for a tree of this package, read as the DOM that the tree construction makes of it: an element below `svg` in the SVG namespace, any other in the HTML namespace, no element with a prefix, and the eleven names of "adjust foreign attributes" in their namespaces. The writer is the algorithm at such a DOM, by an argument that the module states step by step, and not by a transcription of the algorithm over a DOM. `Xml.ok` is the tree for which "require well-formed" throws nothing. The productions `Char` and `Name` are transcribed from XML 1.0, which was not sealed at slice S8 and is since slice S9 (SV-42). |
 | SV-41 | the place of a text | The sealed `master/text.html` gives `x`, `y`, `dx` and `dy` of `text` and `tspan` one length or more, and `rotate` one number or more, each a list in the notation of CSS value definitions. Each is read as `<points>` is: an item, then further items each after `comma_wsp?`. `textLength` is a length, and its prose makes a negative one an error, so its kind is `extent`. The kinds stand on `text` and `tspan` alone: `textLength` of `textPath` has no table of its own in the chapter. |
+| SV-42 | the productions of XML 1.0 | XML 1.0 (Fifth Edition) owns `Char`, `NameStartChar`, `NameChar` and `Name`, which the XML serialization cites. The document is sealed, and `Whatwg/Html/Print/Xml/Productions.lean` holds the four as Boolean functions, with no import. A character production is a set of code points, so its comparison can be total: the gate `lake exe whatwg_xmlproductions` reads the three from the sealed rows and compares each with its function at every code point from U+0000 to U+10FFFF. `Name` is one sequence and one repetition: the gate asks that its sealed body is `NameStartChar (NameChar)*`, and compares `isName` with that reading at short texts. The gate's verdict is no theorem. No other production of XML 1.0 is an authority here. |
 
 ## 5. Slices
 
@@ -499,6 +500,7 @@ seat's proposals of S1, changed where §3.1 changes them.
 | S6 | the structure of a typed tree by its tags and keys, with the law that this is the checker's verdict; `html!` proves by it; a typed tree in the typed HTML tree; the locality of a refusal (debt D94); the gate of the path grammar against its chapter (debt D95) | done: ruling R-S20. V6b and V8 are proved; the kernel checks a picture of 300 elements in 0.16 s, where it took 8.06 s |
 | S7 | a review of the package by three seats, and what a port of the consumer's picture writer asked for: sizes and numbers from integers, a path of several subpaths, the laws of a group and of a forest in the library, and the fold as a battery; two import edges cut; V5 withdrawn | done: ruling R-S21. `picture_okIn` of `WhatwgTest/Html/SvgPicture.lean` holds for every list of device calls at every HTML position that admits `svg` |
 | S8 | two pins on the owner's word, DOM Parsing and Serialization and the text chapter; the XML serialization of a tree; the lists of a text's place; the grammar module split into definitions and laws | done: rulings R-S22 and R-S23. `Print.Xml.render` writes the consumer's picture as a file, and the gates' reader reads it back |
+| S9 | XML 1.0 sealed on the owner's word; the four productions that the XML serialization cites, in a module of their own; a gate that compares them with the sealed document | done: ruling R-S24. The transcription of slice S8 is the sealed text, and the gate finds no difference at any code point |
 
 Each part lands as commits by explicit paths, with its narrow build, `lake build`, the axiom
 receipt and the gates it reaches. A part runs the default trust self-test when it changes a
@@ -986,6 +988,28 @@ escaper's alphabet. And the convention for a split is this repository's own,
   check law and the soundness of the reader, with their forms at a grammar. No carrier imports
   the laws, so an edit to a law rebuilds no carrier; an edit to a definition still does.
 
+### 5.8 S9: the productions of XML, sealed
+
+The owner answered the question that slice S8 left: seal XML 1.0. The algorithm of the XML
+serialization cites two productions of it under "require well-formed": `Name` for a local
+name, and `Char` for a value, a text and a comment. Slice S8 wrote them from memory of the
+fifth edition.
+
+- **The pin.** `vendor/w3c-xml-20081126/REC-xml-20081126.html`, the Recommendation of 26
+  November 2008. The dated address and the address that DOM Parsing and Serialization cites
+  serve the same bytes.
+- **The module (SV-42).** `Whatwg/Html/Print/Xml/Productions.lean` holds `isChar`,
+  `isNameStartChar`, `isNameChar` and `isName`, moved from `Print/Xml.lean` with no change. The
+  sealed text shows each to be its production, alternative by alternative.
+- **The gate (debt D105 paid).** `lake exe whatwg_xmlproductions` reads the three character
+  productions from the sealed rows and compares each with its function at every code point.
+  It reads `Name` as `NameStartChar (NameChar)*` and compares `isName` with that reading at
+  short texts. Four controls show that a changed production is noticed. It runs in under a
+  second.
+
+What stays open is as slice S8 left it: the algorithm over a DOM is not transcribed (D106),
+and no reader of XML is in the library (D107).
+
 ## 6. Anticipated proof graph
 
 S2 is passive data and states no law. S3 is an admission, so it opens a proof graph,
@@ -1124,3 +1148,4 @@ builds its pictures as trees.
 | S6 | 2026-10-12 | `Whatwg/Html/Node/SvgKeys.lean` and `SvgValid.lean` with V8, `html!` proving an SVG subtree by `okIn`, `Child.ofSvg`; `Value/Refusal.lean` with V6b; the gate `lake exe whatwg_svggrammar`; the proof style of eight HTML files; the probe copy of the reference self-test keeps the execute right; batteries `WhatwgTest/Html/SvgKeys.lean`, `SvgValid.lean` and `SvgBenchmark.lean`; rulings SV-36 and SV-37; debts D82, D94 and D95 paid; the record is ruling R-S20 |
 | S7 | 2026-10-12 | `Magnitude.ofInt?`, `AutoExtent.ofInt?`, the numerals of `Extent` and `AutoExtent`, `Decimal.trim` with `same_trim`, `Path.ofSubpaths`; `Pos.inSvg`, `Pos.belowElement_plain` and `_g`, `SvgNode.okAt_g`, `okAllAt_eq_all` and its three corollaries, `Repr SvgNode`; the denotation layer of a decimal moves to `Value/Cohort.lean`; `Whatwg/Html/Svg.lean` no longer imports the value grammars, the printer no longer imports the combinators, and the grammar gate leaves the gates' umbrella; V5 withdrawn; batteries `WhatwgTest/Html/SvgPicture.lean` and the readers of each addition; rulings SV-38 and SV-39; the record is ruling R-S21 |
 | S8 | 2026-10-12 | the pins `vendor/w3c-dom-parsing-aefb90de/` and `vendor/w3c-svgwg-47e645ef/master/text.html`; `Whatwg/Html/Print/Xml.lean` with the two escapers' laws, `Xml.render`, `Xml.ok` and `Xml.render?`; `Whatwg/Svg/Value/Lists.lean` with `LengthList` and `NumberList`, and their kinds in the table with `textLength`; `Whatwg/Svg/Value/Grammar.lean` split, its laws in `Grammar/Laws.lean`; batteries `WhatwgTest/Html/SvgXml.lean` and `WhatwgTest/Svg/Lists.lean`; rulings SV-40 and SV-41; debts D96, D98 and D104 paid, D105 to D107 opened; the record is rulings R-S22 and R-S23 |
+| S9 | 2026-10-12 | the pin `vendor/w3c-xml-20081126/`; `Whatwg/Html/Print/Xml/Productions.lean`, the four productions moved from `Print/Xml.lean` with no change; the gate `WhatwgGates/XmlProductions.lean` with its executable `whatwg_xmlproductions`, which the workflow runs; ruling SV-42; debt D105 paid; the record is ruling R-S24 |

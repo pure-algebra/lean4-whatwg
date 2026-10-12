@@ -246,6 +246,10 @@ What the writer does not claim: that it is the algorithm on every tree (the algo
 DOM is not transcribed, and no browser was asked), or a law that a reader of XML reads the
 text back. Rulings SV-40 and R-S23 say which debts those are.
 
+XML 1.0 is sealed since slice S9. The two checks of `ok` that come from it, a name and a
+character of XML, are `Print.Xml.isName` and `Print.Xml.isChar`, and a gate compares them with
+the sealed document at every code point. Nothing a caller writes changes by it.
+
 **The place of a text.** `x`, `y`, `dx` and `dy` of `text` and `tspan` hold a `LengthList`,
 `rotate` a `NumberList` and `textLength` an `Extent`. `html!` reads a literal such as
 `x="10 20"` by the list's grammar, and prints it as it read it.

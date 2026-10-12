@@ -14,9 +14,9 @@ grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21 and R-S23 of
-`COORDINATION.md` name this graph and change no edge's status, so the entry acknowledges the
-thirteen.
+No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21, R-S23 and R-S24
+of `COORDINATION.md` name this graph and change no edge's status, so the entry acknowledges
+the fourteen.
 -/
 
 namespace WhatwgTest.Ledger
@@ -30,7 +30,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -100,7 +100,7 @@ def svgSeam : Graph where
       status := .requiredOpen
       remaining := [
         .named "the gate `lake exe whatwg_svggrammar` compares the grammar of path data with its sealed chapter (ruling SV-37), and its verdict is no theorem; the grammars of `points`, `viewBox` and the transform list are not compared with their sealed lines (debt D97)",
-        .named "the XML serialization is the algorithm of the sealed section by an argument and no transcription of the algorithm over a DOM (ruling SV-40, debt D106); no reader of XML is in the library, so no law says that a written text reads back (debt D107); the productions `Char` and `Name` are of XML 1.0, which is not sealed (debt D105)"]
+        .named "the XML serialization is the algorithm of the sealed section by an argument and no transcription of the algorithm over a DOM (ruling SV-40, debt D106); no reader of XML is in the library, so no law says that a written text reads back (debt D107); the gate `lake exe whatwg_xmlproductions` compares the productions `Char`, `NameStartChar`, `NameChar` and `Name` with the sealed XML 1.0 (ruling SV-42), and its verdict is no theorem"]
       grounds := [.theorems [`Whatwg.Svg.Value.valueOk_print, `Whatwg.Svg.Value.valueOkByName_chars,
         `Whatwg.Svg.Data.NameTable.read_exact,
         `Whatwg.Svg.Data.NameTable.read_chars, `Whatwg.Svg.Schema.Tag.ofChars?_chars,
@@ -129,7 +129,8 @@ def svgSeam : Graph where
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
         `Whatwg.Svg.Value.Attribute, `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk,
         `Whatwg.Html.Schema.Foreign, `Whatwg.Html.Content.Explain, `Whatwg.Html.Content.Values,
-        `Whatwg.Html.Print.Render, `Whatwg.Html.Print.Xml, `Whatwg.Html.Node.Svg,
+        `Whatwg.Html.Print.Render, `Whatwg.Html.Print.Xml,
+        `Whatwg.Html.Print.Xml.Productions, `Whatwg.Html.Node.Svg,
         `Whatwg.Html.Node.SvgRead,
         `Whatwg.Html.Node.SvgKeys, `Whatwg.Html.Node.SvgValid,
         `Whatwg.Html.Syntax.Elaborator, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
