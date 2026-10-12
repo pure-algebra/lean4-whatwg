@@ -1,4 +1,5 @@
 import Whatwg.Svg.Value.Transform
+import Whatwg.Svg.Value.Grammar.Laws
 
 /-!
 # WhatwgTest.Svg.Transform

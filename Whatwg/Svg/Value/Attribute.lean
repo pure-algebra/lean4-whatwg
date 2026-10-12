@@ -5,13 +5,14 @@ import Whatwg.Svg.Value.ViewBox
 import Whatwg.Svg.Value.Transform
 import Whatwg.Svg.Value.Length
 import Whatwg.Svg.Value.Extent
+import Whatwg.Svg.Value.Lists
 import Whatwg.Svg.Value.Refusal
 
 /-!
 # Whatwg.Svg.Value.Attribute
 
-Owner: which grammar judges the value of which attribute (slices S4b to S4d of
-`docs/SVG-PACKAGE-PLAN.md`; rulings SV-13, SV-30, SV-31, SV-32, SV-34 and SV-35; point G5 of
+Owner: which grammar judges the value of which attribute (slices S4b to S4d, S5 and S8 of
+`docs/SVG-PACKAGE-PLAN.md`; rulings SV-13, SV-30, SV-31, SV-32, SV-34, SV-35 and SV-41; point G5 of
 `docs/research/2026-10-11-svg-seat-guidance-3.md`). `kindOf` is the one table: it gives the
 kind of an attribute's value on an element. A `ValueKind` has its typed value, `carrier`, and
 its grammar. `valueOkByName` and `explainValueByName` are the two functions the seam calls:
@@ -30,13 +31,20 @@ they read an element's and an attribute's written names, and then the table.
 | `r` | `circle` | `extent` | `RProperty`, the same |
 | `rx`, `ry` | `ellipse`, `rect` | `autoExtent` | `RxProperty`, the same |
 | `width`, `height` | `svg`, `rect`, `image`, `foreignObject` | `autoExtent` | `Sizing`, the same |
+| `x`, `y`, `dx`, `dy` | `text`, `tspan` | `lengthList` | `TextElementXAttribute`, `master/text.html` |
+| `rotate` | `text`, `tspan` | `numberList` | `TextElementRotateAttribute`, the same |
+| `textLength` | `text`, `tspan` | `extent` | `TextElementTextLengthAttribute`, the same |
 
 A row says "any element" where the name has one grammar wherever it stands. The four names of
 the `line` row have a second definition, on `linearGradient`, in a chapter that is not sealed.
 So the table gives them a kind on `line` alone, where the sealed table of `line` states it
 (ruling SV-32). The last five rows are the geometry properties, on the elements that the
-sealed chapter says each applies to (ruling SV-35). On another element those names have no
-kind: `x` and `y` of `text` are lists, and the chapter that states them is not sealed.
+sealed chapter says each applies to (ruling SV-35). The last three rows are the attributes of
+a text, on the two elements whose table the sealed chapter gives (ruling SV-41): `x` and `y`
+are lists there, and a negative `textLength` is an error in its prose, so its kind is the one
+with no minus sign. On another element those names have no kind: `x` of `pattern`, `dx` of
+`feOffset` and `rotate` of `animateMotion` are stated elsewhere, and `textLength` of `textPath`
+has no table of its own.
 
 An attribute with no row takes any text. That is a limit of this package and no statement of
 SVG. A colour, a paint and a URL are not judged.
@@ -78,6 +86,10 @@ inductive ValueKind where
   | extent
   /-- `auto`, or a length that is not negative. -/
   | autoExtent
+  /-- One length or more. -/
+  | lengthList
+  /-- One number or more. -/
+  | numberList
   deriving DecidableEq, Repr, Inhabited
 
 /-- The typed value of a kind. -/
@@ -89,6 +101,8 @@ abbrev ValueKind.carrier : ValueKind → Type
   | .length => Length
   | .extent => Extent
   | .autoExtent => AutoExtent
+  | .lengthList => LengthList
+  | .numberList => NumberList
 
 /-- The grammar of a kind. -/
 abbrev ValueKind.grammar : (k : ValueKind) → Grammar k.carrier
@@ -99,6 +113,8 @@ abbrev ValueKind.grammar : (k : ValueKind) → Grammar k.carrier
   | .length => Length.grammar
   | .extent => Extent.grammar
   | .autoExtent => AutoExtent.grammar
+  | .lengthList => LengthList.grammar
+  | .numberList => NumberList.grammar
 
 /-- The kind of an attribute's value on an element, where the sealed text states its grammar
 and this package holds it. -/
@@ -120,6 +136,19 @@ abbrev kindOf (t : Tag) : Attr → Option ValueKind
   | .x | .y =>
     match t with
     | .svg | .rect | .image | .foreignObject => some .length
+    | .text | .tspan => some .lengthList
+    | _ => none
+  | .dx | .dy =>
+    match t with
+    | .text | .tspan => some .lengthList
+    | _ => none
+  | .rotate =>
+    match t with
+    | .text | .tspan => some .numberList
+    | _ => none
+  | .textLength =>
+    match t with
+    | .text | .tspan => some .extent
     | _ => none
   | .r =>
     match t with

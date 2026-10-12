@@ -1,4 +1,5 @@
 import Whatwg.Svg.Value.Path
+import Whatwg.Svg.Value.Grammar.Laws
 
 /-!
 # WhatwgTest.Svg.Path

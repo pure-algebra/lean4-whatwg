@@ -1,4 +1,5 @@
 import Whatwg.Svg.Value.Number
+import Whatwg.Svg.Value.Grammar.Laws
 import Whatwg.Svg.Value.Cohort
 
 /-!

@@ -66,13 +66,23 @@ def badPath : RawNode := svg [el "path" [("d", "M 10 20 L 40")]]
 #guard valuesOk (svg [el "linearGradient" [("x1", "ten")]])
 
 -- An attribute with no kind takes any text. That is a limit of the package: a paint is not
--- judged. `x` on `text` is text too: there it is a list, and the chapter that states it is not
--- sealed.
-#guard valuesOk (svg [el "rect" [("fill", "no colour"), ("class", "")], el "text" [("x", "ten")]])
+-- judged. `x` on `pattern` is text too: no sealed chapter states it there.
+#guard valuesOk (svg [el "rect" [("fill", "no colour"), ("class", "")], el "pattern" [("x", "ten")]])
 
 -- Control of the table's key: on `rect` the name `x` is a length of the sealed chapter
 -- `geometry.html`, and the same text is refused.
 #guard !valuesOk (svg [el "rect" [("x", "ten")]])
+
+-- On `text` the name `x` is a list of lengths, of the sealed chapter `text.html` (slice S8):
+-- one length or more, with a comma or white space between.
+#guard valuesOk (svg [el "text" [("x", "10 20, 30px"), ("dy", "1em"), ("rotate", "0 45,90")]])
+#guard !valuesOk (svg [el "text" [("x", "ten")]]) && !valuesOk (svg [el "text" [("x", "")]])
+#guard explainValues (svg [el "text" [("x", "10 20 px")]]) == some ⟨[0], .attribute "x" (.valueAt 6)⟩
+
+-- `textLength` of a text is a length with no minus sign: the chapter makes a negative one an
+-- error. On `textPath` the chapter has no table for it, and the value is not judged.
+#guard valuesOk (svg [el "text" [("textLength", "120")]]) && !valuesOk (svg [el "text" [("textLength", "-1")]])
+#guard valuesOk (svg [el "text" [] [el "textPath" [("textLength", "-1")] []]])
 
 -- Control, the reverse: the judgment is of SVG elements. An HTML element's values are the
 -- checker's, so an attribute named `d` on `p` passes here and is refused there.

@@ -40,10 +40,18 @@ example : AttrValue .rect .width = AutoExtent := rfl
 example : AttrValue .circle .r = Extent := rfl
 example : AttrValue .rect .«class» = String := rfl
 
+-- The place of a text is a list of lengths, and its rotation a list of numbers.
+example : AttrValue .text .x = LengthList := rfl
+example : AttrValue .tspan .dy = LengthList := rfl
+example : AttrValue .text .rotate = NumberList := rfl
+example : AttrValue .text .textLength = Extent := rfl
+
 -- Controls of the table's key: the same name on an element that the sealed text gives no
 -- value for is text.
 example : AttrValue .linearGradient .x1 = String := rfl
-example : AttrValue .text .x = String := rfl
+example : AttrValue .pattern .x = String := rfl
+example : AttrValue .feOffset .dx = String := rfl
+example : AttrValue .textPath .textLength = String := rfl
 
 /-! ## A picture, as a program builds it -/
 
@@ -63,11 +71,12 @@ def curve (p0 p1 p2 p3 : Int × Int) (role : String) : SvgNode :=
       .attr .d (.path (.moveto false (pt p0) [] [.curveto false (pt p1, pt p2, pt p3) []])),
       .attr .fill "none", .attr .stroke "currentColor", .attr .stroke_width "1.5"] []
 
-/-- A text at a place, scaled by the ratio. Its `x` and `y` are text: the chapter that states
-them is not sealed. -/
+/-- A text at a place, scaled by the ratio. Its `x` and `y` are lists of lengths, here of one
+each. -/
 def label (x base : Nat) (ratio : Nat) (content : String) : SvgNode :=
   .element .text
-    [.attr .x (toString x), .attr .y (toString base), .attr .«class» "e4-text",
+    [.attr .x (.single (.user (.ofInt x))), .attr .y (.single (.user (.ofInt base))),
+      .attr .«class» "e4-text",
       .attr .transform [.scale (.ofInt ratio) none], .attr .xml_space "preserve"]
     [.text content]
 

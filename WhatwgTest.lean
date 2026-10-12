@@ -81,6 +81,7 @@ import WhatwgTest.Html.SvgKeys
 import WhatwgTest.Html.SvgValid
 import WhatwgTest.Html.SvgBenchmark
 import WhatwgTest.Html.SvgPicture
+import WhatwgTest.Html.SvgXml
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
@@ -91,6 +92,7 @@ import WhatwgTest.Svg.ViewBox
 import WhatwgTest.Svg.Transform
 import WhatwgTest.Svg.Length
 import WhatwgTest.Svg.Extent
+import WhatwgTest.Svg.Lists
 import WhatwgTest.Svg.Greedy
 import WhatwgTest.Svg.Deterministic
 import WhatwgTest.Svg.Refusal

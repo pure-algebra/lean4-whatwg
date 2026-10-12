@@ -9,6 +9,7 @@ import Whatwg.Svg.Schema.Readings
 import Whatwg.Svg.Schema.Universe
 import Whatwg.Svg.Content.Context
 import Whatwg.Svg.Value.Grammar
+import Whatwg.Svg.Value.Grammar.Laws
 import Whatwg.Svg.Value.Greedy
 import Whatwg.Svg.Value.Deterministic
 import Whatwg.Svg.Value.Refusal
@@ -20,6 +21,7 @@ import Whatwg.Svg.Value.ViewBox
 import Whatwg.Svg.Value.Transform
 import Whatwg.Svg.Value.Length
 import Whatwg.Svg.Value.Extent
+import Whatwg.Svg.Value.Lists
 import Whatwg.Svg.Value.Attribute
 
 /-!

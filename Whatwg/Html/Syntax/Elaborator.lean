@@ -332,6 +332,8 @@ deriving instance Lean.ToExpr for Whatwg.Svg.Value.LengthUnit
 deriving instance Lean.ToExpr for Whatwg.Svg.Value.Length
 deriving instance Lean.ToExpr for Whatwg.Svg.Value.Extent
 deriving instance Lean.ToExpr for Whatwg.Svg.Value.AutoExtent
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.LengthList
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.NumberList
 
 /-- How a value of a kind is written as a term, with the term of its type: one line for each
 kind. -/
@@ -343,6 +345,8 @@ kind. -/
   | .length => inferInstanceAs (ToExpr Whatwg.Svg.Value.Length)
   | .extent => inferInstanceAs (ToExpr Whatwg.Svg.Value.Extent)
   | .autoExtent => inferInstanceAs (ToExpr Whatwg.Svg.Value.AutoExtent)
+  | .lengthList => inferInstanceAs (ToExpr Whatwg.Svg.Value.LengthList)
+  | .numberList => inferInstanceAs (ToExpr Whatwg.Svg.Value.NumberList)
 
 /-- How a value of an attribute's type is written as a term: by its kind, and text as a string
 literal. -/

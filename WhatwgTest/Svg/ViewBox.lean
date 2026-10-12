@@ -1,4 +1,5 @@
 import Whatwg.Svg.Value.ViewBox
+import Whatwg.Svg.Value.Grammar.Laws
 
 /-!
 # WhatwgTest.Svg.ViewBox

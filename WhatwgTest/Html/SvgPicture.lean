@@ -143,10 +143,10 @@ def curveNode (look : Look) (role : Role) (c : Cubic) (weight : Nat) (key : Stri
       .attr .fill "none", .attr .stroke (look.color role),
       .attr .stroke_width (toString weight)]) []
 
-/-- A text at a place, scaled by the ratio. Its `x` and `y` are text (debt D96). -/
+/-- A text at a place, scaled by the ratio. Its `x` and `y` are lists of lengths, of one each. -/
 def textNode (look : Look) (ratio : Nat) (x base : Int) (content key : String) : SvgNode :=
   .element .text (keyed key
-    [.attr .x (toString x), .attr .y (toString base), .attr .«class» "e4-text",
+    [.attr .x (.single (px x)), .attr .y (.single (px base)), .attr .«class» "e4-text",
       .attr .fill look.ink, .attr .transform [.scale (.ofInt ratio) none],
       .attr .xml_space "preserve"]) [.text content]
 

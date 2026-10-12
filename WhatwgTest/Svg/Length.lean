@@ -1,4 +1,5 @@
 import Whatwg.Svg.Value.Length
+import Whatwg.Svg.Value.Grammar.Laws
 
 /-!
 # WhatwgTest.Svg.Length

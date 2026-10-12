@@ -1,4 +1,5 @@
 import Whatwg.Svg.Value.Points
+import Whatwg.Svg.Value.Grammar.Laws
 
 /-!
 # WhatwgTest.Svg.Points

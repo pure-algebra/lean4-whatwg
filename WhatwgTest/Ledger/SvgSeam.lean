@@ -14,9 +14,9 @@ grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17 and R-S19 to R-S21 of
+No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21 and R-S23 of
 `COORDINATION.md` name this graph and change no edge's status, so the entry acknowledges the
-twelve.
+thirteen.
 -/
 
 namespace WhatwgTest.Ledger
@@ -30,7 +30,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -56,7 +56,7 @@ def svgSeam : Graph where
       remaining := [
         .named "a sentence of an SVG chapter that narrows a content model is not read, apart from the four readings of ruling SV-4",
         .named "`validIn` reads no SVG value: the value judgment `valuesOk` is a second algebra of the walk, beside the checker (ruling SV-30)",
-        .named "an attribute with no kind in the table of `Whatwg/Svg/Value/Attribute.lean` takes any text: the lists of `x`, `y`, `dx` and `dy` on `text`, whose chapter is not sealed (debt D96), a colour, a paint and a URL are not judged",
+        .named "an attribute with no kind in the table of `Whatwg/Svg/Value/Attribute.lean` takes any text: `textLength` on `textPath`, `x` on an element outside the table, a colour, a paint and a URL are not judged",
         .named "a geometry property that must not be negative is refused when it is: the sealed chapter treats it as the initial value with no error state (ruling SV-35)",
         .named "the check of a length refuses some values that SVG admits: a unit the sealed table does not name, `calc()`, a CSS comment and a CSS escape (ruling SV-31)",
         .debt "D57"]
@@ -99,15 +99,18 @@ def svgSeam : Graph where
     representation := {
       status := .requiredOpen
       remaining := [
-        .named "the gate `lake exe whatwg_svggrammar` compares the grammar of path data with its sealed chapter (ruling SV-37), and its verdict is no theorem; the grammars of `points`, `viewBox` and the transform list are not compared with their sealed lines (debt D97)"]
+        .named "the gate `lake exe whatwg_svggrammar` compares the grammar of path data with its sealed chapter (ruling SV-37), and its verdict is no theorem; the grammars of `points`, `viewBox` and the transform list are not compared with their sealed lines (debt D97)",
+        .named "the XML serialization is the algorithm of the sealed section by an argument and no transcription of the algorithm over a DOM (ruling SV-40, debt D106); no reader of XML is in the library, so no law says that a written text reads back (debt D107); the productions `Char` and `Name` are of XML 1.0, which is not sealed (debt D105)"]
       grounds := [.theorems [`Whatwg.Svg.Value.valueOk_print, `Whatwg.Svg.Value.valueOkByName_chars,
         `Whatwg.Svg.Data.NameTable.read_exact,
         `Whatwg.Svg.Data.NameTable.read_chars, `Whatwg.Svg.Schema.Tag.ofChars?_chars,
         `Whatwg.Svg.Schema.Tag.ofChars?_exact, `Whatwg.Svg.Schema.Attr.ofChars?_chars,
         `Whatwg.Svg.Schema.Attr.ofChars?_exact, `Whatwg.Html.Content.restore_tag,
         `Whatwg.Html.Content.restore_attr, `Whatwg.Html.Print.decodeNode?_render,
-        `Whatwg.Html.Print.renderChars_injective_of_wf, `Whatwg.Html.Print.render_injective_of_wf]]
-      note := "The two name tables are exact embeddings (N1), the tree construction's tables restore every schema name from its lower-case form (N2), and the printer is an exact embedding of the well-formed trees, with SVG subtrees or without (P1, P3). Each name that the table gives a kind admits the text of every typed value of that kind (V2 at the table); the grammars themselves are the leaf `SVG-LF-GRAMMAR`." }
+        `Whatwg.Html.Print.renderChars_injective_of_wf, `Whatwg.Html.Print.render_injective_of_wf,
+        `Whatwg.Html.Print.Xml.unescape_escapeText, `Whatwg.Html.Print.Xml.unescape_escapeAttr,
+        `Whatwg.Html.Print.Xml.escapeText_no_lt, `Whatwg.Html.Print.Xml.escapeAttr_no_delim]]
+      note := "The two name tables are exact embeddings (N1), the tree construction's tables restore every schema name from its lower-case form (N2), and the printer is an exact embedding of the well-formed trees, with SVG subtrees or without (P1, P3). The two escapers of the XML serialization are embeddings, and no delimiter survives either. Each name that the table gives a kind admits the text of every typed value of that kind (V2 at the table); the grammars themselves are the leaf `SVG-LF-GRAMMAR`." }
     counterexamples := {
       status := .requiredOpen
       remaining := [
@@ -126,13 +129,15 @@ def svgSeam : Graph where
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
         `Whatwg.Svg.Value.Attribute, `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk,
         `Whatwg.Html.Schema.Foreign, `Whatwg.Html.Content.Explain, `Whatwg.Html.Content.Values,
-        `Whatwg.Html.Print.Render, `Whatwg.Html.Node.Svg, `Whatwg.Html.Node.SvgRead,
+        `Whatwg.Html.Print.Render, `Whatwg.Html.Print.Xml, `Whatwg.Html.Node.Svg,
+        `Whatwg.Html.Node.SvgRead,
         `Whatwg.Html.Node.SvgKeys, `Whatwg.Html.Node.SvgValid,
         `Whatwg.Html.Syntax.Elaborator, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
         `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain, `WhatwgTest.Html.SvgPrint,
         `WhatwgTest.Html.SvgMarkup, `WhatwgTest.Html.SvgValues, `WhatwgTest.Html.SvgNode,
         `WhatwgTest.Html.SvgRead, `WhatwgTest.Html.SvgKeys, `WhatwgTest.Html.SvgValid,
-        `WhatwgTest.Html.SvgBenchmark, `WhatwgTest.Html.SvgPicture], .gate .build]
+        `WhatwgTest.Html.SvgBenchmark, `WhatwgTest.Html.SvgPicture, `WhatwgTest.Html.SvgXml],
+        .gate .build]
       note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen

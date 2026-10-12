@@ -18,6 +18,7 @@ import Whatwg.Html.Node.Evidence
 import Whatwg.Html.Node.Combinators
 import Whatwg.Html.Print.Escape
 import Whatwg.Html.Print.Render
+import Whatwg.Html.Print.Xml
 import Whatwg.Html.Syntax.Elaborator
 import Whatwg.Html.Svg
 import Whatwg.Html.Audit.Receipts
@@ -77,5 +78,7 @@ reader `Whatwg.Html.Node.SvgRead` from a raw tree. `Whatwg.Html.Node.SvgValid`
 judges the structure of a typed tree by its tags and its keys
 (`Whatwg.Html.Node.SvgKeys`), with the law that this is the checker's verdict
 on the raw tree, and `Child.ofSvg` places a typed tree in the typed HTML tree.
+`Whatwg.Html.Print.Xml` writes the XML serialization of a tree, which a file that holds one
+picture needs, on the algorithm of DOM Parsing and Serialization.
 `Whatwg.Html.Audit` is still a docstring and nothing else.
 -/

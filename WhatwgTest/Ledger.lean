@@ -70,12 +70,14 @@ def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
   document := "docs/SVG-PACKAGE-PLAN.md"
   declarations := [`Whatwg.Svg.Value.CharSet, `Whatwg.Svg.Value.Syn, `Whatwg.Svg.Value.Regex,
-    `Whatwg.Svg.Value.Grammar, `Whatwg.Svg.Value.Magnitude, `Whatwg.Svg.Value.Decimal,
+    `Whatwg.Svg.Value.Grammar, `Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Magnitude,
+    `Whatwg.Svg.Value.Decimal,
     `Whatwg.Svg.Value.Point, `Whatwg.Svg.Value.Decimal.same_iff_reduce,
     `Whatwg.Svg.Value.Arc, `Whatwg.Svg.Value.Command, `Whatwg.Svg.Value.Path,
     `Whatwg.Svg.Value.PathData, `Whatwg.Svg.Value.Points, `Whatwg.Svg.Value.ViewBox,
     `Whatwg.Svg.Value.Transform, `Whatwg.Svg.Value.TransformList, `Whatwg.Svg.Value.LengthUnit,
     `Whatwg.Svg.Value.Length, `Whatwg.Svg.Value.Extent, `Whatwg.Svg.Value.AutoExtent,
+    `Whatwg.Svg.Value.LengthList, `Whatwg.Svg.Value.NumberList,
     `Whatwg.Svg.Value.Greedy, `Whatwg.Svg.Value.Syn.deterministic,
     `Whatwg.Svg.Value.Syn.run,
     `Whatwg.Svg.Value.Syn.explain]
@@ -99,7 +101,8 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Extent.print_eq_length],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
-      `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Greedy,
+      `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,
+      `WhatwgTest.Svg.Greedy,
       `WhatwgTest.Svg.Deterministic,
       `WhatwgTest.Svg.Refusal]]
 

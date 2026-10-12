@@ -1,12 +1,13 @@
 # SVG seat to the Effect4 coordinator: what `html/svg` gives the consumer (2026-10-12)
 
-From Claude, seat SVG, at the head of `html/svg` after slice S6. It answers the three guidance
-notes and says how lean4-effect4 takes the branch. Rulings R-S17 to R-S20 of `COORDINATION.md`
+From Claude, seat SVG, at the head of `html/svg` after slice S8. It answers the three guidance
+notes and says how lean4-effect4 takes the branch. Rulings R-S17 to R-S23 of `COORDINATION.md`
 are the record; this note is a map, and it claims nothing they do not. Sections 1 to 6 were
 written after slice S5, which the owner pushed. Section 7 says what slice S6 adds. Section 8
 is slice S7: a fresh seat ported `tools/Tools/View/Output.lean` to the typed node with this
-note as its only guide, and section 3 is rewritten from what it found. S6 and S7 are committed
-and not pushed.
+note as its only guide, and section 3 is rewritten from what it found. Section 9 is slice S8:
+the writer of XML, which a `.svg` file needs, and the typed place of a text. S6 to S8 are
+committed and not pushed.
 
 **First, what to know.** A picture is now a typed tree. An attribute that has a grammar holds a
 typed value, and the values of every typed tree pass their grammars by one law. The structure
@@ -56,7 +57,7 @@ load no tactic and no elaborator.
 | `fill`: `<rect class= x= y= width= height= fill= fill-opacity=>` | `.element .rect [.attr .«class» c, .attr .x (.user (.ofInt b.x0)), .attr .width w, .attr .fill c, .attr .fill_opacity o] []`. The width is `b.x1 - b.x0`, an `Int`: see below |
 | `curve`: `<path d="M … C …" fill="none" stroke= stroke-width=>`, whole pixels | `.attr .d (.path (.moveto false p0 [] [.curveto false (p1, p2, p3) []]))`, a point being `⟨.ofInt x, .ofInt y⟩` |
 | `shape`: `<path d="M … C … Z M … C … Z" fill-rule="evenodd">`, thousandths | `.attr .d (.path (.ofSubpaths subpaths))`, each subpath its start and its commands, the last `.closepath false`; a point is `⟨(Decimal.ofScaled x 3).trim, (Decimal.ofScaled y 3).trim⟩` |
-| `cells`, `text`: `<text x= y= class= font-family= … fill= transform="scale(r)" xml:space="preserve">` | `.attr .transform [.scale (.ofInt r) none]`, `.attr .xml_space "preserve"`, `.attr .font_family f`; `x` and `y` of `text` are text (debt D96) |
+| `cells`, `text`: `<text x= y= class= font-family= … fill= transform="scale(r)" xml:space="preserve">` | `.attr .transform [.scale (.ofInt r) none]`, `.attr .xml_space "preserve"`, `.attr .font_family f`; `x` and `y` of `text` are lists of lengths, `.attr .x (.single (.user (.ofInt x)))` |
 | `cut` … `uncut`: `<clipPath id=><rect …/></clipPath><g clip-path=>` … `</g>` | `.element .clipPath [.attr .id id] […]`, `.element .g [.attr .clip_path ref] children` |
 | `hit`: `<rect x= y= width= height= fill="none" pointer-events="all">` | `.attr .fill "none"`, `.attr .pointer_events "all"` |
 | the key: `data-key=`, when the key is not empty | `attrs ++ [.data "key" key]` under `if key.isEmpty` |
@@ -82,17 +83,16 @@ Then, for a tree `n : SvgNode`:
   `SvgNode.validIn_toRaw` says it is `Content.validIn ctx n.toRaw` (section 7);
 - `Content.explain ctx n.toRaw` gives the path and the reason of a refusal, which replaces
   `problem?` of `tools/Tools/Document/Html.lean`;
-- its markup is `Print.render n.toRaw`. It stands in a document as the raw node `n.toRaw`, or
-  as `Child.ofSvg n`, a child of the typed HTML tree.
+- its markup in a page is `Print.render n.toRaw`, and the text of a file that holds it alone
+  is `Print.Xml.render n.toRaw` (section 9). It stands in a document as the raw node
+  `n.toRaw`, or as `Child.ofSvg n`, a child of the typed HTML tree.
 
 ## 4. Limits that bear on Effect4
 
-- The printer writes the HTML serialization of the standard. It is what an HTML page holds.
-  `tools/Drivers/View.lean` writes each picture to a `.svg` file, which must be XML. The two
-  serializations differ in one escape: a no-break space prints as `&nbsp;`, which XML does not
-  define. In an SVG subtree the printer escapes every `&` of a text and of a value, so
-  `&nbsp;` in its output is that escape and nothing else, and a writer of files may replace it
-  with `&#160;`. A writer of standalone files is not in this package: XML is not pinned here.
+- `Print.render` writes the HTML serialization of the standard, which is what an HTML page
+  holds. `tools/Drivers/View.lean` writes each picture to a `.svg` file, which must be XML:
+  that is `Print.Xml.render`, since slice S8 (section 9). The HTML text of a picture is no
+  XML where it holds a no-break space, which it writes as `&nbsp;`.
 - A typed literal prints in its grammar's spelling: `M 10 20 L 40 180` prints as
   `M10,20L40,180`. A test that compares markup text will see the new spelling. Section 8 lists
   each difference from the text `Dev.svg` writes.
@@ -101,8 +101,9 @@ Then, for a tree `n : SvgNode`:
 - The structure of a tree that `html!` builds is one kernel evaluation of `okIn`: 0.16 s for
   300 `rect` elements with eight attributes each, where the checker over the written names
   took 8.06 s (ruling R-S20).
-- `text.html` is not sealed, so `x`, `y`, `dx` and `dy` of `text` are text (debt D96). The
-  owner granted `geometry.html` alone.
+- `x`, `y`, `dx` and `dy` of `text` and `tspan` are lists of lengths since slice S8, when the
+  owner granted `text.html`: a tree that wrote `.attr .x (toString x)` writes
+  `.attr .x (.single (.user (.ofInt x)))`, or `.attr .x 10` for a numeral.
 
 ## 5. For the owner
 
@@ -202,3 +203,52 @@ the `String` key of a data attribute and through the checker that a raw subtree 
 `AGENTS.md`, read at `707b9a01`, says its axiom gate audits the `Effect4.*` and `Test.*`
 modules at `propext` and `Quot.sound`. So a theorem such as `picture_okIn` needs nothing in
 `tools/Tools/View/`, and in a `Test` battery it would need an exemption by its name.
+
+## 9. Slice S8: a picture as a file
+
+The owner sealed two pins: DOM Parsing and Serialization, which the HTML Standard gives "XML
+serialization" to, and the text chapter of SVG 2.
+
+**The writer of XML.** `Whatwg/Html/Print/Xml.lean`:
+
+- `Print.Xml.render : RawNode → String` is the text of a file. For a typed picture `n` it is
+  `Print.Xml.render n.toRaw`.
+- `Print.Xml.ok` says that the algorithm, run with "require well-formed", throws no exception
+  on the tree. `Print.Xml.render?` answers the text of a tree that passes and nothing
+  otherwise.
+
+What `ok` asks of a typed picture is small, because the names of the schema pass by one
+evaluation of the battery. A key of a `data-` attribute must be a name of XML, so it holds no
+space. Each text and each value must hold characters of XML alone, so no control character but
+a tab, a line feed and a carriage return. A comment holds no `--`. No node is a named
+character reference. These are facts of the strings a program is handed, so `render?` at run
+time is the check; the structure and the values are proved, as before.
+
+Its text is nearer to `Dev.svg`'s than the HTML serialization is:
+
+| | `Dev.svg` | `Print.Xml.render` | `Print.render` |
+| --- | --- | --- | --- |
+| an element with no child | `<rect …/>` | `<rect …/>` | `<rect …></rect>` |
+| U+00A0 | itself | itself | `&nbsp;` |
+| `>` in a value | `&gt;` | `>` | `&gt;` |
+| `"` in a text | `&quot;` | `"` | `"` |
+| `'` | `&apos;` | `'` | `'` |
+| a tab or a line break in a value | itself | `&#9;`, `&#xA;`, `&#xD;` | itself |
+| the namespace | written by hand on the root | on the root, written by the algorithm if the tree does not hold it | none |
+| `xlink:href` | no declaration | `xmlns:xlink` declared where none is in scope | none |
+
+A path, a number and the line breaks between calls are as in section 8.
+`WhatwgTest/Html/SvgXml.lean` holds the picture of `SvgPicture.lean` as XML, and reads it back
+with the reader of this repository's gates, which another hand wrote for the sealed
+definitions files.
+
+What the writer does not claim: that it is the algorithm on every tree (the algorithm over a
+DOM is not transcribed, and no browser was asked), or a law that a reader of XML reads the
+text back. Rulings SV-40 and R-S23 say which debts those are.
+
+**The place of a text.** `x`, `y`, `dx` and `dy` of `text` and `tspan` hold a `LengthList`,
+`rotate` a `NumberList` and `textLength` an `Extent`. `html!` reads a literal such as
+`x="10 20"` by the list's grammar, and prints it as it read it.
+
+**For the module graph.** `Whatwg/Svg/Value/Grammar.lean` holds the definitions and
+`Whatwg/Svg/Value/Grammar/Laws.lean` the laws. Nothing in this note's sections changes by it.
