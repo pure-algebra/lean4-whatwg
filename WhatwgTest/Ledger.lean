@@ -68,7 +68,9 @@ bridge to the expression's language and the located refusal of a text. Since sli
 holds the geometry on those values: exact arithmetic, the cursor of a path with the pen, and
 a transform on a point. Since slice S11 it holds the exact geometry in `Rat`: the number of a
 value, a cubic segment, a box, an affine map, outlines, a root, the curves of d3-shape as
-segments, and the writer of segments. It contributes to the representation edge of
+segments, and the writer of segments. Since slice S12 it holds the layer with no rational
+number, `Whatwg.Svg.Scene` (things that move, the join by key, motion as data), the seam
+between whole units and exact numbers, and a stroke of varying width. It contributes to the representation edge of
 `SVG-PG-SEAM`. -/
 def svgGrammar : Leaf where
   id := "SVG-LF-GRAMMAR"
@@ -96,7 +98,13 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Cubic.between_pointAt, `Whatwg.Svg.Value.Box,
     `Whatwg.Svg.Value.Affine, `Whatwg.Svg.Value.Cubic.roundRect,
     `Whatwg.Svg.Value.Cubic.roundRect_within, `Whatwg.Svg.Value.sqrtDown,
-    `Whatwg.Svg.Value.sqrtDown_mul_self_le, `Whatwg.Svg.Value.Pen.cubic]
+    `Whatwg.Svg.Value.sqrtDown_mul_self_le, `Whatwg.Svg.Value.Pen.cubic,
+    `Whatwg.Svg.Scene.IVec, `Whatwg.Svg.Scene.Moves, `Whatwg.Svg.Scene.join,
+    `Whatwg.Svg.Scene.join_new, `Whatwg.Svg.Scene.Easing, `Whatwg.Svg.Scene.Track,
+    `Whatwg.Svg.Scene.Track.at_done, `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid,
+    `Whatwg.Svg.Scene.Easing.segment_pointAt, `Whatwg.Svg.Value.Curve.smooth_windows,
+    `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Noise.two_band,
+    `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -141,7 +149,23 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Path.endPoint_ofCubics,
       `Whatwg.Svg.Value.Curve.chained_cubics, `Whatwg.Svg.Value.Curve.cubics_last,
       `Whatwg.Svg.Value.Curve.cardinal_starts, `Whatwg.Svg.Value.Curve.closed_cubicsClosed,
-      `Whatwg.Svg.Value.Curve.cubics_move, `Whatwg.Svg.Value.Shape.endPoint_line],
+      `Whatwg.Svg.Value.Curve.cubics_move, `Whatwg.Svg.Value.Shape.endPoint_line,
+      `Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
+      `Whatwg.Svg.Scene.Commutes.transport, `Whatwg.Svg.Scene.join_new,
+      `Whatwg.Svg.Scene.join_old, `Whatwg.Svg.Scene.length_enter_add_update,
+      `Whatwg.Svg.Scene.mem_update_iff, `Whatwg.Svg.Scene.Easing.stopsAt_stop,
+      `Whatwg.Svg.Scene.Easing.proper_cubic, `Whatwg.Svg.Scene.Transition.at_done,
+      `Whatwg.Svg.Scene.Track.at_done, `Whatwg.Svg.Scene.Motion.within_atRest,
+      `Whatwg.Svg.Scene.Motion.length_arrive, `Whatwg.Svg.Scene.Motion.arrive_end,
+      `Whatwg.Svg.Value.Vec.toGrid_ofGrid, `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid,
+      `Whatwg.Svg.Value.Vec.snap_add_ofGrid, `Whatwg.Svg.Scene.Commutes.grid,
+      `Whatwg.Svg.Value.mix_eq_floor, `Whatwg.Svg.Scene.Easing.segment_pointAt,
+      `Whatwg.Svg.Scene.Easing.cubicAt_eq_floor, `Whatwg.Svg.Value.Curve.smooth_windows,
+      `Whatwg.Svg.Value.Curve.smooth_cubics_cardinal, `Whatwg.Svg.Value.Cubic.pointAt_near,
+      `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Cubic.chord_error,
+      `Whatwg.Svg.Value.Noise.two_band, `Whatwg.Svg.Value.Stroke.closed_stroke,
+      `Whatwg.Svg.Value.Stroke.stroke_move, `Whatwg.Svg.Value.Stroke.organic_band,
+      `Whatwg.Svg.Value.Stroke.commutes_onGrid, `Whatwg.Svg.Value.Curve.through_move],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,

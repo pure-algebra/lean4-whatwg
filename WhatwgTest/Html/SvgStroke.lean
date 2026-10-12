@@ -1,6 +1,7 @@
 import Whatwg.Svg.Geometry.Shape.Laws
 import Whatwg.Svg.Geometry.Outline.Laws
 import Whatwg.Svg.Geometry.Root.Laws
+import Whatwg.Svg.Geometry.Stroke.Laws
 import Whatwg.Html.Node.SvgDraw
 import Whatwg.Html.Node.SvgPaint
 import Whatwg.Html.Node.SvgValid
@@ -14,22 +15,45 @@ The geometry of lines of lean4-effect4 on the exact geometry of slice S11 of
 checkout `707b9a01`. This module imports nothing of that package, and restates its settings
 (`Organic`) and the forms of an edge (`Form`) under the consumer's names.
 
-**What is ported.** Every definition keeps the consumer's name and its order of steps.
+**What moved to the kit.** This port first wrote for itself what the kit did not have: the
+noise, a smooth path with its end points twice, the samples of a line, the outline of a stroke
+of varying width, a collar, a reveal and an arrowhead. None of that is the consumer's alone, so
+it is now in the kit with its laws: `Whatwg/Svg/Geometry/Noise.lean`,
+`Whatwg/Svg/Geometry/Stroke.lean` and `Whatwg/Svg/Geometry/Stroke/Laws.lean`. What is here is
+what the consumer brings: its settings, its constants (`KAPPA`, the two lengths of an
+arrowhead, the eight steps of a segment, the seven between the seeds of the two sides of a
+stroke), da Vinci's split, the forms of an edge, the marks of a picture, and the numbers of
+the guards.
 
-- The noise: `mix` and `seedOf` as the consumer has them, on `Nat`; `cellValue`, `smooth`,
-  `valueNoise` and `noise` in `Rat`, with a value in `[-1, 1]`.
-- The width: `split`, `envelope`, `halfWidth`.
-- The outlines: `roundRect`, `ring`, `collar`, and the stroke with its steps, `through`,
-  `sampleAlong`, `samples`, `steps`, `runningLengths`, `sidePoint`, `outline`, `stroke`.
-- The edges: `stepDown`, `revealed`, `arrowhead`.
-- Ten of the consumer's definitions have none here, because the kit has them: `isqrt` is
-  `sqrtDown`, `line` and `straight` are `Cubic.line`, `at_` is `Cubic.pointAt`, `dir` is
-  `Cubic.direction`, `normal` is `Vec.normal`, `dist` is `Vec.dist`, `segmentThrough` is
-  `Curve.cardinalSegment (1 / 6)`, `throughFrom` is `Curve.windows`, and `shift` is `+`.
+| The consumer's | Here |
+| --- | --- |
+| `mix`, `cellValue` | `Noise.hash`, `Noise.cell` |
+| `smooth`, `valueNoise` | `Noise.smooth`, `Noise.value` |
+| `noise`, `seedOf` | `Noise.two`, `Noise.seedOf`, opened under the consumer's names |
+| `envelope` | `Noise.envelope` |
+| `halfWidth`, the half-width of `sidePoint` | `Stroke.organic` at the settings: `edge` |
+| `through` | `Curve.through` at tension zero |
+| `sampleAlong`, `samples`, `steps`, `runningLengths` | `Stroke.samples` |
+| the point of `sidePoint` | `Stroke.side` |
+| `outline` | `Stroke.outline` |
+| `stroke` | `Stroke.stroke` with an `edge` for each side: `stroke` |
+| `collar` | `Stroke.collar` at `KAPPA`: `collar` |
+| `revealed` | `Cubic.revealed`, opened under the consumer's name |
+| `arrowhead` | `Stroke.arrowhead` at the consumer's two lengths: `arrowhead` |
+| `roundRect`, `ring` | `Cubic.roundRect`, `Cubic.ring` at `KAPPA` |
+| `isqrt` | `sqrtDown` |
+| `line`, `straight` | `Cubic.line` |
+| `at_`, `dir` | `Cubic.pointAt`, `Cubic.direction` |
+| `normal`, `dist`, `shift` | `Vec.normal`, `Vec.dist`, `+` |
+| `segmentThrough`, `throughFrom` | `Curve.cardinalSegment (1 / 6)`, `Curve.windows` |
 
 **The laws.** The consumer's are `noise_band`, `halfWidth_band`, `stroke_move` with its steps,
 `stroke_organic`, and `move_back` with the step of its stroke cache that reads the move law
-(`stroke_from_origin`). Exact arithmetic gives more, which the consumer does not state:
+(`stroke_from_origin`). Each is here as a case of a law of the kit: `noise_band` of
+`Noise.two_band`, `edge_band`, which is the consumer's `halfWidth_band` at its settings, of
+`Stroke.organic_band`, and `stroke_move` of `Stroke.stroke_move`, whose steps are
+`Stroke.samples_move`, `Stroke.side_move` and `Stroke.outline_move`. Exact arithmetic gives
+more, which the consumer does not state:
 
 - da Vinci's rule for every count of parts (`split_sq_le`, `lt_split_succ`), where the consumer
   checks six counts;
@@ -53,8 +77,8 @@ checkout `707b9a01`. This module imports nothing of that package, and restates i
   segment is that share of its length here.
 - *The noise.* A cell is the floor of `s / wave`, and the place in the cell is exact. For a
   wave of zero every length is in the first cell, since `Rat` divides by zero to zero; the
-  consumer makes such a wave one thousandth long. `smooth` is not clamped: it is proved to
-  stay in `[0, 1]`.
+  consumer makes such a wave one thousandth long. `Noise.smooth` is not clamped: it is proved
+  to stay in `[0, 1]`.
 - *No direction.* `Vec.normal` of the zero vector is zero, and the consumer's `normal` is
   `(1, 0)`. So the stroke of a line of no length has no area here.
 - *The arrowhead* reads `Cubic.direction` at the end: three times the step from the second
@@ -78,6 +102,12 @@ open Whatwg.Html
 open Whatwg.Html.Content
 open Whatwg.Html.Schema (Exclusions)
 open Whatwg.Svg.Value
+
+-- Three definitions of the kit under the names the consumer has for them (`Grow.seedOf`,
+-- `Grow.noise`, `Graph.revealed`). The guards read them under those names.
+open Whatwg.Svg.Value.Noise (seedOf)
+open Whatwg.Svg.Value.Noise renaming two → noise
+open Whatwg.Svg.Value.Cubic (revealed)
 
 /-! ## Integers -/
 
@@ -114,51 +144,7 @@ theorem lt_split_succ (n : Nat) (h : 2 ≤ n) :
   rw [split, if_neg h1]
   exact hm
 
-/-! ## Noise -/
-
-/-- A 32-bit mix of a seed and a cell (`Grow.mix`), as the consumer has it. -/
-def mix (seed cell : Nat) : Nat :=
-  let m := 4294967296
-  let h := ((cell + 374761393) * 668265263 % m) ^^^ ((seed + 1442695041) * 2246822519 % m)
-  let h := ((h ^^^ (h >>> 13)) * 1274126177) % m
-  h ^^^ (h >>> 16)
-
-/-- A cell's value, in `[-1, 1]` (`Grow.cellValue`): one of 2001 values a thousandth apart. -/
-def cellValue (seed cell : Nat) : Rat := ((mix seed cell % 2001 : Nat) : Rat) / 1000 - 1
-
-/-- Smoothstep (`Grow.smooth`): `t² (3 - 2t)`, which takes `[0, 1]` into `[0, 1]`
-(`smooth_band`). -/
-def smooth (t : Rat) : Rat := t * t * (3 - 2 * t)
-
-/-- **Value noise** at `s` along a line, with cells `wave` long (`Grow.valueNoise`): between the
-values of the cells around `s`, smoothly. The cell is the floor of `s / wave`. -/
-def valueNoise (seed : Nat) (wave s : Rat) : Rat :=
-  cellValue seed (s / wave).floor.toNat +
-    smooth (s / wave - ((s / wave).floor : Rat)) *
-      (cellValue seed ((s / wave).floor.toNat + 1) - cellValue seed (s / wave).floor.toNat)
-
-/-- **The noise** at `s` (`Grow.noise`): two octaves, the second at half the wavelength and half
-the weight. -/
-def noise (seed : Nat) (wave s : Rat) : Rat :=
-  (2 * valueNoise seed wave s + valueNoise (seed + 1) (wave / 2) s) / 3
-
-/-- A key's seed (`Grow.seedOf`): FNV-1a over its characters' codes. -/
-def seedOf (key : String) : Nat :=
-  key.foldl (fun h c => ((h ^^^ c.toNat) * 16777619) % 4294967296) 2166136261
-
-/-! ## The width of a line -/
-
-/-- The envelope of the noise at `s` along a line `S` long (`Grow.envelope`): no noise at either
-end, full beyond `ramp` from both. The `max 0` is the consumer's subtraction of natural
-numbers, which stops at zero. -/
-def envelope (ramp S s : Rat) : Rat :=
-  if ramp = 0 then 1 else max 0 (min 1 (min (s / ramp) ((S - s) / ramp)))
-
-/-- **A half-width** at a point of a line (`Grow.halfWidth`): `hw`, moved by the noise `v` at
-most the share `amp`, and by the envelope `env`. -/
-def halfWidth (hw amp env v : Rat) : Rat := hw + hw * amp * env * v
-
-/-! ## Points and paths -/
+/-! ## Settings, constants and outlines -/
 
 /-- The settings of organic strokes (`Tools.View.Organic`): lengths in logical pixels, and the
 noise as a share. A stroke reads `noise` and `wave`. -/
@@ -187,267 +173,61 @@ def roundRect (x y w h r : Rat) : List Cubic := Cubic.roundRect (Box.ofSize ⟨x
 it. -/
 def ring (x y w h r wt : Rat) : List (List Cubic) := Cubic.ring (Box.ofSize ⟨x, y⟩ w h) r wt KAPPA
 
-/-- **A smooth path through points** (`Grow.through`): Catmull-Rom's spline, with the first
-point before the first and the last point past the last. -/
-def through (qs : List Vec) : List Cubic :=
-  Curve.windows (Curve.cardinalSegment (1 / 6)) (Curve.doubled qs)
+/-- **A collar** where a line `w` wide meets a surface at `p` (`Grow.collar`): the kit's, at
+the consumer's roundness. -/
+def collar (p : Vec) (w R : Rat) (down : Bool) : List Cubic := Stroke.collar p w R down KAPPA
 
-/-- The samples along one cubic at `n` steps (`Grow.sampleAlong`): each point and its
-direction. A line's first cubic keeps its start; each later cubic drops it, the end of the one
-before. -/
-def sampleAlong (n : Nat) (c : Cubic) (first : Bool) : List (Vec × Vec) :=
-  ((List.range (n + 1)).drop (if first then 0 else 1)).map fun (k : Nat) =>
-    (c.pointAt ((k : Rat) / (n : Rat)), c.direction ((k : Rat) / (n : Rat)))
+/-- The half-width of one edge of a stroke `w` wide (`Grow.halfWidth`, as `Grow.sidePoint`
+calls it): the kit's half-width that wanders, at the settings' share of noise and wave. -/
+def edge (seed : Nat) (o : Organic) (w : Rat) (tip : Bool) : Rat → Rat → Rat :=
+  Stroke.organic seed (w / 2) o.noise o.wave tip
 
-/-- The samples of a centre line (`Grow.samples`): each cubic at `n` steps. -/
-def samples (n : Nat) (cs : List Cubic) : List (Vec × Vec) :=
-  match cs with
-  | [] => []
-  | c :: rest => sampleAlong n c true ++ rest.flatMap fun c => sampleAlong n c false
-
-/-- **A collar** where a line `w` wide meets a surface at `p` (`Grow.collar`): a quarter arc of
-radius `R` on each side, from the line `R` away from the surface out along the surface. `down`
-when the line leaves the surface downward. -/
-def collar (p : Vec) (w R : Rat) (down : Bool) : List Cubic :=
-  let s : Rat := if down then 1 else -1
-  let hw := w / 2
-  let l0 : Vec := ⟨p.x - hw, p.y + s * R⟩
-  let l3 : Vec := ⟨p.x - hw - R, p.y⟩
-  let r0 : Vec := ⟨p.x + hw + R, p.y⟩
-  let r3 : Vec := ⟨p.x + hw, p.y + s * R⟩
-  [Cubic.corner l0 ⟨p.x - hw, p.y⟩ l3 KAPPA, Cubic.line l3 r0,
-    Cubic.corner r0 ⟨p.x + hw, p.y⟩ r3 KAPPA, Cubic.line r3 l0]
-
-/-- The distance from each sample of a centre line to the next (`Grow.steps`), rounded down at
-three places. -/
-def steps (ss : List (Vec × Vec)) : List Rat :=
-  (ss.zip (ss.drop 1)).map fun x => Vec.dist x.1.1 x.2.1
-
-/-- The running lengths along a centre line's samples, from `0` (`Grow.runningLengths`): each
-is the one before plus the step to the next sample. -/
-def runningLengths (ss : List (Vec × Vec)) : List Rat :=
-  ((steps ss).foldl (fun (acc : List Rat × Rat) d => ((acc.2 + d) :: acc.1, acc.2 + d))
-    ([0], 0)).1.reverse
-
-/-- One point of a stroke's side (`Grow.sidePoint`): the sample's point `x.1.1`, moved along the
-normal of its direction `x.1.2` by the half-width at its running length `x.2`, of a line `S`
-long. `sd` seeds the side's noise, and `sign` picks the side. With `tip` the half-width narrows
-towards the end of the line, to a fifth of itself. -/
-def sidePoint (seed : Nat) (o : Organic) (hw S : Rat) (tip : Bool) (sd : Nat) (sign : Rat)
-    (x : (Vec × Vec) × Rat) : Vec :=
-  let h := halfWidth hw o.noise (envelope (o.wave / 2) S x.2) (noise (seed + sd) o.wave x.2)
-  let h := if tip = true ∧ 0 < S then h * min 1 ((S - x.2) * 3 / S + 1 / 5) else h
-  x.1.1 + Vec.scale (sign * h) (Vec.normal x.1.2)
-
-/-- **A stroke's closed outline** from its two sides, the right one turned (`Grow.outline`):
-the left side's path, a line across the end, the right side's path, and a line back across the
-start. An empty side has no outline. -/
-def outline (left right : List Vec) : List Cubic :=
-  match left.getLast?, right.head?, right.getLast?, left.head? with
-  | some le, some rh, some rl, some lh =>
-    through left ++ [Cubic.line le rh] ++ through right ++ [Cubic.line rl lh]
-  | _, _, _, _ => []
-
-/-- **An organic stroke** along a centre line (`Grow.stroke`): a closed outline whose
-half-width is `w / 2` moved by the noise inside its band, the noise faded out at the ends. With
-`tip`, the line narrows to its last point. An empty line has no sample, so no outline. -/
+/-- **An organic stroke** along a centre line (`Grow.stroke`): the kit's stroke of varying
+width, each segment at the consumer's eight steps. The two edges take two seeds, the second
+seven on, as in the consumer. With `tip`, the line narrows to its last point. -/
 def stroke (seed : Nat) (o : Organic) (w : Rat) (cs : List Cubic) (tip : Bool) : List Cubic :=
-  let ss := samples 8 cs
-  let lens := runningLengths ss
-  let S := lens.getLast?.getD 0
-  let side (sd : Nat) (sign : Rat) : List Vec :=
-    (ss.zip lens).map (sidePoint seed o (w / 2) S tip sd sign)
-  outline (side 0 1) (side 7 (-1)).reverse
+  Stroke.stroke cs (edge seed o w tip) (edge (seed + 7) o w tip) (n := 8)
 
 /-! ## The laws of the band -/
 
-/-- A cell's value is in `[-1, 1]`. -/
-theorem cellValue_band (seed cell : Nat) : -1 ≤ cellValue seed cell ∧ cellValue seed cell ≤ 1 := by
-  unfold cellValue
-  generalize mix seed cell = k
-  have h0 : (0 : Rat) ≤ ((k % 2001 : Nat) : Rat) := Rat.natCast_nonneg
-  have h1 : ((k % 2001 : Nat) : Rat) ≤ ((2000 : Nat) : Rat) :=
-    Rat.natCast_le_natCast.mpr (by omega)
-  have e : ((2000 : Nat) : Rat) = 2000 := Rat.natCast_ofNat
-  rw [e] at h1
-  generalize ((k % 2001 : Nat) : Rat) = q at h0 h1 ⊢
-  constructor <;> grind
-
-/-- Smoothstep takes `[0, 1]` into `[0, 1]`. The consumer clamps it; here it needs no clamp. -/
-theorem smooth_band {t : Rat} (h0 : 0 ≤ t) (h1 : t ≤ 1) : 0 ≤ smooth t ∧ smooth t ≤ 1 := by
-  have a : 0 ≤ t * t * (3 - 2 * t) := Rat.mul_nonneg (rat_mul_self_nonneg t) (by grind)
-  have b : 0 ≤ (1 - t) * (1 - t) * (1 + 2 * t) :=
-    Rat.mul_nonneg (rat_mul_self_nonneg (1 - t)) (by grind)
-  unfold smooth
-  constructor <;> grind
-
--- kit: missing
-/-- What a number is past its floor is in `[0, 1]`. -/
-theorem fract_band (x : Rat) : 0 ≤ x - (x.floor : Rat) ∧ x - (x.floor : Rat) ≤ 1 := by
-  have h0 := Rat.floor_le x
-  have h1 := Rat.lt_floor_add_one x
-  constructor <;> grind
-
-/-- Value noise is in `[-1, 1]`: a step between the values of two cells (`Box.step_mem`). -/
-theorem valueNoise_band (seed : Nat) (wave s : Rat) :
-    -1 ≤ valueNoise seed wave s ∧ valueNoise seed wave s ≤ 1 := by
-  have hf := fract_band (s / wave)
-  have hu := smooth_band hf.1 hf.2
-  have ha := cellValue_band seed (s / wave).floor.toNat
-  have hb := cellValue_band seed ((s / wave).floor.toNat + 1)
-  unfold valueNoise
-  exact Box.step_mem ha.1 ha.2 hb.1 hb.2 hu.1 hu.2
-
 /-- **The noise stays in its band** (`Grow.noise_band`): `[-1, 1]`, for every seed, wave and
-length. -/
+length. It is the kit's law. -/
 theorem noise_band (seed : Nat) (wave s : Rat) :
-    -1 ≤ noise seed wave s ∧ noise seed wave s ≤ 1 := by
-  have h1 := valueNoise_band seed wave s
-  have h2 := valueNoise_band (seed + 1) (wave / 2) s
-  unfold noise
-  -- The two octaves are named before the arithmetic. Left as they stand, the search compares
-  -- them by unfolding both down to the hash, whose 32-bit factors exhaust the memory.
-  generalize valueNoise seed wave s = a at h1 ⊢
-  generalize valueNoise (seed + 1) (wave / 2) s = b at h2 ⊢
-  constructor <;> grind
+    -1 ≤ noise seed wave s ∧ noise seed wave s ≤ 1 :=
+  Noise.two_band seed wave s
 
-/-- The envelope is in `[0, 1]`, for every ramp and every two lengths. -/
-theorem envelope_band (ramp S s : Rat) : 0 ≤ envelope ramp S s ∧ envelope ramp S s ≤ 1 := by
-  unfold envelope
-  split <;> constructor <;> grind
-
-/-- **The half-width stays in its band** (`Grow.halfWidth_band`): for a half-width and a share
-that are not negative, an envelope in `[0, 1]` and a noise in `[-1, 1]`, the moved half-width
-differs from `hw` by at most `hw` times the share. -/
-theorem halfWidth_band {hw amp env v : Rat} (hw0 : 0 ≤ hw) (hamp : 0 ≤ amp)
-    (henv : 0 ≤ env ∧ env ≤ 1) (hv : -1 ≤ v ∧ v ≤ 1) :
-    hw - hw * amp ≤ halfWidth hw amp env v ∧ halfWidth hw amp env v ≤ hw + hw * amp := by
-  have a : 0 ≤ hw * amp := Rat.mul_nonneg hw0 hamp
-  have b0 : 0 ≤ hw * amp * env := Rat.mul_nonneg a henv.1
-  have b1 : hw * amp * env ≤ hw * amp * 1 := Rat.mul_le_mul_of_nonneg_left henv.2 a
-  have c1 : hw * amp * env * v ≤ hw * amp * env * 1 := Rat.mul_le_mul_of_nonneg_left hv.2 b0
-  have c0 : hw * amp * env * (-1) ≤ hw * amp * env * v := Rat.mul_le_mul_of_nonneg_left hv.1 b0
-  unfold halfWidth
-  constructor <;> grind
-
-/-- **Each edge of a stroke stays in its band**: the half-width that `sidePoint` computes before
-the tip, at every seed, side, length of the line and place along it. The consumer states the
-band of `halfWidth` under premises on the envelope and the noise; here both are proved. -/
-theorem edge_band (seed sd : Nat) (o : Organic) {hw : Rat} (S s : Rat) (hw0 : 0 ≤ hw)
+/-- **Each edge of a stroke stays in its band** (`Grow.halfWidth_band`): before the tip, the
+half-width of an edge differs from `w / 2` by at most the settings' share of it, at every
+seed, length of the line and place along it. The consumer states the band under premises on
+the envelope and the noise; the kit proves both. -/
+theorem edge_band (seed : Nat) (o : Organic) {w : Rat} (s whole : Rat) (hw0 : 0 ≤ w)
     (hn : 0 ≤ o.noise) :
-    hw - hw * o.noise ≤
-        halfWidth hw o.noise (envelope (o.wave / 2) S s) (noise (seed + sd) o.wave s) ∧
-      halfWidth hw o.noise (envelope (o.wave / 2) S s) (noise (seed + sd) o.wave s) ≤
-        hw + hw * o.noise :=
-  halfWidth_band hw0 hn (envelope_band _ _ _) (noise_band _ _ _)
+    w / 2 * (1 - o.noise) ≤ edge seed o w false s whole ∧
+      edge seed o w false s whole ≤ w / 2 * (1 + o.noise) :=
+  Stroke.organic_band seed (by grind) hn o.wave s whole
 
-/-! ## The move law of a stroke
-
-A stroke reads its centre line through its samples. A move of the line moves each sample's
-point and keeps its direction (`samples_move`). Every later step reads a difference of two
-points or adds an offset to a point. So the stroke of a moved line is the stroke, moved
-(`stroke_move`). The consumer proves each step by hand on `Int`; here each is a law of the
-kit. -/
-
-/-- A sample moved by `d`: its point moved, its direction kept (`Grow.shiftSample`). -/
-def shiftSample (d : Vec) (x : Vec × Vec) : Vec × Vec := (x.1 + d, x.2)
-
-/-- A moved cubic's samples are the samples, moved (`Cubic.move_pointAt`,
-`Cubic.move_direction`). -/
-theorem sampleAlong_move (n : Nat) (c : Cubic) (first : Bool) (d : Vec) :
-    sampleAlong n (c.move d) first = (sampleAlong n c first).map (shiftSample d) := by
-  simp only [sampleAlong, List.map_map, Cubic.move_pointAt, Cubic.move_direction,
-    Function.comp_def, shiftSample]
-
-/-- **A moved line's samples are the samples, moved.** -/
-theorem samples_move (n : Nat) (cs : List Cubic) (d : Vec) :
-    samples n (cs.map (Cubic.move d)) = (samples n cs).map (shiftSample d) := by
-  cases cs with
-  | nil => rfl
-  | cons c rest =>
-    simp only [List.map_cons, samples, sampleAlong_move, List.map_append, List.flatMap_map,
-      List.map_flatMap]
-
-/-- Moved samples take the same steps (`Vec.dist_move`). -/
-theorem steps_shift (d : Vec) (ss : List (Vec × Vec)) :
-    steps (ss.map (shiftSample d)) = steps ss := by
-  simp only [steps, ← List.map_drop, List.zip_map, List.map_map]
-  apply List.map_congr_left
-  intro x _
-  simp only [Function.comp, Prod.map, shiftSample, Vec.dist_move]
-
-/-- Moved samples have the same running lengths. -/
-theorem runningLengths_shift (d : Vec) (ss : List (Vec × Vec)) :
-    runningLengths (ss.map (shiftSample d)) = runningLengths ss := by
-  simp only [runningLengths, steps_shift]
-
--- kit: missing
-/-- A sum of three points with its last two exchanged. -/
-theorem vec_add_right_comm (p d q : Vec) : p + d + q = p + q + d := by
-  rw [Vec.add_assoc, Vec.add_comm d q, ← Vec.add_assoc]
-
-/-- A side's point at a moved sample is the point, moved. -/
-theorem sidePoint_shift (seed : Nat) (o : Organic) (hw S : Rat) (tip : Bool) (sd : Nat)
-    (sign : Rat) (d : Vec) (x : (Vec × Vec) × Rat) :
-    sidePoint seed o hw S tip sd sign (shiftSample d x.1, x.2) =
-      sidePoint seed o hw S tip sd sign x + d := by
-  simp only [sidePoint, shiftSample]
-  exact vec_add_right_comm _ _ _
-
-/-- A side of moved samples is the side, moved. -/
-theorem side_shift (seed : Nat) (o : Organic) (hw S : Rat) (tip : Bool) (sd : Nat)
-    (sign : Rat) (d : Vec) (l : List ((Vec × Vec) × Rat)) :
-    (l.map (Prod.map (shiftSample d) id)).map (sidePoint seed o hw S tip sd sign) =
-      (l.map (sidePoint seed o hw S tip sd sign)).map (fun p => p + d) := by
-  simp only [List.map_map]
-  apply List.map_congr_left
-  intro x _
-  exact sidePoint_shift seed o hw S tip sd sign d x
-
--- kit: missing
-/-- A smooth path through moved points is the path, moved (`Grow.through_shift`). -/
-theorem through_move (d : Vec) (qs : List Vec) :
-    through (qs.map fun p => p + d) = (through qs).map (Cubic.move d) := by
-  unfold through
-  rw [Curve.doubled_map]
-  exact Curve.windows_map _ _ _ (Curve.cardinalSegment_move (1 / 6) d) _
-
-/-- An outline of moved sides is the outline, moved (`Grow.outline_shift`). -/
-theorem outline_move (d : Vec) (left right : List Vec) :
-    outline (left.map fun p => p + d) (right.map fun p => p + d) =
-      (outline left right).map (Cubic.move d) := by
-  unfold outline
-  rw [List.getLast?_map, List.head?_map, List.getLast?_map, List.head?_map]
-  cases left.getLast? <;> cases right.head? <;> cases right.getLast? <;> cases left.head? <;>
-    simp only [Option.map_none, Option.map_some, List.map_nil, List.map_append, List.map_cons,
-      through_move, Cubic.move_line]
+/-! ## The move law of a stroke -/
 
 /-- **The move law of a stroke** (`Grow.stroke_move`). The stroke of a centre line moved by `d`
 is the stroke, moved by `d`: for every seed, organic settings, width, line and tip. The
 consumer's moves a line by whole pixels and its stroke by a thousand times as many
-thousandths; here both are one move. -/
+thousandths; here both are one move. It is the kit's law for a stroke that is not snapped. -/
 theorem stroke_move (seed : Nat) (o : Organic) (w : Rat) (cs : List Cubic) (tip : Bool) (d : Vec) :
-    stroke seed o w (cs.map (Cubic.move d)) tip = (stroke seed o w cs tip).map (Cubic.move d) := by
-  simp only [stroke, samples_move, runningLengths_shift, List.zip_map_left, side_shift]
-  rw [← List.map_reverse, outline_move]
+    stroke seed o w (cs.map (Cubic.move d)) tip = (stroke seed o w cs tip).map (Cubic.move d) :=
+  Stroke.stroke_move d id (fun _ => rfl) cs _ _ 8 3
 
 /-- A stroke reads its organic settings' noise and wave alone (`Grow.stroke_organic`). -/
 theorem stroke_organic (seed : Nat) {o o' : Organic} (hn : o.noise = o'.noise)
     (hw : o.wave = o'.wave) (w : Rat) (cs : List Cubic) (tip : Bool) :
     stroke seed o w cs tip = stroke seed o' w cs tip := by
-  have side : sidePoint seed o = sidePoint seed o' := by
-    funext hw' S tip' sd sign x
-    simp only [sidePoint, hn, hw]
-  simp only [stroke, side]
+  simp only [stroke, edge, hn, hw]
 
 /-- A line moved to the origin by a point, and back, is the line (`move_back` of
 `tools/Tools/View/Graph.lean`). -/
 theorem move_back (cs : List Cubic) (p : Vec) :
     (cs.map (Cubic.move (-p))).map (Cubic.move p) = cs := by
-  -- kit: missing
-  have e : -p + p = Vec.zero := by
-    apply Vec.ext <;> simp only [Vec.add_def, Vec.neg_def, Vec.zero] <;> grind
-  simp only [List.map_map, Function.comp_def, Cubic.move_move, e, Cubic.move_zero, List.map_id']
+  simp only [List.map_map, Function.comp_def, Cubic.move_move, Vec.neg_add_cancel,
+    Cubic.move_zero, List.map_id']
 
 /-- **A stroke kept at the origin and moved back is the stroke**: the step of the consumer's
 stroke cache that reads the move law (`cachedStroke_eq`), for a move by any point. -/
@@ -457,161 +237,26 @@ theorem stroke_from_origin (seed : Nat) (o : Organic) (w : Rat) (cs : List Cubic
       stroke seed o w cs tip := by
   rw [← stroke_move, move_back]
 
-/-! ## A stroke is a closed outline
+/-! ## Closed outlines
 
-The consumer does not state it. The kit states it for its own curves (`Curve.chained_cubics`,
-`Curve.cubics_getLast`, `Curve.cubics_head_of`), whose ends differ from the consumer's, so the
-like of those laws are proved here for `through`. -/
-
--- kit: missing
-/-- A smooth path through points is a chain. -/
-theorem chained_through (qs : List Vec) : Cubic.Chained (through qs) = true :=
-  Curve.chained_windows _ (Curve.cardinalSegment_join _) _
-
--- kit: missing
-/-- The list of two points or more with each end twice. -/
-theorem doubled_cons_cons (a b : Vec) (rest : List Vec) :
-    ∃ l, Curve.doubled (a :: b :: rest) = a :: a :: b :: rest ++ [l] :=
-  ⟨_, rfl⟩
-
--- kit: missing
-/-- A smooth path starts a segment at every point but the last. -/
-theorem through_starts (qs : List Vec) : (through qs).map (fun s => s.p0) = qs.dropLast := by
-  unfold through
-  rw [Curve.windows_cardinal_starts]
-  match qs with
-  | [] => rfl
-  | [_] => rfl
-  | a :: b :: rest =>
-    obtain ⟨l, h⟩ := doubled_cons_cons a b rest
-    rw [h]
-    show ((a :: b :: rest) ++ [l]).dropLast.dropLast = (a :: b :: rest).dropLast
-    rw [List.dropLast_concat]
-
--- kit: missing
-/-- A smooth path ends a segment at every point but the first. -/
-theorem through_ends (qs : List Vec) : (through qs).map (fun s => s.p3) = qs.tail := by
-  unfold through
-  rw [Curve.windows_cardinal_ends]
-  match qs with
-  | [] => rfl
-  | [_] => rfl
-  | a :: b :: rest =>
-    obtain ⟨l, h⟩ := doubled_cons_cons a b rest
-    rw [h]
-    show ((b :: rest) ++ [l]).dropLast = b :: rest
-    rw [List.dropLast_concat]
-
--- kit: missing
-/-- The last segment of a smooth path ends at the last point of its list. -/
-theorem through_getLast : ∀ (qs : List Vec) (x : Cubic),
-    (through qs).getLast? = some x → qs.getLast? = some x.p3
-  | [], _, h => by cases h
-  | [_], _, h => by cases h
-  | a :: b :: rest, x, h => by
-    have e := congrArg List.getLast? (through_ends (a :: b :: rest))
-    rw [List.getLast?_map, h] at e
-    rw [List.getLast?_cons_cons]
-    exact e.symm
-
--- kit: missing
-/-- The first segment of a smooth path starts at the first point of its list. -/
-theorem through_head_of : ∀ (qs : List Vec) (y : Cubic),
-    (through qs).head? = some y → qs.head? = some y.p0
-  | [], _, h => by cases h
-  | [_], _, h => by cases h
-  | a :: b :: rest, y, h => by
-    have e := congrArg List.head? (through_starts (a :: b :: rest))
-    rw [List.head?_map, h] at e
-    exact e.symm
-
--- kit: missing
-/-- A smooth path with no segment is through one point at most: its first is its last. -/
-theorem through_eq_nil : ∀ (qs : List Vec) (a b : Vec),
-    through qs = [] → qs.head? = some a → qs.getLast? = some b → a = b
-  | [], _, _, _, ha, _ => by cases ha
-  | [_], _, _, _, ha, hb => by
-    cases ha
-    cases hb
-    rfl
-  | a :: b :: rest, _, _, h, _, _ => by
-    have e := through_ends (a :: b :: rest)
-    rw [h] at e
-    cases e
-
-/-- **The outline of two sides is a chain that ends where it starts**, for every two lists of
-points. -/
-theorem closed_outline (left right : List Vec) : Cubic.Closed (outline left right) = true := by
-  unfold outline
-  cases hle : left.getLast? with
-  | none => rfl
-  | some le =>
-    cases hrh : right.head? with
-    | none => rfl
-    | some rh =>
-      cases hrl : right.getLast? with
-      | none => rfl
-      | some rl =>
-        cases hlh : left.head? with
-        | none => rfl
-        | some lh =>
-          have hmid :
-              Cubic.Chained (through left ++ [Cubic.line le rh] ++ through right) = true := by
-            have h := Curve.chained_bridge (through left) (through right) left.getLast? right.head?
-              (chained_through left) (chained_through right) (through_getLast left)
-              (through_head_of right)
-            rw [hle, hrh] at h
-            exact h
-          have hall : Cubic.Chained
-              (through left ++ [Cubic.line le rh] ++ through right ++ [Cubic.line rl lh]) =
-                true := by
-            refine Cubic.chained_append _ _ hmid rfl ?_
-            intro x y hx hy
-            cases hy
-            cases hr : through right with
-            | nil =>
-              rw [hr, List.append_nil, List.getLast?_concat] at hx
-              cases hx
-              exact through_eq_nil right rh rl hr hrh hrl
-            | cons s ss =>
-              rw [hr, Curve.getLast?_append_cons] at hx
-              have hx' := through_getLast right x (by rw [hr]; exact hx)
-              rw [hrl] at hx'
-              exact (Option.some.inj hx').symm
-          refine Curve.closed_of _ hall ?_
-          rw [List.getLast?_concat]
-          cases hl : through left with
-          | nil =>
-            have e := through_eq_nil left lh le hl hlh hle
-            rw [e]
-            rfl
-          | cons s ss =>
-            have e := through_head_of left s (by rw [hl]; rfl)
-            rw [hlh] at e
-            exact e
+The consumer does not state these. Each is a law of the kit. -/
 
 /-- **Every stroke is a chain that ends where it starts**, for every seed, settings, width,
 centre line and tip: the outline that `Path.ofLoops` asks for, where a list that is no chain is
 written as several subpaths. -/
 theorem closed_stroke (seed : Nat) (o : Organic) (w : Rat) (cs : List Cubic) (tip : Bool) :
     Cubic.Closed (stroke seed o w cs tip) = true :=
-  closed_outline _ _
-
-/-! ## A collar -/
+  Stroke.closed_stroke _ _ _ _ _ _
 
 /-- A collar is a chain that ends where it starts. -/
 theorem closed_collar (p : Vec) (w R : Rat) (down : Bool) :
-    Cubic.Closed (collar p w R down) = true := by
-  simp only [collar, Cubic.Closed, Cubic.chained_cons, Cubic.chained_singleton, Cubic.line,
-    Cubic.corner, List.getLast?_cons_cons, List.getLast?_singleton, Option.map_some, decide_true,
-    Bool.and_self, beq_self_eq_true]
+    Cubic.Closed (collar p w R down) = true :=
+  Stroke.closed_collar p w R down KAPPA
 
 /-- The collar at a moved point is the collar, moved. -/
 theorem collar_move (d p : Vec) (w R : Rat) (down : Bool) :
-    collar (p + d) w R down = (collar p w R down).map (Cubic.move d) := by
-  simp only [collar, List.map_cons, List.map_nil, List.cons.injEq, and_true]
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> apply Cubic.ext <;> apply Vec.ext <;>
-    simp only [Cubic.line, Cubic.corner, Cubic.move, Cubic.map, Vec.lerp, Vec.add_def] <;> grind
+    collar (p + d) w R down = (collar p w R down).map (Cubic.move d) :=
+  Stroke.collar_move d p w R down KAPPA
 
 /-! ## The edges of a graph -/
 
@@ -647,41 +292,6 @@ theorem stepDown_move (form : Form) (reach : Rat) (a b d : Vec) :
     · simp only [stepDown, if_neg h, if_neg (fun e => h (hx.mp e))]
       exact Curve.cubics_move _ d [a, b]
 
--- kit: missing
-/-- Two points moved together are as far apart along the axes as they were. -/
-theorem vec_taxi_move (d a b : Vec) : (a + d).taxi (b + d) = a.taxi b := by
-  simp only [Vec.taxi, Vec.add_def]
-  grind
-
--- kit: missing
-/-- A moved segment has the size of the segment. -/
-theorem taxi_move (d : Vec) (c : Cubic) : (c.move d).taxi = c.taxi := by
-  simp only [Cubic.taxi, Cubic.move, Cubic.map, vec_taxi_move]
-
-/-- **The segments revealed from their start for `budget` of size** (`Graph.revealed`): each
-whole segment within the budget, then the part of the next one that the budget reaches. The
-size of a segment is `Cubic.taxi`, and the part is exact: the consumer rounds its parameter
-down to a part per mille, and each step of its split down to a pixel. -/
-def revealed : List Cubic → Rat → List Cubic
-  | [], _ => []
-  | c :: rest, budget =>
-    if budget ≤ 0 then []
-    else if c.taxi ≤ budget then c :: revealed rest (budget - c.taxi)
-    else [c.upTo (budget / c.taxi)]
-
-/-- **A moved list is revealed as the list, moved.** The consumer reveals an edge where the
-layout computed it and moves the result into place; by this law it may move first. -/
-theorem revealed_move (d : Vec) : ∀ (cs : List Cubic) (budget : Rat),
-    revealed (cs.map (Cubic.move d)) budget = (revealed cs budget).map (Cubic.move d)
-  | [], _ => rfl
-  | c :: rest, budget => by
-    simp only [List.map_cons, revealed, taxi_move]
-    split
-    · rfl
-    · split
-      · rw [List.map_cons, revealed_move d rest]
-      · rw [List.map_cons, List.map_nil, Cubic.move_upTo]
-
 /-- The length of an arrowhead's two strokes along the segment, in logical pixels
 (`Graph.HEAD_ALONG`). -/
 def HEAD_ALONG : Rat := 6
@@ -689,31 +299,15 @@ def HEAD_ALONG : Rat := 6
 /-- The reach of an arrowhead's two strokes across the segment (`Graph.HEAD_ACROSS`). -/
 def HEAD_ACROSS : Rat := 4
 
-/-- Where the two strokes of an arrowhead start, from the end of a segment that arrives along
-`v`: back along the dominant axis of `v`, and to either side. `max a (-a)` is the size of a
-number, for which the kit has no name. -/
-def headBack (v : Vec) : Vec × Vec :=
-  if max v.y (-v.y) ≤ max v.x (-v.x) then
-    let s := if 0 ≤ v.x then -HEAD_ALONG else HEAD_ALONG
-    (⟨s, -HEAD_ACROSS⟩, ⟨s, HEAD_ACROSS⟩)
-  else
-    let s := if 0 ≤ v.y then -HEAD_ALONG else HEAD_ALONG
-    (⟨-HEAD_ACROSS, s⟩, ⟨HEAD_ACROSS, s⟩)
+/-- **An arrowhead** where a segment ends (`Graph.arrowhead`): the kit's, at the consumer's
+two lengths. The consumer wraps each stroke in a call and moves it; this is the two
+segments. -/
+def arrowhead (c : Cubic) : List Cubic := Stroke.arrowhead c HEAD_ALONG HEAD_ACROSS
 
-/-- **An arrowhead** where a segment ends (`Graph.arrowhead`): two short strokes back from its
-end, along the dominant axis of its last direction. The consumer wraps each in a call and
-moves it; this is the two segments. -/
-def arrowhead (c : Cubic) : List Cubic :=
-  [Cubic.line (c.p3 + (headBack (c.direction 1)).1) c.p3,
-    Cubic.line (c.p3 + (headBack (c.direction 1)).2) c.p3]
-
-/-- The arrowhead of a moved segment is the arrowhead, moved (`Cubic.move_direction`,
-`Cubic.move_line`). -/
+/-- The arrowhead of a moved segment is the arrowhead, moved. -/
 theorem arrowhead_move (d : Vec) (c : Cubic) :
-    arrowhead (c.move d) = (arrowhead c).map (Cubic.move d) := by
-  have e : (c.move d).p3 = c.p3 + d := rfl
-  simp only [arrowhead, Cubic.move_direction, e, List.map_cons, List.map_nil, Cubic.move_line,
-    vec_add_right_comm c.p3 d]
+    arrowhead (c.move d) = (arrowhead c).map (Cubic.move d) :=
+  Stroke.arrowhead_move d c HEAD_ALONG HEAD_ACROSS
 
 /-! ## A stroke as a mark of a picture -/
 
@@ -836,10 +430,8 @@ example (x y w h r : Rat) : Cubic.Closed (roundRect x y w h r) = true :=
 -- The rectangle at a moved corner is the rectangle, moved.
 example (d : Vec) (x y w h r : Rat) :
     roundRect (x + d.x) (y + d.y) w h r = (roundRect x y w h r).map (Cubic.move d) := by
-  -- kit: missing
-  have e : Box.ofSize ⟨x + d.x, y + d.y⟩ w h = (Box.ofSize ⟨x, y⟩ w h).move d := by
-    simp only [Box.ofSize, Box.move, Box.mk.injEq]
-    grind
+  have e : Box.ofSize ⟨x + d.x, y + d.y⟩ w h = (Box.ofSize ⟨x, y⟩ w h).move d :=
+    Box.ofSize_move d ⟨x, y⟩ w h
   rw [roundRect, e, Cubic.roundRect_move]
   rfl
 

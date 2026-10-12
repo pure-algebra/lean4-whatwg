@@ -47,6 +47,18 @@ import Whatwg.Svg.Geometry.Root.Laws
 import Whatwg.Svg.Geometry.Write
 import Whatwg.Svg.Geometry.Shape
 import Whatwg.Svg.Geometry.Shape.Laws
+import Whatwg.Svg.Geometry.Smooth
+import Whatwg.Svg.Geometry.Near
+import Whatwg.Svg.Geometry.Noise
+import Whatwg.Svg.Geometry.Stroke
+import Whatwg.Svg.Geometry.Stroke.Laws
+import Whatwg.Svg.Scene.Moves
+import Whatwg.Svg.Scene.Join
+import Whatwg.Svg.Scene.Join.Laws
+import Whatwg.Svg.Scene.Motion
+import Whatwg.Svg.Scene.Motion.Laws
+import Whatwg.Svg.Geometry.Grid
+import Whatwg.Svg.Geometry.Easing
 
 /-!
 # Whatwg.Svg
@@ -95,6 +107,19 @@ The library has five layers:
   normal of a segment. `Write` turns segments
   into a `Path` and a box into a `ViewBox`. `Shape` is the curves of d3-shape through a list
   of points, as segments: each form in d3's three ways, from end to end, open and closed.
+
+  Since slice S12: `Smooth` says that the splines have no corner at a joint, and `Near` what
+  the one rounding does to a curve. `Noise` is value noise with its bands, and `Stroke` a
+  line as a filled outline whose width changes along it, with a collar, an arrowhead and a
+  reveal. `Grid` is the seam between whole units and exact numbers: rounding commutes with a
+  move by a whole count. `Easing` says what an easing of the layer below means exactly.
+- `Whatwg.Svg.Scene` is what a picture is made of, with no rational number in it (slice
+  S12), under the strict ceiling: a program that keeps its own proofs to that ceiling can
+  neither call the geometry nor cite a law of it. `Moves` is things that move, and the law
+  that a stored result stands for a computation that moves with its input. `Join` is the
+  join of two lists by key. `Motion` is motion as data: easings in the two forms that CSS
+  writes exactly, transitions, and the tracks of a step, with the law that a step's last
+  moment is the next picture.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.

@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgHtml rows=5456 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgHtml rows=5481 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 Lean.Parser.Category.htmlAttr	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5f6347cce89be52c68443da16122aa64f8658af294659be40d9cec0b01a646d3	-	-	-	-	-	-	-	-
 Lean.Parser.Category.htmlName	Whatwg.Html.Syntax.Elaborator	definition	authored	0	5f6347cce89be52c68443da16122aa64f8658af294659be40d9cec0b01a646d3	-	-	-	-	-	-	-	-
@@ -938,6 +938,8 @@ Whatwg.Html.Content.void_div_false	Whatwg.Html.Content.Lattice	theorem	authored	
 Whatwg.Html.Content.void_labelled_nil	Whatwg.Html.Content.Lattice	theorem	authored	0	b68cc5487349697989a576aaf53e6fe147ee023e5256fcd46d422d869e8c631f	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.void_not_transparent	Whatwg.Html.Content.Lattice	theorem	authored	0	420c70a85b9bfdc0abdde89f8bab5673bd4dd4bbaa4ed02a9584be5d44a8a79f	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Content.void_ownBase_nothing	Whatwg.Html.Content.Lattice	theorem	authored	0	fb66c28bc4692ce3856d755b3db91c7ae6be834952435f04f2fb60dbeeb0fa99	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Css.milliseconds	Whatwg.Html.Node.SvgMotion	definition	authored	0	14cc8c4478be4060eae451aca844baec0eb456eadee5774cf55a2ee7834f6bb0	propext	-	-	-	-	-	-	-
+Whatwg.Html.Css.thousandths	Whatwg.Html.Node.SvgMotion	definition	authored	0	9e1e62efc28a631fa5275f51aee2d4186c33920c9c2b5435d2a8a75536d0a952	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.E.a	Whatwg.Html.Node.Combinators	definition	authored	0	92127e42719c14191fc0f2eaca4db09ac7ed667d22472801aea4c9051fe8ada7	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.E.abbr	Whatwg.Html.Node.Combinators	definition	authored	0	9d2f3a3b5dd67d25d6a62e9b3789ea4e4733dbf082a3446fecde7b21122a15af	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.E.address	Whatwg.Html.Node.Combinators	definition	authored	0	46705b6e0b3ec462947fe821faa6b3025aac5f08b98a8a7a140f6cbacfaefb5c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -1779,6 +1781,20 @@ Whatwg.Html.K.writingsuggestions.toString	Whatwg.Html.Node.Combinators	definitio
 Whatwg.Html.K.writingsuggestions.true	Whatwg.Html.Node.Combinators	constructor	authored	0	3c915cad79cc7fc258953b49b34174cd7b98142544b313c4608f1247e4c08a5d	-	-	-	-	-	-	-	-
 Whatwg.Html.K.writingsuggestions.true.elim	Whatwg.Html.Node.Combinators	definition	authored	1	230972f0fdc9267c4484d93b4d1fe56c92798ddeb94b9f062de51c9a35ff315b	-	-	-	-	-	-	-	-
 Whatwg.Html.K.writingsuggestions.true.sizeOf_spec	Whatwg.Html.Node.Combinators	theorem	generated	0	51d0b873a4a9273f170577189d00cd7b6acc5bb680206b98786b83909b893f20	-	-	-	-	-	-	-	-
+Whatwg.Html.Motion.animation	Whatwg.Html.Node.SvgMotion	definition	authored	0	abb35051c6c5e48fc9611528df48e79284d35de890b5c37e388bb994ddc8049b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.attrs	Whatwg.Html.Node.SvgMotion	definition	authored	0	2306fef7adab915ccd16552e909b0eb22fb5c442fe42a325bd9c03c6d175669a	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.attrs.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	b9487e7b0747f7c59b641f9364b6ba4a6a63d3d2b04db2a543b57c9867fa3ef8	-	-	-	-	-	-	-	-
+Whatwg.Html.Motion.attrsAt	Whatwg.Html.Node.SvgMotion	definition	authored	0	8b9f304cd7b16b8ed20a3bfdec7894051209bcdefe50a71dfd57c4bce1ccbf3b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.keyframes	Whatwg.Html.Node.SvgMotion	definition	authored	0	ba6b930b22b31e08cd2427e01cab954baa5b3fb20cdbda7843f062ca28530b6d	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.reveals	Whatwg.Html.Node.SvgMotion	definition	authored	0	ecbe8131c27e9267c774c64f4808fb50bade9de536ea74a5826bbb2880ccfb05	propext	-	-	-	-	-	-	-
+Whatwg.Html.Motion.reveals.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	e22aa2e55aa45d0f75ed9b052bcf22fcb0344f60df7789139645679e05b41354	propext	-	-	-	-	-	-	-
+Whatwg.Html.Motion.setup	Whatwg.Html.Node.SvgMotion	definition	authored	0	fe3ab308d393083a0bc39c1aa0daeb2fd1bfc6a9189cbfb466bb8f67e40a06ce	propext	-	-	-	-	-	-	-
+Whatwg.Html.Motion.setup.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	cd735bf3e6fe536a0ea80279b777796fcc7402be8e66f802601057ccea232c8b	propext	-	-	-	-	-	-	-
+Whatwg.Html.Motion.sheet	Whatwg.Html.Node.SvgMotion	definition	authored	0	45bbe220287b98f472b218ddc65540701ec3e7a7a323d0726b5431e0858a19f2	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.stillStyle?	Whatwg.Html.Node.SvgMotion	definition	authored	0	54a45816a5a01c78fcac440b23d910f005d4073d743fa5ff326432036187f89e	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.stillStyle?.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	53d720c62a175eaa7c37f5eafcf97f34882fabcc4996f5aa6893c3f654c911ff	propext	-	-	-	-	-	-	-
+Whatwg.Html.Motion.style?	Whatwg.Html.Node.SvgMotion	definition	authored	0	474f859a664d39153a4b661ed348d451ea28b1980d544c3de9b9b56e6cf9d58c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Motion.style?.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	b446586b14238e81f369740fe3d50c137cdf15f95844c3ee84564a5863ccb6d3	propext	-	-	-	-	-	-	-
 Whatwg.Html.Paint	Whatwg.Html.Node.SvgPaint	inductive	authored	0	50bdba2d5863881f005509db232fe17f42bf02f6331fd501f1607c7d6004b6f7	-	-	-	-	-	-	-	-
 Whatwg.Html.Paint.casesOn	Whatwg.Html.Node.SvgPaint	definition	authored	1	c58aa20a7009757c75cfbf7518ee28dc1533b79a3438575ac01c263b85278148	-	-	-	-	-	-	-	-
 Whatwg.Html.Paint.css	Whatwg.Html.Node.SvgPaint	definition	authored	0	183acf66ab6880d99e282abbab31bd09ae6c21c134c4bdf27408c6179cf82811	propext	-	-	-	-	-	-	-
@@ -4723,7 +4739,10 @@ Whatwg.Html.Svg.path	Whatwg.Html.Node.SvgBuild	definition	authored	0	744a91ef624
 Whatwg.Html.Svg.polygon	Whatwg.Html.Node.SvgBuild	definition	authored	0	65343c12ba2f0320f438834e40f958de75621ffc358a31be7fd977e5be2c61d6	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.polyline	Whatwg.Html.Node.SvgBuild	definition	authored	0	65cc9efbf9f3433b4a1605210d09fdcd470fb15c375a769d7884f835c061ea63	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.rect	Whatwg.Html.Node.SvgBuild	definition	authored	0	f4ca5bab1ef707264f725e6411e42e5eee1cdded123529cfdb8570decfd53a9f	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.revealLine	Whatwg.Html.Node.SvgMotion	definition	authored	0	ad7413bfe8053797dc3181f4caabb3efbe783998754fdadda84d9fe46c53037b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.revealed	Whatwg.Html.Node.SvgMotion	definition	authored	0	cd6837e92d45566e3fa2936aefd15c2ed8a033e5f838ca53f3dc489d081e13f3	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.segment	Whatwg.Html.Node.SvgDraw	definition	authored	0	d53465b3c3f4cdf0fba7233807e933b2e06169e9916b185884c1f826deaa7c7b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.Svg.styleSheet	Whatwg.Html.Node.SvgMotion	definition	authored	0	e93ae3d3dd839137de79247345ff02b71d18dd4314c7088557f5acefe6738562	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.svg	Whatwg.Html.Node.SvgBuild	definition	authored	0	64224fcf89365292729160e374d65a0f1cefa2178f8ef20f69f176631ac49c39	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.Svg.text	Whatwg.Html.Node.SvgBuild	definition	authored	0	28c08697b0dbada7af189a6647e940a8880be4cba9c5a34f66574860dd4e1d44	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr	Whatwg.Html.Node.Svg	inductive	authored	0	1dedc28c139807ab2ead767b5d80a2a56d900b52e50fb043eb5bd851c5bab6be	propext	-	-	-	-	-	-	-
@@ -4853,6 +4872,7 @@ Whatwg.Html.SvgAttr.okFrom_step.match_1_4	Whatwg.Html.Node.SvgKeys	definition	ge
 Whatwg.Html.SvgAttr.okFrom_step.match_1_6	Whatwg.Html.Node.SvgKeys	definition	generated	0	94497f1797cd2632a93f2bd6e4aaab1e4eedff9e6d98b5bc642da695e15cdce9	propext	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.okFrom_step.match_1_8	Whatwg.Html.Node.SvgKeys	definition	generated	0	0d33d6cc81a33a4d244354e83ba142af4e67c5bea6d3c8f762a19d447a58806c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.opacity	Whatwg.Html.Node.SvgPaint	definition	authored	0	e05761b841444098f82e6d94378ec2072c8b789b314b444a5d9d06627956c985	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.SvgAttr.pathLength	Whatwg.Html.Node.SvgMotion	definition	authored	0	d0e7e73e02a471cfa2552f5f9d2742eb48b666ef034c99ed9475ad031d75ad11	propext	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.pointerEvents	Whatwg.Html.Node.SvgPaint	definition	authored	0	cddadaaa11ecf6ea1bda2d909718609193febd6e9c0da3e3bd38dbdc0cb86ff0	propext	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.rec	Whatwg.Html.Node.Svg	recursor	authored	1	3cdc756727856d6e40d98c04a3ec2a17aabc18e4e06966e2fcb1401ed52cfcdd	propext	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.recOn	Whatwg.Html.Node.Svg	definition	authored	1	8818093684a81bda720f0aea44d70623586801554b6ffa55b553163ef8946317	propext	-	-	-	-	-	-	-
@@ -4860,6 +4880,7 @@ Whatwg.Html.SvgAttr.stroke	Whatwg.Html.Node.SvgPaint	definition	authored	0	aaae4
 Whatwg.Html.SvgAttr.strokeDasharray	Whatwg.Html.Node.SvgPaint	definition	authored	0	f841bc18d72f6db96f076f4a5db4d8797053f955c32341ddc2a513d64e875c1d	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.strokeOpacity	Whatwg.Html.Node.SvgPaint	definition	authored	0	e05761b841444098f82e6d94378ec2072c8b789b314b444a5d9d06627956c985	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.strokeWidth	Whatwg.Html.Node.SvgPaint	definition	authored	0	21b798d1cedc305ce5d7469c0cb8f37eef12bcf81c0d46e9c8a964884583858b	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Html.SvgAttr.style	Whatwg.Html.Node.SvgMotion	definition	authored	0	bddbd6e6f182a657a913857b90877e55f87e140015ddf02a30eb5917dcb97b3b	propext	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.svgAttrsOk_toPairs	Whatwg.Html.Node.SvgKeys	theorem	authored	0	90ed3de9294008fcf0ac75963d1f1c420dcb05c35162b641827b1eab05da2177	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.svgValuesOk_of_ofPairs?	Whatwg.Html.Node.SvgRead	theorem	authored	0	45ad60ed9c24033aef98307e32a35c914969f2523b998d2d278eb494f4c2c2d5	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.SvgAttr.svgValuesOk_of_ofPairs?.match_1_1	Whatwg.Html.Node.SvgRead	definition	generated	0	a89489b46a9b135a0316b28793702adb36050e59b00a8f5390a8f67dd632baa8	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -5454,5 +5475,9 @@ Whatwg.Html.valueTextOf.match_1	Whatwg.Html.Node.Svg	definition	generated	1	6b7b
 Whatwg.Html.void_combinators_children_nil	Whatwg.Html.Node.Erasure	theorem	authored	0	41f356755b270f85ac222900a7b78a0d96cc7bafc174fec757190506c6a9d27e	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Html.xlinkNamespace	Whatwg.Html.Node.Svg	definition	authored	0	662a8a03f749a02990a6a8822dec6eeeb9ae86cecf2e6a3d04dbb1707453637c	-	-	-	-	-	-	-	-
 Whatwg.Svg.Content.attrOk.eq_1	Whatwg.Html.Node.SvgKeys	theorem	generated	0	49f41750e51490adfcedd5e5dc01cb75f460e75ab7d600e3da52ca6533bd3998	propext	-	-	-	-	-	-	-
+Whatwg.Svg.Scene.Easing.css	Whatwg.Html.Node.SvgMotion	definition	authored	0	c8f5e1f626fe44e054039e605dbd2ed6d51c5901354aa6bc24e8ab2cc17739f5	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Svg.Scene.Easing.css.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	5382e2d990073ad74cca99c5f2d821d360880c03d52bd6fb9cd3be1d23acc647	propext	-	-	-	-	-	-	-
+Whatwg.Svg.Scene.Pose.css	Whatwg.Html.Node.SvgMotion	definition	authored	0	0d2aebe1b4fce01afdd7c1fe283bdad7316b28f3f4dcf16a85f6323bc21ad42a	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Svg.Scene.Pose.css.match_1	Whatwg.Html.Node.SvgMotion	definition	generated	1	24198dd36781b84b80e8798be3eb1f5d3c4d1ad05e92c546418207e3c9edb1b7	-	-	-	-	-	-	-	-
 Whatwg.Svg.Schema.Attr.name.eq_1	Whatwg.Html.Node.SvgKeys	theorem	generated	0	e3ae53123a9b559a1b309a2709bb1208939e8e8c62eb0510c2cf8fa9485e7f4a	-	-	-	-	-	-	-	-
 Whatwg.Svg.Schema.Tag.name.eq_1	Whatwg.Html.Node.SvgRead	theorem	generated	0	dcdad5de1e39c7e8d683ba4912a3a0fe0da6a78c21e879871618f9580501947f	-	-	-	-	-	-	-	-

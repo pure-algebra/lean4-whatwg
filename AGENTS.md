@@ -245,7 +245,8 @@ binds every declaration whose module is under a prefix of the strict list in
 since the lane V landing, `Whatwg.Signatures` since the Q5 landing
 (rulings R-W3 and R-W16), and the four layers `Whatwg.Svg.Data`, `Whatwg.Svg.Schema`,
 `Whatwg.Svg.Content` and `Whatwg.Svg.Value` since slice S2 of `docs/SVG-PACKAGE-PLAN.md`
-(ruling R-S4; `Whatwg.Svg.Geometry` is under R-11 since ruling R-S25, so that it uses the
+(ruling R-S4; `Whatwg.Svg.Scene`, the layer with no rational number, since slice S12 and ruling
+R-S27; `Whatwg.Svg.Geometry` is under R-11 since ruling R-S25, so that it uses the
 arithmetic of core). A declaration there that reaches `Classical.choice` is
 admitted only by an exact exception beside the list, with its reason, and an
 exception that has outlived its reason fails the build. `sorryAx`,

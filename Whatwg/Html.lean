@@ -16,6 +16,7 @@ import Whatwg.Html.Node.SvgPaint
 import Whatwg.Html.Node.SvgBuild
 import Whatwg.Html.Node.SvgNest
 import Whatwg.Html.Node.SvgDraw
+import Whatwg.Html.Node.SvgMotion
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
@@ -92,5 +93,7 @@ of drawing calls as a forest, with the theorem that it passes when its marks do)
 with `Whatwg.Html.Print.Picture`. `Whatwg.Html.Node.SvgDraw` has the elements of a picture
 from exact geometry: a path of cubic segments, of closed outlines or of a curve through
 points, a `rect` of a box, and a `circle`, a `line` and a `text` at points.
+`Whatwg.Html.Node.SvgMotion` writes the motion of a step as CSS animations: a `style` element
+of `@keyframes` rules and a `style` attribute for each thing that moves.
 `Whatwg.Html.Audit` is still a docstring and nothing else.
 -/

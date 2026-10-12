@@ -62,7 +62,10 @@ R-S4), at zero residue: its schema is generated data whose name lookups read a
 entry is its four layers `Whatwg.Svg.Data`, `Whatwg.Svg.Schema`, `Whatwg.Svg.Content` and
 `Whatwg.Svg.Value`, and not `Whatwg.Svg.Geometry`: that layer computes with numbers, and under
 R-11 it uses the arithmetic of core (`Rat`, `Nat.sqrt`, `grind`), whose lemmas reach
-`Classical.choice`, where the strict ceiling would have it prove them again. A
+`Classical.choice`, where the strict ceiling would have it prove them again.
+`Whatwg.Svg.Scene` joined at slice S12 (ruling R-S27), at zero residue: it is the layer with no
+rational number in it, for a consumer that keeps its own proofs to this ceiling and so can
+neither call the geometry nor cite a law of it. A
 prefix must lie inside the `Whatwg` tree, since R-V1 keeps `WhatwgTest` and
 `WhatwgGates` under R-11, and must cover at least one audited module, so that a
 misspelt prefix cannot make the strict ceiling vacuous. -/
@@ -77,6 +80,7 @@ def strictCeilingPrefixes : List Name :=
   , `Whatwg.Svg.Schema
   , `Whatwg.Svg.Content
   , `Whatwg.Svg.Value
+  , `Whatwg.Svg.Scene
   ]
 
 /-- Exact strict-ceiling exceptions, one declaration each, written

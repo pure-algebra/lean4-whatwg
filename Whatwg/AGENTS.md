@@ -80,7 +80,7 @@ Every declaration in this tree is bound by the ceiling `propext`,
 the strict list in `WhatwgTest/Audit/AxiomGate.lean` (ruling R-V1:
 `Whatwg.Ecma262`, `Whatwg.WebIdl`, `Whatwg.Url`, `Whatwg.Infra.Text.Utf8`
 and `Whatwg.Streams` at the lane V landing, then `Whatwg.Signatures` and the
-four layers `Whatwg.Svg.Data`, `Schema`, `Content` and `Value`; not
+four layers `Whatwg.Svg.Data`, `Schema`, `Content` and `Value`, and `Whatwg.Svg.Scene`; not
 `Whatwg.Svg.Geometry`, ruling R-S25) the ceiling is `propext` and
 `Quot.sound` only, for authored, private and Lean-generated declarations
 alike; an exact exception beside the list, with its reason, is the only
