@@ -64,9 +64,12 @@ fold over the calls needs a stack. That fold is Effect4's.
 
 ## 4. Limits that bear on Effect4
 
-- The printer writes the HTML serialization of the standard. It is what an HTML page holds. A
-  standalone SVG file must be XML, and a no-break space prints as `&nbsp;`, which XML does not
-  define. A writer of standalone files is not in this package.
+- The printer writes the HTML serialization of the standard. It is what an HTML page holds.
+  `tools/Drivers/View.lean` writes each picture to a `.svg` file, which must be XML. The two
+  serializations differ in one escape: a no-break space prints as `&nbsp;`, which XML does not
+  define. In an SVG subtree the printer escapes every `&` of a text and of a value, so
+  `&nbsp;` in its output is that escape and nothing else, and a writer of files may replace it
+  with `&#160;`. A writer of standalone files is not in this package: XML is not pinned here.
 - A typed literal prints in its grammar's spelling: `M 10 20 L 40 180` prints as
   `M10,20L40,180`. A test that compares markup text will see the new spelling.
 - A length takes the ten kinds of the sealed unit table. `rem`, `vw` and `calc()` are refused
