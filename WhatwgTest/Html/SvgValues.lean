@@ -5,17 +5,23 @@ import WhatwgTest.Html.Svg
 # WhatwgTest.Html.SvgValues
 
 Readers, controls and finite evaluations of the judgment of SVG attribute values (slices S4b
-to S4d of `docs/SVG-PACKAGE-PLAN.md`; ruling SV-30): `Whatwg/Html/Content/Values.lean`, and
-the run of a literal value in `html!` (`Whatwg/Html/Syntax/Elaborator.lean`).
+to S4d and S5 of `docs/SVG-PACKAGE-PLAN.md`; rulings SV-30 and SV-34):
+`Whatwg/Html/Content/Values.lean`, and the typed tree that `html!` builds
+(`Whatwg/Html/Syntax/Elaborator.lean`, `Whatwg/Html/Node/Svg.lean`).
 
 The judgment is beside the checker, not inside it. A control here shows each side of that
 line: a tree that `validIn` admits and `valuesOk` refuses, and a tree for the reverse. A
 refusal names the offset in the value at which no reading continues, and one line shows that
 the offset is the furthest character a reading reached.
 
-What this battery does not claim: that `html!` proves a value. It runs the grammar on a
-literal and refuses a bad one. The last section shows the route that is a proof: the text of a
-typed value, by a theorem.
+A tree that `html!` builds needs no evaluation of the judgment. Its term is the raw tree of a
+typed tree, so the connector `SvgNode.valuesOk_toRaw` gives its values, for a literal and for
+a spliced value alike. The elaborator reads a literal by its grammar to make the typed value,
+and refuses a literal that the grammar refuses, at the attribute's token.
+
+What this battery does not claim: that the value `html!` reads from a literal is the one its
+author meant, or that the print of a value is the literal it was read from. The reader takes
+many spellings, and the printer writes one.
 -/
 
 namespace WhatwgTest.Html.SvgValues
@@ -59,9 +65,14 @@ def badPath : RawNode := svg [el "path" [("d", "M 10 20 L 40")]]
 -- definition is in a chapter that is not sealed, and the value is not judged (ruling SV-32).
 #guard valuesOk (svg [el "linearGradient" [("x1", "ten")]])
 
--- An attribute with no kind takes any text. That is a limit of the package: the geometry
--- properties are lengths in SVG, and their chapter is not sealed.
-#guard valuesOk (svg [el "rect" [("x", "ten"), ("fill", "no colour"), ("class", "")]])
+-- An attribute with no kind takes any text. That is a limit of the package: a paint is not
+-- judged. `x` on `text` is text too: there it is a list, and the chapter that states it is not
+-- sealed.
+#guard valuesOk (svg [el "rect" [("fill", "no colour"), ("class", "")], el "text" [("x", "ten")]])
+
+-- Control of the table's key: on `rect` the name `x` is a length of the sealed chapter
+-- `geometry.html`, and the same text is refused.
+#guard !valuesOk (svg [el "rect" [("x", "ten")]])
 
 -- Control, the reverse: the judgment is of SVG elements. An HTML element's values are the
 -- checker's, so an attribute named `d` on `p` passes here and is refused there.
@@ -104,18 +115,60 @@ example (n : RawNode) (h : explainValues n = none) : valuesOk n = true :=
 #guard (Reason.attribute "d" (.valueAt 12)).describe ==
   "the value of the attribute `d` is not of its kind: no reading continues after 12 characters"
 
-/-! ## `html!` runs a literal value -/
+/-! ## `html!` builds a typed tree -/
 
-/-- An icon with a value of each grammar, as markup. The kernel takes seconds to open a
-`String` as long as this path (ruling SV-30). The elaborator runs the path's grammar, and the
-tree's obligation does not read it. -/
+/-- An icon with a value of each grammar, as markup. Its path has about 250 characters, and the
+kernel takes seconds to open a `String` of that length (ruling SV-30). The elaborator reads each
+literal by its grammar, and the term holds the values read: constructors and numbers. -/
 def icon : Child Ctx.flow :=
   html! <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 \
     10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 \
     0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 \
     3.22z" /><g transform="translate(1,2) rotate(45)"><polygon points="0,0 1,0 1,1" /></g></svg>
 
-#guard valuesOk icon.raw && validIn Ctx.flow icon.raw
+-- Reader of the connector (V7) at the tree `html!` builds: the term is the raw tree of a typed
+-- tree, so its values pass by the law. Nothing is evaluated, and the kernel opens no text.
+example : valuesOk icon.raw = true := SvgNode.valuesOk_toRaw _
+
+-- The same as the absence of a refusal.
+example : explainValues icon.raw = none := SvgNode.explainValues_toRaw _
+
+-- The structure is the term's own proof: one evaluation of the checker, which reads names.
+example : validIn Ctx.flow icon.raw = true := icon.valid
+
+/-- A stroke, in spellings that an author writes: white space, and a comma or none. -/
+def stroke : Child Ctx.flow :=
+  html! <svg viewBox=" 0,0  320 200 " width="320"><path d="M 10 20 L 40 180" transform="translate( 1 2 )" /></svg>
+
+-- The printed markup spells each typed value as its grammar prints it, in one spelling.
+#guard Print.render stroke.raw ==
+  "<svg viewBox=\"0 0 320 200\" width=\"320\"><path d=\"M10,20L40,180\" " ++
+  "transform=\"translate(1,2)\"></path></svg>"
+
+/-- A spliced value is a term of the attribute's type: path data at `d`. -/
+def traced (d : PathData) : Child Ctx.flow := html! <svg><path d={d} /></svg>
+
+-- Reader of the connector at a spliced value: the law holds for every `d`, with no premise.
+example (d : PathData) : valuesOk (traced d).raw = true := SvgNode.valuesOk_toRaw _
+
+-- The spliced value prints by its grammar.
+#guard (traced (.path (.moveto false ⟨.ofInt 1, .ofInt 2⟩ [] [.closepath true]))).raw ==
+  svg [el "path" [("d", "M1,2z")]]
+
+-- Control: a `String` is no value of `d`. Before slice S5 a spliced `String` built a tree that
+-- the judgment could refuse; now the term does not elaborate.
+/--
+error: Type mismatch
+  d
+has type
+  String
+but is expected to have type
+  PathData
+-/
+#guard_msgs (error) in
+example (d : String) : Child Ctx.flow := html! <svg><path d={d} /></svg>
+
+/-! ## `html!` refuses a literal that its grammar refuses -/
 
 /-- error: the value of the attribute `d` is not of its kind: no reading continues after 12 characters -/
 #guard_msgs (error) in
@@ -133,12 +186,21 @@ example : Child Ctx.flow := html! <svg><g transform="rotate(45deg)"></g></svg>
 #guard_msgs (error) in
 example : Child Ctx.flow := html! <svg><polyline points /></svg>
 
-/-- A spliced value on an SVG element. -/
-def traced (d : String) : Child Ctx.flow := html! <svg><path d={d} /></svg>
+-- The geometry properties: a length on `rect`, and a size that must not be negative.
+/-- error: the value of the attribute `x` is not of its kind: no reading continues after 0 characters -/
+#guard_msgs (error) in
+example : Child Ctx.flow := html! <svg><rect x="ten" /></svg>
 
--- Control: the elaborator does not run a spliced value. The tree builds, and the judgment
--- refuses it.
-#guard validIn Ctx.flow (traced "not a path").raw && !valuesOk (traced "not a path").raw
+/-- error: the value of the attribute `width` is not of its kind: no reading continues after 0 characters -/
+#guard_msgs (error) in
+example : Child Ctx.flow := html! <svg><rect width="-3" /></svg>
+
+-- An `svg` below an HTML element below an integration point is a part of a raw literal. The
+-- elaborator reports the located refusal of the judgment there, at the same token.
+/-- error: the value of the attribute `d` is not of its kind: no reading continues after 0 characters -/
+#guard_msgs (error) in
+example : Child Ctx.flow :=
+  html! <svg><foreignObject><div><svg><path d="L 1 1" /></svg></div></foreignObject></svg>
 
 /-! ## A typed value needs no evaluation -/
 

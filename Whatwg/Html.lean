@@ -8,6 +8,8 @@ import Whatwg.Html.Content.Lattice
 import Whatwg.Html.Node.Raw
 import Whatwg.Html.Node.Walk
 import Whatwg.Html.Node.Typed
+import Whatwg.Html.Node.Svg
+import Whatwg.Html.Node.SvgRead
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
@@ -65,6 +67,10 @@ fragment serialization algorithm, and the decoder that inverts the
 serializer on the sublanguage its own output determines.
 H5 adds `Whatwg.Html.Syntax`, the `html!` markup elaborator, with
 `Whatwg.Html.Node.Evidence`, the erased evidence it attaches to a raw
-literal. `Whatwg.Html.Svg` and `Whatwg.Html.Audit` are still a docstring
-and nothing else.
+literal. `Whatwg.Html.Svg` is the seam that admits an `svg` subtree
+(`docs/SVG-PACKAGE-PLAN.md`), `Whatwg.Html.Content.Values` judges the
+values of its attributes, and `Whatwg.Html.Node.Svg` is the typed SVG node:
+an SVG subtree whose attribute values are right by their types, with the
+reader `Whatwg.Html.Node.SvgRead` from a raw tree. `Whatwg.Html.Audit` is
+still a docstring and nothing else.
 -/

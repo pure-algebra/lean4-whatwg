@@ -62,7 +62,7 @@ def infraInteger : Leaf where
     .rows ⟨"INFRA-INTEGER-CE", 1, 1⟩ .closed]
 
 /-- The leaf-receipt record `SVG-LF-GRAMMAR`: the value-grammar library of slice S4a of
-`docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b to S4d, each an exact
+`docs/SVG-PACKAGE-PLAN.md` and the grammars of slices S4b to S5, each an exact
 representation whose laws the library proves once, with the reader's rule as a relation, its
 bridge to the expression's language and the located refusal of a text. It contributes to the
 representation edge of `SVG-PG-SEAM`. -/
@@ -75,7 +75,8 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Arc, `Whatwg.Svg.Value.Command, `Whatwg.Svg.Value.Path,
     `Whatwg.Svg.Value.PathData, `Whatwg.Svg.Value.Points, `Whatwg.Svg.Value.ViewBox,
     `Whatwg.Svg.Value.Transform, `Whatwg.Svg.Value.TransformList, `Whatwg.Svg.Value.LengthUnit,
-    `Whatwg.Svg.Value.Length, `Whatwg.Svg.Value.Greedy, `Whatwg.Svg.Value.Syn.deterministic,
+    `Whatwg.Svg.Value.Length, `Whatwg.Svg.Value.Extent, `Whatwg.Svg.Value.AutoExtent,
+    `Whatwg.Svg.Value.Greedy, `Whatwg.Svg.Value.Syn.deterministic,
     `Whatwg.Svg.Value.Syn.run,
     `Whatwg.Svg.Value.Syn.explain]
   parent := some ("SVG-PG-SEAM", .representation)
@@ -89,10 +90,12 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Syn.greedy_iff_read, `Whatwg.Svg.Value.Syn.check_iff_greedy,
       `Whatwg.Svg.Value.Syn.read_complete, `Whatwg.Svg.Value.Syn.check_iff_matches,
       `Whatwg.Svg.Value.Syn.run_answer, `Whatwg.Svg.Value.Syn.explain_eq_none_iff,
-      `Whatwg.Svg.Value.Syn.explain_le, `Whatwg.Svg.Value.Grammar.explain_print],
+      `Whatwg.Svg.Value.Syn.explain_le, `Whatwg.Svg.Value.Grammar.explain_print,
+      `Whatwg.Svg.Value.Extent.print_eq_length],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
-      `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Greedy, `WhatwgTest.Svg.Deterministic,
+      `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Greedy,
+      `WhatwgTest.Svg.Deterministic,
       `WhatwgTest.Svg.Refusal]]
 
 /-- The ledger: the twelve graphs of slices A and B and the graph

@@ -3,11 +3,12 @@ import Whatwg.Html.Content.Explain
 /-!
 # Whatwg.Html.Content.Values
 
-Owner: the judgment of the attribute values of an SVG subtree (slices S4b to S4d of
+Owner: the judgment of the attribute values of an SVG subtree (slices S4b to S5 of
 `docs/SVG-PACKAGE-PLAN.md`; ruling SV-30). `valuesOk` says that each value of an SVG
 attribute in the tree is of the attribute's grammar, where the table of
 `Whatwg/Svg/Value/Attribute.lean` gives the attribute a kind on its element: `d`, `points`,
-`viewBox`, the three transform attributes, and the four coordinates of `line`.
+`viewBox`, the three transform attributes, the four coordinates of `line`, and the nine
+geometry properties on the elements they apply to.
 
 The judgment is an algebra of the walk (`Whatwg/Html/Node/Walk.lean`), beside the checker
 `check` and the refusal `explainWalk`. Its state is the namespace alone: a value's grammar
@@ -28,20 +29,25 @@ under a second on the first and three on the second, on a list of characters. Th
 this package that a tree is valid are evaluations of `validIn` by the kernel (`html!`,
 `admits`). If `validIn` opened each `d`, a page with one icon would not elaborate.
 
-So the value judgment is separate, and it has two routes that never open a long `String`:
+So the value judgment is separate, and one route reaches it without opening a `String`: the
+value is typed.
 
-- A value that a program builds is typed. `valueText` writes it, and `check_valueText` says
-  that the text passes the grammar's check. It is a theorem of the grammar's retraction and of
-  `String.toList_ofList`, and it evaluates nothing. `valueOkByName_valueText` is the same law
-  under the names a tree holds, for every kind of the table.
-- A value that an author writes in `html!` is a literal. The elaborator runs the check on it
-  when it builds the tree, and refuses a bad value at the attribute's token, with the offset.
-  That run is not a proof, and the tree's type does not carry it.
+- `valueText` writes a typed value, and `check_valueText` says that the text passes the
+  grammar's check. It is a theorem of the grammar's retraction and of `String.toList_ofList`,
+  and it evaluates nothing. `valueOkByName_valueText` is the same law under the names a tree
+  holds, for every kind of the table.
+- The typed SVG node of `Whatwg/Html/Node/Svg.lean` holds every value at its type, and its
+  connector `SvgNode.valuesOk_toRaw` is this judgment for the raw tree of every typed tree
+  (slice S5, ruling SV-34). A program builds a typed tree, and `html!` builds one too: it
+  reads a literal value with its grammar when it elaborates the markup and refuses a bad one
+  at the attribute's token, with the offset.
 
-`valuesOk` itself evaluates in the kernel where the values are short.
+`valuesOk` itself evaluates in the kernel where the values are short. It is the judgment of a
+raw tree that no one typed: one that a caller reads from text. `SvgNode.ofRaw?` of
+`Whatwg/Html/Node/SvgRead.lean` reads such a tree as a typed one.
 
 What this module does not claim: that a tree `validIn` admits has values of their grammars;
-that an attribute with no grammar here has a good value; or anything of an HTML attribute's
+that an attribute with no kind here has a good value; or anything of an HTML attribute's
 value, which `attrOk` judges inside `validIn`.
 -/
 

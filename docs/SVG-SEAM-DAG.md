@@ -1,7 +1,7 @@
 # SVG seam assurance graph (`SVG-PG-SEAM`)
 
 Status: open, 2026-10-11. This document owns the graph for the admission of SVG content in an
-HTML tree. `docs/SVG-PACKAGE-PLAN.md` owns the slices, the rulings SV-1 to SV-33 and the list
+HTML tree. `docs/SVG-PACKAGE-PLAN.md` owns the slices, the rulings SV-1 to SV-35 and the list
 of anticipated nodes (its section 6).
 
 The graph opened at slice S3b, when `Whatwg.Html.Content.validIn` first accepted a tree that
@@ -17,14 +17,16 @@ attributes. `SPEC-MANIFEST.md` holds the pins, and `docs/PROVENANCE.md` their di
 `Schema`, the authored `Schema/Universe`, `Content/Context`, and `Value/Attribute`, which says
 which grammar judges which attribute. The value grammars under `Whatwg/Svg/Value/` are the leaf
 record `SVG-LF-GRAMMAR`, which contributes to this graph's representation edge. The seam itself
-is modules of `Whatwg/Html/`: `Svg`, `Node/Walk`, `Schema/Foreign` and `Content/Values`. They
-stay under the unrouted prefix `Whatwg.Html` (debt D57), as every module of the HTML package
-does. This graph cites their theorems as grounds and does not own them.
+is modules of `Whatwg/Html/`: `Svg`, `Node/Walk`, `Schema/Foreign`, `Content/Values`, and the
+typed node `Node/Svg` with its reader `Node/SvgRead`. They stay under the unrouted prefix
+`Whatwg.Html` (debt D57), as every module of the HTML package does. This graph cites their
+theorems as grounds and does not own them.
 
 **Observation.** There are two judgments, and neither has an observation mask: each reads the
 tree and nothing else. `validIn ctx n = true` says that the raw tree `n` may stand at the HTML
 position `ctx`. `valuesOk n = true` says that each value of an SVG attribute in `n` is of its
-grammar, where the package holds one. No host runs in this graph.
+grammar, where the package holds one. A typed tree (`SvgNode`) has the second judgment by its
+type: the raw tree of every typed tree passes it. No host runs in this graph.
 
 ## Current state
 
@@ -43,13 +45,16 @@ document is in `docs/receipts/SVG-PG-SEAM.md`.
   (debt D57). This graph bounds the change to that checker by two equations and no more.
 - `validIn` reads no SVG value (ruling SV-30). `valuesOk` judges the values that the table of
   `Whatwg/Svg/Value/Attribute.lean` gives a kind: `d`, `points`, `viewBox` and the three
-  transform attributes on any element, and `x1`, `y1`, `x2` and `y2` on `line` (ruling SV-32).
-  Any other SVG attribute takes any text, the geometry properties included, and CSS is never
-  judged (ruling SV-14).
+  transform attributes on any element, `x1`, `y1`, `x2` and `y2` on `line` (ruling SV-32), and
+  the nine geometry properties on the elements the sealed chapter names (ruling SV-35). Any
+  other SVG attribute takes any text, and CSS is never judged (ruling SV-14).
 - The check of a length refuses some values that SVG admits: a unit the sealed table does not
-  name, `calc()`, a CSS comment and a CSS escape (ruling SV-31).
+  name, `calc()`, a CSS comment and a CSS escape (ruling SV-31). The check of a size refuses a
+  negative one, which SVG treats as the initial value (ruling SV-35).
+- A typed tree has good values and may still be refused: the type gives no structure. For a
+  tree that `html!` builds, the structure is one kernel evaluation of `validIn` on the raw tree.
 - A refusal of a value names the offset at which no reading of its grammar continues. It does
   not say that every text with that prefix is refused: that law is not proved.
 - A grammar's description is the seat's transcription of the sealed productions. No gate
   compares the two languages. Each grammar module names the productions it restructured.
-- `html!` runs a literal value through its grammar and proves nothing of it.
+- `html!` reads a literal value with its grammar and holds the typed value. It proves nothing of a value whose attribute has no kind: that value is text.

@@ -304,6 +304,9 @@ def grammar : Grammar Length := ⟨syn, by decide +kernel, syn_total⟩
 /-- A length in user units. -/
 def user (d : Decimal) : Length := ⟨d, .number⟩
 
+/-- A numeral is that many user units: `10 : Length`. -/
+instance (n : Nat) : OfNat Length n := ⟨user (.ofInt n)⟩
+
 end Length
 
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Length.syn_total

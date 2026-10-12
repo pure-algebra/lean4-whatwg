@@ -32,6 +32,7 @@ reads them.
 | `@keyframes` in a `style` element | the element's text, escaped when printed | S3 |
 | `title`, `desc`, `role` and `aria-*` | the descriptive elements and the `aria` category | S3 |
 | `d`, `viewBox`, `transform`, `points`, numbers, lengths | typed values with a printer, a checker and a reader | S4 |
+| a picture built from computed numbers, with no value to check at run time | the typed node `SvgNode`: an attribute holds a value of its type, and one law gives the values of every typed tree | S5 |
 | a refusal that names its node | a located refusal in the library | S3 |
 
 The sealed definitions declare every element and attribute that `Output.lean` writes today,
@@ -464,10 +465,12 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-27 | unknown names | An element whose name is in neither schema is refused at every position. This holds under `metadata` too, whose model is `any`: the checker knows no rule for the subtree. |
 | SV-28 | the arc's rotation | The three leading arguments of `elliptical_arc_argument` are the production `number`, which has no sign. So the rotation of an arc is unsigned, like its radii, and `a25,25 -30 0,1 50,-25` is refused. The grammar of SVG 1.1 gave the rotation a sign; the sealed grammar does not, and no one repairs it (seat, S4b). |
 | SV-29 | the number and the white space of `transform` | A number of the `transform` grammar is the production `coordinate` of path data, `sign? number`: SV-26 makes it SVG's own, and the sealed section's example carries a sign. Its white space is the four characters the section states, without U+000C (seat, S4c). |
-| SV-30 | where a value is judged | `validIn` reads no SVG value. The judgment of values is `valuesOk`, a second algebra of the walk, with its own located refusal. The kernel cannot open a long `String` at a bearable cost (§5.3, as built), and every proof of `validIn` is an evaluation by the kernel. A typed value's text is admitted by a theorem, and `html!` runs a literal's grammar when it builds the tree (seat, S4b). |
+| SV-30 | where a value is judged | `validIn` reads no SVG value. The judgment of values is `valuesOk`, a second algebra of the walk, with its own located refusal. The kernel cannot open a long `String` at a bearable cost (§5.3, as built), and every proof of `validIn` is an evaluation by the kernel. A typed value's text is admitted by a theorem, and `html!` runs a literal's grammar when it builds the tree (seat, S4b). Since S5 the route is the typed tree of SV-34: `html!` reads the literal into a typed value, and the judgment of every typed tree is one law. |
 | SV-31 | the length | A length is a number of SVG's own production with one of the ten kinds that the unit table of `SVGLength` names in the sealed `master/types.html`: no unit, a percentage, and `em`, `ex`, `px`, `cm`, `mm`, `in`, `pt` and `pc`. A unit is read in either case, as the sealed annotation on property values says, and white space is read at both ends. Another unit of CSS, a `calc()` expression, a CSS comment and a CSS escape are refused. SVG admits them by reference to CSS Values and CSS Syntax, which are not sealed (SV-26). So the check of a length refuses some values that SVG admits, and it admits none that SVG refuses by its grammar (seat, S4d). |
-| SV-32 | which attribute has which kind | One table gives the kind of a value from the element and the attribute. A name that has one grammar wherever it stands has its kind on any element: `d`, `points`, `viewBox` and the three transform attributes. `x1`, `y1`, `x2` and `y2` are lengths on `line` alone: the sealed table of `line` states their value, and their definition on `linearGradient` is in a chapter that is not sealed. The geometry properties (`x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx`, `ry`) are stated in `geometry.html`, which is not sealed, so they have no kind and take any text (seat, S4d). |
+| SV-32 | which attribute has which kind | One table gives the kind of a value from the element and the attribute. A name that has one grammar wherever it stands has its kind on any element: `d`, `points`, `viewBox` and the three transform attributes. `x1`, `y1`, `x2` and `y2` are lengths on `line` alone: the sealed table of `line` states their value, and their definition on `linearGradient` is in a chapter that is not sealed. At S4d the geometry properties had no kind, because `geometry.html` was not sealed; SV-35 gives them theirs (seat, S4d). |
 | SV-33 | the completeness of the reader | The chapter's rule is that a production consumes as much as it can. `Greedy` states it as a relation: the meaning of a description as a parsing expression, with an ordered choice and a greedy repetition. V3b is `Greedy g s o ↔ g.read s = o`, so the reader is the rule's decision procedure and `check` decides the rule's language. The language of the bare expression is larger, and V3a is the link to it. The two agree for a description that passes `Syn.deterministic`, which is `Syn.ok` over the sets the reader reads: node V3c. A description that reads `comma_wsp?` between two numbers fails that test by design (seat, S4d, on the coordinator's notes: G2 of the second and section 4 of the third). |
+| SV-34 | the typed node | An SVG subtree has a typed tree beside `RawNode`: `SvgNode`. Its element is a tag of the schema. Its attribute is an attribute of the schema with a value of `AttrValue t a`, which is the carrier of its kind where the table gives one and text otherwise; or a custom data attribute; or one of the two namespace declarations, whose values are fixed. `toRaw` writes the raw tree, and the raw tree of every typed tree passes `valuesOk` by one law that evaluates nothing (V7). So a value is right by its type, and `validIn` still judges the structure on the raw tree, where it reads names alone. The type of a value and the table are in `Whatwg.Svg`. The node is in the seam, because it holds the raw HTML content below an integration point and its law is about the seam's judgment. `RawNode` is unchanged. `html!` builds an SVG subtree as a typed tree: it reads a literal value once, at elaboration, and a spliced value has its carrier's type (seat, S5, on G4 of the coordinator's third note). |
+| SV-35 | the geometry properties | The sealed `master/geometry.html` gives nine names a value on the elements it names. `cx` and `cy` on `circle` and `ellipse`, and `x` and `y` on `svg`, `rect`, `image` and `foreignObject`, are lengths. `r` on `circle` is a length that is not negative. `rx` and `ry` on `ellipse` and `rect`, and `width` and `height` on `svg`, `rect`, `image` and `foreignObject`, are `auto` or a length that is not negative. The chapter says that a negative value there is invalid and is treated as the initial value, with no error state. The check refuses it, as it refuses any value that is not of its grammar: a caller that wants the fallback reads the refusal. On any other element those names have no kind, and `x`, `y`, `dx` and `dy` of `text` are lists that `master/text.html` states, which is not sealed (seat, S5). |
 
 ## 5. Slices
 
@@ -485,7 +488,7 @@ seat's proposals of S1, changed where §3.1 changes them.
 | S4b | the number, path data, `points` and `viewBox` | done: ruling R-S16. Each grammar's premise holds; the battery replays the chapter's own examples |
 | S4c | `transform`, after the CSS pin | done: rulings R-S15 and R-S16. The pin is sealed; the grammar's premise holds |
 | S4d | the length; one table of kinds; the located refusal of a value; the reader's rule as a relation, and its bridge to the expression's language | done: ruling R-S17. V3b, V3c and V6 are proved; the table of kinds is keyed by element and attribute |
-| S5 | typed values in the tree (G4 of the coordinator's third note; debt D92): a typed node beside `RawNode` whose SVG attribute holds a value of its kind; `toRaw` prints each value; one connector theorem gives `valuesOk` of every typed tree; `html!` emits typed nodes; the text route for typed attributes goes | not started. Exit: an `html!` literal with a long `d` carries a proof of its values, and no kernel evaluation opens a value's text |
+| S5 | typed values in the tree (G4 of the coordinator's third note; debt D92): a typed node beside `RawNode` whose SVG attribute holds a value of its kind; `toRaw` prints each value; one connector theorem gives `valuesOk` of every typed tree; `html!` emits typed nodes; the text route for typed attributes goes; the geometry properties get their kinds (debt D93) | done: rulings R-S18 and R-S19. An `html!` literal with a long `d` carries a proof of its values, and no kernel evaluation opens a value's text |
 
 Each part lands as commits by explicit paths, with its narrow build, `lake build`, the axiom
 receipt and the gates it reaches. No part runs the trust self-test (ruling R-S5).
@@ -822,6 +825,41 @@ note's G4, a typed value in the tree, is slice S5.
   part. So a part of a description states no totality lemma of its own, and the modules lose
   the lemmas that only fed the search.
 
+### 5.4 S5: a value is right by its type
+
+**As built (S5).** Rulings R-S18 and R-S19 of `COORDINATION.md` are the record. The slice does
+G4 of the coordinator's third note in the order the note gives, and pays debts D92 and D93.
+
+- **The type of a value.** `Whatwg/Svg/Value/Attribute.lean` gives `AttrValue t a`: the carrier
+  of the kind of `a` on `t`, and `String` where the table gives none. `kindOf` is reducible, so
+  the type of `d` on `path` is `PathData` on sight.
+- **The typed node (SV-34).** `Whatwg/Html/Node/Svg.lean` holds `SvgAttr t` and `SvgNode`. An
+  attribute is `attr a value` with `value : AttrValue t a`, a custom data attribute, or one of
+  the two namespace declarations. A node is an element with a tag of the schema, character
+  data, an entity, a comment, or a raw subtree for the HTML content below an integration point.
+  `SvgNode.toRaw` writes the raw tree. `SvgNode.valuesOk_toRaw` is the connector (node V7):
+  the raw tree of every typed tree passes `valuesOk`. Its proof is `check_print` at each
+  attribute and the judgment's unfolding at each node. A program that computes its numbers has
+  the law for nothing.
+- **The structure stays the checker's.** `validIn` of `toRaw` judges a typed tree. It reads
+  names, so the kernel evaluates it without opening a value. The battery
+  `WhatwgTest/Html/SvgNode.lean` builds the consumer's picture from variables, proves its
+  values for every number, and checks the structure of one closed instance by one evaluation.
+- **The reader (node P4).** `Whatwg/Html/Node/SvgRead.lean` holds `SvgNode.ofRaw?`, which reads
+  a raw tree as a typed one with each attribute's grammar. `SvgNode.ofRaw?_toRaw` is its
+  retraction on the trees the reader produces (`SvgNode.placed`), by V1 at each value. A raw
+  tree that reads has values of their grammars. The reader keeps a value and not its spelling:
+  `M 10 20` reads and prints as `M10,20`.
+- **`html!` emits a typed tree.** An SVG subtree in markup is `SvgNode.toRaw` of a typed term.
+  The elaborator reads each literal value with its grammar and emits the value's term, so the
+  kernel sees constructors and numbers where the markup held a literal. A bad literal is
+  refused at its token with the offset, and a spliced value has its carrier's type. The run of
+  a literal with no proof is gone.
+- **The geometry properties (SV-35).** `master/geometry.html` joined the pin on the owner's
+  word. `Value/Extent.lean` holds `Extent`, a length that is not negative, and `AutoExtent`,
+  `auto` or one. The table gives the nine names their kinds on the elements the chapter names.
+- **Numerals.** `10 : Decimal`, `320 : Magnitude` and `10 : Length` are instances, and
+  `-10 : Decimal` is the opposite number.
 ## 6. Anticipated proof graph
 
 S2 is passive data and states no law. S3 is an admission, so it opens a proof graph,
@@ -860,6 +898,8 @@ Two consumers read these nodes. **D** is lean4-effect4's document builder,
 | V4 | `explainValues n = none ↔ valuesOk n = true` | located refusal of a value | proved, as W1 | S4b | D, P |
 | V5 | the text of a typed value passes its attribute's check | corollary of V2 and of `String.toList_ofList` | proved: it evaluates no text | S4b | P |
 | V6 | `explainValue t a s = none ↔ valueOk t a s = true`, and the offset is a position of the text, no earlier than where the reader stopped | located refusal of one value | proved, generic, by the reader that carries its reach | S4d | D, P |
+| V7 | `valuesOk node.toRaw = true` for every typed tree `node` | connector from the typed tree to the value judgment | proved: V2 at each attribute and the judgment's unfolding at each node; it evaluates no text | S5 | D, P |
+| P4 | `ofRaw? ns node.toRaw = some node` for a typed tree in the reader's placement, and a raw tree that reads has values of their grammars | retraction of the typed reader | proved: V1 at each value, and the name tables' own retraction | S5 | P |
 | D1 | `a.Same b ↔ a.reduce = b.reduce` | the canonical value decides the cohort | proved, with `Same` an equivalence | S4b | P |
 
 **What the graph does not establish.**
@@ -880,11 +920,15 @@ Two consumers read these nodes. **D** is lean4-effect4's document builder,
   examples (debt D95).
 - V6 gives an offset. It does not say that every text with that prefix is refused: that law is
   not proved.
-- `validIn` says nothing of an SVG value (SV-30). `valuesOk` judges the ten names of the table
-  of SV-32. An attribute with no kind takes any text, the geometry properties included.
-- The check of a length refuses some values that SVG admits (SV-31).
-- `html!` refuses a bad literal value and proves nothing of a good one. The tree's type carries
-  no evidence of its values.
+- `validIn` says nothing of an SVG value (SV-30). A typed tree's values are right by its type
+  (V7), and `valuesOk` judges a raw tree that no one typed, on the names of the table of SV-32
+  and SV-35. An attribute with no kind takes any text.
+- The check of a length refuses some values that SVG admits (SV-31), and a negative size that
+  SVG treats as its initial value (SV-35).
+- A typed tree is not a valid tree. `validIn` of its raw tree judges the structure, and for a
+  tree that `html!` builds that is one evaluation by the kernel (debt D83).
+- P4 is a retraction on typed trees. Reading a raw tree and writing it gives another spelling
+  of each value, not the same text.
 - CSS in a `style` element or attribute is never checked.
 
 ### 6.1 Debts of the HTML package
@@ -945,3 +989,4 @@ builds its pictures as trees.
 | the CSS pin | `16942b1`, 2026-10-11 | `vendor/w3c-csswg-drafts-50337328/`, three files of `w3c/csswg-drafts` at `50337328`; every file matches its upstream blob hash; `lake exe whatwg_vendorseal` passes, and its digests equal those of `Get-FileHash`; section 2.4; rulings SV-28 and SV-29 are recorded for the grammars; the record is ruling R-S15 |
 | S4b and S4c | `8d79c21`, 2026-10-11 | `Grammar` and the bank `Whatwg.Syn`; `Value/Number.lean`, `Path.lean`, `Points.lean`, `ViewBox.lean`, `Transform.lean` and `Cohort.lean`, each a value of `Grammar` or its law; `Value/Attribute.lean` with six attributes; the seam's `Whatwg/Html/Content/Values.lean` with `valuesOk`, V4 and V5; `html!` runs a literal value; six batteries; `Whatwg.Svg` strict with no exception; rulings SV-28 to SV-30; debts D89 to D92; the record is ruling R-S16 |
 | S4d | 2026-10-11 | `Value/Length.lean` with `Length.grammar`; `Value/Attribute.lean` as one table of kinds keyed by element and attribute; `Value/Refusal.lean` with V6, and the offset in the seam's refusal and in the message of `html!`; `Value/Greedy.lean` with V3b and `Value/Deterministic.lean` with V3c; a part of a description is an `abbrev`; four batteries new and the seam's extended; `Whatwg.Svg` strict with no exception; rulings SV-31 to SV-33; debts D89, D90 and D91 paid, D93 to D95 opened; slice S5 named for the third note's G4; the record is ruling R-S17 |
+| S5 | 2026-10-12 | `master/geometry.html` sealed (`e3144bb`, ruling R-S18); `AttrValue`, the typed node `Whatwg/Html/Node/Svg.lean` with the connector V7, the reader `Whatwg/Html/Node/SvgRead.lean` with P4, `html!` emitting typed trees, `Value/Extent.lean` and the geometry rows of the table; batteries `WhatwgTest/Html/SvgNode.lean`, `SvgRead.lean` and `WhatwgTest/Svg/Extent.lean`; rulings SV-34 and SV-35; debts D92 and D93 paid, D96 opened for the lists of `text`; the record is ruling R-S19 |

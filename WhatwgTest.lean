@@ -74,6 +74,8 @@ import WhatwgTest.Html.Explain
 import WhatwgTest.Html.SvgPrint
 import WhatwgTest.Html.SvgMarkup
 import WhatwgTest.Html.SvgValues
+import WhatwgTest.Html.SvgNode
+import WhatwgTest.Html.SvgRead
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
@@ -83,6 +85,7 @@ import WhatwgTest.Svg.Points
 import WhatwgTest.Svg.ViewBox
 import WhatwgTest.Svg.Transform
 import WhatwgTest.Svg.Length
+import WhatwgTest.Svg.Extent
 import WhatwgTest.Svg.Greedy
 import WhatwgTest.Svg.Deterministic
 import WhatwgTest.Svg.Refusal

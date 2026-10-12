@@ -4,6 +4,7 @@ import Whatwg.Svg.Value.Points
 import Whatwg.Svg.Value.ViewBox
 import Whatwg.Svg.Value.Transform
 import Whatwg.Svg.Value.Length
+import Whatwg.Svg.Value.Extent
 import Whatwg.Svg.Value.Refusal
 
 /-!
@@ -24,16 +25,25 @@ the table.
 | `transform` | any element | `transformList` | `svg-syntax`, CSS Transforms 1 |
 | `gradientTransform`, `patternTransform` | any element | `transformList` | the same |
 | `x1`, `y1`, `x2`, `y2` | `line` | `length` | `LineElementX1Attribute`, `master/shapes.html` |
+| `cx`, `cy` | `circle`, `ellipse` | `length` | `CxProperty`, `master/geometry.html` |
+| `x`, `y` | `svg`, `rect`, `image`, `foreignObject` | `length` | `XProperty`, the same |
+| `r` | `circle` | `extent` | `RProperty`, the same |
+| `rx`, `ry` | `ellipse`, `rect` | `autoExtent` | `RxProperty`, the same |
+| `width`, `height` | `svg`, `rect`, `image`, `foreignObject` | `autoExtent` | `Sizing`, the same |
 
 A row says "any element" where the name has one grammar wherever it stands. The four names of
-the last row have a second definition, on `linearGradient`, in a chapter that is not sealed. So
-the table gives them a kind on `line` alone, where the sealed table of `line` states it (ruling
-SV-32).
+the `line` row have a second definition, on `linearGradient`, in a chapter that is not sealed.
+So the table gives them a kind on `line` alone, where the sealed table of `line` states it
+(ruling SV-32). The last five rows are the geometry properties, on the elements that the
+sealed chapter says each applies to (ruling SV-35). On another element those names have no
+kind: `x` and `y` of `text` are lists, and the chapter that states them is not sealed.
 
 An attribute with no row takes any text. That is a limit of this package and no statement of
-SVG. The geometry properties (`x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx` and `ry`) are
-lengths in SVG, and their values are stated in the chapter `geometry.html`, which is not
-sealed: they are not judged. A colour, a paint and a URL are not judged.
+SVG. A colour, a paint and a URL are not judged.
+
+`AttrValue t a` is the type of a value: the carrier of the attribute's kind on the element,
+and text where the table gives none. The typed tree of `Whatwg/Html/Node/Svg.lean` holds a
+value of that type, so its values are right by their types (ruling SV-34).
 
 `valueOk_print` says that the text of a typed value is admitted wherever the table gives its
 kind. It is the grammar's `check_print`, so it holds for every value and evaluates no text.
@@ -64,6 +74,10 @@ inductive ValueKind where
   | transformList
   /-- A number with a unit, a percentage or a number. -/
   | length
+  /-- A length that is not negative. -/
+  | extent
+  /-- `auto`, or a length that is not negative. -/
+  | autoExtent
   deriving DecidableEq, Repr, Inhabited
 
 /-- The typed value of a kind. -/
@@ -73,6 +87,8 @@ abbrev ValueKind.carrier : ValueKind → Type
   | .viewBox => ViewBox
   | .transformList => TransformList
   | .length => Length
+  | .extent => Extent
+  | .autoExtent => AutoExtent
 
 /-- The grammar of a kind. -/
 abbrev ValueKind.grammar : (k : ValueKind) → Grammar k.carrier
@@ -81,10 +97,12 @@ abbrev ValueKind.grammar : (k : ValueKind) → Grammar k.carrier
   | .viewBox => ViewBox.grammar
   | .transformList => TransformList.grammar
   | .length => Length.grammar
+  | .extent => Extent.grammar
+  | .autoExtent => AutoExtent.grammar
 
 /-- The kind of an attribute's value on an element, where the sealed text states its grammar
 and this package holds it. -/
-def kindOf (t : Tag) : Attr → Option ValueKind
+abbrev kindOf (t : Tag) : Attr → Option ValueKind
   | .d => some .pathData
   | .points => some .points
   | .viewBox => some .viewBox
@@ -95,7 +113,62 @@ def kindOf (t : Tag) : Attr → Option ValueKind
     match t with
     | .line => some .length
     | _ => none
+  | .cx | .cy =>
+    match t with
+    | .circle | .ellipse => some .length
+    | _ => none
+  | .x | .y =>
+    match t with
+    | .svg | .rect | .image | .foreignObject => some .length
+    | _ => none
+  | .r =>
+    match t with
+    | .circle => some .extent
+    | _ => none
+  | .rx | .ry =>
+    match t with
+    | .ellipse | .rect => some .autoExtent
+    | _ => none
+  | .width | .height =>
+    match t with
+    | .svg | .rect | .image | .foreignObject => some .autoExtent
+    | _ => none
   | _ => none
+
+/-! ## The type of a value -/
+
+/-- The type of an attribute's value: the carrier of its kind, and text where it has none. -/
+abbrev ValueKind.typeOf : Option ValueKind → Type
+  | some k => k.carrier
+  | none => String
+
+/-- The type of the value of the attribute `a` on the element `t`: a typed value where the
+table gives the attribute a kind, and text otherwise. A tree that holds a value of this type
+holds no text where a grammar judges (point G4 of
+`docs/research/2026-10-11-svg-seat-guidance-3.md`). -/
+abbrev AttrValue (t : Tag) (a : Attr) : Type := ValueKind.typeOf (kindOf t a)
+
+/-- No attribute name of the schema opens with `data-`: a list of characters that opens so. -/
+def opensData : List Char → Bool
+  | 'd' :: 'a' :: 't' :: 'a' :: '-' :: _ => true
+  | _ => false
+
+/-- A name that opens with `data-` is no attribute of the schema, so the table gives a custom
+data attribute no kind on any element. -/
+theorem Attr.ofChars?_data (rest : List Char) :
+    Attr.ofChars? ('d' :: 'a' :: 't' :: 'a' :: '-' :: rest) = none := by
+  cases h : Attr.ofChars? ('d' :: 'a' :: 't' :: 'a' :: '-' :: rest) with
+  | none => rfl
+  | some a =>
+    have hchars := Attr.ofChars?_exact h
+    have hall : opensData a.chars = false :=
+      Whatwg.Svg.Data.Universe.forall_of_all (fun a : Attr => !opensData a.chars)
+        (by decide +kernel) a |> fun hb => by
+          cases ho : opensData a.chars with
+          | false => rfl
+          | true => rw [ho] at hb; exact Bool.noConfusion hb
+    rw [hchars] at hall
+    exact Bool.noConfusion hall
 
 /-! ## The check -/
 

@@ -260,6 +260,16 @@ theorem sign_total : sign.Total := fun b => by
   revert b
   decide
 
+/-- `"+"?`, read and printed as nothing: the sign of a number that must not be negative. No
+production of the path data grammar is such a number, so a grammar that needs one reads this
+and then `number`. A minus sign is refused, before a zero too. -/
+def plus : Syn Unit := .skip (Syn.one (.single '+')).opt none
+
+/-- The one value of `plus` prints: its canonical reading is no sign. -/
+theorem plus_total : plus.Total := Syn.Total.of_unit (by decide)
+
+attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] plus_total
+
 /-- `"." digit+`. A part of a larger description is an `abbrev`: the search that proves a
 grammar total (`Whatwg.Syn`) reads through it, so a part states no totality lemma. -/
 abbrev fraction : Syn (Fin 10 × List (Fin 10)) := .right (.lit ['.']) digit.many1
@@ -376,6 +386,9 @@ def grammar : Grammar Magnitude := ⟨syn, by decide +kernel, syn_total⟩
 /-- A natural number, exactly. -/
 def ofNat (n : Nat) : Magnitude := ⟨n, 0⟩
 
+/-- A numeral is the natural number it writes: `320 : Magnitude`. -/
+instance (n : Nat) : OfNat Magnitude n := ⟨ofNat n⟩
+
 end Magnitude
 
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Magnitude.syn_total
@@ -428,6 +441,12 @@ def ofInt (n : Int) : Decimal := ⟨n, 0⟩
 def ofScaled (n : Int) : Nat → Decimal
   | 0 => ⟨n, 0⟩
   | places + 1 => ⟨n, .negSucc places⟩
+
+/-- A numeral is the integer it writes: `10 : Decimal`. -/
+instance (n : Nat) : OfNat Decimal n := ⟨ofInt n⟩
+
+/-- The opposite number, with the same digits: `-10 : Decimal`. -/
+instance : Neg Decimal := ⟨fun d => ⟨-d.mantissa, d.exponent⟩⟩
 
 end Decimal
 

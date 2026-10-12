@@ -3,6 +3,7 @@ import Std.Data.HashMap
 import Whatwg.Html.Content.Values
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
+import Whatwg.Html.Node.Svg
 
 /-!
 # Whatwg.Html.Syntax.Elaborator
@@ -16,10 +17,11 @@ def page : Element .div .flow5 :=
   html! <div class="lead"><p>"Hello, " <em>"world"</em></p><br /></div>
 ```
 
-Text is a string literal, `{e}` splices a `Child` term (or a `String` term in
-an attribute value), a void element is written `<br />`, and a bare
-attribute name is a presence attribute whose value is its own name, which is
-what TyXML prints for `a_hidden ()`. The Lean keywords among the markup
+Text is a string literal, `{e}` splices a `Child` term (or, in an attribute
+value, a `String` term on an HTML element and a term of the attribute's type
+on an SVG element), a void element is written `<br />`, and a bare
+attribute name is a presence attribute whose value is the empty string. The
+Lean keywords among the markup
 names (`section`, `meta`, `class`, `for`, `open`) are accepted where an
 element or attribute name is expected.
 
@@ -43,14 +45,16 @@ unification and no tactic runs per node.
 
 Every leaf obligation is `Eq.refl true`, which the kernel checks by
 evaluating the obligation. The root's validity proof is one auxiliary lemma,
-so that the compiled term holds a constant where the proof tree was. No
-lemma is minted per leaf: the kernel's own cache already shares identical
-obligations within a declaration once the children's contexts are emitted as
-reduced literals, and a lemma per distinct obligation cost more kernel time
-and never shared across declarations (performance review §7). That route sat
-behind an option `whatwg.html.memo`, off by default, until the package
-merged with the trust gate, which refuses the `opaque` a registered option
-declares; `WhatwgTest/Html/MarkupBenchmark.lean` keeps its measurement.
+so that the compiled term holds a constant where the proof tree was. A proof
+that names a local variable, through a spliced term, is no lemma of its own
+and stays in the term. No lemma is minted per leaf: the kernel's own cache
+already shares identical obligations within a declaration once the children's
+contexts are emitted as reduced literals, and a lemma per distinct obligation
+cost more kernel time and never shared across declarations (performance
+review §7). That route sat behind an option `whatwg.html.memo`, off by
+default, until the package merged with the trust gate, which refuses the
+`opaque` a registered option declares; `WhatwgTest/Html/MarkupBenchmark.lean`
+keeps its measurement.
 
 ## The closing tag
 
@@ -76,30 +80,71 @@ def figure : Element .p Ctx.flow :=
   html! <p><svg viewBox="0 0 10 10"><rect x="1" "xml:space"="preserve" /></svg></p>
 ```
 
-The typed tree has no SVG element, so the subtree below `svg` is built as one
-raw literal, and one obligation says that it is valid where it stands. The
-kernel checks that obligation by evaluating the checker once over the
-subtree. Before that the elaborator evaluates the located refusal,
-`Whatwg.Html.Content.explainAt`, and reports it at the token of the refused
-node, with the reason the library gives.
+Since slice S5 the subtree below `svg` is a typed tree, `SvgNode` of
+`Whatwg/Html/Node/Svg.lean` (ruling SV-34; point G4 of
+`docs/research/2026-10-11-svg-seat-guidance-3.md`). The elaborator builds it
+in three steps:
+
+1. It reads the markup of the subtree as a raw tree, a value at the meta
+   level, with the token of each node.
+2. It evaluates the located refusal of the checker,
+   `Whatwg.Html.Content.explainAt`, on that tree. A refusal is reported at the
+   token of the refused node, with the reason the library gives.
+3. It builds the tree the checker admits from the constructors of `SvgNode`.
+   The term of the subtree is `SvgNode.toRaw e`, and one obligation says that
+   this raw tree is valid where it stands. The kernel checks the obligation by
+   evaluating the checker once over the subtree. The checker reads names, and
+   the value of a namespace declaration, so the evaluation opens no value that
+   a grammar reads.
+
+What the typed tree `e` holds:
+
+- An element is `SvgNode.element t attrs children`, at its tag `t` of the SVG
+  schema.
+- An attribute of the schema is `SvgAttr.attr a v`, where `v` has the type
+  `Whatwg.Svg.Value.AttrValue t a`. Where the table `kindOf` gives the
+  attribute a kind on the element, a literal value is read by the kind's
+  grammar when the tree is built (`readValue`), and `v` is the term of the
+  value read: constructors and numbers, never the literal. A literal that the
+  grammar refuses is an error at the attribute's token, with the offset at
+  which no reading continues. Where the attribute has no kind, `v` is the
+  string.
+- A spliced value, `d={e}`, is a term of the attribute's type: a `PathData`
+  at `d`, and a `String` at `class`. A `String` at `d` is a type error.
+- `data-*` is `SvgAttr.data`. `xmlns` and `xmlns:xlink` with their values are
+  `SvgAttr.xmlns` and `SvgAttr.xmlnsXlink`.
+- Text is `SvgNode.text`.
+- An HTML element below `foreignObject`, `title` or `desc` is
+  `SvgNode.raw r h`. `r` is the raw literal of the HTML subtree, and `h` says
+  that its values pass wherever it stands. The kernel checks `h` by one
+  evaluation, which reads names alone unless the HTML subtree holds an `svg`
+  of its own. Such an `svg` is a part of the raw literal, and the kernel reads
+  each of its literal values with its grammar: that case is rare, and a long
+  value there is slow (`Whatwg/Html/Content/Values.lean`). A value below an
+  HTML element is a literal, and none is spliced there. An `svg` that stands
+  directly below an integration point is a typed element again.
+
+So the values of a tree that `html!` builds are right by their types. The law
+is `SvgNode.valuesOk_toRaw`: the raw tree of every typed tree passes the value
+judgment `valuesOk`, and the law evaluates nothing. The read of a literal is
+how the elaborator makes the typed value, and no claim about the tree rests on
+that run: the tree holds the value read, and never the literal.
+
+The raw tree spells a typed value as its grammar prints it, in the grammar's
+one spelling: the literal `d="M 10 20 L 40 180"` prints as `M10,20L40,180`.
+The elaborator does not claim that the print of the value read is the literal
+that the author wrote. The reader takes many spellings, and the printer writes
+one.
 
 A name is kept exactly as written: `viewBox` is not `viewbox`. A name that is
 no Lean identifier is a string literal: `"xml:space"`, and `"in"`, `"from"`,
 `"by"` and `"end"`, which are Lean keywords. `<rect />` is an element with no
-child. A spliced attribute value, `x={e}`, is admitted on an SVG element: the
-checker reads no SVG value. On an HTML element below `foreignObject` a value
-is a literal, and no child is spliced inside an SVG subtree.
-
-A literal value of an SVG attribute that has a grammar (`d`, `points`,
-`viewBox` and the three transform attributes) is run through that grammar
-when the tree is built, and a bad one is refused at the attribute's token.
-That run is the elaborator's and not an obligation of the tree: the kernel
-cannot open a long `String` at a bearable cost
-(`Whatwg/Html/Content/Values.lean`). A spliced value is not run.
+child. No child is spliced inside an SVG subtree.
 
 ## What is not here
 
-Attribute values are `String`; comments and entities have no markup form.
+An HTML attribute value is a `String`; comments and entities have no markup
+form.
 
 The walker recurses on a fuel that starts at 4096 levels of nesting, which
 no well-formed document exhausts; the trust gate forbids `partial`.
@@ -110,6 +155,7 @@ namespace Whatwg.Html.Syntax
 open Lean Elab Term Meta
 open Whatwg.Html.Schema
 open Whatwg.Html.Content (Ctx)
+open Whatwg.Svg.Value (ValueKind kindOf)
 
 /-! ## Syntax -/
 
@@ -254,28 +300,130 @@ def rawAttrsTerm (attrs : Array AttrOut) : MetaM Expr := do
       (mkStrLit a.markup) a.value
   mkListLit pairT pairs
 
-/-! ## A foreign subtree -/
+/-! ## Terms of SVG values
 
-/-- A foreign subtree as built from markup: each node as a value, as an expression, and with
-the token that names it. A spliced attribute value is the empty string in the value. -/
+The typed tree of an SVG subtree holds each value as a term: constructors and numbers.
+`Lean.ToExpr` writes a value as its term. It is derived here for the carrier of each kind of
+`Whatwg.Svg.Value.ValueKind` and for the types a carrier is made of, so that all meta code of
+the markup term stays in this module. A new kind is its carrier's derivation and one line of
+`kindToExpr`.
+
+`kindToExpr` answers the instance of a kind, which holds two things: the term of a value, for a
+literal that the grammar read, and the term of the carrier, the type that a spliced value is
+elaborated against. Lean asks that a definition of class type be instance-reducible, so it is
+marked so. -/
+
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Magnitude
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Decimal
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Point
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Arc
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Command
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Path
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.PathData
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Points
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.ViewBox
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Transform
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.LengthUnit
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Length
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.Extent
+deriving instance Lean.ToExpr for Whatwg.Svg.Value.AutoExtent
+
+/-- How a value of a kind is written as a term, with the term of its type: one line for each
+kind. -/
+@[instance_reducible] def kindToExpr : (k : ValueKind) → ToExpr k.carrier
+  | .pathData => inferInstanceAs (ToExpr Whatwg.Svg.Value.PathData)
+  | .points => inferInstanceAs (ToExpr Whatwg.Svg.Value.Points)
+  | .viewBox => inferInstanceAs (ToExpr Whatwg.Svg.Value.ViewBox)
+  | .transformList => inferInstanceAs (ToExpr Whatwg.Svg.Value.TransformList)
+  | .length => inferInstanceAs (ToExpr Whatwg.Svg.Value.Length)
+  | .extent => inferInstanceAs (ToExpr Whatwg.Svg.Value.Extent)
+  | .autoExtent => inferInstanceAs (ToExpr Whatwg.Svg.Value.AutoExtent)
+
+/-- How a value of an attribute's type is written as a term: by its kind, and text as a string
+literal. -/
+@[instance_reducible] def valueToExpr : (o : Option ValueKind) → ToExpr (ValueKind.typeOf o)
+  | some k => kindToExpr k
+  | none => inferInstanceAs (ToExpr String)
+
+/-- The constructor of an element of the SVG schema. -/
+def svgTagExpr (t : Whatwg.Svg.Schema.Tag) : MetaM Expr :=
+  ctorExpr ``Whatwg.Svg.Schema.Tag t.ctorIdx
+
+/-- The constructor of an attribute of the SVG schema. -/
+def svgAttrExpr (a : Whatwg.Svg.Schema.Attr) : MetaM Expr :=
+  ctorExpr ``Whatwg.Svg.Schema.Attr a.ctorIdx
+
+mutual
+
+/-- The literal of a raw node whose every value is a literal. -/
+def rawLit : RawNode → Expr
+  | .element name attrs children =>
+    mkApp3 (mkConst ``RawNode.element) (mkStrLit name) (toExpr attrs) (rawLitAll children)
+  | .text content => mkApp (mkConst ``RawNode.text) (mkStrLit content)
+  | .entity name => mkApp (mkConst ``RawNode.entity) (mkStrLit name)
+  | .comment content => mkApp (mkConst ``RawNode.comment) (mkStrLit content)
+
+/-- The literal of a raw forest. -/
+def rawLitAll : List RawNode → Expr
+  | [] => mkApp (mkConst ``List.nil [Level.zero]) (mkConst ``RawNode)
+  | node :: rest =>
+    mkApp3 (mkConst ``List.cons [Level.zero]) (mkConst ``RawNode) (rawLit node) (rawLitAll rest)
+
+end
+
+/-! ## A foreign subtree
+
+An `svg` subtree is built in three steps. `foreignNode` reads the markup as a raw tree, a value
+at the meta level. `foreignChild` evaluates the located refusal of the checker on that tree.
+`typedNode` builds the tree the checker admits as a term of `SvgNode`. -/
+
+/-- An attribute of an element of a foreign subtree, as markup writes it. -/
+structure MarkupAttr where
+  /-- The attribute's syntax: a refusal of its value is reported here. -/
+  stx : Syntax
+  /-- The name, exactly as written. -/
+  name : String
+  /-- The literal value, which is the empty string for a bare name; `none` for a spliced
+  value. -/
+  literal? : Option String
+  /-- The term of a spliced value. -/
+  splice : Syntax
+
+/-- A foreign subtree as read from markup: each node as a value, with the token that names it,
+its attributes as written, and its children. A spliced attribute value is the empty string in
+the value. `typed` says that the node is built as a node of `SvgNode`: an SVG element with no
+HTML element above it in the subtree, or a text below one. Any other node is a part of a raw
+literal. -/
 inductive Built where
-  | node (raw : RawNode) (expr : Expr) (stx : Syntax) (kids : List Built)
+  | node (raw : RawNode) (stx : Syntax) (attrs : Array MarkupAttr) (kids : List Built)
+      (typed : Bool)
 
 namespace Built
 
+/-- The node as a value. -/
 def raw : Built → RawNode
-  | .node r _ _ _ => r
+  | .node r _ _ _ _ => r
 
-def expr : Built → Expr
-  | .node _ e _ _ => e
-
+/-- The token that names the node. -/
 def stx : Built → Syntax
-  | .node _ _ s _ => s
+  | .node _ s _ _ _ => s
+
+/-- The node's attributes, as written. -/
+def attrs : Built → Array MarkupAttr
+  | .node _ _ a _ _ => a
+
+/-- The node's children. -/
+def kids : Built → List Built
+  | .node _ _ _ k _ => k
+
+/-- The node is built as a node of `SvgNode`. -/
+def typed : Built → Bool
+  | .node _ _ _ _ t => t
 
 /-- The built node at a path of child indices. -/
 def at? : Built → List Nat → Option Built
   | built, [] => some built
-  | .node _ _ _ kids, index :: rest =>
+  | .node _ _ _ kids _, index :: rest =>
     match kids[index]? with
     | some kid => kid.at? rest
     | none => none
@@ -302,47 +450,34 @@ def foreignName? (stx : Syntax) : Option String :=
     if (Tag.ofName? name).isNone && (Tag.ofForeignName? name).isSome then some name else none
   else none
 
-/-- The attributes of the element `element` in a foreign subtree: the pairs as values and as an
-expression. `isSvg` says that the element is an SVG element. On one, a spliced value is
-admitted, and a literal value is run through its attribute's grammar here
-(`Whatwg.Svg.Value.valueOkByName`) and refused at the attribute's token, with the offset at
-which no reading continues. That run is the elaborator's: the tree's obligation does not read
-an SVG value (`Whatwg/Html/Content/Values.lean`). -/
-def foreignAttrs (isSvg : Bool) (element : String) (stxs : Array Syntax) :
-    TermElabM (List (String × String) × Expr) := do
-  let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
-  let mut values : Array (String × String) := #[]
-  let mut exprs : Array Expr := #[]
+/-- The attributes of an element of a foreign subtree, as written. A value may be spliced on
+an element that is built as a typed node (`typed`), and on no other: the kernel evaluates the
+values of a raw literal. `isSvg` says that the element is an SVG element, for the message. -/
+def foreignAttrs (typed isSvg : Bool) (stxs : Array Syntax) : TermElabM (Array MarkupAttr) := do
+  let mut out : Array MarkupAttr := #[]
   for stx in stxs do
-    let mut markup := nameString stx[0]
+    let mut name := nameString stx[0]
     for part in stx[1].getArgs do
-      markup := markup ++ "-" ++ nameString part[1]
+      name := name ++ "-" ++ nameString part[1]
     let opt := stx[2]
     let literal? : Option String :=
       if opt.getNumArgs == 0 then some "" else opt[1].isStrLit?
-    let (value, valueE) ← match literal? with
-      | some s =>
-        if isSvg && !Whatwg.Svg.Value.valueOkByName element.toList markup.toList s.toList then
-          throwErrorAt stx (Whatwg.Html.Content.Reason.describe
-            (.attribute markup (Whatwg.Html.Content.valueFault element markup s)))
-        pure (s, mkStrLit s)
-      | none =>
-        if isSvg then pure ("", ← elabClosed opt[1][1] (mkConst ``String))
-        else throwErrorAt stx ("html!: the value of `" ++ markup ++
-          "` is spliced on an HTML element inside an SVG subtree; write it as a literal")
-    values := values.push (markup, value)
-    exprs := exprs.push (mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) (mkConst ``String)
-      (mkConst ``String) (mkStrLit markup) valueE)
-  return (values.toList, ← mkListLit pairT exprs.toList)
+    if literal?.isNone && !typed then
+      throwErrorAt stx ("html!: the value of `" ++ name ++ "` is spliced " ++
+        (if isSvg then "below" else "on") ++
+        " an HTML element inside an SVG subtree; write it as a literal")
+    out := out.push { stx, name, literal?, splice := opt[1][1] }
+  return out
 
-/-- Build a node of a foreign subtree that stands at the position `pos`. Names are kept as
-written, and the position moves by the seam's own transition. -/
-def foreignNode : Nat → Whatwg.Html.Content.Pos → Syntax → TermElabM Built
-  | 0, _, stx => throwErrorAt stx "html!: the document nests too deeply"
-  | fuel + 1, pos, stx => do
+/-- Read a node of a foreign subtree that stands at the position `pos`. Names are kept as
+written, and the position moves by the seam's own transition. `typed` says that no HTML element
+stands above the node in the subtree. No value is judged here. -/
+def foreignNode : Nat → Bool → Whatwg.Html.Content.Pos → Syntax → TermElabM Built
+  | 0, _, _, stx => throwErrorAt stx "html!: the document nests too deeply"
+  | fuel + 1, typed, pos, stx => do
     if stx.isOfKind ``htmlText then
       let some s := stx[0].isStrLit? | throwErrorAt stx "html!: malformed text"
-      return .node (.text s) (mkApp (mkConst ``RawNode.text) (mkStrLit s)) stx []
+      return .node (.text s) stx #[] [] typed
     if stx.isOfKind ``htmlSplice then
       throwErrorAt stx "html!: a spliced child is not supported inside an SVG subtree"
     let some (nameStx, attrStxs, kidStxs) ← markupParts stx
@@ -350,25 +485,105 @@ def foreignNode : Nat → Whatwg.Html.Content.Pos → Syntax → TermElabM Built
     let name := nameString nameStx
     -- an SVG element: any element at an SVG position, and the foreign root at an HTML one
     let isSvg := pos.ns == .svg || (Tag.ofName? name).isNone
-    let (attrs, attrsE) ← foreignAttrs isSvg name attrStxs
+    let typed := typed && isSvg
+    let attrs ← foreignAttrs typed isSvg attrStxs
     let inner := pos.child name
     let mut kids : Array Built := #[]
     for kid in kidStxs do
-      kids := kids.push (← foreignNode fuel inner kid)
-    let childrenE ← mkListLit (mkConst ``RawNode) (kids.toList.map Built.expr)
-    return .node (.element name attrs (kids.toList.map Built.raw))
-      (mkApp3 (mkConst ``RawNode.element) (mkStrLit name) attrsE childrenE) nameStx kids.toList
+      kids := kids.push (← foreignNode fuel typed inner kid)
+    return .node
+      (.element name (attrs.toList.map fun a => (a.name, a.literal?.getD ""))
+        (kids.toList.map Built.raw))
+      nameStx attrs kids.toList typed
 
-/-- Build the foreign subtree at an HTML position and refuse it where the checker does: at
-the token of the refused node, with the library's reason. -/
-def foreignChild (fuel : Nat) (ctx : Ctx) (stx : Syntax) : TermElabM Built := do
-  let built ← foreignNode fuel (.html ctx) stx
+/-- The name of a custom data attribute without its prefix `data-`. -/
+def dataKey? (name : String) : Option String :=
+  if Whatwg.Html.Content.hasPrefix "data-" name then some (String.ofList (name.toList.drop 5))
+  else none
+
+/-- The typed attribute of the SVG element `t`, as a term of `SvgAttr t`. `element` is the
+element's name. A literal value of an attribute of the schema is read as a value of the
+attribute's type on the element (`readValue`): by its grammar where the table
+`Whatwg.Svg.Value.kindOf` gives it a kind, and as the string where it gives none. A literal
+that the grammar refuses is an error at the attribute's token, with the offset at which no
+reading continues. A spliced value is a term of the attribute's type. -/
+def typedAttr (t : Whatwg.Svg.Schema.Tag) (tE : Expr) (element : String) (attr : MarkupAttr) :
+    TermElabM Expr := do
+  if let some key := dataKey? attr.name then
+    let value ← match attr.literal? with
+      | some s => pure (mkStrLit s)
+      | none => elabClosed attr.splice (mkConst ``String)
+    return mkApp3 (mkConst ``SvgAttr.data) tE (mkStrLit key) value
+  if attr.name == "xmlns" && attr.literal? == some svgNamespace then
+    return mkApp (mkConst ``SvgAttr.xmlns) tE
+  if attr.name == "xmlns:xlink" && attr.literal? == some xlinkNamespace then
+    return mkApp (mkConst ``SvgAttr.xmlnsXlink) tE
+  let some a := Whatwg.Svg.Schema.Attr.ofChars? attr.name.toList
+    | throwErrorAt attr.stx ("html!: `" ++ attr.name ++ "` is no attribute of the SVG schema")
+  let kind := kindOf t a
+  let value ← match attr.literal? with
+    | some s =>
+      match readValue kind s with
+      | some v => pure ((valueToExpr kind).toExpr v)
+      | none => throwErrorAt attr.stx (Whatwg.Html.Content.Reason.describe
+          (.attribute attr.name (Whatwg.Html.Content.valueFault element attr.name s)))
+    | none => elabClosed attr.splice (valueToExpr kind).toTypeExpr
+  return mkApp3 (mkConst ``SvgAttr.attr) tE (← svgAttrExpr a) value
+
+/-- Refuse a raw subtree that holds a value its grammar refuses, at the attribute's token: the
+located refusal of the value judgment, `Whatwg.Html.Content.explainValuesAt`, in both
+namespaces. The kernel evaluates the same judgment for the premise of `SvgNode.raw`. -/
+def refuseRawValues (built : Built) : TermElabM Unit := do
+  let refusal? := (Whatwg.Html.Content.explainValuesAt .html built.raw).orElse fun _ =>
+    Whatwg.Html.Content.explainValuesAt .svg built.raw
+  if let some refusal := refusal? then
+    let culprit := (built.at? refusal.path).getD built
+    let token := match refusal.reason with
+      | .attribute name _ => ((culprit.attrs.find? (·.name == name)).map (·.stx)).getD culprit.stx
+      | _ => culprit.stx
+    throwErrorAt token refusal.reason.describe
+
+/-- The typed term of a node of a foreign subtree that the checker admits: a term of `SvgNode`.
+An SVG element is `SvgNode.element` at its tag of the schema, with its typed attributes and
+its children. A text is `SvgNode.text`. An HTML element, which stands below an integration
+point, is `SvgNode.raw`: the raw literal of its subtree, and the premise that the subtree's
+values pass, which the kernel evaluates. -/
+def typedNode : Nat → Built → TermElabM Expr
+  | 0, built => throwErrorAt built.stx "html!: the document nests too deeply"
+  | fuel + 1, built => do
+    match built.raw with
+    | .text content => return mkApp (mkConst ``SvgNode.text) (mkStrLit content)
+    | .entity name => return mkApp (mkConst ``SvgNode.entity) (mkStrLit name)
+    | .comment content => return mkApp (mkConst ``SvgNode.comment) (mkStrLit content)
+    | .element name _ _ =>
+      unless built.typed do
+        refuseRawValues built
+        return mkApp2 (mkConst ``SvgNode.raw) (rawLit built.raw) Admit.reflTrue
+      let some t := Whatwg.Svg.Schema.Tag.ofChars? name.toList
+        | throwErrorAt built.stx ("html!: <" ++ name ++ "> is no element of the SVG schema")
+      let tE ← svgTagExpr t
+      let mut attrs : Array Expr := #[]
+      for attr in built.attrs do
+        attrs := attrs.push (← typedAttr t tE name attr)
+      let mut kids : Array Expr := #[]
+      for kid in built.kids do
+        kids := kids.push (← typedNode fuel kid)
+      return mkApp3 (mkConst ``SvgNode.element) tE
+        (← mkListLit (mkApp (mkConst ``SvgAttr) tE) attrs.toList)
+        (← mkListLit (mkConst ``SvgNode) kids.toList)
+
+/-- Build the foreign subtree at an HTML position. The markup is read as a raw tree and refused
+where the checker refuses it: at the token of the refused node, with the library's reason. The
+tree the checker admits is built as a typed tree `e`, and the result is the term of its raw
+tree, `SvgNode.toRaw e`. -/
+def foreignChild (fuel : Nat) (ctx : Ctx) (stx : Syntax) : TermElabM Expr := do
+  let built ← foreignNode fuel true (.html ctx) stx
   if let some refusal := Whatwg.Html.Content.explainAt (.html ctx) built.raw then
     let culprit := (built.at? refusal.path).getD built
     throwErrorAt culprit.stx
       (Admit.nodeWords culprit.raw ++ ": " ++ refusal.reason.describe ++
         (if refusal.path.isEmpty then " (the context is " ++ ctx.describe ++ ")" else ""))
-  return built
+  return mkApp (mkConst ``SvgNode.toRaw) (← typedNode fuel built)
 
 /-! ## The walk -/
 
@@ -435,9 +650,8 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
             mkApp2 (mkConst ``Child.valid) innerE child, hrest]
       else if (foreignName? kid).isSome then
-        -- an `svg` subtree: one raw literal, and one obligation the kernel evaluates
-        let built ← foreignChild fuel inner kid
-        raws := raws.push built.expr
+        -- an `svg` subtree: the raw tree of a typed tree, and one obligation the kernel evaluates
+        raws := raws.push (← foreignChild fuel inner kid)
         steps := steps.push fun n rest hrest =>
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
             Admit.reflTrue, hrest]
@@ -478,7 +692,10 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
     let evidence ← if root then do
         let type := mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool)
           (mkApp2 (mkConst ``Whatwg.Html.Content.validAll) innerE childrenE) (mkConst ``Bool.true)
-        pure (Lean.mkConst (← mkAuxLemma [] type (← instantiateMVars hc)))
+        let proof ← instantiateMVars hc
+        -- a proof that names a local variable, through a spliced term, is no lemma of its own
+        if type.hasFVar || proof.hasFVar then pure proof
+        else pure (Lean.mkConst (← mkAuxLemma [] type proof))
       else pure hc
     return (raw, mkAppN (mkConst ``Element.ofRaw) #[tE, ctxE, attrsE, childrenE, ho, evidence, ht], attrs)
 
@@ -505,8 +722,7 @@ def defaultCtx (t : Tag) : Ctx :=
         if let some c ← Admit.ctx? 4096 (e.getArg! 0) then
           ctx := c
           ctxE := e.getArg! 0
-    let built ← foreignChild fuel ctx node
-    return mkApp3 (mkConst ``Child.mk) ctxE built.expr Admit.reflTrue
+    return mkApp3 (mkConst ``Child.mk) ctxE (← foreignChild fuel ctx node) Admit.reflTrue
   let some o ← openOf node | throwErrorAt node "html!: the root must be an element"
   let t := o.tag
   if let some e := expected then

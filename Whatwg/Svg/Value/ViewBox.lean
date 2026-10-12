@@ -90,17 +90,9 @@ namespace ViewBox
 
 /-! ## A number that is not negative
 
-A number that is not negative is no production of the path data grammar, and `Number.lean` has
-no description of one. Any attribute whose number must not be negative reads the same two
-parts. -/
-
-/-- `"+"?`, read and printed as nothing. -/
-def plus : Syn Unit := .skip (Syn.one (.single '+')).opt none
-
-/-- The one value of `plus` prints: its canonical reading is no sign. -/
-theorem plus_total : plus.Total := Syn.Total.of_unit (by decide)
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] plus_total
+A number that is not negative is no production of the path data grammar. Any attribute whose
+number must not be negative reads the same two parts: `plus` of `Number.lean`, and the
+number. -/
 
 /-- A `<number>` that is not negative: `"+"? number`, printed with no sign. A minus sign is
 refused, before a zero too. -/

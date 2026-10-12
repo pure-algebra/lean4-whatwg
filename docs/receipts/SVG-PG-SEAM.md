@@ -26,3 +26,13 @@ expression's language for a deterministic description (V3c), and the located ref
 (V6), which the seam's refusal now carries as an offset. Ruling R-S17 of `COORDINATION.md`
 records what landed, the readings SV-31 to SV-33, the commands run and their results. No edge
 closed.
+
+## Slice S5, 2026-10-12
+
+The typed SVG node landed in the seam: an attribute holds a value of the type the table
+gives, and the raw tree of every typed tree passes the value judgment by one law (node V7).
+Its reader has a retraction (P4), and `html!` builds an SVG subtree as a typed tree, so the
+run of a literal with no proof is gone and debt D92 is paid. The geometry chapter joined the
+pin, and its nine properties have kinds (debt D93). Rulings R-S18 and R-S19 of
+`COORDINATION.md` record what landed, the readings SV-34 and SV-35, the commands run and their
+results. No edge closed.

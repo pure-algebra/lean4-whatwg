@@ -27,7 +27,7 @@ Totals: 13 graph(s), 130 edges (77 required-open, 39 required-closed, 14 not-app
 | Leaf | Document | Parent | Declarations |
 | --- | --- | --- | ---: |
 | `INFRA-LF-INTEGER` | `docs/INFRA-INTEGER-CONSTRUCTIVE.md` | standalone | 9 |
-| `SVG-LF-GRAMMAR` | `docs/SVG-PACKAGE-PLAN.md` | `SVG-PG-SEAM` representation | 22 |
+| `SVG-LF-GRAMMAR` | `docs/SVG-PACKAGE-PLAN.md` | `SVG-PG-SEAM` representation | 24 |
 
 ## Unrouted prefixes
 

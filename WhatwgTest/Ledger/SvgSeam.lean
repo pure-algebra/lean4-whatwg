@@ -14,8 +14,8 @@ grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16 and R-S17 of `COORDINATION.md` name this
-graph and change no edge's status, so the entry acknowledges the nine.
+No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17 and R-S19 of `COORDINATION.md`
+name this graph and change no edge's status, so the entry acknowledges the ten.
 -/
 
 namespace WhatwgTest.Ledger
@@ -29,7 +29,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -41,17 +41,20 @@ def svgSeam : Graph where
     construction := {
       status := .requiredOpen
       remaining := [
-        .named "the typed tree has no SVG element: `html!` builds an SVG subtree as one raw literal with one obligation"]
+        .named "the context-indexed typed tree `Element` has no SVG element: an SVG subtree is an `SvgNode`, whose values are right by their types and whose structure is one obligation of `validIn` on its raw tree (debt D83)"]
       grounds := [.declarations [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Content.Ctx, `Whatwg.Svg.Content.Ctx.child,
-        `Whatwg.Html.Content.Pos, `Whatwg.Html.Content.Pos.child]]
-      note := "A set is a mask over a finite universe, a name table is a writer with a checked guess, and a position is a sum of the HTML position and the SVG position; `RawNode` is unchanged." }
+        `Whatwg.Html.Content.Pos, `Whatwg.Html.Content.Pos.child, `Whatwg.Svg.Value.AttrValue,
+        `Whatwg.Html.SvgAttr, `Whatwg.Html.SvgNode, `Whatwg.Html.SvgNode.toRaw,
+        `Whatwg.Html.SvgNode.ofRaw?]]
+      note := "A set is a mask over a finite universe, a name table is a writer with a checked guess, and a position is a sum of the HTML position and the SVG position; `RawNode` is unchanged. A typed SVG node stands beside it: its attribute holds a value of the type the table gives, and `toRaw` writes the raw tree." }
     semantics := {
       status := .requiredOpen
       remaining := [
         .named "a sentence of an SVG chapter that narrows a content model is not read, apart from the four readings of ruling SV-4",
         .named "`validIn` reads no SVG value: the value judgment `valuesOk` is a second algebra of the walk, beside the checker (ruling SV-30)",
-        .named "an attribute with no kind in the table of `Whatwg/Svg/Value/Attribute.lean` takes any text: the geometry properties, whose chapter is not sealed (debt D93), a colour, a paint and a URL are not judged",
+        .named "an attribute with no kind in the table of `Whatwg/Svg/Value/Attribute.lean` takes any text: the lists of `x`, `y`, `dx` and `dy` on `text`, whose chapter is not sealed (debt D96), a colour, a paint and a URL are not judged",
+        .named "a geometry property that must not be negative is refused when it is: the sealed chapter treats it as the initial value with no error state (ruling SV-35)",
         .named "the check of a length refuses some values that SVG admits: a unit the sealed table does not name, `calc()`, a CSS comment and a CSS escape (ruling SV-31)",
         .debt "D57"]
       grounds := [.declarations [`Whatwg.Html.Content.check, `Whatwg.Html.Content.validIn,
@@ -81,8 +84,10 @@ def svgSeam : Graph where
         `Whatwg.Html.Content.isNone_explainValuesAt, `Whatwg.Html.Content.explainValues_none_iff,
         `Whatwg.Html.Content.check_valueText, `Whatwg.Html.Content.valueOkByName_valueText,
         `Whatwg.Svg.Value.explainValue_eq_none_iff,
-        `Whatwg.Svg.Value.explainValueByName_eq_none_iff]]
-      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, V5 says that the text of a typed value passes its attribute's check with no evaluation, and V6 that the located refusal of a value is absent exactly when the value passes." }
+        `Whatwg.Svg.Value.explainValueByName_eq_none_iff, `Whatwg.Html.SvgNode.valuesAt_toRaw,
+        `Whatwg.Html.SvgNode.valuesOk_toRaw, `Whatwg.Html.SvgNode.explainValues_toRaw,
+        `Whatwg.Html.readValue_valueTextOf, `Whatwg.Html.SvgNode.ofRaw?_toRaw]]
+      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, V5 says that the text of a typed value passes its attribute's check with no evaluation, and V6 that the located refusal of a value is absent exactly when the value passes. V7 is the connector: the raw tree of every typed tree passes the value judgment. P4 says that the raw tree of a placed typed tree reads back as the tree." }
     representation := {
       status := .requiredOpen
       remaining := [
@@ -108,14 +113,16 @@ def svgSeam : Graph where
       note := "The graph emits no target code; the text the printer writes is under the representation edge." }
     trust := {
       status := .requiredOpen
-      remaining := [.named "`html!` runs a literal SVG value through its grammar and refuses a bad one, with no proof: the kernel cannot open a long `String` at a bearable cost, so the tree's type carries no evidence of its values (debt D92)"]
+      remaining := [.named "the structure of an SVG subtree that `html!` builds is one kernel evaluation of `validIn` on its raw tree, not a proof composed from its nodes (debt D83)"]
       grounds := [.modules [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask,
         `Whatwg.Svg.Data.NameTable, `Whatwg.Svg.Schema.Universe, `Whatwg.Svg.Content.Context,
         `Whatwg.Svg.Value.Attribute, `Whatwg.Html.Svg, `Whatwg.Html.Node.Walk,
         `Whatwg.Html.Schema.Foreign, `Whatwg.Html.Content.Explain, `Whatwg.Html.Content.Values,
-        `Whatwg.Html.Print.Render, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
+        `Whatwg.Html.Print.Render, `Whatwg.Html.Node.Svg, `Whatwg.Html.Node.SvgRead,
+        `Whatwg.Html.Syntax.Elaborator, `WhatwgTest.Svg.Schema, `WhatwgTest.Svg.Context,
         `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain, `WhatwgTest.Html.SvgPrint,
-        `WhatwgTest.Html.SvgMarkup, `WhatwgTest.Html.SvgValues], .gate .build]
+        `WhatwgTest.Html.SvgMarkup, `WhatwgTest.Html.SvgValues, `WhatwgTest.Html.SvgNode,
+        `WhatwgTest.Html.SvgRead], .gate .build]
       note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen

@@ -19,6 +19,7 @@ import Whatwg.Svg.Value.Points
 import Whatwg.Svg.Value.ViewBox
 import Whatwg.Svg.Value.Transform
 import Whatwg.Svg.Value.Length
+import Whatwg.Svg.Value.Extent
 import Whatwg.Svg.Value.Attribute
 
 /-!
@@ -42,12 +43,12 @@ The library has four layers:
 - `Whatwg.Svg.Value.Grammar` is the one description that reads and prints an attribute value,
   with its retraction and the soundness of its reader proved once (slice S4a). Each grammar is
   one value of it: `Number` (the number and the separators), `Path`, `Points`, `ViewBox`,
-  `Transform` and `Length` (slices S4b to S4d). `Cohort` holds the law of a number's canonical
-  value. `Greedy` states the reader's rule as a relation and proves the reader against it.
-  `Deterministic` proves that the reader of a deterministic description accepts exactly the
-  language of its expression, and `Refusal` gives a refused value the offset at which no
-  reading continues. `Attribute` is the table that says which grammar judges which attribute
-  on which element.
+  `Transform`, `Length` and `Extent` (slices S4b to S5). `Cohort` holds the law of a number's
+  canonical value. `Greedy` states the reader's rule as a relation and proves the reader
+  against it. `Deterministic` proves that the reader of a deterministic description accepts
+  exactly the language of its expression, and `Refusal` gives a refused value the offset at
+  which no reading continues. `Attribute` is the table that says which grammar judges which
+  attribute on which element, and gives the type of an attribute's value.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.
