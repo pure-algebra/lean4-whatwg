@@ -302,6 +302,12 @@ theorem _root_.Whatwg.Svg.Scene.Commutes.grid {s : Nat} (hs : 0 < s) {f : List C
       rw [List.map_map, List.map_map]
       exact List.map_congr_left fun c _ => Cubic.toGrid_move hs k c)
 
+/-- **A change of shape between two lists of exact segments**, each rounded to the nearest
+whole counts of `1 / s`: the change of an edge whose two ends move differently, or of an
+outline that is drawn again. Two lists of one length go into each other segment by segment. -/
+def _root_.Whatwg.Svg.Scene.Change.morphOf (s : Nat) (old new : List Cubic) :
+    Whatwg.Svg.Scene.Change :=
+  .morph (old.map (Cubic.nearGrid s)) (new.map (Cubic.nearGrid s))
 /-! ## The whole-number step is the exact step, rounded down -/
 
 /-- The quotient of whole numbers that rounds down is the floor of the exact quotient, for a

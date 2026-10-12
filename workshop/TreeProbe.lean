@@ -1,0 +1,220 @@
+import Whatwg.Html.Node.SvgMotion
+import Whatwg.Html.Print.Picture
+import Whatwg.Svg.Geometry.Outline
+import Whatwg.Svg.Geometry.Stroke.Laws
+import Whatwg.Svg.Geometry.Stack
+import Whatwg.Svg.Scene.Tree
+
+/-! A probe of a tree that grows (slice S13 of `docs/SVG-PACKAGE-PLAN.md`), with data like
+lean4-effect4's. Run it from the repository root after `lake build`:
+
+    lake env lean workshop/TreeProbe.lean
+
+It writes `docs/research/2026-10-12-motion-probe/tree.html`. No module imports this file, and
+no gate reads its output.
+
+The data is the tree of the program `pFork` of lean4-effect4, with its keys and its nodes: the
+tree before the body of the fork is written, and the tree after. Each node stands over the
+middle of its leaves, by the kit's `Tree.spans`. A node keeps its key from one
+tree to the next. In the step between them a kept node moves to its new place, a kept edge
+changes its shape so that it stays joined to both its nodes while they move, a new edge draws
+itself from its parent, and then the new node at its end grows. New things enter level by
+level.
+
+An edge is an organic stroke. Its width says how much of the tree hangs below it, by
+Leonardo's rule: the widths of the branches at a fork, squared, sum to the width of the trunk,
+squared. So a width is the root of a share of the leaves. -/
+
+open Whatwg.Html
+open Whatwg.Svg.Schema (Tag)
+open Whatwg.Svg.Scene
+open Whatwg.Svg.Value
+
+/-- A node of a program: its key and its label. -/
+abbrev Node : Type := String × String
+
+/-- A node with its place: its span among the leaves, by the kit's `Tree.spans`. A leaf takes
+one column, and a node stands over the middle of its leaves. -/
+structure Placed where
+  key : String
+  label : String
+  span : Span
+
+def placedOf (t : Tree Node) : List Placed := (t.spans 0 0).map fun (v, s) => ⟨v.1, v.2, s⟩
+
+def treeAfter : Tree Node :=
+  .node ("[]", "bind") [
+    .node ("[0]", "withFiber") [
+      .node ("[0 0]", "fork") [
+        .node ("[0 0 0]", "bind") [
+          .node ("[0 0 0 0]", "yieldNow 0") [],
+          .node ("[0 0 0 1]", "succeed (lit 7)") []]]],
+    .node ("[1]", "awaitFiber") []]
+
+def treeBefore : Tree Node :=
+  .node ("[]", "bind") [
+    .node ("[0]", "withFiber") [.node ("[0 0]", "fork") []],
+    .node ("[1]", "awaitFiber") []]
+/-! ## A tree as marks -/
+
+def ink : Rgb := .ofNat 0xf3f4f6
+def ground : Rgb := .ofNat 0x14110d
+
+/-- The middle of a node. -/
+def centre (p : Placed) : Vec :=
+  ⟨140 + 85 * (p.span.middle2 : Rat), 50 + 84 * (p.span.depth : Rat)⟩
+
+/-- The box of a node: as wide as its label asks. -/
+def nodeBox (p : Placed) : Box :=
+  let w : Rat := 8 * (p.label.length : Rat) + 20
+  .ofSize ⟨(centre p).x - w / 2, (centre p).y - 13⟩ w 26
+
+/-- The width of the edge to a node: the trunk's width times the root of the node's share of
+the leaves, and the finest width at least. -/
+def edgeWidth (leaves total : Nat) : Rat :=
+  max (6 / 5) (5 * sqrtDown ((leaves : Rat) / (total : Rat)) 3)
+
+/-- What a new mark does as it enters. -/
+inductive Kind where
+  | box | edge
+
+/-- A mark: a key, a place, its depth, its shape if it is an edge, and its element under
+attributes of motion. `fresh` is the element of a mark that enters. -/
+structure Mark where
+  key : String
+  place : Vec
+  depth : Nat
+  kind : Kind
+  shape : List Cubic
+  node : ({t : Tag} → List (SvgAttr t)) → SvgNode
+  fresh : ({t : Tag} → List (SvgAttr t)) → SvgNode
+
+def face : List (SvgAttr .text) :=
+  [.fontFamily "Menlo, 'DejaVu Sans Mono', monospace", .fontSize (Decimal.ofRat (1661 / 125)),
+    .fill (.rgb ink), .textAnchor .middle, .xmlSpacePreserve]
+
+def nodeMark (p : Placed) : Mark :=
+  let b := nodeBox p
+  let el : ({t : Tag} → List (SvgAttr t)) → SvgNode := fun more =>
+    Svg.g more
+      [Svg.loops [Cubic.roundRect b 5] [.fill (.rgb ground)],
+        Svg.loops (Cubic.ring b 5 1) [.fill (.rgb ink), .fillRule true],
+        Svg.label ⟨(centre p).x, (centre p).y + 5⟩ p.label face]
+  { key := p.key, place := centre p, depth := p.span.depth, kind := .box, shape := [], node := el,
+    fresh := el }
+
+def edgeMark (total : Nat) (parent child : Placed) (port : Rat) : Mark :=
+  let a : Vec := ⟨port, (centre parent).y + 13⟩
+  let b : Vec := ⟨(centre child).x, (centre child).y - 13⟩
+  let line := (Curve.bumpY (1 / 2)).cubics [a, b]
+  let w := edgeWidth child.span.width total
+  let seed := Noise.seedOf child.key
+  let outline :=
+    Stroke.stroke line (Stroke.organic seed (w / 2) (7 / 20) 40)
+      (Stroke.organic (seed + 7) (w / 2) (7 / 20) 40) 8 (Vec.snapNear 1000)
+  let key := "edge " ++ child.key
+  let maskId := "mask-" ++ (((key.replace " " "-").replace "[" "").replace "]" "")
+  { key := key, place := a, depth := child.span.depth, kind := .edge, shape := outline
+    node := fun more => Svg.loops [outline] ([.fill (.rgb ink)] ++ more)
+    fresh := fun more =>
+      Svg.g []
+        (Svg.revealed maskId
+          (Svg.revealLine line (w * (27 / 20) + 1) more)
+          [Svg.loops [outline] [.fill (.rgb ink)]]) }
+
+/-- The marks of a tree: its edges, then its nodes over them. The edges to the children of a
+node leave it side by side, at the ports of a row of their widths about its middle
+(`ports`), so two branches of one node do not lie over each other. -/
+def marksOf (t : Tree Node) : List Mark :=
+  let ps := placedOf t
+  let total := t.leaves
+  let edges := ps.flatMap fun p =>
+    let kids := (t.links.filter fun l => l.1.1 == p.key).filterMap fun l =>
+      ps.find? fun c => c.key == l.2.1
+    let widths := kids.map fun c => edgeWidth c.span.width total
+    (kids.zip (ports (centre p).x widths)).map fun (c, port) => edgeMark total p c port
+  edges ++ ps.map nodeMark
+
+/-! ## The step as tracks -/
+
+/-- lean4-effect4's critically damped spring, at every twentieth of its progress. -/
+def settle : Easing :=
+  .stops [0, 54, 171, 306, 438, 555, 654, 734, 799, 849, 888, 918, 941, 958, 970, 980, 986, 992,
+    995, 998, 1000]
+
+/-- lean4-effect4's underdamped spring. -/
+def spring : Easing :=
+  .stops [0, 59, 195, 363, 531, 681, 804, 898, 964, 1007, 1032, 1043, 1045, 1041, 1034, 1026,
+    1019, 1012, 1007, 1003, 1000]
+
+/-- The length of a step, in milliseconds. A slow step, so that an eye can follow it. -/
+def stepMs : Nat := 1400
+
+/-- A place in whole thousandths of a pixel. -/
+def milli (v : Vec) : IVec := Vec.nearGrid 1000 v
+
+/-- The kept things settle together: one transition for the nodes and the edges, so that an
+edge stays joined to its nodes at every moment. -/
+def move : Transition := .per stepMs { duration := 520, ease := settle }
+
+/-- **The motion of a step.** A kept node moves; a kept edge changes its shape, by the same
+transition; a new edge draws itself and then the node at its end grows; each level of new
+things starts after the level above it. -/
+def motion (old new : List Mark) : Motion String :=
+  let j := join Mark.key old new
+  let top := (j.enter.map fun n => n.depth).foldl min 1000
+  let kept : Motion String :=
+    j.update.map fun p =>
+      match p.2.kind with
+      | .box => ⟨p.2.key, .shift (milli p.1.place - milli p.2.place) 0, move⟩
+      | .edge => ⟨p.2.key, Change.morphOf 1000 p.1.shape p.2.shape, move⟩
+  let entering : Motion String :=
+    j.enter.map fun n =>
+      let level := 300 * (n.depth - top)
+      match n.kind with
+      | .edge => ⟨n.key, .reveal 0 1000,
+          .per stepMs { delay := 420 + level, duration := 260, ease := Easing.cubicOut }⟩
+      | .box => ⟨n.key, .grow 0 1000,
+          .per stepMs { delay := 600 + level, duration := 360, ease := spring }⟩
+  Motion.within (kept ++ entering)
+
+/-! ## The page -/
+
+def before : List Mark := marksOf treeBefore
+
+def after : List Mark := marksOf treeAfter
+
+def step : Motion String := motion before after
+
+/-- Whether a mark is new in the step. -/
+def isNew (k : Mark) : Bool := !(before.any fun o => o.key == k.key)
+
+def picture (attrs : String → ({t : Tag} → List (SvgAttr t))) (sheet : Option String)
+    (width height : Nat) : SvgNode :=
+  Svg.svg
+    [.attr .width (.user (.ofNat width)), .attr .height (.user (.ofNat height)),
+      .attr .viewBox (ViewBox.ofSize 640 420)]
+    (sheet.toList.map Svg.styleSheet ++
+      [Svg.box (.ofSize ⟨0, 0⟩ 640 420) [.fill (.rgb ground)]] ++
+      after.map fun k => if isNew k then k.fresh (attrs k.key) else k.node (attrs k.key))
+
+def animated : SvgNode :=
+  picture (fun key => Motion.attrs step key stepMs) (some (Motion.sheet step 1000)) 640 420
+
+def still (t : Nat) : SvgNode := picture (fun key => Motion.attrsAt step key t 1000) none 320 210
+
+def page : String :=
+  "<!doctype html>\n<meta charset=\"utf-8\">\n<title>pFork: a tree that grows</title>\n" ++
+    "<body style=\"background:#14110d;color:#f3f4f6;font-family:Georgia,serif\">\n" ++
+    "<h1 style=\"font-weight:400\">pFork: a tree that grows</h1>\n" ++
+    "<p>One picture and its tracks, animated by the browser from the CSS that the kit wrote. " ++
+    "<button onclick=\"const s=document.querySelector('svg');s.replaceWith(s.cloneNode(true))\">" ++
+    "play again</button></p>\n" ++
+    animated.render ++
+    "\n<p>The same step at the moments 0, 250, 500, 750 and 1000, as the kit's own reading " ++
+    "computes them, with no animation.</p>\n<div>" ++
+    String.join ([0, 250, 500, 750, 1000].map fun t => (still t).render) ++ "</div>\n</body>\n"
+
+#eval animated.okIn Whatwg.Html.Content.Ctx.flow
+#eval step.map fun tr => (tr.key, tr.timing.delay, tr.timing.duration)
+#eval IO.FS.writeFile "docs/research/2026-10-12-motion-probe/tree.html" page

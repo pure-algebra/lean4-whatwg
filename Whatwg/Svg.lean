@@ -57,8 +57,13 @@ import Whatwg.Svg.Scene.Join
 import Whatwg.Svg.Scene.Join.Laws
 import Whatwg.Svg.Scene.Motion
 import Whatwg.Svg.Scene.Motion.Laws
+import Whatwg.Svg.Scene.Tree
+import Whatwg.Svg.Scene.Between
+import Whatwg.Svg.Scene.Branch
+import Whatwg.Svg.Scene.Score
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
+import Whatwg.Svg.Geometry.Stack
 
 /-!
 # Whatwg.Svg
@@ -113,13 +118,22 @@ The library has five layers:
   line as a filled outline whose width changes along it, with a collar, an arrowhead and a
   reveal. `Grid` is the seam between whole units and exact numbers: rounding commutes with a
   move by a whole count. `Easing` says what an easing of the layer below means exactly.
+  Since slice S13: `Stack` is intervals in a row, each as long as its weight, with the ports
+  at which the branches of a node leave it side by side.
 - `Whatwg.Svg.Scene` is what a picture is made of, with no rational number in it (slice
   S12), under the strict ceiling: a program that keeps its own proofs to that ceiling can
   neither call the geometry nor cite a law of it. `Moves` is things that move, and the law
   that a stored result stands for a computation that moves with its input. `Join` is the
   join of two lists by key. `Motion` is motion as data: easings in the two forms that CSS
   writes exactly, transitions, and the tracks of a step, with the law that a step's last
-  moment is the next picture.
+  moment is the next picture. Since slice S13 a track can change a shape, so that an edge stays
+  joined to two things that move differently, and `Tree` places the nodes of a tree: each over
+  the middle of its leaves, with the law that two subtrees of one node do not interleave.
+  `Between` says what holds at every moment of a step: a gap that both pictures have is a gap
+  of every moment between them, for things that take one timing and an easing in range.
+  `Branch` is the width of each branch of a fork, with the law that the branches together
+  carry what the trunk carries. `Score` puts tracks in order in time, with the law that a thing
+  does not appear before what it comes from.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.

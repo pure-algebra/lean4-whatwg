@@ -26,6 +26,10 @@ What is written, for the track at the place `i` of the list, with the name `m` a
   shows the start until the delay is over and the end afterwards, as `Transition.at` reads.
 - the easing: `Easing.stops` as `linear(…)`, and `Easing.cubic y1 y2` as
   `cubic-bezier(0.333333, y1, 0.666667, y2)`.
+- a change of shape as the property `d`, a `path("…")` at each end, every segment a `C`. A
+  browser goes from one path to another of the same commands point by point, which is
+  `ICubic.mix`. Not every browser reads `d` as a property: Chrome 152 does, by observation;
+  one that does not shows the thing's own shape throughout, which is the shape at the end.
 
 `translate` and `scale` are properties of their own in CSS Transforms 2, so a shift and a size
 on one thing do not replace each other, and neither replaces a `transform` attribute.
@@ -41,7 +45,7 @@ namespace Whatwg.Html
 
 open Whatwg.Svg.Schema (Tag)
 open Whatwg.Svg.Value (Cubic)
-open Whatwg.Svg.Scene (IVec Easing Transition Pose Change Track Motion)
+open Whatwg.Svg.Scene (IVec ICubic Easing Transition Pose Change Track Motion)
 
 namespace Css
 
@@ -56,6 +60,20 @@ def thousandths (n : Int) : String :=
 
 /-- A time of `perMille` thousandths of a step of `step` milliseconds, in milliseconds. -/
 def milliseconds (perMille step : Nat) : String := toString (perMille * step / 1000) ++ "ms"
+
+/-- A point of whole counts of `1 / grid` of a user unit, as two numbers of path data. -/
+def point (grid : Nat) (p : IVec) : String :=
+  thousandths (p.x * 1000 / grid) ++ "," ++ thousandths (p.y * 1000 / grid)
+
+/-- Segments of whole counts as path data, every segment a `C`, so that two lists of one
+length are written with the same commands and a browser can go from one to the other. A
+segment that does not start where the one before it ended starts a subpath with `M`. `last` is
+where the segment before ended. -/
+def pathData (grid : Nat) : List ICubic → Option IVec → String
+  | [], _ => ""
+  | c :: rest, last =>
+    (if last = some c.p0 then "" else "M" ++ point grid c.p0) ++ "C" ++ point grid c.p1 ++ " " ++
+      point grid c.p2 ++ " " ++ point grid c.p3 ++ pathData grid rest (some c.p3)
 
 end Css
 
@@ -77,53 +95,55 @@ def _root_.Whatwg.Svg.Scene.Pose.css (grid : Nat := 1) : Pose → String
   | .grow size => "scale: " ++ Css.thousandths size
   | .reveal part => "stroke-dashoffset: " ++ toString (1000 - part)
   | .fade shown => "opacity: " ++ Css.thousandths shown
+  | .shape segments => "d: path(\"" ++ Css.pathData grid segments none ++ "\")"
 
-namespace Motion
+section
 
 variable {κ : Type}
 
 /-- The rule `@keyframes` of one track, under a name. -/
-def keyframes (name : String) (tr : Track κ) (grid : Nat := 1) : String :=
+def _root_.Whatwg.Svg.Scene.Motion.keyframes (name : String) (tr : Track κ) (grid : Nat := 1) : String :=
   "@keyframes " ++ name ++ " { from { " ++ tr.change.start.css grid ++ " } to { " ++
     tr.change.stop.css grid ++ " } }"
 
 /-- One animation of the `animation` property: the name, the duration, the easing, the delay,
 and filling both ways. The transition counts in thousandths of a step of `step`
 milliseconds. -/
-def animation (name : String) (tr : Track κ) (step : Nat) : String :=
+def _root_.Whatwg.Svg.Scene.Motion.animation (name : String) (tr : Track κ) (step : Nat) : String :=
   name ++ " " ++ Css.milliseconds tr.timing.duration step ++ " " ++ tr.timing.ease.css ++ " " ++
     Css.milliseconds tr.timing.delay step ++ " both"
 
 /-- **The style sheet of a motion**: one `@keyframes` rule for each track, named by the track's
 place in the list after `stem`. -/
-def sheet (m : Motion κ) (grid : Nat := 1) (stem : String := "m") : String :=
-  "\n".intercalate (m.zipIdx.map fun p => keyframes (stem ++ toString p.2) p.1 grid)
+def _root_.Whatwg.Svg.Scene.Motion.sheet (m : Motion κ) (grid : Nat := 1) (stem : String := "m") : String :=
+  "\n".intercalate (m.zipIdx.map fun p => Motion.keyframes (stem ++ toString p.2) p.1 grid)
 
 /-- What a change needs on its thing beside the animation: a size grows about the middle of
 the thing's own box, and a line that is revealed has one dash as long as itself. -/
-def setup : Change → String
+def _root_.Whatwg.Svg.Scene.Motion.setup : Change → String
   | .grow _ _ => " transform-box: fill-box; transform-origin: center;"
   | .reveal _ _ => " stroke-dasharray: 1000;"
   | _ => ""
 
 /-- **The style of one thing**: the animations of the tracks with its key, and what they need.
 Nothing for a key with no track. -/
-def style? [BEq κ] (m : Motion κ) (key : κ) (step : Nat) (stem : String := "m") : Option String :=
+def _root_.Whatwg.Svg.Scene.Motion.style? [BEq κ] (m : Motion κ) (key : κ) (step : Nat)
+    (stem : String := "m") : Option String :=
   match m.zipIdx.filter fun p => p.1.key == key with
   | [] => none
   | tracks =>
     some ("animation: " ++
-      ", ".intercalate (tracks.map fun p => animation (stem ++ toString p.2) p.1 step) ++ ";" ++
-      String.join ((tracks.map fun p => setup p.1.change).eraseDups))
+      ", ".intercalate (tracks.map fun p => Motion.animation (stem ++ toString p.2) p.1 step) ++ ";" ++
+      String.join ((tracks.map fun p => Motion.setup p.1.change).eraseDups))
 
 /-- Whether a track of the key reveals a line. -/
-def reveals [BEq κ] (m : Motion κ) (key : κ) : Bool :=
+def _root_.Whatwg.Svg.Scene.Motion.reveals [BEq κ] (m : Motion κ) (key : κ) : Bool :=
   m.any fun tr => tr.key == key &&
     match tr.change with
     | .reveal _ _ => true
     | _ => false
 
-end Motion
+end
 
 namespace SvgAttr
 
@@ -140,7 +160,7 @@ end SvgAttr
 /-- **The attributes that put a motion on the thing with a key**, in a step of `step`
 milliseconds: its `style`, and `pathLength` of a thousand where a track reveals it. Nothing for
 a key with no track, so a still thing is written as it was. -/
-def Motion.attrs {κ : Type} [BEq κ] {t : Tag} (m : Motion κ) (key : κ) (step : Nat)
+def _root_.Whatwg.Svg.Scene.Motion.attrs {κ : Type} [BEq κ] {t : Tag} (m : Motion κ) (key : κ) (step : Nat)
     (stem : String := "m") : List (SvgAttr t) :=
   match Motion.style? m key step stem with
   | none => []
@@ -150,7 +170,7 @@ def Motion.attrs {κ : Type} [BEq κ] {t : Tag} (m : Motion κ) (key : κ) (step
 /-- **The style of one thing at the moment `t`, with no animation**: each pose of its tracks as
 a declaration. A target that draws no animation, a reader who asked for reduced motion, and a
 check of a browser against `Track.at` all read a step so. Nothing for a key with no track. -/
-def Motion.stillStyle? {κ : Type} [BEq κ] (m : Motion κ) (key : κ) (t : Nat) (grid : Nat := 1) :
+def _root_.Whatwg.Svg.Scene.Motion.stillStyle? {κ : Type} [BEq κ] (m : Motion κ) (key : κ) (t : Nat) (grid : Nat := 1) :
     Option String :=
   match m.filter fun tr => tr.key == key with
   | [] => none
@@ -159,7 +179,7 @@ def Motion.stillStyle? {κ : Type} [BEq κ] (m : Motion κ) (key : κ) (t : Nat)
       String.join ((tracks.map fun tr => Motion.setup tr.change).eraseDups))
 
 /-- The attributes that put the poses of the moment `t` on the thing with a key. -/
-def Motion.attrsAt {κ : Type} [BEq κ] {t : Tag} (m : Motion κ) (key : κ) (moment : Nat)
+def _root_.Whatwg.Svg.Scene.Motion.attrsAt {κ : Type} [BEq κ] {t : Tag} (m : Motion κ) (key : κ) (moment : Nat)
     (grid : Nat := 1) : List (SvgAttr t) :=
   match Motion.stillStyle? m key moment grid with
   | none => []

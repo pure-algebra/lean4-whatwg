@@ -132,4 +132,67 @@ theorem stopsAt_eq_floor (values : List Int) (p : Nat) :
   rw [e, Rat.floor_add_intCast, rat_floor_div_thousand]
   exact Int.add_comm _ _
 
+/-- **The reading of a cubic easing at a share is the exact one, rounded down**: at the share
+`num / den` it is the floor of a thousand times the polynomial there. The progress is not
+rounded first. -/
+theorem cubicOf_eq_floor (y1 y2 : Int) (num den : Nat) (hd : 0 < den) :
+    cubicOf y1 y2 num den = (1000 * cubicExact y1 y2 ((num : Rat) / (den : Rat))).floor := by
+  have hD : (den : Rat) ≠ 0 := Rat.ne_of_gt (rat_natCast_pos hd)
+  have e : 1000 * cubicExact y1 y2 ((num : Rat) / (den : Rat)) =
+      ((3 * y1 * (num : Int) * ((den : Int) - (num : Int)) ^ 2 +
+        3 * y2 * (num : Int) ^ 2 * ((den : Int) - (num : Int)) + 1000 * (num : Int) ^ 3 : Int) :
+          Rat) / (((den : Int) ^ 3 : Int) : Rat) := by
+    simp only [cubicExact, Rat.intCast_add, Rat.intCast_mul, Rat.intCast_sub, Rat.intCast_pow,
+      Rat.intCast_ofNat, Rat.intCast_natCast]
+    generalize (num : Rat) = n
+    generalize (den : Rat) = d at hD ⊢
+    grind
+  rw [e, rat_floor_intCast_div _ (Int.pow_pos (Int.natCast_pos.mpr hd))]
+  rfl
+
+/-- **The reading of stops at a share is a straight line, rounded down**: with `a` and `b` the
+two stops around the share and `n / den` the part of the way from the one to the other, the
+reading is the floor of `a + (b - a) n / den`. -/
+theorem stopsOf_eq_floor (values : List Int) (num den : Nat) (hd : 0 < den) :
+    stopsOf values num den =
+      (((values.getD (num * (values.length - 1) / den) (values.getLast?.getD 0) : Int) : Rat) +
+        (((values.getD (num * (values.length - 1) / den + 1) (values.getLast?.getD 0) : Int) :
+              Rat) -
+            ((values.getD (num * (values.length - 1) / den) (values.getLast?.getD 0) : Int) :
+              Rat)) *
+          ((num * (values.length - 1) - den * (num * (values.length - 1) / den) : Nat) : Rat) /
+            (den : Rat)).floor := by
+  simp only [stopsOf]
+  generalize values.getD (num * (values.length - 1) / den) (values.getLast?.getD 0) = a
+  generalize values.getD (num * (values.length - 1) / den + 1) (values.getLast?.getD 0) = b
+  generalize num * (values.length - 1) - den * (num * (values.length - 1) / den) = n
+  have hD : (den : Rat) ≠ 0 := Rat.ne_of_gt (rat_natCast_pos hd)
+  have e : (a : Rat) + ((b : Rat) - (a : Rat)) * (n : Rat) / (den : Rat) =
+      (((b - a) * (n : Int) : Int) : Rat) / (((den : Int) : Int) : Rat) + ((a : Int) : Rat) := by
+    simp only [Rat.intCast_mul, Rat.intCast_sub, Rat.intCast_natCast]
+    generalize (den : Rat) = d at hD ⊢
+    grind
+  rw [e, Rat.floor_add_intCast, rat_floor_intCast_div _ (Int.natCast_pos.mpr hd)]
+  exact Int.add_comm _ _
+
 end Whatwg.Svg.Scene.Easing
+
+namespace Whatwg.Svg.Scene.Transition
+
+open Whatwg.Svg.Value
+
+/-- **What a transition with a cubic easing reads between its delay and its end**: the floor
+of a thousand times the polynomial at the share of the duration that has passed. A browser
+that animates the same transition computes that polynomial at that share, so the reading is
+the browser's value in per mille, rounded down. -/
+theorem at_cubic (tr : Transition) (y1 y2 : Int) (he : tr.ease = .cubic y1 y2) (t : Nat)
+    (h1 : tr.delay < t) (h2 : t < tr.delay + tr.duration) :
+    tr.at t =
+      (1000 * Easing.cubicExact y1 y2 (((t - tr.delay : Nat) : Rat) / (tr.duration : Rat))).floor := by
+  have hd : 0 < tr.duration := by omega
+  have n1 : ¬ (tr.delay + tr.duration ≤ t) := by omega
+  have n2 : ¬ (t ≤ tr.delay) := by omega
+  simp only [Transition.at, if_neg n1, if_neg n2, he, Easing.of]
+  exact Easing.cubicOf_eq_floor y1 y2 _ _ hd
+
+end Whatwg.Svg.Scene.Transition

@@ -85,6 +85,7 @@ import WhatwgTest.Html.SvgPicture
 import WhatwgTest.Html.SvgXml
 import WhatwgTest.Html.SvgKit
 import WhatwgTest.Html.SvgStroke
+import WhatwgTest.Html.SvgMotion
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar

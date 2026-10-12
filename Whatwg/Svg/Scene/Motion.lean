@@ -24,11 +24,17 @@ the floor of, in exact numbers, is said in `Whatwg/Svg/Geometry/Easing.lean`.
   of the progress, `3 y1 s (1 - s)² + 3 y2 s² (1 - s) + s³`, and no equation is solved.
 - `Transition`: a delay, a duration and an easing. `Transition.at` is the timing of a CSS
   animation that fills both ways: the start before the delay, the end after the duration.
-- `Pose`: what a track sets at a moment: a shift, a size, a part revealed, an opacity.
-  `Change`: a pose at the start and a pose at the end, of one kind.
+  Between them it reads the easing at the share of the duration that has passed
+  (`Easing.of`, since slice S13 and ruling SV-67): the progress is not rounded to a thousandth
+  first, so the reading is what a browser computes, rounded down once.
+- `Pose`: what a track sets at a moment: a shift, a size, a part revealed, an opacity, a shape.
+  `Change`: a pose at the start and a pose at the end, of one kind. `Change.morph` is a change
+  of shape between two lists of segments of whole units (ruling SV-68): an edge between two
+  things that move differently changes so, and stays joined to both.
 - `Track`: a key, a change and a transition. `Motion`: a list of tracks.
 - `Motion.arrive` and `Motion.depart`: the tracks of a join. A kept thing moves from its old
-  place, a new thing grows, an old thing shrinks.
+  place, a new thing grows, an old thing shrinks. `Motion.arriveWith` takes each new thing's
+  entrance from the thing, and `Motion.delayed` starts each track later by its key.
 
 The laws are in `Whatwg/Svg/Scene/Motion/Laws.lean`. The first is the end law: a track whose
 transition is over stands at the end of its change (`Track.at_done`), so a step's last moment
@@ -97,6 +103,35 @@ def Easing.at : Easing → Nat → Int
   | .stops values, p => Easing.stopsAt values p
   | .cubic y1 y2, p => Easing.cubicAt y1 y2 p
 
+namespace Easing
+
+/-- The straight lines between `values`, read at the share `num / den` of the progress, in per
+mille: `stopsAt` with the progress as a fraction, so that no progress is rounded before the
+reading. -/
+def stopsOf (values : List Int) (num den : Nat) : Int :=
+  let pieces := values.length - 1
+  let last := values.getLast?.getD 0
+  let i := num * pieces / den
+  let a := values.getD i last
+  let b := values.getD (i + 1) last
+  a + (b - a) * ((num * pieces - den * i : Nat) : Int) / den
+
+/-- The cubic of the heights `y1` and `y2`, read at the share `num / den` of the progress, in
+per mille: one division, so it is the exact value rounded down. -/
+def cubicOf (y1 y2 : Int) (num den : Nat) : Int :=
+  let n : Int := num
+  let d : Int := den
+  (3 * y1 * n * (d - n) ^ 2 + 3 * y2 * n ^ 2 * (d - n) + 1000 * n ^ 3) / d ^ 3
+
+end Easing
+
+/-- **The eased progress at the share `num / den` of the progress**, in per mille. A transition
+reads its easing so, at the share of its duration that has passed: the progress is not rounded
+to a thousandth first, and the reading is the exact eased progress rounded down once. -/
+def Easing.of : Easing → Nat → Nat → Int
+  | .stops values, num, den => Easing.stopsOf values num den
+  | .cubic y1 y2, num, den => Easing.cubicOf y1 y2 num den
+
 /-- An easing that starts at `0` and ends at `1000`. A cubic always does. -/
 def Easing.Proper (e : Easing) : Prop := e.at 0 = 0 ∧ e.at 1000 = 1000
 
@@ -118,7 +153,7 @@ duration that has passed. -/
 def Transition.at (tr : Transition) (t : Nat) : Int :=
   if tr.delay + tr.duration ≤ t then tr.ease.at 1000
   else if t ≤ tr.delay then tr.ease.at 0
-  else tr.ease.at ((t - tr.delay) * 1000 / tr.duration)
+  else tr.ease.of (t - tr.delay) tr.duration
 
 namespace Transition
 
@@ -149,6 +184,8 @@ inductive Pose where
   | reveal (part : Int)
   /-- The thing is drawn at `shown` per mille of its opacity. -/
   | fade (shown : Int)
+  /-- The thing is drawn with this shape, in whole units, in place of its own. -/
+  | shape (segments : List ICubic)
   deriving DecidableEq, Repr, Inhabited
 
 /-- A pose that changes nothing: no shift, the whole size, the whole line, the whole opacity.
@@ -158,9 +195,15 @@ def Pose.AtRest : Pose → Prop
   | .grow size => size = 1000
   | .reveal part => part = 1000
   | .fade shown => shown = 1000
+  | .shape _ => True
 
 instance (p : Pose) : Decidable p.AtRest := by
   cases p <;> unfold Pose.AtRest <;> exact inferInstance
+
+/-- A segment of whole units, each coordinate `e` per mille of the way from one to another. -/
+def ICubic.mix (a b : ICubic) (e : Int) : ICubic :=
+  let step (p q : IVec) : IVec := ⟨Scene.mix p.x q.x e, Scene.mix p.y q.y e⟩
+  ⟨step a.p0 b.p0, step a.p1 b.p1, step a.p2 b.p2, step a.p3 b.p3⟩
 
 /-- A change of one kind: the pose at its start and the pose at its end. -/
 inductive Change where
@@ -168,6 +211,11 @@ inductive Change where
   | grow (start stop : Int)
   | reveal (start stop : Int)
   | fade (start stop : Int)
+  /-- The thing's shape changes from one list of segments to another, in whole units. Each
+  segment goes to the segment at its place. An edge between two things that move differently
+  changes so, and stays joined to both. Two lists of different lengths have no shape between
+  them: the change is then a jump at the middle, as it is in CSS. -/
+  | morph (start stop : List ICubic)
   deriving DecidableEq, Repr, Inhabited
 
 namespace Change
@@ -178,6 +226,7 @@ def start : Change → Pose
   | .grow a _ => .grow a
   | .reveal a _ => .reveal a
   | .fade a _ => .fade a
+  | .morph a _ => .shape a
 
 /-- The pose at the end. -/
 def stop : Change → Pose
@@ -185,6 +234,7 @@ def stop : Change → Pose
   | .grow _ b => .grow b
   | .reveal _ b => .reveal b
   | .fade _ b => .fade b
+  | .morph _ b => .shape b
 
 end Change
 
@@ -194,6 +244,10 @@ def Change.at : Change → Int → Pose
   | .grow a b, e => .grow (mix a b e)
   | .reveal a b, e => .reveal (mix a b e)
   | .fade a b, e => .fade (mix a b e)
+  | .morph a b, e =>
+    if a.length = b.length then .shape (List.zipWith (fun x y => ICubic.mix x y e) a b)
+    else if e < 500 then .shape a
+    else .shape b
 
 /-! ## Tracks -/
 
@@ -236,6 +290,21 @@ its old place to its new one, by `move`. A new thing grows from nothing, by `ent
 def arrive (key : α → κ) (place : α → IVec) (j : Join α) (move enter : Transition) : Motion κ :=
   j.update.map (fun p => ⟨key p.2, .shift (place p.1 - place p.2) 0, move⟩) ++
     j.enter.map (fun n => ⟨key n, .grow 0 1000, enter⟩)
+
+/-- **The tracks of the things of a join that are in the new picture, each in its own way.** A
+kept thing moves from its old place by the transition that `move` gives it. A new thing enters
+by the change and the transition that `enter` gives it: a box may grow, a line draw itself, a
+row appear. -/
+def arriveWith (key : α → κ) (place : α → IVec) (j : Join α) (move : α → Transition)
+    (enter : α → Change × Transition) : Motion κ :=
+  j.update.map (fun p => ⟨key p.2, .shift (place p.1 - place p.2) 0, move p.2⟩) ++
+    j.enter.map (fun n => ⟨key n, (enter n).1, (enter n).2⟩)
+
+/-- **The motion with each track started later**, by what `later` gives its key: things that
+enter one after another, level by level or row by row. Hold the result in its step with
+`within`. -/
+def delayed (m : Motion κ) (later : κ → Nat) : Motion κ :=
+  m.map fun tr => { tr with timing := { tr.timing with delay := tr.timing.delay + later tr.key } }
 
 /-- The tracks of the things of a join that leave: an old thing shrinks to nothing, by
 `leave`. -/

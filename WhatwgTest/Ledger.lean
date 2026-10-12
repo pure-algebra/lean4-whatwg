@@ -104,7 +104,9 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Scene.Track.at_done, `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid,
     `Whatwg.Svg.Scene.Easing.segment_pointAt, `Whatwg.Svg.Value.Curve.smooth_windows,
     `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Noise.two_band,
-    `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move]
+    `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move,
+    `Whatwg.Svg.Value.stack, `Whatwg.Svg.Scene.Tree, `Whatwg.Svg.Scene.Kept,
+    `Whatwg.Svg.Scene.Share, `Whatwg.Svg.Scene.Motion.Respects]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -165,7 +167,21 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Cubic.chord_error,
       `Whatwg.Svg.Value.Noise.two_band, `Whatwg.Svg.Value.Stroke.closed_stroke,
       `Whatwg.Svg.Value.Stroke.stroke_move, `Whatwg.Svg.Value.Stroke.organic_band,
-      `Whatwg.Svg.Value.Stroke.commutes_onGrid, `Whatwg.Svg.Value.Curve.through_move],
+      `Whatwg.Svg.Value.Stroke.commutes_onGrid, `Whatwg.Svg.Value.Curve.through_move,
+      `Whatwg.Svg.Value.stack_lengths, `Whatwg.Svg.Value.stack_apart,
+      `Whatwg.Svg.Value.ports_move, `Whatwg.Svg.Scene.Easing.cubicOf_eq_floor,
+      `Whatwg.Svg.Scene.Transition.at_cubic, `Whatwg.Svg.Scene.Tree.spans_within,
+      `Whatwg.Svg.Scene.Tree.spansAll_apart, `Whatwg.Svg.Scene.Tree.spans_shift,
+      `Whatwg.Svg.Scene.Tree.spans_values, `Whatwg.Svg.Scene.Easing.of_thousand,
+      `Whatwg.Svg.Scene.mix_shift, `Whatwg.Svg.Scene.ICubic.mix_move,
+      `Whatwg.Svg.Scene.Change.at_morph, `Whatwg.Svg.Scene.Motion.length_arriveWith,
+      `Whatwg.Svg.Scene.Motion.arriveWith_end, `Whatwg.Svg.Scene.Motion.delayed_within_atRest,
+      `Whatwg.Svg.Scene.mix_gap, `Whatwg.Svg.Scene.mix_mem,
+      `Whatwg.Svg.Scene.Easing.bounded_at, `Whatwg.Svg.Scene.Transition.bounded_at,
+      `Whatwg.Svg.Scene.Kept.moment, `Whatwg.Svg.Scene.grow_clear,
+      `Whatwg.Svg.Scene.rootDown_pow_le, `Whatwg.Svg.Scene.lt_rootDown_succ_pow,
+      `Whatwg.Svg.Scene.Motion.finish_le, `Whatwg.Svg.Scene.Motion.delayed_respects,
+      `Whatwg.Svg.Scene.Motion.reduced_settles, `Whatwg.Svg.Scene.Motion.fit_finish],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,

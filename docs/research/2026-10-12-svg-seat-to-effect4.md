@@ -412,3 +412,53 @@ open spline through three points.
 
 `docs/research/2026-10-12-pictures-seams-and-mathlib.md` has each seam between your data and
 the kit's, what was tried at it, and the modules that follow, motion as data among them.
+
+## 12. Slices S12 and S13: the seams, and motion as data
+
+You said yes to two things: a module of yours that computes curves takes the ordinary three
+axioms, and your expected output may change where a stage rounds once. These two slices build
+on that.
+
+**A layer you can use under your own rule.** `Whatwg/Svg/Scene/` has no rational number in
+it, and a gate holds every declaration of it to `propext` and `Quot.sound`. What is in it:
+
+| You have | The kit has | What you do |
+| --- | --- | --- |
+| `Cubic.move`, `Call.move`, `lowerAll_move`, `cachedStroke_eq`, `stroke_from_origin` | `Moves`, `Commutes`, `Commutes.stored`, `Commutes.from_origin` | give an instance `Moves IVec` for your type; the laws are then laws of your type |
+| `join`, `join_new`, `join_old` | `join` with twenty laws, for any key with a lawful test | delete yours |
+| `Ease`, `tableAt`, `Transition`, `lerp` | `Easing` (`stops`, `cubic`), `Transition`, `mix` | your two tables are `.stops`; `in_`, `out` and `outBack` are `.cubic` |
+| `sample`, `sample_end` | `Track`, `Motion`, `Motion.arriveWith`, `Track.at_done`, `Motion.within_atRest` | build tracks from the join; the end law is the kit's |
+| a tree drawn by hand | `Tree.spans` with four laws | a node stands over the middle of its leaves |
+
+**A step is one picture and its tracks.** `Whatwg/Html/Node/SvgMotion.lean` writes a motion as
+a `style` element of `@keyframes` rules and a `style` attribute on each thing. Your step of
+nineteen pictures becomes one picture. `Motion.attrsAt` writes the poses of one moment with no
+animation, for your stream and for a reader who asked for less motion.
+
+**What crosses to your whole numbers.** `Whatwg/Svg/Geometry/Grid.lean`: rounding commutes with
+a move by a whole count. So `Stroke.commutes_onGrid` is your cache law for a stroke that is
+computed in exact numbers and rounded to your thousandths, with no proof about rounding of your
+own. Your `lerp` is the exact step rounded down (`mix_eq_floor`).
+
+**The stroke is in the kit.** `Stroke.stroke` with `Stroke.organic`, `Noise`, `Stroke.collar`,
+`Stroke.arrowhead` and `Cubic.revealed` are your definitions, moved out of the port, which is
+now 443 lines for 851. A filled stroke is revealed through a mask (`Svg.revealed`): the mask's
+line is as wide as `Stroke.organic_band` says the stroke can be.
+
+**Two findings about your own code.**
+
+- Your `Transition.at` rounds the progress to a thousandth before the easing. A browser does
+  not, and the two differ by up to the slope of the easing over a thousandth: 0.416 against
+  0.419 on a spring. The kit reads the easing at the exact share (`Easing.of`).
+- Your easing `out` is `1000 - (1000 - p)³ / 10⁶`, which rounds up where the cubic rounds down.
+  As CSS draws it, it is `cubic-bezier(1/3, 1, 2/3, 1)`, and the kit's reading is the floor.
+
+**Two pages to look at.** `docs/research/2026-10-12-motion-probe/pfork.html` is one step of
+your own frame of `pFork`, read from your rendered picture. `tree.html` is the tree of `pFork`
+before and after the body of the fork is written: kept nodes move, kept edges change their
+shape and stay joined to them, and new edges and nodes enter level by level. Each page shows
+the browser's animation over five still pictures from the kit's own reading.
+
+**What follows.** `docs/research/2026-10-12-pictures-craft-modules.md` ranks sixteen modules.
+The first says what holds at every moment of a step: a gap that both pictures have is a gap
+of every moment between them, where the things take one timing and the easing stays in range.
