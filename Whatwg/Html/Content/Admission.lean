@@ -27,6 +27,7 @@ theorem admits_eq (ctx : Ctx) (child : Tag) : admits ctx child = ctx.admits chil
 
 /-- The empty base admits nothing, with no extras. -/
 theorem not_admits_nothing (x : Exclusions) (child : Tag) : ¬ Admits ⟨.nothing, x, []⟩ child := by
-  simp [Admits, admits, Ctx.admits, Base.contains, nothing_empty]
+  simp only [Admits, admits, Ctx.admits, Base.contains, nothing_empty, List.contains_nil,
+    Bool.or_self, Bool.false_and, Bool.false_eq_true, not_false_eq_true]
 
 end Whatwg.Html.Content

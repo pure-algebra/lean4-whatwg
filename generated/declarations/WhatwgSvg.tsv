@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgSvg rows=2890 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgSvg rows=2898 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 Whatwg.Svg.Content.Content	Whatwg.Svg.Content.Context	inductive	authored	0	50bdba2d5863881f005509db232fe17f42bf02f6331fd501f1607c7d6004b6f7	-	-	-	-	-	-	-	-
 Whatwg.Svg.Content.Content.casesOn	Whatwg.Svg.Content.Context	definition	authored	1	ec85af42764af02e42698ff8b5e58ba281a06be64cb8fdd8d6de91802cc8b6f0	-	-	-	-	-	-	-	-
@@ -1920,6 +1920,7 @@ Whatwg.Svg.Value.Grammar.ctorIdx	Whatwg.Svg.Value.Grammar	definition	generated	0
 Whatwg.Svg.Value.Grammar.explain	Whatwg.Svg.Value.Refusal	definition	authored	0	05edd199c038152721a0502fded6ec0125684638007f2cc666f19f75b329376a	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Grammar.explain_eq_none_iff	Whatwg.Svg.Value.Refusal	theorem	authored	0	ee6a2b65d89d1c65a9f71dabe95e14935eeee18feca9e7b48e57b2120a4ced0a	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Grammar.explain_le	Whatwg.Svg.Value.Refusal	theorem	authored	0	6c79347c3ad1c76b48787568051b0a70f211e4f5bd8bf7ae1a0766a0e0c41a4f	propext	-	-	-	-	-	-	-
+Whatwg.Svg.Value.Grammar.explain_local	Whatwg.Svg.Value.Refusal	theorem	authored	0	6f817d346af4792429923bd5ecb1069778ce5063d21e4da591eead89d81b2d65	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Grammar.explain_print	Whatwg.Svg.Value.Refusal	theorem	authored	0	1429d8d100790626174e3f014bf77b16fb333e8194a9603986e8d71e3608b567	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Grammar.matches_of_check	Whatwg.Svg.Value.Grammar	theorem	authored	0	df72bbbb669cc30eedb6fbeee1283e30861f133da9377eb43d829c80b52a8c94	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Grammar.mk	Whatwg.Svg.Value.Grammar	constructor	authored	0	8215bae1b86785b66d43a96153eb8c1ffa3fb003e1e6c8496235386819b69335	propext	-	-	-	-	-	-	-
@@ -2301,10 +2302,12 @@ Whatwg.Svg.Value.Syn.erase	Whatwg.Svg.Value.Grammar	definition	authored	0	a3f33d
 Whatwg.Svg.Value.Syn.explain	Whatwg.Svg.Value.Refusal	definition	authored	0	c9510126627a4bf1f97beb33d3bd1e9b224337bb23c16aaff875b0f905646586	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain.eq_1	Whatwg.Svg.Value.Refusal	theorem	generated	0	fb210eba44c5d7b152929b8c0781056ddc82ed611ac428e33d7efe2bd28632c7	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain.match_1	Whatwg.Svg.Value.Refusal	definition	generated	1	39f30d52e34b835f1457d52908a5ebc9a715d342cb1147bc0f0d71303e3f6ae0	propext	-	-	-	-	-	-	-
+Whatwg.Svg.Value.Syn.explain_append_of_lt	Whatwg.Svg.Value.Refusal	theorem	authored	0	ad492ccd5ee46dbb6ba82ce6f753b949a5c12bdda55113ee9fa0d3d3a1061988	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain_eq_none_iff	Whatwg.Svg.Value.Refusal	theorem	authored	0	74436434299d5c5caa17cd6821e86ea61bdbebafc6ac224be7304132d48aebd7	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain_eq_none_iff.match_1_2	Whatwg.Svg.Value.Refusal	definition	generated	0	9b107d0ec0534c7f74f34683662f5b10b3ecdc531637813d1dcd21b7963a1d26	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain_eq_none_iff.match_1_4	Whatwg.Svg.Value.Refusal	definition	generated	0	7e74f2350f930c9b9d1a28e5d664e324a77fa7b29ba3b24c7a33765ffb618026	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain_le	Whatwg.Svg.Value.Refusal	theorem	authored	0	5ec73eb700d489cebc7940d5872f2bd2a79361d37a41d5725fbf208e0560cb3b	propext	-	-	-	-	-	-	-
+Whatwg.Svg.Value.Syn.explain_local	Whatwg.Svg.Value.Refusal	theorem	authored	0	c026445996ad86c32f2ab625ff43f5be23e82df8a7279a19470682d6ab6a1e1f	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain_some	Whatwg.Svg.Value.Refusal	theorem	authored	0	808047cbea1c3c6fa6a42291f9ab2aa7dee21f5b241ff3e39560dd747de4671b	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.explain_some.match_1_3	Whatwg.Svg.Value.Refusal	definition	generated	0	8ad9b7b1f8c6022f816fc642fa560a6c9792ed3573dce3de0c6daf595ba038d3	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.greedy_iff_matches	Whatwg.Svg.Value.Deterministic	theorem	authored	0	886acde4d19d01b46c6ace1ce587ef324a34ed4dd0007dff99ac3f55b2da03e6	propext,Quot.sound	-	-	-	-	-	-	-
@@ -2483,6 +2486,7 @@ Whatwg.Svg.Value.Syn.run.match_1	Whatwg.Svg.Value.Refusal	definition	generated	1
 Whatwg.Svg.Value.Syn.run.match_3	Whatwg.Svg.Value.Refusal	definition	generated	1	cd600b1255a201e20d62a12dd9d87937eb51eed5d1a0dd7f66559d8d9e08cae2	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.run.match_5	Whatwg.Svg.Value.Refusal	definition	generated	1	8c3ff03465c0d5e95a65c7a59c590a76397696c789dd4ff81d377455a22544d3	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.run_answer	Whatwg.Svg.Value.Refusal	theorem	authored	0	b98cff8e665a5c3736f9f871c9b190cdea5a38bf0b3c1b2b9b1268633b3834d3	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Svg.Value.Syn.run_local	Whatwg.Svg.Value.Refusal	theorem	authored	0	67779eca73e20c784e4433784b218ee655435be119b21ac493d1a5ba90680e97	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.run_reach_le	Whatwg.Svg.Value.Refusal	theorem	authored	0	eb7cc070593ec3e289ce4db24e60416b15a3d3c689af9a796c4baf5ea34437ee	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.run_reach_le_of_some	Whatwg.Svg.Value.Refusal	theorem	authored	0	b0d2f2b6757b9d049c9c40d27bfb80b93d2f988ca425c5d2aeb135773894d366	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.Syn.run_reach_le_of_some.match_1_10	Whatwg.Svg.Value.Refusal	definition	generated	0	642f7200919218c2898e29ad186b24385af358f8c77621efcacb6a8c2748456a	propext	-	-	-	-	-	-	-
@@ -2862,6 +2866,8 @@ Whatwg.Svg.Value.readMany_of_stall	Whatwg.Svg.Value.Greedy	theorem	authored	0	9c
 Whatwg.Svg.Value.readMany_of_stall.match_1_1	Whatwg.Svg.Value.Greedy	definition	generated	0	e34b7f3299e689ddc7f67de2fbe1c70993e73c1eec0b3ff9f1b6806b7bca57e4	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.readMany_of_step	Whatwg.Svg.Value.Greedy	theorem	authored	0	3a5a6bc86651413da8f739053594e2a084164a6a6678a9a581170ff7c411bb90	propext	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany	Whatwg.Svg.Value.Refusal	definition	authored	0	5c149ecd614e3cc4a8f287e25b490850de9dc286360f760602649f15284f8814	-	-	-	-	-	-	-	-
+Whatwg.Svg.Value.runMany.eq_1	Whatwg.Svg.Value.Refusal	theorem	generated	0	507ac42750be51eef6e7e4f8bac03d1c664f98a67d8fb3a3bf0cb0956bad3389	-	-	-	-	-	-	-	-
+Whatwg.Svg.Value.runMany.eq_2	Whatwg.Svg.Value.Refusal	theorem	generated	0	a00dfd2a88200d90b87d5aa156e89fb5edc519d217263821b1e114a9324810a5	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany.eq_def	Whatwg.Svg.Value.Refusal	theorem	generated	0	76d726b2348b3f93034241503db5af70d75b93b6c6188afcd00716cbf0a58380	Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany.induct_unfolding	Whatwg.Svg.Value.Refusal	theorem	generated	0	cd0380d118538b2560902761152b4592db2f30d39aa3bf6cc54cad0a14d69bb9	Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany.match_1	Whatwg.Svg.Value.Refusal	definition	generated	1	3c73351b1ef7e97c2cd0d6fd765461826cc7375d4e97d45a6ef2f630dbd24cd9	-	-	-	-	-	-	-	-
@@ -2871,6 +2877,8 @@ Whatwg.Svg.Value.runMany.match_3	Whatwg.Svg.Value.Refusal	definition	generated	1
 Whatwg.Svg.Value.runMany.match_3.congr_eq_1	Whatwg.Svg.Value.Refusal	theorem	generated	1	54a275bf18f2da56b5266ce6a294c2263380c02fe312c12c50efb4cd82443e40	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany.match_3.congr_eq_2	Whatwg.Svg.Value.Refusal	theorem	generated	1	899c5a0c24dc768f25e2bdf6163437b930df404a98fa48383b11afad0ab5eab9	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany_answer	Whatwg.Svg.Value.Refusal	theorem	authored	0	1369ec2b78c7708472f47f0acfe8d62fe8ca478bd1ede5f94035042fcf520afa	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Svg.Value.runMany_local	Whatwg.Svg.Value.Refusal	theorem	authored	0	21c7f1a8798c20026a121bada638c6563b2cbabee042881c81a6d788122bc50e	propext,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Svg.Value.runMany_local.match_1_1	Whatwg.Svg.Value.Refusal	definition	generated	0	4ef185c1a7aa489dce0242174fdc1c020fb5d1d575d42d6b052f38ad69b8d10d	-	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany_reach_le	Whatwg.Svg.Value.Refusal	theorem	authored	0	119114b6fa69acf9d81cabacc6bddb69956318eadffdc5e8df31c1aa685a412b	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.runMany_reach_le_rest	Whatwg.Svg.Value.Refusal	theorem	authored	0	96c9aaae12ec7e67803b508e075a868d97777895f4e405362dff11e29a86d457	propext,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Svg.Value.sign	Whatwg.Svg.Value.Number	definition	authored	0	d274ced7f456482b3b974e5383b52ebb3639fadad40618779daff64e21cbd0ee	propext	-	-	-	-	-	-	-

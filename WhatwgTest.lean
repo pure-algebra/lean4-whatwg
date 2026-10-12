@@ -76,6 +76,9 @@ import WhatwgTest.Html.SvgMarkup
 import WhatwgTest.Html.SvgValues
 import WhatwgTest.Html.SvgNode
 import WhatwgTest.Html.SvgRead
+import WhatwgTest.Html.SvgKeys
+import WhatwgTest.Html.SvgValid
+import WhatwgTest.Html.SvgBenchmark
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar

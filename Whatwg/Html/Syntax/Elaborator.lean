@@ -3,7 +3,7 @@ import Std.Data.HashMap
 import Whatwg.Html.Content.Values
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
-import Whatwg.Html.Node.Svg
+import Whatwg.Html.Node.SvgValid
 
 /-!
 # Whatwg.Html.Syntax.Elaborator
@@ -91,11 +91,14 @@ in three steps:
    `Whatwg.Html.Content.explainAt`, on that tree. A refusal is reported at the
    token of the refused node, with the reason the library gives.
 3. It builds the tree the checker admits from the constructors of `SvgNode`.
-   The term of the subtree is `SvgNode.toRaw e`, and one obligation says that
-   this raw tree is valid where it stands. The kernel checks the obligation by
-   evaluating the checker once over the subtree. The checker reads names, and
-   the value of a namespace declaration, so the evaluation opens no value that
-   a grammar reads.
+   The term of the subtree is `SvgNode.toRaw e`, and its validity where it
+   stands is the law of structure of `Whatwg/Html/Node/SvgValid.lean`:
+   `SvgNode.validIn_of_okIn` at one obligation, `SvgNode.okIn ctx e = true`.
+   The kernel checks the obligation by evaluating `okIn` once over the typed
+   tree. That test reads tags and keys: it decodes no name, and it opens no
+   value. Before slice S6 the obligation was the checker's own run over the
+   written names, which took the kernel about fifty times as long
+   (`WhatwgTest/Html/SvgBenchmark.lean`).
 
 What the typed tree `e` holds:
 
@@ -116,8 +119,10 @@ What the typed tree `e` holds:
 - Text is `SvgNode.text`.
 - An HTML element below `foreignObject`, `title` or `desc` is
   `SvgNode.raw r h`. `r` is the raw literal of the HTML subtree, and `h` says
-  that its values pass wherever it stands. The kernel checks `h` by one
-  evaluation, which reads names alone unless the HTML subtree holds an `svg`
+  that its values pass wherever it stands. The structure of `r` is the
+  checker's, run over its names inside the one evaluation of `okIn`. The
+  kernel checks `h` by one more evaluation, which reads names alone unless
+  the HTML subtree holds an `svg`
   of its own. Such an `svg` is a part of the raw literal, and the kernel reads
   each of its literal values with its grammar: that case is rare, and a long
   value there is slow (`Whatwg/Html/Content/Values.lean`). A value below an
@@ -374,7 +379,7 @@ end
 /-! ## A foreign subtree
 
 An `svg` subtree is built in three steps. `foreignNode` reads the markup as a raw tree, a value
-at the meta level. `foreignChild` evaluates the located refusal of the checker on that tree.
+at the meta level. `foreignTree` evaluates the located refusal of the checker on that tree.
 `typedNode` builds the tree the checker admits as a term of `SvgNode`. -/
 
 /-- An attribute of an element of a foreign subtree, as markup writes it. -/
@@ -574,16 +579,22 @@ def typedNode : Nat → Built → TermElabM Expr
 
 /-- Build the foreign subtree at an HTML position. The markup is read as a raw tree and refused
 where the checker refuses it: at the token of the refused node, with the library's reason. The
-tree the checker admits is built as a typed tree `e`, and the result is the term of its raw
-tree, `SvgNode.toRaw e`. -/
-def foreignChild (fuel : Nat) (ctx : Ctx) (stx : Syntax) : TermElabM Expr := do
+tree the checker admits is built as a typed tree, and the result is its term `e`, of type
+`SvgNode`. Its raw tree is `SvgNode.toRaw e`, and `foreignValid` proves it valid. -/
+def foreignTree (fuel : Nat) (ctx : Ctx) (stx : Syntax) : TermElabM Expr := do
   let built ← foreignNode fuel true (.html ctx) stx
   if let some refusal := Whatwg.Html.Content.explainAt (.html ctx) built.raw then
     let culprit := (built.at? refusal.path).getD built
     throwErrorAt culprit.stx
       (Admit.nodeWords culprit.raw ++ ": " ++ refusal.reason.describe ++
         (if refusal.path.isEmpty then " (the context is " ++ ctx.describe ++ ")" else ""))
-  return mkApp (mkConst ``SvgNode.toRaw) (← typedNode fuel built)
+  typedNode fuel built
+
+/-- The proof that the raw tree of the typed tree `e` is valid at the context `ctxE`: the law
+of structure, `SvgNode.validIn_of_okIn`, at `Eq.refl true`. The kernel checks it by evaluating
+`SvgNode.okIn` once over the typed tree, which reads tags and keys and no name. -/
+def foreignValid (ctxE e : Expr) : Expr :=
+  mkApp3 (mkConst ``SvgNode.validIn_of_okIn) ctxE e Admit.reflTrue
 
 /-! ## The walk -/
 
@@ -650,11 +661,12 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
             mkApp2 (mkConst ``Child.valid) innerE child, hrest]
       else if (foreignName? kid).isSome then
-        -- an `svg` subtree: the raw tree of a typed tree, and one obligation the kernel evaluates
-        raws := raws.push (← foreignChild fuel inner kid)
+        -- an `svg` subtree: the raw tree of a typed tree, valid by the law of structure
+        let tree ← foreignTree fuel inner kid
+        raws := raws.push (mkApp (mkConst ``SvgNode.toRaw) tree)
         steps := steps.push fun n rest hrest =>
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
-            Admit.reflTrue, hrest]
+            foreignValid innerE tree, hrest]
       else
         let some k ← openOf kid | throwErrorAt kid "html!: unsupported node"
         let c := k.tag
@@ -722,7 +734,9 @@ def defaultCtx (t : Tag) : Ctx :=
         if let some c ← Admit.ctx? 4096 (e.getArg! 0) then
           ctx := c
           ctxE := e.getArg! 0
-    return mkApp3 (mkConst ``Child.mk) ctxE (← foreignChild fuel ctx node) Admit.reflTrue
+    let tree ← foreignTree fuel ctx node
+    return mkApp3 (mkConst ``Child.mk) ctxE (mkApp (mkConst ``SvgNode.toRaw) tree)
+      (foreignValid ctxE tree)
   let some o ← openOf node | throwErrorAt node "html!: the root must be an element"
   let t := o.tag
   if let some e := expected then

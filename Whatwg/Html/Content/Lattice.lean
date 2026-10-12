@@ -5,8 +5,9 @@ import Whatwg.Html.Schema
 
 Reflection over the finite universes, and the inclusion facts of the
 standard's categories and bases (node L1 of the proof graph in
-`docs/HTML-PACKAGE-PLAN.md`, slice H7 under rulings HP-12 and HP-13). Every
-proof is `decide +kernel` over `Tag.all` or `Base.all`.
+`docs/HTML-PACKAGE-PLAN.md`, slice H7 under rulings HP-12 and HP-13). Each
+fact is one evaluation over `Tag.all` or `Base.all`, by `decide`, and the
+reflection lemmas carry it to every tag and every base.
 -/
 
 namespace Whatwg.Html.Schema
@@ -65,7 +66,8 @@ theorem subsetOf_of_all {a b : Tag → Bool}
     (h : Tag.all.all (fun t => !a t || b t) = true) : SubsetOf a b := by
   intro t ha
   have := forall_tag_of_all _ h t
-  simpa [ha] using this
+  rw [ha, Bool.not_true, Bool.false_or] at this
+  exact this
 
 theorem eq_of_all {a b : Tag → Bool}
     (h : Tag.all.all (fun t => a t == b t) = true) : ∀ t, a t = b t :=
@@ -80,7 +82,7 @@ theorem cats_phrasing_subset_flow : ∀ t, t ≠ .selectedcontent → Cats.phras
   have h := forall_tag_of_all (fun t => t == .selectedcontent || !Cats.phrasing t || Cats.flow t) (by decide +kernel)
   intro t hne hp
   have := h t
-  simp [hne, hp] at this
+  rw [beq_false_of_ne hne, hp, Bool.not_true, Bool.or_self, Bool.false_or] at this
   exact this
 theorem selectedcontent_phrasing_not_flow :
     Cats.phrasing .selectedcontent = true ∧ Cats.flow .selectedcontent = false := by decide
@@ -106,19 +108,22 @@ theorem void_ownBase_nothing : ∀ t : Tag, t.isVoid = true → t.ownBase = .not
   have h := forall_tag_of_all (fun t => !t.isVoid || (t.ownBase == .nothing)) (by decide +kernel)
   intro t hv
   have := h t
-  simpa [hv] using this
+  rw [hv, Bool.not_true, Bool.false_or] at this
+  exact eq_of_beq this
 
 /-- No void element is transparent, and none has labelled children. -/
 theorem void_not_transparent : ∀ t : Tag, t.isVoid = true → t.isTransparent = false := by
   have h := forall_tag_of_all (fun t => !t.isVoid || !t.isTransparent) (by decide +kernel)
   intro t hv
   have := h t
-  simpa [hv] using this
+  rw [hv, Bool.not_true, Bool.false_or, Bool.not_eq_true'] at this
+  exact this
 theorem void_labelled_nil : ∀ t : Tag, t.isVoid = true → t.labelled = [] := by
   have h := forall_tag_of_all (fun t => !t.isVoid || (t.labelled == [])) (by decide +kernel)
   intro t hv
   have := h t
-  simpa [hv] using this
+  rw [hv, Bool.not_true, Bool.false_or] at this
+  exact eq_of_beq this
 
 /-- Every element's markup name reads back to it. -/
 theorem ofName?_markupName : ∀ t : Tag, ∀ m, t.markupName = some m → Tag.ofName? m = some t := by

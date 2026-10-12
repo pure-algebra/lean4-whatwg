@@ -28,7 +28,7 @@ theorem Child.entity_raw {ctx : Ctx} (name : String) (h : ctx.admits .pcdata = t
 /-- Erasure reads only the two data fields. -/
 theorem Element.toRaw_congr {t : Tag} {c c' : Ctx} (e : Element t c) (e' : Element t c')
     (hattrs : e.attrs = e'.attrs) (hchildren : e.children = e'.children) : e.toRaw = e'.toRaw := by
-  simp [Element.toRaw, hattrs, hchildren]
+  simp only [Element.toRaw, hattrs, hchildren]
 
 theorem Element.toRaw_tagName? {t : Tag} {ctx : Ctx} (e : Element t ctx) :
     e.toRaw.tagName? = some t.markupText := rfl
@@ -38,7 +38,7 @@ theorem Element.toRaw_childNodes {t : Tag} {ctx : Ctx} (e : Element t ctx) :
 
 theorem markupText_eq_markupName (t : Tag) (m : String) (h : t.markupName = some m) :
     t.markupText = m := by
-  simp [Tag.markupText, h]
+  simp only [Tag.markupText, h, Option.getD_some]
 
 /-- Only text lacks a markup name, and text has no element row. -/
 theorem markupName_isSome_eq_elementIndex?_isSome (t : Tag) :
@@ -50,7 +50,7 @@ theorem markupName_isSome_eq_elementIndex?_isSome (t : Tag) :
 theorem no_child_under_void {ctx : Ctx} {t : Tag} (hv : t.isVoid = true)
     (c : Child (ctx.child t)) : False := by
   have := Content.validAll_void_nil ctx t hv [c.raw] (Content.validAll_cons _ _ _ c.valid rfl)
-  simp at this
+  exact List.cons_ne_nil _ _ this
 
 /-- A void element has no children, as a value. -/
 theorem Element.children_nil_of_void {ctx : Ctx} {t : Tag} (hv : t.isVoid = true) (e : Element t ctx) :

@@ -17,8 +17,9 @@ evaluates no text. The kernel never opens a value: a tree that a program builds,
 it computes, has the law for nothing, and a tree that `html!` builds holds constructors and
 numbers where the markup held a literal.
 
-The structure of the tree is still the checker's. `validIn` of `toRaw` judges it, and it reads
-names alone, so its evaluation forces no value.
+The structure of the tree is not in this module. `Whatwg/Html/Node/SvgValid.lean` judges a
+typed tree by its tags and its keys, `SvgNode.okAt`, and proves that this is the checker's
+verdict on `toRaw`. Neither test forces a value.
 
 What a typed node holds:
 
@@ -40,8 +41,8 @@ retraction (V1 at the type). The elaborator of `html!` and the reader of a raw t
 
 What this module does not claim: that a typed tree is valid. A typed tree may put an element
 where the content model refuses it, name an attribute its element does not take, or repeat a
-name: `validIn` judges that. Nor does it claim that an attribute with no kind holds a good
-value: such an attribute holds text, as before.
+name: `SvgNode.okAt` judges that, as `validIn` does on the raw tree. Nor does it claim that an
+attribute with no kind holds a good value: such an attribute holds text, as before.
 -/
 
 namespace Whatwg.Html

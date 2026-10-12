@@ -5,17 +5,19 @@ import Whatwg.Svg.Value.Path
 # WhatwgTest.Svg.Refusal
 
 Readers, controls and finite evaluations of the located refusal of a value
-(`Whatwg/Svg/Value/Refusal.lean`; node V6 of `docs/SVG-PACKAGE-PLAN.md`, section 6).
+(`Whatwg/Svg/Value/Refusal.lean`; node V6 of `docs/SVG-PACKAGE-PLAN.md`, section 6) and of the
+locality of its offset (node V6b).
 
 A finite evaluation gives a text to `explain` at a real grammar and states the offset it
 answers. Offsets count characters from zero, and the length of a text is the offset of its
 end. A control is a small description on which the reach and the reader's stopping place
-differ, or on which a part refuses and the text is still read in full. A reader applies a law
-of the module at a real grammar.
+differ, or on which a part refuses and the text is still read in full. A control of the
+locality law is a pair of texts that agree up to an offset, where one is refused and the other
+is a spelling. A reader applies a law of the module at a real grammar.
 
-What this battery does not claim: that an offset is where an author's mistake is, or that a
-text which shares a refused text's prefix is refused. The offsets are finite evidence about
-these texts and no more.
+What this battery does not claim: that an offset is where an author's mistake is. An offset
+that a finite evaluation states is evidence about that one text and no more. What holds of
+every text with a given prefix is what the readers of the locality law state.
 -/
 
 namespace WhatwgTest.Svg.Refusal
@@ -128,5 +130,29 @@ example (s : List Char) (n : Nat) (h : Decimal.grammar.explain s = some n) : n â
 example (s r : List Char) (v : PathData) (n : Nat) (hread : PathData.syn.read s = some (v, r))
     (h : PathData.grammar.explain s = some n) : s.length - r.length â‰¤ n :=
   Syn.le_explain_of_read PathData.syn hread h
+
+/-! ## Locality -/
+
+-- Reader of the locality law at the grammar of `d`: every text that begins `M 10 20 L 40 x`
+-- is refused at offset 13, the `x`, whatever follows it.
+example (t : List Char) : PathData.grammar.explain ("M 10 20 L 40 x".toList ++ t) = some 13 :=
+  PathData.grammar.explain_local (s := "M 10 20 L 40 x".toList) (by decide +kernel)
+    (by decide +kernel) (List.take_append_of_le_length (by decide +kernel))
+
+-- Reader of the same law for a text in two parts, at a description that is no grammar: every
+-- text that begins `a1b2ax` is refused at offset 5, where the third pair wanted a digit.
+example (t : List Char) : pairs.explain ("a1b2ax".toList ++ t) = some 5 :=
+  Syn.explain_append_of_lt (r := []) pairs (by decide +kernel) (by decide +kernel) t
+
+-- Control: the law asks for a character at the offset. `M 10` is refused at offset 4, its
+-- end: the moveto wants a second coordinate. `M 10 20` extends it and is a path. A refusal at
+-- the end of a text says that the text stopped too early, and nothing of a longer text.
+#guard PathData.grammar.explain "M 10".toList == some 4
+#guard PathData.grammar.explain "M 10 20".toList == none
+
+-- Control: the law asks for agreement through the character at the offset. `M 10 20 L 40 x`
+-- and `M 10 20 L 40 5` agree on their first thirteen characters. The first is refused at
+-- offset 13, and the second is a path.
+#guard PathData.grammar.explain "M 10 20 L 40 5".toList == none
 
 end WhatwgTest.Svg.Refusal

@@ -91,6 +91,8 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Syn.read_complete, `Whatwg.Svg.Value.Syn.check_iff_matches,
       `Whatwg.Svg.Value.Syn.run_answer, `Whatwg.Svg.Value.Syn.explain_eq_none_iff,
       `Whatwg.Svg.Value.Syn.explain_le, `Whatwg.Svg.Value.Grammar.explain_print,
+      `Whatwg.Svg.Value.Syn.run_local, `Whatwg.Svg.Value.Syn.explain_local,
+      `Whatwg.Svg.Value.Grammar.explain_local,
       `Whatwg.Svg.Value.Extent.print_eq_length],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,

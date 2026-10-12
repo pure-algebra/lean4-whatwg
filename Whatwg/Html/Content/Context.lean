@@ -139,16 +139,15 @@ theorem any_hit_mono : ∀ (xs ys hs : List Bool), xs.length = ys.length →
     ((xs.zip ys).all fun p => !p.1 || p.2) = true →
     ((xs.zip hs).any fun p => p.1 && p.2) = true →
     ((ys.zip hs).any fun p => p.1 && p.2) = true
-  | [], _, _, _, _, hx => by simp at hx
-  | _ :: _, [], _, hlen, _, _ => by simp at hlen
-  | _ :: _, _ :: _, [], _, _, hx => by simp at hx
+  | [], _, _, _, _, hx => Bool.noConfusion hx
+  | _ :: _, [], _, hlen, _, _ => absurd hlen (Nat.succ_ne_zero _)
+  | _ :: _, _ :: _, [], _, _, hx => Bool.noConfusion hx
   | x :: xs, y :: ys, h :: hs, hlen, hle, hx => by
     simp only [List.zip_cons_cons, List.all_cons, List.any_cons, Bool.and_eq_true, Bool.or_eq_true] at hle hx ⊢
-    rcases hx with hx | hx
-    · left
-      cases x <;> cases y <;> cases h <;> simp_all
+    rcases hx with ⟨rfl, hh⟩ | hx
+    · exact Or.inl ⟨hle.1.resolve_left (by decide), hh⟩
     · right
-      exact any_hit_mono xs ys hs (by simpa using hlen) hle.2 hx
+      exact any_hit_mono xs ys hs (Nat.succ.inj hlen) hle.2 hx
 
 theorem all_le_zipWith_or : ∀ (xs ys : List Bool),
     ((xs.zip (List.zipWith (· || ·) xs ys)).all fun p => !p.1 || p.2) = true
@@ -219,20 +218,20 @@ theorem admitsWith_le_admits (c : Ctx) (t : Tag) (attrs : List (String × String
 theorem void_child_admits_none (c : Ctx) (t : Tag) (hv : t.isVoid = true) (child : Tag) :
     (c.child t).admits child = false := by
   simp only [Ctx.admits, Ctx.child, void_not_transparent t hv, void_ownBase_nothing t hv,
-    void_labelled_nil t hv, Bool.false_eq_true, ↓reduceIte, List.contains, List.elem_nil]
-  simp [Base.contains, nothing_empty]
+    void_labelled_nil t hv, Bool.false_eq_true, ↓reduceIte, List.contains, List.elem_nil,
+    Base.contains, nothing_empty, Bool.or_self, Bool.false_and]
 
 theorem void_child_admitsWith_none (c : Ctx) (t : Tag) (hv : t.isVoid = true) (child : Tag)
     (attrs : List (String × String)) : (c.child t).admitsWith child attrs = false := by
   simp only [Ctx.admitsWith, Ctx.baseContainsWith, Ctx.child, void_not_transparent t hv,
     void_ownBase_nothing t hv, void_labelled_nil t hv, Bool.false_eq_true, ↓reduceIte,
-    List.contains, List.elem_nil]
-  simp [Base.contains, nothing_empty]
+    List.contains, List.elem_nil, Base.contains, nothing_empty, Bool.and_true, Bool.or_self,
+    Bool.false_and]
 
 /-- A transparent element's children are checked against its context's base
 (or the override). -/
 theorem child_base_transparent (c : Ctx) (t : Tag) (h : t.isTransparent = true) :
     (c.child t).base = (Base.override c.base t).getD c.base := by
-  simp [Ctx.child, h]
+  simp only [Ctx.child, h, ↓reduceIte]
 
 end Whatwg.Html.Content

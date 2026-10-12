@@ -10,6 +10,8 @@ import Whatwg.Html.Node.Walk
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Svg
 import Whatwg.Html.Node.SvgRead
+import Whatwg.Html.Node.SvgKeys
+import Whatwg.Html.Node.SvgValid
 import Whatwg.Html.Node.Erasure
 import Whatwg.Html.Node.Admit
 import Whatwg.Html.Node.Evidence
@@ -71,6 +73,9 @@ literal. `Whatwg.Html.Svg` is the seam that admits an `svg` subtree
 (`docs/SVG-PACKAGE-PLAN.md`), `Whatwg.Html.Content.Values` judges the
 values of its attributes, and `Whatwg.Html.Node.Svg` is the typed SVG node:
 an SVG subtree whose attribute values are right by their types, with the
-reader `Whatwg.Html.Node.SvgRead` from a raw tree. `Whatwg.Html.Audit` is
-still a docstring and nothing else.
+reader `Whatwg.Html.Node.SvgRead` from a raw tree. `Whatwg.Html.Node.SvgValid`
+judges the structure of a typed tree by its tags and its keys
+(`Whatwg.Html.Node.SvgKeys`), with the law that this is the checker's verdict
+on the raw tree, and `Child.ofSvg` places a typed tree in the typed HTML tree.
+`Whatwg.Html.Audit` is still a docstring and nothing else.
 -/

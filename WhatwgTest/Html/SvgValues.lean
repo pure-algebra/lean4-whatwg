@@ -133,7 +133,8 @@ example : valuesOk icon.raw = true := SvgNode.valuesOk_toRaw _
 -- The same as the absence of a refusal.
 example : explainValues icon.raw = none := SvgNode.explainValues_toRaw _
 
--- The structure is the term's own proof: one evaluation of the checker, which reads names.
+-- The structure is the term's own proof: the law of structure at one evaluation of `okIn`,
+-- which reads tags and keys.
 example : validIn Ctx.flow icon.raw = true := icon.valid
 
 /-- A stroke, in spellings that an author writes: white space, and a comma or none. -/

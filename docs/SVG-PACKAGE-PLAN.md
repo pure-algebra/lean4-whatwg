@@ -471,6 +471,8 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-33 | the completeness of the reader | The chapter's rule is that a production consumes as much as it can. `Greedy` states it as a relation: the meaning of a description as a parsing expression, with an ordered choice and a greedy repetition. V3b is `Greedy g s o ↔ g.read s = o`, so the reader is the rule's decision procedure and `check` decides the rule's language. The language of the bare expression is larger, and V3a is the link to it. The two agree for a description that passes `Syn.deterministic`, which is `Syn.ok` over the sets the reader reads: node V3c. A description that reads `comma_wsp?` between two numbers fails that test by design (seat, S4d, on the coordinator's notes: G2 of the second and section 4 of the third). |
 | SV-34 | the typed node | An SVG subtree has a typed tree beside `RawNode`: `SvgNode`. Its element is a tag of the schema. Its attribute is an attribute of the schema with a value of `AttrValue t a`, which is the carrier of its kind where the table gives one and text otherwise; or a custom data attribute; or one of the two namespace declarations, whose values are fixed. `toRaw` writes the raw tree, and the raw tree of every typed tree passes `valuesOk` by one law that evaluates nothing (V7). So a value is right by its type, and `validIn` still judges the structure on the raw tree, where it reads names alone. The type of a value and the table are in `Whatwg.Svg`. The node is in the seam, because it holds the raw HTML content below an integration point and its law is about the seam's judgment. `RawNode` is unchanged. `html!` builds an SVG subtree as a typed tree: it reads a literal value once, at elaboration, and a spliced value has its carrier's type (seat, S5, on G4 of the coordinator's third note). |
 | SV-35 | the geometry properties | The sealed `master/geometry.html` gives nine names a value on the elements it names. `cx` and `cy` on `circle` and `ellipse`, and `x` and `y` on `svg`, `rect`, `image` and `foreignObject`, are lengths. `r` on `circle` is a length that is not negative. `rx` and `ry` on `ellipse` and `rect`, and `width` and `height` on `svg`, `rect`, `image` and `foreignObject`, are `auto` or a length that is not negative. The chapter says that a negative value there is invalid and is treated as the initial value, with no error state. The check refuses it, as it refuses any value that is not of its grammar: a caller that wants the fallback reads the refusal. On any other element those names have no kind, and `x`, `y`, `dx` and `dy` of `text` are lists that `master/text.html` states, which is not sealed (seat, S5). |
+| SV-36 | where the structure of a typed tree is judged | A typed tree holds each element as a tag and each attribute as a key, so its structure is judged by those: `SvgNode.okAt`, with `SvgAttr.allOk` one pass over the keys of an attribute list. The law `SvgNode.validAt_toRaw` says that the checker's verdict on the raw tree is `okAt`'s on the typed tree, at every position. `html!` proves an SVG subtree by it, and `Child.ofSvg` places a typed tree in the typed HTML tree. `okAt` reads text at three places only: the key of a custom data attribute, a raw subtree, and an element at an HTML position that is not `svg`, which the checker reads as an HTML name there. The test is a Boolean and no index of the tree's type: a tree with free values has it by one evaluation, and a tree with a free list of children by the test's equations. |
+| SV-37 | a transcribed grammar against its chapter | The sealed `master/paths.html` states the grammar of path data as one EBNF block. The gate `lake exe whatwg_svggrammar` reads that block from the sealed bytes, turns `svg_path` and each production below it into a regular expression, and decides by derivatives that it has the language of the erased expression of the library's description. It is unverified code: its PASS is that procedure's verdict and no theorem, and it carries controls that must differ. It compares bare expressions. The reader's rule is V3b. No other sealed chapter states a grammar in that notation, so `points`, `viewBox`, `transform` and the length have no such gate. |
 
 ## 5. Slices
 
@@ -490,8 +492,11 @@ seat's proposals of S1, changed where §3.1 changes them.
 | S4d | the length; one table of kinds; the located refusal of a value; the reader's rule as a relation, and its bridge to the expression's language | done: ruling R-S17. V3b, V3c and V6 are proved; the table of kinds is keyed by element and attribute |
 | S5 | typed values in the tree (G4 of the coordinator's third note; debt D92): a typed node beside `RawNode` whose SVG attribute holds a value of its kind; `toRaw` prints each value; one connector theorem gives `valuesOk` of every typed tree; `html!` emits typed nodes; the text route for typed attributes goes; the geometry properties get their kinds (debt D93) | done: rulings R-S18 and R-S19. An `html!` literal with a long `d` carries a proof of its values, and no kernel evaluation opens a value's text |
 
+| S6 | the structure of a typed tree by its tags and keys, with the law that this is the checker's verdict; `html!` proves by it; a typed tree in the typed HTML tree; the locality of a refusal (debt D94); the gate of the path grammar against its chapter (debt D95) | done: ruling R-S20. V6b and V8 are proved; the kernel checks a picture of 300 elements in 0.16 s, where it took 8.06 s |
+
 Each part lands as commits by explicit paths, with its narrow build, `lake build`, the axiom
-receipt and the gates it reaches. No part runs the trust self-test (ruling R-S5).
+receipt and the gates it reaches. A part runs the default trust self-test when it changes a
+path that ruling R-T1 names.
 
 ### 5.1 S2: the schema as data
 
@@ -860,6 +865,52 @@ G4 of the coordinator's third note in the order the note gives, and pays debts D
   `auto` or one. The table gives the nine names their kinds on the elements the chapter names.
 - **Numerals.** `10 : Decimal`, `320 : Magnitude` and `10 : Length` are instances, and
   `-10 : Decimal` is the opposite number.
+
+### 5.5 S6: the structure by tags and keys
+
+**As built (S6).** Ruling R-S20 of `COORDINATION.md` is the record. The slice answers the
+owner's word after the push of S5: speed, the open items, and the gaps of the design.
+
+- **What was slow.** A string is a byte array with a proof, and the kernel takes some
+  milliseconds to decode one name. The checker decodes each name several times, so the kernel
+  took 8.06 s to check the structure of an `html!` picture of 300 `rect` elements with eight
+  attributes each. A typed tree already holds each name as a constructor.
+- **The key of an attribute (SV-36).** `Whatwg/Html/Node/SvgKeys.lean` holds `SvgAttr.Key`: an
+  attribute of the schema, the key of a custom data attribute, or one of the two namespace
+  declarations. The name is injective in the key. `SvgAttr.allOk` is one pass over an attribute
+  list: each attribute is one the element takes, and its key was not met before, where the
+  keys met are a mask, a list of data keys and two bits. `SvgAttr.svgAttrsOk_toPairs` says that
+  the checker's test of the written pairs is this pass, and `SvgAttr.allOk_iff` what the pass
+  decides.
+- **The structure of a typed tree (node V8).** `Whatwg/Html/Node/SvgValid.lean` holds
+  `SvgNode.okAt`, the test of a typed tree at a position by its tags and its keys, and
+  `SvgNode.validAt_toRaw`: the checker's verdict on the raw tree of a typed tree is `okAt`'s
+  verdict, at every position. An element at an HTML position that is not `svg` is handed to
+  the checker's own test of one node, because the checker reads its name as an HTML name
+  there; so the law is an equation and not an implication.
+- **`html!` proves by the law.** The obligation of an SVG subtree is `SvgNode.okIn ctx e = true`
+  with `SvgNode.validIn_of_okIn`. The kernel checks the picture of 300 elements in 0.16 s, and
+  one of 100 in 0.05 s where it took 2.44 s. `WhatwgTest/Html/SvgBenchmark.lean` pins a bound.
+- **Structure for every input.** `okAt` forces no value, so a picture built from variables has
+  its structure for every number and text by one small evaluation, and a picture with a free
+  list of marks by the test's equations. `WhatwgTest/Html/SvgValid.lean` proves it for the
+  shapes that lean4-effect4's picture writer emits. With V7 such a tree has both judgments and
+  no text is read. A closed test is `decide +kernel`. A test with free values is
+  `conv => lhs; whnf`, since the elaborator's unifier does not fold a shift by a large index.
+- **In the typed HTML tree.** `Child.ofSvg` makes a `Child ctx` of a typed tree that passes
+  `okIn ctx`. The typed HTML tree `Element` still has no SVG element of its own.
+- **Locality of a refusal (node V6b, debt D94).** `Value/Refusal.lean` gains `Syn.run_local`: a
+  run depends only on the text it stood on. `Syn.explain_local` follows: a refusal at an offset
+  that holds a character is shared by every text that agrees through that character.
+- **The path grammar against its chapter (SV-37, debt D95).** `WhatwgGates/SvgGrammar.lean` is
+  the gate `lake exe whatwg_svggrammar`. It finds the sealed production `svg_path` and the
+  erased expression of `Path.syn` to have one language, and the same for 24 productions below
+  it, with seven controls that differ as they must. The default run takes rows found equal
+  as letters of the rows above them and takes under a second. `--whole` adds the reference,
+  `svg_path` over characters alone, in about eight seconds, and CI runs that. The gate reads
+  one block of one chapter: `points`, `viewBox` and the transform list are debt D97.
+- **The proof style of the HTML package (debt D82).** 117 calls in eight files of
+  `Whatwg/Html` name their lemmas or are direct terms now. No statement changed.
 ## 6. Anticipated proof graph
 
 S2 is passive data and states no law. S3 is an admission, so it opens a proof graph,
@@ -898,7 +949,9 @@ Two consumers read these nodes. **D** is lean4-effect4's document builder,
 | V4 | `explainValues n = none ↔ valuesOk n = true` | located refusal of a value | proved, as W1 | S4b | D, P |
 | V5 | the text of a typed value passes its attribute's check | corollary of V2 and of `String.toList_ofList` | proved: it evaluates no text | S4b | P |
 | V6 | `explainValue t a s = none ↔ valueOk t a s = true`, and the offset is a position of the text, no earlier than where the reader stopped | located refusal of one value | proved, generic, by the reader that carries its reach | S4d | D, P |
+| V6b | a text refused at offset `n`, with a character there, shares the refusal at `n` with every text that agrees with it on its first `n + 1` characters | locality of the refusal | proved, generic: a run depends only on the text it stood on (`Syn.run_local`) | S6 | D, P |
 | V7 | `valuesOk node.toRaw = true` for every typed tree `node` | connector from the typed tree to the value judgment | proved: V2 at each attribute and the judgment's unfolding at each node; it evaluates no text | S5 | D, P |
+| V8 | `validAt p node.toRaw = node.okAt p` for every typed tree `node` and position `p` | law of structure: the checker's verdict is the verdict of the test over tags and keys | proved: the name tables' retraction at each name, and the one-pass law of an attribute list (`SvgAttr.svgAttrsOk_toPairs`); it reads no name | S6 | D, P |
 | P4 | `ofRaw? ns node.toRaw = some node` for a typed tree in the reader's placement, and a raw tree that reads has values of their grammars | retraction of the typed reader | proved: V1 at each value, and the name tables' own retraction | S5 | P |
 | D1 | `a.Same b ↔ a.reduce = b.reduce` | the canonical value decides the cohort | proved, with `Same` an equivalence | S4b | P |
 
@@ -911,22 +964,25 @@ Two consumers read these nodes. **D** is lean4-effect4's document builder,
   standard's content model: that edge is the HTML package's, and it is open (debt D57).
 - The content model of SVG is the definitions' index. A sentence of a chapter that narrows a
   model is not read, apart from the four of SV-4.
-- The expression of a grammar is the seat's transcription of the chapter's BNF. No gate
-  compares the two languages. V3a ties the reader to the transcription, not to the chapter.
+- The expression of a grammar is the seat's transcription of the chapter's BNF. For path data
+  a gate compares the two languages (SV-37): it is unverified code, and its verdict is no
+  theorem. For `points`, `viewBox`, `transform` and the length no gate does. V3a ties the
+  reader to the transcription, not to the chapter.
 - V1 says that a printed value reads back. It does not say that a browser draws it as intended.
 - V3b ties the reader to the rule over the seat's transcription. V3c ties the rule's language
   to the expression's for a deterministic description alone. Neither says that the
-  transcription is the chapter's grammar: that rests on each battery's replay of the chapter's
-  examples (debt D95).
-- V6 gives an offset. It does not say that every text with that prefix is refused: that law is
-  not proved.
+  transcription is the chapter's grammar: for path data that rests on the gate of SV-37, and
+  for the others on each battery's replay of the chapter's examples.
+- V6 gives an offset, and V6b says that it is a fact of the text up to it. A refusal at the end
+  of a text says nothing of a longer text: the premise of V6b is a character at the offset.
 - `validIn` says nothing of an SVG value (SV-30). A typed tree's values are right by its type
   (V7), and `valuesOk` judges a raw tree that no one typed, on the names of the table of SV-32
   and SV-35. An attribute with no kind takes any text.
 - The check of a length refuses some values that SVG admits (SV-31), and a negative size that
   SVG treats as its initial value (SV-35).
-- A typed tree is not a valid tree. `validIn` of its raw tree judges the structure, and for a
-  tree that `html!` builds that is one evaluation by the kernel (debt D83).
+- A typed tree is not a valid tree by its type. `SvgNode.okAt` judges its structure, and V8
+  says that this is the checker's verdict. For a tree that `html!` builds that is one
+  evaluation by the kernel, over tags and keys, and not a proof composed from the nodes.
 - P4 is a retraction on typed trees. Reading a raw tree and writing it gives another spelling
   of each value, not the same text.
 - CSS in a `style` element or attribute is never checked.
@@ -940,7 +996,7 @@ a debt of `COORDINATION.md` (ruling R-S6):
 | --- | --- |
 | H-C1 | Exclusions as a mask. Today they are fifteen `Bool` fields, and four functions repeat the list of rules. |
 | H-C2 | The class `Universe` and its reflection lemma for the HTML universes, in a home both schemas import. |
-| H-C3 | Proof style: every `simp` names its lemmas, and no `simp_all`. |
+| H-C3 | Proof style: every `simp` names its lemmas, and no `simp_all`. Paid at slice S6 (debt D82, ruling R-S20): 117 calls in eight files. |
 | H-C4 | The tactic's hand reader of a context, after H-C1. |
 | H-C5 | One set of character helpers in place of `spanChars`, `spanWhile` and two `isNameChar`. |
 | H-C6 | The HTML name tables through `NameTable` (T6). |
@@ -990,3 +1046,4 @@ builds its pictures as trees.
 | S4b and S4c | `8d79c21`, 2026-10-11 | `Grammar` and the bank `Whatwg.Syn`; `Value/Number.lean`, `Path.lean`, `Points.lean`, `ViewBox.lean`, `Transform.lean` and `Cohort.lean`, each a value of `Grammar` or its law; `Value/Attribute.lean` with six attributes; the seam's `Whatwg/Html/Content/Values.lean` with `valuesOk`, V4 and V5; `html!` runs a literal value; six batteries; `Whatwg.Svg` strict with no exception; rulings SV-28 to SV-30; debts D89 to D92; the record is ruling R-S16 |
 | S4d | 2026-10-11 | `Value/Length.lean` with `Length.grammar`; `Value/Attribute.lean` as one table of kinds keyed by element and attribute; `Value/Refusal.lean` with V6, and the offset in the seam's refusal and in the message of `html!`; `Value/Greedy.lean` with V3b and `Value/Deterministic.lean` with V3c; a part of a description is an `abbrev`; four batteries new and the seam's extended; `Whatwg.Svg` strict with no exception; rulings SV-31 to SV-33; debts D89, D90 and D91 paid, D93 to D95 opened; slice S5 named for the third note's G4; the record is ruling R-S17 |
 | S5 | 2026-10-12 | `master/geometry.html` sealed (`e3144bb`, ruling R-S18); `AttrValue`, the typed node `Whatwg/Html/Node/Svg.lean` with the connector V7, the reader `Whatwg/Html/Node/SvgRead.lean` with P4, `html!` emitting typed trees, `Value/Extent.lean` and the geometry rows of the table; batteries `WhatwgTest/Html/SvgNode.lean`, `SvgRead.lean` and `WhatwgTest/Svg/Extent.lean`; rulings SV-34 and SV-35; debts D92 and D93 paid, D96 opened for the lists of `text`; the record is ruling R-S19 |
+| S6 | 2026-10-12 | `Whatwg/Html/Node/SvgKeys.lean` and `SvgValid.lean` with V8, `html!` proving an SVG subtree by `okIn`, `Child.ofSvg`; `Value/Refusal.lean` with V6b; the gate `lake exe whatwg_svggrammar`; the proof style of eight HTML files; the probe copy of the reference self-test keeps the execute right; batteries `WhatwgTest/Html/SvgKeys.lean`, `SvgValid.lean` and `SvgBenchmark.lean`; rulings SV-36 and SV-37; debts D82, D94 and D95 paid; the record is ruling R-S20 |

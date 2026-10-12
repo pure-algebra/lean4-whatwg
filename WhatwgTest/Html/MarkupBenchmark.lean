@@ -10,9 +10,11 @@ of a thousand heartbeats:
 
 | Route | Fails at | Passes at | Bound set here |
 | --- | --- | --- | --- |
-| noncomputable (a fresh `Eq.refl true` per node) | 117 | 120 | 200 (the default) |
+| noncomputable (a fresh `Eq.refl true` per node) | 117 | 120 | 200 |
 | computable | not re-measured | | 1000 |
 | noncomputable, every `li` with two attributes (500 attribute obligations) | 190 | 193 | not pinned |
+
+The option's default is 200000 of these units, a thousand times the first bound.
 
 A second proof route, one auxiliary lemma per distinct obligation behind the
 option `whatwg.html.memo`, measured 142 and 147 on the first row's document.

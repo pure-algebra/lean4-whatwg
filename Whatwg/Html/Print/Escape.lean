@@ -139,7 +139,7 @@ tail. Every case of the decoder that does otherwise begins with `&`. -/
 theorem unescape_cons_of_ne_amp {c : Char} (h : c ≠ '&') (t : List Char) :
     unescape (c :: t) = c :: unescape t := by
   rw [unescape]
-  all_goals (intros; simp_all)
+  all_goals exact fun _ hc _ => h hc
 
 /-- The decoder recovers the character the escaper replaced, whatever
 follows. -/
@@ -155,7 +155,7 @@ theorem unescape_escapeChar (c : Char) (rest : List Char) :
   split
   · rename_i h; subst h; rfl
   · rename_i h1 _ _ _
-    simpa using unescape_cons_of_ne_amp h1 rest
+    exact unescape_cons_of_ne_amp h1 rest
 
 theorem unescape_escape (l : List Char) : unescape (escape l) = l := by
   induction l with
@@ -190,14 +190,12 @@ theorem escapeAttr_injective {l₁ l₂ : List Char} (h : escapeAttr l₁ = esca
 theorem escapeChar_ne_nil (c : Char) : escapeChar c ≠ [] := by
   unfold escapeChar
   split
-  · simp
+  · exact List.cons_ne_nil _ _
   split
-  · simp
+  · exact List.cons_ne_nil _ _
   split
-  · simp
-  split
-  · simp
-  · simp
+  · exact List.cons_ne_nil _ _
+  split <;> exact List.cons_ne_nil _ _
 
 /-- A nonempty run escapes to a nonempty run. -/
 theorem escape_ne_nil {l : List Char} (h : l ≠ []) : escape l ≠ [] := by
@@ -210,10 +208,10 @@ theorem escape_ne_nil {l : List Char} (h : l ≠ []) : escape l ≠ [] := by
 /-! ## The `String` boundary -/
 
 theorem toList_escapeString (s : String) : (escapeString s).toList = escape s.toList := by
-  simp [escapeString]
+  simp only [escapeString, String.toList_ofList]
 
 theorem toList_escapeAttrString (s : String) : (escapeAttrString s).toList = escapeAttr s.toList := by
-  simp [escapeAttrString]
+  simp only [escapeAttrString, String.toList_ofList]
 
 theorem escapeString_injective {s t : String} (h : escapeString s = escapeString t) : s = t := by
   apply String.toList_injective

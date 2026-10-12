@@ -51,10 +51,15 @@ document is in `docs/receipts/SVG-PG-SEAM.md`.
 - The check of a length refuses some values that SVG admits: a unit the sealed table does not
   name, `calc()`, a CSS comment and a CSS escape (ruling SV-31). The check of a size refuses a
   negative one, which SVG treats as the initial value (ruling SV-35).
-- A typed tree has good values and may still be refused: the type gives no structure. For a
-  tree that `html!` builds, the structure is one kernel evaluation of `validIn` on the raw tree.
-- A refusal of a value names the offset at which no reading of its grammar continues. It does
-  not say that every text with that prefix is refused: that law is not proved.
+- A typed tree has good values and may still be refused: the type gives no structure.
+  `SvgNode.okAt` judges the structure by tags and keys, and `SvgNode.validAt_toRaw` says that
+  its verdict is the checker's on the raw tree. For a tree that `html!` builds, the structure
+  is one kernel evaluation of that test. It is one evaluation, and not a proof composed from
+  the nodes.
+- A refusal of a value names the offset at which no reading of its grammar continues. When the
+  text has a character there, every text that agrees with it through that character is refused
+  at the same offset (`Syn.explain_local`). A refusal at the end of a text says nothing of a
+  longer text.
 - A grammar's description is the seat's transcription of the sealed productions. No gate
   compares the two languages. Each grammar module names the productions it restructured.
 - `html!` reads a literal value with its grammar and holds the typed value. It proves nothing of a value whose attribute has no kind: that value is text.

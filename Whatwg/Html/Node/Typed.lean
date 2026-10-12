@@ -80,9 +80,9 @@ theorem Element.valid {t : Tag} {ctx : Ctx} (e : Element t ctx)
     (h : ctx.admitsWith t (rawAttrs e.attrs) = true) : validIn ctx e.toRaw = true := by
   obtain ⟨m, hm⟩ : ∃ m, t.markupName = some m := by
     cases hn : t.markupName with
-    | none => have ht := e.htag; simp [hn] at ht
+    | none => have ht := e.htag; rw [hn] at ht; exact Bool.noConfusion ht
     | some m => exact ⟨m, rfl⟩
-  have hmt : t.markupText = m := by simp [Schema.Tag.markupText, hm]
+  have hmt : t.markupText = m := by simp only [Schema.Tag.markupText, hm, Option.getD_some]
   rw [Element.toRaw, hmt]
   exact Content.validIn_element ctx t m hm _ _ h e.hattrs e.hseq e.hchildren
 

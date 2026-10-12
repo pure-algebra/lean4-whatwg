@@ -135,12 +135,12 @@ theorem matches_eps_iff {l : List Tag} : Matches base .eps l ↔ l = [] :=
 theorem nullable_iff : ∀ s : Seq, nullable s = true ↔ Matches base s [] := by
   intro s
   induction s with
-  | eps => simp [nullable, Matches.eps]
-  | empty => simp [nullable, not_matches_empty]
-  | tag t => simp only [nullable, Bool.false_eq_true, false_iff]; intro h; have := tag_inv h; simp at this
+  | eps => simp only [nullable, Matches.eps]
+  | empty => simp only [nullable, Bool.false_eq_true, not_matches_empty]
+  | tag t => simp only [nullable, Bool.false_eq_true, false_iff]; intro h; cases tag_inv h
   | base ex =>
     simp only [nullable, Bool.false_eq_true, false_iff]
-    intro h; obtain ⟨t, ht, _, _⟩ := base_inv h; simp at ht
+    intro h; obtain ⟨t, ht, _, _⟩ := base_inv h; cases ht
   | seq a b iha ihb =>
     simp only [nullable, Bool.and_eq_true, iha, ihb]
     constructor
@@ -154,8 +154,8 @@ theorem nullable_iff : ∀ s : Seq, nullable s = true ↔ Matches base s [] := b
     constructor
     · rintro (h | h); exact .altL h; exact .altR h
     · exact alt_inv
-  | star a _ => simp [nullable, Matches.starNil]
-  | opt a _ => simp [nullable, Matches.optNil]
+  | star a _ => simp only [nullable, Matches.starNil]
+  | opt a _ => simp only [nullable, Matches.optNil]
   | plus a iha =>
     simp only [nullable, iha]
     constructor
@@ -180,12 +180,12 @@ theorem matches_sq_iff (a b : Seq) (l : List Tag) :
     · intro h; exact Matches.seq (l₁ := []) .eps h
     · intro h
       obtain ⟨l₁, l₂, heq, ha, hb⟩ := seq_inv h
-      subst heq; rw [eps_inv ha]; simpa using hb
+      subst heq; rw [eps_inv ha]; exact hb
   · constructor
-    · intro h; simpa using Matches.seq (l₂ := []) h .eps
+    · intro h; simpa only [List.append_nil] using Matches.seq (l₂ := []) h .eps
     · intro h
       obtain ⟨l₁, l₂, heq, ha, hb⟩ := seq_inv h
-      subst heq; rw [eps_inv hb]; simpa using ha
+      subst heq; rw [eps_inv hb, List.append_nil]; exact ha
   · exact Iff.rfl
 
 theorem matches_al_iff (a b : Seq) (l : List Tag) :
@@ -219,12 +219,12 @@ theorem star_cons_aux {s : Seq} {l : List Tag} (h : Matches base s l) :
     injection hsa with hsa
     subst hsa
     cases l₁ with
-    | nil => exact ih _ rfl t ts (by simpa using hl)
+    | nil => exact ih _ rfl t ts hl
     | cons v l₁' =>
       simp only [List.cons_append, List.cons.injEq] at hl
       obtain ⟨rfl, rfl⟩ := hl
       exact ⟨l₁', l₂, ha, hs, rfl⟩
-  | starNil => intro _ _ t ts hl; simp at hl
+  | starNil => intro _ _ t ts hl; cases hl
   | eps => intro _ hsa; cases hsa
   | tag => intro _ hsa; cases hsa
   | base => intro _ hsa; cases hsa
@@ -248,7 +248,7 @@ theorem deriv_iff : ∀ (s : Seq) (t : Tag) (ts : List Tag),
     intro t ts; rw [deriv]
     constructor
     · intro h; exact absurd h not_matches_empty
-    · intro h; exact absurd (eps_inv h) (by simp)
+    · intro h; exact absurd (eps_inv h) (List.cons_ne_nil t ts)
   | empty =>
     intro t ts; rw [deriv]
     constructor
@@ -261,8 +261,8 @@ theorem deriv_iff : ∀ (s : Seq) (t : Tag) (ts : List Tag),
       simp only [beq_self_eq_true, ↓reduceIte, matches_eps_iff]
       constructor
       · rintro rfl; exact .tag t
-      · intro h; simpa using tag_inv h
-    · have : (t == other) = false := by simpa using h
+      · intro h; exact (List.cons.inj (tag_inv h)).2
+    · have : (t == other) = false := beq_false_of_ne h
       simp only [this, Bool.false_eq_true, ↓reduceIte]
       constructor
       · intro h; exact absurd h not_matches_empty
@@ -293,12 +293,12 @@ theorem deriv_iff : ∀ (s : Seq) (t : Tag) (ts : List Tag),
         obtain ⟨l₁, l₂, heq, ha, hb⟩ := seq_inv h
         subst heq
         rw [iha] at ha
-        simpa using Matches.seq ha hb
+        exact Matches.seq ha hb
       · by_cases hn : nullable a = true
         · simp only [hn, ↓reduceIte] at h
           rw [ihb] at h
           have ha : Matches base a [] := (nullable_iff a).mp hn
-          simpa using Matches.seq ha h
+          exact Matches.seq ha h
         · simp only [hn, Bool.false_eq_true, ↓reduceIte] at h
           exact absurd h not_matches_empty
     · intro h
@@ -333,7 +333,7 @@ theorem deriv_iff : ∀ (s : Seq) (t : Tag) (ts : List Tag),
       obtain ⟨l₁, l₂, heq, ha, hs⟩ := seq_inv h
       subst heq
       rw [iha] at ha
-      simpa using Matches.starCons ha hs
+      exact Matches.starCons ha hs
     · intro h
       obtain ⟨l₁, l₂, ha, hs, rfl⟩ := star_cons h
       exact Matches.seq ((iha t l₁).mpr ha) hs
@@ -343,7 +343,7 @@ theorem deriv_iff : ∀ (s : Seq) (t : Tag) (ts : List Tag),
     constructor
     · intro h; exact .optSome ((iha t ts).mp h)
     · intro h; rcases opt_inv h with h | h
-      · simp at h
+      · exact absurd h (List.cons_ne_nil t ts)
       · exact (iha t ts).mpr h
   | plus a iha =>
     intro t ts
@@ -353,7 +353,7 @@ theorem deriv_iff : ∀ (s : Seq) (t : Tag) (ts : List Tag),
       obtain ⟨l₁, l₂, heq, ha, hs⟩ := seq_inv h
       subst heq
       rw [iha] at ha
-      simpa using Matches.plus ha hs
+      exact Matches.plus ha hs
     · intro h
       obtain ⟨l₁, l₂, heq, ha, hs⟩ := plus_inv h
       cases l₁ with
@@ -414,7 +414,7 @@ def seqProblem? (c : Ctx) (t : Tag) (children : List RawNode) : Option String :=
 
 theorem seqOk_of_none (c : Ctx) (t : Tag) (h : t.seq? = none) (children : List RawNode) :
     seqOk c t children = true := by
-  simp [seqOk, h]
+  simp only [seqOk, h]
 
 /-- The tags with a sequence at the pin. -/
 theorem sequenced_tags : Tag.all.filter (fun t => (Tag.seq? t).isSome) =

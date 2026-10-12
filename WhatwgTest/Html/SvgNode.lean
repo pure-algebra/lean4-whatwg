@@ -17,7 +17,8 @@ A control is a typed tree that the checker refuses: the type gives the values an
 structure. A finite evaluation prints a closed tree.
 
 What this battery does not claim: that a browser draws a printed tree as intended, or that a
-typed tree is valid. `validIn` judges that, by one evaluation that reads names alone.
+typed tree is valid. The structure of these trees, for every number and text, is the battery
+`WhatwgTest/Html/SvgValid.lean`.
 -/
 
 namespace WhatwgTest.Html.SvgNode
@@ -102,8 +103,9 @@ def chart : SvgNode :=
       curve (10000, 20000) (15000, 25000) (30000, 150000) (40000, 180000) "ink"] ++
       clipped 1 0 0 320 200 [label 10 195 2 "a  b"])
 
--- The structure of a closed typed tree is one evaluation of `validIn` on its raw tree. It
--- reads names: no value's text is opened.
+-- The checker accepts the raw tree of the closed picture: one run over its written names,
+-- which opens no value's text. `SvgNode.okIn` decides the same without a name
+-- (`WhatwgTest/Html/SvgValid.lean`).
 example : validIn Ctx.flow chart.toRaw = true := by decide +kernel
 
 -- The printed markup: each typed value in its grammar's one spelling.

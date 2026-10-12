@@ -176,15 +176,15 @@ theorem renderAllIn_cons (s : PrintState) (node : RawNode) (rest : List RawNode)
 /-! ## The `String` boundary -/
 
 theorem toList_render (node : RawNode) : (render node).toList = renderChars node := by
-  simp [render]
+  simp only [render, String.toList_ofList]
 
 theorem toList_renderList (nodes : List RawNode) :
     (renderList nodes).toList = renderCharsList nodes := by
-  simp [renderList]
+  simp only [renderList, String.toList_ofList]
 
 theorem toList_renderDoc (node : RawNode) :
     (renderDoc node).toList = doctype.toList ++ renderChars node := by
-  simp [renderDoc, toList_render]
+  simp only [renderDoc, String.toList_append, toList_render]
 
 /-! ## The text-run statement, lifted from the escaper -/
 
@@ -212,7 +212,8 @@ theorem renderChars_not_injective :
 
 theorem renderCharsList_not_injective :
     ∃ a b : List RawNode, a ≠ b ∧ renderCharsList a = renderCharsList b :=
-  ⟨[.text "a", .text "b"], [.text "ab"], by simp, by decide⟩
+  ⟨[.text "a", .text "b"], [.text "ab"], fun h => List.cons_ne_nil _ _ (List.cons.inj h).2,
+    by decide⟩
 
 /-! ## Well-formed trees -/
 
@@ -296,11 +297,12 @@ theorem spanChars_append {p : Char → Bool} {l rest : List Char}
   | nil =>
     cases rest with
     | nil => rfl
-    | cons c t => simp [spanChars, hr c t rfl]
+    | cons c t =>
+      simp only [List.nil_append, spanChars, hr c t rfl, Bool.false_eq_true, ↓reduceIte]
   | cons c t ih =>
-    have hc : p c = true := hl c (by simp)
-    have ih' := ih (fun x hx => hl x (by simp [hx]))
-    simp [spanChars, hc, ih']
+    have hc : p c = true := hl c List.mem_cons_self
+    have ih' := ih (fun x hx => hl x (List.mem_cons_of_mem c hx))
+    simp only [List.cons_append, spanChars, hc, ↓reduceIte, ih']
 
 /-! ## The decoder for the printer's own output
 
@@ -330,7 +332,7 @@ def isNameChar (c : Char) : Bool := c != ' ' && c != '/' && c != '>'
 
 /-- Strip a literal prefix, or fail. Every literal the decoder expects is
 consumed through this function, so that both its success and its failure
-reduce by `simp`. -/
+reduce by its own equations: `afterPrefix_append` and the lemmas beside it. -/
 def afterPrefix : List Char → List Char → Option (List Char)
   | [], l => some l
   | _ :: _, [] => none
@@ -340,7 +342,7 @@ def afterPrefix : List Char → List Char → Option (List Char)
 theorem afterPrefix_append (p l : List Char) : afterPrefix p (p ++ l) = some l := by
   induction p with
   | nil => rfl
-  | cons c cs ih => simp [afterPrefix, ih]
+  | cons c cs ih => simp only [List.cons_append, afterPrefix, ↓reduceIte, ih]
 
 /-- The attribute list of a start tag: repeated ` name="value"` until `>`. -/
 def decodeAttrs : Nat → List Char → Option (List (String × String) × List Char)
@@ -447,7 +449,7 @@ theorem afterPrefix_nil (l : List Char) : afterPrefix [] l = some l := rfl
 
 /-- A matching first character is consumed. -/
 theorem afterPrefix_cons_self (c : Char) (ps l : List Char) :
-    afterPrefix (c :: ps) (c :: l) = afterPrefix ps l := by simp [afterPrefix]
+    afterPrefix (c :: ps) (c :: l) = afterPrefix ps l := by simp only [afterPrefix, ↓reduceIte]
 
 /-- A literal prefix fails as soon as its first character does. -/
 theorem afterPrefix_head_ne {c : Char} {ps l r : List Char} (hl : l ≠ [])
@@ -455,8 +457,8 @@ theorem afterPrefix_head_ne {c : Char} {ps l r : List Char} (hl : l ≠ [])
   cases l with
   | nil => exact absurd rfl hl
   | cons d t =>
-    have hcd : ¬ c = d := fun hc => (h d (by simp)) hc.symm
-    simp [afterPrefix, hcd]
+    have hcd : ¬ c = d := fun hc => (h d List.mem_cons_self) hc.symm
+    simp only [List.cons_append, afterPrefix, hcd, ↓reduceIte]
 
 /-- A `nameOk` name is a nonempty run of `nameChar`s. -/
 theorem nameOk_facts {s : String} (h : nameOk s = true) :
@@ -476,7 +478,7 @@ theorem renderAttrs_head_not_name (attrs : List (String × String)) {r : List Ch
     (hr : ∀ c t, r = c :: t → isNameChar c = false) :
     ∀ c t, renderAttrs attrs ++ r = c :: t → isNameChar c = false := by
   cases attrs with
-  | nil => simpa [renderAttrs] using hr
+  | nil => exact hr
   | cons a as =>
     intro c t hct
     simp only [renderAttrs, List.flatMap_cons, renderAttr, List.cons_append] at hct
@@ -496,8 +498,8 @@ theorem renderIn_markup_head (s : PrintState) {node : RawNode} (h : startsMarkup
     · rw [if_neg hv]
       exact ⟨_, rfl⟩
   | comment content => exact ⟨_, renderIn_comment s content⟩
-  | text content => simp [startsMarkup] at h
-  | entity name => simp [startsMarkup] at h
+  | text content => exact Bool.noConfusion h
+  | entity name => exact Bool.noConfusion h
 
 /-- Every node costs at least one unit of decoding budget. -/
 theorem one_le_weight (node : RawNode) : 1 ≤ weight node := by
@@ -521,33 +523,34 @@ theorem decodeAttrs_render : ∀ (attrs : List (String × String)) (fuel : Nat) 
   | nil =>
     intro fuel rest _ _ hrest
     cases fuel with
-    | zero => simp [decodeAttrs, renderAttrs]
+    | zero => rfl
     | succ f =>
       obtain ⟨t, rfl⟩ := hrest
-      simp [decodeAttrs, renderAttrs, afterPrefix]
+      rfl
   | cons a as ih =>
     intro fuel rest hall hlen hrest
     cases fuel with
-    | zero => simp at hlen
+    | zero => exact absurd hlen (Nat.not_succ_le_zero _)
     | succ f =>
       simp only [List.all_cons, Bool.and_eq_true] at hall
       obtain ⟨hname, hnil⟩ := nameOk_facts hall.1
-      have hlen' : as.length ≤ f := by simpa using hlen
+      have hlen' : as.length ≤ f := Nat.le_of_succ_le_succ hlen
       have ihs := ih f rest hall.2 hlen' hrest
       have hinput : renderAttrs (a :: as) ++ rest
           = ' ' :: (a.1.toList ++ ('=' :: '"'
               :: (escapeAttr a.2.toList ++ ('"' :: (renderAttrs as ++ rest))))) := by
-        simp [renderAttrs, renderAttr]
+        simp only [renderAttrs, List.flatMap_cons, renderAttr, List.cons_append, List.append_assoc,
+          List.nil_append]
       have hspan₁ : spanChars (fun c => c != '=')
             (a.1.toList ++ ('=' :: '"' :: (escapeAttr a.2.toList ++ ('"' :: (renderAttrs as ++ rest)))))
           = (a.1.toList, '=' :: '"' :: (escapeAttr a.2.toList ++ ('"' :: (renderAttrs as ++ rest)))) :=
-        spanChars_append (fun x hx => by simpa using nameChar_ne (hnil x hx) (by decide))
+        spanChars_append (fun x hx => bne_iff_ne.mpr (nameChar_ne (hnil x hx) (by decide)))
           (fun c t hct => by injection hct with h _; subst h; decide)
       have hspan₂ : spanChars (fun c => c != '"')
             (escapeAttr a.2.toList ++ ('"' :: (renderAttrs as ++ rest)))
           = (escapeAttr a.2.toList, '"' :: (renderAttrs as ++ rest)) :=
         spanChars_append
-          (fun x hx => by simpa using escapeAttr_mem_ne (d := '"') (by decide) hx)
+          (fun x hx => bne_iff_ne.mpr (escapeAttr_mem_ne (d := '"') (by decide) hx))
           (fun c t hct => by injection hct with h _; subst h; decide)
       rw [hinput, decodeAttrs, afterPrefix_cons_self, afterPrefix_nil]
       dsimp only
@@ -561,11 +564,11 @@ theorem decodeAttrs_render : ∀ (attrs : List (String × String)) (fuel : Nat) 
       dsimp only
       rw [ihs]
       dsimp only
-      simp [unescape_escapeAttr]
+      simp only [String.ofList_toList, unescape_escapeAttr]
 
 /-- A literal prefix fails on a different first character. -/
 theorem afterPrefix_cons_ne {c d : Char} (h : ¬ c = d) (ps l : List Char) :
-    afterPrefix (c :: ps) (d :: l) = none := by simp [afterPrefix, h]
+    afterPrefix (c :: ps) (d :: l) = none := by simp only [afterPrefix, h, ↓reduceIte]
 
 /-- A nonempty literal prefix fails on the empty list. -/
 theorem afterPrefix_nil_right (c : Char) (ps : List Char) : afterPrefix (c :: ps) [] = none := rfl
@@ -575,31 +578,32 @@ theorem decodeClose_render {name : String} (h : nameOk name = true) (rest : List
     decodeClose name.toList (renderClose name ++ rest) = some rest := by
   obtain ⟨_, hall⟩ := nameOk_facts h
   have hspan : spanChars (fun c => c != '>') (name.toList ++ ('>' :: rest)) = (name.toList, '>' :: rest) :=
-    spanChars_append (fun x hx => by simpa using nameChar_ne (hall x hx) (by decide))
+    spanChars_append (fun x hx => bne_iff_ne.mpr (nameChar_ne (hall x hx) (by decide)))
       (fun c t hct => by injection hct with h _; subst h; decide)
   have hinput : renderClose name ++ rest = '<' :: '/' :: (name.toList ++ ('>' :: rest)) := by
-    simp [renderClose]
+    simp only [renderClose, List.cons_append, List.append_assoc, List.nil_append]
   rw [hinput, decodeClose, afterPrefix_cons_self, afterPrefix_cons_self, afterPrefix_nil]
   dsimp only
   rw [hspan]
   dsimp only
   rw [afterPrefix_cons_self, afterPrefix_nil]
-  simp
+  simp only [↓reduceIte]
 
 /-- A well-formed node renders to something. -/
 theorem renderIn_ne_nil (s : PrintState) {node : RawNode} (h : wfIn s node = true) :
     renderIn s node ≠ [] := by
   cases node with
   | element name attrs children =>
-    by_cases hv : voidIn s.ns name = true <;> simp [renderIn_element, hv]
+    rw [renderIn_element]
+    split <;> exact List.cons_ne_nil _ _
   | text content =>
-    have hne : content.toList ≠ [] := by simpa [wfIn] using h
+    simp only [wfIn, Bool.not_eq_true', List.isEmpty_eq_false_iff] at h
     rw [renderIn_text]
-    cases s.raw with
-    | false => simpa using escape_ne_nil hne
-    | true => simpa using hne
-  | entity name => simp [wfIn] at h
-  | comment content => simp [renderIn_comment]
+    split
+    · exact h
+    · exact escape_ne_nil h
+  | entity name => simp only [wfIn, Bool.false_eq_true] at h
+  | comment content => rw [renderIn_comment]; exact List.cons_ne_nil _ _
 
 /-- No well-formed node's rendering begins with a closing tag, where text is escaped. -/
 theorem afterPrefix_close_ne (s : PrintState) (hs : s.raw = false) {node : RawNode}
@@ -613,27 +617,29 @@ theorem afterPrefix_close_ne (s : PrintState) (hs : s.raw = false) {node : RawNo
     by_cases hv : voidIn s.ns name = true
     · have : renderIn s (RawNode.element name attrs children) ++ r
           = '<' :: (name.toList ++ (renderAttrs attrs ++ (['>'] ++ r))) := by
-        simp [renderIn_element, hv]
+        simp only [renderIn_element, hv, ↓reduceIte, List.append_assoc, List.cons_append,
+          List.nil_append]
       rw [this, afterPrefix_cons_self]
       exact afterPrefix_head_ne hnnil hne
     · have : renderIn s (RawNode.element name attrs children) ++ r
           = '<' :: (name.toList ++ (renderAttrs attrs
               ++ ('>' :: (renderAllIn (s.step name) children ++ renderClose name ++ r)))) := by
-        simp [renderIn_element, hv]
+        simp only [renderIn_element, hv, Bool.false_eq_true, ↓reduceIte, List.append_assoc,
+          List.cons_append]
       rw [this, afterPrefix_cons_self]
       exact afterPrefix_head_ne hnnil hne
   | text content =>
-    have hne : content.toList ≠ [] := by simpa [wfIn] using h
+    simp only [wfIn, Bool.not_eq_true', List.isEmpty_eq_false_iff] at h
     have : renderIn s (RawNode.text content) ++ r = escape content.toList ++ r := by
-      simp [renderIn_text, hs]
+      rw [renderIn_text, hs]; rfl
     rw [this]
-    exact afterPrefix_head_ne (escape_ne_nil hne)
+    exact afterPrefix_head_ne (escape_ne_nil h)
       (fun x hx => escape_mem_ne (d := '<') (by decide) hx)
-  | entity name => simp [wfIn] at h
+  | entity name => simp only [wfIn, Bool.false_eq_true] at h
   | comment content =>
     have : renderIn s (RawNode.comment content) ++ r
         = '<' :: ('!' :: ('-' :: '-' :: (content.toList ++ ['-', '-', '>'] ++ r))) := by
-      simp [renderIn_comment]
+      rw [renderIn_comment]; rfl
     rw [this, afterPrefix_cons_self, afterPrefix_cons_ne (by decide)]
 
 /-- The children of a raw-text element render to a run free of `<`, and back. -/
@@ -642,15 +648,15 @@ theorem rawChildrenOk_facts (ns : Ns) {children : List RawNode} (h : rawChildren
     (if (renderAllIn ⟨ns, true⟩ children).isEmpty then ([] : List RawNode)
       else [RawNode.text (String.ofList (renderAllIn ⟨ns, true⟩ children))]) = children := by
   match children, h with
-  | [], _ => simp [renderAllIn_nil]
+  | [], _ => rw [renderAllIn_nil]; exact ⟨fun _ hx => absurd hx List.not_mem_nil, rfl⟩
   | [.text content], h =>
     simp only [rawChildrenOk, Bool.and_eq_true, Bool.not_eq_true', List.isEmpty_eq_false_iff,
       List.all_eq_true, bne_iff_ne, ne_eq] at h
     have hrun : renderAllIn ⟨ns, true⟩ [RawNode.text content] = content.toList := by
-      simp [renderAllIn_cons, renderAllIn_nil, renderIn_text]
+      simp only [renderAllIn_cons, renderIn_text, ↓reduceIte, renderAllIn_nil, List.append_nil]
     rw [hrun]
     refine ⟨fun x hx => h.2 x hx, ?_⟩
-    simp [List.isEmpty_iff, h.1]
+    simp only [List.isEmpty_iff, h.1, ↓reduceIte, String.ofList_toList]
 
 /-! ## The round trip -/
 
@@ -679,20 +685,20 @@ theorem decode_render : ∀ fuel : Nat,
     refine ⟨?_, ?_⟩
     · intro s node rest hs hwf hweight hrest
       cases node with
-      | entity name => simp [wfIn] at hwf
+      | entity name => simp only [wfIn, Bool.false_eq_true] at hwf
       | text content =>
-        have hne : content.toList ≠ [] := by simpa [wfIn] using hwf
-        have hesc : escape content.toList ≠ [] := escape_ne_nil hne
+        simp only [wfIn, Bool.not_eq_true', List.isEmpty_eq_false_iff] at hwf
+        have hesc : escape content.toList ≠ [] := escape_ne_nil hwf
         have hrest' := hrest content rfl
         have hspan : spanChars (fun c => c != '<') (escape content.toList ++ rest)
             = (escape content.toList, rest) :=
-          spanChars_append (fun x hx => by simpa using escape_mem_ne (d := '<') (by decide) hx)
+          spanChars_append (fun x hx => bne_iff_ne.mpr (escape_mem_ne (d := '<') (by decide) hx))
             (fun c t hct => by
               rcases hrest' with rfl | ⟨t', rfl⟩
-              · exact absurd hct (by simp)
+              · exact absurd hct.symm (List.cons_ne_nil c t)
               · injection hct with h _; subst h; decide)
         have hinput : renderIn s (RawNode.text content) ++ rest
-            = escape content.toList ++ rest := by simp [renderIn_text, hs]
+            = escape content.toList ++ rest := by rw [renderIn_text, hs]; rfl
         rw [hinput, decodeNodeIn?,
           afterPrefix_head_ne hesc (fun x hx => escape_mem_ne (d := '<') (by decide) hx)]
         dsimp only
@@ -700,8 +706,7 @@ theorem decode_render : ∀ fuel : Nat,
         dsimp only
         rw [hspan]
         dsimp only
-        rw [if_neg (by simpa using hesc)]
-        simp [unescape_escape]
+        rw [if_neg (mt List.isEmpty_iff.mp hesc), unescape_escape, String.ofList_toList]
       | comment content =>
         have hall : ∀ x ∈ content.toList, x ≠ '>' := by
           simp only [wfIn, List.all_eq_true, bne_iff_ne, ne_eq] at hwf
@@ -713,24 +718,24 @@ theorem decode_render : ∀ fuel : Nat,
             (fun x hx => by
               simp only [List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hx
               rcases hx with hx | (rfl | rfl)
-              · simpa using hall x hx
+              · exact bne_iff_ne.mpr (hall x hx)
               · decide
               · decide)
             (fun c t hct => by injection hct with h _; subst h; decide)
         have hdrop : (content.toList ++ ['-', '-']).dropLast.dropLast = content.toList := by
-          rw [show content.toList ++ ['-', '-'] = (content.toList ++ ['-']) ++ ['-'] from by simp]
+          rw [show content.toList ++ ['-', '-'] = (content.toList ++ ['-']) ++ ['-'] from
+            (List.append_assoc content.toList ['-'] ['-']).symm]
           rw [List.dropLast_concat, List.dropLast_concat]
         have hinput : renderIn s (RawNode.comment content) ++ rest
             = ['<', '!', '-', '-'] ++ ((content.toList ++ ['-', '-']) ++ ('>' :: rest)) := by
-          simp [renderIn_comment]
+          simp only [renderIn_comment, List.cons_append, List.append_assoc, List.nil_append]
         rw [hinput, decodeNodeIn?, afterPrefix_append]
         dsimp only
         rw [hspan]
         dsimp only
         rw [afterPrefix_cons_self, afterPrefix_nil]
         dsimp only
-        rw [hdrop]
-        simp
+        rw [hdrop, String.ofList_toList]
       | element name attrs children =>
         simp only [wfIn, Bool.and_eq_true] at hwf
         obtain ⟨⟨hname, hattrs⟩, hchildren⟩ := hwf
@@ -745,14 +750,15 @@ theorem decode_render : ∀ fuel : Nat,
               = (name.toList, renderAttrs attrs ++ r) := fun r hr =>
           spanChars_append (fun x hx => nameChar_isNameChar (hnall x hx))
             (renderAttrs_head_not_name attrs hr)
-        have hofList : String.ofList name.toList = name := by simp
+        have hofList : String.ofList name.toList = name := String.ofList_toList
         by_cases hv : voidIn s.ns name = true
         · have hnil : children = [] := by
             rw [if_pos hv] at hchildren
-            simpa using hchildren
+            exact List.isEmpty_iff.mp hchildren
           have hinput : renderIn s (RawNode.element name attrs children) ++ rest
               = '<' :: (name.toList ++ (renderAttrs attrs ++ ('>' :: rest))) := by
-            simp [renderIn_element, hv]
+            simp only [renderIn_element, hv, ↓reduceIte, List.append_assoc, List.cons_append,
+              List.nil_append]
           rw [hinput, decodeNodeIn?, afterPrefix_cons_self,
             afterPrefix_head_ne hnnil (fun x hx => nameChar_ne (hnall x hx) (by decide))]
           dsimp only
@@ -764,8 +770,7 @@ theorem decode_render : ∀ fuel : Nat,
           dsimp only
           rw [afterPrefix_cons_self, afterPrefix_nil]
           dsimp only
-          rw [hofList, if_pos hv]
-          simp [hnil]
+          rw [hofList, if_pos hv, hnil]
         · rw [if_neg hv] at hchildren
           by_cases hr : rawIn s.ns name = true
           · rw [if_pos hr] at hchildren
@@ -776,12 +781,13 @@ theorem decode_render : ∀ fuel : Nat,
                 = '<' :: (name.toList ++ (renderAttrs attrs
                     ++ ('>' :: (renderAllIn ⟨s.ns.step name, true⟩ children
                       ++ (renderClose name ++ rest))))) := by
-              simp [renderIn_element, hv, hstep]
+              simp only [renderIn_element, hv, Bool.false_eq_true, ↓reduceIte, hstep,
+                List.append_assoc, List.cons_append]
             have hspanRaw : spanChars (fun c => c != '<')
                   (renderAllIn ⟨s.ns.step name, true⟩ children ++ (renderClose name ++ rest))
                 = (renderAllIn ⟨s.ns.step name, true⟩ children, renderClose name ++ rest) :=
-              spanChars_append (fun x hx => by simpa using hraw x hx)
-                (fun c t hct => by simp [renderClose] at hct; obtain ⟨h, _⟩ := hct; subst h; decide)
+              spanChars_append (fun x hx => bne_iff_ne.mpr (hraw x hx))
+                (fun c t hct => by injection hct with h _; subst h; decide)
             rw [hinput, decodeNodeIn?, afterPrefix_cons_self,
               afterPrefix_head_ne hnnil (fun x hx => nameChar_ne (hnall x hx) (by decide))]
             dsimp only
@@ -804,12 +810,14 @@ theorem decode_render : ∀ fuel : Nat,
             have hinput : renderIn s (RawNode.element name attrs children) ++ rest
                 = '<' :: (name.toList ++ (renderAttrs attrs
                     ++ ('>' :: (renderAllIn (s.step name) children ++ (renderClose name ++ rest))))) := by
-              simp [renderIn_element, hv]
+              simp only [renderIn_element, hv, Bool.false_eq_true, ↓reduceIte, List.append_assoc,
+                List.cons_append]
             have hkids : decodeNodesIn? f (s.ns.step name)
                   (renderAllIn (s.step name) children ++ (renderClose name ++ rest))
                 = some (children, renderClose name ++ rest) :=
               ih.2 (s.step name) children (renderClose name ++ rest) hrf hchildren hwchildren
-                (Or.inr ⟨name.toList ++ ('>' :: rest), by simp [renderClose]⟩)
+                (Or.inr ⟨name.toList ++ ('>' :: rest), by
+                  simp only [renderClose, List.cons_append, List.append_assoc, List.nil_append]⟩)
             rw [hinput, decodeNodeIn?, afterPrefix_cons_self,
               afterPrefix_head_ne hnnil (fun x hx => nameChar_ne (hnall x hx) (by decide))]
             dsimp only
@@ -829,11 +837,10 @@ theorem decode_render : ∀ fuel : Nat,
       cases nodes with
       | nil =>
         rcases hrest with rfl | ⟨t, rfl⟩
-        · rw [show renderAllIn s [] ++ ([] : List Char) = [] from by simp [renderAllIn_nil],
-            decodeNodesIn?]
+        · rw [renderAllIn_nil, List.append_nil, decodeNodesIn?]
           rfl
         · rw [show renderAllIn s [] ++ ('<' :: '/' :: t) = ['<', '/'] ++ t from by
-              simp [renderAllIn_nil],
+              rw [renderAllIn_nil]; rfl,
             decodeNodesIn?, afterPrefix_append]
       | cons node tail =>
         simp only [wfAllIn, Bool.and_eq_true] at hwf
@@ -852,19 +859,19 @@ theorem decode_render : ∀ fuel : Nat,
           cases tail with
           | nil =>
             rcases hrest with rfl | ⟨t, rfl⟩
-            · exact Or.inl (by simp [renderAllIn_nil])
-            · exact Or.inr ⟨'/' :: t, by simp [renderAllIn_nil]⟩
+            · exact Or.inl (by rw [renderAllIn_nil, List.append_nil])
+            · exact Or.inr ⟨'/' :: t, by rw [renderAllIn_nil, List.nil_append]⟩
           | cons head' tail' =>
             subst hcontent
             simp only [textFollowOk] at hfollow
             obtain ⟨u, hu⟩ := renderIn_markup_head s hfollow
             exact Or.inr ⟨u ++ (renderAllIn s tail' ++ rest), by
-              simp [renderAllIn_cons, hu]⟩
+              simp only [renderAllIn_cons, hu, List.cons_append, List.append_assoc]⟩
         have hnode' := ih.1 s node (renderAllIn s tail ++ rest) hs hnode hwn htext
         have htail' := ih.2 s tail rest hs htail hwt hrest
         have hinput : renderAllIn s (node :: tail) ++ rest
             = renderIn s node ++ (renderAllIn s tail ++ rest) := by
-          simp [renderAllIn_cons]
+          rw [renderAllIn_cons, List.append_assoc]
         rw [hinput, decodeNodesIn?, afterPrefix_close_ne s hs hnode]
         dsimp only
         rw [if_neg (by
@@ -898,7 +905,7 @@ theorem renderChars_injective_of_wf {a b : RawNode} (ha : wf a = true) (hb : wf 
   have h' : renderIn .root a = renderIn .root b := h
   rw [h'] at hfa
   have heq : (some (a, []) : Option (RawNode × List Char)) = some (b, []) := hfa.symm.trans hfb
-  simpa using heq
+  exact (Prod.mk.inj (Option.some.inj heq)).1
 
 theorem render_injective_of_wf {a b : RawNode} (ha : wf a = true) (hb : wf b = true)
     (h : render a = render b) : a = b :=
