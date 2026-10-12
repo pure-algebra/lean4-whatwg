@@ -13,6 +13,7 @@ import WhatwgGates.HtmlStandardEmit
 import WhatwgGates.Xml
 import WhatwgGates.SvgDefinitions
 import WhatwgGates.SvgDefinitionsEmit
+import WhatwgGates.SvgGrammar
 import WhatwgGates.TrustSelfTest
 import WhatwgGates.TrustSelfTest.InProcess
 import WhatwgGates.Ledger.Model

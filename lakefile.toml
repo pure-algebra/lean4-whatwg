@@ -9,7 +9,7 @@ defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_htmlstandard",
-                  "whatwg_svgdefinitions",
+                  "whatwg_svgdefinitions", "whatwg_svggrammar",
                   "whatwg_ledger", "whatwg_declsnapshot", "whatwg_trustgate"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
@@ -150,6 +150,13 @@ root = "whatwgbin.HtmlStandard"
 [[lean_exe]]
 name = "whatwg_svgdefinitions"
 root = "whatwgbin.SvgDefinitions"
+
+# The gate of debt D95 (ruling SV-37 of docs/SVG-PACKAGE-PLAN.md): the grammar of path data in
+# the sealed chapter `master/paths.html` and its description in `Whatwg/Svg/Value/Path.lean`
+# have one language, production by production.
+[[lean_exe]]
+name = "whatwg_svggrammar"
+root = "whatwgbin.SvgGrammar"
 
 # The P1 specification-algorithm census, and since slice Q2 the Web IDL and
 # ECMA-262 censuses, each with its coverage report.

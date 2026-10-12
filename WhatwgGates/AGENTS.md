@@ -3,8 +3,8 @@
 This boundary contains the repository's gates implemented in Lean: the digest
 face of the required `hash` package, the vendor seal, the internal-citation
 gate, the trust gate's library, configuration and executable, the trust
-self-test in its two runs, the census, the URL inventory and census, and the two schema
-projections, of the HTML Standard and of SVG 2. It is
+self-test in its two runs, the census, the URL inventory and census, the two schema
+projections, of the HTML Standard and of SVG 2, and the grammar gate of SVG 2's path data. It is
 the sixth authored router because this tree has a distinct trust boundary
 from the other five: it is tooling that reads files, spawns processes, and
 produces projections. The axiom gate audits it like every other tree, under
@@ -120,6 +120,8 @@ they decide nothing.
 | `lake exe whatwg_htmlstandard --write` | the pinned digest | those nine files |
 | `lake exe whatwg_svgdefinitions` | each sealed svgwg file has its pinned digest and is ASCII; `master/publish.xml` lists exactly the pinned definitions files; the XML reader of `WhatwgGates/Xml.lean` accepts each and every entry carries only read attributes; each sentence has its reading in `Whatwg/Svg/Schema/Readings.lean`, by sentence and by digest; the four projections `generated/svg-*.tsv` and the four generated modules of `Whatwg/Svg/Schema/` are byte-identical to a fresh regeneration | nothing |
 | `lake exe whatwg_svgdefinitions --write` | the same, apart from drift | those eight files |
+| `lake exe whatwg_svggrammar` | the sealed chapter `master/paths.html` has its pinned digest; its one grammar block under `PathDataBNF` reads as EBNF with no construct refused, and `svg_path` reaches every production of it; the production `svg_path` and the erased expression of `Whatwg.Svg.Value.Path.syn` have one language, and so has each of 24 more productions and its named description, by a walk over the pairs of their Brzozowski derivatives in which a row found equal is one letter of the rows above it; seven controls differ, six of them a change to one sealed production and one the description of `d`, which also takes `none`, each with a shortest witness that a second matcher confirms. The gate is code that no theorem checks: a PASS is its verdict and no proof. It compares bare expressions and says nothing of the reader's longest-match rule (debt D95, ruling SV-37 of `docs/SVG-PACKAGE-PLAN.md`) | nothing |
+| `lake exe whatwg_svggrammar --whole` | the same, and then `svg_path` and `Path.syn` over characters alone, with no row taken as a letter: the reference for the walk by parts | nothing |
 | `lake exe whatwg_census` | the pinned `index.bs` digest; every census anchor occurs exactly once at its span start; every span digest recomputes; every row has exactly one disposition from the authored inputs under `census/`, with no unused entry; both projections are byte-identical to a fresh regeneration; and the numerator's coverage emit carries the same ids, order and dispositions as that regeneration, with no witness on an absent row and none on a row outside the denominator | nothing |
 | `lake exe whatwg_census --write` | the same, apart from the emit, before writing | `generated/spec-algorithm-census.tsv` and `WhatwgTest/Audit/SpecCoverageRows.lean` |
 | `lake exe whatwg_census --report` | the emit against a fresh regeneration, as above; then prints the coverage block of `docs/SPEC-COVERAGE.md` from the emit's states | nothing |

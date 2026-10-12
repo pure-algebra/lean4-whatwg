@@ -64,6 +64,7 @@ lake exe whatwg_urlinventory                       # generated/url-source-invent
 lake exe whatwg_urlcensus                          # the authored URL census and its source assignments against a regeneration
 lake exe whatwg_htmlstandard                       # generated/html-standard-*.tsv and the generated Whatwg/Html/Schema modules against the sealed HTML Standard source
 lake exe whatwg_svgdefinitions                     # generated/svg-*.tsv and the generated Whatwg/Svg/Schema modules against the sealed SVG 2 definitions
+lake exe whatwg_svggrammar                         # the grammar of path data in the sealed SVG 2 chapter against its description in Whatwg/Svg/Value/Path.lean
 lake exe whatwg_census                             # the Streams census and coverage emit
 lake exe whatwg_census --report                    # the Streams coverage block from the Lean emit
 lake exe whatwg_census --standard infra            # the Infra definition census
