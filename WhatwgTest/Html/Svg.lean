@@ -8,7 +8,7 @@ Readers, controls and finite evaluations of the seam (slice S3b of `docs/SVG-PAC
 small tree and evaluates `validIn`, or applies a law of the seam at a real position.
 
 A reader applies a law at a carrier: `Pos.child_ns`, `Pos.excl_le_child`, `validIn_element_eq`,
-`validIn_svg`, `restore_tag`. A control is a tree the checker refuses, beside the tree it
+`restore_tag`. A control is a tree the checker refuses, beside the tree it
 accepts. The picture at the end has the elements and attributes that lean4-effect4's picture
 writer emits today (`tools/Tools/View/Output.lean`, read at `707b9a01`).
 

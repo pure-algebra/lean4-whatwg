@@ -97,6 +97,15 @@ namespace SvgAttr
 
 variable {t : Whatwg.Svg.Schema.Tag}
 
+/-- `xmlns` is no attribute of the schema: it stands on an element as a namespace
+declaration. -/
+theorem ofChars?_xmlns : Whatwg.Svg.Schema.Attr.ofChars? "xmlns".toList = none := by
+  decide +kernel
+
+/-- `xmlns:xlink` is no attribute of the schema either. -/
+theorem ofChars?_xmlnsXlink : Whatwg.Svg.Schema.Attr.ofChars? "xmlns:xlink".toList = none := by
+  decide +kernel
+
 /-- The name and the text of an attribute, as a raw tree holds them. -/
 def toPair : SvgAttr t → String × String
   | .attr a value => (a.name, valueTextOf (kindOf t a) value)
@@ -129,11 +138,11 @@ theorem valueOk_toPair (p : SvgAttr t) :
       Whatwg.Svg.Value.Attr.ofChars?_data]
   | xmlns =>
     show valueOkByName t.name.toList "xmlns".toList svgNamespace.toList = true
-    have hname : Whatwg.Svg.Schema.Attr.ofChars? "xmlns".toList = none := by decide +kernel
+    have hname := ofChars?_xmlns
     rw [htag, valueOkByName, Whatwg.Svg.Schema.Tag.ofChars?_chars, hname]
   | xmlnsXlink =>
     show valueOkByName t.name.toList "xmlns:xlink".toList xlinkNamespace.toList = true
-    have hname : Whatwg.Svg.Schema.Attr.ofChars? "xmlns:xlink".toList = none := by decide +kernel
+    have hname := ofChars?_xmlnsXlink
     rw [htag, valueOkByName, Whatwg.Svg.Schema.Tag.ofChars?_chars, hname]
 
 /-- The values of a typed attribute list pass the checks of their names on their element. -/
@@ -185,6 +194,9 @@ def toRawAll : List SvgNode → List RawNode
   | node :: rest => node.toRaw :: toRawAll rest
 
 end
+
+/-- A typed tree is shown as its raw tree: the names and the texts it writes. -/
+instance : Repr SvgNode := ⟨fun node prec => reprPrec node.toRaw prec⟩
 
 theorem toRawAll_eq_map (nodes : List SvgNode) : toRawAll nodes = nodes.map toRaw := by
   induction nodes with

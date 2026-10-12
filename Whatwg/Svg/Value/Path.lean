@@ -193,7 +193,7 @@ One description for each alternative of `drawto_command`, under the production's
 is a letter in either case, `wsp*`, and one argument group or more. The value is the case of
 the letter and the groups.
 
-A part of a larger description is an `abbrev`: the search that proves a grammar total
+A part with no type of its own is an `abbrev`: the search that proves a grammar total
 (`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
 
 namespace Drawto
@@ -379,6 +379,22 @@ theorem syn_total : syn.Total := by
 
 /-- The grammar of `svg_path`. -/
 def grammar : Grammar Path := ⟨syn, by decide +kernel, syn_total⟩
+
+/-- A path of several subpaths: each is an absolute moveto to its start and the commands after
+it. The first moveto is the path's own and each later one is a command, so a program that
+draws several closed shapes in one `d` builds the list and not the two forms. -/
+def ofSubpaths : List (Point × List Command) → Path
+  | [] => .empty
+  | first :: rest =>
+    .moveto false first.1 []
+      (first.2 ++ rest.flatMap fun subpath => Command.moveto false subpath.1 [] :: subpath.2)
+
+theorem ofSubpaths_nil : ofSubpaths [] = .empty := rfl
+
+/-- One subpath is a moveto and its commands. -/
+theorem ofSubpaths_singleton (start : Point) (commands : List Command) :
+    ofSubpaths [(start, commands)] = .moveto false start [] commands := by
+  rw [ofSubpaths, List.flatMap_nil, List.append_nil]
 
 end Path
 

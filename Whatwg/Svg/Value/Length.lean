@@ -149,7 +149,7 @@ namespace Length
 
 /-! ## The marks
 
-A part of a larger description is an `abbrev`: the search that proves a grammar total
+A part with no type of its own is an `abbrev`: the search that proves a grammar total
 (`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. A letter is the
 one part with a lemma, because its totality is an evaluation at that letter. -/
 

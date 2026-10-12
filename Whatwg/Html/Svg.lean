@@ -1,7 +1,6 @@
 import Whatwg.Html.Content.Context
 import Whatwg.Html.Schema.Foreign
 import Whatwg.Svg.Content.Context
-import Whatwg.Svg.Value.Attribute
 
 /-!
 # Whatwg.Html.Svg
@@ -40,7 +39,6 @@ No parser exists in this package (ruling HP-8).
 namespace Whatwg.Html.Content
 
 open Whatwg.Html.Schema
-open Whatwg.Svg.Data (NameTable)
 
 /-! ## The namespace automaton -/
 
@@ -186,6 +184,7 @@ theorem restore_attr (a : Whatwg.Svg.Schema.Attr) :
     (fun a : Whatwg.Svg.Schema.Attr =>
       restore Foreign.svgAttrNames (lowerChars a.chars) = a.chars)
     (by decide +kernel) a
+
 /-! ## The transition, case by case -/
 
 theorem Pos.child_html_element {c : Ctx} {name : String} {t : Tag}
@@ -250,37 +249,26 @@ theorem isIntegrationName_of_unknown {name : String}
 
 /-- Node T2: the checker's transition and the namespace automaton agree on every name. -/
 theorem Pos.child_ns (p : Pos) (name : String) : (p.child name).ns = p.ns.step name := by
-  cases p with
-  | html c =>
-    cases ht : Tag.ofName? name with
-    | some t =>
-      have hf : Tag.ofForeignName? name ≠ some .svg := by
-        rw [ofForeignName?_eq_none_of_element ht]
-        exact fun h => nomatch h
-      rw [Pos.child_html_element ht, Pos.ns, Pos.ns, Ns.step_html_other hf]
-    | none =>
-      cases hd : decide (Tag.ofForeignName? name = some .svg) with
-      | true =>
-        have hf := of_decide_eq_true hd
-        rw [Pos.child_html_svg ht hf, Pos.ns, Pos.ns, Ns.step_html_svg hf]
-      | false =>
-        have hf := of_decide_eq_false hd
-        rw [Pos.child_html_other ht hf, Pos.ns, Pos.ns, Ns.step_html_other hf]
-  | svg c x =>
-    cases ht : Whatwg.Svg.Schema.Tag.ofChars? name.toList with
-    | some t =>
-      have hname := isIntegrationName_of_tag ht
-      cases hb : integrationBase t with
-      | some base =>
-        rw [hb, Option.isSome_some] at hname
-        rw [Pos.child_svg_integration ht hb, Pos.ns, Pos.ns, Ns.step, hname, if_pos rfl]
-      | none =>
-        rw [hb, Option.isSome_none] at hname
-        rw [Pos.child_svg_element ht hb, Pos.ns, Pos.ns, Ns.step, hname,
-          if_neg Bool.false_ne_true]
-    | none =>
-      rw [Pos.child_svg_other ht, Pos.ns, Pos.ns, Ns.step, isIntegrationName_of_unknown ht,
-        if_neg Bool.false_ne_true]
+  fun_cases Pos.child p name
+  · rename_i ht
+    exact (Ns.step_html_other (by rw [ofForeignName?_eq_none_of_element ht]; exact nofun)).symm
+  · rename_i hf
+    exact (Ns.step_html_svg hf).symm
+  · rename_i hf
+    exact (Ns.step_html_other hf).symm
+  · rename_i hb ht
+    have hname := isIntegrationName_of_tag ht
+    rw [hb, Option.isSome_some] at hname
+    show Ns.html = Ns.step .svg name
+    rw [Ns.step, hname, if_pos rfl]
+  · rename_i hb ht
+    have hname := isIntegrationName_of_tag ht
+    rw [hb, Option.isSome_none] at hname
+    show Ns.svg = Ns.step .svg name
+    rw [Ns.step, hname, if_neg Bool.false_ne_true]
+  · rename_i ht
+    show Ns.svg = Ns.step .svg name
+    rw [Ns.step, isIntegrationName_of_unknown ht, if_neg Bool.false_ne_true]
 
 /-! ## The exclusions -/
 
@@ -294,31 +282,12 @@ theorem Exclusions.le_refl (x : Exclusions) : x.le x = true := by
 
 /-- Node X1: the HTML exclusions only grow along the transition, in both namespaces. -/
 theorem Pos.excl_le_child (p : Pos) (name : String) : p.excl.le (p.child name).excl = true := by
-  cases p with
-  | html c =>
-    cases ht : Tag.ofName? name with
-    | some t =>
-      rw [Pos.child_html_element ht]
-      exact child_excl_le c t
-    | none =>
-      cases hd : decide (Tag.ofForeignName? name = some .svg) with
-      | true =>
-        rw [Pos.child_html_svg ht (of_decide_eq_true hd)]
-        exact child_excl_le c .svg
-      | false =>
-        rw [Pos.child_html_other ht (of_decide_eq_false hd)]
-        exact Exclusions.le_refl _
-  | svg c x =>
-    cases ht : Whatwg.Svg.Schema.Tag.ofChars? name.toList with
-    | some t =>
-      cases hb : integrationBase t with
-      | some base =>
-        rw [Pos.child_svg_integration ht hb]
-        exact Exclusions.le_refl _
-      | none =>
-        rw [Pos.child_svg_element ht hb]
-        exact Exclusions.le_refl _
-    | none =>
-      rw [Pos.child_svg_other ht]
-      exact Exclusions.le_refl _
+  fun_cases Pos.child p name
+  · exact child_excl_le _ _
+  · exact child_excl_le _ .svg
+  · exact Exclusions.le_refl _
+  · exact Exclusions.le_refl _
+  · exact Exclusions.le_refl _
+  · exact Exclusions.le_refl _
+
 end Whatwg.Html.Content

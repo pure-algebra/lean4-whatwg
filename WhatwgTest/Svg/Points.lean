@@ -96,7 +96,7 @@ def triangle : Points := ⟨pair 750 100, [pair 250 900, pair 1250 900]⟩
 
 -- A CSS comment, which the note after `attribute-css-value` of `master/types.html` allows in
 -- such a value, and a space outside `wsp`.
-#guard !check "750,100/**/250,900" && !check "750 100"
+#guard !check "750,100/**/250,900" && !check "750\u00a0100"
 
 /-! ## The laws at this grammar -/
 

@@ -21,12 +21,19 @@ And a tree whose numbers and texts are variables has its structure by one small 
 because `okAt` forces no value.
 
 How a test is proved. A closed test is `by decide +kernel`. A test with free values is
-`by conv => lhs; whnf`, which reduces it to `true` or `false` and stops at no value. A tree with
-a free list of children is taken apart with the equations at the end of this module
-(`okIn_svg`, `okAt_svg_element`, `okAllAt_cons`, `okAllAt_append`, `okAllAt_iff`), and what is
-left closed is evaluated the same way. `WhatwgTest/Html/SvgValid.lean` does each. A bare `rfl`
-is not reliable there: the elaborator's unifier unfolds a shift by recursion on its amount and
-gives up at the mask index of an attribute such as `fill`.
+`by conv => lhs; whnf`, which reduces it to `true` or `false` and stops at no value. Where a
+value picks the tree's shape, such as a key that is written only when it is not empty, split
+on that value first: `cases key.isEmpty <;> conv => lhs; whnf`. A tree with a free list of
+children is taken apart with the equations at the end of this module (`okIn_svg`, `okAt_g`,
+`okAt_svg_element`, `okAllAt_cons`, `okAllAt_append`, `okAllAt_reverse`, `okAllAt_map`), and
+what is left closed is evaluated the same way. `WhatwgTest/Html/SvgValid.lean` does each, and
+`WhatwgTest/Html/SvgPicture.lean` a whole fold. A bare `rfl` closes many of these tests and
+not all: the elaborator's unifier may unfold a shift by recursion on its amount, and give up
+at the mask index of an attribute such as `fill`. When an evaluation ends in `false = true`,
+`Content.explain ctx node.toRaw` at a closed instance names the node and the reason.
+
+The tag type is `Whatwg.Svg.Schema.Tag`, and `Whatwg.Svg.Value.kindOf t a` says which type the
+value of the attribute `a` has on the element `t`.
 
 With `SvgNode.valuesOk_toRaw` a typed tree has both judgments without a text: its values by
 their types, and its structure by `okAt`.
@@ -54,10 +61,15 @@ open Whatwg.Html.Content (Ctx Pos validAt validAllAt validIn integrationBase)
 
 namespace Content
 
-/-- The position of the children of an outermost `svg` that stands at the HTML position `c`.
-It is reducible, so an equation of `SvgNode.okAt` at an SVG position rewrites at it. -/
-abbrev Pos.belowSvg (c : Ctx) : Pos :=
-  .svg (Whatwg.Svg.Content.Ctx.outside.child .svg) (c.child .svg).excl
+/-- The position of the children of an outermost `svg`, under the HTML exclusions `x`. A `g`
+keeps it (`Pos.belowElement_g`), so the marks of a picture stand here at every depth of
+grouping. It is reducible, so an equation of `SvgNode.okAt` at an SVG position rewrites at
+it. -/
+abbrev Pos.inSvg (x : Exclusions) : Pos := .svg (Whatwg.Svg.Content.Ctx.outside.child .svg) x
+
+/-- The position of the children of an outermost `svg` that stands at the HTML position `c`:
+`Pos.inSvg` under the exclusions that pass through the `svg`. -/
+abbrev Pos.belowSvg (c : Ctx) : Pos := Pos.inSvg (c.child .svg).excl
 
 /-- The position of the children of the SVG element `t` that stands at an SVG position: the
 HTML position of an integration point, or the SVG position below the element. -/
@@ -77,6 +89,23 @@ theorem Pos.belowElement_of_some {t : Tag} {base : Base} (h : integrationBase t 
     (c : Whatwg.Svg.Content.Ctx) (x : Exclusions) :
     Pos.belowElement c x t = .html ⟨base, x, []⟩ := by
   rw [Pos.belowElement, h]
+
+/-- Below an element that is no integration point, does not inherit and does not hand on, the
+position reads the element alone: it is the same wherever the element stands. -/
+theorem Pos.belowElement_plain {t : Tag} (hb : integrationBase t = none)
+    (hi : t.model.inherits = false) (hh : Whatwg.Svg.Schema.handsOn.mem t = false)
+    (c : Whatwg.Svg.Content.Ctx) (x : Exclusions) :
+    Pos.belowElement c x t = .svg (Whatwg.Svg.Content.Ctx.outside.child t) x := by
+  rw [Pos.belowElement_of_none hb,
+    Whatwg.Svg.Content.Ctx.child_eq_of_plain hi hh c Whatwg.Svg.Content.Ctx.outside]
+
+/-- A group keeps the position of an outermost `svg`'s children, wherever the group stands:
+what may stand among the marks of a picture may stand in a `g`, at every depth. -/
+theorem Pos.belowElement_g (c : Whatwg.Svg.Content.Ctx) (x : Exclusions) :
+    Pos.belowElement c x .g = Pos.inSvg x := by
+  have h : Whatwg.Svg.Content.Ctx.outside.child .g = Whatwg.Svg.Content.Ctx.outside.child .svg := by
+    decide +kernel
+  rw [Pos.belowElement_plain rfl rfl (by decide +kernel), h]
 
 /-- The foreign tag `svg` has no conditional category, so its admission reads no attribute. -/
 theorem Ctx.admitsWith_svg (c : Ctx) (attrs : List (String × String)) :
@@ -138,6 +167,10 @@ theorem svgChildTags_toRawAll : ∀ nodes : List SvgNode,
     have ih := svgChildTags_toRawAll rest
     rw [Content.svgChildTags, tags] at ih
     rw [ih]
+
+theorem tags_append (nodes others : List SvgNode) :
+    tags (nodes ++ others) = tags nodes ++ tags others := by
+  rw [tags, tags, tags, List.filterMap_append]
 
 /-! ## The structure of a typed tree -/
 
@@ -235,13 +268,28 @@ theorem okAt_svg_element (c : Whatwg.Svg.Content.Ctx) (x : Exclusions) (t : Tag)
         okAllAt (Pos.belowElement c x t) children) := by
   rw [okAt]
 
-/-- The foreign root: `svg` at an HTML position. -/
+/-- The foreign root: `svg` at an HTML position. Its model states no count, so nothing is left
+of its children but the test of each. -/
 theorem okIn_svg (ctx : Ctx) (attrs : List (SvgAttr .svg)) (children : List SvgNode) :
     okIn ctx (.element .svg attrs children) =
-      (ctx.admits .svg && SvgAttr.allOk attrs &&
-        Whatwg.Svg.Content.boundsOk .svg (tags children) &&
-        okAllAt (Pos.belowSvg ctx) children) := by
-  rw [okIn, okAt, if_pos rfl]
+      (ctx.admits .svg && SvgAttr.allOk attrs && okAllAt (Pos.belowSvg ctx) children) := by
+  rw [okIn, okAt, if_pos rfl, Whatwg.Svg.Content.boundsOk_of_bounds_nil rfl, Bool.and_true]
+
+/-- A group at an SVG position: its admission, its attributes, and its children where the
+marks of a picture stand, whatever stands around the group. -/
+theorem okAt_g (c : Whatwg.Svg.Content.Ctx) (x : Exclusions) (attrs : List (SvgAttr .g))
+    (children : List SvgNode) :
+    okAt (.svg c x) (.element .g attrs children) =
+      (c.admits .g && SvgAttr.allOk attrs && okAllAt (Pos.inSvg x) children) := by
+  rw [okAt_svg_element, Whatwg.Svg.Content.boundsOk_of_bounds_nil rfl, Bool.and_true,
+    Pos.belowElement_g]
+
+/-- A group among the marks of a picture: its attributes, and its children among the marks. -/
+theorem okAt_inSvg_g (x : Exclusions) (attrs : List (SvgAttr .g)) (children : List SvgNode) :
+    okAt (Pos.inSvg x) (.element .g attrs children) =
+      (SvgAttr.allOk attrs && okAllAt (Pos.inSvg x) children) := by
+  have h : (Whatwg.Svg.Content.Ctx.outside.child .svg).admits .g = true := by decide +kernel
+  rw [okAt_g, h, Bool.true_and]
 
 theorem okAllAt_nil (p : Pos) : okAllAt p [] = true := by rw [okAllAt]
 
@@ -263,6 +311,29 @@ theorem okAllAt_iff (p : Pos) : ∀ nodes : List SvgNode,
     exact ⟨fun _ _ h => (nomatch h), fun _ => rfl⟩
   | node :: rest => by
     rw [okAllAt_cons, Bool.and_eq_true, okAllAt_iff p rest, List.forall_mem_cons]
+
+/-- The test of a forest is `List.all` of the test of a tree, so every lemma of `List.all` is
+a lemma of it. -/
+theorem okAllAt_eq_all (p : Pos) : ∀ nodes : List SvgNode, okAllAt p nodes = nodes.all (okAt p)
+  | [] => by rw [okAllAt_nil, List.all_nil]
+  | node :: rest => by rw [okAllAt_cons, List.all_cons, okAllAt_eq_all p rest]
+
+/-- The test of a forest does not read its order: a fold that gathers its nodes last first
+loses nothing. -/
+theorem okAllAt_reverse (p : Pos) (nodes : List SvgNode) :
+    okAllAt p nodes.reverse = okAllAt p nodes := by
+  rw [okAllAt_eq_all, okAllAt_eq_all, List.all_reverse]
+
+/-- A forest made by a function of a list passes when the tree of each item does. -/
+theorem okAllAt_map {α : Type} (p : Pos) (f : α → SvgNode) (items : List α) :
+    okAllAt p (items.map f) = items.all fun item => (f item).okAt p := by
+  rw [okAllAt_eq_all, List.all_map]
+  rfl
+
+/-- A forest of several nodes for each item of a list passes when the nodes of each do. -/
+theorem okAllAt_flatMap {α : Type} (p : Pos) (f : α → List SvgNode) (items : List α) :
+    okAllAt p (items.flatMap f) = items.all fun item => okAllAt p (f item) := by
+  simp only [okAllAt_eq_all, List.all_flatMap]
 
 end SvgNode
 

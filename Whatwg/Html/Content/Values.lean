@@ -1,4 +1,5 @@
 import Whatwg.Html.Content.Explain
+import Whatwg.Svg.Value.Attribute
 
 /-!
 # Whatwg.Html.Content.Values
@@ -34,8 +35,8 @@ value is typed.
 
 - `valueText` writes a typed value, and `check_valueText` says that the text passes the
   grammar's check. It is a theorem of the grammar's retraction and of `String.toList_ofList`,
-  and it evaluates nothing. `valueOkByName_valueText` is the same law under the names a tree
-  holds, for every kind of the table.
+  and it evaluates nothing. `SvgAttr.valueOk_toPair` is the same law at a typed attribute,
+  under the names a tree holds.
 - The typed SVG node of `Whatwg/Html/Node/Svg.lean` holds every value at its type, and its
   connector `SvgNode.valuesOk_toRaw` is this judgment for the raw tree of every typed tree
   (slice S5, ruling SV-34). A program builds a typed tree, and `html!` builds one too: it
@@ -54,7 +55,7 @@ value, which `attrOk` judges inside `validIn`.
 namespace Whatwg.Html.Content
 
 open Whatwg.Html (RawNode Walk)
-open Whatwg.Svg.Value (Grammar ValueKind kindOf valueOkByName explainValueByName)
+open Whatwg.Svg.Value (Grammar valueOkByName explainValueByName)
 
 /-! ## One element -/
 
@@ -74,11 +75,6 @@ def Ns.valuesOk (ns : Ns) (name : String) (attrs : List (String × String)) : Bo
   | .svg => svgValuesOk name attrs
   | .html => true
 
-/-- In an SVG subtree every element is an SVG element. -/
-theorem Ns.valuesOk_svg (name : String) (attrs : List (String × String)) :
-    Ns.valuesOk .svg name attrs = svgValuesOk name attrs := rfl
-
-theorem svgValuesOk_nil (element : String) : svgValuesOk element [] = true := rfl
 
 theorem svgValuesOk_cons (element : String) (attr : String × String)
     (rest : List (String × String)) :
@@ -200,16 +196,5 @@ theorem check_valueText {α : Type} (g : Grammar α) (v : α) :
     g.check (valueText g v).toList = true := by
   rw [toList_valueText]
   exact g.check_print v
-
-/-- Node V5: an attribute admits the text of each typed value of its kind, on an element where
-the table gives it that kind. The two names are a tree's, and each is read by one evaluation of
-a short name; the value's text is never opened. -/
-theorem valueOkByName_valueText {t : Whatwg.Svg.Schema.Tag} {a : Whatwg.Svg.Schema.Attr}
-    {k : ValueKind} (hkind : kindOf t a = some k) (element name : String)
-    (helement : Whatwg.Svg.Schema.Tag.ofChars? element.toList = some t)
-    (hname : Whatwg.Svg.Schema.Attr.ofChars? name.toList = some a) (v : k.carrier) :
-    valueOkByName element.toList name.toList (valueText k.grammar v).toList = true := by
-  rw [valueOkByName, helement, hname, toList_valueText]
-  exact Whatwg.Svg.Value.valueOk_print hkind v
 
 end Whatwg.Html.Content

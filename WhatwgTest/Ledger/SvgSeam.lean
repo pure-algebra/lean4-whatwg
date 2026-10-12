@@ -14,9 +14,9 @@ grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
-No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 and R-S20 of
+No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17 and R-S19 to R-S21 of
 `COORDINATION.md` name this graph and change no edge's status, so the entry acknowledges the
-eleven.
+twelve.
 -/
 
 namespace WhatwgTest.Ledger
@@ -30,7 +30,7 @@ def svgSeam : Graph where
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -48,7 +48,8 @@ def svgSeam : Graph where
         `Whatwg.Html.Content.Pos, `Whatwg.Html.Content.Pos.child, `Whatwg.Svg.Value.AttrValue,
         `Whatwg.Html.SvgAttr, `Whatwg.Html.SvgNode, `Whatwg.Html.SvgNode.toRaw,
         `Whatwg.Html.SvgNode.ofRaw?, `Whatwg.Html.SvgAttr.Key, `Whatwg.Html.SvgAttr.allOk,
-        `Whatwg.Html.SvgNode.okAt, `Whatwg.Html.SvgNode.okIn, `Whatwg.Html.Child.ofSvg]]
+        `Whatwg.Html.SvgNode.okAt, `Whatwg.Html.SvgNode.okIn, `Whatwg.Html.Child.ofSvg,
+        `Whatwg.Html.Content.Pos.inSvg]]
       note := "A set is a mask over a finite universe, a name table is a writer with a checked guess, and a position is a sum of the HTML position and the SVG position; `RawNode` is unchanged. A typed SVG node stands beside it: its attribute holds a value of the type the table gives, and `toRaw` writes the raw tree. `SvgNode.okAt` judges its structure by tags and keys, and `Child.ofSvg` places a typed tree that passes in the typed HTML tree." }
     semantics := {
       status := .requiredOpen
@@ -83,15 +84,18 @@ def svgSeam : Graph where
         `Whatwg.Html.Content.explain_none_iff, `Whatwg.Html.Content.explainAt_path,
         `Whatwg.Html.Print.decode_render, `Whatwg.Html.Print.renderIn_text_no_delim_of_svg,
         `Whatwg.Html.Content.isNone_explainValuesAt, `Whatwg.Html.Content.explainValues_none_iff,
-        `Whatwg.Html.Content.check_valueText, `Whatwg.Html.Content.valueOkByName_valueText,
+        `Whatwg.Html.Content.check_valueText, `Whatwg.Html.SvgAttr.valueOk_toPair,
         `Whatwg.Svg.Value.explainValue_eq_none_iff,
         `Whatwg.Svg.Value.explainValueByName_eq_none_iff, `Whatwg.Html.SvgNode.valuesAt_toRaw,
         `Whatwg.Html.SvgNode.valuesOk_toRaw, `Whatwg.Html.SvgNode.explainValues_toRaw,
         `Whatwg.Html.readValue_valueTextOf, `Whatwg.Html.SvgNode.ofRaw?_toRaw,
         `Whatwg.Html.SvgAttr.Key.name_injective, `Whatwg.Html.SvgAttr.allOk_iff,
         `Whatwg.Html.SvgAttr.svgAttrsOk_toPairs, `Whatwg.Html.SvgNode.validAt_toRaw,
-        `Whatwg.Html.SvgNode.validIn_toRaw, `Whatwg.Html.SvgNode.okAllAt_iff]]
-      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, V5 says that the text of a typed value passes its attribute's check with no evaluation, and V6 that the located refusal of a value is absent exactly when the value passes; V6b, that the offset is a fact of the text up to it, is a receipt of the leaf. V7 is the connector: the raw tree of every typed tree passes the value judgment. V8 is the law of structure: the checker's verdict on the raw tree of a typed tree is the verdict of `okAt` on the typed tree, at every position. P4 says that the raw tree of a placed typed tree reads back as the tree." }
+        `Whatwg.Html.SvgNode.validIn_toRaw, `Whatwg.Html.SvgNode.okAllAt_iff,
+        `Whatwg.Svg.Content.Ctx.child_eq_of_plain, `Whatwg.Svg.Content.boundsOk_of_bounds_nil,
+        `Whatwg.Html.Content.Pos.belowElement_plain, `Whatwg.Html.Content.Pos.belowElement_g,
+        `Whatwg.Html.SvgNode.okAt_g, `Whatwg.Html.SvgNode.okAllAt_eq_all]]
+      note := "The nodes U1, B1, K1, W1, W2, T2, X1, X2, C1, C2, C3, C4, N3, P1 and P2 of the plan's section 6 are proved; C3 is the walk's fusion law at `Option.isNone`, and C4 its induction law. V4 is the same fusion law at the value judgment, V5 is withdrawn for `SvgAttr.valueOk_toPair`, which says at a typed attribute that the text of its value passes the check of its name with no evaluation (ruling SV-39), and V6 that the located refusal of a value is absent exactly when the value passes; V6b, that the offset is a fact of the text up to it, is a receipt of the leaf. V7 is the connector: the raw tree of every typed tree passes the value judgment. V8 is the law of structure: the checker's verdict on the raw tree of a typed tree is the verdict of `okAt` on the typed tree, at every position; below an element that neither inherits nor hands on the position reads the element alone, so a `g` keeps the position of an outermost `svg`'s children, and the test of a forest is `List.all`. P4 says that the raw tree of a placed typed tree reads back as the tree." }
     representation := {
       status := .requiredOpen
       remaining := [
@@ -128,7 +132,7 @@ def svgSeam : Graph where
         `WhatwgTest.Html.Svg, `WhatwgTest.Html.Explain, `WhatwgTest.Html.SvgPrint,
         `WhatwgTest.Html.SvgMarkup, `WhatwgTest.Html.SvgValues, `WhatwgTest.Html.SvgNode,
         `WhatwgTest.Html.SvgRead, `WhatwgTest.Html.SvgKeys, `WhatwgTest.Html.SvgValid,
-        `WhatwgTest.Html.SvgBenchmark], .gate .build]
+        `WhatwgTest.Html.SvgBenchmark, `WhatwgTest.Html.SvgPicture], .gate .build]
       note := "Every module of `Whatwg.Svg` is under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception; the seam's modules are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen

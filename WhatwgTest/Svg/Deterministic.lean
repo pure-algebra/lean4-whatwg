@@ -68,14 +68,15 @@ example (t : List Char) : ¬ Decimal.syn.erase.Matches ('x' :: t) := fun h =>
 
 /-! ## Which grammar is deterministic
 
-One evaluation for each grammar of the package. This is the table that node V3c of the plan
-cites. -/
+One evaluation for each grammar of the package but the two sizes, whose evaluation is in
+`WhatwgTest/Svg/Extent.lean`. This is the table that node V3c of the plan cites. -/
 
 -- The number, the coordinate and the length: one character decides every choice of the reader.
 #guard Magnitude.syn.deterministic && Decimal.syn.deterministic && Length.syn.deterministic
 
 -- Reader of the check law at the length. Its description is left-factored at the `e` that
--- opens an exponent or a unit, so the check decides the language of `sign? number mark?`.
+-- opens an exponent or a unit, so the check decides the language of `sign? number mark`,
+-- where the mark may be empty.
 example (s : List Char) : Length.grammar.check s = true ↔ Length.syn.erase.Matches s :=
   Length.grammar.check_iff_matches (by decide +kernel) s
 

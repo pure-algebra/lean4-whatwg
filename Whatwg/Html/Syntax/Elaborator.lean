@@ -13,7 +13,7 @@ import Whatwg.Html.Node.SvgValid
 and not a macro):
 
 ```lean
-def page : Element .div .flow5 :=
+def page : Element .div Ctx.flow :=
   html! <div class="lead"><p>"Hello, " <em>"world"</em></p><br /></div>
 ```
 

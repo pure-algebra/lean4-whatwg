@@ -116,7 +116,7 @@ def box (x y : Int) (w h : Nat) : ViewBox := ⟨.ofInt x, .ofInt y, .ofNat w, .o
 
 -- A CSS comment, which the note after `attribute-css-value` of `types.html` allows in such a
 -- value, and a space outside `wsp`.
-#guard !check "0 0 10/**/10" && !check "0 0 10 10"
+#guard !check "0 0 10/**/10" && !check "0 0 10\u00a010"
 
 /-! ## The laws at this grammar -/
 

@@ -1,4 +1,4 @@
-import Whatwg.Svg
+import Whatwg.Svg.Content.Context
 
 /-!
 # WhatwgTest.Svg.Context
@@ -93,5 +93,29 @@ def below (path : List Tag) : Ctx := path.foldl Ctx.child Ctx.outside
 -- An attribute that an entry of its own lists for an element is that element's, though the
 -- element's entry does not cite it: `href` on the four animation elements.
 #guard [Tag.animate, .animateMotion, .animateTransform, .set].all fun tag => attrOk tag "href".toList
+
+/-! ## A plain container -/
+
+-- Reader of `Ctx.child_eq_of_plain`: a `g` gives its children one position, wherever it
+-- stands. It neither inherits nor hands on.
+example (c : Ctx) : c.child .g = Ctx.outside.child .g :=
+  Ctx.child_eq_of_plain rfl (by decide +kernel) c Ctx.outside
+
+-- And that position is the one below an outermost `svg`: a group keeps it.
+#guard below [.svg, .g] == below [.svg] && below [.svg, .g, .g] == below [.svg]
+
+-- Control: `a` inherits, so the position below it reads what stands around it.
+#guard below [.svg, .a] != below [.a]
+
+-- Reader of `boundsOk_of_bounds_nil`: `g` states no count, so every multiset of children
+-- passes. Control: `feDiffuseLighting` states one, and no child fails it.
+example (children : List Tag) : boundsOk .g children = true := boundsOk_of_bounds_nil rfl children
+#guard !boundsOk .feDiffuseLighting []
+
+-- Readers of the two laws of `outer`: `switch` hands the outer model on, and `g` does not.
+example (c : Ctx) : (c.child .switch).outer = c.outer :=
+  Ctx.child_outer_of_handsOn c .switch (by decide +kernel)
+example (c : Ctx) : (c.child .g).outer = (c.child .g).model :=
+  Ctx.child_outer_of_not_handsOn c .g (by decide +kernel)
 
 end WhatwgTest.Svg.Context

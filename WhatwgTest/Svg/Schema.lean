@@ -1,4 +1,4 @@
-import Whatwg.Svg
+import Whatwg.Svg.Schema.Universe
 
 /-!
 # WhatwgTest.Svg.Schema

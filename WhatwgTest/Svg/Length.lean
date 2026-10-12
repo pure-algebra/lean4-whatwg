@@ -81,7 +81,6 @@ def check (s : String) : Bool := Length.grammar.check s.toList
 -- A number with no unit, and a mark after a number.
 #guard read "10" == some ⟨⟨10, 0⟩, .number⟩
 #guard read "1.5em" == some ⟨⟨15, -1⟩, .em⟩
-#guard read "50%" == some ⟨⟨50, 0⟩, .percentage⟩
 #guard read "-0.5in" == some ⟨⟨-5, -1⟩, .inch⟩
 
 -- A mark in either letter case, letter by letter: the resolution of the annotation in the

@@ -135,7 +135,7 @@ attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] wsps_total argSep_total
 
 /-! ## The arguments
 
-A part of a larger description is an `abbrev`: the search that proves a grammar total
+A part with no type of its own is an `abbrev`: the search that proves a grammar total
 (`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
 
 /-- `comma-wsp? number`: a number after another one. -/

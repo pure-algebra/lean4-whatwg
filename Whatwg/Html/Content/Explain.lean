@@ -11,7 +11,7 @@ child indices from the root, and a reason. It is the second algebra of the walk
 The refusal is complete against the checker: `explain_none_iff` says that it is absent exactly
 when `validIn` is true (node C3 of the plan's section 6). The proof is the walk's fusion law at
 `Option.isNone`, and it does no induction of its own. It needs one fact per kind of node: a
-node's reason is absent exactly when its Boolean test holds (`Pos.refuse?_isNone`).
+node's reason is absent exactly when its Boolean test holds (`Pos.isNone_refuse?`).
 
 A reason is first-order data. A node's reason is a cascade of guards in the order of the
 conjunction that the checker tests, so `Option.isNone` sends the cascade to that conjunction
@@ -118,7 +118,8 @@ def attrFault (t : Tag) (name _value : String) : AttrFault :=
     | some set => if set.contains a then .value else .notTaken
     | none => .notTaken
 
-/-- Which part of the SVG test an attribute fails: SVG judges no value before slice S4. -/
+/-- Which part of the SVG test an attribute fails. No value is judged here: the values of an
+SVG subtree are the judgment of `Whatwg/Html/Content/Values.lean` (ruling SV-30). -/
 def svgAttrFault (name _value : String) : AttrFault :=
   match Whatwg.Svg.Schema.Attr.ofChars? name.toList with
   | none => .unknown

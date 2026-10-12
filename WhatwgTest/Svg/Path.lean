@@ -144,7 +144,7 @@ example (c : Command) :
 #guard value "M1,2,L3,4" == none && value ",M1,2" == none && value "M,1,2" == none
 
 -- A character of no production: a letter that is no command, and a no-break space.
-#guard value "M1,2 X3,4" == none && value "M1,2 L3,4" == none
+#guard value "M1,2 X3,4" == none && value "M1,2\u00a0L3,4" == none
 
 -- The flags of an arc are one character each, so they need no separator: `0150-25` is the
 -- flags `0` and `1` and the pair `50`, `-25`.
@@ -182,7 +182,7 @@ example : spaced.ok = false := by decide +kernel
 #guard spaced.readAll (spaced.print ((false, (pt 1 2, [])), [.lineto false (pt 3 4) []])) ==
   some ((false, (pt 1 2, [])), [.lineto false (pt 3 4) []])
 
-/-! ## The reader is not the whole language (V3b) -/
+/-! ## The reader is not the whole language (V3c) -/
 
 /-- One digit is a text of the expression of `coordinate`. -/
 theorem digit_matches {c : Char} (h : digitSet.mem c = true) : Decimal.syn.erase.Matches [c] :=
@@ -210,5 +210,24 @@ example : Path.grammar.syn.erase.Matches "M10".toList :=
 -- The reader takes the longest match, as the paragraph after the grammar under `PathDataBNF`
 -- says a production does: the first coordinate is `10`, and no second one follows.
 #guard !Path.grammar.check "M10".toList
+
+/-! ## Several subpaths -/
+
+-- Two closed subpaths in one `d`. The first moveto is the path's own and the second is a
+-- command; `ofSubpaths` takes the list and writes both.
+#guard String.ofList (Path.grammar.print (.ofSubpaths
+    [(⟨0, 0⟩, [.lineto false ⟨10, 0⟩ [], .closepath false]),
+     (⟨5, 5⟩, [.lineto false ⟨6, 5⟩ [], .closepath false])])) == "M0,0L10,0ZM5,5L6,5Z"
+
+-- Reader of V1 at a built path: it reads back, whatever its subpaths are.
+example (subpaths : List (Point × List Command)) :
+    Path.grammar.read (Path.grammar.print (.ofSubpaths subpaths)) = some (.ofSubpaths subpaths) :=
+  Path.grammar.read_print _
+
+-- No subpath is the empty path, and one subpath is a moveto and its commands.
+example : Path.ofSubpaths [] = .empty := Path.ofSubpaths_nil
+example (start : Point) (commands : List Command) :
+    Path.ofSubpaths [(start, commands)] = .moveto false start [] commands :=
+  Path.ofSubpaths_singleton start commands
 
 end WhatwgTest.Svg.Path

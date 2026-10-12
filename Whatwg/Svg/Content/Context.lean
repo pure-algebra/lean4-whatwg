@@ -140,4 +140,16 @@ theorem Ctx.child_outer_of_not_handsOn (c : Ctx) (t : Tag) (h : handsOn.mem t = 
     (c.child t).outer = (c.child t).model := by
   simp only [Ctx.child, h, Bool.false_eq_true, ↓reduceIte]
 
+/-- An element that neither inherits nor hands on gives its children one position, whatever
+stands around it: that position reads the element's own model and nothing else. `svg`, `g`,
+`defs`, `clipPath` and `text` are such elements. -/
+theorem Ctx.child_eq_of_plain {t : Tag} (hi : t.model.inherits = false)
+    (hh : handsOn.mem t = false) (c c' : Ctx) : c.child t = c'.child t := by
+  simp only [Ctx.child, hi, hh, Bool.false_eq_true, ↓reduceIte]
+
+/-- An element whose model states no count admits every multiset of children's tags. -/
+theorem boundsOk_of_bounds_nil {t : Tag} (h : t.model.bounds = []) (children : List Tag) :
+    boundsOk t children = true := by
+  rw [boundsOk, h, List.all_nil]
+
 end Whatwg.Svg.Content

@@ -1,5 +1,5 @@
 import Whatwg.Html.Print.Escape
-import Whatwg.Html.Node.Erasure
+import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Walk
 import Whatwg.Html.Svg
 

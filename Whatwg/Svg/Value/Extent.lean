@@ -128,7 +128,7 @@ namespace Extent
 
 /-! ## The length that is not negative
 
-A part of a larger description is an `abbrev`: the search that proves a grammar total
+A part with no type of its own is an `abbrev`: the search that proves a grammar total
 (`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
 
 /-- The value of a reading: the digits and the exponent as `Magnitude.ofReading` reads them,
@@ -172,6 +172,9 @@ def grammar : Grammar Extent := ⟨syn, by decide +kernel, syn_total⟩
 
 /-- An extent in user units. -/
 def user (m : Magnitude) : Extent := ⟨m, .number⟩
+
+/-- A numeral is that many user units: `5 : Extent`. -/
+instance (n : Nat) : OfNat Extent n := ⟨user (.ofNat n)⟩
 
 /-- The extent as a length: every extent is a length. -/
 def toLength (e : Extent) : Length := ⟨⟨e.value.mantissa, e.value.exponent⟩, e.unit⟩
@@ -230,6 +233,14 @@ def grammar : Grammar AutoExtent := ⟨syn, by decide +kernel, syn_total⟩
 
 /-- A size in user units. -/
 def user (m : Magnitude) : AutoExtent := .extent (.user m)
+
+/-- A numeral is that many user units: `320 : AutoExtent`. -/
+instance (n : Nat) : OfNat AutoExtent n := ⟨user (.ofNat n)⟩
+
+/-- A size in user units from an integer. A negative one is no value: the chapter gives a
+negative size no meaning of its own (ruling SV-35), so a program that computes a size as a
+difference decides here what a negative one is. -/
+def ofInt? (v : Int) : Option AutoExtent := (Magnitude.ofInt? v).map user
 
 end AutoExtent
 

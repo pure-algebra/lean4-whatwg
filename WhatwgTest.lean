@@ -1,4 +1,5 @@
 import WhatwgGates
+import WhatwgGates.SvgGrammar
 import WhatwgTest.Url.InventoryContract
 import WhatwgTest.Url.Counterexamples.Inventory
 import WhatwgTest.Url.CensusContract
@@ -79,6 +80,7 @@ import WhatwgTest.Html.SvgRead
 import WhatwgTest.Html.SvgKeys
 import WhatwgTest.Html.SvgValid
 import WhatwgTest.Html.SvgBenchmark
+import WhatwgTest.Html.SvgPicture
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar

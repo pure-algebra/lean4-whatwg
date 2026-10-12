@@ -11,11 +11,11 @@ import Whatwg.Svg.Value.Refusal
 # Whatwg.Svg.Value.Attribute
 
 Owner: which grammar judges the value of which attribute (slices S4b to S4d of
-`docs/SVG-PACKAGE-PLAN.md`; rulings SV-13, SV-30, SV-31 and SV-32; point G5 of
+`docs/SVG-PACKAGE-PLAN.md`; rulings SV-13, SV-30, SV-31, SV-32, SV-34 and SV-35; point G5 of
 `docs/research/2026-10-11-svg-seat-guidance-3.md`). `kindOf` is the one table: it gives the
 kind of an attribute's value on an element. A `ValueKind` has its typed value, `carrier`, and
-its grammar. `valueOk` and `explainValue` are the two functions the seam calls, and both read
-the table.
+its grammar. `valueOkByName` and `explainValueByName` are the two functions the seam calls:
+they read an element's and an attribute's written names, and then the table.
 
 | Attribute | On | Kind | Source at the pin |
 | --- | --- | --- | --- |

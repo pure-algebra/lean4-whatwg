@@ -114,14 +114,14 @@ theorem ofPair?_toPair (p : SvgAttr t) : ofPair? t p.toPair.1 p.toPair.2 = some 
     rw [String.ofList_toList]
   | xmlns =>
     show ofPair? t "xmlns" svgNamespace = some xmlns
-    have hname : Whatwg.Svg.Schema.Attr.ofChars? "xmlns".toList = none := by decide +kernel
+    have hname := SvgAttr.ofChars?_xmlns
     rw [ofPair?, hname]
     show (if "xmlns" = "xmlns" then
       if svgNamespace = svgNamespace then some xmlns else none else _) = _
     rw [if_pos rfl, if_pos rfl]
   | xmlnsXlink =>
     show ofPair? t "xmlns:xlink" xlinkNamespace = some xmlnsXlink
-    have hname : Whatwg.Svg.Schema.Attr.ofChars? "xmlns:xlink".toList = none := by decide +kernel
+    have hname := SvgAttr.ofChars?_xmlnsXlink
     have hne : ¬ ("xmlns:xlink" : String) = "xmlns" := by decide
     rw [ofPair?, hname]
     show (if "xmlns:xlink" = "xmlns" then _ else

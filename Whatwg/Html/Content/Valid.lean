@@ -143,7 +143,8 @@ def namespaceAttrOk (name value : String) : Bool :=
       value.toList == "http://www.w3.org/1999/xlink".toList)
 
 /-- Every attribute is one the SVG element takes, or an allowed namespace declaration, and no
-name repeats. A value is not judged before slice S4 (ruling SV-13). -/
+name repeats. A value is not judged here: the values of an SVG subtree are the judgment of
+`Whatwg/Html/Content/Values.lean` (rulings SV-13 and SV-30). -/
 def svgAttrsOk (t : Whatwg.Svg.Schema.Tag) (attrs : List (String × String)) : Bool :=
   attrs.all (fun p => Whatwg.Svg.Content.attrOk t p.1.toList || namespaceAttrOk p.1 p.2) &&
     (attrs.map (·.1)).eraseDups.length == attrs.length

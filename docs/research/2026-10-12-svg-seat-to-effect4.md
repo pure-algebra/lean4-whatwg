@@ -3,8 +3,10 @@
 From Claude, seat SVG, at the head of `html/svg` after slice S6. It answers the three guidance
 notes and says how lean4-effect4 takes the branch. Rulings R-S17 to R-S20 of `COORDINATION.md`
 are the record; this note is a map, and it claims nothing they do not. Sections 1 to 6 were
-written after slice S5, which the owner pushed. Section 3 and section 4 are revised for slice
-S6, and section 7 says what S6 adds. S6 is committed and not pushed.
+written after slice S5, which the owner pushed. Section 7 says what slice S6 adds. Section 8
+is slice S7: a fresh seat ported `tools/Tools/View/Output.lean` to the typed node with this
+note as its only guide, and section 3 is rewritten from what it found. S6 and S7 are committed
+and not pushed.
 
 **First, what to know.** A picture is now a typed tree. An attribute that has a grammar holds a
 typed value, and the values of every typed tree pass their grammars by one law. The structure
@@ -44,16 +46,34 @@ are exact, and a numeral is a number: `10 : Decimal`, `320 : Magnitude`, `10 : L
 
 ## 3. How `tools/Tools/View/Output.lean` builds a picture
 
-`WhatwgTest/Html/SvgNode.lean` is this section as code that the build checks. It builds the
-shapes `Dev.svg` writes today, from variables.
+`WhatwgTest/Html/SvgPicture.lean` is this section as code that the build checks: a typed writer
+for every case of `Dev`, the fold over the calls, and the proof that every picture is valid.
+It imports two modules, `Whatwg.Html.Node.SvgValid` and `Whatwg.Html.Print.Render`, and those
+load no tactic and no elaborator.
 
 | `Dev.svg` writes | The typed node |
 | --- | --- |
-| `<rect x= y= width= height= fill= fill-opacity= data-key=>` | `.element .rect [.attr .x (.user (.ofInt x)), .attr .width (.user (.ofNat w)), .attr .fill c, .data "key" key] []` |
-| `<path d="M … C …" fill= stroke=>` | `.attr .d (.path (.moveto false p0 [] [.curveto false (p1, p2, p3) []]))`, a point being `⟨.ofScaled x 3, .ofScaled y 3⟩` |
-| `<text x= y= transform="scale(r)" xml:space="preserve">` | `.attr .transform [.scale (.ofInt r) none]`, `.attr .xml_space "preserve"`; `x` and `y` of `text` are text (debt D96) |
-| `<clipPath id=><rect …/></clipPath><g clip-path=>` | `.element .clipPath [.attr .id id] […]`, `.element .g [.attr .clip_path ref] children` |
+| `fill`: `<rect class= x= y= width= height= fill= fill-opacity=>` | `.element .rect [.attr .«class» c, .attr .x (.user (.ofInt b.x0)), .attr .width w, .attr .fill c, .attr .fill_opacity o] []`. The width is `b.x1 - b.x0`, an `Int`: see below |
+| `curve`: `<path d="M … C …" fill="none" stroke= stroke-width=>`, whole pixels | `.attr .d (.path (.moveto false p0 [] [.curveto false (p1, p2, p3) []]))`, a point being `⟨.ofInt x, .ofInt y⟩` |
+| `shape`: `<path d="M … C … Z M … C … Z" fill-rule="evenodd">`, thousandths | `.attr .d (.path (.ofSubpaths subpaths))`, each subpath its start and its commands, the last `.closepath false`; a point is `⟨(Decimal.ofScaled x 3).trim, (Decimal.ofScaled y 3).trim⟩` |
+| `cells`, `text`: `<text x= y= class= font-family= … fill= transform="scale(r)" xml:space="preserve">` | `.attr .transform [.scale (.ofInt r) none]`, `.attr .xml_space "preserve"`, `.attr .font_family f`; `x` and `y` of `text` are text (debt D96) |
+| `cut` … `uncut`: `<clipPath id=><rect …/></clipPath><g clip-path=>` … `</g>` | `.element .clipPath [.attr .id id] […]`, `.element .g [.attr .clip_path ref] children` |
+| `hit`: `<rect x= y= width= height= fill="none" pointer-events="all">` | `.attr .fill "none"`, `.attr .pointer_events "all"` |
+| the key: `data-key=`, when the key is not empty | `attrs ++ [.data "key" key]` under `if key.isEmpty` |
 | `<svg xmlns= class= data-look= width= height= viewBox=>` | `.element .svg [.xmlns, .attr .«class» c, .data "look" l, .attr .width (.user (.ofNat W)), .attr .viewBox ⟨0, 0, .ofNat (r * W), .ofNat (r * H)⟩] marks` |
+
+What a tree forces that a string does not:
+
+- **A size from an integer.** `width` holds an `AutoExtent`, which has no negative value
+  (ruling SV-35). `AutoExtent.ofInt? (b.x1 - b.x0)` answers `none` for a negative difference,
+  and `.user (.ofNat v.toNat)` writes it as zero. The writer chooses. A numeral is a size:
+  `.attr .width 30`.
+- **A cut is a group.** `cut` and `uncut` are two calls in a flat list, and in a tree the group
+  holds its children. The fold keeps a stack of open cuts. The battery drops an end with no
+  open cut and closes a cut with no end, so the tree of every list is balanced.
+- **Names.** An attribute is the written name with `_` for `-` and `:`: `fill_rule`,
+  `pointer_events`, `xml_space`. The tag type is `Whatwg.Svg.Schema.Tag`, which a helper that
+  returns `List (SvgAttr t)` must name. `kindOf .rect .width` says which type a value has.
 
 Then, for a tree `n : SvgNode`:
 
@@ -65,9 +85,6 @@ Then, for a tree `n : SvgNode`:
 - its markup is `Print.render n.toRaw`. It stands in a document as the raw node `n.toRaw`, or
   as `Child.ofSvg n`, a child of the typed HTML tree.
 
-A cut and its end are two device calls today. In a tree the group holds its children, so the
-fold over the calls needs a stack. That fold is Effect4's.
-
 ## 4. Limits that bear on Effect4
 
 - The printer writes the HTML serialization of the standard. It is what an HTML page holds.
@@ -77,7 +94,8 @@ fold over the calls needs a stack. That fold is Effect4's.
   `&nbsp;` in its output is that escape and nothing else, and a writer of files may replace it
   with `&#160;`. A writer of standalone files is not in this package: XML is not pinned here.
 - A typed literal prints in its grammar's spelling: `M 10 20 L 40 180` prints as
-  `M10,20L40,180`. A test that compares markup text will see the new spelling.
+  `M10,20L40,180`. A test that compares markup text will see the new spelling. Section 8 lists
+  each difference from the text `Dev.svg` writes.
 - A length takes the ten kinds of the sealed unit table. `rem`, `vw` and `calc()` are refused
   (SV-31). A negative `width` is refused, where SVG treats it as `auto` (SV-35).
 - The structure of a tree that `html!` builds is one kernel evaluation of `okIn`: 0.16 s for
@@ -134,3 +152,53 @@ Two more things landed that bear on a consumer:
 - The path grammar is compared with its sealed chapter by a gate (ruling SV-37):
   `lake exe whatwg_svggrammar` finds the chapter's `svg_path` and the library's description to
   have one language. The gate is unverified code and its verdict is no theorem.
+
+## 8. Slice S7: the port, and what it changed
+
+A seat that had read only this note and the two batteries wrote the typed `Dev.svg` and `svg`,
+with the fold, and proved the structure of every picture. The port elaborated on its first
+run. Its report is the source of this slice, and its code is now
+`WhatwgTest/Html/SvgPicture.lean`.
+
+What the library gained from it:
+
+| The port had to | Now |
+| --- | --- |
+| prove that a `g` keeps the position, and copy `marks` from a battery | `Pos.inSvg x`, `Pos.belowElement_g`, `SvgNode.okAt_inSvg_g`, at every set of HTML exclusions |
+| prove that a forest does not read its order | `SvgNode.okAllAt_eq_all`, `okAllAt_reverse`, `okAllAt_map`, `okAllAt_flatMap` |
+| clamp a negative width by hand, with no other route | `Magnitude.ofInt?`, `AutoExtent.ofInt?` |
+| write `.user (.ofNat 30)` for a size | `.attr .width 30` |
+| match on a command list to put the first moveto in the path | `Path.ofSubpaths` |
+| choose between `10.000` and `15e3` for a count in thousandths | `Decimal.trim`: `10`, `13.288`, `15000` |
+| print a node through `toRaw` to look at it | `Repr SvgNode` |
+
+`picture_okIn` of the battery holds at every HTML position that admits `svg`, for every look,
+size, ratio and list of calls. Each leaf is `cases key.isEmpty <;> conv => lhs; whnf`: the
+case split is on the one value that picks the tree's shape. Where a leaf ends in
+`false = true`, `Content.explain ctx node.toRaw` on a closed instance names the node and the
+reason.
+
+Where the typed printer's text differs from `Dev.svg`'s, on the same calls:
+
+| `Dev.svg` | The typed printer |
+| --- | --- |
+| one call a line | one line: a line break among the marks is character data, which `svg` does not take |
+| `<rect …/>` | `<rect …></rect>` |
+| `M 10 20 C 10 30, 30 30, 30 40`, subpaths joined by ` Z M ` | `M10,20C10,30 30,30 30,40`, joined as `ZM` |
+| `-0.005`, `0.001` | `-5e-3`, `1e-3`: the shorter spelling |
+| `&apos;` for `'`; `&quot;` for `"` in text | `'` as it is; `"` escaped in an attribute and not in text |
+| U+00A0 as itself | `&nbsp;` |
+| a stray `</g>` or an open `<g>` for an unbalanced list | a balanced tree |
+
+Attribute order and names, classes, `data-key`, `viewBox`, `transform`, clip identifiers and
+the escapes of `<`, `>` and `&` are the same.
+
+The comparison is of one sample of nine calls and three edge cases, read by eye against a
+copy of `Output.lean`. No theorem relates the two writers.
+
+One thing for Effect4's own gates. The structure theorems reach `Classical.choice`, through
+the `String` key of a data attribute and through the checker that a raw subtree is handed to.
+`Whatwg.Html` is under this repository's standard ceiling, which admits that axiom. Effect4's
+`AGENTS.md`, read at `707b9a01`, says its axiom gate audits the `Effect4.*` and `Test.*`
+modules at `propext` and `Quot.sound`. So a theorem such as `picture_okIn` needs nothing in
+`tools/Tools/View/`, and in a `Test` battery it would need an exemption by its name.

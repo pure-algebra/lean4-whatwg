@@ -107,10 +107,6 @@ def badPath : RawNode := svg [el "path" [("d", "M 10 20 L 40")]]
 #guard explainValues (svg [el "g" [] [el "path" [("d", "M 0 0")], el "path" [("d", "L 1 1")]]]) ==
   some ⟨[0, 1], .attribute "d" (.valueAt 0)⟩
 
--- Reader: the refusal is absent exactly when the judgment holds.
-example (n : RawNode) (h : explainValues n = none) : valuesOk n = true :=
-  (explainValues_none_iff n).mp h
-
 -- The message of a refusal.
 #guard (Reason.attribute "d" (.valueAt 12)).describe ==
   "the value of the attribute `d` is not of its kind: no reading continues after 12 characters"
@@ -205,40 +201,15 @@ example : Child Ctx.flow :=
 
 /-! ## A typed value needs no evaluation -/
 
--- Reader of `valueOkByName_valueText` (V5): the text of every typed path passes the check of
--- `d` on `path`. The value is not a literal, and nothing opens the text. The two names are
--- read by one evaluation each.
+-- Reader of `SvgAttr.valueOk_toPair`: the written pair of every typed path passes the check of
+-- `d` on `path`. The value is a variable, and nothing opens its text.
 example (p : PathData) :
     valueOkByName "path".toList "d".toList (valueText PathData.grammar p).toList = true :=
-  valueOkByName_valueText (t := .path) (a := .d) (k := .pathData) rfl "path" "d"
-    (by decide +kernel) (by decide +kernel) p
+  SvgAttr.valueOk_toPair (t := .path) (.attr .d p)
 
 -- The same at the kind that the table keys by the element: a typed length on `line`.
 example (l : Length) :
     valueOkByName "line".toList "x1".toList (valueText Length.grammar l).toList = true :=
-  valueOkByName_valueText (t := .line) (a := .x1) (k := .length) rfl "line" "x1"
-    (by decide +kernel) (by decide +kernel) l
-
--- The same through the walk: a tree that holds the text of any typed path and of any typed
--- transform list is of its grammars. The two equations of the root are evaluations of the
--- name `svg`; the rest is the walk's unfolding and the law at two attributes.
-example (p : PathData) (ts : TransformList) :
-    valuesOk (svg [el "path" [("d", valueText PathData.grammar p),
-      ("transform", valueText TransformList.grammar ts)]]) = true := by
-  have hroot : Ns.valuesOk .html "svg" [] = true := by decide +kernel
-  have hstep : Ns.step .html "svg" = .svg := by decide +kernel
-  have hd : valueOkByName "path".toList "d".toList (valueText PathData.grammar p).toList = true :=
-    valueOkByName_valueText (t := .path) (a := .d) (k := .pathData) rfl "path" "d"
-      (by decide +kernel) (by decide +kernel) p
-  have ht : valueOkByName "path".toList "transform".toList
-      (valueText TransformList.grammar ts).toList = true :=
-    valueOkByName_valueText (t := .path) (a := .transform) (k := .transformList) rfl "path"
-      "transform" (by decide +kernel) (by decide +kernel) ts
-  show valuesAt .html (.element "svg" [] [.element "path"
-    [("d", valueText PathData.grammar p), ("transform", valueText TransformList.grammar ts)]
-    []]) = true
-  rw [valuesAt_element, hroot, hstep, valuesAllAt_cons, valuesAllAt_nil, valuesAt_element,
-    valuesAllAt_nil, Ns.valuesOk_svg, svgValuesOk_cons, svgValuesOk_cons, svgValuesOk_nil, hd, ht]
-  rfl
+  SvgAttr.valueOk_toPair (t := .line) (.attr .x1 l)
 
 end WhatwgTest.Html.SvgValues

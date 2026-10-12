@@ -126,10 +126,10 @@ theorem Key.eq_attr_of_name {k : Key} {a : Attr} (h : k.name = a.name) : k = .at
     rw [Key.toList_name_data, Whatwg.Svg.Value.Attr.ofChars?_data] at hread
     exact nomatch hread
   | xmlns =>
-    have hnone : Attr.ofChars? "xmlns".toList = none := by decide +kernel
+    have hnone := SvgAttr.ofChars?_xmlns
     exact nomatch hnone.symm.trans hread
   | xmlnsXlink =>
-    have hnone : Attr.ofChars? "xmlns:xlink".toList = none := by decide +kernel
+    have hnone := SvgAttr.ofChars?_xmlnsXlink
     exact nomatch hnone.symm.trans hread
 
 /-- The name is injective in the key: two keys with one name are one key. -/

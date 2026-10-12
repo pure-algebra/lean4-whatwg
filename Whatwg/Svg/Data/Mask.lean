@@ -10,8 +10,9 @@ and membership is `Nat.testBit`. The kernel evaluates these `Nat` operations nat
 definition is the specification and the fast test.
 
 `mem` is a homomorphism into `Bool` (node B1 of the plan's section 6): `mem_union`, `mem_inter`,
-`mem_diff`, `mem_single` and `mem_ofList` say what each operation does to membership. Each is
-one core lemma about `Nat.testBit`.
+`mem_diff`, `mem_single` and `mem_ofList` say what each operation does to membership. The first
+two are each one core lemma about `Nat.testBit`; `mem_single` also needs that the index is
+injective, and `mem_ofList` an induction on the list.
 
 What this module does not claim: that two masks with the same members are equal. A bit above
 the universe's length names no value, so `mem` does not see it. The generator writes no such

@@ -6,7 +6,7 @@ import Whatwg.Html.Content.Explain
 # Whatwg.Html.Node.Admit
 
 The `admits` tactic: the auto-parameter tactic of every combinator in
-`Whatwg.Html.Node.Combinators`, discharging the two obligations of the typed
+`Whatwg.Html.Node.Combinators`, discharging the three obligations of the typed
 tree, `ctx.admits t = true`, `attrsOk t (rawAttrs attrs) = true` and
 `seqOk (ctx.child t) t children = true`, without
 asking the elaborator to reduce the obligation itself.
@@ -176,9 +176,8 @@ def reflTrue : Expr :=
 def describe (t : Tag) : String :=
   if t == .pcdata then "text" else "<" ++ t.markupText ++ ">"
 
-/-- The tag a raw-node expression counts as in a sequence: `none` for a
-comment or an unreadable node, `some none`... rather: `some (some t)` for
-a tag, `some none` for a comment, `none` when the node cannot be read. -/
+/-- The tag a raw-node expression counts as in a sequence: `some (some t)` for
+a tag, `some none` for a comment, and `none` when the node cannot be read. -/
 def rawTag? (e : Expr) : MetaM (Option (Option Tag)) := do
   let e ← whnf e
   if e.isAppOfArity ``Whatwg.Html.RawNode.element 3 then

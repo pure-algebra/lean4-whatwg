@@ -8,14 +8,16 @@ Owner: the number of an SVG attribute value, and the separators between numbers 
 `PathDataBNF` of `vendor/w3c-svgwg-47e645ef/master/paths.html`: the productions `digit`, `wsp`,
 `comma_wsp`, `sign`, `exponent`, `fractional-constant`, `number` and `coordinate`.
 
-Two typed values:
+Three typed values:
 
 - `Magnitude` is the production `number`: an unsigned exact decimal, `mantissa × 10 ^ exponent`.
 - `Decimal` is the production `coordinate`, `sign? number`: a signed exact decimal.
+- `Point` is the production `coordinate_pair`: two decimals.
 
-Neither is a floating-point number, and nothing here rounds. A conversion from a rational is
-a rounding, so it is the caller's: this module offers `Decimal.ofInt` and `Decimal.ofScaled`,
-which are exact.
+Neither number is a floating-point number, and nothing here rounds. A conversion from a
+rational is a rounding, so it is the caller's. This module offers the exact ones:
+`Decimal.ofInt`, `Decimal.ofScaled`, `Magnitude.ofNat`, and `Magnitude.ofInt?`, which refuses a
+negative integer.
 
 Each is a `Grammar`, so its laws are those of `Whatwg/Svg/Value/Grammar.lean`. The printer
 writes one spelling of a value:
@@ -42,14 +44,14 @@ There are two exact layers, and each has its name:
 
 - A text and a value: the spelling layer. The reader takes many spellings and the printer
   writes one, so the two are exact up to the printer's choice.
-- A value and its number: the denotation layer. The values of one number are its cohort.
-  `Decimal.Same` states that two values denote one number, by arithmetic. `Decimal.reduce`
-  gives the cohort's canonical value, with no zero at the end of the mantissa, at the cost of
-  the mantissa's digits. `Decimal.isReduced` is the invariant, as a predicate: the type does
-  not carry it. `Whatwg/Svg/Value/Cohort.lean` proves that `reduce` decides `Same`.
+- A value and its number: the denotation layer, which is `Whatwg/Svg/Value/Cohort.lean`. The
+  values of one number are its cohort. `Decimal.Same` states that two values denote one
+  number, `Decimal.reduce` gives the cohort's canonical value, and `Decimal.tidy` writes it
+  plain where that is no longer.
 
-`Decimal.tidy` is the canonical value written plain where that is no longer: a caller that
-prints a number it computed asks for it.
+`Decimal.trim` is here, because a program builds values with it: the value of the same number
+with no zero at the end of its fraction. A count in thousandths is `(ofScaled n 3).trim`, and
+it prints as `10`, `13.288` and `15000`.
 
 What this module does not claim: that two values which denote one number are equal, or that
 the reader returns a canonical value (`1.50` reads as `150 × 10 ^ -2`).
@@ -270,7 +272,7 @@ theorem plus_total : plus.Total := Syn.Total.of_unit (by decide)
 
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] plus_total
 
-/-- `"." digit+`. A part of a larger description is an `abbrev`: the search that proves a
+/-- `"." digit+`. A part with no type of its own is an `abbrev`: the search that proves a
 grammar total (`Whatwg.Syn`) reads through it, so a part states no totality lemma. -/
 abbrev fraction : Syn (Fin 10 × List (Fin 10)) := .right (.lit ['.']) digit.many1
 
@@ -389,6 +391,24 @@ def ofNat (n : Nat) : Magnitude := ⟨n, 0⟩
 /-- A numeral is the natural number it writes: `320 : Magnitude`. -/
 instance (n : Nat) : OfNat Magnitude n := ⟨ofNat n⟩
 
+/-- An integer that is not negative, exactly. A negative one is no value: a size that a
+program computes as a difference is refused here, and never clamped. -/
+def ofInt? : Int → Option Magnitude
+  | .ofNat n => some (ofNat n)
+  | .negSucc _ => none
+
+theorem ofInt?_natCast (n : Nat) : ofInt? (n : Int) = some (ofNat n) := rfl
+
+theorem ofInt?_of_nonneg {v : Int} (h : 0 ≤ v) : ofInt? v = some (ofNat v.toNat) := by
+  cases v with
+  | ofNat n => rfl
+  | negSucc n => exact absurd h (Int.not_le.mpr (Int.negSucc_lt_zero n))
+
+theorem ofInt?_of_neg {v : Int} (h : v < 0) : ofInt? v = none := by
+  cases v with
+  | ofNat n => exact absurd h (Int.not_lt.mpr (Int.natCast_nonneg n))
+  | negSucc n => rfl
+
 end Magnitude
 
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Magnitude.syn_total
@@ -452,20 +472,13 @@ end Decimal
 
 attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Decimal.syn_total
 
-/-! ## The canonical value of a number
+/-! ## The zeros at the end of a number
 
-A value is a spelling: `150`, `15e1` and `150.0` are three values that denote one number. The
-values of one number are its cohort, and one of them has a mantissa that ten does not divide,
-or is zero at exponent zero. `reduce` finds it at the cost of the mantissa's digits, whatever
-the exponent. `Same` is the relation, stated by arithmetic and never evaluated. -/
+A value is a spelling: `150`, `15e1` and `150.0` are three values that denote one number.
+`Whatwg/Svg/Value/Cohort.lean` holds that relation, the canonical value of a number and their
+laws. The two definitions here are what a program needs to build a value. -/
 
 namespace Decimal
-
-/-- Two values denote one number: at a common exponent, the mantissas agree. This is a
-statement. Nothing decides it by taking the power: `reduce` is the cheap test. -/
-def Same (a b : Decimal) : Prop :=
-  a.mantissa * 10 ^ (a.exponent - b.exponent).toNat =
-    b.mantissa * 10 ^ (b.exponent - a.exponent).toNat
 
 /-- Move the zeros at the end of a mantissa into the exponent, one for each step. `fuel` bounds
 the steps. -/
@@ -473,124 +486,11 @@ def stripZeros : Nat → Int → Int → Decimal
   | 0, m, e => ⟨m, e⟩
   | fuel + 1, m, e => if m % 10 = 0 then stripZeros fuel (m / 10) (e + 1) else ⟨m, e⟩
 
-/-- The canonical value of a number: no zero at the end of the mantissa, and zero as `0`. Its
-cost is the number of the mantissa's digits. -/
-def reduce (d : Decimal) : Decimal :=
-  if d.mantissa = 0 then ⟨0, 0⟩ else stripZeros d.mantissa.natAbs d.mantissa d.exponent
-
-/-- The value is canonical: ten does not divide its mantissa, or it is zero at exponent
-zero. -/
-def isReduced (d : Decimal) : Bool :=
-  if d.mantissa = 0 then d.exponent == 0 else d.mantissa % 10 != 0
-
-/-- The value of a number that this module spells shortest among those with a whole mantissa
-and the same digits: the canonical one, or its plain form where that is no longer. `15e1`
-becomes `150` and `15e2` becomes `1500`; `15e3` stays. The cost is that of `reduce`. -/
-def tidy (d : Decimal) : Decimal :=
-  match (reduce d).exponent with
-  | .ofNat 1 => ⟨(reduce d).mantissa * 10, 0⟩
-  | .ofNat 2 => ⟨(reduce d).mantissa * 100, 0⟩
-  | _ => reduce d
-
-theorem stripZeros_exponent : ∀ (fuel : Nat) (m e : Int), e ≤ (stripZeros fuel m e).exponent
-  | 0, _, e => Int.le_refl e
-  | fuel + 1, m, e => by
-    cases h : decide (m % 10 = 0) with
-    | true =>
-      rw [stripZeros, if_pos (of_decide_eq_true h)]
-      have ih := stripZeros_exponent fuel (m / 10) (e + 1)
-      omega
-    | false =>
-      rw [stripZeros, if_neg (of_decide_eq_false h)]
-      exact Int.le_refl e
-
-/-- With fuel for each digit, the mantissa that is left does not end in zero. -/
-theorem stripZeros_last : ∀ (fuel : Nat) (m e : Int), m ≠ 0 → m.natAbs ≤ fuel →
-    (stripZeros fuel m e).mantissa % 10 ≠ 0
-  | 0, m, _, hm, hfuel => by omega
-  | fuel + 1, m, e, hm, hfuel => by
-    cases h : decide (m % 10 = 0) with
-    | true =>
-      have hz : m % 10 = 0 := of_decide_eq_true h
-      rw [stripZeros, if_pos hz]
-      exact stripZeros_last fuel (m / 10) (e + 1) (by omega) (by omega)
-    | false =>
-      rw [stripZeros, if_neg (of_decide_eq_false h)]
-      exact of_decide_eq_false h
-
-/-- Moving zeros into the exponent keeps the number. -/
-theorem stripZeros_scale : ∀ (fuel : Nat) (m e : Int),
-    (stripZeros fuel m e).mantissa * 10 ^ ((stripZeros fuel m e).exponent - e).toNat = m
-  | 0, m, e => by
-    show m * 10 ^ (e - e).toNat = m
-    have h : (e - e).toNat = 0 := by omega
-    rw [h, Int.pow_zero, Int.mul_one]
-  | fuel + 1, m, e => by
-    cases h : decide (m % 10 = 0) with
-    | true =>
-      have hz : m % 10 = 0 := of_decide_eq_true h
-      have hle := stripZeros_exponent fuel (m / 10) (e + 1)
-      have ih := stripZeros_scale fuel (m / 10) (e + 1)
-      rw [stripZeros, if_pos hz]
-      have hsub : ((stripZeros fuel (m / 10) (e + 1)).exponent - e).toNat =
-          ((stripZeros fuel (m / 10) (e + 1)).exponent - (e + 1)).toNat + 1 := by omega
-      rw [hsub, Int.pow_succ, ← Int.mul_assoc, ih]
-      omega
-    | false =>
-      rw [stripZeros, if_neg (of_decide_eq_false h)]
-      show m * 10 ^ (e - e).toNat = m
-      have h : (e - e).toNat = 0 := by omega
-      rw [h, Int.pow_zero, Int.mul_one]
-
-/-- The canonical value is canonical. -/
-theorem isReduced_reduce (d : Decimal) : d.reduce.isReduced = true := by
-  cases h : decide (d.mantissa = 0) with
-  | true =>
-    rw [reduce, if_pos (of_decide_eq_true h)]
-    rfl
-  | false =>
-    have hm : d.mantissa ≠ 0 := of_decide_eq_false h
-    have hlast := stripZeros_last d.mantissa.natAbs d.mantissa d.exponent hm (Nat.le_refl _)
-    have hne : (stripZeros d.mantissa.natAbs d.mantissa d.exponent).mantissa ≠ 0 := by omega
-    rw [reduce, if_neg hm, isReduced, if_neg hne, bne_iff_ne]
-    exact hlast
-
-/-- A canonical value is its own canonical value. -/
-theorem reduce_of_isReduced {d : Decimal} (h : d.isReduced = true) : d.reduce = d := by
-  cases d with
-  | mk m e =>
-    cases hz : decide (m = 0) with
-    | true =>
-      have hm : m = 0 := of_decide_eq_true hz
-      have he : (e == 0) = true := by
-        have h' := h
-        rw [isReduced, if_pos hm] at h'
-        exact h'
-      rw [reduce, if_pos hm, hm, eq_of_beq he]
-    | false =>
-      have hm : m ≠ 0 := of_decide_eq_false hz
-      have hlast : ¬ m % 10 = 0 := by
-        have h' := h
-        rw [isReduced, if_neg hm, bne_iff_ne] at h'
-        exact h'
-      rw [reduce, if_neg hm]
-      cases hfuel : m.natAbs with
-      | zero => omega
-      | succ fuel => rw [stripZeros, if_neg hlast]
-
-/-- The canonical value denotes the number of the value. -/
-theorem same_reduce (d : Decimal) : d.reduce.Same d := by
-  cases h : decide (d.mantissa = 0) with
-  | true =>
-    have hm : d.mantissa = 0 := of_decide_eq_true h
-    rw [reduce, if_pos hm, Same, hm, Int.zero_mul, Int.zero_mul]
-  | false =>
-    have hm : d.mantissa ≠ 0 := of_decide_eq_false h
-    have hle := stripZeros_exponent d.mantissa.natAbs d.mantissa d.exponent
-    have hscale := stripZeros_scale d.mantissa.natAbs d.mantissa d.exponent
-    have hzero : (d.exponent -
-        (stripZeros d.mantissa.natAbs d.mantissa d.exponent).exponent).toNat = 0 := by omega
-    rw [reduce, if_neg hm, Same, hzero, hscale, Int.pow_zero, Int.mul_one]
+/-- The value of the same number with no zero at the end of its fraction: `10.000` becomes `10`
+and `13.250` becomes `13.25`. It takes no exponent from a whole number, so `15000.000` becomes
+`15000`, where `tidy` writes `15e3`. The cost is the number of places. A program that counts
+in thousandths writes `(ofScaled n 3).trim`. -/
+def trim (d : Decimal) : Decimal := stripZeros (-d.exponent).toNat d.mantissa d.exponent
 
 end Decimal
 

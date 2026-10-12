@@ -148,9 +148,10 @@ example (d : Decimal) : d.reduce.reduce = d.reduce :=
 -- Reader of the arithmetic law: the canonical value denotes the number of the value.
 example : (Decimal.reduce ⟨1500, -1⟩).Same ⟨1500, -1⟩ := Decimal.same_reduce _
 
--- Reader of the cohort law (`Whatwg/Svg/Value/Cohort.lean`): two values denote one number
--- exactly when they have one canonical value.
-example (a b : Decimal) (h : a.Same b) : a.reduce = b.reduce := (Decimal.same_iff_reduce a b).mp h
+-- Reader of the cohort law (`Whatwg/Svg/Value/Cohort.lean`) at a count in thousandths: a
+-- value and its trimmed value have one canonical value, since they denote one number.
+example (n : Int) : (Decimal.ofScaled n 3).trim.reduce = (Decimal.ofScaled n 3).reduce :=
+  (Decimal.same_iff_reduce _ _).mp (Decimal.same_trim _)
 
 -- So the relation is decided by `reduce`, and the evaluation takes no power of ten: the two
 -- values here differ by a billion in the exponent.
@@ -165,5 +166,65 @@ example : ¬ Decimal.Same ⟨150, 0⟩ ⟨15, 2⟩ := by decide
 
 -- Control: a text is read as it is written. The reader returns no canonical value.
 #guard value "1.50" != (value "1.50").map Decimal.reduce
+
+-- Readers of the equivalence at a count in thousandths: the count, its trimmed value and its
+-- canonical value denote one number.
+example : Decimal.Same ⟨150, -2⟩ ⟨150, -2⟩ := Decimal.Same.refl _
+example (n : Int) : (Decimal.ofScaled n 3).Same (Decimal.ofScaled n 3).trim :=
+  (Decimal.same_trim _).symm
+example (n : Int) : (Decimal.ofScaled n 3).trim.Same (Decimal.ofScaled n 3).reduce :=
+  (Decimal.same_trim _).trans (Decimal.same_reduce _).symm
+
+-- Reader of `same_tidy`: the plain form denotes the number too.
+example (n : Int) : (Decimal.ofInt n).tidy.Same (.ofInt n) := Decimal.same_tidy _
+
+-- Reader of `eq_of_same_of_isReduced`: two canonical values of one number are one value.
+example (n : Int) : (Decimal.ofScaled n 3).trim.reduce = (Decimal.ofScaled n 3).reduce :=
+  Decimal.eq_of_same_of_isReduced
+    ((Decimal.same_reduce _).trans ((Decimal.same_trim _).trans (Decimal.same_reduce _).symm))
+    (Decimal.isReduced_reduce _) (Decimal.isReduced_reduce _)
+
+/-! ## A count in thousandths -/
+
+-- A program that counts in thousandths writes `(ofScaled n 3).trim`: no zero at the end of
+-- the fraction, and a whole number plain. `tidy` writes the last one as `15e3`.
+#guard text (Decimal.ofScaled 10000 3).trim == "10"
+#guard text (Decimal.ofScaled 13288 3).trim == "13.288"
+#guard text (Decimal.ofScaled (-250) 3).trim == "-0.25" && text (Decimal.ofScaled 0 3).trim == "0"
+#guard text (Decimal.ofScaled 15000000 3).trim == "15000"
+#guard text (Decimal.tidy (.ofScaled 15000000 3)) == "15e3"
+
+-- Control: untrimmed, the zeros of the fraction are written.
+#guard text (.ofScaled 10000 3) == "10.000"
+
+-- A fraction with fewer digits than places keeps the printer's one spelling, an exponent.
+#guard text (Decimal.ofScaled 5 3).trim == "5e-3"
+
+-- Reader of `same_trim`: the trimmed value denotes the number, for every count.
+example (n : Int) : (Decimal.ofScaled n 3).trim.Same (.ofScaled n 3) := Decimal.same_trim _
+
+-- Reader of `trim_exponent_nonpos`: a trimmed count never takes an exponent such as `e3`.
+example (n : Int) : (Decimal.ofScaled n 3).trim.exponent ≤ 0 :=
+  Decimal.trim_exponent_nonpos (Int.le_of_lt (Int.negSucc_lt_zero 2))
+
+-- Reader of `trim_of_nonneg`: a whole number is its own trimmed value.
+example (n : Int) : (Decimal.ofInt n).trim = .ofInt n := Decimal.trim_of_nonneg (Int.le_refl 0)
+
+/-! ## A size from an integer -/
+
+-- A difference that is negative is no size, and it is not clamped.
+#guard Magnitude.ofInt? 30 == some (.ofNat 30) && Magnitude.ofInt? 0 == some 0
+#guard Magnitude.ofInt? (-3) == none
+
+-- Reader: the difference of two bounds in order is a size.
+example (a b : Int) (h : a ≤ b) : Magnitude.ofInt? (b - a) = some (.ofNat (b - a).toNat) :=
+  Magnitude.ofInt?_of_nonneg (by omega)
+
+-- Reader of the refusal: bounds out of order give no size.
+example (a b : Int) (h : b < a) : Magnitude.ofInt? (b - a) = none :=
+  Magnitude.ofInt?_of_neg (by omega)
+
+-- Reader of `ofInt?_natCast`: a natural number is always a size.
+example (n : Nat) : Magnitude.ofInt? (n : Int) = some (.ofNat n) := Magnitude.ofInt?_natCast n
 
 end WhatwgTest.Svg.Number

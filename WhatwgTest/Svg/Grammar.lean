@@ -1,4 +1,4 @@
-import Whatwg.Svg
+import Whatwg.Svg.Value.Grammar
 
 /-!
 # WhatwgTest.Svg.Grammar

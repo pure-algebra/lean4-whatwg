@@ -183,4 +183,13 @@ example (e : Extent) : Length.grammar.read (Extent.grammar.print e) = some e.toL
 #guard (Extent.grammar.read " +1.5E1PX ".toList).map Extent.toLength
   == Length.grammar.read " +1.5E1PX ".toList
 
+/-! ## A size from a number -/
+
+-- A numeral is that many user units, at both types.
+#guard (320 : AutoExtent) == .user (.ofNat 320) && (5 : Extent) == .user (.ofNat 5)
+#guard String.ofList (AutoExtent.grammar.print 320) == "320"
+
+-- A size from an integer: a negative one is no value (ruling SV-35).
+#guard AutoExtent.ofInt? 30 == some 30 && AutoExtent.ofInt? (-3) == none
+
 end WhatwgTest.Svg.Extent

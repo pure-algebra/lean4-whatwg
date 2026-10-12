@@ -45,7 +45,7 @@ def hits (t : Tag) : List Bool :=
    t == .address, t == .a]
 
 /-- The exclusions exclude the tag: some set flag hits it. This is the
-specification, over the flag lists the lemmas reason in; `excludedFast`
+specification, over the flag lists the lemmas reason in; `excluded`
 below is the same test as a short-circuiting boolean, which the kernel
 evaluates in a fifth of the time (performance review §3), and is what the
 admission functions use. -/

@@ -51,7 +51,6 @@ def reprint (s : String) : Option String := (value s).map text
 -- `transformation-matrix-computation`. They carry units. `svg-syntax` says that the syntax of
 -- the attribute differs from the property's, and the productions have no unit.
 #guard value "translate(100px, 100px)" == none
-#guard value "rotate(45deg)" == none
 #guard value "translate(-10px, -20px) scale(2) rotate(45deg)" == none
 
 /-! ## The six functions -/

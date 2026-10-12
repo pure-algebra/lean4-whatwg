@@ -12,7 +12,8 @@ Owner: the one top-down walk of a `RawNode` (point T5 of `docs/SVG-PACKAGE-PLAN.
   their names;
 - `text`, `entity` and `comment` make a leaf's result from the state.
 
-The checker, the located refusal and the printer are three algebras of this walk. Two laws
+The checker, the located refusal, the printer, the judgment of values and its located refusal
+are five algebras of this walk. Two laws
 are proved here once, by structural recursion on the tree, and each law about a pair of
 algebras is an instance:
 

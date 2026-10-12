@@ -1,5 +1,3 @@
-import Whatwg.Html.Schema
-
 /-!
 # Whatwg.Html.Print.Escape
 

@@ -3,13 +3,19 @@ import Whatwg.Svg.Value.Number
 /-!
 # Whatwg.Svg.Value.Cohort
 
-Owner: the law that the canonical value of an exact decimal decides when two decimals denote
-one number (slice S4b of `docs/SVG-PACKAGE-PLAN.md`, the number). It closes the sentence that
-`Whatwg/Svg/Value/Number.lean` leaves open. The definitions are that module's: `Decimal.Same`,
-`Decimal.reduce`, `Decimal.isReduced` and `Decimal.tidy`.
+Owner: the denotation layer of an exact decimal (slice S4b of `docs/SVG-PACKAGE-PLAN.md`, the
+number): the relation `Decimal.Same`, that two values denote one number; the canonical value
+`Decimal.reduce` with its invariant `Decimal.isReduced`; `Decimal.tidy`; and the law that the
+canonical value decides the relation. `Whatwg/Svg/Value/Number.lean` holds the values and
+their spelling, and the two definitions a program builds with, `stripZeros` and `trim`. No
+carrier of the package reads this module, so an edit here rebuilds no grammar.
 
 The values of one number are its cohort. This module proves:
 
+- `reduce` returns a canonical value that denotes the number: `isReduced_reduce`,
+  `reduce_of_isReduced` and `same_reduce`.
+- `trim` keeps the number and takes no exponent from a whole number: `same_trim`,
+  `trim_exponent_nonpos` and `trim_of_nonneg`.
 - `Same` is an equivalence: `Same.refl`, `Same.symm` and `Same.trans`.
 - A cohort has one canonical value: `eq_of_same_of_isReduced`.
 - The main law, `same_iff_reduce`: two values denote one number exactly when their canonical
@@ -28,6 +34,175 @@ canonical value; or any law of order, rounding or arithmetic on decimals.
 -/
 
 namespace Whatwg.Svg.Value.Decimal
+
+/-! ## The canonical value of a number
+
+A value is a spelling: `150`, `15e1` and `150.0` are three values that denote one number. The
+values of one number are its cohort, and one of them has a mantissa that ten does not divide,
+or is zero at exponent zero. `reduce` finds it at the cost of the mantissa's digits, whatever
+the exponent. `Same` is the relation, stated by arithmetic and never evaluated. -/
+
+/-- Two values denote one number: at a common exponent, the mantissas agree. This is a
+statement. Nothing decides it by taking the power: `reduce` is the cheap test. -/
+def Same (a b : Decimal) : Prop :=
+  a.mantissa * 10 ^ (a.exponent - b.exponent).toNat =
+    b.mantissa * 10 ^ (b.exponent - a.exponent).toNat
+
+/-- The canonical value of a number: no zero at the end of the mantissa, and zero as `0`. Its
+cost is the number of the mantissa's digits. -/
+def reduce (d : Decimal) : Decimal :=
+  if d.mantissa = 0 then ⟨0, 0⟩ else stripZeros d.mantissa.natAbs d.mantissa d.exponent
+
+/-- The value is canonical: ten does not divide its mantissa, or it is zero at exponent
+zero. -/
+def isReduced (d : Decimal) : Bool :=
+  if d.mantissa = 0 then d.exponent == 0 else d.mantissa % 10 != 0
+
+/-- The value of a number that this module spells shortest among those with a whole mantissa
+and the same digits: the canonical one, or its plain form where that is no longer. `15e1`
+becomes `150` and `15e2` becomes `1500`; `15e3` stays. The cost is that of `reduce`. -/
+def tidy (d : Decimal) : Decimal :=
+  match (reduce d).exponent with
+  | .ofNat 1 => ⟨(reduce d).mantissa * 10, 0⟩
+  | .ofNat 2 => ⟨(reduce d).mantissa * 100, 0⟩
+  | _ => reduce d
+
+theorem stripZeros_exponent : ∀ (fuel : Nat) (m e : Int), e ≤ (stripZeros fuel m e).exponent
+  | 0, _, e => Int.le_refl e
+  | fuel + 1, m, e => by
+    cases h : decide (m % 10 = 0) with
+    | true =>
+      rw [stripZeros, if_pos (of_decide_eq_true h)]
+      have ih := stripZeros_exponent fuel (m / 10) (e + 1)
+      omega
+    | false =>
+      rw [stripZeros, if_neg (of_decide_eq_false h)]
+      exact Int.le_refl e
+
+/-- With fuel for each digit, the mantissa that is left does not end in zero. -/
+theorem stripZeros_last : ∀ (fuel : Nat) (m e : Int), m ≠ 0 → m.natAbs ≤ fuel →
+    (stripZeros fuel m e).mantissa % 10 ≠ 0
+  | 0, m, _, hm, hfuel => by omega
+  | fuel + 1, m, e, hm, hfuel => by
+    cases h : decide (m % 10 = 0) with
+    | true =>
+      have hz : m % 10 = 0 := of_decide_eq_true h
+      rw [stripZeros, if_pos hz]
+      exact stripZeros_last fuel (m / 10) (e + 1) (by omega) (by omega)
+    | false =>
+      rw [stripZeros, if_neg (of_decide_eq_false h)]
+      exact of_decide_eq_false h
+
+/-- Moving zeros into the exponent keeps the number. -/
+theorem stripZeros_scale : ∀ (fuel : Nat) (m e : Int),
+    (stripZeros fuel m e).mantissa * 10 ^ ((stripZeros fuel m e).exponent - e).toNat = m
+  | 0, m, e => by
+    show m * 10 ^ (e - e).toNat = m
+    have h : (e - e).toNat = 0 := by omega
+    rw [h, Int.pow_zero, Int.mul_one]
+  | fuel + 1, m, e => by
+    cases h : decide (m % 10 = 0) with
+    | true =>
+      have hz : m % 10 = 0 := of_decide_eq_true h
+      have hle := stripZeros_exponent fuel (m / 10) (e + 1)
+      have ih := stripZeros_scale fuel (m / 10) (e + 1)
+      rw [stripZeros, if_pos hz]
+      have hsub : ((stripZeros fuel (m / 10) (e + 1)).exponent - e).toNat =
+          ((stripZeros fuel (m / 10) (e + 1)).exponent - (e + 1)).toNat + 1 := by omega
+      rw [hsub, Int.pow_succ, ← Int.mul_assoc, ih]
+      omega
+    | false =>
+      rw [stripZeros, if_neg (of_decide_eq_false h)]
+      show m * 10 ^ (e - e).toNat = m
+      have h : (e - e).toNat = 0 := by omega
+      rw [h, Int.pow_zero, Int.mul_one]
+
+/-- The canonical value is canonical. -/
+theorem isReduced_reduce (d : Decimal) : d.reduce.isReduced = true := by
+  cases h : decide (d.mantissa = 0) with
+  | true =>
+    rw [reduce, if_pos (of_decide_eq_true h)]
+    rfl
+  | false =>
+    have hm : d.mantissa ≠ 0 := of_decide_eq_false h
+    have hlast := stripZeros_last d.mantissa.natAbs d.mantissa d.exponent hm (Nat.le_refl _)
+    have hne : (stripZeros d.mantissa.natAbs d.mantissa d.exponent).mantissa ≠ 0 := by omega
+    rw [reduce, if_neg hm, isReduced, if_neg hne, bne_iff_ne]
+    exact hlast
+
+/-- A canonical value is its own canonical value. -/
+theorem reduce_of_isReduced {d : Decimal} (h : d.isReduced = true) : d.reduce = d := by
+  cases d with
+  | mk m e =>
+    cases hz : decide (m = 0) with
+    | true =>
+      have hm : m = 0 := of_decide_eq_true hz
+      have he : (e == 0) = true := by
+        have h' := h
+        rw [isReduced, if_pos hm] at h'
+        exact h'
+      rw [reduce, if_pos hm, hm, eq_of_beq he]
+    | false =>
+      have hm : m ≠ 0 := of_decide_eq_false hz
+      have hlast : ¬ m % 10 = 0 := by
+        have h' := h
+        rw [isReduced, if_neg hm, bne_iff_ne] at h'
+        exact h'
+      rw [reduce, if_neg hm]
+      cases hfuel : m.natAbs with
+      | zero => omega
+      | succ fuel => rw [stripZeros, if_neg hlast]
+
+/-- Moving zeros into the exponent keeps the number, whatever the fuel. -/
+theorem stripZeros_same (fuel : Nat) (m e : Int) : (stripZeros fuel m e).Same ⟨m, e⟩ := by
+  have hle := stripZeros_exponent fuel m e
+  have hzero : (e - (stripZeros fuel m e).exponent).toNat = 0 := by omega
+  show (stripZeros fuel m e).mantissa * 10 ^ ((stripZeros fuel m e).exponent - e).toNat =
+    m * 10 ^ (e - (stripZeros fuel m e).exponent).toNat
+  rw [hzero, stripZeros_scale, Int.pow_zero, Int.mul_one]
+
+/-- The canonical value denotes the number of the value. -/
+theorem same_reduce (d : Decimal) : d.reduce.Same d := by
+  cases h : decide (d.mantissa = 0) with
+  | true =>
+    have hm : d.mantissa = 0 := of_decide_eq_true h
+    rw [reduce, if_pos hm, Same, hm, Int.zero_mul, Int.zero_mul]
+  | false =>
+    rw [reduce, if_neg (of_decide_eq_false h)]
+    exact stripZeros_same _ d.mantissa d.exponent
+
+/-- Each step moves one zero, so the exponent rises by the fuel at most. -/
+theorem stripZeros_exponent_le : ∀ (fuel : Nat) (m e : Int),
+    (stripZeros fuel m e).exponent ≤ e + fuel
+  | 0, _, e => by
+    show e ≤ e + ((0 : Nat) : Int)
+    omega
+  | fuel + 1, m, e => by
+    cases h : decide (m % 10 = 0) with
+    | true =>
+      rw [stripZeros, if_pos (of_decide_eq_true h)]
+      have ih := stripZeros_exponent_le fuel (m / 10) (e + 1)
+      omega
+    | false =>
+      rw [stripZeros, if_neg (of_decide_eq_false h)]
+      show e ≤ e + ((fuel + 1 : Nat) : Int)
+      omega
+
+/-- The trimmed value denotes the number of the value. -/
+theorem same_trim (d : Decimal) : d.trim.Same d :=
+  stripZeros_same _ d.mantissa d.exponent
+
+/-- Trimming takes no exponent from a whole number: a fraction stays a fraction or becomes
+whole, and no positive exponent appears. -/
+theorem trim_exponent_nonpos {d : Decimal} (h : d.exponent ≤ 0) : d.trim.exponent ≤ 0 := by
+  have hle := stripZeros_exponent_le (-d.exponent).toNat d.mantissa d.exponent
+  rw [trim]
+  omega
+
+/-- A value at an exponent that is not negative is its own trimmed value. -/
+theorem trim_of_nonneg {d : Decimal} (h : 0 ≤ d.exponent) : d.trim = d := by
+  have hfuel : (-d.exponent).toNat = 0 := by omega
+  rw [trim, hfuel, stripZeros]
 
 /-! ## Powers of ten -/
 
