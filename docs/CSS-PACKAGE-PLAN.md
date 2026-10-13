@@ -240,3 +240,12 @@ bound (K3); escapes in identifiers that the kit's stems could need (K2, with `cs
 - **The standard has no "convert a string to a number" at this pin.** The value of a number is
   read exactly as a rational: its digits, then ten to its exponent.
 - **Speed.** 195,000 code points tokenize inside a two-second check under the evaluator.
+- **The two missing cases, checked outside the model** (2026-10-12). Upstream's head has the
+  same table and tokenizer steps as the pin. Chrome 152 and 155 and Edge 155 write `-->` and
+  `[<!--x]` with no comment, by the method of the Web Platform Test for this table
+  (`docs/research/2026-10-12-motion-probe/token-pairs.html`). css-tree 3.1.0 writes the same and
+  reads its own output back as other tokens. Servo's `cssparser` classes `>`, `<` and `!` as
+  needing no separator (read, not run). No report of either case was found upstream; pull
+  request 6874 of `w3c/csswg-drafts` fixed the mirror cases in 2021. Two minifiers, lightningcss
+  1.33.0 and esbuild 0.27.7, are no evidence either way: they drop a comment between two
+  identifiers too.

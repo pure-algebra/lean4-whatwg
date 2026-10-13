@@ -14,10 +14,13 @@ the path of its element, as `Content.Refusal` locates a refused node.
 
 What it gives:
 
-- `facts`, the facts of a tree in tree order, each at its path: an identifier (`id`), a
-  reference to an identifier, a `main` with whether it is hidden, a heading with its level. It
+- `facts`, the facts of a tree in tree order, each at its path: an identifier (`id`) with what
+  its element is, a reference to an identifier, an address (an `href` that is no reference to
+  this document), a `main` with whether it is hidden, a heading with its level, a `table`. It
   is an algebra of the walk (`Whatwg/Html/Node/Walk.lean`), beside the checker; its state is
-  the namespace. `ids`, `refs`, `mains` and `headings` are its four parts.
+  the namespace. `ids`, `owners`, `refs`, `addresses`, `mains`, `headings` and `tables` are its
+  parts. Every `href` is kept whole: as a reference when it is `#` and an identifier, and as
+  an address otherwise, which `Whatwg/Html/Content/Site.lean` reads against the page's path.
 - `Problem`, one constructor for each kind of problem, and `problems`, the problems of a tree.
   `Problem.describe` writes one in words; `trail` writes a path as the names along it.
 - `Problem.basis`, what the rule rests on: a requirement that a sealed text states, with the
@@ -46,13 +49,25 @@ each sentence at the pin is given):
   line 14407). The sentence speaks of HTML elements. For an SVG element the sealed chapter
   Document Structure of SVG 2 says the same (`vendor/w3c-svgwg-47e645ef/master/struct.html`,
   section "Attributes common to all elements: id", line 2130).
-- `for` of `label` "must be the ID of a labelable element in the same tree" (section "The
-  label element", line 49305). `list` of `input`, `form` of a listed element, `popovertarget`
-  and `commandfor` are each the identifier of an element (lines 55663, 60626, 92903, 56718).
-  Each token of `headers`, of `for` of `output` and of `itemref` is one too (lines 46994,
-  59324, 81516). This module checks that the identifier exists. It does not check the rest of
-  each sentence: that the element is labelable, a `datalist`, a `form`, a `th` of the same
-  table, or has a `popover` attribute.
+- An attribute whose value is an identifier names an element, and five of them say which:
+  - `for` of `label` "must be the ID of a labelable element in the same tree" (section "The
+    label element", line 49305; the labelable elements are listed in section "Categories",
+    line 48768, where `input` is one unless its `type` is in the Hidden state, line 51400);
+  - `list` of `input` "must be the ID of a `datalist` element in the same tree" (section "The
+    list attribute", line 55663);
+  - `form` "must be the ID of a `form` element in the element's tree" (section "Association
+    of controls and forms", line 60626);
+  - each token of `headers` "must have the value of an ID of a `th` element taking part in
+    the same table as the `td` or `th` element" (section "Attributes common to td and th
+    elements", line 46994; a table and its cells are those of section "Processing model",
+    line 47071);
+  - `popovertarget` "must be the ID of an element with a `popover` attribute in the same
+    tree" (section "The popover target attributes", line 92903).
+  `commandfor`, each token of `for` of `output` and each token of `itemref` are the identifier
+  of an element of the tree, and no more is asked (lines 56718, 59324, 81516).
+  `Problem.dangling` is the identifier that is not there, and `Problem.wrongTarget` the
+  element that is there and is not what the sentence asks. Where two elements have the
+  identifier, the first in tree order is the one named, as the standard's own searches take it.
 - "A document must not have more than one `main` element that does not have the `hidden`
   attribute specified" (section "The main element", line 22918).
 - "Each heading following another heading lead in the outline must have a heading level that
@@ -88,6 +103,14 @@ Conventions of this module, which are not claims about a standard:
   `url(#x)`, and the timing attributes of SVG animation.
 - That every `main` stands where one may ("hierarchically correct", line 22922): that rule
   reads the accessible name of a `form`, which ARIA owns.
+- The whole of the table model. Two cells take part in one table here when the nearest `table`
+  above each is the same element, which is the table model's answer in a tree `validIn`
+  accepts. That a `th` is not "targeted by itself" (line 47013) is not checked.
+- A form-associated custom element. An element whose name holds a hyphen may be one, so a
+  `label` may name it.
+- An address. `Whatwg/Html/Content/Site.lean` judges where an `href` leads; this module only
+  keeps it. An `href` on an HTML element other than `a`, `area`, `link` and `base`, and `src`,
+  `action`, `cite`, `poster` and `srcset`, are not kept.
 - `aria-level`, by which ARIA gives a heading another level: a level here is the standard's.
 - The contents of a `template`. They are a `DocumentFragment` of their own and "have no
   conformance requirements" (section "The template element", line 69322), so nothing below a
@@ -252,6 +275,60 @@ def NamesIn (r : Ref) (names : List String) : Prop :=
 
 end Ref
 
+/-- What an attribute asks of the element it names, beyond that it be there. -/
+inductive Wants where
+  /-- Nothing more. -/
+  | anything
+  /-- A labelable element: `for` of `label`. -/
+  | labelable
+  /-- A `datalist`: `list` of `input`. -/
+  | datalist
+  /-- A `form`: the `form` attribute. -/
+  | form
+  /-- A `th` of the same table: a token of `headers`. -/
+  | headerCell
+  /-- An element with `popover`: `popovertarget`. -/
+  | popover
+  deriving DecidableEq, Repr, Inhabited
+
+/-- What a reference asks of its target. Only an HTML attribute whose value is an identifier
+asks anything. -/
+def Ref.wants (r : Ref) : Wants :=
+  if r.kind == .idref || r.kind == .idrefs then
+    match r.attr with
+    | "for" => if r.element == "label" then .labelable else .anything
+    | "list" => .datalist
+    | "form" => .form
+    | "headers" => .headerCell
+    | "popovertarget" => .popover
+    | _ => .anything
+  else .anything
+
+/-- The element that has an identifier, as far as a reference may ask of it: its name, whether
+it is an HTML element, whether its `type` is `hidden` (which matters of an `input`), and
+whether it has `popover`. -/
+structure Owner where
+  element : String
+  html : Bool
+  hiddenType : Bool
+  popover : Bool
+  deriving DecidableEq, Repr, Inhabited
+
+/-- The element is one a `label` may name: `button`, `meter`, `output`, `progress`, `select`,
+`textarea`, and `input` unless its `type` is `hidden`. An element whose name holds a hyphen may
+be a form-associated custom element, and is taken as one. -/
+def Owner.labelable (o : Owner) : Bool :=
+  o.html &&
+    (["button", "meter", "output", "progress", "select", "textarea"].contains o.element ||
+      (o.element == "input" && !o.hiddenType) || o.element.toList.contains '-')
+
+/-- An address that an element holds: the element, the attribute, and the value as written. -/
+structure Address where
+  element : String
+  attr : String
+  href : String
+  deriving DecidableEq, Repr, Inhabited
+
 /-! ## Facts -/
 
 /-- A heading as its ancestors leave it: the level of its name, from 1 to 6; the sum of the
@@ -277,21 +354,40 @@ end Level
 
 /-- One fact of a document. -/
 inductive Fact where
-  /-- An element has this `id`. -/
-  | ident (id : String)
+  /-- An element has this `id`; `owner` says what the element is. -/
+  | ident (id : String) (owner : Owner)
   /-- An attribute refers to an identifier. -/
   | ref (r : Ref)
+  /-- An element holds an address that is no reference to an identifier of this document. -/
+  | address (a : Address)
   /-- A `main` element, and whether it has the `hidden` attribute. -/
   | main (hidden : Bool)
   /-- A heading, `h1` to `h6`. -/
   | heading (level : Level)
+  /-- A `table` element. -/
+  | table
   deriving DecidableEq, Repr, Inhabited
 
 namespace Fact
 
 /-- The identifier, when the fact is one. -/
 def ident? : Fact → Option String
-  | .ident id => some id
+  | .ident id _ => some id
+  | _ => none
+
+/-- The identifier and its element, when the fact is an identifier. -/
+def owner? : Fact → Option (String × Owner)
+  | .ident id owner => some (id, owner)
+  | _ => none
+
+/-- The address, when the fact is one. -/
+def address? : Fact → Option Address
+  | .address a => some a
+  | _ => none
+
+/-- The fact is a `table`. -/
+def table? : Fact → Option Unit
+  | .table => some ()
   | _ => none
 
 /-- The reference, when the fact is one. -/
@@ -389,6 +485,39 @@ def linksOf (ns : Ns) (element : String) (attr : String × String) : List Ref :=
   | .html => htmlLinks element attr
   | .svg => svgLinks element attr
 
+/-- The address of one attribute of an HTML element: the `href` of `a`, `area`, `link` and
+`base`. A hyperlink's `href` that is `#` and an identifier is a reference, and is not kept
+twice. -/
+def htmlAddresses (element : String) (attr : String × String) : List Address :=
+  if attr.1 == "href" then
+    if element == "a" || element == "area" then
+      if (fragmentOf? attr.2).isSome then [] else [⟨element, attr.1, attr.2⟩]
+    else if element == "link" || element == "base" then [⟨element, attr.1, attr.2⟩]
+    else []
+  else []
+
+/-- The address of one attribute of an SVG element: an `href` or `xlink:href` that is no
+reference to an identifier. -/
+def svgAddresses (element : String) (attr : String × String) : List Address :=
+  if attr.1 == "href" || attr.1 == "xlink:href" then
+    if (fragmentOf? attr.2).isSome then [] else [⟨element, attr.1, attr.2⟩]
+  else []
+
+/-- The address of one attribute, by the namespace of its element. -/
+def addressesOf (ns : Ns) (element : String) (attr : String × String) : List Address :=
+  match ns with
+  | .html => htmlAddresses element attr
+  | .svg => svgAddresses element attr
+
+/-- What an element is, for a reference that names it. -/
+def ownerOf (ns : Ns) (element : String) (attrs : List (String × String)) : Owner where
+  element := element
+  html := ns == .html
+  hiddenType :=
+    ((Condition.lookup attrs "type").map fun value =>
+      value.toList.map Char.toLower == "hidden".toList).getD false
+  popover := (Condition.lookup attrs "popover").isSome
+
 /-- The level of a heading's name. -/
 def headingBase? (name : String) : Option Nat :=
   match name with
@@ -400,18 +529,27 @@ def headingBase? (name : String) : Option Nat :=
   | "h6" => some 6
   | _ => none
 
-/-- What an HTML element is besides its attributes: a `main`, or a heading. -/
+/-- What an HTML element is besides its attributes: a `main`, a heading, or a `table`. -/
 def markFacts (element : String) (attrs : List (String × String)) : List Fact :=
   (if element == "main" then [Fact.main (Condition.lookup attrs "hidden").isSome] else []) ++
-    match headingBase? element with
-    | some base => [Fact.heading ⟨base, 0, false⟩]
-    | none => []
+    (match headingBase? element with
+      | some base => [Fact.heading ⟨base, 0, false⟩]
+      | none => []) ++
+    if element == "table" then [Fact.table] else []
+
+/-- The facts of one attribute of an element with the attributes `attrs`: the identifier it
+gives, the references it makes, and the address it holds. What the element is, is read only
+for an identifier. -/
+def attrFacts (ns : Ns) (element : String) (attrs : List (String × String))
+    (attr : String × String) : List Fact :=
+  (identOf? attr).toList.map (fun id => Fact.ident id (ownerOf ns element attrs)) ++
+    (linksOf ns element attr).map Fact.ref ++ (addressesOf ns element attr).map Fact.address
 
 /-- The facts of one element, from its namespace, its name and its attributes: each `id`, each
-reference, and for an HTML element whether it is a `main` or a heading. -/
+reference, each address, and for an HTML element whether it is a `main`, a heading or a
+`table`. -/
 def ownFacts (ns : Ns) (element : String) (attrs : List (String × String)) : List Fact :=
-  attrs.flatMap (fun attr =>
-      (identOf? attr).toList.map Fact.ident ++ (linksOf ns element attr).map Fact.ref) ++
+  attrs.flatMap (attrFacts ns element attrs) ++
     match ns with
     | .html => markFacts element attrs
     | .svg => []
@@ -482,6 +620,18 @@ def mainsOf (facts : List (Placed Fact)) : List (Placed Bool) :=
 def headingsOf (facts : List (Placed Fact)) : List (Placed Level) :=
   facts.filterMap (Placed.pick Fact.heading?)
 
+/-- The identifiers among some facts, each with what its element is. -/
+def ownersOf (facts : List (Placed Fact)) : List (Placed (String × Owner)) :=
+  facts.filterMap (Placed.pick Fact.owner?)
+
+/-- The addresses among some facts, each at the path of its element. -/
+def addressesIn (facts : List (Placed Fact)) : List (Placed Address) :=
+  facts.filterMap (Placed.pick Fact.address?)
+
+/-- The paths of the `table` elements among some facts. -/
+def tablesIn (facts : List (Placed Fact)) : List (List Nat) :=
+  facts.filterMap fun p => p.it.table?.map fun _ => p.path
+
 /-- The identifiers among some facts, as texts. -/
 def namesOf (facts : List (Placed Fact)) : List String := facts.filterMap fun p => p.it.ident?
 
@@ -503,6 +653,16 @@ def headings (tree : RawNode) : List (Placed Level) := headingsOf (facts tree)
 
 /-- The identifiers a tree defines, as texts. -/
 def names (tree : RawNode) : List String := namesOf (facts tree)
+
+/-- The identifiers a tree defines, each with what its element is. -/
+def owners (tree : RawNode) : List (Placed (String × Owner)) := ownersOf (facts tree)
+
+/-- The addresses a tree holds, in tree order: every `href` that is no reference to one of the
+tree's own identifiers. -/
+def addresses (tree : RawNode) : List (Placed Address) := addressesIn (facts tree)
+
+/-- The paths of a tree's `table` elements. -/
+def tables (tree : RawNode) : List (List Nat) := tablesIn (facts tree)
 
 /-! ## Problems -/
 
@@ -565,6 +725,9 @@ inductive Problem where
   | duplicateId (id : String) (first second : List Nat)
   /-- A reference names no identifier of the tree. -/
   | dangling (path : List Nat) (ref : Ref)
+  /-- A reference names an element that is not what its attribute asks. `found` is the name of
+  the element. -/
+  | wrongTarget (path : List Nat) (ref : Ref) (found : String)
   /-- A `main` that is not hidden stands after another: the first, and this one. -/
   | secondMain (first second : List Nat)
   /-- A heading is more than one level below the heading before it in the outline. -/
@@ -580,6 +743,7 @@ def path : Problem → List Nat
   | .malformedId path _ => path
   | .duplicateId _ _ second => second
   | .dangling path _ => path
+  | .wrongTarget path _ _ => path
   | .secondMain _ second => second
   | .headingSkip _ _ path _ => path
   | .noTopHeading first => first
@@ -589,6 +753,7 @@ def basis : Problem → Basis
   | .malformedId _ _ => .requirement (.html "Global attributes")
   | .duplicateId _ _ _ => .requirement (.html "Global attributes")
   | .dangling _ ref => ref.basis
+  | .wrongTarget _ ref _ => ref.basis
   | .secondMain _ _ => .requirement (.html "The main element")
   | .headingSkip _ _ _ _ => .requirement (.html "Headings and outlines")
   | .noTopHeading _ => .advice (.html "Headings and outlines")
@@ -619,6 +784,16 @@ def describe (p : Problem)
       | _ =>
         "`" ++ ref.attr ++ "` of `" ++ ref.element ++ "` names `" ++ ref.target ++
           "`, and no element has that identifier") ++ ": at " ++ place path
+  | .wrongTarget path ref found =>
+    "`" ++ ref.attr ++ "` of `" ++ ref.element ++ "` names `" ++ ref.target ++ "`, which is a `" ++
+      found ++ "`, " ++
+      (match ref.wants with
+        | .labelable => "not a labelable element"
+        | .datalist => "not a `datalist`"
+        | .form => "not a `form`"
+        | .headerCell => "not a `th` of the same table"
+        | .popover => "an element with no `popover`"
+        | .anything => "not what the attribute asks") ++ ": at " ++ place path
   | .secondMain first second =>
     "a second `main` that is not hidden: at " ++ place second ++ ", after the one at " ++
       place first
@@ -674,6 +849,45 @@ def dangling (names : List String) (refs : List (Placed Ref)) : List Problem :=
   let known := Std.HashSet.ofList names
   (refs.filter fun r => !r.it.namesBy known.contains).map fun r => .dangling r.path r.it
 
+/-- A table from each key to the first thing of a list that has it. -/
+def firstTable {α κ : Type} [BEq κ] [Hashable κ] (key : α → κ) (things : List α) :
+    Std.HashMap κ α :=
+  things.foldl (fun table thing => table.insertIfNew (key thing) thing) ∅
+
+/-- The paths of the ancestors of the element at a path, the nearest first. -/
+def ancestors (path : List Nat) : List (List Nat) :=
+  (List.range path.length).reverse.map fun length => path.take length
+
+/-- The nearest `table` above the element at a path, among the paths of the tables. -/
+def tableOf (tables : List (List Nat)) (path : List Nat) : Option (List Nat) :=
+  (ancestors path).find? tables.contains
+
+/-- The element that a reference names is what the reference asks: a labelable element, a
+`datalist`, a `form`, an element with `popover`, or a `th` whose nearest `table` is the
+reference's own. -/
+def suits (tables : List (List Nat)) (r : Placed Ref) (o : Placed (String × Owner)) : Bool :=
+  match r.it.wants with
+  | .anything => true
+  | .labelable => o.it.2.labelable
+  | .datalist => o.it.2.html && o.it.2.element == "datalist"
+  | .form => o.it.2.html && o.it.2.element == "form"
+  | .popover => o.it.2.popover
+  | .headerCell =>
+    o.it.2.html && o.it.2.element == "th" &&
+      match tableOf tables r.path with
+      | some table => tableOf tables o.path == some table
+      | none => false
+
+/-- Each reference whose identifier is there and names an element that is not what the
+reference asks. The first element with the identifier is the one named. -/
+def wrongTargets (tables : List (List Nat)) (owners : List (Placed (String × Owner)))
+    (refs : List (Placed Ref)) : List Problem :=
+  let first := firstTable (fun o => o.it.1) owners
+  refs.filterMap fun r =>
+    match first[r.it.target]? with
+    | some o => if suits tables r o then none else some (.wrongTarget r.path r.it o.it.2.element)
+    | none => none
+
 /-- Each `main` that is not hidden, after the first such. -/
 def extraMains (mains : List (Placed Bool)) : List Problem :=
   match mains.filter fun m => !m.it with
@@ -693,9 +907,11 @@ def topless (headings : List (Placed Level)) : List Problem :=
     if headings.any fun h => h.it.value == 1 then [] else [.noTopHeading first.path]
 
 /-- The problems of some facts: the identifiers that are malformed, those defined twice, the
-references that name nothing, the second `main`, the headings that skip, and the advice. -/
+references that name nothing, those that name the wrong element, the second `main`, the
+headings that skip, and the advice. -/
 def problemsOf (facts : List (Placed Fact)) : List Problem :=
   malformed (idsOf facts) ++ duplicates (idsOf facts) ++ dangling (namesOf facts) (refsOf facts) ++
+    wrongTargets (tablesIn facts) (ownersOf facts) (refsOf facts) ++
     extraMains (mainsOf facts) ++ skips (headingsOf facts) ++ topless (headingsOf facts)
 
 /-- The problems of a tree, across it. The tree is read once, and each identifier and each
@@ -715,13 +931,16 @@ def ok (tree : RawNode) : Bool := (errors tree).isEmpty
 /-! ## The plain statement -/
 
 /-- A tree has no error across it, stated on its facts with no table: every `id` is well
-formed; no identifier is defined twice; every reference names an identifier; at most one
-`main` is not hidden; and no heading is more than one level below the heading before it.
-`ok_iff` of the laws says that `ok` decides this. -/
+formed; no identifier is defined twice; every reference names an identifier; the first element
+with that identifier is what the reference asks; at most one `main` is not hidden; and no
+heading is more than one level below the heading before it. `ok_iff` of the laws says that
+`ok` decides this. -/
 structure Sound (tree : RawNode) : Prop where
   wellFormed : ∀ d ∈ ids tree, idOk d.it = true
   distinct : (names tree).Nodup
   closed : ∀ r ∈ refs tree, r.it.NamesIn (names tree)
+  targets : ∀ r ∈ refs tree, ∀ o,
+    (owners tree).find? (fun o => o.it.1 == r.it.target) = some o → suits (tables tree) r o = true
   oneMain : ((mains tree).filter fun m => !m.it).length ≤ 1
   steps : ∀ p ∈ (headings tree).zip (headings tree).tail, p.2.it.value ≤ p.1.it.value + 1
 

@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Two cases that the table of pairs of CSS Syntax 3 does not mark</title>
+<body>
+<p>The method of the Web Platform Test <code>css/css-syntax/serialize-consecutive-tokens.html</code>:
+custom properties hold one token each, another holds them side by side through <code>var()</code>,
+and its computed value is read. Where the tokens would read as something else when written side
+by side, a comment must stand between them.</p>
+<table id="out" border="1" cellpadding="4"></table>
+<pre id="json"></pre>
+<script>
+function value(parts, wrap) {
+  const b = document.body;
+  parts.forEach((p, i) => b.style.setProperty("--t" + i, p));
+  const inner = parts.map((_, i) => "var(--t" + i + ")").join("");
+  b.style.setProperty("--result", wrap ? "[" + inner + "]" : inner);
+  return getComputedStyle(b).getPropertyValue("--result");
+}
+// A part that cannot stand alone at the top level of a value (the delimiter !) is written in
+// place, inside the block, between two var() references.
+function block(before, literal, after) {
+  const b = document.body;
+  b.style.setProperty("--a", before);
+  b.style.setProperty("--c", after);
+  b.style.setProperty("--result", "[var(--a)" + literal + "var(--c)]");
+  return getComputedStyle(b).getPropertyValue("--result");
+}
+const rows = [
+  ["ident foo, CDC", "in the table", () => value(["foo", "-->"]), "foo-->"],
+  ["ident foo, ident bar", "in the table", () => value(["foo", "bar"]), "foobar"],
+  ["delim -, then ->", "in the table (-, -)", () => value(["-", "->"]), "-->"],
+  ["ident --, delim >", "not in the table: reads back as CDC", () => value(["--", ">"]), "-->"],
+  ["ident a--, delim >", "control: needs no comment", () => value(["a--", ">"]), "a-->"],
+  ["ident --x, delim >", "control: needs no comment", () => value(["--x", ">"]), "--x>"],
+  ["[ delim <, delim !, ident --x ]", "not in the table: reads back as CDO, ident x", () => block("<", "!", "--x"), "[<!--x]"],
+  ["[ delim <, delim !, CDC ]", "not in the table: reads back as CDO, delim >", () => block("<", "!", "-->"), "[<!-->]"],
+  ["[ delim <, delim !, ident x ]", "control: needs no comment", () => block("<", "!", "x"), "[<!x]"]
+];
+const out = document.getElementById("out");
+out.innerHTML = "<tr><th>tokens</th><th>case</th><th>computed value</th><th>a comment was put</th></tr>";
+const results = rows.map(([tokens, note, run, joined]) => {
+  const r = run();
+  const tr = document.createElement("tr");
+  for (const cell of [tokens, note, r, String(r !== joined)]) { const td = document.createElement("td"); td.textContent = cell; tr.appendChild(td); }
+  out.appendChild(tr);
+  return { tokens, computed: r, comment: r !== joined };
+});
+window.results = results;
+document.getElementById("json").textContent = JSON.stringify({ agent: navigator.userAgent, results }, null, 1);
+</script>
+</body>

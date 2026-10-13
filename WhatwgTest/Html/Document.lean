@@ -26,6 +26,9 @@ What it shows:
   percent-encoded in `href` and plain in `id`. The check follows the standard's steps and finds
   it.
 - **A control for each rule**, with the words of `describe` and what the rule rests on.
+- **What a reference asks of its element.** `for` names a labelable element, `list` a
+  `datalist`, `form` a `form`, `popovertarget` an element with `popover`, and a token of
+  `headers` a `th` of the same table. `validIn` accepts each of the trees refused here.
 - **The laws at this page.** `picture_closed`: the picture is closed under every stem, by the
   law of a clipped group and one evaluation of what a stem does not touch. `figures_closed`
   carries any two closed pictures with no identifier in common through the `figure` and the
@@ -262,7 +265,13 @@ def told (tree : RawNode) : List (String × Basis) :=
   [("the link `#gone` names no identifier of the document: at the child path [1, 1, 0]",
     .convention)]
 
--- A link to another page, and a link with a path before its fragment, are not read.
+-- A link to another page, and a link with a path before its fragment, are no references of
+-- this document. They are kept as addresses, which the check across a site reads
+-- (`WhatwgTest/Html/Site.lean`); a fragment alone is a reference, and is not kept twice.
+#guard (addresses (doc [el "p" [el "a" [.text "x"] [("href", "../plan/#gone")],
+  el "a" [.text "y"] [("href", "https://example.org/")], el "a" [.text "z"] [("href", "#here")]],
+  el "p" [] [("id", "here")]])).map (fun a => (a.path, a.it.element, a.it.href)) ==
+  [([1, 1, 0], "a", "../plan/#gone"), ([1, 1, 1], "a", "https://example.org/")]
 #guard problems (doc [el "p" [el "a" [.text "x"] [("href", "../plan/#gone")],
   el "a" [.text "y"] [("href", "https://example.org/")]]]) == []
 
@@ -334,6 +343,75 @@ def told (tree : RawNode) : List (String × Basis) :=
 #guard problems (doc [el "template" [el "p" [] [("id", "row")]],
   el "template" [el "p" [] [("id", "row")]], el "p" [el "a" [.text "x"] [("href", "#row")]]]) ==
   [.dangling [1, 3, 0] ⟨"a", "href", .fragment, "row"⟩]
+
+/-! ## What a reference asks of its element -/
+
+-- `for` of `label` names a labelable element. An `input` is one.
+#guard problems (doc [el "p" [el "label" [.text "Find"] [("for", "q")], el "input" [] [("id", "q")]]]) == []
+
+-- A `div` is not, and the content model does not see it.
+#guard validIn Ctx.document (doc [el "p" [el "label" [.text "Find"] [("for", "q")]],
+  el "div" [] [("id", "q")]])
+#guard told (doc [el "p" [el "label" [.text "Find"] [("for", "q")]], el "div" [] [("id", "q")]]) ==
+  [("`for` of `label` names `q`, which is a `div`, not a labelable element: at the child path " ++
+    "[1, 1, 0]", .requirement (.html "The label element"))]
+
+-- An `input` whose `type` is `hidden`, in any case of its letters, is not labelable.
+#guard (problems (doc [el "p" [el "label" [.text "Find"] [("for", "q")],
+  el "input" [] [("id", "q"), ("type", "Hidden")]]])).map (·.describe) ==
+  ["`for` of `label` names `q`, which is a `input`, not a labelable element: at the child path " ++
+    "[1, 1, 0]"]
+
+-- An element whose name holds a hyphen may be a form-associated custom element.
+#guard problems (doc [el "p" [el "label" [.text "x"] [("for", "w")]], el "my-field" [] [("id", "w")]]) == []
+
+-- Where two elements have the identifier, the first is the one named: both problems are told.
+#guard (problems (doc [el "p" [el "label" [.text "Find"] [("for", "q")]], el "div" [] [("id", "q")],
+  el "p" [el "input" [] [("id", "q")]]])).map (·.describe) ==
+  ["the identifier `q` is defined twice: at the child path [1, 2] and at the child path [1, 3, 0]",
+   "`for` of `label` names `q`, which is a `div`, not a labelable element: at the child path " ++
+    "[1, 1, 0]"]
+
+-- `list` names a `datalist`.
+#guard problems (doc [el "p" [el "input" [] [("list", "towns")], el "datalist" [] [("id", "towns")]]]) == []
+#guard told (doc [el "p" [el "input" [] [("list", "towns")]], el "p" [] [("id", "towns")]]) ==
+  [("`list` of `input` names `towns`, which is a `p`, not a `datalist`: at the child path " ++
+    "[1, 1, 0]", .requirement (.html "The list attribute"))]
+
+-- `form` names a `form`.
+#guard problems (doc [el "form" [] [("id", "f")], el "p" [el "input" [] [("form", "f")]]]) == []
+#guard told (doc [el "p" [el "input" [] [("form", "f")]], el "div" [] [("id", "f")]]) ==
+  [("`form` of `input` names `f`, which is a `div`, not a `form`: at the child path [1, 1, 0]",
+    .requirement (.html "Association of controls and forms"))]
+
+-- `popovertarget` names an element with `popover`.
+#guard problems (doc [el "p" [el "button" [.text "Open"] [("popovertarget", "tip")]],
+  el "div" [] [("id", "tip"), ("popover", "")]]) == []
+#guard told (doc [el "p" [el "button" [.text "Open"] [("popovertarget", "tip")]],
+  el "div" [] [("id", "tip")]]) ==
+  [("`popovertarget` of `button` names `tip`, which is a `div`, an element with no `popover`: " ++
+    "at the child path [1, 1, 0]", .requirement (.html "The popover target attributes"))]
+
+-- A token of `headers` names a `th` of the same table, through `thead` and `tbody` too.
+#guard problems (doc [el "table" [el "thead" [el "tr" [el "th" [.text "h"] [("id", "k")]]],
+  el "tbody" [el "tr" [el "td" [.text "d"] [("headers", "k")]]]]]) == []
+
+-- A `th` of another table, and a `td`, are not.
+#guard (problems (doc [el "table" [el "tr" [el "th" [.text "h"] [("id", "a")],
+    el "td" [.text "c"] [("id", "c")]]],
+  el "table" [el "tr" [el "td" [.text "d"] [("headers", "a c")]]]])).map (·.describe) ==
+  ["`headers` of `td` names `a`, which is a `th`, not a `th` of the same table: at the child " ++
+    "path [1, 2, 0, 0]",
+   "`headers` of `td` names `c`, which is a `td`, not a `th` of the same table: at the child " ++
+    "path [1, 2, 0, 0]"]
+
+-- A table inside a cell is a table of its own: a `th` of the outer one is no cell of it.
+#guard (problems (doc [el "table" [el "tr" [el "th" [.text "h"] [("id", "outer")],
+  el "td" [el "table" [el "tr" [el "td" [.text "d"] [("headers", "outer")]]]]]]])).map (·.path) ==
+  [[1, 1, 0, 1, 0, 0, 0]]
+#guard tables (doc [el "table" [el "tr" [el "th" [.text "h"] [("id", "outer")],
+  el "td" [el "table" [el "tr" [el "td" [.text "d"] [("headers", "outer")]]]]]]]) ==
+  [[1, 1], [1, 1, 0, 1, 0]]
 
 /-! ## The laws at this page -/
 

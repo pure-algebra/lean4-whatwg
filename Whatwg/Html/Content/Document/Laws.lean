@@ -8,10 +8,13 @@ Owner: the laws of the check across a document (`Whatwg/Html/Content/Document.le
 - **The check decides the plain statement.** `errors_eq_nil_iff`: `errors tree` is empty
   exactly when the tree is `Sound`. The check looks identifiers up in a table; `Sound` speaks of
   lists alone. Each part of the check has its own law (`malformed_eq_nil_iff`,
-  `duplicates_eq_nil_iff`, `dangling_eq_nil_iff`, `extraMains_eq_nil_iff`, `skips_eq_nil_iff`),
-  and `errors_eq` says that the errors are those five parts and nothing of the advice.
-  `ok_iff` is the same law at the Boolean test, `Sound` is decidable by it, and `Page.check?`
-  makes a `Page` of a tree that passes both checks.
+  `duplicates_eq_nil_iff`, `dangling_eq_nil_iff`, `wrongTargets_eq_nil_iff`,
+  `extraMains_eq_nil_iff`, `skips_eq_nil_iff`), and `errors_eq` says that the errors are those
+  six parts and nothing of the advice. `ok_iff` is the same law at the Boolean test, `Sound`
+  is decidable by it, and `Page.check?` makes a `Page` of a tree that passes both checks.
+- **The table of first things is `List.find?`.** `getElem?_firstTable`: a look in
+  `firstTable key things` is the first of `things` with that key. The check of a reference's
+  element and the check across a site both rest on it.
 - **A reported clash is real.** `mem_duplicates`: both paths of a `duplicateId` hold that
   identifier.
 - **Parts compose.** `ClosedAll.append`: two lists of nodes, each closed, with no identifier in
@@ -30,7 +33,8 @@ Owner: the laws of the check across a document (`Whatwg/Html/Content/Document.le
 How a statement is proved for one tree. `ok tree` runs the check with its tables: a program
 calls it, and `Page.check?` keeps its answer as a proof. The kernel cannot run a table of
 texts. `Closed` and `ClosedAll` are decided on lists, so `by decide +kernel` proves one for a
-closed tree, and `sound_iff_closed` reaches `Sound` from there.
+closed tree, and `sound_iff_closed` reaches `Sound` from there; `SoundOnLists` is its right
+side under a name, with `sound_iff_onLists`.
 
 What the laws do not say: that `Sound` is what a browser needs to resolve a link. It is the
 statement of the rules as `Document.lean` reads them, with the limits its header lists.
@@ -238,6 +242,55 @@ theorem skips_eq_nil_iff (headings : List (Placed Level)) :
       ∀ p ∈ headings.zip headings.tail, p.2.it.value ≤ p.1.it.value + 1 := by
   simp only [skips, List.map_eq_nil_iff, List.filter_eq_nil_iff, decide_eq_true_eq, Nat.not_lt]
 
+/-- A fold that keeps the first thing under each key: what the table holds at a key is what it
+held before, or else the first thing of the list with that key. -/
+theorem getElem?_foldl_insertIfNew {α κ : Type} [BEq κ] [Hashable κ] [LawfulBEq κ]
+    [LawfulHashable κ] (key : α → κ) :
+    ∀ (things : List α) (table : Std.HashMap κ α) (k : κ),
+      (things.foldl (fun table thing => table.insertIfNew (key thing) thing) table)[k]? =
+        (table[k]?).or (things.find? fun thing => key thing == k)
+  | [], table, k => by
+    rw [List.foldl_nil, List.find?_nil, Option.or_none]
+  | thing :: rest, table, k => by
+    rw [List.foldl_cons, getElem?_foldl_insertIfNew key rest, Std.HashMap.getElem?_insertIfNew,
+      List.find?_cons]
+    cases hk : key thing == k with
+    | false => rw [if_neg (fun h => Bool.noConfusion h.1)]
+    | true =>
+      have heq : key thing = k := eq_of_beq hk
+      by_cases hmem : k ∈ table
+      · rw [if_neg (fun h => h.2 (heq ▸ hmem)), Std.HashMap.getElem?_eq_some_getElem hmem]
+        rfl
+      · rw [if_pos ⟨rfl, fun h => hmem (heq ▸ h)⟩, Std.HashMap.getElem?_eq_none hmem]
+        rfl
+
+/-- **The table of first things is `List.find?`**: a look in it is the first thing of the list
+with that key. -/
+theorem getElem?_firstTable {α κ : Type} [BEq κ] [Hashable κ] [LawfulBEq κ] [LawfulHashable κ]
+    (key : α → κ) (things : List α) (k : κ) :
+    (firstTable key things)[k]? = things.find? fun thing => key thing == k := by
+  rw [firstTable, getElem?_foldl_insertIfNew, Std.HashMap.getElem?_empty, Option.none_or]
+
+theorem wrongTargets_eq_nil_iff (tables : List (List Nat))
+    (owners : List (Placed (String × Owner))) (refs : List (Placed Ref)) :
+    wrongTargets tables owners refs = [] ↔
+      ∀ r ∈ refs, ∀ o,
+        owners.find? (fun o => o.it.1 == r.it.target) = some o → suits tables r o = true := by
+  simp only [wrongTargets, List.filterMap_eq_nil_iff, getElem?_firstTable]
+  refine forall_congr' fun r => forall_congr' fun _ => ?_
+  cases owners.find? (fun o => o.it.1 == r.it.target) with
+  | none => exact ⟨fun _ _ h => (nomatch h), fun _ => rfl⟩
+  | some o =>
+    show (if suits tables r o = true then none else some _) = none ↔ _
+    constructor
+    · intro h o' ho'
+      rw [← Option.some.inj ho']
+      split at h
+      · assumption
+      · exact nomatch h
+    · intro h
+      rw [if_pos (h o rfl)]
+
 /-! ## Which problems are errors -/
 
 theorem Ref.isError_basis (r : Ref) : r.basis.isError = true := by
@@ -270,6 +323,17 @@ theorem isError_of_mem_dangling {names : List String} {refs : List (Placed Ref)}
   obtain ⟨r, _, rfl⟩ := List.mem_map.mp h
   exact Ref.isError_basis r.it
 
+theorem isError_of_mem_wrongTargets {tables : List (List Nat)}
+    {owners : List (Placed (String × Owner))} {refs : List (Placed Ref)} {p : Problem}
+    (h : p ∈ wrongTargets tables owners refs) : p.isError = true := by
+  obtain ⟨r, _, hr⟩ := List.mem_filterMap.mp h
+  split at hr
+  · split at hr
+    · exact nomatch hr
+    · rw [← Option.some.inj hr]
+      exact Ref.isError_basis r.it
+  · exact nomatch hr
+
 theorem isError_of_mem_extraMains {mains : List (Placed Bool)} {p : Problem}
     (h : p ∈ extraMains mains) : p.isError = true := by
   unfold extraMains at h
@@ -295,17 +359,19 @@ theorem not_isError_of_mem_topless {headings : List (Placed Level)} {p : Problem
 
 /-! ## The check decides the plain statement -/
 
-/-- The errors of a tree are the five parts of the check that are requirements or conventions,
+/-- The errors of a tree are the six parts of the check that are requirements or conventions,
 whole, and nothing of the advice. -/
 theorem errors_eq (tree : RawNode) :
     errors tree =
       malformed (ids tree) ++ duplicates (ids tree) ++ dangling (names tree) (refs tree) ++
+        wrongTargets (tables tree) (owners tree) (refs tree) ++
         extraMains (mains tree) ++ skips (headings tree) := by
   rw [errors, problems, problemsOf, List.filter_append, List.filter_append, List.filter_append,
-    List.filter_append, List.filter_append,
+    List.filter_append, List.filter_append, List.filter_append,
     List.filter_eq_self.mpr fun _ h => isError_of_mem_malformed h,
     List.filter_eq_self.mpr fun _ h => isError_of_mem_duplicates h,
     List.filter_eq_self.mpr fun _ h => isError_of_mem_dangling h,
+    List.filter_eq_self.mpr fun _ h => isError_of_mem_wrongTargets h,
     List.filter_eq_self.mpr fun _ h => isError_of_mem_extraMains h,
     List.filter_eq_self.mpr fun _ h => isError_of_mem_skips h,
     List.filter_eq_nil_iff.mpr fun _ h => by rw [not_isError_of_mem_topless h]; exact nofun,
@@ -313,14 +379,16 @@ theorem errors_eq (tree : RawNode) :
   rfl
 
 /-- **The check decides the plain statement**: a tree has no error exactly when its `id`
-values are well formed and distinct, each of its references names an identifier, at most one
-`main` is not hidden, and no heading skips a level. -/
+values are well formed and distinct, each of its references names an identifier whose first
+element is what the reference asks, at most one `main` is not hidden, and no heading skips a
+level. -/
 theorem errors_eq_nil_iff (tree : RawNode) : errors tree = [] ↔ Sound tree := by
   rw [errors_eq, List.append_eq_nil_iff, List.append_eq_nil_iff, List.append_eq_nil_iff,
-    List.append_eq_nil_iff, malformed_eq_nil_iff, duplicates_eq_nil_iff, dangling_eq_nil_iff,
-    extraMains_eq_nil_iff, skips_eq_nil_iff, ← names_eq_map]
-  exact ⟨fun ⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩ => ⟨h1, h2, h3, h4, h5⟩,
-    fun h => ⟨⟨⟨⟨h.wellFormed, h.distinct⟩, h.closed⟩, h.oneMain⟩, h.steps⟩⟩
+    List.append_eq_nil_iff, List.append_eq_nil_iff, malformed_eq_nil_iff, duplicates_eq_nil_iff,
+    dangling_eq_nil_iff, wrongTargets_eq_nil_iff, extraMains_eq_nil_iff, skips_eq_nil_iff,
+    ← names_eq_map]
+  exact ⟨fun ⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩ => ⟨h1, h2, h3, h4, h5, h6⟩,
+    fun h => ⟨⟨⟨⟨⟨h.wellFormed, h.distinct⟩, h.closed⟩, h.targets⟩, h.oneMain⟩, h.steps⟩⟩
 
 /-- The Boolean test decides the plain statement. -/
 theorem ok_iff (tree : RawNode) : ok tree = true ↔ Sound tree := by
@@ -414,12 +482,26 @@ theorem mem_duplicates {ids : List (Placed String)} {id : String} {first second 
 
 /-! ## The facts of an element, from its attributes -/
 
-theorem filterMap_ident?_map_ident : ∀ ids : List String,
-    (ids.map Fact.ident).filterMap Fact.ident? = ids
+theorem filterMap_ident?_map_ident (owner : Owner) : ∀ ids : List String,
+    (ids.map fun id => Fact.ident id owner).filterMap Fact.ident? = ids
   | [] => rfl
   | id :: rest => by
-    rw [List.map_cons, List.filterMap_cons_some (rfl : (Fact.ident id).ident? = some id),
-      filterMap_ident?_map_ident rest]
+    rw [List.map_cons, List.filterMap_cons_some (rfl : (Fact.ident id owner).ident? = some id),
+      filterMap_ident?_map_ident owner rest]
+
+theorem filterMap_ident?_map_address : ∀ addresses : List Address,
+    (addresses.map Fact.address).filterMap Fact.ident? = []
+  | [] => rfl
+  | a :: rest => by
+    rw [List.map_cons, List.filterMap_cons_none (rfl : (Fact.address a).ident? = none),
+      filterMap_ident?_map_address rest]
+
+theorem filterMap_ref?_map_address : ∀ addresses : List Address,
+    (addresses.map Fact.address).filterMap Fact.ref? = []
+  | [] => rfl
+  | a :: rest => by
+    rw [List.map_cons, List.filterMap_cons_none (rfl : (Fact.address a).ref? = none),
+      filterMap_ref?_map_address rest]
 
 theorem filterMap_ident?_map_ref : ∀ links : List Ref,
     (links.map Fact.ref).filterMap Fact.ident? = []
@@ -435,38 +517,37 @@ theorem filterMap_ref?_map_ref : ∀ links : List Ref,
     rw [List.map_cons, List.filterMap_cons_some (rfl : (Fact.ref r).ref? = some r),
       filterMap_ref?_map_ref rest]
 
-theorem filterMap_ref?_map_ident : ∀ ids : List String,
-    (ids.map Fact.ident).filterMap Fact.ref? = []
+theorem filterMap_ref?_map_ident (owner : Owner) : ∀ ids : List String,
+    (ids.map fun id => Fact.ident id owner).filterMap Fact.ref? = []
   | [] => rfl
   | id :: rest => by
-    rw [List.map_cons, List.filterMap_cons_none (rfl : (Fact.ident id).ref? = none),
-      filterMap_ref?_map_ident rest]
+    rw [List.map_cons, List.filterMap_cons_none (rfl : (Fact.ident id owner).ref? = none),
+      filterMap_ref?_map_ident owner rest]
 
 theorem filterMap_ident?_markFacts (element : String) (attrs : List (String × String)) :
     (markFacts element attrs).filterMap Fact.ident? = [] := by
   unfold markFacts
-  split <;> split <;> rfl
+  split <;> split <;> split <;> rfl
 
 theorem filterMap_ref?_markFacts (element : String) (attrs : List (String × String)) :
     (markFacts element attrs).filterMap Fact.ref? = [] := by
   unfold markFacts
-  split <;> split <;> rfl
+  split <;> split <;> split <;> rfl
 
 /-- The identifiers among an element's own facts are the `id` values of its attributes,
 whatever the element is. -/
 theorem filterMap_ident?_ownFacts (ns : Ns) (element : String) (attrs : List (String × String)) :
     (ownFacts ns element attrs).filterMap Fact.ident? = attrs.filterMap identOf? := by
-  have hattrs : ∀ list : List (String × String),
-      (list.flatMap fun attr =>
-          (identOf? attr).toList.map Fact.ident ++
-            (linksOf ns element attr).map Fact.ref).filterMap Fact.ident? =
+  have hattrs : ∀ (all list : List (String × String)),
+      (list.flatMap (attrFacts ns element all)).filterMap Fact.ident? =
         list.filterMap identOf? := by
-    intro list
+    intro all list
     induction list with
     | nil => rfl
     | cons attr rest ih =>
-      rw [List.flatMap_cons, List.filterMap_append, List.filterMap_append,
-        filterMap_ident?_map_ident, filterMap_ident?_map_ref, List.append_nil, ih]
+      rw [List.flatMap_cons, List.filterMap_append, attrFacts, List.filterMap_append,
+        List.filterMap_append, filterMap_ident?_map_ident, filterMap_ident?_map_ref,
+        filterMap_ident?_map_address, List.append_nil, List.append_nil, ih]
       cases h : identOf? attr with
       | none => rw [List.filterMap_cons_none h]; rfl
       | some id => rw [List.filterMap_cons_some h]; rfl
@@ -479,17 +560,16 @@ theorem filterMap_ident?_ownFacts (ns : Ns) (element : String) (attrs : List (St
 /-- The references among an element's own facts are those of its attributes. -/
 theorem filterMap_ref?_ownFacts (ns : Ns) (element : String) (attrs : List (String × String)) :
     (ownFacts ns element attrs).filterMap Fact.ref? = attrs.flatMap (linksOf ns element) := by
-  have hattrs : ∀ list : List (String × String),
-      (list.flatMap fun attr =>
-          (identOf? attr).toList.map Fact.ident ++
-            (linksOf ns element attr).map Fact.ref).filterMap Fact.ref? =
+  have hattrs : ∀ (all list : List (String × String)),
+      (list.flatMap (attrFacts ns element all)).filterMap Fact.ref? =
         list.flatMap (linksOf ns element) := by
-    intro list
+    intro all list
     induction list with
     | nil => rfl
     | cons attr rest ih =>
-      rw [List.flatMap_cons, List.filterMap_append, List.filterMap_append,
-        filterMap_ref?_map_ident, filterMap_ref?_map_ref, List.nil_append, ih, List.flatMap_cons]
+      rw [List.flatMap_cons, List.filterMap_append, attrFacts, List.filterMap_append,
+        List.filterMap_append, filterMap_ref?_map_ident, filterMap_ref?_map_ref,
+        filterMap_ref?_map_address, List.nil_append, List.append_nil, ih, List.flatMap_cons]
   unfold ownFacts
   rw [List.filterMap_append, hattrs]
   cases ns with
@@ -651,13 +731,27 @@ theorem closed_text (ns : Ns) (content : String) : Closed ns (.text content) := 
   rw [Closed, namesAt_text, linksAt_text]
   exact ⟨List.nodup_nil, fun _ h => nomatch h⟩
 
-/-- What a whole tree needs besides being closed: well-formed `id` values, one `main` that
-shows at most, and an outline with no skipped level. -/
+/-- What a whole tree needs besides being closed: well-formed `id` values, each reference's
+element what the reference asks, one `main` that shows at most, and an outline with no skipped
+level. Every part of the right side is decided on lists. -/
 theorem sound_iff_closed (tree : RawNode) :
     Sound tree ↔
       (∀ d ∈ ids tree, idOk d.it = true) ∧ Closed .html tree ∧
+        (∀ r ∈ refs tree,
+          (((owners tree).find? fun o => o.it.1 == r.it.target).all fun o =>
+            suits (tables tree) r o) = true) ∧
         ((mains tree).filter fun m => !m.it).length ≤ 1 ∧
           ∀ p ∈ (headings tree).zip (headings tree).tail, p.2.it.value ≤ p.1.it.value + 1 := by
+  have htargets : (∀ r ∈ refs tree, ∀ o,
+      (owners tree).find? (fun o => o.it.1 == r.it.target) = some o →
+        suits (tables tree) r o = true) ↔
+      ∀ r ∈ refs tree,
+        (((owners tree).find? fun o => o.it.1 == r.it.target).all fun o =>
+          suits (tables tree) r o) = true := by
+    refine forall_congr' fun r => forall_congr' fun _ => ?_
+    cases (owners tree).find? (fun o => o.it.1 == r.it.target) with
+    | none => exact ⟨fun _ => rfl, fun _ _ h => (nomatch h)⟩
+    | some o => exact ⟨fun h => h o rfl, fun h o' ho' => Option.some.inj ho' ▸ h⟩
   have hlinks : (∀ r ∈ refs tree, r.it.NamesIn (names tree)) ↔
       ∀ r ∈ linksAt .html tree, r.NamesIn (namesAt .html tree) := by
     rw [linksAt, linksIn_eq_map]
@@ -667,8 +761,26 @@ theorem sound_iff_closed (tree : RawNode) :
       exact h x hx
     · intro h r hr
       exact h r.it (List.mem_map.mpr ⟨r, hr, rfl⟩)
-  exact ⟨fun h => ⟨h.wellFormed, ⟨h.distinct, hlinks.mp h.closed⟩, h.oneMain, h.steps⟩,
-    fun ⟨h1, ⟨h2, h3⟩, h4, h5⟩ => ⟨h1, h2, hlinks.mpr h3, h4, h5⟩⟩
+  exact ⟨fun h =>
+      ⟨h.wellFormed, ⟨h.distinct, hlinks.mp h.closed⟩, htargets.mp h.targets, h.oneMain, h.steps⟩,
+    fun ⟨h1, ⟨h2, h3⟩, h4, h5, h6⟩ => ⟨h1, h2, hlinks.mpr h3, htargets.mpr h4, h5, h6⟩⟩
+
+/-- `Sound`, with every part decided on lists: the right side of `sound_iff_closed`, under a
+name. A proof by evaluation proves this, and `sound_iff_onLists` gives `Sound`. -/
+def SoundOnLists (tree : RawNode) : Prop :=
+  (∀ d ∈ ids tree, idOk d.it = true) ∧ Closed .html tree ∧
+    (∀ r ∈ refs tree,
+      (((owners tree).find? fun o => o.it.1 == r.it.target).all fun o =>
+        suits (tables tree) r o) = true) ∧
+    ((mains tree).filter fun m => !m.it).length ≤ 1 ∧
+      ∀ p ∈ (headings tree).zip (headings tree).tail, p.2.it.value ≤ p.1.it.value + 1
+
+instance (tree : RawNode) : Decidable (SoundOnLists tree) := by
+  unfold SoundOnLists
+  exact inferInstance
+
+theorem sound_iff_onLists (tree : RawNode) : Sound tree ↔ SoundOnLists tree :=
+  sound_iff_closed tree
 
 /-! ## What a writer of references gets back -/
 
@@ -784,13 +896,21 @@ theorem problemsOf_path {facts : List (Placed Fact)} {p : Problem} (h : p ∈ pr
     · rcases List.mem_append.mp h with h | h
       · rcases List.mem_append.mp h with h | h
         · rcases List.mem_append.mp h with h | h
-          · obtain ⟨d, hd, rfl⟩ := List.mem_map.mp h
-            exact path_of_mem_pick (List.mem_filter.mp hd).1
-          · obtain ⟨d, hd, hpath⟩ := path_of_mem_duplicatesFrom _ _ h
-            obtain ⟨f, hf, hfd⟩ := path_of_mem_pick hd
-            exact ⟨f, hf, hfd.trans hpath⟩
-        · obtain ⟨r, hr, rfl⟩ := List.mem_map.mp h
-          exact path_of_mem_pick (List.mem_filter.mp hr).1
+          · rcases List.mem_append.mp h with h | h
+            · obtain ⟨d, hd, rfl⟩ := List.mem_map.mp h
+              exact path_of_mem_pick (List.mem_filter.mp hd).1
+            · obtain ⟨d, hd, hpath⟩ := path_of_mem_duplicatesFrom _ _ h
+              obtain ⟨f, hf, hfd⟩ := path_of_mem_pick hd
+              exact ⟨f, hf, hfd.trans hpath⟩
+          · obtain ⟨r, hr, rfl⟩ := List.mem_map.mp h
+            exact path_of_mem_pick (List.mem_filter.mp hr).1
+        · obtain ⟨r, hr, hsome⟩ := List.mem_filterMap.mp h
+          split at hsome
+          · split at hsome
+            · exact nomatch hsome
+            · rw [← Option.some.inj hsome]
+              exact path_of_mem_pick hr
+          · exact nomatch hsome
       · unfold extraMains at h
         split at h
         · exact nomatch h

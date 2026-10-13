@@ -5,6 +5,8 @@ import Whatwg.Html.Content.Valid
 import Whatwg.Html.Content.Explain
 import Whatwg.Html.Content.Document
 import Whatwg.Html.Content.Document.Laws
+import Whatwg.Html.Content.Site
+import Whatwg.Html.Content.Site.Laws
 import Whatwg.Html.Content.Values
 import Whatwg.Html.Content.Lattice
 import Whatwg.Html.Node.Raw

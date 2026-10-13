@@ -94,6 +94,7 @@ import WhatwgTest.Html.Describe
 import WhatwgTest.Html.UseCheck
 import WhatwgTest.Html.SvgFigure
 import WhatwgTest.Html.Document
+import WhatwgTest.Html.Site
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
