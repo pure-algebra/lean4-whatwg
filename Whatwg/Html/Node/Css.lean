@@ -1,94 +1,138 @@
+import Whatwg.Css.Syntax.Build
 
 /-!
 # Whatwg.Html.Node.Css
 
-Owner: declarations and rules of CSS as data (slice S17 of `docs/SVG-PACKAGE-PLAN.md`).
+Owner: the declarations and the rules that the picture kit writes, on the one tree of CSS
+(slice S17 of `docs/SVG-PACKAGE-PLAN.md`; on the tree of `Whatwg/Css/Syntax/Tree.lean` since
+slice S22, ruling CS-9 of `docs/CSS-PACKAGE-PLAN.md`).
 
-`Whatwg/Html/Node/SvgMotion.lean` writes the motion of a step as CSS. Until slice S17 it wrote
-text: the `style` of a thing was one string, and so was the sheet. A caller whose thing had a
-style of its own could not put the two together, and a test could read a sheet only as
-characters. This module is the data that the writer now gives, and the text of it.
+Until slice S22 this module had a tree of its own: a declaration, a rule and a sheet whose
+every name, value and prelude was a `String`. The library of CSS has the tree that the
+standard's parser gives, with values as component values. There were two trees of one sort, and
+a sheet written here was read back by nothing. Now there is one: a declaration here is
+`Whatwg.Css.Syntax.Declaration`, a rule is `Whatwg.Css.Syntax.Rule`, and a sheet is a list of
+rules. What the kit writes prints through the writer of that tree
+(`Whatwg/Css/Syntax/Write.lean`). The tokenizer reads the text back to the tokens of the tree
+where they are writable (`tokenize_serialize` of `Whatwg/Css/Syntax/Laws.lean`), and the parser
+of slice K4 reads those tokens back to the tree.
 
-The shapes are those of the module of CSS that gives the grammar of a sheet, at its level 3,
-as its editor's draft under `vendor/w3c-csswg-drafts-50337328/` says what parsing gives. A
-sheet has a list of rules. A rule is an at-rule or a qualified rule. A declaration has a name,
-a value and an important flag. A qualified rule has a prelude, a list of declarations and a
-list of child rules. An at-rule has a name and a prelude; one that ends in a block also has a
-list of declarations and a list of child rules, and one that ends in a semicolon has neither.
-A value and a prelude are lists of component values there, and text here. A reader of that
-grammar, when one is written (the consumer's ask W5 of
-`docs/research/2026-10-12-whatwg-requests.md`), gives a tree of these types, and nothing here
-is renamed for it.
-
-- `Css.Decl`: one declaration, its name, its value as text, and whether it is `!important`. A
-  pair of a name and a value is a declaration that is not: `("cursor", "pointer")`.
-  `Css.Decls`: declarations in a row, what a `style` attribute holds and what a block holds.
+- `Css.Decl`: one declaration: its name, its value as component values, and whether it is
+  `!important`. A pair of two texts is still a declaration that is not: `("cursor",
+  "pointer")`. Its value is the text read by the tokenizer and the parser (`Value.ofText`).
+  `.of "opacity" [.thousandths 250]` is a declaration of a built value
+  (`Whatwg/Css/Syntax/Build.lean`), and nothing is read. `Css.Decls`: declarations in a row.
   `Decls.css` writes them.
+- `Decl.key`: what tells one declaration of a block from another when the block is read: its
+  name and its importance. CSS reads the name of a property with no regard to the case of its
+  ASCII letters, and the name of a custom property as it is written, so `Opacity` and `opacity`
+  are one key, and `--t` and `--T` are two (`nameKey`).
 - `Decls.value? ds name important`: what a row says of a name among its declarations of one
   importance: the later of two is the one read. `Decls.shown? ds name`: what a browser shows of
-  the name: the important declaration where the row has one.
-- `Decls.once ds`: the same row with each name once for each importance. `Decls.merge own more`:
-  two rows as one. Where both say a name with one importance, the second row's value stands.
-- `Css.Rule`: a rule of a sheet. `Rule.qualified prelude decls rules` is a qualified rule: a
-  style rule under a selector, or a keyframe under `from` or `to`. `Rule.at name prelude decls
-  rules` is an at-rule that ends in a block, and `Rule.statement name prelude` one that ends in
-  a semicolon. `Rule.style`, `Rule.keyframes` and `Rule.media` write the three rules that a
-  motion and a look need. `Css.Sheet`: rules in a row. `Sheet.css` writes them, one rule a
-  line.
+  the name: the important declaration where the row has one. Both give component values;
+  `Value.text` is their text.
+- `Decls.once ds`: the same row with each key once. `Decls.merge own more`: two rows as one.
+  Where both say a name with one importance, the second row's value stands.
+- `Css.Rule`: a rule. `Rule.style` is a qualified rule: a style rule under a selector, or a
+  keyframe under `from` or `to`. `Rule.at` is an at-rule that ends in a block,
+  `Rule.atStatement` one that ends in a semicolon, and `Rule.keyframes`, `Rule.frames` and
+  `Rule.media` are the at-rules that a motion and a look need. A selector and a query are
+  component values, built (`Prelude.class`, `Prelude.attr`, `Prelude.feature`) or read from a
+  text (`Prelude.ofText`). `Rule.prelude`, `Rule.name?`, `Rule.decls` and `Rule.rules` read a
+  rule back. `Css.Sheet`: rules in a row. `Sheet.css` writes them, one rule a line, and
+  `Sheet.decls?` reads the declarations under a selector.
+- `Decls.writable` and `Decls.quiet`, `Sheet.writable` and `Sheet.quiet`: tests that compute.
+  The tokens of the row or of the sheet are `Writable`, the premise under which the tokenizer
+  reads the text back to them (`tokenize_serialize` of `Whatwg/Css/Syntax/Laws.lean`); and they
+  are `Quiet`, so the text holds no comment. Neither says that the parser reads the tree back:
+  a value with a semicolon at its top passes both.
 
 ```
 let own : Css.Decls := [("cursor", "pointer"), ("opacity", "0.5")]
-own.merge [("opacity", "0")]                                   -- cursor: pointer; opacity: 0
-Css.Rule.style ".e4-text" [("fill", "var(--e4-color-ink)")]
-Css.Rule.media "(prefers-reduced-motion: reduce)" [.style ".e4-view" [("opacity", "1")]]
+own.merge [.of "opacity" [.int 0]]                             -- cursor: pointer; opacity: 0
+Css.Rule.style (Prelude.class "e4-text") [("fill", "var(--e4-color-ink)")]
+Css.Rule.style (.ofText ".e4-text") [.of "fill" [.var "e4-color-ink"]]   -- the same rule
+Css.Rule.media (Prelude.feature "prefers-reduced-motion" [.ident "reduce"])
+  [.style (Prelude.class "e4-view") [.of "opacity" [.int 1]]]
 ```
 
-What the laws say. A merged row has each name once for each importance (`Decls.merge_nodup`),
-and it says of every name what the two rows in a row say: the second row's value, and the
-first row's where the second has none (`Decls.value?_merge`, `Decls.shown?_merge`).
-`Decls.once` changes no reading (`Decls.value?_once`, `Decls.shown?_once`) and leaves a row that
-has each name once as it is (`Decls.once_of_nodup`). Two rules are told apart
-(`Rule.beq_iff`), so a test compares a sheet with `==`.
+Where the white space of a rule is. The parser keeps the white space of a prelude, so it
+belongs to the tree: the prelude of `.a { }` ends with a whitespace token, and the prelude of
+`@media (…) { }` starts and ends with one. The three builders of this module put those tokens
+(`Rule.style`, `Rule.at`, `Rule.atStatement`), and they are the only places here that name a
+constructor of `Whatwg.Css.Syntax.Rule` to build a rule. The four readers and `Sheet.decls?`
+are the only places that take one apart. So a change to what a block holds is a change to
+those eight definitions, and to no caller. A caller gives a prelude with no white space at its
+ends, and `Rule.prelude` gives it back so.
 
-What this module does not claim. It is no grammar of CSS, and it reads nothing: no reader of
-CSS is written in this repository (debt D119). A name, a value and a prelude are text that the
-caller writes by rule: a value that is no value of its property is written as it is. A
-declaration is told from another by its name and its importance alone, so a shorthand and its
-longhand are two names here: `animation` and `animation-delay` both stay in a merged row, in
-their order. That an important declaration stands over one that is not, whatever their order,
-is how a browser reads a block, from memory: `shown?` reads so, and `once` keeps both for the
-browser to weigh. The writer puts the declarations of a block before its child rules. What a
-block may hold is the rule's own to say, and nothing here says it: a keyframe with a child
-rule is written as any other.
+What the laws say. A merged row has each key once (`Decls.merge_nodup`), and it says of every
+name what the two rows in a row say: the second row's value, and the first row's where the
+second has none (`Decls.value?_merge`, `Decls.shown?_merge`). `Decls.once` changes no reading
+(`Decls.value?_once`, `Decls.shown?_once`) and leaves a row that has each key once as it is
+(`Decls.once_of_nodup`). A rule read back has the declarations and the child rules it was built
+with (`Rule.decls_style`, `Rule.rules_style`, `Rule.decls_at`, `Rule.rules_at`). Two trees are
+told apart by `==` and `=` (`Whatwg.Css.Syntax.Rule.beq_iff` of
+`Whatwg/Css/Syntax/Write.lean`), so a test compares a sheet with `==`.
 
-This module imports nothing. Every law here depends on `propext` and `Quot.sound` at most.
+What this module does not claim. That a value is a value of its property: `("opacity",
+"blue")` is a declaration, and `Whatwg/Css/Values/Admits.lean` is what judges a value against
+the grammar of a property. That a text is read as its writer meant: a text with a semicolon or
+a closing brace at its top is read as component values all the same, and written back it ends
+its declaration early. That a selector selects anything. A declaration is told from another by
+its key alone, so a shorthand and its longhand are two names here: `animation` and
+`animation-delay` both stay in a merged row, in their order. That an important declaration
+stands over one that is not, whatever their order, is how a browser reads a block, from memory:
+`shown?` reads so, and `once` keeps both for the browser to weigh. That property names are read
+with no regard to case, and custom property names as written, is the sealed text of CSS Syntax
+3 and of CSS Variables 1 under `vendor/w3c-csswg-drafts-50337328/`; a vendor prefix and an
+escape in a name are not folded here.
+
+This module imports the builders, and with them the tokenizer and the writer of tokens; it
+imported nothing until slice S22. The laws of `once` and of `merge` that read no name
+(`Decls.mem_of_mem_once`, `Decls.once_nodup`, `Decls.once_of_nodup`, `Decls.once_ne_nil`,
+`Decls.merge_nodup`, `Decls.merge_nil`, `Decls.nil_merge`) and the two laws of `Rule.style`
+depend on `propext` and `Quot.sound` at most. `Decls.value?` and `Decls.shown?` take a name as
+a `String`, and `String.toList` of core reaches `Classical.choice`. So they and their laws
+(`Decls.value?_eq_none`, `Decls.value?_append`, `Decls.value?_once`, `Decls.shown?_once`,
+`Decls.value?_merge`, `Decls.shown?_merge`) depend on it too, as do the builders of a rule that
+take a name, the writers of text, and the pair of two texts, which also runs the tokenizer.
+Until slice S22 a name was compared as a `String` and no law here reached that axiom. No
+declaration here reaches any other.
 -/
 
 namespace Whatwg.Html.Css
 
-/-- One declaration of CSS: a name, a value as text, and whether it is `!important`. -/
-structure Decl where
-  /-- The name of the property, as CSS writes it: `opacity`, `stroke-dashoffset`, `--t`. -/
-  name : String
-  /-- The value, as CSS writes it. -/
-  value : String
-  /-- Whether the declaration is `!important`: it then stands over one that is not, in its own
-  block and in a `style` attribute. -/
-  important : Bool := false
-  deriving DecidableEq, Repr, Inhabited
+open Whatwg.Css.Syntax (Component Value Prelude Declaration)
 
-/-- A name and a value are a declaration that is not important. -/
-instance : Coe (String × String) Decl := ⟨fun p => { name := p.1, value := p.2 }⟩
+/-- One declaration of CSS: a name, a value as component values, and whether it is
+`!important`. It is the declaration of the tree that the parser of CSS gives. -/
+abbrev Decl : Type := Whatwg.Css.Syntax.Declaration
+
+/-- A name and the text of a value are a declaration that is not important. The pair is the one
+place where a text reads as a value with nothing said: a pair of two texts is put together
+before it is read, so `("stroke", "var(--e4-" ++ role ++ ")")` is the value of the whole
+text. -/
+instance : Coe (String × String) Decl := ⟨fun p => .of p.1 (Value.ofText p.2)⟩
+
+/-- Whether a name is that of a custom property: it starts with two hyphen-minus. -/
+def isCustom : List Char → Bool
+  | '-' :: '-' :: _ => true
+  | _ => false
+
+/-- **The name of a property as CSS tells it from another.** The name of a property is read
+with no regard to the case of its ASCII letters, so it is put in lower case; the name of a
+custom property is read as it is written. -/
+def nameKey (name : List Char) : List Char := if isCustom name then name else name.map Char.toLower
 
 namespace Decl
 
 /-- The text of one declaration: `name: value`, with `!important` where it is. -/
-def css (d : Decl) : String :=
-  d.name ++ ": " ++ d.value ++ (if d.important then " !important" else "")
+def css (d : Decl) : String := d.text
 
-/-- What tells one declaration of a block from another when the block is read: its name and
-its importance. Of two declarations with one key the later is the one read. -/
-def key (d : Decl) : String × Bool := (d.name, d.important)
+/-- What tells one declaration of a block from another when the block is read: its name, as
+`nameKey` reads it, and its importance. Of two declarations with one key the later is the one
+read. -/
+def key (d : Decl) : List Char × Bool := (nameKey d.name, d.important)
 
 end Decl
 
@@ -98,43 +142,52 @@ abbrev Decls : Type := List Decl
 namespace Decls
 
 /-- The text of a row of declarations, with `; ` between two and nothing after the last. -/
-def css (ds : Decls) : String := "; ".intercalate (ds.map Decl.css)
+def css (ds : Decls) : String := Declaration.textAll ds
+
+/-- **Whether a writer may write the row**: its tokens are `Writable`, the premise under which
+the tokenizer reads the text back to them (`tokenize_serialize` of
+`Whatwg/Css/Syntax/Laws.lean`). A caller checks its own declarations so, once, in a guard. -/
+def writable (ds : Decls) : Bool := Whatwg.Css.Syntax.Writable (Declaration.tokensAll ds)
+
+/-- **Whether the text of the row holds no comment**: its tokens are `Quiet`. -/
+def quiet (ds : Decls) : Bool := Whatwg.Css.Syntax.Quiet (Declaration.tokensAll ds)
 
 /-- **What a row of declarations says of a name**, among its declarations of one importance:
-the value of the last of them, and nothing where the row has none. -/
-def value? (ds : Decls) (name : String) (important : Bool := false) : Option String :=
+the value of the last of them, and nothing where the row has none. The name is read as
+`nameKey` reads it. -/
+def value? (ds : Decls) (name : String) (important : Bool := false) : Option Value :=
   match ds with
   | [] => none
   | d :: rest =>
-    (value? rest name important).or (if d.key = (name, important) then some d.value else none)
+    (value? rest name important).or
+      (if d.key = (nameKey name.toList, important) then some d.value else none)
 
 /-- **What a browser shows of a name in a row of declarations**: the last important declaration
 of it, and the last one that is not where the row has no important one. -/
-def shown? (ds : Decls) (name : String) : Option String :=
+def shown? (ds : Decls) (name : String) : Option Value :=
   (value? ds name true).or (value? ds name false)
 
-/-- **A row with each name once for each importance**: of the declarations of one name and one
-importance the last is kept, at its place. The row says of every name what it said
-(`value?_once`). -/
+/-- **A row with each key once**: of the declarations of one name and one importance the last
+is kept, at its place. The row says of every name what it said (`value?_once`). -/
 def once : Decls → Decls
   | [] => []
   | d :: rest => if rest.any (fun e => e.key == d.key) then once rest else d :: once rest
 
-/-- **Two rows of declarations as one**, each name once for each importance. Where both rows
-say a name, the value of the second stands: a thing's own style is `own`, and what a motion
-puts on the thing is `more`. -/
+/-- **Two rows of declarations as one**, each key once. Where both rows say a name, the value
+of the second stands: a thing's own style is `own`, and what a motion puts on the thing is
+`more`. -/
 def merge (own more : Decls) : Decls := once (own ++ more)
 
 /-! ### What a row says -/
 
 /-- A row says nothing of a name with an importance exactly when it has no such declaration. -/
 theorem value?_eq_none {ds : Decls} {name : String} {important : Bool} :
-    value? ds name important = none ↔ ∀ d ∈ ds, d.key ≠ (name, important) := by
+    value? ds name important = none ↔ ∀ d ∈ ds, d.key ≠ (nameKey name.toList, important) := by
   induction ds with
   | nil => exact ⟨fun _ _ h => (nomatch h), fun _ => rfl⟩
   | cons d rest ih =>
     show (value? rest name important).or
-      (if d.key = (name, important) then some d.value else none) = none ↔ _
+      (if d.key = (nameKey name.toList, important) then some d.value else none) = none ↔ _
     constructor
     · intro h e he
       cases hr : value? rest name important with
@@ -143,7 +196,8 @@ theorem value?_eq_none {ds : Decls} {name : String} {important : Bool} :
         exact nomatch h
       | none =>
         rw [hr] at h
-        have h' : (if d.key = (name, important) then some d.value else none) = none := h
+        have h' : (if d.key = (nameKey name.toList, important) then some d.value else none) =
+            none := h
         rcases List.mem_cons.mp he with e1 | e2
         · intro hp
           rw [e1] at hp
@@ -168,7 +222,7 @@ theorem value?_append (a b : Decls) (name : String) (important : Bool) :
     rw [ih]
     cases value? b name important <;> rfl
 
-/-! ### Each name once -/
+/-! ### Each key once -/
 
 /-- A declaration that `once` keeps is a declaration of the row. -/
 theorem mem_of_mem_once {ds : Decls} {d : Decl} : d ∈ once ds → d ∈ ds := by
@@ -183,8 +237,8 @@ theorem mem_of_mem_once {ds : Decls} {d : Decl} : d ∈ once ds → d ∈ ds := 
       · exact e1 ▸ List.mem_cons_self
       · exact List.mem_cons_of_mem e (ih e2)
 
-/-- **`once` leaves each name once for each importance.** A `style` attribute written from it
-says no declaration that another of the row replaces. -/
+/-- **`once` leaves each key once.** A `style` attribute written from it says no declaration
+that another of the row replaces. -/
 theorem once_nodup (ds : Decls) : ((once ds).map Decl.key).Nodup := by
   induction ds with
   | nil => exact List.nodup_nil
@@ -209,12 +263,12 @@ theorem value?_once (ds : Decls) (name : String) (important : Bool) :
     · rename_i hany
       rw [ih]
       show value? rest name important = (value? rest name important).or
-        (if d.key = (name, important) then some d.value else none)
+        (if d.key = (nameKey name.toList, important) then some d.value else none)
       cases hr : value? rest name important with
       | some v => rfl
       | none =>
         obtain ⟨e, he, hp⟩ := List.any_eq_true.mp hany
-        have hne : d.key ≠ (name, important) := fun h =>
+        have hne : d.key ≠ (nameKey name.toList, important) := fun h =>
           value?_eq_none.mp hr e he ((beq_iff_eq.mp hp).trans h)
         exact (if_neg hne).symm
     · show (value? (once rest) name important).or _ = (value? rest name important).or _
@@ -224,7 +278,7 @@ theorem value?_once (ds : Decls) (name : String) (important : Bool) :
 theorem shown?_once (ds : Decls) (name : String) : shown? (once ds) name = shown? ds name := by
   rw [shown?, shown?, value?_once, value?_once]
 
-/-- A row that says each name once for each importance is kept as it is. -/
+/-- A row that says each key once is kept as it is. -/
 theorem once_of_nodup : ∀ {ds : Decls}, (ds.map Decl.key).Nodup → once ds = ds
   | [], _ => rfl
   | d :: rest, h => by
@@ -234,10 +288,22 @@ theorem once_of_nodup : ∀ {ds : Decls}, (ds.map Decl.key).Nodup → once ds = 
       obtain ⟨e, he, hp⟩ := List.any_eq_true.mp hany
       exact h'.1 (List.mem_map.mpr ⟨e, he, beq_iff_eq.mp hp⟩)
 
+/-- A row that is not empty is not empty with each key once: its last declaration is kept. -/
+theorem once_ne_nil : ∀ {ds : Decls}, ds ≠ [] → once ds ≠ []
+  | [], h => absurd rfl h
+  | d :: rest, _ => by
+    rw [once]
+    split
+    · rename_i hany
+      refine once_ne_nil fun e => ?_
+      rw [e] at hany
+      exact Bool.noConfusion hany
+    · exact List.cons_ne_nil _ _
+
 /-! ### Two rows as one -/
 
-/-- **A merged row has each name once for each importance.** A thing with a style of its own
-and a motion has one `style` attribute, and no declaration in it is replaced by another. -/
+/-- **A merged row has each key once.** A thing with a style of its own and a motion has one
+`style` attribute, and no declaration in it is replaced by another. -/
 theorem merge_nodup (own more : Decls) : ((merge own more).map Decl.key).Nodup :=
   once_nodup (own ++ more)
 
@@ -258,167 +324,123 @@ theorem shown?_merge (own more : Decls) (name : String) :
         ((value? more name false).or (value? own name false)) := by
   rw [shown?, value?_merge, value?_merge]
 
-/-- A row merged with nothing is the row with each name once. -/
+/-- A row merged with nothing is the row with each key once. -/
 theorem merge_nil (own : Decls) : merge own [] = once own := by
   rw [merge, List.append_nil]
 
-/-- Nothing merged with a row is the row with each name once. -/
+/-- Nothing merged with a row is the row with each key once. -/
 theorem nil_merge (more : Decls) : merge [] more = once more := rfl
 
 end Decls
 
 /-! ## Rules -/
 
-/-- A rule of a style sheet: a qualified rule, or an at-rule of one of its two kinds. -/
-inductive Rule where
-  /-- A qualified rule: a prelude, declarations and child rules. The prelude of a style rule is
-  its selector, and the prelude of a keyframe is `from`, `to` or a per cent. -/
-  | qualified (prelude : String) (decls : Decls) (rules : List Rule)
-  /-- An at-rule that ends in a block: `@name prelude { … }`, with declarations and child
-  rules. `@media (…) { … }` has the name `media`, its query for a prelude, and child rules.
-  `@keyframes m-0 { … }` has the name `keyframes`, the name of the animation for a prelude, and
-  its keyframes for child rules. -/
-  | «at» (name prelude : String) (decls : Decls) (rules : List Rule)
-  /-- An at-rule that ends in a semicolon, as `@import` does: `@name prelude;`. -/
-  | statement (name prelude : String)
-
-/-- What stands between the braces of a block: its declarations, and then its child rules. -/
-def inside (decls rules : String) : String :=
-  if decls.isEmpty then rules else if rules.isEmpty then decls else decls ++ "; " ++ rules
-
-/-- A block, from what stands between its braces. -/
-def braces (inner : String) : String := if inner.isEmpty then " { }" else " { " ++ inner ++ " }"
-
-/-- The start of an at-rule: `@name`, and its prelude where it has one. -/
-def atHead (name prelude : String) : String :=
-  "@" ++ name ++ (if prelude.isEmpty then "" else " " ++ prelude)
-
-mutual
-
-/-- The text of a rule, on one line. -/
-def Rule.css : Rule → String
-  | .qualified prelude decls rules => prelude ++ braces (inside decls.css (Rule.cssAll rules))
-  | .at name prelude decls rules =>
-    atHead name prelude ++ braces (inside decls.css (Rule.cssAll rules))
-  | .statement name prelude => atHead name prelude ++ ";"
-
-/-- The text of the child rules of a block, with a space between two. -/
-def Rule.cssAll : List Rule → String
-  | [] => ""
-  | [r] => r.css
-  | r :: s :: rest => r.css ++ " " ++ Rule.cssAll (s :: rest)
-
-end
+/-- A rule of a style sheet: the rule of the tree that the parser of CSS gives. -/
+abbrev Rule : Type := Whatwg.Css.Syntax.Rule
 
 namespace Rule
 
-/-- `selector { … }`: a qualified rule with declarations and no child rule. -/
-def style (selector : String) (decls : Decls) : Rule := .qualified selector decls []
+/-- **A qualified rule**: `selector { declarations; rules }`. A style rule under its selector,
+and a keyframe under `from`, `to` or a per cent. The white space before the brace is the
+prelude's, and is put here. -/
+def style (selector : Prelude) (decls : Decls) (rules : List Rule := []) : Rule :=
+  .qualified (selector ++ [.space]) decls rules
+
+/-- **An at-rule that ends in a block**: `@name prelude { declarations; rules }`. The white
+space on both sides of the prelude is the prelude's, and is put here. -/
+def «at» (name : String) (prelude : Prelude) (decls : Decls) (rules : List Rule) : Rule :=
+  .blockAt name.toList (.space :: (if prelude.isEmpty then [] else prelude ++ [.space])) decls rules
+
+/-- **An at-rule that ends in a semicolon**, as `@import` does: `@name prelude;`. -/
+def atStatement (name : String) (prelude : Prelude) : Rule :=
+  .statement name.toList (if prelude.isEmpty then [] else .space :: prelude)
+
+/-- `@keyframes name { selector { … } … }`: a keyframe for each selector, in the order
+given. -/
+def frames (name : String) (keyframes : List (Prelude × Decls)) : Rule :=
+  .at "keyframes" [.ident name] [] (keyframes.map fun k => style k.1 k.2)
 
 /-- `@keyframes name { from { … } to { … } }`: the declarations at the start and at the end of
 an animation. -/
 def keyframes (name : String) (start stop : Decls) : Rule :=
-  .at "keyframes" name [] [.qualified "from" start [], .qualified "to" stop []]
+  frames name [(Prelude.from, start), (Prelude.to, stop)]
 
 /-- `@media query { … }`: rules that hold only where the query does. -/
-def media (query : String) (rules : List Rule) : Rule := .at "media" query [] rules
+def media (query : Prelude) (rules : List Rule) : Rule := .at "media" query [] rules
+
+/-- **The prelude of a rule**, with no white space at its two ends: what a builder of this
+module was given. A nested declarations rule has none. -/
+def prelude : Rule → Prelude
+  | .qualified p _ _ => Value.trim p
+  | .blockAt _ p _ _ => Value.trim p
+  | .statement _ p => Value.trim p
+  | .nested _ => []
+
+/-- The name of an at-rule, and nothing for a rule that is none. -/
+def name? : Rule → Option String
+  | .blockAt n _ _ _ => some (String.ofList n)
+  | .statement n _ => some (String.ofList n)
+  | _ => none
+
+/-- The declarations of a rule's block. -/
+def decls : Rule → Decls
+  | .qualified _ ds _ => ds
+  | .blockAt _ _ ds _ => ds
+  | .nested ds => ds
+  | .statement _ _ => []
+
+/-- The child rules of a rule's block. -/
+def rules : Rule → List Rule
+  | .qualified _ _ rs => rs
+  | .blockAt _ _ _ rs => rs
+  | _ => []
+
+/-- The text of a rule, on one line. -/
+def css (r : Rule) : String := r.text
+
+/-- A style rule holds the declarations it was built with. -/
+theorem decls_style (selector : Prelude) (ds : Decls) (rs : List Rule) :
+    (style selector ds rs).decls = ds := rfl
+
+/-- A style rule holds the child rules it was built with. -/
+theorem rules_style (selector : Prelude) (ds : Decls) (rs : List Rule) :
+    (style selector ds rs).rules = rs := rfl
+
+/-- An at-rule holds the declarations it was built with. -/
+theorem decls_at (name : String) (p : Prelude) (ds : Decls) (rs : List Rule) :
+    (Rule.at name p ds rs).decls = ds := rfl
+
+/-- An at-rule holds the child rules it was built with. -/
+theorem rules_at (name : String) (p : Prelude) (ds : Decls) (rs : List Rule) :
+    (Rule.at name p ds rs).rules = rs := rfl
 
 end Rule
 
 /-- Rules in a row: a style sheet. -/
 abbrev Sheet : Type := List Rule
 
+namespace Sheet
+
+/-- The sheet as the stylesheet of the tree. -/
+def stylesheet (rules : Sheet) : Whatwg.Css.Syntax.Stylesheet := ⟨rules⟩
+
 /-- The text of a sheet: one rule a line. -/
-def Sheet.css (rules : Sheet) : String := "\n".intercalate (rules.map Rule.css)
+def css (rules : Sheet) : String := (stylesheet rules).lines
 
-/-! ### Telling two rules apart
+/-- **Whether a writer may write the sheet**: its tokens are `Writable`. -/
+def writable (rules : Sheet) : Bool := Whatwg.Css.Syntax.Writable (stylesheet rules).tokens
 
-A rule holds rules, and for such a type Lean derives no test of equality that the kernel can
-unfold. The test is written here, with its law. -/
+/-- **Whether the text of the sheet holds no comment**: its tokens are `Quiet`. -/
+def quiet (rules : Sheet) : Bool := Whatwg.Css.Syntax.Quiet (stylesheet rules).tokens
 
-mutual
+/-- **The declarations of the first style rule of a sheet under a selector**, and nothing where
+the sheet has none. The rules inside an at-rule are not looked at. -/
+def decls? (rules : Sheet) (selector : Prelude) : Option Decls :=
+  rules.findSome? fun r =>
+    match r with
+    | .qualified _ ds _ => if r.prelude = selector then some ds else none
+    | _ => none
 
-/-- Whether two rules are one rule. -/
-def Rule.beq : Rule → Rule → Bool
-  | .qualified p ds rs, .qualified p' ds' rs' => p == p' && ds == ds' && Rule.beqAll rs rs'
-  | .at n p ds rs, .at n' p' ds' rs' => n == n' && p == p' && ds == ds' && Rule.beqAll rs rs'
-  | .statement n p, .statement n' p' => n == n' && p == p'
-  | .qualified _ _ _, .at _ _ _ _ => false
-  | .qualified _ _ _, .statement _ _ => false
-  | .at _ _ _ _, .qualified _ _ _ => false
-  | .at _ _ _ _, .statement _ _ => false
-  | .statement _ _, .qualified _ _ _ => false
-  | .statement _ _, .at _ _ _ _ => false
-
-/-- Whether two rows of rules are one row. -/
-def Rule.beqAll : List Rule → List Rule → Bool
-  | [], [] => true
-  | r :: rs, r' :: rs' => Rule.beq r r' && Rule.beqAll rs rs'
-  | [], _ :: _ => false
-  | _ :: _, [] => false
-
-end
-
-mutual
-
-/-- The test of two rules answers yes exactly when they are one rule. -/
-theorem Rule.beq_iff : ∀ a b : Rule, Rule.beq a b = true ↔ a = b
-  | .qualified p ds rs, .qualified p' ds' rs' => by
-    simp only [Rule.beq, Bool.and_eq_true, beq_iff_eq, Rule.qualified.injEq,
-      Rule.beqAll_iff rs rs', and_assoc]
-  | .at n p ds rs, .at n' p' ds' rs' => by
-    simp only [Rule.beq, Bool.and_eq_true, beq_iff_eq, Rule.at.injEq, Rule.beqAll_iff rs rs',
-      and_assoc]
-  | .statement n p, .statement n' p' => by
-    simp only [Rule.beq, Bool.and_eq_true, beq_iff_eq, Rule.statement.injEq]
-  | .qualified _ _ _, .at _ _ _ _ => by simp only [Rule.beq, Bool.false_eq_true, reduceCtorEq]
-  | .qualified _ _ _, .statement _ _ => by simp only [Rule.beq, Bool.false_eq_true, reduceCtorEq]
-  | .at _ _ _ _, .qualified _ _ _ => by simp only [Rule.beq, Bool.false_eq_true, reduceCtorEq]
-  | .at _ _ _ _, .statement _ _ => by simp only [Rule.beq, Bool.false_eq_true, reduceCtorEq]
-  | .statement _ _, .qualified _ _ _ => by simp only [Rule.beq, Bool.false_eq_true, reduceCtorEq]
-  | .statement _ _, .at _ _ _ _ => by simp only [Rule.beq, Bool.false_eq_true, reduceCtorEq]
-
-/-- The test of two rows of rules answers yes exactly when they are one row. -/
-theorem Rule.beqAll_iff : ∀ a b : List Rule, Rule.beqAll a b = true ↔ a = b
-  | [], [] => by simp only [Rule.beqAll]
-  | r :: rs, r' :: rs' => by
-    simp only [Rule.beqAll, Bool.and_eq_true, Rule.beq_iff r r', Rule.beqAll_iff rs rs',
-      List.cons.injEq]
-  | [], _ :: _ => by simp only [Rule.beqAll, Bool.false_eq_true, reduceCtorEq]
-  | _ :: _, [] => by simp only [Rule.beqAll, Bool.false_eq_true, reduceCtorEq]
-
-end
-
-instance : DecidableEq Rule := fun a b => decidable_of_iff _ (Rule.beq_iff a b)
-
-instance : Inhabited Rule := ⟨.qualified "" [] []⟩
-
-/-! ### Showing a rule -/
-
-mutual
-
-/-- A rule as it is written in Lean. -/
-def Rule.repr : Rule → Nat → Std.Format
-  | .qualified prelude decls rules, prec =>
-    Repr.addAppParen (.group (.nest 2 ("Whatwg.Html.Css.Rule.qualified" ++ .line ++
-      reprArg prelude ++ .line ++ reprArg decls ++ .line ++ "[" ++ Rule.reprAll rules ++ "]")))
-      prec
-  | .at name prelude decls rules, prec =>
-    Repr.addAppParen (.group (.nest 2 ("Whatwg.Html.Css.Rule.at" ++ .line ++ reprArg name ++
-      .line ++ reprArg prelude ++ .line ++ reprArg decls ++ .line ++ "[" ++
-      Rule.reprAll rules ++ "]"))) prec
-  | .statement name prelude, prec =>
-    Repr.addAppParen (.group (.nest 2 ("Whatwg.Html.Css.Rule.statement" ++ .line ++
-      reprArg name ++ .line ++ reprArg prelude))) prec
-
-/-- A row of rules as it is written in Lean, between its brackets. -/
-def Rule.reprAll : List Rule → Std.Format
-  | [] => ""
-  | [r] => Rule.repr r 0
-  | r :: s :: rest => Rule.repr r 0 ++ "," ++ .line ++ Rule.reprAll (s :: rest)
-
-end
-
-instance : Repr Rule := ⟨Rule.repr⟩
+end Sheet
 
 end Whatwg.Html.Css

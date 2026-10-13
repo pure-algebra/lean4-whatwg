@@ -1,0 +1,201 @@
+
+/-!
+# WhatwgTest.Css.ParseCorpus
+
+Owner: the text that the parser of CSS is tested on (slice K4 of `docs/CSS-PACKAGE-PLAN.md`).
+
+`pageCss` is the stylesheet of the documentation site of lean4-effect4, the consumer of this
+package: its file `tools/Tools/Document/page.css`, copied code point for code point at its commit
+`6ad8f7b8d`. It is the text that entry W5 of `docs/research/2026-10-12-whatwg-requests.md` asks
+to have read by its grammar. Nothing here is computed: the module holds the text and no more, so
+that the test beside it (`WhatwgTest/Css/Parse.lean`) stays short.
+
+To renew it, copy the file again and name the commit. A quotation mark in the file is written
+with a reverse solidus before it here, and nothing else differs.
+-/
+
+namespace WhatwgTest.Css.ParseCorpus
+
+/-- The consumer's stylesheet, `tools/Tools/Document/page.css` of lean4-effect4 at `6ad8f7b8d`. -/
+def pageCss : String :=
+"/* The pages' rules (tools/Tools/Site.lean, tools/Tools/Document/Html.lean; decisions rows 353, 354
+   and 366). Every colour and family is a look's custom property (--e4-*, looks.css). A size, a
+   measure and a space are the page's, on one modular scale. Each rule below draws a structural
+   fact, named in its comment (row 366, point 3). Sheet.problem refuses a literal colour or family
+   outside @font-face, a shadow, a gradient and a filter. */
+
+/* The faces (vendor/fonts/, row 366, point 1), served from the site. */
+@font-face { font-family: \"Source Serif 4\"; src: url(\"fonts/source-serif-4/source-serif-4-latin-opsz-normal.woff2\") format(\"woff2\"); font-weight: 200 900; font-style: normal; font-display: swap; }
+@font-face { font-family: \"Source Serif 4\"; src: url(\"fonts/source-serif-4/source-serif-4-latin-opsz-italic.woff2\") format(\"woff2\"); font-weight: 200 900; font-style: italic; font-display: swap; }
+@font-face { font-family: \"JetBrains Mono\"; src: url(\"fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2\") format(\"woff2\"); font-weight: 100 800; font-style: normal; font-display: swap; }
+
+/* One modular scale (row 366, point 5): each step is the one before times the ratio. The measure
+   holds prose to about 66 characters; a quiet text (a key, a count) is the ink over the ground. */
+:root {
+  --ratio: 1.2;
+  --s0: 1.0625rem;
+  --s1: calc(var(--s0) * var(--ratio)); --s2: calc(var(--s1) * var(--ratio));
+  --s3: calc(var(--s2) * var(--ratio)); --s4: calc(var(--s3) * var(--ratio));
+  --s5: calc(var(--s4) * var(--ratio));
+  --s-1: calc(var(--s0) / var(--ratio)); --s-2: calc(var(--s-1) / var(--ratio));
+  --measure: 66ch;
+  --margin: 15rem;
+  --gap: clamp(var(--s1), 3vw, var(--s4));
+  --band: color-mix(in srgb, var(--e4-color-rule) calc(var(--e4-tone-band) * 100%), var(--e4-color-ground));
+  --quiet: color-mix(in srgb, var(--e4-color-ink) 64%, var(--e4-color-ground));
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--e4-color-ground); color: var(--e4-color-ink);
+  font: var(--s0)/1.55 var(--e4-font-name-family); font-optical-sizing: auto;
+  text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+
+/* The frame: the site's header, the content with a margin at its right, the footer. The parts of
+   the page follow the title; on a wide screen they float into the margin and stay in view, as a
+   margin note, and on a narrow one they stand under the title in a frame of their own. */
+body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 58rem) var(--margin) minmax(0, 1fr);
+  column-gap: var(--gap); padding: 0 clamp(var(--s0), 4vw, var(--s3)); }
+body > header, body > footer { grid-column: 2 / 4; }
+body > main { grid-column: 2; min-width: 0; }
+main > .toc { float: right; clear: right; width: var(--margin); margin-right: calc(-1 * (var(--margin) + var(--gap)));
+  position: sticky; top: 0; max-height: 100vh; overflow-y: auto; padding: var(--s0) 0;
+  font-size: var(--s-1); line-height: 1.35; }
+@media (max-width: 64rem) {
+  body { display: block; }
+  main > .toc { float: none; width: auto; margin: var(--s0) 0 var(--s1); position: static; max-height: 14rem;
+    padding: var(--s-1) var(--s0); border: var(--e4-stroke-rule) solid var(--e4-color-rule);
+    border-radius: var(--e4-stroke-radius); }
+}
+
+/* The way past the navigation, shown when it takes the focus. */
+.skip { position: absolute; left: -100vw; }
+.skip:focus { position: static; display: inline-block; margin: var(--s-1) 0; }
+/* A label: a name of a kind of thing, in the label face. */
+.label, dt, summary { font-family: var(--e4-font-label-family); font-style: var(--e4-font-label-style); }
+nav ol { padding: 0; margin: 0; list-style: none; }
+/* The current page, and the section it stands in. */
+[aria-current] { text-decoration-thickness: 2px; }
+[aria-current=page] { font-weight: bolder; text-decoration: none; }
+
+/* The site's header: the site's name and its sections; its rule ends the header. */
+body > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s3);
+  padding: var(--s2) 0 var(--s0); margin-bottom: var(--s2); border-bottom: var(--e4-stroke-rule) solid var(--e4-color-rule); }
+.home { font-family: var(--e4-font-title-family); font-weight: bolder; font-size: var(--s1); text-decoration: none; }
+header nav ol { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s1); }
+
+/* The parts of the page, two levels. */
+.toc .label { margin: 0 0 var(--s-1); }
+.toc li { margin: var(--s-2) 0; }
+.toc ol ol { margin: var(--s-2) 0 var(--s-1) var(--s0); }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* The way to the page, and its neighbours in reading order; the pager's rule ends the content. */
+.crumbs ol { display: flex; flex-wrap: wrap; gap: var(--s-2); font-size: var(--s-1); }
+.crumbs li + li::before { content: \"/\"; content: \"/\" / \"\"; margin-right: var(--s-2); color: var(--quiet); }
+.pager { display: flex; gap: var(--s0); margin: var(--s4) 0 0; padding-top: var(--s0);
+  border-top: var(--e4-stroke-rule) solid var(--e4-color-rule); }
+.pager a { display: flex; flex-direction: column; max-width: 48%; text-decoration: none; }
+.pager a[rel=next] { margin-left: auto; text-align: right; }
+.pager .label { font-size: var(--s-1); color: var(--quiet); }
+
+/* Headings: a part's title, its level its depth. A top-level part's rule is its boundary. */
+h1, h2, h3, h4, h5, h6 { font-family: var(--e4-font-title-family); font-weight: var(--e4-font-title-weight);
+  line-height: 1.15; scroll-margin-top: var(--s0); text-wrap: balance; }
+h1 { font-size: clamp(var(--s3), 5vw, var(--s5)); margin: var(--s-1) 0 var(--s0); }
+h2 { font-size: var(--s3); }
+h3 { font-size: var(--s2); }
+h4, h5, h6 { font-size: var(--s1); }
+h3, h4, h5, h6 { margin: var(--s3) 0 var(--s-1); }
+section > h2 { margin-top: var(--s4); padding-top: var(--s0); border-top: var(--e4-stroke-rule) solid var(--e4-color-rule); }
+section:target > :is(h2, h3, h4, h5, h6) { text-decoration: underline; text-decoration-thickness: 2px;
+  text-underline-offset: .2em; }
+/* A part's key: its identity, which references and agents use (row 366, point 4). */
+.key { margin-left: .6em; font: var(--e4-font-data-weight) var(--s-2)/1 var(--e4-font-data-family); color: var(--quiet);
+  text-decoration: none; white-space: nowrap; vertical-align: .15em; }
+.key:hover { color: var(--e4-color-ink); text-decoration: underline; }
+
+/* Prose, at its measure. */
+p, dd, li, figcaption { max-width: var(--measure); overflow-wrap: anywhere; }
+p { margin: var(--s-1) 0; }
+a { color: inherit; text-underline-offset: .15em; }
+:focus-visible { outline: 3px solid var(--e4-color-ink); outline-offset: 2px; }
+
+/* Code: the band marks text in a language, a frame marks a block of it. */
+code, pre { font-family: var(--e4-font-data-family); font-size: .88em; font-variant-ligatures: none; }
+:not(pre) > code { background: var(--band); padding: .05em .3em; border-radius: var(--e4-stroke-radius);
+  overflow-wrap: anywhere; }
+pre { background: var(--band); border: var(--e4-stroke-rule) solid var(--e4-color-rule);
+  border-radius: var(--e4-stroke-radius); padding: var(--s-1) var(--s0); white-space: pre-wrap; overflow-wrap: anywhere;
+  line-height: 1.45; }
+/* A long statement, folded under its first line (row 366, point 6). */
+details.statement { margin: var(--s-1) 0; }
+details.statement > summary { cursor: pointer; }
+details.statement > summary code { font-style: normal; }
+
+/* Fields: a label and its value. */
+dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--s-2) var(--s0); }
+dd { margin: 0; }
+
+/* A region that scrolls sideways on a narrow screen: a wide table or figure. */
+.scroll { overflow-x: auto; margin: var(--s1) 0; }
+/* A table, after the booktabs rules: a rule opens it and one closes it, a hairline ends its head,
+   and space, not rules, parts its rows. Its head is a label; its numerals take one width; its first
+   column, an identity, does not wrap; code in it is told by its face alone. */
+table { border-collapse: collapse; width: 100%; min-width: 36rem; font-size: var(--s-1); line-height: 1.35;
+  font-variant-numeric: tabular-nums lining-nums;
+  border-top: calc(2 * var(--e4-stroke-rule)) solid var(--e4-color-rule);
+  border-bottom: calc(2 * var(--e4-stroke-rule)) solid var(--e4-color-rule); }
+th, td { text-align: left; vertical-align: top; padding: var(--s-2) var(--s-1); }
+th { font-family: var(--e4-font-label-family); font-style: var(--e4-font-label-style); font-weight: inherit;
+  border-bottom: var(--e4-stroke-rule) solid var(--e4-color-rule); }
+tbody td { padding-top: var(--s-1); padding-bottom: var(--s-1); }
+td:first-child { white-space: nowrap; }
+td code { background: none; padding: 0; overflow-wrap: normal; }
+
+/* A status: a mark of the promise-and-keeping family, with no hue (row 354, point 2). Proved is a
+   filled circle, modulo half filled (a fill clipped to the left half), a goal hollow, open dashed,
+   refuted the cross. A circle's outline is the look's frame. */
+.status { white-space: nowrap; }
+/* What is proved recedes, so what is open stands out: proved, absent and assumed in the quiet
+   ink; modulo, goal, open and refuted in the full ink. */
+.status:is([data-status=proved], [data-status=absent], [data-status=assumed]) { color: var(--quiet); }
+.status:is([data-status=proved], [data-status=modulo], [data-status=goal], [data-status=open])::before {
+  content: \"\"; display: inline-block; box-sizing: border-box;
+  width: .7em; height: .7em; margin-right: .35em; vertical-align: -.05em;
+  border: var(--e4-stroke-frame) solid currentColor; border-radius: 50%;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; forced-color-adjust: none; }
+.status[data-status=proved]::before { background: currentColor; }
+.status[data-status=modulo]::before { background: currentColor; background-clip: content-box;
+  padding-right: calc(.35em - var(--e4-stroke-frame)); }
+.status[data-status=open]::before { border-style: dashed; }
+.status[data-status=refuted]::before { content: \"×\"; content: \"×\" / \"\"; display: inline-block;
+  width: .7em; margin-right: .35em; text-align: center; }
+
+/* A figure: its picture scrolls when wider than the column, its caption below, and the figure in
+   words folded beneath. The picture's marks take the looks' colours by class (looks.css). */
+figure.graph { margin: var(--s2) 0 var(--s-1); }
+figure.graph .scroll { border: 0; margin: 0; }
+figure.graph svg { display: block; max-width: none; height: auto; }
+figcaption { margin-top: var(--s-1); font-size: var(--s-1); }
+details.words { margin: 0 0 var(--s2); font-size: var(--s-1); }
+details.words > summary, details.diagram > summary { cursor: pointer; }
+details.diagram { margin: var(--s0) 0; }
+
+/* The footer: the page's provenance; its rule ends the page. */
+footer { margin-top: var(--s4); padding: var(--s0) 0 var(--s3);
+  border-top: var(--e4-stroke-rule) solid var(--e4-color-rule); font-size: var(--s-1); }
+footer .label { margin: 0 0 var(--s-2); }
+footer ul { list-style: none; margin: 0; padding: 0; }
+footer li { max-width: none; overflow-wrap: anywhere; }
+footer li:nth-last-child(2) { margin-top: var(--s-2); }
+
+@media print {
+  .scroll { overflow: visible; border: 0; }
+  table { min-width: 0; }
+  pre, tr, dl, details { break-inside: avoid; }
+  h2, h3, h4 { break-after: avoid; }
+  .skip, nav { display: none; }
+}
+"
+
+end WhatwgTest.Css.ParseCorpus

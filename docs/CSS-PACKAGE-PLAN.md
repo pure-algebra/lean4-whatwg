@@ -5,8 +5,10 @@ construct refused; section 7 has what the extractor found). **K3 landed the same
 value definition syntax reads all 186 collected definitions and prints each back, and its
 interpreter admits the values the picture kit writes; section 8 has what it found. **K2 landed
 after it**: the tokenizer, the writer of tokens and the round trip, with the proof graph
-`CSS-PG-SYNTAX` (`docs/CSS-SYNTAX-DAG.md`); section 9 has what it found. K4 to K6 are not
-built. The owner asked for it in these words: "seal the css syntax spec", and "figure a way to
+`CSS-PG-SYNTAX` (`docs/CSS-SYNTAX-DAG.md`); section 9 has what it found. **K4 landed on
+2026-10-13**, with the first step of K5: the parser, the tree as text, the round trip at a stylesheet,
+and the picture kit writing through the one tree; section 10 has what it found. The rest of K5
+and K6 are not built. The owner asked for it in these words: "seal the css syntax spec", and "figure a way to
 mechanize css spec adoption for rigorous foolproof reification". lean4-effect4 asks for the same
 thing from its side (entry W5 of `docs/research/2026-10-12-whatwg-requests.md`: a stylesheet
 checked by its grammar).
@@ -107,7 +109,8 @@ vendor/w3c-csswg-drafts-50337328/   css-syntax-3 sealed; the modules of section 
 WhatwgGates/CssBlocks.lean          the extractor; CssBlocksEmit.lean, its tables, drift check and controls (whatwgbin/, lakefile, CI as the other gates)
 generated/css/                      <module>-properties.tsv, -descriptors.tsv, -productions.tsv, -diagrams.tsv, -tables.tsv, and INDEX.tsv
 Whatwg/Css/
-  Syntax/   Token  Tokenize  Tree  Parse  Serialize     the model of CSS Syntax 3, and the writer
+  Syntax/   Tree  Tokenize  Serialize  Write            the model of CSS Syntax 3, and the writer
+            Parse  Readable  Located  Build             the parser, its premises, a fold, and builders of values
   Values/   Definition  Admits                          the value definition syntax as data, and its interpreter
   Data/     <Module>                                    generated: the productions and properties of a module
 WhatwgTest/Css/                     the kit's writer as the test; controls
@@ -165,7 +168,7 @@ references of `Whatwg/Html/Content/Document.lean`), CSS Properties and Values AP
 | K1 | `whatwg_cssblocks`: the four kinds of block and the data tables, for every sealed module | `generated/css/`, the gate's row in `AGENTS.md` and CI |
 | K2 | Tokens, the tokenizer, the serializer, the round trip for the tokens a writer makes; CSS Syntax 3 in the census | proof graph `CSS-PG-SYNTAX` in the ledger |
 | K3 | The value definition syntax: tree, reader, printer, interpreter; the generated data modules | pays debt D97 for the SVG value grammars stated in this notation |
-| K4 | The tree of rules and the parser; parsing what the writer wrote | closes the round trip at rules |
+| K4 | The tree of rules and the parser; parsing what the writer wrote. Landed, with the kit on the one tree (ruling CS-9) | closes the round trip at rules |
 | K5 | The picture kit's writer on the tree, sound against `animation`, `translate`, `scale`, `opacity`, `@keyframes`, `linear()`, `cubic-bezier()`, `@media` | pays debt D119; answers entry W5 |
 | K6 | Web Platform Tests of `css/css-syntax` sealed and run as the host corpus | a host profile |
 
@@ -249,3 +252,45 @@ bound (K3); escapes in identifiers that the kit's stems could need (K2, with `cs
   request 6874 of `w3c/csswg-drafts` fixed the mirror cases in 2021. Two minifiers, lightningcss
   1.33.0 and esbuild 0.27.7, are no evidence either way: they drop a comment between two
   identifiers too.
+
+## 10. What slice K4 found
+
+- **The round trip holds at every level.** The parser reads the tokens of a tree back as the
+  tree, from a component value to a stylesheet, and the text of a stylesheet parses to it, on
+  one line or one rule a line. No law was left open. The premises are tests that compute
+  (`readable`, `writable`, `writableLines`); they suffice and are not necessary.
+- **The sealed text drops the last declarations of a block.** `consume a block's contents`
+  says "Return rules" at the end of the input and at a right brace, and never appends the
+  declarations it holds. By the letter `a { color: red }` has no declaration. The model keeps
+  them as the last item. Upstream's head, as fetched on 2026-10-12, has the same text. Not
+  reported: that is the owner's to say.
+- **The tree needed a fourth kind of rule.** `consume a block's contents` gives rules and lists
+  of declarations in order. `Rule.nested` holds a list that stands after a rule. The first list
+  of a block is its declarations, for a qualified rule as the standard says and for an at-rule
+  by the same reading; nothing is lost, since a list is never empty.
+- **What the generic parser does not model**, each named in the header of `Parse.lean`:
+  validity in a context (every rule and declaration is kept); the original text of a custom
+  property; the `unicode-range` descriptor, which the standard reads again from source text
+  that a list of tokens no longer has; parse errors as values.
+- **`Writable` was one clause short for text.** A delimiter that is a carriage return is
+  writable as a token and is white space after the standard's preprocessing. `writableText`
+  asks the clause, and `tokenizeText_serialize` is the law under it.
+- **The consumer's stylesheet** (`page.css` at its checkout `6ad8f7b8d`: 11,378 code points,
+  2,994 tokens, 80 rules, 247 declarations) is writable, reads back from both texts, and its
+  own check, ported onto the tree with `Stylesheet.located`, finds no problem.
+- **The kit's text did not move.** With every value built and none spliced, the eight probes
+  write the eighteen files of `docs/research/2026-10-12-motion-probe/` byte for byte, and no
+  comment stands in any sheet. A coercion from a string to a value was tried and removed: Lean
+  coerces each leaf of `a ++ b`, so two halves of a selector were read apart and joined as two
+  identifiers. A text becomes a value by name (`Value.ofText`, `Prelude.ofText`).
+- **Slice K5, first step.** Judged by the sealed grammars with the interpreter of slice K3:
+  256 declarations of steps that are not scrubbed, none refused (`translate`, `scale`,
+  `opacity`, `animation` and its longhands, `transform-box`, `transform-origin`, and the
+  preludes of `@keyframes` and `@media`). Refused, as section 8 expected: the `animation` of a
+  scrubbed step, whose delay is a `calc()` with `var()`. No sealed grammar: `d`,
+  `stroke-dasharray`, `stroke-dashoffset`. One theorem: the kit's opacity is admitted for
+  every count of thousandths.
+- **Open, by name**: that a tree the parser returns passes the premises (false in general:
+  `a { b: {} c { } }`); the whole sheet of a step as writable by theorem; math functions and
+  `var()` in the interpreter; laws for `{A,B}` and `||`, which `translate`, `scale` and
+  `animation` need for a theorem; a `Repr` of the tree; the parser's algorithms in the census.

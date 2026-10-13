@@ -437,17 +437,14 @@ def count (part whole : String) : Nat := (whole.splitOn part).length - 1
 #guard (five.sheet filed).length == (five.sheet { filed with reach := .inline }).length + 5
 
 /-- What a rule names: the animation of a `@keyframes` rule, the selector of a style rule, and
-the selectors of the style rules of any other at-rule. -/
+the selectors of the style rules of any other at-rule. The rule is read by its name, its
+prelude and its child rules (`Whatwg/Html/Node/Css.lean`), and no constructor of the tree is
+named. -/
 def names (r : Css.Rule) : List String :=
-  match r with
-  | .qualified selector _ _ => [selector]
-  | .at "keyframes" name _ _ => ["@keyframes " ++ name]
-  | .at _ _ _ rules =>
-    rules.filterMap fun x =>
-      match x with
-      | .qualified selector _ _ => some selector
-      | _ => none
-  | .statement _ _ => []
+  match r.name? with
+  | none => [r.prelude.text]
+  | some "keyframes" => ["@keyframes " ++ r.prelude.text]
+  | some _ => r.rules.filterMap fun x => if x.name?.isNone then some x.prelude.text else none
 
 /-- **Two steps of one page in one file**: the rules of the first, and then the rules of the
 second under another stem. -/
@@ -466,10 +463,10 @@ def both : Css.Sheet := five.sheet filed ++ back.sheet { filed with stem := "s2"
 -- Each thing of each step finds its own rule in the one file: the rule under the selector of
 -- its name says what the step gives the thing.
 #guard (five.motion.keys.all fun k =>
-    SvgMotion.ruleOf both (filed.thingSelector (five.motion.thingIndex k)) ==
+    both.decls? (filed.thingSelector (five.motion.thingIndex k)) ==
       some (five.motion.given k filed)) &&
   back.motion.keys.all fun k =>
-    SvgMotion.ruleOf both ({ filed with stem := "s2" }.thingSelector (back.motion.thingIndex k)) ==
+    both.decls? ({ filed with stem := "s2" }.thingSelector (back.motion.thingIndex k)) ==
       some (back.motion.given k { filed with stem := "s2" })
 
 -- A moment of the step with no animation, by the sheet: `Step.still` gives no `style` either,
@@ -477,7 +474,7 @@ def both : Css.Sheet := five.sheet filed ++ back.sheet { filed with stem := "s2"
 #guard
   let at400 : Play := { filed with stem := "s1-400" }
   count "style" (Svg.svg [] (five.still 400 at400 draw)).render == 0 &&
-    SvgMotion.ruleOf (five.stillSheet 400 at400) "[data-track=\"s1-400-2\"]" ==
+    (five.stillSheet 400 at400).decls? (.ofText "[data-track=\"s1-400-2\"]") ==
       some ([("stroke-dashoffset", "1048"), ("stroke-dasharray", "2000")] : Css.Decls)
 
 end Nodes

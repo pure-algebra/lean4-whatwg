@@ -22,8 +22,9 @@ s.nodes { step := 600 } fun item motion => boxNode item (motion .g)
 - `Step.still s t play draw`: the things drawn at the moment `t`, each with its pose written as
   plain declarations and no animation. A target that plays no animation, and a check of a
   browser against the kit's reading, draw a step so.
-- `Step.sheet s play`: the rules of the step, as data. `Step.things s play draw`: the things
-  drawn, with no sheet. `Step.nodes` is the two together the inline way.
+- `Step.sheet s play`: the rules of the step, as rules of the tree of CSS
+  (`Whatwg/Html/Node/Css.lean`; the one tree since slice S22). `Step.things s play draw`: the
+  things drawn, with no sheet. `Step.nodes` is the two together the inline way.
 
 A page may refuse what is inline: a `style` element and a `style` attribute. With
 `reach := .sheet` in the `Play`, a step is written with neither (the consumer's ask W11 of

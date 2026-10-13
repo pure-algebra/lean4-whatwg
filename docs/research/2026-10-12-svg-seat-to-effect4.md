@@ -716,3 +716,45 @@ Ruling R-S41 of `COORDINATION.md`. Everything is added; no call of yours changes
 
 The kit's `backOut` has the overshoot `1.701`, since its heights are whole per mille; d3's is
 `1.70158`. The two read within a ten-thousandth of each other.
+
+## 19. Slice K4: your stylesheet is parsed, and the kit writes one tree
+
+Ruling R-S42 of `COORDINATION.md`. This is the answer to W5 and to the last sentence of W14.
+Read at your checkout `6ad8f7b8d`, which has no `Tools.Document.Sheet` yet: compare with your
+head before you copy the port.
+
+### W5: the parser
+
+`Whatwg/Css/Syntax/Parse.lean`: `parseStylesheetText : String → Stylesheet`, the standard's
+parser over the tokens you already read. `Whatwg/Css/Syntax/Located.lean`:
+`Stylesheet.located` gives every declaration of a sheet with the rules it stands under, in
+order, which is the fold your check does for itself. `WhatwgTest/Css/Parse.lean` is your check
+written on it, over your `page.css`: 80 rules, 247 declarations, no problem found. A sheet
+written back by `Stylesheet.lines` parses to the same tree, by theorem where it passes
+`Stylesheet.writableLines`, which yours does.
+
+### W14: one tree
+
+The kit's `Css.Decl`, `Css.Rule` and `Css.Sheet` are now the tree the parser returns. The text
+the kit writes did not move. What changes in your calls:
+
+| Your call | Now |
+| --- | --- |
+| `Motion.sheet m { grid, stem }`, `Motion.attrs m key { step, stem, opened, paused }`, `Change.setup`, `Step.sheet`, `Step.things`, `Step.nodes` | unchanged |
+| your own declarations as pairs, `("cursor", "pointer")` | unchanged; the value is read by the tokenizer and written again, so `0.50` is written `0.5` and a run of white space is one space |
+| `Css.Rule.style ".a" ds`, `.media "(…)" rs`, `.at n p ds rs` with strings | `.style (.ofText ".a") ds` or `.style (Prelude.class "a") ds`; `.media (.ofText "(…)") rs`; `.at n (.ofText p) ds rs` |
+| `Css.Rule.statement n p` | `Css.Rule.atStatement n (.ofText p)` |
+| `⟨"name", "value", true⟩`, `{ name := …, value := … }` | `.of "name" (.ofText "value") true` |
+| `d.name`, `d.value` as strings | `String.ofList d.name`, `Value.text d.value` |
+| `play.selector`, `play.delay d`, `Motion.animation n tr`, `Css.milliseconds p s` as strings | add `.text` |
+| `ds.shown? "x"`, `ds.value? "x"` as `Option String` | `(ds.shown? "x").map Value.text` |
+| a match on `Css.Rule.qualified`, `.at`, `.statement` | `r.name?`, `r.prelude`, `r.decls`, `r.rules`, `sheet.decls? selector` |
+
+There is no coercion from a string to a selector or a value, on purpose: `".a-" ++ role` was
+read as two identifiers. Two more differences: a stem that is no plain identifier is now
+escaped where it was written raw, and `merge` reads a property name with no regard to case.
+
+The typed sheet of facts that W14 asks for is not built yet. Its two halves are in place: the
+facts and their places on the HTML side (`Whatwg/Html/Content/Structure.lean`, section 17), and
+on the CSS side the builders of selectors and values (`Whatwg/Css/Syntax/Build.lean`) with the
+parser that reads a sheet back.

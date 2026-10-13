@@ -128,6 +128,9 @@ import WhatwgTest.Svg.Timeline
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values
+import WhatwgTest.Css.ParseCorpus
+import WhatwgTest.Css.Parse
+import WhatwgTest.Css.Kit
 import WhatwgTest.Auto.Banks
 import WhatwgTest.Audit.AutoCensus
 import WhatwgTest.Audit.BankCensus

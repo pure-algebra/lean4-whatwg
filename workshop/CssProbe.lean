@@ -2,8 +2,10 @@ import Whatwg.Html.Node.SvgMotion
 import Whatwg.Html.Print.Picture
 import Whatwg.Svg.Geometry.Outline
 
-/-! A probe of the CSS that slice S17 writes: a step that one number scrubs, and the rule of
-reduced motion. Run it from the repository root after `lake build`:
+/-! A probe of the CSS that the picture kit writes: a step that one number scrubs, and the rule
+of reduced motion. Since slice S22 the kit builds the tree of CSS and the text is the writer's of
+that tree; the pages and the two files are, byte for byte, those that slice S17 wrote. Run it
+from the repository root after `lake build`:
 
     lake env lean workshop/CssProbe.lean
 
@@ -55,6 +57,7 @@ open Whatwg.Html
 open Whatwg.Svg.Schema (Tag)
 open Whatwg.Svg.Scene
 open Whatwg.Svg.Value
+open Whatwg.Css.Syntax (Prelude)
 
 /-- Where the pages are written. -/
 def out : System.FilePath := "docs/research/2026-10-12-motion-probe"
@@ -331,21 +334,24 @@ def reducedPlay : Play := { play with stem := "r", reach := .sheet, reduce := .a
 def ownOf (key : String) : Css.Decls :=
   ((things.find? fun th => th.key == key).map Thing.own).getD []
 
-/-- The page's own rules. Under the policy they cannot stand in a `style` element. -/
+/-- The page's own rules. Under the policy they cannot stand in a `style` element. A selector
+is built, or read from its text; a declaration is a pair of texts. -/
 def pageRules : Css.Sheet :=
-  [.style "body"
+  [.style (Prelude.type "body")
       [("background", "#14110d"), ("color", "#f3f4f6"), ("font-family", "Georgia, serif")],
-    .style "h1, h2" [("font-weight", "400")],
-    .style "table" [("border-collapse", "collapse"), ("font", "12px Menlo, monospace")],
-    .style "td, th" [("border", "1px solid #555"), ("padding", "2px 6px"), ("text-align", "left")],
-    .style "input" [("width", "360px")]]
+    .style (.ofText "h1, h2") [("font-weight", "400")],
+    .style (Prelude.type "table")
+      [("border-collapse", "collapse"), ("font", "12px Menlo, monospace")],
+    .style (.ofText "td, th")
+      [("border", "1px solid #555"), ("padding", "2px 6px"), ("text-align", "left")],
+    .style (Prelude.type "input") [("width", "360px")]]
 
 /-- **The file**: the page's rules, the rules of the step by the sheet, the rules of the
 scrubbed step, the rule that puts the scrubbed step at its moment, and the rules of the step
 under the rule of reduced motion. Three steps in one sheet: their stems keep them apart. -/
 def policySheet : Css.Sheet :=
   pageRules ++ step.rules linkedPlay ownOf ++ step.rules scrubPlay ownOf ++
-    scrubPlay.atRule moment "#scrubbed" ++ step.rules reducedPlay ownOf
+    scrubPlay.atRule moment (Prelude.id "scrubbed") ++ step.rules reducedPlay ownOf
 
 /-- The script of the three pages, as a file of the page's own origin. -/
 def policyScript : String := r#"// What each thing of each picture computes.
@@ -450,8 +456,10 @@ def policyPage : String :=
 def holdsStyle (node : SvgNode) : Bool := (node.render.splitOn "style").length > 1
 #eval [holdsStyle inlineNode, holdsStyle linkedNode, holdsStyle scrubLinkedNode,
   holdsStyle reducedLinkedNode]
-#eval IO.println (step.rules linkedPlay ownOf ++ scrubPlay.atRule moment "#scrubbed").css
-#eval step.rules play
+#eval IO.println
+  (step.rules linkedPlay ownOf ++ scrubPlay.atRule moment (Prelude.id "scrubbed")).css
+#eval IO.println (step.rules play).css
+#eval (policySheet.writable, policySheet.quiet)
 #eval things.map fun th => (th.key, (step.frame th.key moment).css, (step.frame th.key 1000).css)
 #eval do
   IO.FS.createDirAll out

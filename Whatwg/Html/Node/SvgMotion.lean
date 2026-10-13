@@ -7,7 +7,8 @@ import Whatwg.Html.Node.Css
 # Whatwg.Html.Node.SvgMotion
 
 Owner: the motion of a step as CSS (slice S12 of `docs/SVG-PACKAGE-PLAN.md`; ruling SV-65; the
-interface of slice S17).
+interface of slice S17; on the one tree of CSS since slice S22, ruling CS-9 of
+`docs/CSS-PACKAGE-PLAN.md`).
 
 `Whatwg/Svg/Scene/Motion.lean` has the motion of a step as data: a list of tracks, each a key,
 a change and a transition. A program that draws every moment itself reads a track with
@@ -28,7 +29,14 @@ it, when a reader sees its end with no motion, and whether its declarations reac
 inline or by the sheet. Every writer here takes the one record, so the sheet and the things of
 a step cannot disagree, and a caller names what it changes.
 
-What is written, as data (`Whatwg/Html/Node/Css.lean`) and then as text:
+What is written, as the tree of CSS (`Whatwg/Html/Node/Css.lean`,
+`Whatwg/Css/Syntax/Tree.lean`) and then as text. Every value is built
+(`Whatwg/Css/Syntax/Build.lean`), and none is spliced from text: a count of thousandths is a
+number token, a time is a dimension, an easing is a function with its arguments, a selector is
+an attribute selector with a string, and the delay of a scrubbed step is `calc()` of an
+expression. The one text inside a value is path data, which is the content of a string token.
+So a test reads what a step writes as component values, the grammar of a property can judge it
+(`Whatwg/Css/Values/Admits.lean`), and the text of it is the writer's of the tree:
 
 - **The sheet** (`Motion.rules`, `Motion.sheet`, `Motion.sheetNode`): one rule
   `@keyframes s3-i { from { …; animation-timing-function: <easing> } to { … } }` for each
@@ -124,22 +132,29 @@ say does not depend on the way (`Motion.given_reach`). The inline way it is the 
 (`Motion.thing_mem`), the sheet has the rule of that name with the same declarations
 (`Motion.thingRule_mem`), no attribute of the step is `style` (`Motion.attrs_sheet`,
 `Motion.attrs_no_style`, `Motion.attrsAt_no_style`), and two things have two names
-(`Motion.thingIndex_inj`). These laws are about what is written, and none is about what a
-browser draws. They depend on `propext`, `Quot.sound` and `Classical.choice` at
-most; the last comes in with the text functions of core, as it does for the writers
-themselves.
+(`Motion.thingIndex_inj`). The values of a step can be written, and their texts hold no comment:
+`Whatwg/Html/Node/SvgMotion/Laws.lean` says so of an easing, a time, a delay, a pose that is no
+shape and an animation, for every step and every way of playing it, where the two names that a
+caller gives, a stem and a scrubbing property, are names. These laws are about what is written,
+and none is about what a browser draws. They depend on `propext`, `Quot.sound` and
+`Classical.choice` at most; the last comes in with the text functions of core, as it does for
+the writers themselves.
 
 Nothing under `Whatwg/Svg/Scene/` knows of CSS. The property that scrubs a step, the rule of
 reduced motion, the stem and the mark are of this writer and of its `Play` alone, so a player
 that reads the tracks with no browser reads the same data as this writer does.
 
-What this module does not claim. The text is written by rule and read back by nothing: no
-grammar of CSS is sealed in this repository, so no gate judges it (debt D119). A browser
+What this module does not claim. That each value is a value of its property: the values are
+component values now, and `WhatwgTest/Css/Kit.lean` judges those of a step against the sealed
+grammars, with what is refused and why; no theorem here says it for every step (slice K5 of
+`docs/CSS-PACKAGE-PLAN.md`, debt D119). That the parser reads a sheet back as the tree: that is
+the law of slice K4. A browser
 computes in floating point; it reads `1/3` at six places; and between two stops of `linear()`
 it draws the straight line that `Easing.stopsAt` rounds down. Two tracks of one kind on one key
 write one property twice, and the later one wins: `Motion.frame` of
-`Whatwg/Svg/Scene/Frame.lean` reads a thing the same way. A stem is written as it is, in the
-names of the rules and in a selector: it is a letter and then letters, digits and `-`. A thing
+`Whatwg/Svg/Scene/Frame.lean` reads a thing the same way. A stem is an identifier in the names
+of the rules and the content of a string in a selector, and each is written with the escapes it
+needs; a stem that needs none is a letter and then letters, digits and `-`. A thing
 that grows is given `transform-box` and `transform-origin`, and these also move the origin of a
 `transform` attribute on the same element: a thing with a `transform` that is no translation
 takes its motion on a group around it. A caller's own `animation` on a thing gives way to the
@@ -168,11 +183,13 @@ namespace Whatwg.Html
 open Whatwg.Svg.Schema (Tag)
 open Whatwg.Svg.Value (Cubic)
 open Whatwg.Svg.Scene (IVec ICubic Easing Transition Pose Change Track Motion Frame)
+open Whatwg.Css.Syntax (Component Value Prelude Calc)
 
 namespace Css
 
-/-- A count of thousandths as a CSS number: `1567` is `1.567`, `-50` is `-0.05`, `1000` is
-`1`. -/
+/-- A count of thousandths as a number of path data: `1567` is `1.567`, `-50` is `-0.05`,
+`1000` is `1`. A number of CSS is `Component.thousandths`, a token and no text; the two are
+spelled the same. -/
 def thousandths (n : Int) : String :=
   let digits := (toString (n.natAbs % 1000)).toList
   let padded := List.replicate (3 - digits.length) '0' ++ digits
@@ -180,15 +197,31 @@ def thousandths (n : Int) : String :=
   (if n < 0 then "-" else "") ++ toString (n.natAbs / 1000) ++
     (if kept.isEmpty then "" else "." ++ String.ofList kept)
 
+/-- A length of a count of thousandths of a pixel. -/
+def pixels (thousandths : Int) : Component := .px (mkRat thousandths 1000)
+
 /-- A time of `perMille` thousandths of a step of `step` milliseconds, in milliseconds. It is
 written exactly, to a thousandth of a millisecond: a time rounded to a whole millisecond would
 give a browser another share of a duration than `Transition.at` reads. -/
-def milliseconds (perMille step : Nat) : String := thousandths ((perMille * step : Nat) : Int) ++ "ms"
+def milliseconds (perMille step : Nat) : Component :=
+  .ms (mkRat ((perMille * step : Nat) : Int) 1000)
 
 /-- A time before or after the start of a step, in milliseconds, written exactly. A delay that
 is less than nothing starts an animation partway through. -/
-def signedMilliseconds (perMille : Int) (step : Nat) : String :=
-  thousandths (perMille * step) ++ "ms"
+def signedMilliseconds (perMille : Int) (step : Nat) : Component :=
+  .ms (mkRat (perMille * step) 1000)
+
+/-- A third to six places: where the first inner point of a cubic easing stands along its
+time. -/
+def third : Component := .number (mkRat 333333 1000000)
+
+/-- Two thirds to six places: where the second inner point of a cubic easing stands along its
+time. -/
+def twoThirds : Component := .number (mkRat 666667 1000000)
+
+/-- Path data as the value of the property `d`: `path("…")`. The data is the content of a
+string token. -/
+def path (data : String) : Value := [.call "path" [.string data]]
 
 /-- A point of whole counts of `1 / grid` of a user unit, as two numbers of path data. -/
 def point (grid : Nat) (p : IVec) : String :=
@@ -218,29 +251,33 @@ def pathData (grid : Nat) (segments : List ICubic) (last : Option IVec) : String
 
 end Css
 
-/-- An easing as a CSS easing function. Fewer than two stops are written as two, since
-`linear()` takes two at least, and the two stops `0` and `1` are the keyword `linear`. -/
-def _root_.Whatwg.Svg.Scene.Easing.css : Easing → String
-  | .stops [] => "linear(0, 0)"
-  | .stops [v] => "linear(" ++ Css.thousandths v ++ ", " ++ Css.thousandths v ++ ")"
-  | .stops [0, 1000] => "linear"
-  | .stops values => "linear(" ++ ", ".intercalate (values.map Css.thousandths) ++ ")"
+/-- **An easing as the value of an easing function of CSS.** Stops are `linear(…)` of their
+heights in thousandths, and a cubic is `cubic-bezier(0.333333, y1, 0.666667, y2)`. Fewer than
+two stops are written as two, since `linear()` takes two at least, and the two stops `0` and
+`1` are the keyword `linear`. -/
+def _root_.Whatwg.Svg.Scene.Easing.value : Easing → Value
+  | .stops [] => [.call "linear" (Value.commas [.int 0, .int 0])]
+  | .stops [v] => [.call "linear" (Value.commas [.thousandths v, .thousandths v])]
+  | .stops [0, 1000] => [.ident "linear"]
+  | .stops values => [.call "linear" (Value.commas (values.map Component.thousandths))]
   | .cubic y1 y2 =>
-    "cubic-bezier(0.333333, " ++ Css.thousandths y1 ++ ", 0.666667, " ++ Css.thousandths y2 ++ ")"
+    [.call "cubic-bezier"
+      (Value.commas [Css.third, .thousandths y1, Css.twoThirds, .thousandths y2])]
+
+/-- An easing as the text of a CSS easing function. -/
+def _root_.Whatwg.Svg.Scene.Easing.css (e : Easing) : String := e.value.text
 
 /-- **A pose as one declaration.** A shift counts in `1 / grid` of a user unit, and is written
 to three places. A part revealed is the offset of a dash of two thousand: two thousand less the
 part, so that a part past either end of the line is drawn as the whole line or as none of it. -/
 def _root_.Whatwg.Svg.Scene.Pose.decl (grid : Nat := 1) : Pose → Css.Decl
   | .shift step =>
-    { name := "translate"
-      value := Css.thousandths (step.x * 1000 / grid) ++ "px " ++
-        Css.thousandths (step.y * 1000 / grid) ++ "px" }
-  | .grow size => { name := "scale", value := Css.thousandths size }
-  | .reveal part => { name := "stroke-dashoffset", value := toString (2000 - part) }
-  | .fade shown => { name := "opacity", value := Css.thousandths shown }
-  | .shape segments =>
-    { name := "d", value := "path(\"" ++ Css.pathData grid segments none ++ "\")" }
+    .of "translate"
+      (Value.spaced [Css.pixels (step.x * 1000 / grid), Css.pixels (step.y * 1000 / grid)])
+  | .grow size => .of "scale" [.thousandths size]
+  | .reveal part => .of "stroke-dashoffset" [.int (2000 - part)]
+  | .fade shown => .of "opacity" [.thousandths shown]
+  | .shape segments => .of "d" (Css.path (Css.pathData grid segments none))
 
 /-- A pose as the text of a CSS declaration. -/
 def _root_.Whatwg.Svg.Scene.Pose.css (grid : Nat := 1) (p : Pose) : String := (p.decl grid).css
@@ -249,8 +286,9 @@ def _root_.Whatwg.Svg.Scene.Pose.css (grid : Nat := 1) (p : Pose) : String := (p
 the thing's own box, and a line that is revealed has one dash of two thousand, twice its
 `pathLength`. -/
 def _root_.Whatwg.Svg.Scene.Pose.setup : Pose → Css.Decls
-  | .grow _ => [("transform-box", "fill-box"), ("transform-origin", "center")]
-  | .reveal _ => [("stroke-dasharray", "2000")]
+  | .grow _ =>
+    [.of "transform-box" [.ident "fill-box"], .of "transform-origin" [.ident "center"]]
+  | .reveal _ => [.of "stroke-dasharray" [.int 2000]]
   | _ => []
 
 /-- What a change needs on its thing beside the animation: what its poses need. -/
@@ -267,8 +305,8 @@ def _root_.Whatwg.Svg.Scene.Change.ends (c : Change) (grid : Nat := 1) : Css.Dec
   | .morph a b =>
     if a.length = b.length then
       let marks := List.zipWith (· || ·) (Css.starts a none) (Css.starts b none)
-      ({ name := "d", value := "path(\"" ++ Css.pathDataWith grid a marks ++ "\")" },
-        { name := "d", value := "path(\"" ++ Css.pathDataWith grid b marks ++ "\")" })
+      (.of "d" (Css.path (Css.pathDataWith grid a marks)),
+        .of "d" (Css.path (Css.pathDataWith grid b marks)))
     else (c.start.decl grid, c.stop.decl grid)
   | _ => (c.start.decl grid, c.stop.decl grid)
 
@@ -277,7 +315,8 @@ change, and the easing at the first of them. The easing of a keyframe is that of
 it to the next, so it is the easing of the whole animation. -/
 def _root_.Whatwg.Svg.Scene.Change.rule (c : Change) (ease : Easing) (name : String)
     (grid : Nat := 1) : Css.Rule :=
-  .keyframes name [(c.ends grid).1, ("animation-timing-function", ease.css)] [(c.ends grid).2]
+  .keyframes name [(c.ends grid).1, .of "animation-timing-function" ease.value]
+    [(c.ends grid).2]
 
 /-- **A frame as declarations**: one for each property that is not at rest, and what those
 need beside them, so the still picture writes nothing. A program that reads a moment with
@@ -345,21 +384,23 @@ def scrubbed (play : Play) (property : String := "--t") : Play :=
   { play with scrub := some property, paused := true }
 
 /-- **The declaration that puts a scrubbed step at the moment `t`**, for the `style` of the
-picture or of any ancestor of its things. Nothing for a step that no property scrubs. -/
+picture or of any ancestor of its things. Nothing for a step that no property scrubs. The name
+is that of a custom property: its two hyphen-minus are put before it where it has none. -/
 def «at» (play : Play) (t : Nat) : Css.Decls :=
   match play.scrub with
-  | some property => [(property, toString t)]
+  | some property => [.custom property [.int t]]
   | none => []
 
 /-- The delay of an animation whose transition starts at `delay` per mille of the step. It is
 `opened` less. In a scrubbed step it is a `calc()` of the custom property: the per mille from
-the moment to the start of the transition, times the length of a per mille. -/
-def delay (play : Play) (delay : Nat) : String :=
+the moment to the start of the transition, times the length of a per mille,
+`calc((300 - var(--t, 0)) * 0.6ms)`. -/
+def delay (play : Play) (delay : Nat) : Component :=
   match play.scrub with
   | none => Css.signedMilliseconds ((delay : Int) - play.opened) play.step
   | some property =>
-    "calc((" ++ toString delay ++ " - var(" ++ property ++ ", " ++ toString play.opened ++
-      ")) * " ++ Css.thousandths play.step ++ "ms)"
+    .calc (.mul (.sub (.leaf (.int delay)) (.leaf (.var property [.int play.opened])))
+      (.leaf (.ms (mkRat play.step 1000))))
 
 /-- Whether the things of the step carry its mark: the step runs, and the sheet has a rule of
 reduced motion. A step that stands still is a still picture already. -/
@@ -370,21 +411,24 @@ reduced motion selects it. It is a custom data attribute, so it joins a thing's 
 replaces none. -/
 def mark {t : Tag} (play : Play) : SvgAttr t := .data "motion" play.stem
 
-/-- The selector of the things that carry the step's mark. -/
-def selector (play : Play) : String := "[data-motion=\"" ++ play.stem ++ "\"]"
+/-- The selector of the things that carry the step's mark: `[data-motion="m"]`. -/
+def selector (play : Play) : Prelude := Prelude.attr "data-motion" play.stem
 
 /-- What ends an animation at once: a duration and a delay of nothing. An animation that fills
 both ways then shows its end. Both are `!important`, since they must stand over the `style`
 attribute that holds the animation. -/
 def ended : Css.Decls :=
-  [⟨"animation-duration", "0s", true⟩, ⟨"animation-delay", "0s", true⟩]
+  [.of "animation-duration" [.s 0] true, .of "animation-delay" [.s 0] true]
+
+/-- The query of a reader who asked for reduced motion: `(prefers-reduced-motion: reduce)`. -/
+def reducedQuery : Prelude := Prelude.feature "prefers-reduced-motion" [.ident "reduce"]
 
 /-- **The rule of reduced motion**: every animation of a marked thing of the step is over at
 once. -/
 def reduced (play : Play) : Css.Sheet :=
   match play.reduce with
   | .never => []
-  | .asked => [.media "(prefers-reduced-motion: reduce)" [.style play.selector ended]]
+  | .asked => [.media reducedQuery [.style play.selector ended]]
   | .always => [.style play.selector ended]
 
 /-- The name of the thing whose first track stands at the place `n` of the step: the stem and
@@ -396,15 +440,15 @@ carries it, and the rule of its declarations selects it. It is a custom data att
 mark is, so it joins a thing's own `class` and replaces none. -/
 def thing {t : Tag} (play : Play) (n : Nat) : SvgAttr t := .data "track" (play.thingName n)
 
-/-- The selector of the thing with that name. It has the weight of one attribute selector,
-which is that of a class. -/
-def thingSelector (play : Play) (n : Nat) : String :=
-  "[data-track=\"" ++ play.thingName n ++ "\"]"
+/-- The selector of the thing with that name: `[data-track="m-0"]`. It has the weight of one
+attribute selector, which is that of a class. -/
+def thingSelector (play : Play) (n : Nat) : Prelude :=
+  Prelude.attr "data-track" (play.thingName n)
 
 /-- **The rule that puts a scrubbed step at the moment `t`**, for a page that may hold no
 `style` attribute: `Play.at` under a selector, which is the root of the page unless the caller
 names the root of its picture. No rule for a step that no property scrubs. -/
-def atRule (play : Play) (t : Nat) (selector : String := ":root") : Css.Sheet :=
+def atRule (play : Play) (t : Nat) (selector : Prelude := Prelude.root) : Css.Sheet :=
   match play.at t with
   | [] => []
   | ds => [.style selector ds]
@@ -442,9 +486,10 @@ step. The step is opened at the moment `opened`: the delay is `opened` less, so 
 started by then is partway through, and one that is over shows its end. A `paused` animation
 stays at that moment. -/
 def _root_.Whatwg.Svg.Scene.Motion.animation (name : String) (tr : Track κ) (play : Play := {}) :
-    String :=
-  name ++ " " ++ Css.milliseconds tr.timing.duration play.step ++ " " ++
-    play.delay tr.timing.delay ++ " both" ++ (if play.paused then " paused" else "")
+    Value :=
+  Value.spaced
+    ([.ident name, Css.milliseconds tr.timing.duration play.step, play.delay tr.timing.delay,
+      .ident "both"] ++ (if play.paused then [.ident "paused"] else []))
 
 /-- The `@keyframes` rules of a step: one for each change of the motion under each easing,
 named by `Motion.ruleName`. -/
@@ -460,10 +505,9 @@ def _root_.Whatwg.Svg.Scene.Motion.decls [BEq κ] (m : Motion κ) (key : κ) (pl
   match m.filter fun tr => tr.key == key with
   | [] => []
   | tracks =>
-    { name := "animation"
-      value := ", ".intercalate
-        (tracks.map fun tr =>
-          Motion.animation (m.ruleName play.stem tr.change tr.timing.ease) tr play) } ::
+    .of "animation"
+        (Value.list (tracks.map fun tr =>
+          Motion.animation (m.ruleName play.stem tr.change tr.timing.ease) tr play)) ::
       (tracks.flatMap fun tr => tr.change.setup).eraseDups
 
 /-- **What a step gives one thing to say**: the thing's own declarations `own` and the step's,
@@ -775,19 +819,6 @@ theorem _root_.Whatwg.Svg.Scene.Motion.attrs_inline [BEq κ] {t : Tag} (m : Moti
     decide
   unfold Motion.attrs
   rw [if_neg hn]
-
-/-- A row of declarations that is not empty is not empty with each name once: its last
-declaration is kept. -/
-theorem Css.Decls.once_ne_nil : ∀ {ds : Css.Decls}, ds ≠ [] → Css.Decls.once ds ≠ []
-  | [], h => absurd rfl h
-  | d :: rest, _ => by
-    rw [Css.Decls.once]
-    split
-    · rename_i hany
-      refine once_ne_nil fun e => ?_
-      rw [e] at hany
-      exact Bool.noConfusion hany
-    · exact List.cons_ne_nil _ _
 
 /-- A thing with a track is given something to say, whatever its own declarations. -/
 theorem _root_.Whatwg.Svg.Scene.Motion.given_ne_nil [BEq κ] (m : Motion κ) (play : Play)

@@ -34,6 +34,7 @@ import Whatwg.Html.Node.SvgDefs
 import Whatwg.Html.Node.SvgDefs.Laws
 import Whatwg.Html.Node.Css
 import Whatwg.Html.Node.SvgMotion
+import Whatwg.Html.Node.SvgMotion.Laws
 import Whatwg.Html.Node.SvgStep
 import Whatwg.Html.Node.SvgFigure
 import Whatwg.Html.Node.SvgDocument

@@ -42,7 +42,11 @@ the file has three kinds of thing, and says which is which.
    as `own`, and the thing has one `style`. The consumer's own rules go in the same sheet, after
    the step's. A page that may hold nothing inline takes the same step by the sheet (`filed`):
    the `Play` says `reach := .sheet`, each thing carries a name and no `style`, and
-   `Motion.sheet` is the text of a file.
+   `Motion.sheet` is the text of a file. Since slice S22 the rules and the declarations are the
+   tree of CSS (`Whatwg/Css/Syntax/Tree.lean`), and a value is component values. A port's own
+   declarations stay pairs of texts, `("cursor", "pointer")`. A selector of its own is built
+   (`Prelude.class`) or read from its text (`Prelude.ofText`), and no text is a selector by
+   itself.
 
 **What is the consumer's code, restated.** The easings and their two tables (`Ease`, `Ease.at`,
 `tableAt`, `Ease.points`), the timing of a transition (`Ease.timed`), the writing of a number
@@ -161,7 +165,11 @@ side by side, and the CSS of the consumer's step: the rules of its sheet as data
 written, the style of three things, a route of the consumer with the step on it, the same step
 scrubbed by one number, which things carry the mark of reduced motion, and the step by the
 sheet: the text of its file, that the two ways say the same of each thing, and that no
-attribute is a `style`. The CSS is text written by rule; no browser read it here.
+attribute is a `style`. Since slice S22 they also read what a step writes as the tree: a rule
+of the kit against the texts of slice S17 read by the tokenizer and the parser, that no text
+holds a comment, that the text of a file tokenizes back to the tokens of its tree, and the
+places where a text is not that of slice S17. No browser read the CSS here, and no guard says
+that a value is one of its property: `WhatwgTest/Css/Kit.lean` judges that.
 
 Every theorem of this module depends on `propext` and `Quot.sound` at most.
 -/
@@ -811,20 +819,30 @@ def whole (m : Motion String) : List (String × Change × Transition) :=
 /-! ## The step as CSS
 
 How a step is played is said once, in a `Play`. The sheet and the things are given the same
-one, so they cannot disagree. -/
+one, so they cannot disagree.
+
+Since slice S22 what a step writes is the tree of CSS (`Whatwg/Css/Syntax/Tree.lean`): a value
+is component values, built and not spliced. The texts of the guards below are those of slice
+S17, character for character, so a page written from this step has not moved. A pair of two
+texts is a declaration whose value is the text read by the tokenizer and the parser, so a guard
+that compares a rule of the kit with pairs of texts says that the kit builds what the text
+reads as. -/
+
+open Whatwg.Css.Syntax (Component Value Prelude tokenizeText)
 
 /-- The consumer's step of 600 ms, and the kit's defaults for the rest: opened at its start,
 running, with the rule of reduced motion where a reader asked for it. -/
 def play : Play := { step := 600 }
 
--- The rules of the sheet, as data. Five tracks and four `@keyframes` rules: the two new boxes
--- grow by one change under one easing, so the second names the rule of the first, `m-1`, and
--- no rule is `m-3`. Each rule has the easing of its tracks at its first keyframe. The last rule
--- is that of reduced motion: it ends every animation of the step's things at once, and its two
--- declarations are important.
+-- The rules of the sheet, as the tree. Five tracks and four `@keyframes` rules: the two new
+-- boxes grow by one change under one easing, so the second names the rule of the first, `m-1`,
+-- and no rule is `m-3`. Each rule has the easing of its tracks at its first keyframe. The last
+-- rule is that of reduced motion: it ends every animation of the step's things at once, and its
+-- two declarations are important. The values are given here as texts and as built values, and
+-- both are what the kit built.
 #guard fiveStep.rules play ==
   [.keyframes "m-0"
-      [("translate", "-60px 0px"), ("animation-timing-function", Ease.settle.kit.css)]
+      [("translate", "-60px 0px"), .of "animation-timing-function" Ease.settle.kit.value]
       [("translate", "0px 0px")],
     .keyframes "m-1" [("scale", "0"), ("animation-timing-function", Ease.spring.kit.css)]
       [("scale", "1")],
@@ -833,28 +851,33 @@ def play : Play := { step := 600 }
         ("animation-timing-function", "cubic-bezier(0.333333, 1, 0.666667, 1)")]
       [("stroke-dashoffset", "1000")],
     .keyframes "m-4"
-      [("scale", "1"), ("animation-timing-function", "cubic-bezier(0.333333, 0, 0.666667, 0)")]
-      [("scale", "0")],
-    .media "(prefers-reduced-motion: reduce)"
-      [.style "[data-motion=\"m\"]"
-        [⟨"animation-duration", "0s", true⟩, ⟨"animation-delay", "0s", true⟩]]]
+      [.of "scale" [.int 1],
+        .of "animation-timing-function"
+          [.call "cubic-bezier" (Value.commas [Css.third, .int 0, Css.twoThirds, .int 0])]]
+      [.of "scale" [.int 0]],
+    .media (.ofText "(prefers-reduced-motion: reduce)")
+      [.style (.ofText "[data-motion=\"m\"]")
+        [.of "animation-duration" (.ofText "0s") true, .of "animation-delay" [.s 0] true]]]
 
--- Under those names are the two kinds of rule that a reader of CSS gives, each with its
--- declarations and its child rules. The rule of reduced motion is an at-rule with no
--- declaration and one child, a qualified rule: a selector and its declarations. A `@keyframes`
--- rule is an at-rule with no declaration and its two keyframes for children, each a qualified
--- rule: a prelude and its declarations.
-#guard (fiveStep.rules play).getLast? ==
-  some (.at "media" "(prefers-reduced-motion: reduce)" []
-    [.qualified "[data-motion=\"m\"]"
-      [⟨"animation-duration", "0s", true⟩, ⟨"animation-delay", "0s", true⟩] []])
+-- Under those names are the two kinds of rule that the parser of CSS gives, each with its
+-- prelude, its declarations and its child rules. The rule of reduced motion is an at-rule with
+-- no declaration and one child, a qualified rule: a selector and its declarations. A
+-- `@keyframes` rule is an at-rule with no declaration and its two keyframes for children, each
+-- a qualified rule: a prelude and its declarations.
+#guard ((fiveStep.rules play).getLast?.map fun r =>
+    (r.name?, r.prelude.text, r.decls.length,
+      r.rules.map fun k => (k.name?, k.prelude.text, k.decls.css, k.rules.length))) ==
+  some (some "media", "(prefers-reduced-motion: reduce)", 0,
+    [(none, "[data-motion=\"m\"]",
+      "animation-duration: 0s !important; animation-delay: 0s !important", 0)])
 
-#guard ((fiveStep.rules play).drop 3).head? ==
-  some (.at "keyframes" "m-4" []
-    [.qualified "from"
-        [("scale", "1"), ("animation-timing-function", "cubic-bezier(0.333333, 0, 0.666667, 0)")]
-        [],
-      .qualified "to" [("scale", "0")] []])
+#guard (((fiveStep.rules play).drop 3).head?.map fun r =>
+    (r.name?, r.prelude.text, r.decls.length,
+      r.rules.map fun k => (k.name?, k.prelude.text, k.decls.css, k.rules.length))) ==
+  some (some "keyframes", "m-4", 0,
+    [(none, "from",
+        "scale: 1; animation-timing-function: cubic-bezier(0.333333, 0, 0.666667, 0)", 0),
+      (none, "to", "scale: 0", 0)])
 
 -- The same rules as text, one a line: the last three.
 #guard ((Motion.sheet fiveStep play).splitOn "\n").drop 2 ==
@@ -899,6 +922,12 @@ def twenty : List Thing :=
 #guard Motion.style? fiveStep "a c" play ==
   some "animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000"
 
+-- The same declarations as the tree: an identifier, two dimensions with their units and an
+-- identifier, with a whitespace token between two; and a number.
+#guard fiveStep.decls "a c" play ==
+  ([.of "animation" (Value.spaced [.ident "m-2", .ms 94.2, .ms 180, .ident "both"]),
+    .of "stroke-dasharray" [.int 2000]] : Css.Decls)
+
 -- The box that leaves: it shrinks about its middle.
 #guard Motion.style? fiveStep "b" play ==
   some "animation: m-4 150ms 0ms both; transform-box: fill-box; transform-origin: center"
@@ -914,7 +943,7 @@ def twenty : List Thing :=
 -- whole line: the dash is offset by 955 of its two thousand, and covers the thousand of the
 -- line. A dash of one thousand would be offset by 45 less than nothing, and the first 45 of the
 -- line would fall in the gap before it.
-#guard (Pose.reveal 1045).decl == { name := "stroke-dashoffset", value := "955" }
+#guard (Pose.reveal 1045).decl == (("stroke-dashoffset", "955") : Css.Decl)
 
 /-! ### A thing of the consumer with the step on it
 
@@ -935,23 +964,33 @@ def routeAttrs (key : String) (more : List (SvgAttr .path)) : List (SvgAttr .pat
     ("style", "animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000")]
 
 -- A route with a style of its own has one `style` still: its own declarations and the step's,
--- each property once. The step's dash stands over the route's own.
+-- each property once. The step's dash stands over the route's own. The consumer gives its own
+-- declarations as pairs of texts, as it did.
 #guard (Motion.attrs fiveStep "a c" play [("cursor", "pointer"), ("stroke-dasharray", "4 2")] :
     List (SvgAttr .path)).map SvgAttr.toPair ==
   [("pathLength", "1000"), ("data-motion", "m"),
     ("style", "cursor: pointer; animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000")]
+
+-- The name of a property is read with no regard to the case of its letters, so the step's
+-- dash stands over the route's own however the route spells it. Until slice S22 the two were
+-- two names, and both stayed in the `style`. The name of a custom property is read as it is
+-- written: `--Tone` and `--tone` both stay.
+#guard (Css.Decls.merge [("Stroke-DashArray", "4 2"), ("--Tone", "1"), ("--tone", "2")]
+    (fiveStep.decls "a c" play)).css ==
+  "--Tone: 1; --tone: 2; animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000"
 
 -- The element takes the list: no attribute stands twice.
 #guard SvgAttr.allOk (routeAttrs "a c" (Motion.attrs fiveStep "a c" play [("cursor", "pointer")]))
 
 -- A declaration of the route's own that is important stays beside the step's, for the browser
 -- to weigh: an important declaration stands over one that is not, whatever their order.
-#guard Css.Decls.merge [⟨"stroke-dasharray", "4 2", true⟩] (fiveStep.decls "a c" play) ==
-  ([⟨"stroke-dasharray", "4 2", true⟩, ("animation", "m-2 94.2ms 180ms both"),
+#guard Css.Decls.merge [.of "stroke-dasharray" (.ofText "4 2") true]
+    (fiveStep.decls "a c" play) ==
+  ([.of "stroke-dasharray" (.ofText "4 2") true, ("animation", "m-2 94.2ms 180ms both"),
     ("stroke-dasharray", "2000")] : Css.Decls)
 
-#guard (Css.Decls.merge [⟨"stroke-dasharray", "4 2", true⟩] (fiveStep.decls "a c" play)).shown?
-  "stroke-dasharray" == some "4 2"
+#guard ((Css.Decls.merge [.of "stroke-dasharray" (.ofText "4 2") true]
+    (fiveStep.decls "a c" play)).shown? "stroke-dasharray").map Value.text == some "4 2"
 
 -- Why the declarations are merged: an element with two `style` attributes is refused.
 #guard !SvgAttr.allOk
@@ -962,15 +1001,23 @@ def routeAttrs (key : String) (more : List (SvgAttr .path)) : List (SvgAttr .pat
 #guard !SvgAttr.allOk (routeAttrs "a c" [.className "m"])
 
 /-- The consumer's class rules (`Tools.View.Tokens.rules`) for two roles, as rules of the kit:
-each class takes its colour from a custom property of the look. -/
+each class takes its colour from a custom property of the look. The selector is built, and the
+declaration is a pair of texts, as the consumer has it. -/
 def classRules : Css.Sheet :=
   ["ink", "rule"].map fun role =>
-    .style (".e4-stroke-" ++ role) [("stroke", "var(--e4-color-" ++ role ++ ")")]
+    .style (Prelude.class ("e4-stroke-" ++ role)) [("stroke", "var(--e4-color-" ++ role ++ ")")]
 
 -- One sheet for the picture: the rules of the step, and then the consumer's own.
 #guard ((fiveStep.rules play ++ classRules).css.splitOn "\n").drop 5 ==
   [".e4-stroke-ink { stroke: var(--e4-color-ink) }",
     ".e4-stroke-rule { stroke: var(--e4-color-rule) }"]
+
+-- The same two rules with nothing read: a class selector, and a reference to a custom
+-- property. A selector that the consumer has as one text reads as the same prelude.
+#guard classRules ==
+  ((["ink", "rule"].map fun role =>
+    .style (.ofText (".e4-stroke-" ++ role)) [.of "stroke" [.var ("e4-color-" ++ role)]]) :
+    Css.Sheet)
 
 -- A picture of the sheet, the route and the box that leaves is right by its tags and its keys.
 #guard (Svg.svg []
@@ -986,6 +1033,16 @@ def classRules : Css.Sheet :=
 #guard Motion.style? fiveStep "a c" play.scrubbed ==
   some ("animation: m-2 94.2ms calc((300 - var(--t, 0)) * 0.6ms) both paused; " ++
     "stroke-dasharray: 2000")
+
+-- The delay as the tree: the function `calc` of a block in parentheses, a delimiter with a
+-- whitespace token on each side, and a dimension; in the block a number, a hyphen-minus with a
+-- whitespace token on each side, and the function `var` of the property and its fallback. The
+-- text of slice S17 reads as that tree.
+#guard play.scrubbed.delay 300 ==
+    (.call "calc"
+      [.parens [.int 300, .space, .delim '-', .space, .var "--t" [.int 0]], .space, .delim '*',
+        .space, .ms 0.6] : Component) &&
+  Value.ofText "calc((300 - var(--t, 0)) * 0.6ms)" == [play.scrubbed.delay 300]
 
 -- With `--t: 400` on the picture that delay is 60 ms less than nothing: what is written for
 -- the step opened at the moment 400.
@@ -1069,21 +1126,15 @@ def filed : Play := { play with reach := .sheet }
 
 #guard SvgAttr.allOk (routeAttrs "a c" (Motion.attrs fiveStep "a c" filed))
 
-/-- The declarations of the style rule of a sheet under a selector. -/
-def ruleOf (sheet : Css.Sheet) (selector : String) : Option Css.Decls :=
-  sheet.findSome? fun r =>
-    match r with
-    | .qualified prelude decls [] => if prelude == selector then some decls else none
-    | _ => none
-
 /-- The declarations of the `style` among the attributes of a thing, as text. -/
 def styleOf (attrs : List (SvgAttr .g)) : Option String :=
   (attrs.map SvgAttr.toPair).lookup "style"
 
 -- The two ways say the same of each thing that moves. The rule that the thing's name selects
--- by the sheet holds the declarations that the thing's `style` holds the inline way.
+-- by the sheet holds the declarations that the thing's `style` holds the inline way. The rule
+-- is found by its selector as a value (`Css.Sheet.decls?`), and no text is compared.
 #guard ["a", "c", "a c", "d", "b"].all fun k =>
-  ruleOf (fiveStep.rules filed) (filed.thingSelector (fiveStep.thingIndex k)) ==
+  (fiveStep.rules filed).decls? (filed.thingSelector (fiveStep.thingIndex k)) ==
       some (fiveStep.given k play) &&
     styleOf (Motion.attrs fiveStep k play) == some (fiveStep.given k play).css
 
@@ -1092,9 +1143,9 @@ def styleOf (attrs : List (SvgAttr .g)) : Option String :=
   (styleOf (Motion.attrs fiveStep k filed)).isNone
 
 -- A route with declarations of its own: by the sheet they are in its rule, merged as they are
--- in its `style` the inline way.
-#guard ruleOf (fiveStep.rules filed fun k => if k == "a c" then [("cursor", "pointer")] else [])
-    "[data-track=\"m-2\"]" ==
+-- in its `style` the inline way. The selector as the text of slice S17 finds the rule.
+#guard (fiveStep.rules filed fun k => if k == "a c" then [("cursor", "pointer")] else []).decls?
+    (.ofText "[data-track=\"m-2\"]") ==
   some ([("cursor", "pointer"), ("animation", "m-2 94.2ms 180ms both"),
     ("stroke-dasharray", "2000")] : Css.Decls)
 
@@ -1111,8 +1162,8 @@ def styleOf (attrs : List (SvgAttr .g)) : Option String :=
 #guard (Motion.attrs fiveStep "a c" { filed with opened := 400, paused := true } :
     List (SvgAttr .path)).map SvgAttr.toPair == [("pathLength", "1000"), ("data-track", "m-2")]
 
-#guard ruleOf (fiveStep.rules { filed with opened := 400, paused := true })
-    "[data-track=\"m-2\"]" ==
+#guard (fiveStep.rules { filed with opened := 400, paused := true }).decls?
+    (Prelude.attr "data-track" "m-2") ==
   some ([("animation", "m-2 94.2ms -60ms both paused"), ("stroke-dasharray", "2000")] : Css.Decls)
 
 -- A step that `--t` scrubs, on a page that may hold no `style` attribute: the rule that sets
@@ -1120,7 +1171,8 @@ def styleOf (attrs : List (SvgAttr .g)) : Option String :=
 -- step that no property scrubs.
 #guard (filed.scrubbed.atRule 400).css == ":root { --t: 400 }"
 
-#guard (filed.scrubbed.atRule 400 "#fig3").css == "#fig3 { --t: 400 }"
+#guard (filed.scrubbed.atRule 400 (Prelude.id "fig3")).css == "#fig3 { --t: 400 }" &&
+  filed.scrubbed.atRule 400 (.ofText "#fig3") == filed.scrubbed.atRule 400 (Prelude.id "fig3")
 
 #guard (filed.atRule 400).isEmpty
 
@@ -1129,12 +1181,113 @@ def styleOf (attrs : List (SvgAttr .g)) : Option String :=
 #guard (Motion.attrsAt fiveStep "a c" 400 filed : List (SvgAttr .path)).map SvgAttr.toPair ==
   [("pathLength", "1000"), ("data-track", "m-2")]
 
-#guard ruleOf (fiveStep.rulesAt 400 filed) "[data-track=\"m-2\"]" ==
+#guard (fiveStep.rulesAt 400 filed).decls? (.ofText "[data-track=\"m-2\"]") ==
   some ([("stroke-dashoffset", "1048"), ("stroke-dasharray", "2000")] : Css.Decls)
 
 -- How much is written by the sheet: the file has 1324 characters where the sheet of the inline
 -- way has 875, and the attributes that the step gives the five things have 178 where they had
 -- 467.
 #guard (Motion.sheet fiveStep filed).length == 1324 && (Motion.sheet fiveStep play).length == 875
+
+/-! ### What the writer of the tree gives
+
+The step is written through the writer of tokens (`Whatwg/Css/Syntax/Serialize.lean`), which
+puts an empty comment between two tokens that would read as one. A comment in what the kit
+writes is a fault: a value of the kit has white space or punctuation wherever two such tokens
+meet. -/
+
+/-- Whether a text holds an empty comment. -/
+def holdsComment (text : String) : Bool := (text.splitOn "/**/").length > 1
+
+/-- The steps and the ways of playing them that the guards of this section read. -/
+def plays : List Play :=
+  [play, filed, play.scrubbed, filed.scrubbed, { play with opened := 400, paused := true },
+    { filed with reduce := .always, grid := 8, stem := "s3" }]
+
+/-- A step with a track of each kind of change, the two changes of shape among them. -/
+def everyChange : Motion String :=
+  [⟨"a", .shift ⟨-60, 7⟩ 0, { duration := 450, ease := Ease.settle.kit }⟩,
+    ⟨"b", .fade 1000 250, { duration := 600, ease := Easing.cubicIn }⟩,
+    ⟨"r", .reveal 0 1045, { delay := 100, duration := 400, ease := Easing.backOut }⟩,
+    ⟨"c", .grow 0 1000, { delay := 300, duration := 333, ease := .stops [] }⟩,
+    ⟨"c", .grow (-50) 1567, { delay := 600, duration := 300, ease := .stops [7] }⟩,
+    ⟨"e", .morph [⟨⟨20, 150⟩, ⟨40, 130⟩, ⟨60, 130⟩, ⟨80, 150⟩⟩]
+      [⟨⟨20, 160⟩, ⟨40, 180⟩, ⟨60, 180⟩, ⟨81, 160⟩⟩], { ease := Easing.linear }⟩]
+
+-- No comment in any sheet, in any `style`, or in the rule that sets the scrubbing property.
+#guard plays.all fun p => [fiveStep, everyChange].all fun m =>
+  !holdsComment (Motion.sheet m p) &&
+    (m.keys.all fun k => !holdsComment ((Motion.style? m k p).getD "")) &&
+    !holdsComment (p.atRule 400).css
+
+-- A control: two identifiers with nothing between them are written with a comment, since they
+-- would read back as one. The kit never builds such a row: `Value.spaced` puts the white space.
+#guard holdsComment (Value.text [.ident "m-2", .ident "both"]) &&
+  !holdsComment (Value.spaced [.ident "m-2", .ident "both"]).text
+
+-- The two tests of `Whatwg/Html/Node/Css.lean` say the same before any text is written: every
+-- sheet and every row of declarations of these steps can be written, and needs no comment.
+#guard plays.all fun p => [fiveStep, everyChange].all fun m =>
+  (m.rules p).writable && (m.rules p).quiet && (p.atRule 400).writable &&
+    m.keys.all fun k => (m.given k p).writable && (m.given k p).quiet
+
+-- A control of the first test: a number with no decimal text is not writable, and neither is
+-- the sheet that holds it.
+#guard !Css.Sheet.writable [.style (Prelude.class "third") [.of "opacity" [.number (1/3)]]]
+
+-- The text of a sheet tokenizes back to the tokens of its tree, with a line break where the
+-- tree's tokens have white space between two rules. The law of
+-- `Whatwg/Css/Syntax/Laws.lean` is of the text on one line; this is the text of the file.
+#guard plays.all fun p => [fiveStep, everyChange].all fun m =>
+  tokenizeText (Motion.sheet m p) == (Css.Sheet.stylesheet (m.rules p)).tokens
+
+/-! ### Where the text is not that of slice S17
+
+Slice S17 spliced texts. The tree writes each token by its rule, so three kinds of text differ.
+For a step whose stem is a letter and then letters, digits and `-`, and whose scrubbing
+property starts with two hyphen-minus, no text differs: the guards above hold the texts of
+slice S17. -/
+
+-- 1. A number of the kit is spelled as before. The text of the token of a count of thousandths
+-- is the text that slice S17 spliced, at every count from three below nothing to three, and at
+-- larger ones; so are a time and a time below nothing.
+#guard (List.range 6001).all fun i =>
+  (Component.thousandths ((i : Int) - 3000)).text == Css.thousandths ((i : Int) - 3000)
+
+#guard [123456789, -123456789, 600000, -1001, 999999, 1000000].all fun (n : Int) =>
+  (Component.thousandths n).text == Css.thousandths n &&
+    (Css.signedMilliseconds n 7).text == Css.thousandths (n * 7) ++ "ms" &&
+    (Css.pixels n).text == Css.thousandths n ++ "px"
+
+-- 2. A stem that is no plain identifier. Slice S17 wrote it as it was, and the sheet was then
+-- no CSS. Now the name of a rule is an identifier with its escapes, and the selector of a thing
+-- holds a string with its escapes: a digit at the start, a space, a quotation mark.
+#guard (((Motion.sheet fiveStep { play with stem := "3 \"a", reach := .sheet }).splitOn "\n").drop
+    4).take 1 ==
+  ["[data-track=\"3 \\\"a-0\"] { animation: \\33 \\ \\\"a-0 270ms 0ms both }"]
+
+-- 3. A scrubbing property with no hyphen-minus before it. Slice S17 wrote `t: 400` and
+-- `var(t, 0)`, which name no custom property. Now both have the two hyphen-minus.
+#guard ({ play with scrub := some "t" } : Play).at 400 == ([("--t", "400")] : Css.Decls) &&
+  (({ play with scrub := some "t" } : Play).delay 300).text == "calc((300 - var(--t, 0)) * 0.6ms)"
+
+-- 4. A declaration that a caller gives as a pair of texts is read and written again, where
+-- slice S17 kept its text. What a caller wrote as one would write CSS is kept. What differs: a
+-- run of white space is one space, and there is none at the two ends; a comment is dropped; a
+-- number is spelled by the writer's rule (`0.50` is `0.5`, `.5` is `0.5`, `1e3` is
+-- `1000.0`); a string in apostrophes is written in quotation marks.
+#guard ([("font", "12px Menlo, monospace"), ("border", "1px solid #555"),
+    ("fill", "var(--e4-color-ink)"), ("background", "#14110d"), ("grid-area", "1 / 2 / 3"),
+    ("content", "\"a b\""), ("width", "calc(100% - 2 * var(--gap, 4px))"),
+    ("transform", "translate(10px, 20px) rotate(45deg)")] : Css.Decls).map Css.Decl.css ==
+  ["font: 12px Menlo, monospace", "border: 1px solid #555", "fill: var(--e4-color-ink)",
+    "background: #14110d", "grid-area: 1 / 2 / 3", "content: \"a b\"",
+    "width: calc(100% - 2 * var(--gap, 4px))", "transform: translate(10px, 20px) rotate(45deg)"]
+
+#guard ([("font", " 12px   Menlo ,monospace "), ("opacity", "0.50"), ("opacity", ".5"),
+    ("width", "1e3px"), ("content", "'a b'"), ("margin", "0 /* none */ auto")] :
+    Css.Decls).map Css.Decl.css ==
+  ["font: 12px Menlo ,monospace", "opacity: 0.5", "opacity: 0.5", "width: 1000.0px",
+    "content: \"a b\"", "margin: 0 auto"]
 
 end WhatwgTest.Html.SvgMotion
