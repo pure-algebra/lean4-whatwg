@@ -159,6 +159,8 @@ generated file of S2 carries that notice.
 `50337328484f7fcdd9ab6fe9ded6011815b1707e` (2026-10-10), the head of `main` at pin time:
 `css-transforms-1/Overview.bs` (73,009 bytes), `LICENSE.md` and `README.markdown`. Slice S4c
 sealed it (SV-26). `docs/PROVENANCE.md` records the fetch, the cross-check and the licence.
+Since slice K0 of `docs/CSS-PACKAGE-PLAN.md` (2026-10-12) the tree also holds ten more modules of the same
+commit, for `Whatwg.Css`; `Whatwg.Svg` reads none of them.
 
 The package reads one section of the source: "Syntax of the SVG transform attribute", with the
 anchor `svg-syntax`. Its grammar is a list of productions, each under an id that opens with
@@ -461,7 +463,7 @@ seat's proposals of S1, changed where §3.1 changes them.
 | SV-23 | traversals | The checker, the refusal and the printer are algebras of one walk (T5). |
 | SV-24 | name tables | A name table is an exact embedding built generically (T6). |
 | SV-25 | value grammars | A value grammar is a regular expression as data. One invertible description reads and prints it (T8). |
-| SV-26 | the CSS pin | `w3c/csswg-drafts` is pinned at one commit, and only the CSS Transforms 1 source is sealed. A number is SVG's own `number` production. No CSS Values file is pinned. A length takes only what the sealed SVG text states (owner ruling). |
+| SV-26 | the CSS pin | `w3c/csswg-drafts` is pinned at one commit, and only the CSS Transforms 1 source is sealed. A number is SVG's own `number` production. No CSS Values file is pinned. A length takes only what the sealed SVG text states (owner ruling). Amended 2026-10-12 by ruling CS-1 of `docs/CSS-PACKAGE-PLAN.md`, on the owner's word: ten more modules of the same commit are sealed for `Whatwg.Css`. What `Whatwg.Svg` takes from CSS does not change by that. |
 | SV-27 | unknown names | An element whose name is in neither schema is refused at every position. This holds under `metadata` too, whose model is `any`: the checker knows no rule for the subtree. |
 | SV-28 | the arc's rotation | The three leading arguments of `elliptical_arc_argument` are the production `number`, which has no sign. So the rotation of an arc is unsigned, like its radii, and `a25,25 -30 0,1 50,-25` is refused. The grammar of SVG 1.1 gave the rotation a sign; the sealed grammar does not, and no one repairs it (seat, S4b). |
 | SV-29 | the number and the white space of `transform` | A number of the `transform` grammar is the production `coordinate` of path data, `sign? number`: SV-26 makes it SVG's own, and the sealed section's example carries a sign. Its white space is the four characters the section states, without U+000C (seat, S4c). |
