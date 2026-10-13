@@ -1,6 +1,6 @@
 # Motion probes
 
-2026-10-12. Five pages that programs of the workshop write from the kit, with data like
+2026-10-12. Seven pages that programs of the workshop write from the kit, with data like
 lean4-effect4's. The first two show one step twice: animated by a browser from the CSS that the kit
 wrote, and as five still pictures at the moments 0, 250, 500, 750 and 1000 that the kit's own
 reading (`Track.at`) computes. The two must agree.
@@ -8,10 +8,12 @@ reading (`Track.at`) computes. The two must agree.
 | Page | Written by | The data | What moves |
 | --- | --- | --- | --- |
 | `pfork.html` | `workshop/MotionProbe.lean` | one frame of lean4-effect4's viewer, the program `pFork`, read from its rendered picture; and that frame less the body of the fork | a kept row moves down three rows; three new rows appear one after another; a fiber grows on a spring; the fork between two fibers, an organic stroke, draws itself behind a mask; its collars appear |
-| `tree.html` | `workshop/TreeProbe.lean` | the tree of `pFork` before and after the body of the fork is written, with its keys | four kept nodes move; three kept edges change their shape and stay joined to their nodes; three new edges draw themselves and three new nodes grow, level by level; an edge's width is the root of its share of the leaves |
+| `tree.html` | `workshop/TreeProbe.lean` | the tree of `pFork` before and after the body of the fork is written, with its keys | a step in stages (`Motion.staged`): four kept nodes move and three kept edges change their shape and stay joined to their nodes, all at rest by the moment 300; then three new edges draw themselves and three new nodes grow, level by level, each level in a slot of its own; an edge's width is the root of its share of the leaves. A third row shows the five moments as the browser computes them, from the same tracks opened at the moment and paused |
 | `between.html` | `workshop/BetweenProbe.lean` | a rank of four boxes with the widths and the gap of lean4-effect4's flow layout; one box leaves | the two boxes to its right close the room, timed three ways; under each way the least gap between two neighbours over the step, by the kit's reading |
 | `branch.html` | `workshop/BranchProbe.lean` | a trunk that forks in two, each branch with half the share, at lean4-effect4's default wobble and at a lesser one | nothing moves: four panels at one scale, the exponent of the widths across and the wobble down; under each the narrowest place of the trunk and the widest place of a branch |
 | `row.html` | `workshop/RowProbe.lean` | a rank of four boxes with the gap of lean4-effect4's flow layout; one box gets wider, as when its label grows, and its neighbour narrower by as much | the rank changes in four ways; under each the least and the greatest gap, and the least and the greatest length of the rank, over the step |
+| `label.html` | `workshop/LabelProbe.lean` | eight qualified names such as a picture of a program holds, in lean4-effect4's grid of cells eight pixels wide | nothing moves: every name in rooms of six widths, fitted each by itself and then together; under each table the pairs of different names shown as one text |
+| `cross.html` | `workshop/CrossProbe.lean` | two ranks of a graph of fibers and the straight links between them | the ends of the links move in three ways; under each the count of crossings at the start and each moment at which it changes |
 
 To write them again, from the repository root after `lake build`:
 
@@ -33,6 +35,14 @@ lake env lean workshop/BranchProbe.lean
 
 ```bash
 lake env lean workshop/RowProbe.lean
+```
+
+```bash
+lake env lean workshop/LabelProbe.lean
+```
+
+```bash
+lake env lean workshop/CrossProbe.lean
 ```
 
 ## What a browser said
@@ -79,9 +89,19 @@ observation is evidence about that host, and no theorem.
   `Whatwg/Svg/Scene/Between.lean` is the law, and its controls are these two failures.
 - A width means a share, so a branch must not look as wide as its trunk. At Leonardo's rule a
   trunk of 9 pixels has branches of 6.36, and `Branch.wobbleRoom` gives the two a room of 171
-  per mille. At lean4-effect4's default wobble of 350 the narrowest place of the trunk in
-  `branch.html` is 7.04 pixels and the widest place of a branch 7.55. At a wobble of 150 the
-  trunk is the wider at every point, as `Branch.wobbleRoom_apart` says it must be.
+  per mille. At a wobble of 350, the noise of lean4-effect4's look `organic`, the narrowest
+  place of the trunk in `branch.html` is 7.04 pixels and the widest place of a branch 7.55. At a
+  wobble of 150 the trunk is the wider at every point, as `Branch.wobbleRoom_apart` says it must
+  be. Since lean4-effect4's slice D2 its default look has a noise of 0, so the finding is of the
+  look `organic` alone (the Effect4 coordinator's guidance 4), and lean4-effect4 refuses a look
+  whose noise is over the room.
+- The times of a sheet must be exact. `tree.html` shows five moments twice: as the kit reads
+  them, and as Chrome 152 computes them from the same tracks, opened at the moment and paused,
+  with no script. With each duration rounded to a whole millisecond the browser drew a line to
+  953.06 of a thousand where the kit read 952: it read another share of the duration. With the
+  times written exactly it draws the line to 952.145 and a size of 0.768857, and the kit reads
+  952 and 768: each the browser's value, rounded down (`Transition.at_eq_floor`). The two rows
+  agree to 0.05 of a unit.
 - A rank whose boxes change their widths keeps its gaps and its length only if its edges move,
   and not its boxes or its lengths one by one. In `row.html` both pictures have a gap of 16 and
   a rank of 664. With each box at its own time the gap runs from -42 to 17 over the step. With
@@ -92,3 +112,21 @@ observation is evidence about that host, and no theorem.
   drawn boxes at a hundred and one times: a gap from -41.8 to 16 in the first way, and exactly
   16 and 664 in the last two. `Row.tiles_between`, `Row.between_conserves` and `Row.between_mem`
   are the laws.
+- Two names that differ must not become one text when a room is small. In `label.html`, in a
+  room of twelve cells, a cut that keeps the piece that matters most shows `Stream.mapEffect`
+  and `Sink.mapEffect` both as `…mapEffect` where each label is fitted by itself. Fitted
+  together (`Label.fitAll`) each of the two is a sign, a dot: the picture says that it does not
+  tell them apart, and no pair of names has one text in any room. `Label.fitAll_distinct` is the
+  law. In a room of sixteen cells both names are whole.
+- A step that keeps the order of the ends of two links on both ranks keeps their crossings: in
+  the first step of `cross.html` the one crossing is there at each of a hundred and one moments
+  (`crosses_on_way`). A step that changes an order to take a crossing out loses it once, by the
+  moment 290, and gains none. Two links that change places, with their lower ends passing
+  before their upper ends, have no crossing before and none after, and one from the moment 260
+  to the moment 290: a swap of two neighbours is seen as a crossing, and no timing of straight
+  ends avoids it.
+- The laws of a gap hold between the whole moments too. Chrome 152 was asked for the least gap
+  of the three steps of `between.html` at 998 times that are no whole thousandths of the step.
+  It gave 16.0000 for the first, where `Transition.exact_gap` of
+  `Whatwg/Svg/Geometry/Moment.lean` says that no rational time has less, and -140.25 and -1.59
+  for the two that break a premise.

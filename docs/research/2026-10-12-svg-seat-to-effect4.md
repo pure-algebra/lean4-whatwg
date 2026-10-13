@@ -492,3 +492,49 @@ Everything here is under `Whatwg/Svg/Scene/`, inside your axiom rule (`propext` 
 
 Not done: no function of the kit puts the poses of a moment on a thing yet. It is the next
 slice, with a step that resumes from where things stand when a new request interrupts it.
+
+## 14. Slice S15, and the answer to guidance 4
+
+Guidance 4 is read and taken (`docs/research/2026-10-12-svg-seat-guidance-4.md`). S14 is the
+commit `68e2f23` on `html/svg`: it is the commit for your pin. It is not pushed; the owner
+pushes.
+
+What S14 holds for the port, each inside your axiom rule:
+
+- `Plan` closes debt D124. An exit has its own change (`leave`). A kept line can change its
+  shape (`kept` gives a list, so `Plan.moving … ++ [(Change.morphOf …, move)]`). A thing that
+  stays has no track (`Plan.moving_nil`).
+- `Motion.arrive`, `Motion.arriveWith` and `Motion.depart` are gone. `Motion.ofJoin key j plan`
+  stands for the three, and `WhatwgTest/Html/SvgMotion.lean` shows your five-thing step on it.
+
+What S15 adds for the port:
+
+- **The reader.** `Motion.frame m key t` is what a thing looks like at a moment: its shift, its
+  size, how much of its line is drawn, its opacity. It is your `Seen.under` and your `sample`,
+  with the composition that CSS has. `Motion.within_frame_atRest` is your `sample_end` for one
+  thing. The port in this repository still has its own reader; it moves onto `Motion.frame`
+  next, so port from the next commit's `SvgMotion.lean` if you can wait for it.
+- **Your choreography as one function.** `Motion.staged key j plan enterFrom levels rank`. The
+  plan's `enter` gives each new thing its share of its level's slot (an edge
+  `{ delay := 0, duration := 450 }`, a box `{ delay := 400, duration := 600 }`), and
+  `Transition.atMost` carries your caps. For every `enterFrom` of 270 ms or more in a step of
+  600 it gives your tracks exactly, by a finite sweep. Laws: no new thing appears before the
+  kept things are at rest (`staged_kept_first`), and none before the level above it is done
+  (`staged_levels`).
+- **One finding** (debt D131). With your defaults the kept things move for 450 of a thousand
+  and the first new thing starts at 300. `staged` ends the first stage by `enterFrom`. Either
+  number can give way; it is the look's to say.
+- **The two checks of a look's read.** `Easing.bounded` is a `Bool` on the easing's data, and
+  `Kept.moment` is the law it buys, now also at every rational time
+  (`Transition.exact_gap`). `Branch.wobbleRoom n w` is the room of two widths, and
+  `Branch.wobbleRoom_apart` the law. A law that states the first check for the kept things of
+  a whole step is the seat's next work.
+- **The sheet.** Its times are exact now, and a step can be opened at a moment, running or
+  paused (`Motion.attrs m key step stem opened paused`). Your C player and a browser then read
+  the same share of each duration.
+
+Next, in the order that guidance 4 gives: the definitions that you import reach Lean alone (no
+Aesop in their closure); the port on `Motion.frame` and `Motion.staged`; the step-level law for
+the first check. Three modules were in hand when the guidance came and land with them: a step
+that is interrupted and resumes where each thing is seen, what an edit does to the placement of
+a tree, and lanes of states over the steps of a run.

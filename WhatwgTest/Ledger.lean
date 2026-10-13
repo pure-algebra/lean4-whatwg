@@ -171,7 +171,8 @@ def svgGrammar : Leaf where
 number, `Whatwg.Svg.Scene`, under the strict axiom ceiling (ruling SV-79 of
 `docs/SVG-PACKAGE-PLAN.md`). A thing that moves and the law of a stored result, the join of two
 lists by key, the placement of a tree, the share of a branch, a row whose lengths change, a scale
-with its ties, what a host says of a face, and a label fitted to a room. Each is a value with
+with its ties, what a host says of a face, a label fitted to a room, and where two lines cross
+(since slice S15). Each is a value with
 its laws and has no reading in time: motion, which has one, is the graph `SVG-PG-MOTION`. The
 record is standalone. -/
 def svgScene : Leaf where
@@ -180,7 +181,7 @@ def svgScene : Leaf where
   declarations := [`Whatwg.Svg.Scene.IVec, `Whatwg.Svg.Scene.Moves, `Whatwg.Svg.Scene.join,
     `Whatwg.Svg.Scene.join_new, `Whatwg.Svg.Scene.Tree, `Whatwg.Svg.Scene.Share,
     `Whatwg.Svg.Scene.Row.between, `Whatwg.Svg.Scene.Scale, `Whatwg.Svg.Scene.Metrics,
-    `Whatwg.Svg.Scene.Piece, `Whatwg.Svg.Scene.Label.fit]
+    `Whatwg.Svg.Scene.Piece, `Whatwg.Svg.Scene.Label.fit, `Whatwg.Svg.Scene.crosses]
   parent := none
   receipts := [
     .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
@@ -197,7 +198,10 @@ def svgScene : Leaf where
       `Whatwg.Svg.Scene.Metrics.fits_any, `Whatwg.Svg.Scene.Metrics.tabular_aligns,
       `Whatwg.Svg.Scene.Label.fit_fits, `Whatwg.Svg.Scene.Label.fit_subsequence,
       `Whatwg.Svg.Scene.Label.fit_mono, `Whatwg.Svg.Scene.Label.fitAmong_alone,
-      `Whatwg.Svg.Scene.Label.fitAll_distinct],
+      `Whatwg.Svg.Scene.Label.fitAll_distinct, `Whatwg.Svg.Scene.IVec.turn_move,
+      `Whatwg.Svg.Scene.crosses_shared, `Whatwg.Svg.Scene.crosses_layered,
+      `Whatwg.Svg.Scene.crosses_on_way, `Whatwg.Svg.Scene.mem_crossings,
+      `Whatwg.Svg.Scene.crossings_move, `Whatwg.Svg.Scene.crossings_links_length],
     .gate .build]
 
 /-- The ledger: the twelve graphs of slices A and B, the graph

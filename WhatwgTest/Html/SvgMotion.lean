@@ -553,8 +553,9 @@ def fiveStep : Motion String := motion {} before after
   "@keyframes m4 { from { scale: 1 } to { scale: 0 } }"
 
 -- The new route, in a step of 600 ms: its animation, and the one dash that it is drawn by.
+-- Its duration is 157 thousandths of the step, and is written exactly.
 #guard Motion.style? fiveStep "a c" 600 ==
-  some ("animation: m2 94ms cubic-bezier(0.333333, 1, 0.666667, 1) 180ms both;" ++
+  some ("animation: m2 94.2ms cubic-bezier(0.333333, 1, 0.666667, 1) 180ms both;" ++
     " stroke-dasharray: 1000;")
 
 -- The box that leaves: it shrinks about its middle.

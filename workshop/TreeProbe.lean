@@ -4,6 +4,7 @@ import Whatwg.Svg.Geometry.Outline
 import Whatwg.Svg.Geometry.Stroke.Laws
 import Whatwg.Svg.Geometry.Stack
 import Whatwg.Svg.Scene.Tree
+import Whatwg.Svg.Scene.Stage
 
 /-! A probe of a tree that grows (slice S13 of `docs/SVG-PACKAGE-PLAN.md`), with data like
 lean4-effect4's. Run it from the repository root after `lake build`:
@@ -157,26 +158,30 @@ def milli (v : Vec) : IVec := Vec.nearGrid 1000 v
 edge stays joined to its nodes at every moment. -/
 def move : Transition := .per stepMs { duration := 520, ease := settle }
 
-/-- **The motion of a step.** A kept node moves; a kept edge changes its shape, by the same
-transition; a new edge draws itself and then the node at its end grows; each level of new
-things starts after the level above it. -/
+/-- **The plan of a step.** A kept node moves, and one that does not move has no track. A kept
+edge changes its shape by the same transition, so it stays joined to its nodes. A new edge
+draws itself in the first 45 per cent of its level's time, and the node at its end grows from
+40 per cent of it: lean4-effect4's shares. -/
+def plan : Plan Mark where
+  kept := fun o n =>
+    match n.kind with
+    | .box => Plan.moving (fun m => milli m.place) move o n
+    | .edge => [(Change.morphOf 1000 o.shape n.shape, move)]
+  enter := fun n =>
+    match n.kind with
+    | .edge => [(.reveal 0 1000, { delay := 0, duration := 450, ease := Easing.cubicOut })]
+    | .box => [(.grow 0 1000, { delay := 400, duration := 600, ease := spring })]
+  leave := fun _ => []
+
+/-- **The motion of a step, in stages** (`Motion.staged`): the kept things come to rest by the
+moment 300, and then the new things enter level by level, each level in a slot of its own. No
+new thing appears before the kept things are at rest, and none before the level above it is
+done. -/
 def motion (old new : List Mark) : Motion String :=
   let j := join Mark.key old new
   let top := (j.enter.map fun n => n.depth).foldl min 1000
-  let kept : Motion String :=
-    j.update.map fun p =>
-      match p.2.kind with
-      | .box => ⟨p.2.key, .shift (milli p.1.place - milli p.2.place) 0, move⟩
-      | .edge => ⟨p.2.key, Change.morphOf 1000 p.1.shape p.2.shape, move⟩
-  let entering : Motion String :=
-    j.enter.map fun n =>
-      let level := 300 * (n.depth - top)
-      match n.kind with
-      | .edge => ⟨n.key, .reveal 0 1000,
-          .per stepMs { delay := 420 + level, duration := 260, ease := Easing.cubicOut }⟩
-      | .box => ⟨n.key, .grow 0 1000,
-          .per stepMs { delay := 600 + level, duration := 360, ease := spring }⟩
-  Motion.within (kept ++ entering)
+  let deepest := (j.enter.map fun n => n.depth).foldl max 0
+  Motion.staged Mark.key j plan 300 (deepest + 1 - top) fun n => n.depth - top
 
 /-! ## The page -/
 
@@ -203,6 +208,11 @@ def animated : SvgNode :=
 
 def still (t : Nat) : SvgNode := picture (fun key => Motion.attrsAt step key t 1000) none 320 210
 
+/-- The browser's own still picture of the moment `t`: the same tracks, opened at that moment
+and paused. No script runs. The rules of the sheet are those of the animated picture. -/
+def paused (t : Nat) : SvgNode :=
+  picture (fun key => Motion.attrs step key stepMs "m" t true) none 320 210
+
 def page : String :=
   "<!doctype html>\n<meta charset=\"utf-8\">\n<title>pFork: a tree that grows</title>\n" ++
     "<body style=\"background:#14110d;color:#f3f4f6;font-family:Georgia,serif\">\n" ++
@@ -213,7 +223,10 @@ def page : String :=
     animated.render ++
     "\n<p>The same step at the moments 0, 250, 500, 750 and 1000, as the kit's own reading " ++
     "computes them, with no animation.</p>\n<div>" ++
-    String.join ([0, 250, 500, 750, 1000].map fun t => (still t).render) ++ "</div>\n</body>\n"
+    String.join ([0, 250, 500, 750, 1000].map fun t => (still t).render) ++ "</div>\n" ++
+    "<p>The same five moments as the browser computes them: the animated picture's own tracks, " ++
+    "opened at each moment and paused. The two rows must look the same.</p>\n<div id=\"paused\">" ++
+    String.join ([0, 250, 500, 750, 1000].map fun t => (paused t).render) ++ "</div>\n</body>\n"
 
 #eval animated.okIn Whatwg.Html.Content.Ctx.flow
 #eval step.map fun tr => (tr.key, tr.timing.delay, tr.timing.duration)

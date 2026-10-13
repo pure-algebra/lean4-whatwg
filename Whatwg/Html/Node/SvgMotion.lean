@@ -1,5 +1,5 @@
 import Whatwg.Html.Node.SvgDraw
-import Whatwg.Svg.Scene.Motion
+import Whatwg.Svg.Scene.Frame
 
 /-!
 # Whatwg.Html.Node.SvgMotion
@@ -38,14 +38,20 @@ What this module does not claim. The text is written by rule and read back by no
 grammar of CSS is sealed in this repository, so no gate judges it (debt D119). A browser
 computes in floating point; it reads `1/3` at six places; and between two stops of `linear()`
 it draws the straight line that `Easing.stopsAt` rounds down. Two tracks of one kind on one key
-write one property twice, and the later one wins.
+write one property twice, and the later one wins: `Motion.frame` of
+`Whatwg/Svg/Scene/Frame.lean` reads a thing the same way.
+
+Since slice S15 (ruling SV-86) a step can be opened at a moment (`opened`), running or `paused`: the delay of
+each animation is that much less, and a delay of less than nothing starts an animation partway
+through. A page that is loaded again in the middle of a step goes on from there, and a paused
+one is the browser's own still picture of the moment, with no script.
 -/
 
 namespace Whatwg.Html
 
 open Whatwg.Svg.Schema (Tag)
 open Whatwg.Svg.Value (Cubic)
-open Whatwg.Svg.Scene (IVec ICubic Easing Transition Pose Change Track Motion)
+open Whatwg.Svg.Scene (IVec ICubic Easing Transition Pose Change Track Motion Frame)
 
 namespace Css
 
@@ -58,8 +64,15 @@ def thousandths (n : Int) : String :=
   (if n < 0 then "-" else "") ++ toString (n.natAbs / 1000) ++
     (if kept.isEmpty then "" else "." ++ String.ofList kept)
 
-/-- A time of `perMille` thousandths of a step of `step` milliseconds, in milliseconds. -/
-def milliseconds (perMille step : Nat) : String := toString (perMille * step / 1000) ++ "ms"
+/-- A time of `perMille` thousandths of a step of `step` milliseconds, in milliseconds. It is
+written exactly, to a thousandth of a millisecond: a time rounded to a whole millisecond would
+give a browser another share of a duration than `Transition.at` reads. -/
+def milliseconds (perMille step : Nat) : String := thousandths ((perMille * step : Nat) : Int) ++ "ms"
+
+/-- A time before or after the start of a step, in milliseconds, written exactly. A delay that
+is less than nothing starts an animation partway through. -/
+def signedMilliseconds (perMille : Int) (step : Nat) : String :=
+  thousandths (perMille * step) ++ "ms"
 
 /-- A point of whole counts of `1 / grid` of a user unit, as two numbers of path data. -/
 def point (grid : Nat) (p : IVec) : String :=
@@ -97,6 +110,11 @@ def _root_.Whatwg.Svg.Scene.Pose.css (grid : Nat := 1) : Pose → String
   | .fade shown => "opacity: " ++ Css.thousandths shown
   | .shape segments => "d: path(\"" ++ Css.pathData grid segments none ++ "\")"
 
+/-- **A frame as CSS declarations**: one for each property that is not at rest, so the still
+picture writes nothing. A program that reads a moment with `Motion.frame` writes it so. -/
+def _root_.Whatwg.Svg.Scene.Frame.css (f : Frame) (grid : Nat := 1) : String :=
+  "; ".intercalate (f.poses.map fun p => p.css grid)
+
 section
 
 variable {κ : Type}
@@ -108,10 +126,14 @@ def _root_.Whatwg.Svg.Scene.Motion.keyframes (name : String) (tr : Track κ) (gr
 
 /-- One animation of the `animation` property: the name, the duration, the easing, the delay,
 and filling both ways. The transition counts in thousandths of a step of `step`
-milliseconds. -/
-def _root_.Whatwg.Svg.Scene.Motion.animation (name : String) (tr : Track κ) (step : Nat) : String :=
+milliseconds. The step is opened at the moment `opened`: the delay is `opened` less, so a
+track that has started by then is partway through, and one that is over shows its end. A
+`paused` animation stays at that moment. -/
+def _root_.Whatwg.Svg.Scene.Motion.animation (name : String) (tr : Track κ) (step : Nat)
+    (opened : Nat := 0) (paused : Bool := false) : String :=
   name ++ " " ++ Css.milliseconds tr.timing.duration step ++ " " ++ tr.timing.ease.css ++ " " ++
-    Css.milliseconds tr.timing.delay step ++ " both"
+    Css.signedMilliseconds ((tr.timing.delay : Int) - opened) step ++ " both" ++
+    (if paused then " paused" else "")
 
 /-- **The style sheet of a motion**: one `@keyframes` rule for each track, named by the track's
 place in the list after `stem`. -/
@@ -126,14 +148,17 @@ def _root_.Whatwg.Svg.Scene.Motion.setup : Change → String
   | _ => ""
 
 /-- **The style of one thing**: the animations of the tracks with its key, and what they need.
-Nothing for a key with no track. -/
+Nothing for a key with no track. The step is opened at the moment `opened`, running or
+`paused`: a page that is loaded again in the middle of a step goes on from there, and a paused
+one is the browser's own still picture of that moment. -/
 def _root_.Whatwg.Svg.Scene.Motion.style? [BEq κ] (m : Motion κ) (key : κ) (step : Nat)
-    (stem : String := "m") : Option String :=
+    (stem : String := "m") (opened : Nat := 0) (paused : Bool := false) : Option String :=
   match m.zipIdx.filter fun p => p.1.key == key with
   | [] => none
   | tracks =>
     some ("animation: " ++
-      ", ".intercalate (tracks.map fun p => Motion.animation (stem ++ toString p.2) p.1 step) ++ ";" ++
+      ", ".intercalate
+        (tracks.map fun p => Motion.animation (stem ++ toString p.2) p.1 step opened paused) ++ ";" ++
       String.join ((tracks.map fun p => Motion.setup p.1.change).eraseDups))
 
 /-- Whether a track of the key reveals a line. -/
@@ -161,8 +186,8 @@ end SvgAttr
 milliseconds: its `style`, and `pathLength` of a thousand where a track reveals it. Nothing for
 a key with no track, so a still thing is written as it was. -/
 def _root_.Whatwg.Svg.Scene.Motion.attrs {κ : Type} [BEq κ] {t : Tag} (m : Motion κ) (key : κ) (step : Nat)
-    (stem : String := "m") : List (SvgAttr t) :=
-  match Motion.style? m key step stem with
+    (stem : String := "m") (opened : Nat := 0) (paused : Bool := false) : List (SvgAttr t) :=
+  match Motion.style? m key step stem opened paused with
   | none => []
   | some css =>
     (if Motion.reveals m key then [SvgAttr.pathLength 1000] else []) ++ [SvgAttr.style css]

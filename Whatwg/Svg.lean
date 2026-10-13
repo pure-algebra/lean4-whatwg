@@ -66,9 +66,13 @@ import Whatwg.Svg.Scene.Row
 import Whatwg.Svg.Scene.Scale
 import Whatwg.Svg.Scene.Metrics
 import Whatwg.Svg.Scene.Label
+import Whatwg.Svg.Scene.Cross
+import Whatwg.Svg.Scene.Stage
+import Whatwg.Svg.Scene.Frame
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
 import Whatwg.Svg.Geometry.Stack
+import Whatwg.Svg.Geometry.Moment
 
 /-!
 # Whatwg.Svg
@@ -124,7 +128,10 @@ The library has five layers:
   reveal. `Grid` is the seam between whole units and exact numbers: rounding commutes with a
   move by a whole count. `Easing` says what an easing of the layer below means exactly.
   Since slice S13: `Stack` is intervals in a row, each as long as its weight, with the ports
-  at which the branches of a node leave it side by side.
+  at which the branches of a node leave it side by side. Since slice S15: `Moment` is a motion
+  at every rational time, in exact numbers: what `Between` says of the whole moments holds
+  between them, and the whole-number reading is within a unit and a thousandth of the travel
+  of the exact one.
 - `Whatwg.Svg.Scene` is what a picture is made of, with no rational number in it (slice
   S12), under the strict ceiling: a program that keeps its own proofs to that ceiling can
   neither call the geometry nor cite a law of it. `Moves` is things that move, and the law
@@ -147,6 +154,13 @@ The library has five layers:
   that the rounding ties. `Metrics` is what a host says of a face, and the width of a text as
   two bounds. `Label` fits a label to a room, and never shows two labels that differ as one
   text.
+
+  Since slice S15: `Frame` is what a thing looks like at a moment, the reader of a motion: a
+  later track of one property wins, as it does in CSS. `Stage` is a step in stages, where the
+  kept things come to rest before the first new thing appears and each level of new things is
+  done before the next begins. `Cross` says where two lines cross, with the laws that the
+  crossings of a layered picture are the inversions of its order and that a step which keeps
+  the order creates no crossing on the way.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.

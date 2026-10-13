@@ -185,7 +185,7 @@ def Easing.over : Easing → Nat
 /-! ### Stops: a straight line between two values -/
 
 /-- What holds of a default and of every member of a list holds of what is read at any place. -/
-private theorem getD_of_all {α : Type} (P : α → Prop) (l : List α) (i : Nat) (d : α) (hd : P d)
+theorem getD_of_all {α : Type} (P : α → Prop) (l : List α) (i : Nat) (d : α) (hd : P d)
     (hl : ∀ v ∈ l, P v) : P (l.getD i d) := by
   show P ((l[i]?).getD d)
   cases h : l[i]? with
@@ -193,7 +193,7 @@ private theorem getD_of_all {α : Type} (P : α → Prop) (l : List α) (i : Nat
   | some v => exact hl v (List.mem_of_getElem? h)
 
 /-- What holds of a default and of every member of a list holds of its last value. -/
-private theorem last_of_all {α : Type} (P : α → Prop) (l : List α) (d : α) (hd : P d)
+theorem last_of_all {α : Type} (P : α → Prop) (l : List α) (d : α) (hd : P d)
     (hl : ∀ v ∈ l, P v) : P (l.getLast?.getD d) := by
   rw [List.getLast?_eq_getElem?]
   exact getD_of_all P l (l.length - 1) d hd hl
@@ -386,7 +386,7 @@ theorem bounded_at (e : Easing) (p : Nat) (h : e.bounded = true) (hp : p ≤ 100
 end Easing
 
 /-- A running greatest value is no less than where it starts, and no less than any member. -/
-private theorem le_foldl_max : ∀ (l : List Int) (m : Int),
+theorem le_foldl_max : ∀ (l : List Int) (m : Int),
     m ≤ l.foldl max m ∧ ∀ v ∈ l, v ≤ l.foldl max m
   | [], m => ⟨Int.le_refl m, fun _ h => nomatch h⟩
   | a :: rest, m => by

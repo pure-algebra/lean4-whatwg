@@ -11,3 +11,12 @@ writer of CSS. Slice S14 added `Plan`, the motion of a join as one value, and re
 functions it replaces. With it the six modules of motion left the leaf for this graph's fence,
 and the passive data of the layer `Whatwg.Svg.Scene` became the leaf `SVG-LF-SCENE`. Ruling R-S29
 of `COORDINATION.md` records what landed, the commands run and their results. No edge closed.
+
+## Slice S15, 2026-10-12
+
+The fence gained three modules: `Stage` (a step in stages), `Frame` (what a thing looks like at
+a moment, the reader that debt D124 asked for) and `Geometry/Moment` (the motion at every
+rational time). Two open items of the semantics edge were answered and are replaced by narrower
+ones: a moment was a whole thousandth of a step, and no function of the kit put the poses on a
+thing. Ruling R-S30 of `COORDINATION.md` records what landed, the commands run and their results.
+No edge closed.

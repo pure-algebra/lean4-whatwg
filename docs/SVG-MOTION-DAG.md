@@ -17,20 +17,26 @@ rounding down. The writer's target is CSS: its animations, its easing functions,
 transform properties, and `d` as a property. None of those texts is sealed under `vendor/`
 (debt D119), so no theorem of this graph names an algorithm of CSS.
 
-**Fence.** The graph owns six modules. Five are under `Whatwg/Svg/Scene/`, the layer with no
+**Fence.** The graph owns nine modules. Seven are under `Whatwg/Svg/Scene/`, the layer with no
 rational number and the strict axiom ceiling: `Motion` (the data and its reading), `Motion/Laws`,
-`Between` (what holds at every moment), `Score` (order in time) and `Plan` (the motion of a join
-as one value). The sixth is `Whatwg/Svg/Geometry/Easing`, which says that the reading in whole
-numbers is the exact polynomial, rounded down once. The writer `Whatwg/Html/Node/SvgMotion` stays
+`Between` (what holds at every moment), `Score` (order in time), `Plan` (the motion of a join
+as one value), `Stage` (a step in stages) and `Frame` (what a thing looks like at a moment). Two
+are under `Whatwg/Svg/Geometry/`: `Easing`, which says that the reading in whole numbers is the
+exact polynomial, rounded down once, and `Moment`, the motion at every rational time. The writer
+`Whatwg/Html/Node/SvgMotion` stays
 under the unrouted prefix `Whatwg.Html` (debt D57): this graph cites it and does not own it. The
 things that a motion acts on are passive data and are the leaf `SVG-LF-SCENE`: a thing that
-moves, the join by key, a tree, a share, a scale, a face's metrics and a label.
+moves, the join by key, a tree, a share, a row, a scale, a face's metrics, a label and the
+crossings of lines.
 
-**Observation.** There is one observation, the reading. `Motion.posesOf m key t` is the list of
-poses that the tracks of `m` set on the thing `key` at the moment `t`, a whole number of
-thousandths of the step. A law that says "at every moment" says it of these moments: 0, 1 and
-so on to 1000, and every whole moment after. No host runs in this graph. What a browser computes
-from the written sheet is a host observation, recorded under the bridges edge.
+**Observation.** There is one observation, the reading. `Motion.frame m key t` is what the thing
+`key` looks like at the moment `t`, a whole number of thousandths of the step: the poses that the
+tracks of `m` set on it (`Motion.posesOf`), put on the still picture in the order of the tracks.
+A law that says "at every moment" says it of these moments: 0, 1 and so on to 1000, and every
+whole moment after. A law of `Whatwg/Svg/Geometry/Moment.lean` says "at every rational time",
+and says it of the exact reading, of which the whole-number reading is the floor. No host runs
+in this graph. What a browser computes from the written sheet is a host observation, recorded
+under the bridges edge.
 
 ## Current state
 
@@ -41,18 +47,24 @@ document is in `docs/receipts/SVG-PG-MOTION.md`.
 
 ## Claim scope
 
-- A moment is a whole thousandth of a step. A browser also draws the times between two of them,
-  and no law of this graph speaks of those. The exact eased progress at a rational share of a
-  transition is `Easing.cubicExact`, and the reading is its floor (`Transition.at_cubic`); a law
-  at every rational time is not stated yet.
+- A moment is a whole thousandth of a step. A browser also draws the times between two of them.
+  Since slice S15 the laws of a gap, of a bound and of a kept relation are stated at every
+  rational time, in exact numbers (`Transition.exact_gap`, `KeptExact.moment`), and the reading
+  in whole numbers is the floor of the exact one (`Transition.at_eq_floor`), within a unit and a
+  thousandth of the travel (`Transition.mix_near`). No law speaks of a real time or of a limit.
 - The reading rounds down once. A program that needs the pose to within less than a unit reads
   the exact geometry of `Whatwg/Svg/Geometry/` and not this layer.
 - `Kept.moment` says that a relation of both pictures is a relation of every moment under two
   premises: the things share one timing, and the easing stays in range. Each premise has a
   control in `Whatwg/Svg/Scene/Between.lean` where the relation fails without it.
 - A motion is a list of tracks. Nothing in its type says that a thing has one track at most for
-  a property. Where it has two, the reading gives both poses in order, and CSS shows the later
-  one. No law says so yet, and no function of the kit puts the poses on a thing (debt D124).
+  a property (`Motion.Single` says it as a predicate). Where a thing has two, `Motion.frame`
+  shows the later one, as CSS does, and the frame then depends on the order of the tracks.
+- Two motions are the same to a reader (`Motion.Same`) where every thing has one frame in both
+  at every moment. That is kept when a motion is put after both. It is kept when one is put
+  before both only where no thing has two tracks of one property.
+- A step in stages keeps the kept things first and the levels in order. It keeps no order
+  inside one level.
 - No law relates the written sheet to the reading. One browser was observed by hand, at the
   moments that `docs/research/2026-10-12-motion-probe/README.md` lists, and no harness runs the
   observation again.
