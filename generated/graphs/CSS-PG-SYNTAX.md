@@ -3,7 +3,7 @@
 # Current state of `CSS-PG-SYNTAX`
 
 Graph document: `docs/CSS-SYNTAX-DAG.md`. Receipts log: `docs/receipts/CSS-PG-SYNTAX.md`.
-Fence: `Whatwg.Css.Syntax.Tree`, `Whatwg.Css.Syntax.Tokenize`, `Whatwg.Css.Syntax.Serialize`, `Whatwg.Css.Syntax.Laws`, `Whatwg.Css.Syntax.Laws.Dispatch`, `Whatwg.Css.Syntax.Laws.Name`, `Whatwg.Css.Syntax.Laws.Number`, `Whatwg.Css.Syntax.Laws.String`, `Whatwg.Css.Syntax.Laws.Escape`, `Whatwg.Css.Syntax.Laws.Token`, `Whatwg.Css.Syntax.Laws.Text`, `Whatwg.Css.Syntax.Write`, `Whatwg.Css.Syntax.Parse`, `Whatwg.Css.Syntax.Readable`, `Whatwg.Css.Syntax.Located`, `Whatwg.Css.Syntax.Parse.Component`, `Whatwg.Css.Syntax.Parse.Declaration`, `Whatwg.Css.Syntax.Parse.Step`, `Whatwg.Css.Syntax.Parse.Rule`, `Whatwg.Css.Syntax.Parse.Laws`, `Whatwg.Css.Syntax.Parse.Lines`, `Whatwg.Css.Syntax.Build` and `Whatwg.Css.Syntax.Build.Laws`.
+Fence: `Whatwg.Css.Syntax.Tree`, `Whatwg.Css.Syntax.Tokenize`, `Whatwg.Css.Syntax.Serialize`, `Whatwg.Css.Syntax.Laws`, `Whatwg.Css.Syntax.Laws.Dispatch`, `Whatwg.Css.Syntax.Laws.Name`, `Whatwg.Css.Syntax.Laws.Number`, `Whatwg.Css.Syntax.Laws.String`, `Whatwg.Css.Syntax.Laws.Escape`, `Whatwg.Css.Syntax.Laws.Token`, `Whatwg.Css.Syntax.Laws.Text`, `Whatwg.Css.Syntax.Write`, `Whatwg.Css.Syntax.Parse`, `Whatwg.Css.Syntax.Readable`, `Whatwg.Css.Syntax.Located`, `Whatwg.Css.Syntax.Parse.Component`, `Whatwg.Css.Syntax.Parse.Declaration`, `Whatwg.Css.Syntax.Parse.Step`, `Whatwg.Css.Syntax.Parse.Rule`, `Whatwg.Css.Syntax.Parse.Laws`, `Whatwg.Css.Syntax.Parse.Lines`, `Whatwg.Css.Syntax.Build`, `Whatwg.Css.Syntax.Build.Laws` and `Whatwg.Css.Syntax.Readable.Append`.
 Depends on: none.
 
 | Edge | Status | Ground |

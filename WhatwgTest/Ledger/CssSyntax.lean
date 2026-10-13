@@ -27,8 +27,9 @@ def cssSyntax : Graph where
     `Whatwg.Css.Syntax.Located, `Whatwg.Css.Syntax.Parse.Component,
     `Whatwg.Css.Syntax.Parse.Declaration, `Whatwg.Css.Syntax.Parse.Step,
     `Whatwg.Css.Syntax.Parse.Rule, `Whatwg.Css.Syntax.Parse.Laws, `Whatwg.Css.Syntax.Parse.Lines,
-    `Whatwg.Css.Syntax.Build, `Whatwg.Css.Syntax.Build.Laws]
-  acknowledged := ["R-S36", "R-S42"]
+    `Whatwg.Css.Syntax.Build, `Whatwg.Css.Syntax.Build.Laws,
+    `Whatwg.Css.Syntax.Readable.Append]
+  acknowledged := ["R-S36", "R-S42", "R-S47"]
   edges := {
     identity := {
       status := .requiredOpen

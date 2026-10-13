@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgCss rows=2729 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgCss rows=2746 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 GetElem.getElem.hcongr_8	Whatwg.Css.Syntax.Tokenize	theorem	generated	3	3fdcc20dc1ead04eec133322e564d7802c0dd4831bb98d18f5c045a3234c697c	-	-	-	-	-	-	-	-
 Whatwg.Css.Data.Pairs.columns	Whatwg.Css.Data.Pairs	definition	authored	0	7e0b5e93114afeb4cfebd768cc5a3e1e87d5b69050cf5aa923a90cf890442778	-	-	-	-	-	-	-	-
@@ -480,10 +480,16 @@ Whatwg.Css.Syntax.Rule.isNested	Whatwg.Css.Syntax.Readable	definition	authored	0
 Whatwg.Css.Syntax.Rule.isNested.match_1	Whatwg.Css.Syntax.Readable	definition	generated	1	2a48eabdd4196eb97277a73ecfad6a7039698bee7f4a2a4d3f53f4c6363c7798	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText	Whatwg.Css.Syntax.Readable	definition	authored	0	e959e489fc97607d162d28262eb9ad7bdd43332585e13299d2307ae83526e33d	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText.eq_1	Whatwg.Css.Syntax.Parse.Lines	theorem	generated	0	4baaa62efd31381c2dca6e203516e06939820aaad51634c96ceedb315bdb686c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.linesText.eq_1	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	4baaa62efd31381c2dca6e203516e06939820aaad51634c96ceedb315bdb686c	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText.eq_2	Whatwg.Css.Syntax.Parse.Lines	theorem	generated	0	542fa5320f6536058d7bbbc3ed367eb60a5a424f5f730fd8e6b9486f6b49a928	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.linesText.eq_2	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	542fa5320f6536058d7bbbc3ed367eb60a5a424f5f730fd8e6b9486f6b49a928	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText.eq_3	Whatwg.Css.Syntax.Parse.Lines	theorem	generated	0	deb892c291df7dfa9f4c1c26f36c251b7b471c9eff68ddee0c15ee928ebc7d48	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.linesText.eq_3	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	deb892c291df7dfa9f4c1c26f36c251b7b471c9eff68ddee0c15ee928ebc7d48	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText.eq_def	Whatwg.Css.Syntax.Parse.Lines	theorem	generated	0	d4c6a5d4db5fb2469c3b16ef05585101b49a9c555e17dc9fd2743dae682b93e2	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.linesText.eq_def	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	d4c6a5d4db5fb2469c3b16ef05585101b49a9c555e17dc9fd2743dae682b93e2	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText.match_1	Whatwg.Css.Syntax.Readable	definition	generated	1	9db3089986d0808030e46c1bfe669b2c206a35e089db146c5c4fe0cc74ac30b4	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.linesText_append	Whatwg.Css.Syntax.Readable.Append	theorem	authored	0	834c7d55ee8fb81c71c82de445472bc8a69d7269425a2d4c62cb7d2542bbe5dc	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.linesText_append.match_1_1	Whatwg.Css.Syntax.Readable.Append	definition	generated	0	12a76a0d40bed643a3235ba6a74a553284c7cce709b79ef8322c12798b2b1c3e	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.linesText_cons	Whatwg.Css.Syntax.Parse.Lines	theorem	authored	0	1f77cae7f2946685090a2caeea26ad207326bc83810f47d46e5bf5865cb6da92	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.located	Whatwg.Css.Syntax.Located	definition	authored	0	b0571bf94a9f61b69f3942501d59c9469ec38404be2183337a97e91e5a5fcf5f	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.located.eq_1	Whatwg.Css.Syntax.Located	theorem	generated	0	260ac61e34c0c4280b05f2086c375c1d353aa05616fa41803c14f33f806ebb7b	-	-	-	-	-	-	-	-
@@ -630,6 +636,7 @@ Whatwg.Css.Syntax.Stylesheet.text	Whatwg.Css.Syntax.Write	definition	authored	0	
 Whatwg.Css.Syntax.Stylesheet.tokens	Whatwg.Css.Syntax.Write	definition	authored	0	c6e4d3240061785b59abf7bda4eef1ec66ab8fa4337407aa104e7db82c88fa3b	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Stylesheet.writable	Whatwg.Css.Syntax.Readable	definition	authored	0	10a363fc00c9d3e684f89ce3bc3316b0b13022d7549777a139826eb7b1be5400	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Stylesheet.writableLines	Whatwg.Css.Syntax.Readable	definition	authored	0	10a363fc00c9d3e684f89ce3bc3316b0b13022d7549777a139826eb7b1be5400	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Stylesheet.writableLines_append	Whatwg.Css.Syntax.Readable.Append	theorem	authored	0	050141581085462306d3d52ef25f47df6ba923feb2e0131aadcd0bb1acf376d9	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.TableColumn	Whatwg.Css.Syntax.Serialize	inductive	authored	0	50bdba2d5863881f005509db232fe17f42bf02f6331fd501f1607c7d6004b6f7	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.TableColumn.asterisk	Whatwg.Css.Syntax.Serialize	constructor	authored	0	4d484f04b44c418f2cfe1ae71f492d1726bb43a69d1f39a825d949c727752efc	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.TableColumn.asterisk.elim	Whatwg.Css.Syntax.Serialize	definition	authored	1	4e8e16e4274bf7feecd89eb1aea07fa450e7c268fb05c9a3629ba6214a5b2ad7	-	-	-	-	-	-	-	-
@@ -969,6 +976,7 @@ Whatwg.Css.Syntax.Value.writable_singleton	Whatwg.Css.Syntax.Build.Laws	theorem	
 Whatwg.Css.Syntax.Value.writable_spaced	Whatwg.Css.Syntax.Build.Laws	theorem	authored	0	f6cd7b6c9dfff5e8355fdf62368b18658301bc9fd4b35e35070774f5d527900e	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Value.writable_spaced.match_1_1	Whatwg.Css.Syntax.Build.Laws	definition	generated	0	2de0b543ae3d9a5569a8278edc56b7ebcfe1a4a5dc7f1833b8947e3f85356ed6	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Writable	Whatwg.Css.Syntax.Serialize	definition	authored	0	1059197258ed175cbe3daa7061315dfd2ddb88edee52c040d6f08f7ef2ad833f	propext	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.and_rows	Whatwg.Css.Syntax.Readable.Append	theorem	authored	0	bfd447ed698bb0340e5443c885ce57ff3258caae880673784c30f12e240613e7	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.areValidEscape	Whatwg.Css.Syntax.Tokenize	definition	authored	0	98de1f0b117beaebdae5be0d8176a9b6be642d6e5120963a849239472415415d	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.areValidEscape.eq_1	Whatwg.Css.Syntax.Laws	theorem	generated	0	3110f8f36d969629ed889c1befa3d4048d70e9c041cc96b58bd0d2612f020f56	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.areValidEscape_first	Whatwg.Css.Syntax.Laws.Name	theorem	authored	0	4c167adc25e935ccfd6a901da1391b7f2d6c0c43a23ad848d5f9907a5b072273	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
@@ -1311,11 +1319,19 @@ Whatwg.Css.Syntax.escapeCharacter	Whatwg.Css.Syntax.Serialize	definition	authore
 Whatwg.Css.Syntax.escapeCharacter.eq_1	Whatwg.Css.Syntax.Laws.String	theorem	generated	0	0e05bce09813c730006ae9cf997625afce429ad47719830f66ffb6536f22d1a6	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.extraPairs	Whatwg.Css.Syntax.Serialize	definition	authored	0	41fa6a9449e7b2974d22de3b049fa87f892d5048ba85fe2326a34a6acc78b8f7	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filterCodePoint	Whatwg.Css.Syntax.Tokenize	definition	authored	0	1b1f93d03a33e75e0e566765d26c52ec9fea740b6b6105c2bb467d0283c8b43c	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoint_eq_self_iff	Whatwg.Css.Syntax.Readable.Append	theorem	authored	0	e65109575962e515760039bfd8a5eee5fcf3b82ecadd58e749c81d5bc85a0c88	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filterCodePoints	Whatwg.Css.Syntax.Tokenize	definition	authored	0	60b5e6b1aec0993e0ff9f386fed11e97243e58ae4c3d69e11b572736f9a5e52b	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints.eq_1	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	8db7a26f4e9dc06e38ba3a7535348c8486eaee954af61e63012d90f8eb5a8599	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints.eq_2	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	3095c5b92fe9229360cc72031b8b26613e83ff7c42a55a78d6936ebe1141d4e6	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints.eq_3	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	2d5d506e1feecc0558a983ba08cb5498d02c0c99b168c6807ee69e967d03a9b3	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints.eq_def	Whatwg.Css.Syntax.Readable.Append	theorem	generated	0	38d4aea99a8ac53740c81fdb4cc9c4a92f4589bd4220931976d0603ee83ba219	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filterCodePoints.match_1	Whatwg.Css.Syntax.Tokenize	definition	generated	1	80e2bd8aabbc3d3925e3a81e61a5a4e1da967a98cfd6d3c05aa5d6a94001c407	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filterCodePoints.match_1.congr_eq_1	Whatwg.Css.Syntax.Tokenize	theorem	generated	1	109e82cf602ebca7df6ef93f84e059c70bc2cadc530f838ead84602c0f971ad1	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filterCodePoints.match_1.congr_eq_2	Whatwg.Css.Syntax.Tokenize	theorem	generated	1	870cee979f455e75a319999c081fd99c497054d57e1bd06858c73e0c65db0894	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filterCodePoints.match_1.congr_eq_3	Whatwg.Css.Syntax.Tokenize	theorem	generated	1	b2866f6d185dbd42b67cb2fb9c8dd0fa8ec0f6ddd1c6da3e6ee2d2d64282a8a0	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints_beq	Whatwg.Css.Syntax.Readable.Append	theorem	authored	0	783f5c2ad8a4d3412195ed0f9d3776c998c433888ad678fd3b73817c2427b012	propext	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints_eq_self_iff	Whatwg.Css.Syntax.Readable.Append	theorem	authored	0	fc8999e62adbe52978292b1959ff378c50e157a515cb932322fd29bd9f3753a0	propext	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.filterCodePoints_eq_self_iff.match_1_1	Whatwg.Css.Syntax.Readable.Append	definition	generated	0	10c6b2a20cd0e65e854e4d17cfe2658778ab7f82229a42d8de8c9e33700afb30	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.filter_not_dropWhile	Whatwg.Css.Syntax.Parse.Rule	theorem	authored	0	70778a82edbfe40149b6f09283defccb66d23c59b5f9b3847125c2854bf8c937	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.fixedDigits	Whatwg.Css.Syntax.Serialize	definition	authored	0	ff04665778680a8f6cb52c027c479b477ea51a0a6fb6d515bfcb898751679455	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.fixedDigits.eq_1	Whatwg.Css.Syntax.Laws.Number	theorem	generated	0	2276fb0e5134886e13314ed31d1d467270d05cde81276a10249bc9ed69a5e4b6	-	-	-	-	-	-	-	-
@@ -1427,6 +1443,7 @@ Whatwg.Css.Syntax.isDigit_facts	Whatwg.Css.Syntax.Laws.Dispatch	theorem	authored
 Whatwg.Css.Syntax.isDigit_of_mem_fixedDigits	Whatwg.Css.Syntax.Laws.Number	theorem	authored	0	3035cf7cea583b370a7f55237de35f6fc4ccd84ab3c947de1c565e270fdc4f60	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.isDigit_of_mem_toDigits	Whatwg.Css.Syntax.Laws.Number	theorem	authored	0	99a804f8df64d41db617231e1f7cd22e871fe1056b2ddac87b4c5c0c0358807a	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.isEmpty_append_cons	Whatwg.Css.Syntax.Parse.Rule	theorem	authored	0	14413368460b6c7fed78ca1a4ba5beec9209f082dcc42940b5119212366a86b5	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.isFiltered	Whatwg.Css.Syntax.Readable.Append	definition	authored	0	09b1575e6657e6c081d0c531155b81b7a088bcdcc9d03ecfd561df4f7fad9cce	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.isHexDigit	Whatwg.Css.Syntax.Tokenize	definition	authored	0	09b1575e6657e6c081d0c531155b81b7a088bcdcc9d03ecfd561df4f7fad9cce	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.isHexDigit.eq_1	Whatwg.Css.Syntax.Laws.Dispatch	theorem	generated	0	0063297a35d292fe29c1347ca040164f9165f364507eb641e46151a99877a162	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.isHexDigit_of_not_isIdent	Whatwg.Css.Syntax.Laws.Escape	theorem	authored	0	ba7fbc74947a77a8fb528db696c2b71a506c6d379840605ac53d5a5a58d63f16	propext,Classical.choice,Quot.sound	-	-	-	-	-	-	-

@@ -34,9 +34,10 @@ and the pass is no second definition. `Test.holds` is a homomorphism to `Bool` b
 (`mem_places_and`). `mem_placesAmong_iff` is the law of a list: a place in a list of trees is
 a place in one of them, read with the elements before and after it in the whole list.
 
-The other half is not here. A selector that selects the elements of a place, and the theorem
-that it does, belong to the CSS side: Selectors is not sealed in this repository, and a
-`Where` is this module's own term, not a selector. The constructors were chosen so that each
+The selector of a place is `Whatwg/Html/Content/Structure/Selector.lean`, and the sheet whose
+every rule holds a fact is `Whatwg/Html/Content/Structure/Sheet.lean`. The theorem that a
+selector selects the elements of a place is not here: Selectors is not sealed in this
+repository, and a `Where` is this module's own term, not a selector. The constructors were chosen so that each
 has one obvious selector (from memory of Selectors Level 4, not checked): a type selector, a
 class selector, the two attribute selectors, `:first-child`, `:nth-last-child(n)`, `:not()`,
 a compound, `:is()`, the child combinator and the descendant combinator.

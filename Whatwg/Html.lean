@@ -10,6 +10,11 @@ import Whatwg.Html.Content.Site.Laws
 import Whatwg.Html.Content.Automaton
 import Whatwg.Html.Content.Monotone
 import Whatwg.Html.Content.Structure
+import Whatwg.Html.Content.Structure.Selector
+import Whatwg.Html.Content.Structure.Selector.Laws
+import Whatwg.Html.Content.Structure.Look
+import Whatwg.Html.Content.Structure.Sheet
+import Whatwg.Html.Content.Structure.Sheet.Laws
 import Whatwg.Html.Content.Site.Link
 import Whatwg.Html.Content.Site.Link.Laws
 import Whatwg.Html.Content.Document.Addresses

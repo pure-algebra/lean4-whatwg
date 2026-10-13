@@ -830,3 +830,39 @@ compare it with your file.
 
 The layered picture here packs rows from the left and gives a long edge no points, so it is not
 yet your picture; the two laws do not depend on what is left out.
+
+## 24. Slice S22, seventh part: your stylesheet as one typed value (your ask W14)
+
+Ruling R-S47 of `COORDINATION.md`. This replaces the last paragraph of section 19: the typed
+sheet of facts is built. Read at your checkout `6ad8f7b8d`.
+
+What you write, with `WhatwgTest/Html/PageSheet.lean` as the template (it is your `page.css`,
+all 80 rules):
+
+1. Your tokens, by kind: `inductive Token : Kind → Type` with `instance : Look Token` (the name
+   of the custom property of each). A colour or a family is then taken only from a token: a
+   literal colour in a declaration that carries one is a type error.
+2. Your facts beside the package's: `inductive PageFact` with `instance : Vocabulary PageFact`
+   (each fact names its place in a tree, as a `Where`). A status's emphasis is a function from
+   your status to a tone, an ordinary function into `Paint`.
+3. The sheet: `def page : Sheet (Fact ⊕ PageFact) Token`, entries that each `draw` a fact, with
+   `media`, `face` and `define` for the three things of a sheet that draw none. A rule with no
+   fact cannot be written.
+4. Print `page.text`. `Sheet.parse_text page (by decide +kernel)` is the theorem that the
+   printed file parses to the tree of your value (the kernel computes the premise in about
+   thirteen seconds for your sheet). `Sheet.unused page pages` is the rules that draw nothing in
+   your pages, and `Sheet.undrawn` the facts no rule draws.
+
+Against your file as it stands: the 247 declarations are equal, in order; 77 of the 80 rules are
+the same tree, white space included; three differ in the selector alone:
+
+| Your selector | Written from a place | Why |
+| --- | --- | --- |
+| `.crumbs li + li::before` | `.crumbs li:not(:first-child)::before` | a place has no sibling combinator yet; the second weighs more, and no other rule of the file draws that pseudo-element |
+| `section:target > :is(h2, …, h6)` | `section:target > h2, section:target > h3, …` | an `or` at the top of a place's own test is written as a list, since `:is()` changes a selector's weight |
+| `:focus-visible` | `*:focus-visible` | the same selection |
+
+What the types do not check: `plain` judges a property by its name, so `text-decoration: red`
+passes; the properties that carry a colour are a list from memory; and that a browser's selector
+matches a place is not a theorem here, since Selectors is not sealed (debt D144). Your check
+`Sheet.problem` becomes the types within those limits.

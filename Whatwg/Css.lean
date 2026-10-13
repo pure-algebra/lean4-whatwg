@@ -6,6 +6,7 @@ import Whatwg.Css.Syntax.Laws
 import Whatwg.Css.Syntax.Write
 import Whatwg.Css.Syntax.Parse
 import Whatwg.Css.Syntax.Readable
+import Whatwg.Css.Syntax.Readable.Append
 import Whatwg.Css.Syntax.Located
 import Whatwg.Css.Syntax.Parse.Component
 import Whatwg.Css.Syntax.Parse.Declaration

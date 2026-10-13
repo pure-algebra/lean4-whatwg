@@ -107,6 +107,7 @@ import WhatwgTest.Html.Links
 import WhatwgTest.Html.Navs
 import WhatwgTest.Html.Outlines
 import WhatwgTest.Html.Tables
+import WhatwgTest.Html.PageSheet
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
