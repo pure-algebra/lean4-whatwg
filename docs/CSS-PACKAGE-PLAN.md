@@ -1,7 +1,9 @@
 # Plan: `Whatwg.Css`, CSS adopted as data
 
 Status: **K0 and K1 landed, 2026-10-12** (K1: 178 blocks of eleven modules as 351 rows, no
-construct refused; section 7 has what the extractor found). K2 and K3 are being
+construct refused; section 7 has what the extractor found). **K3 landed the same day**: the
+value definition syntax reads all 186 collected definitions and prints each back, and its
+interpreter admits the values the picture kit writes; section 8 has what it found. K2 is being
 built. The owner asked for it in these words: "seal the css syntax spec", and "figure a way to
 mechanize css spec adoption for rigorous foolproof reification". lean4-effect4 asks for the same
 thing from its side (entry W5 of `docs/research/2026-10-12-whatwg-requests.md`: a stylesheet
@@ -187,3 +189,33 @@ bound (K3); escapes in identifiers that the kit's stems could need (K2, with `cs
 - **For ruling CS-8**: the diagram of `wsp` in CSS Transforms 1 has a form feed where its prose
   has a line feed. The diagram is informative; the module `Whatwg/Svg/Value/Transform.lean`
   follows the prose.
+
+## 8. What slice K3 found
+
+- **The reader is not an invertible description of the kit** (`Syn`). That type has no nesting,
+  no character outside ASCII, and one character of lookahead; the notation needs all three. The
+  reader is a lexer and a parser, with `read (print d) = some d` proved for a well-formed tree.
+- **Where the standard leaves a choice**, each docstring quotes the sentence and says the
+  reading taken: the scope of a comma that may be omitted, what may take a multiplier, which
+  multipliers stack, and that white space is dropped before a value is judged.
+- **The kit's scrubbed delay is refused by the grammar as written.** `calc((300 - var(--t, 0)) *
+  0.6ms)` is no `<time>` token. That a math function may stand wherever its type would, and that
+  a value holding `var()` is judged later, are prose of CSS Values 4 and CSS Variables 1. Slice
+  K5 must model both before it can state the writer's soundness for a scrubbed step.
+- **Names that only prose defines** need authored readings pinned by digest:
+  `<transform-function>` and `<length-percentage>`.
+- **One name in two modules**: `scale()`, `<single-animation>`, `animation-duration` and
+  `animation-delay` each stand in two levels. A generated data module is per module, and a
+  writer names the level it writes for.
+- **Debt D97 is not what it was thought to be.** `points` and `viewBox` of SVG 2 are in this
+  notation and read. The `transform` attribute is not: CSS Transforms 1 states it in a
+  Backus-Naur form of its own, and says that the attribute and the property differ. A guard
+  shows the kit's attribute text refused by the property's grammar. Comparing the hand-written
+  grammars of `points` and `viewBox` with the sealed lines needs the tokenizer of slice K2.
+- **Cost.** The interpreter searches. `animation` with three items takes about 7 ms in the
+  evaluator; a refused value of four items of eight parts takes 128 ms. No bound on the search
+  is needed at the sizes the kit writes.
+- **Open, by name**: that the reader gives only well-formed trees (tested on every line, not
+  proved); laws for a juxtaposition with commas and for `{A,B}`, which `cubic-bezier()` and
+  `translate()` need in slice K5; the test's corpus is a file written by a script and not yet
+  the extractor's tables read by a gate.
