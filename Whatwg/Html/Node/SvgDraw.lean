@@ -14,7 +14,7 @@ a number of places that is three unless the caller says otherwise:
 
 ```
 Svg.cubics edge [.fill .none, .stroke ink]            -- a chain of segments, open
-Svg.loops (Cubic.ring box 6 1) [.fillRule true]       -- closed outlines, one `d`
+Svg.loops (Cubic.ring box 6 1) [.fillRule .evenodd]   -- closed outlines, one `d`
 Svg.curve .catmullRom points [.fill .none]            -- a curve through points
 Svg.box b [.fill ground]                              -- `rect` of a box
 Svg.dot p 2                                           -- `circle` at a point

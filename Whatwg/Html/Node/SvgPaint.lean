@@ -15,9 +15,10 @@ strings, and writes the string for it:
 - `Rgb` is a colour of three bytes, with `hex`, the text `#rrggbb`, and `ofHex?`, its reader;
   `Rgb.ofHex?_hex` says that the text of a colour reads back as the colour.
 - `Paint` is `none`, `currentColor`, a colour, a reference `url(#id)`, or a text as it is.
-- `SvgAttr.fill`, `stroke`, `strokeWidth`, `strokeDasharray`, the three opacities, `fillRule`,
-  the four font attributes, `textAnchor`, `pointerEvents`, `xmlSpacePreserve`, `className`,
-  `ident` and `clipPath` are attributes of any element, and `dataKey?` is the `data-key`
+- `SvgAttr.fill`, `stroke`, `strokeWidth`, `strokeDasharray`, the three opacities, the family,
+  size and weight of a font, `textAnchor`, `xmlSpacePreserve`, `className`, `ident` and
+  `clipPath` are attributes of any element (an attribute whose value is one of a closed set of
+  keywords, such as `fill-rule`, is in `Whatwg/Html/Node/SvgKeyword.lean` since slice S17), and `dataKey?` is the `data-key`
   attribute of a key that is not empty. A number is written with no zero at the end of its
   fraction.
 
@@ -187,9 +188,6 @@ def fillOpacity (o : Decimal) : SvgAttr t := .attr .fill_opacity (numberText o)
 /-- `stroke-opacity`. -/
 def strokeOpacity (o : Decimal) : SvgAttr t := .attr .stroke_opacity (numberText o)
 
-/-- `fill-rule`: `evenodd`, or `nonzero`. -/
-def fillRule (evenodd : Bool) : SvgAttr t :=
-  .attr .fill_rule (if evenodd then "evenodd" else "nonzero")
 
 /-- `font-family`, as CSS writes a list of families. -/
 def fontFamily (css : String) : SvgAttr t := .attr .font_family css
@@ -200,15 +198,10 @@ def fontSize (size : Decimal) : SvgAttr t := .attr .font_size (numberText size)
 /-- `font-weight`, a number such as 400 or 700. -/
 def fontWeight (weight : Nat) : SvgAttr t := .attr .font_weight (toString weight)
 
-/-- `font-style`: `italic`, or `normal`. -/
-def fontStyle (italic : Bool) : SvgAttr t :=
-  .attr .font_style (if italic then "italic" else "normal")
 
 /-- `text-anchor`. -/
 def textAnchor (anchor : TextAnchor) : SvgAttr t := .attr .text_anchor anchor.css
 
-/-- `pointer-events`, by its keyword. -/
-def pointerEvents (keyword : String) : SvgAttr t := .attr .pointer_events keyword
 
 /-- `xml:space="preserve"`: the white space of a text is kept. -/
 def xmlSpacePreserve : SvgAttr t := .attr .xml_space "preserve"

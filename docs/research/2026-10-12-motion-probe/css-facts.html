@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CSS checks for the polish pass</title>
+<style>
+  :root { --t: 400; }
+  @property --e { syntax: "<number>"; inherits: false; initial-value: 0; }
+  @keyframes m0 { from { translate: 100px 0px } to { translate: 0px 0px } }
+  @keyframes m1 { from { translate: 0px 0px } to { translate: 50px 0px } }
+  @keyframes e0 { from { --e: 0 } to { --e: 1 } }
+  .r { animation-duration: 0s !important; animation-delay: 0s !important; }
+</style>
+<svg width="400" height="260" viewBox="0 0 400 260">
+  <rect id="lit"   x="0" y="0"   width="20" height="20" style="animation: m0 1000ms linear -400ms both paused"/>
+  <rect id="scrub" x="0" y="30"  width="20" height="20" style="animation: m0 1000ms linear calc(0ms - var(--t) * 1000ms / 1000) both paused"/>
+  <rect id="late"  x="0" y="60"  width="20" height="20" style="animation: m0 500ms linear calc(300ms - var(--t) * 1000ms / 1000) both paused"/>
+  <rect id="red"   x="0" y="90"  width="20" height="20" class="r" style="animation: m0 1000ms linear 300ms both"/>
+  <rect id="add"   x="0" y="120" width="20" height="20" style="animation: m0 1000ms linear -400ms both paused, m1 1000ms linear -500ms both paused; animation-composition: replace, add"/>
+  <rect id="reg"   x="0" y="150" width="20" height="20" style="animation: e0 1000ms linear -400ms both paused; translate: calc(100px + (0px - 100px) * var(--e)) 0px"/>
+</svg>

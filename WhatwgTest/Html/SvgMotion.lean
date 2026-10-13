@@ -16,7 +16,7 @@ S15 the kit has a reader (`Whatwg/Svg/Scene/Frame.lean`) and a step in stages
 The kit owns the mechanism of motion, and lean4-effect4's own port is written from this file. So
 the file has three kinds of thing, and says which is which.
 
-**What a real port copies.** Four things, each short.
+**What a real port copies.** Five things, each short.
 
 1. *The plan* (`plan`): one `Plan` that says what each thing of a step does. It settles
    (`plan_settles`), and it is proper where the choreography is (`plan_proper`). The motion of a
@@ -36,6 +36,11 @@ the file has three kinds of thing, and says which is which.
    new things enter (`staged_kept_rest`), level by level (`staged_levels`), the last picture
    (`staged_end`), and one track for each property (`stagedMotion_single`, which is
    `Motion.staged_single` of `stagedPlan_single`).
+5. *The step as CSS* (`play`, `routeAttrs`, `classRules`): how the step is played is one `Play`,
+   and the sheet (`Motion.rules`, `Motion.sheetNode`) and each thing (`Motion.attrs`) are given
+   the same one. A thing of the consumer keeps its class and its key. Its own declarations go in
+   as `own`, and the thing has one `style`. The consumer's own rules go in the same sheet, after
+   the step's.
 
 **What is the consumer's code, restated.** The easings and their two tables (`Ease`, `Ease.at`,
 `tableAt`, `Ease.points`), the timing of a transition (`Ease.timed`), the writing of a number
@@ -150,8 +155,10 @@ rank is a place in a sorted list, so `staged_end` cuts the step and asks nothing
 **The guards.** Each is a finite evaluation: the spread of each easing against the consumer's
 formula, the timing of each default transition against the consumer's, the numbers of the
 default choreography in per mille, a step of five things at three of its moments, the two steps
-side by side, and the CSS of the consumer's step. The CSS is text written by rule; no browser
-read it here.
+side by side, and the CSS of the consumer's step: the rules of its sheet as data, how much is
+written, the style of three things, a route of the consumer with the step on it, the same step
+scrubbed by one number, and which things carry the mark of reduced motion. The CSS is text
+written by rule; no browser read it here.
 
 Every theorem of this module depends on `propext` and `Quot.sound` at most.
 -/
@@ -159,6 +166,7 @@ namespace WhatwgTest.Html.SvgMotion
 
 open Whatwg.Html
 open Whatwg.Svg.Scene
+open Whatwg.Svg.Value (Cubic)
 
 /-! ## Easing -/
 
@@ -304,12 +312,13 @@ def Ease.css (e : Ease) : String :=
 -- The kit writes the stops of an easing as the consumer writes its points.
 #guard Ease.all.all fun e => (Easing.sampled e.at).css == e.css
 
--- What the kit writes for three of the seven: a cubic as it is, and two stops as `linear()`.
+-- What the kit writes for three of the seven: a cubic as it is, and the two stops `0` and `1`
+-- as the keyword `linear`, which is `linear(0, 1)` in CSS.
 #guard (Ease.kit .out).css == "cubic-bezier(0.333333, 1, 0.666667, 1)"
 
 #guard (Ease.kit .outBack).css == "cubic-bezier(0.333333, 1.567, 0.666667, 1)"
 
-#guard (Ease.kit .linear).css == "linear(0, 1)"
+#guard (Ease.kit .linear).css == "linear"
 
 /-! ## Transitions and the choreography -/
 
@@ -795,34 +804,221 @@ def whole (m : Motion String) : List (String × Change × Transition) :=
 -- place, and in the staged step it is at rest on it.
 #guard ((motion {} before after).frame "a" 300).shift == ⟨-3, 0⟩
 #guard ((stagedMotion {} before after).frame "a" 300).AtRest
-/-! ## The step as CSS -/
 
--- The style sheet: one `@keyframes` rule for each track, in the order of the tracks.
-#guard Motion.sheet fiveStep ==
-  "@keyframes m0 { from { translate: -60px 0px } to { translate: 0px 0px } }\n" ++
-  "@keyframes m1 { from { scale: 0 } to { scale: 1 } }\n" ++
-  "@keyframes m2 { from { stroke-dashoffset: 1000 } to { stroke-dashoffset: 0 } }\n" ++
-  "@keyframes m3 { from { scale: 0 } to { scale: 1 } }\n" ++
-  "@keyframes m4 { from { scale: 1 } to { scale: 0 } }"
+/-! ## The step as CSS
 
--- The new route, in a step of 600 ms: its animation, and the one dash that it is drawn by.
--- Its duration is 157 thousandths of the step, and is written exactly.
-#guard Motion.style? fiveStep "a c" 600 ==
-  some ("animation: m2 94.2ms cubic-bezier(0.333333, 1, 0.666667, 1) 180ms both;" ++
-    " stroke-dasharray: 1000;")
+How a step is played is said once, in a `Play`. The sheet and the things are given the same
+one, so they cannot disagree. -/
+
+/-- The consumer's step of 600 ms, and the kit's defaults for the rest: opened at its start,
+running, with the rule of reduced motion where a reader asked for it. -/
+def play : Play := { step := 600 }
+
+-- The rules of the sheet, as data. Five tracks and four `@keyframes` rules: the two new boxes
+-- grow by one change under one easing, so the second names the rule of the first, `m-1`, and
+-- no rule is `m-3`. Each rule has the easing of its tracks at its first keyframe. The last rule
+-- is that of reduced motion: it ends every animation of the step's things at once, and its two
+-- declarations are important.
+#guard fiveStep.rules play ==
+  [.keyframes "m-0"
+      [("translate", "-60px 0px"), ("animation-timing-function", Ease.settle.kit.css)]
+      [("translate", "0px 0px")],
+    .keyframes "m-1" [("scale", "0"), ("animation-timing-function", Ease.spring.kit.css)]
+      [("scale", "1")],
+    .keyframes "m-2"
+      [("stroke-dashoffset", "2000"),
+        ("animation-timing-function", "cubic-bezier(0.333333, 1, 0.666667, 1)")]
+      [("stroke-dashoffset", "1000")],
+    .keyframes "m-4"
+      [("scale", "1"), ("animation-timing-function", "cubic-bezier(0.333333, 0, 0.666667, 0)")]
+      [("scale", "0")],
+    .media "(prefers-reduced-motion: reduce)"
+      [.style "[data-motion=\"m\"]"
+        [⟨"animation-duration", "0s", true⟩, ⟨"animation-delay", "0s", true⟩]]]
+
+-- Under those names are the two kinds of rule that a reader of CSS gives, each with its
+-- declarations and its child rules. The rule of reduced motion is an at-rule with no
+-- declaration and one child, a qualified rule: a selector and its declarations. A `@keyframes`
+-- rule is an at-rule with no declaration and its two keyframes for children, each a qualified
+-- rule: a prelude and its declarations.
+#guard (fiveStep.rules play).getLast? ==
+  some (.at "media" "(prefers-reduced-motion: reduce)" []
+    [.qualified "[data-motion=\"m\"]"
+      [⟨"animation-duration", "0s", true⟩, ⟨"animation-delay", "0s", true⟩] []])
+
+#guard ((fiveStep.rules play).drop 3).head? ==
+  some (.at "keyframes" "m-4" []
+    [.qualified "from"
+        [("scale", "1"), ("animation-timing-function", "cubic-bezier(0.333333, 0, 0.666667, 0)")]
+        [],
+      .qualified "to" [("scale", "0")] []])
+
+-- The same rules as text, one a line: the last three.
+#guard ((Motion.sheet fiveStep play).splitOn "\n").drop 2 ==
+  ["@keyframes m-2 { from { stroke-dashoffset: 2000; animation-timing-function: " ++
+      "cubic-bezier(0.333333, 1, 0.666667, 1) } to { stroke-dashoffset: 1000 } }",
+    "@keyframes m-4 { from { scale: 1; animation-timing-function: " ++
+      "cubic-bezier(0.333333, 0, 0.666667, 0) } to { scale: 0 } }",
+    "@media (prefers-reduced-motion: reduce) { [data-motion=\"m\"] { " ++
+      "animation-duration: 0s !important; animation-delay: 0s !important } }"]
+
+-- How much is written. Until slice S17 the sheet of this step had a rule for each track, 308
+-- characters, and the five styles had 843, each with its easing: 1151 together. Now an easing
+-- is written once for each rule. The sheet has 743 characters before the rule of reduced
+-- motion and the five styles 329: 1072 together.
+#guard (Motion.sheet fiveStep { play with reduce := .never }).length == 743
+
+#guard (["a", "c", "a c", "d", "b"].map fun k =>
+    ((Motion.style? fiveStep k play).getD "").length) == [29, 82, 56, 82, 80]
+
+/-- Twenty new boxes on four levels. -/
+def twenty : List Thing :=
+  (List.range 20).map fun i =>
+    ⟨toString i, ⟨((40 * (i % 5) : Nat) : Int), ((60 * (i / 5) : Nat) : Int)⟩, .box⟩
+
+-- A step in which twenty boxes come: all grow by one change under one easing, each at its own
+-- time. The sheet has one rule of 226 characters, and each style names it. Until slice S17 it
+-- had twenty rules, and each style its own copy of the spring.
+#guard ((motion {} [] twenty).rules { play with reduce := .never }).map Css.Rule.css ==
+  ["@keyframes m-0 { from { scale: 0; animation-timing-function: " ++ Ease.spring.kit.css ++
+    " } to { scale: 1 } }"]
+
+-- A box of the first level and a box of the second: one rule, two delays.
+#guard (["0", "5"].map fun k => Motion.style? (motion {} [] twenty) k play) ==
+  [some "animation: m-0 63ms 222ms both; transform-box: fill-box; transform-origin: center",
+    some "animation: m-0 63ms 327ms both; transform-box: fill-box; transform-origin: center"]
+
+/-! ### The things of the step -/
+
+-- The new route: its animation names its rule, with its duration and its delay. The duration
+-- is 157 thousandths of the step, and is written exactly. The line is drawn by one dash, twice
+-- as long as the line.
+#guard Motion.style? fiveStep "a c" play ==
+  some "animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000"
 
 -- The box that leaves: it shrinks about its middle.
-#guard Motion.style? fiveStep "b" 600 ==
-  some ("animation: m4 150ms cubic-bezier(0.333333, 0, 0.666667, 0) 0ms both;" ++
-    " transform-box: fill-box; transform-origin: center;")
+#guard Motion.style? fiveStep "b" play ==
+  some "animation: m-4 150ms 0ms both; transform-box: fill-box; transform-origin: center"
 
--- The box of the second level: the spring as `linear()`, started at 474 ms.
-#guard Motion.style? fiveStep "d" 600 ==
-  some ("animation: m3 126ms linear(0, 0.059, 0.195, 0.363, 0.531, 0.681, 0.804, 0.898, " ++
-    "0.964, 1.007, 1.032, 1.043, 1.045, 1.041, 1.034, 1.026, 1.019, 1.012, 1.007, 1.003, 1) " ++
-    "474ms both; transform-box: fill-box; transform-origin: center;")
+-- The box of the second level names the rule of the box of the first, and starts at 474 ms.
+#guard Motion.style? fiveStep "d" play ==
+  some "animation: m-1 126ms 474ms both; transform-box: fill-box; transform-origin: center"
 
 -- A key with no track has no style.
-#guard Motion.style? fiveStep "z" 600 == none
+#guard Motion.style? fiveStep "z" play == none
+
+-- A part revealed past the end of a line, as an easing that passes its end gives it, is the
+-- whole line: the dash is offset by 955 of its two thousand, and covers the thousand of the
+-- line. A dash of one thousand would be offset by 45 less than nothing, and the first 45 of the
+-- line would fall in the gap before it.
+#guard (Pose.reveal 1045).decl == { name := "stroke-dashoffset", value := "955" }
+
+/-! ### A thing of the consumer with the step on it
+
+The consumer's `Dev.svg` writes a route as a `path` with the class of its role, its stroke and
+its key (`curveNode` of `WhatwgTest/Html/SvgKit.lean`). A step adds its own attributes to it,
+and replaces none. -/
+
+/-- The attributes of the consumer's route, and then what a step puts on it. -/
+def routeAttrs (key : String) (more : List (SvgAttr .path)) : List (SvgAttr .path) :=
+  [.className "e4-stroke-rule", .fill .none, .stroke (Rgb.ofNat 0x14110d), .strokeWidth 2] ++
+    SvgAttr.dataKey? key ++ more
+
+-- The new route as it is written: the consumer's five attributes, then the length that the
+-- dash counts in, the mark of the step, and one `style`.
+#guard (routeAttrs "a c" (Motion.attrs fiveStep "a c" play)).map SvgAttr.toPair ==
+  [("class", "e4-stroke-rule"), ("fill", "none"), ("stroke", "#14110d"), ("stroke-width", "2"),
+    ("data-key", "a c"), ("pathLength", "1000"), ("data-motion", "m"),
+    ("style", "animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000")]
+
+-- A route with a style of its own has one `style` still: its own declarations and the step's,
+-- each property once. The step's dash stands over the route's own.
+#guard (Motion.attrs fiveStep "a c" play [("cursor", "pointer"), ("stroke-dasharray", "4 2")] :
+    List (SvgAttr .path)).map SvgAttr.toPair ==
+  [("pathLength", "1000"), ("data-motion", "m"),
+    ("style", "cursor: pointer; animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000")]
+
+-- The element takes the list: no attribute stands twice.
+#guard SvgAttr.allOk (routeAttrs "a c" (Motion.attrs fiveStep "a c" play [("cursor", "pointer")]))
+
+-- A declaration of the route's own that is important stays beside the step's, for the browser
+-- to weigh: an important declaration stands over one that is not, whatever their order.
+#guard Css.Decls.merge [⟨"stroke-dasharray", "4 2", true⟩] (fiveStep.decls "a c" play) ==
+  ([⟨"stroke-dasharray", "4 2", true⟩, ("animation", "m-2 94.2ms 180ms both"),
+    ("stroke-dasharray", "2000")] : Css.Decls)
+
+#guard (Css.Decls.merge [⟨"stroke-dasharray", "4 2", true⟩] (fiveStep.decls "a c" play)).shown?
+  "stroke-dasharray" == some "4 2"
+
+-- Why the declarations are merged: an element with two `style` attributes is refused.
+#guard !SvgAttr.allOk
+  (routeAttrs "a c" (.style "cursor: pointer" :: Motion.attrs fiveStep "a c" play))
+
+-- Why the mark of a step is no class: the route has a class of its own, and an element with
+-- two is refused.
+#guard !SvgAttr.allOk (routeAttrs "a c" [.className "m"])
+
+/-- The consumer's class rules (`Tools.View.Tokens.rules`) for two roles, as rules of the kit:
+each class takes its colour from a custom property of the look. -/
+def classRules : Css.Sheet :=
+  ["ink", "rule"].map fun role =>
+    .style (".e4-stroke-" ++ role) [("stroke", "var(--e4-color-" ++ role ++ ")")]
+
+-- One sheet for the picture: the rules of the step, and then the consumer's own.
+#guard ((fiveStep.rules play ++ classRules).css.splitOn "\n").drop 5 ==
+  [".e4-stroke-ink { stroke: var(--e4-color-ink) }",
+    ".e4-stroke-rule { stroke: var(--e4-color-rule) }"]
+
+-- A picture of the sheet, the route and the box that leaves is right by its tags and its keys.
+#guard (Svg.svg []
+    [fiveStep.sheetNode play classRules,
+      Svg.cubics [Cubic.line ⟨100, 46⟩ ⟨100, 127⟩]
+        (routeAttrs "a c" (Motion.attrs fiveStep "a c" play)),
+      Svg.g (Motion.attrs fiveStep "b" play) []]).okIn Whatwg.Html.Content.Ctx.flow
+
+/-! ### A step that one number scrubs -/
+
+-- The same route in a step that the custom property `--t` scrubs: the animation is paused, and
+-- its delay is the 300 per mille of its start less the property, in per mille of 0.6 ms.
+#guard Motion.style? fiveStep "a c" play.scrubbed ==
+  some ("animation: m-2 94.2ms calc((300 - var(--t, 0)) * 0.6ms) both paused; " ++
+    "stroke-dasharray: 2000")
+
+-- With `--t: 400` on the picture that delay is 60 ms less than nothing: what is written for
+-- the step opened at the moment 400.
+#guard play.scrubbed.at 400 == ([("--t", "400")] : Css.Decls)
+
+#guard Motion.style? fiveStep "a c" { play with opened := 400, paused := true } ==
+  some "animation: m-2 94.2ms -60ms both paused; stroke-dasharray: 2000"
+
+-- What the kit reads at that moment: 952 per mille of the route is drawn, so the dash is
+-- offset by 1048, and the kept box stands one unit short of its place.
+#guard (fiveStep.frame "a c" 400).decls ==
+  ([("stroke-dashoffset", "1048"), ("stroke-dasharray", "2000")] : Css.Decls)
+
+#guard (fiveStep.frame "a" 400).decls == ([("translate", "-1px 0px")] : Css.Decls)
+
+/-! ### Reduced motion -/
+
+/-- Whether the attributes that a step gives a thing hold its mark. -/
+def marked (m : Motion String) (key : String) (p : Play) : Bool :=
+  ((Motion.attrs m key p : List (SvgAttr .g)).map SvgAttr.toPair).contains ("data-motion", p.stem)
+
+-- Each thing of the step that moves carries the mark that the rule of reduced motion selects,
+-- and a thing with no track carries none.
+#guard (["a", "c", "a c", "d", "b", "z"].map fun k => marked fiveStep k play) ==
+  [true, true, true, true, true, false]
+
+-- A step that stands still carries no mark: it is a still picture of its moment, and the rule
+-- must not put it at its end.
+#guard (["a", "c", "a c", "d", "b"].map fun k =>
+    marked fiveStep k { play with opened := 400, paused := true }) ==
+  [false, false, false, false, false]
+
+-- What the rule shows is the step's last moment. There the kit reads every thing of the new
+-- scene at rest (`sample_end`), so its frame writes nothing, and the box that leaves at no
+-- size.
+#guard (["a", "c", "a c", "d", "b"].map fun k => (fiveStep.frame k 1000).css) ==
+  ["", "", "", "", "scale: 0; transform-box: fill-box; transform-origin: center"]
 
 end WhatwgTest.Html.SvgMotion

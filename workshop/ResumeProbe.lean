@@ -1,9 +1,9 @@
-import Whatwg.Html.Node.SvgMotion
+import Whatwg.Html.Node.SvgStep
 import Whatwg.Html.Print.Picture
 import Whatwg.Svg.Geometry.Outline
-import Whatwg.Svg.Scene.Resume
 
-/-! A probe of a step that is interrupted (`Whatwg/Svg/Scene/Resume.lean`). Run it from the
+/-! A probe of a step that is interrupted (`Whatwg/Svg/Scene/Resume.lean`), written on a step as
+one value (`Whatwg/Svg/Scene/Step.lean`, `Whatwg/Html/Node/SvgStep.lean`). Run it from the
 repository root after `lake build`:
 
     lake env lean workshop/ResumeProbe.lean
@@ -18,12 +18,12 @@ leaves too, and every box moves left again. The page shows the moment of the int
 ways:
 
 1. the second step starts from the still picture, as a viewer does that knows the pictures only;
-2. the second step resumes from where each thing is seen (`Plan.resume`).
+2. the second step resumes from where each thing is seen (`Step.interrupt`).
 
 For each way it shows two pictures that the browser computes with no script, from tracks opened
 at a moment and paused: the last picture of the first step, and the first picture of the second.
 Under them it prints where each box stands in the two, by the kit's own reading. The law of the
-module (`Motion.nothing_moves`) says that the second way has the same places in both. -/
+module (`Step.nothing_moves`) says that the second way has the same places in both. -/
 
 open Whatwg.Html
 open Whatwg.Svg.Schema (Tag)
@@ -54,41 +54,29 @@ def stepMs : Nat := 1600
 
 def move : Transition := { delay := 100, duration := 800, ease := settle }
 
-def place (i : Item) : IVec := ⟨i.x, 0⟩
-
 /-- The plan of a step, written as if every old thing stood still: a kept box moves, a new one
 fades in, and one that leaves fades out. -/
 def plan : Plan Item where
-  kept := Plan.moving place move
+  kept := Plan.moving (fun i => ⟨i.x, 0⟩) move
   enter := fun _ => [(.fade 0 1000, {})]
   leave := fun _ => [(.fade 1000 0, { duration := 500, ease := Easing.cubicIn })]
 
 /-- The first step. -/
-def stepOne : Motion String := (Motion.ofJoin Item.key (join Item.key first second) plan).within
+def stepOne : Step Item String := { key := Item.key, old := first, new := second, plan }
 
 /-- The moment of the interruption. -/
 def cut : Nat := 400
 
-/-- The things drawn at the interruption: the box that is leaving, and the second picture. -/
-def drawn : List Item := (join Item.key first second).drawn second cut
-
-/-- 1. The second step from the still picture. -/
-def plain : Motion String := (Motion.ofJoin Item.key (join Item.key drawn third) plan).within
+/-- 1. The second step from the still picture: an ordinary step from the things drawn. -/
+def plain : Step Item String :=
+  { key := Item.key, old := stepOne.drawn cut, new := third, plan }
 
 /-- 2. The second step from where each thing is seen. -/
-def resumed : Motion String :=
-  (Motion.ofJoin Item.key (join Item.key drawn third)
-    (plan.resume (fun o => stepOne.frame o.key cut) fun _ => move)).within
+def resumed : Step Item String := stepOne.interrupt cut third fun _ => move
 
-/-- Where a box of the second step stands at a moment: the place it is drawn at and its shift.
-A kept box is drawn at its place in the third picture, and one that leaves at its own. -/
-def standsAt (m : Motion String) (t : Nat) (key : String) : Option Int :=
-  let own := (third.find? fun i => i.key == key).orElse fun _ => drawn.find? fun i => i.key == key
-  own.map fun i => i.x + (m.frame key t).shift.x
-
-/-- Where a box stands at the interruption, in the first step. -/
-def seenAt (key : String) : Option Int :=
-  (drawn.find? fun i => i.key == key).map fun i => i.x + (stepOne.frame key cut).shift.x
+/-- Where a box stands in a step at a moment: the place it is drawn at and its shift. -/
+def standsAt (s : Step Item String) (t : Nat) (key : String) : Option Int :=
+  ((s.drawn t).find? fun i => i.key == key).map fun i => i.x + (s.frame i t).shift.x
 
 def keys : List String := ["fiber 0", "fiber 1", "fiber 2", "fiber 3"]
 
@@ -102,34 +90,31 @@ def face : List (SvgAttr .text) :=
 def boxNode (i : Item) (more : List (SvgAttr .g)) : SvgNode :=
   let b : Box := .ofSize ⟨i.x, 40⟩ i.w 48
   Svg.g more
-    [Svg.loops (Cubic.ring b 4 1) [.fill (.rgb ink), .fillRule true],
+    [Svg.loops (Cubic.ring b 4 1) [.fill (.rgb ink), .fillRule .evenodd],
       Svg.label ⟨(i.x : Rat) + 8, 68⟩ i.key face]
 
-/-- A picture of a step, opened at a moment and paused or running: the things that leave, then
-the things of the step's new picture. -/
-def picture (m : Motion String) (stem : String) (leaving new : List Item) (opened : Nat)
-    (paused : Bool) (sheet : Bool) : SvgNode :=
+/-- A picture of a step, opened at a moment and paused: the ground, and then the step's own
+nodes, which are its sheet and each thing drawn then with its motion on a group around it. -/
+def picture (s : Step Item String) (stem : String) (opened : Nat) : SvgNode :=
   Svg.svg
     [.attr .width (.user (.ofNat 720)), .attr .height (.user (.ofNat 128)),
       .attr .viewBox (ViewBox.ofSize 720 128)]
-    ((if sheet then [Svg.styleSheet (Motion.sheet m 1 stem)] else []) ++
-      Svg.box (.ofSize ⟨0, 0⟩ 720 128) [.fill (.rgb ground)] ::
-      (leaving ++ new).map fun i => boxNode i (Motion.attrs m i.key stepMs stem opened paused))
+    (Svg.box (.ofSize ⟨0, 0⟩ 720 128) [.fill (.rgb ground)] ::
+      s.nodes { step := stepMs, stem := stem, opened := opened, paused := true }
+        fun i motion => boxNode i (motion .g))
 
-def places (m : Motion String) : String :=
+def places (s : Step Item String) : String :=
   ", ".intercalate (keys.filterMap fun k =>
-    match seenAt k, standsAt m 0 k with
+    match standsAt stepOne cut k, standsAt s 0 k with
     | some a, some b => some (k ++ " at " ++ toString a ++ ", then at " ++ toString b)
     | _, _ => none)
 
-def way (title : String) (m : Motion String) (stem : String) : String :=
-  let leavingOne := (join Item.key first second).exit
-  let leavingTwo := (join Item.key drawn third).exit
+def way (title : String) (s : Step Item String) (stem : String) : String :=
   "<h2 style=\"font-weight:400\">" ++ title ++ "</h2>\n" ++
     "<p>The first step at the moment " ++ toString cut ++ ", and the second step at its start.</p>\n" ++
-    (picture stepOne (stem ++ "s") leavingOne second cut true true).render ++ "\n" ++
-    (picture m stem leavingTwo third 0 true true).render ++ "\n" ++
-    "<p>Where each box stands in the two pictures, by the kit's reading: <b>" ++ places m ++
+    (picture stepOne (stem ++ "s") cut).render ++ "\n" ++
+    (picture s stem 0).render ++ "\n" ++
+    "<p>Where each box stands in the two pictures, by the kit's reading: <b>" ++ places s ++
     "</b>.</p>\n"
 
 def page : String :=
@@ -142,6 +127,11 @@ def page : String :=
     way "1. The second step starts from the still picture" plain "a" ++
     way "2. The second step resumes from where each thing is seen" resumed "b" ++ "</body>\n"
 
-#eval keys.map fun k => (k, seenAt k, standsAt plain 0 k, standsAt resumed 0 k,
+#eval keys.map fun k => (k, standsAt stepOne cut k, standsAt plain 0 k, standsAt resumed 0 k,
   standsAt resumed 1000 k)
-#eval IO.FS.writeFile "docs/research/2026-10-12-motion-probe/resume.html" page
+/-- Writes the page into the directory of the probe pages, or the one that `PROBE_OUT` names. -/
+def write : IO Unit := do
+  let dir := (← IO.getEnv "PROBE_OUT").getD "docs/research/2026-10-12-motion-probe"
+  IO.FS.writeFile (dir ++ "/resume.html") page
+
+#eval write

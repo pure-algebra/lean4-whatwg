@@ -22,6 +22,11 @@ the tree (node C4), by the walk's induction law.
 attribute (`AttrFault`) is a description too: the checker's test decides, and the fault says
 which part of the test failed.
 
+`Refusal.describe` writes a whole refusal for a message, with the names of the elements along
+its path, and `Refusal.describeIn` with the words of the position of the refused node (slice
+S17; entry W7 of `docs/research/2026-10-12-whatwg-requests.md`). `explainAt_own` says that the
+reason of a refusal is the own reason of the node at its path (node C5).
+
 What this module does not claim: that the first refusal is the only one. `explain` answers the
 first in document order, and a tree may hold more.
 -/
@@ -386,5 +391,295 @@ def Reason.describe : Reason → String
   | .count => "the children do not hold a count of the element's content model"
   | .text => "character data may not stand here"
   | .comment => "a comment may not stand here"
+
+end Whatwg.Html.Content
+
+/-! ## A refusal in words, with the names along its path
+
+A refusal holds a path of child indices. A reader of a message wants names: `Refusal.describe`
+writes the path as the elements passed from the root, then the reason. A step is an element's
+name, with its `id` where it has one (`section#intro`), else with its place among the elements
+of its name beside it where there are several (`p[2]`, counted from one). A leaf is `text`,
+`entity` or `comment`.
+
+`Refusal.describeIn` says more where the position knows more. The checker judged the refused
+node at a position, `Pos.at?` of the path, and that position has words: the context that
+refuses an element or a text, the keywords an attribute takes, the model the children break.
+These are the words the term `html!` and the tactic of the combinators report when the same
+tree is written in a source file (`Ctx.describe`, `attrProblem?`, `seqProblem?`), so a tree
+refused when a program runs reads as one refused when it is compiled.
+
+`explainAt_own` is the law under those words (node C5): the reason of a refusal is the own
+reason of the node at its path, at the position the transition reaches there. No judgment
+reads the text itself. -/
+
+namespace Whatwg.Html
+
+/-- A node as one step of a path in words. An element is its name: with `#` and its `id` when
+it has one that is not empty, else with its place among the elements of its name in
+`siblings`, counted from one, when there are several. A leaf is its kind. `index` is the
+node's place in `siblings`. -/
+def RawNode.stepWords (siblings : List RawNode) (index : Nat) : RawNode → String
+  | .element name attrs _ =>
+    let same : RawNode → Bool := fun sibling => sibling.tagName? == some name
+    let placed :=
+      if (siblings.filter same).length ≤ 1 then name
+      else name ++ "[" ++ toString (((siblings.take index).filter same).length + 1) ++ "]"
+    match attrs.lookup "id" with
+    | some id => if id.isEmpty then placed else name ++ "#" ++ id
+    | none => placed
+  | .text _ => "text"
+  | .entity _ => "entity"
+  | .comment _ => "comment"
+
+/-- The steps of a path that starts in a list of trees: the first index names a tree of the
+list, and each later index a child of the node before it. The steps end where the path leaves
+the trees. -/
+def RawNode.wordsAlong : List RawNode → List Nat → List String
+  | _, [] => []
+  | siblings, index :: rest =>
+    match siblings[index]? with
+    | some node => node.stepWords siblings index :: wordsAlong node.childNodes rest
+    | none => []
+
+/-- A path that names a node has a word for each of its steps. -/
+theorem RawNode.length_wordsAlong : ∀ (path : List Nat) (siblings : List RawNode) (index : Nat)
+    (node : RawNode), siblings[index]? = some node → (node.at? path).isSome = true →
+    (RawNode.wordsAlong siblings (index :: path)).length = path.length + 1
+  | [], siblings, index, node, hnode, _ => by
+    rw [RawNode.wordsAlong, hnode]
+    rfl
+  | next :: rest, siblings, index, node, hnode, hpath => by
+    rw [RawNode.wordsAlong, hnode]
+    cases node with
+    | element name attrs children =>
+      rw [RawNode.at?] at hpath
+      cases hchild : children[next]? with
+      | none => rw [hchild] at hpath; exact nomatch hpath
+      | some child =>
+        rw [hchild] at hpath
+        show (RawNode.wordsAlong children (next :: rest)).length + 1 = (next :: rest).length + 1
+        rw [RawNode.length_wordsAlong rest children next child hchild hpath]
+        rfl
+    | text content => exact nomatch hpath
+    | entity name => exact nomatch hpath
+    | comment content => exact nomatch hpath
+
+end Whatwg.Html
+
+namespace Whatwg.Html.Content
+
+open Whatwg.Html.Schema
+open Whatwg.Html (RawNode Walk)
+
+namespace Pos
+
+/-- The position and the node at a path of child indices: the checker's transition at each
+element passed. `none` when the path leaves the tree. -/
+def at? : Pos → RawNode → List Nat → Option (Pos × RawNode)
+  | p, node, [] => some (p, node)
+  | p, .element name _ children, index :: rest =>
+    match children[index]? with
+    | some child => at? (p.child name) child rest
+    | none => none
+  | _, .text _, _ :: _ => none
+  | _, .entity _, _ :: _ => none
+  | _, .comment _, _ :: _ => none
+
+/-- The node that `Pos.at?` answers is the node at the path. -/
+theorem at?_node : ∀ (path : List Nat) (p : Pos) (node : RawNode),
+    (p.at? node path).map Prod.snd = node.at? path
+  | [], p, node => by rw [at?, RawNode.at?]; rfl
+  | index :: rest, p, .element name attrs children => by
+    rw [at?, RawNode.at?]
+    cases children[index]? with
+    | none => rfl
+    | some child => exact at?_node rest (p.child name) child
+  | _ :: _, _, .text _ => rfl
+  | _ :: _, _, .entity _ => rfl
+  | _ :: _, _, .comment _ => rfl
+
+/-- Why the position refuses the node itself, whatever stands below it: the reason of the
+node's own test. -/
+def own? (p : Pos) : RawNode → Option Reason
+  | .element name attrs children => p.refuse? name attrs children
+  | .text _ => p.textReason?
+  | .entity _ => p.textReason?
+  | .comment _ => p.commentReason?
+
+/-- A reason in the words of the position that gave it. At an HTML position: the context that
+refuses an element or a text, the problem of an attribute as the attribute index states
+it, and the model that the children break. In both namespaces: the element that is not
+admitted, and the namespace that has no element of a name. For every other reason,
+`Reason.describe`. -/
+def reasonWords : Pos → RawNode → Reason → String
+  | .html c, .element name _ _, .notAdmitted =>
+    "<" ++ name ++ "> is not admitted here: the context is " ++ c.describe
+  | .svg _ _, .element name _ _, .notAdmitted =>
+    "<" ++ name ++ "> is not admitted here, in the content of an SVG element"
+  | .html _, .element name _ _, .unknownElement => "<" ++ name ++ "> is no element of HTML"
+  | .svg _ _, .element name _ _, .unknownElement => "<" ++ name ++ "> is no element of SVG"
+  | .html _, .element name attrs _, .attribute attr fault =>
+    match Tag.ofName? name, attrs.lookup attr with
+    | some t, some value =>
+      (attrProblem? t attr value).getD (Reason.describe (.attribute attr fault))
+    | _, _ => Reason.describe (.attribute attr fault)
+  | .html c, .element name _ children, .order =>
+    match Tag.ofName? name with
+    | some t => (seqProblem? (c.child t) t children).getD (Reason.describe .order)
+    | none => Reason.describe .order
+  | .html c, _, .text => "text is not admitted here: the context is " ++ c.describe
+  | _, _, reason => reason.describe
+
+end Pos
+
+/-! ### The reason at the path is the node's own -/
+
+theorem explainAt_element (p : Pos) (name : String) (attrs : List (String × String))
+    (children : List RawNode) :
+    explainAt p (.element name attrs children) =
+      (here (p.refuse? name attrs children)).orElse fun _ =>
+        firstRefusal 0 (explainWalk.runAll (p.child name) children) := by
+  rw [explainAt, Walk.run_element]
+  rfl
+
+/-- A reason at the node itself has the empty path, and is the reason given. -/
+theorem here_eq_some {reason : Option Reason} {r : Refusal} (h : here reason = some r) :
+    r.path = [] ∧ reason = some r.reason := by
+  cases reason with
+  | none => exact nomatch h
+  | some own =>
+    cases Option.some.inj h
+    exact ⟨rfl, rfl⟩
+
+mutual
+
+/-- Node C5: the reason of a refusal is the own reason of the node at its path, at the
+position that the checker's transition reaches there. So the words of that position are words
+about the test that failed. -/
+theorem explainAt_own : ∀ (p : Pos) (n : RawNode) (r : Refusal), explainAt p n = some r →
+    ∃ q node, p.at? n r.path = some (q, node) ∧ q.own? node = some r.reason
+  | p, .element name attrs children, r, h => by
+    rw [explainAt_element] at h
+    cases hown : p.refuse? name attrs children with
+    | some reason =>
+      rw [hown] at h
+      obtain ⟨hpath, hreason⟩ := here_eq_some (reason := some reason) h
+      refine ⟨p, .element name attrs children, ?_, ?_⟩
+      · rw [hpath, Pos.at?]
+      · rw [Pos.own?, hown, hreason]
+    | none =>
+      rw [hown] at h
+      obtain ⟨offset, rest, child, hpath, hchild, q, node, hat, hq⟩ :=
+        firstRefusal_own (p.child name) children 0 r h
+      refine ⟨q, node, ?_, hq⟩
+      rw [hpath, Nat.zero_add, Pos.at?, hchild]
+      exact hat
+  | p, .text content, r, h => by
+    obtain ⟨hpath, hreason⟩ := here_eq_some (reason := p.textReason?) h
+    exact ⟨p, .text content, by rw [hpath, Pos.at?], hreason⟩
+  | p, .entity name, r, h => by
+    obtain ⟨hpath, hreason⟩ := here_eq_some (reason := p.textReason?) h
+    exact ⟨p, .entity name, by rw [hpath, Pos.at?], hreason⟩
+  | p, .comment content, r, h => by
+    obtain ⟨hpath, hreason⟩ := here_eq_some (reason := p.commentReason?) h
+    exact ⟨p, .comment content, by rw [hpath, Pos.at?], hreason⟩
+
+/-- The same for the first refusal among the children of an element. -/
+theorem firstRefusal_own : ∀ (p : Pos) (children : List RawNode) (index : Nat) (r : Refusal),
+    firstRefusal index (explainWalk.runAll p children) = some r →
+    ∃ (offset : Nat) (rest : List Nat) (child : RawNode), r.path = (index + offset) :: rest ∧
+      children[offset]? = some child ∧
+      ∃ q node, p.at? child rest = some (q, node) ∧ q.own? node = some r.reason
+  | p, [], index, r, h => by
+    rw [Walk.runAll_nil] at h
+    exact nomatch h
+  | p, child :: more, index, r, h => by
+    rw [Walk.runAll_cons] at h
+    cases hchild : explainWalk.run p child with
+    | some refusal =>
+      rw [hchild] at h
+      obtain ⟨q, node, hat, hq⟩ := explainAt_own p child refusal hchild
+      cases Option.some.inj h
+      exact ⟨0, refusal.path, child, rfl, rfl, q, node, hat, hq⟩
+    | none =>
+      rw [hchild] at h
+      obtain ⟨offset, rest, found, hpath, hfound, hrest⟩ :=
+        firstRefusal_own p more (index + 1) r h
+      exact ⟨offset + 1, rest, found, by rw [hpath, Nat.add_assoc, Nat.add_comm 1 offset],
+        hfound, hrest⟩
+
+end
+
+namespace Refusal
+
+/-- Where a refusal is, in a list of trees: the names from the tree at `index` down to the
+refused node, as `/main/section#intro/p[2]/div`. -/
+def placeAmong (r : Refusal) (nodes : List RawNode) (index : Nat) : String :=
+  "/" ++ "/".intercalate (RawNode.wordsAlong nodes (index :: r.path))
+
+/-- Why, in the words of the position of the refused node, where `p` is the position of the
+list's trees. -/
+def wordsAmong (r : Refusal) (p : Pos) (nodes : List RawNode) (index : Nat) : String :=
+  match nodes[index]? with
+  | some node =>
+    match p.at? node r.path with
+    | some (q, refused) => q.reasonWords refused r.reason
+    | none => r.reason.describe
+  | none => r.reason.describe
+
+/-- Where a refusal is in its tree: the names along its path, from the root. -/
+def place (r : Refusal) (tree : RawNode) : String := r.placeAmong [tree] 0
+
+/-- A refusal in words: the names along its path, then its reason. It reads the tree and no
+position, so it serves a refusal of any judgment of the walk, a refused value included. -/
+def describe (r : Refusal) (tree : RawNode) : String := r.place tree ++ ": " ++ r.reason.describe
+
+/-- A refusal of `explainAt p tree` in words: the names along its path, then its reason in
+the words of the position of the refused node. -/
+def describeAt (r : Refusal) (p : Pos) (tree : RawNode) : String :=
+  r.place tree ++ ": " ++ r.wordsAmong p [tree] 0
+
+/-- A refusal of `explain ctx tree` in words: the names along its path, then its reason in
+the words of the position of the refused node. -/
+def describeIn (r : Refusal) (ctx : Ctx) (tree : RawNode) : String := r.describeAt (.html ctx) tree
+
+end Refusal
+
+/-- A refusal in a list of trees that stand at one position, such as the children of an
+element: the place of the refused tree in the list, and that tree's refusal. -/
+structure ListRefusal where
+  index : Nat
+  refusal : Refusal
+  deriving DecidableEq, Repr, Inhabited
+
+namespace ListRefusal
+
+/-- A refusal in a list of trees in words: the names from the refused tree of the list down to
+the refused node, then the reason. -/
+def describe (e : ListRefusal) (nodes : List RawNode) : String :=
+  e.refusal.placeAmong nodes e.index ++ ": " ++ e.refusal.reason.describe
+
+/-- The same, with the reason in the words of the position of the refused node, where the
+trees of the list stand at `ctx`. -/
+def describeIn (e : ListRefusal) (ctx : Ctx) (nodes : List RawNode) : String :=
+  e.refusal.placeAmong nodes e.index ++ ": " ++ e.refusal.wordsAmong (.html ctx) nodes e.index
+
+end ListRefusal
+
+/-- The tree's refusal at an HTML position in words; `none` when the checker accepts it. -/
+def explainWords (ctx : Ctx) (tree : RawNode) : Option String :=
+  (explain ctx tree).map fun refusal => refusal.describeIn ctx tree
+
+/-- The words are absent exactly when the checker accepts. -/
+theorem explainWords_none_iff (ctx : Ctx) (tree : RawNode) :
+    explainWords ctx tree = none ↔ validIn ctx tree = true := by
+  rw [explainWords, Option.map_eq_none_iff, explain_none_iff]
+
+/-- A refusal of the checker has a word for each step of its path, and one for the root. -/
+theorem length_wordsAlong_of_explainAt (p : Pos) (tree : RawNode) {r : Refusal}
+    (h : explainAt p tree = some r) :
+    (RawNode.wordsAlong [tree] (0 :: r.path)).length = r.path.length + 1 :=
+  RawNode.length_wordsAlong r.path [tree] 0 tree rfl (explainAt_path p tree h)
 
 end Whatwg.Html.Content

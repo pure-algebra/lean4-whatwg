@@ -15,6 +15,10 @@ reading (`Track.at`) computes. The two must agree.
 | `label.html` | `workshop/LabelProbe.lean` | eight qualified names such as a picture of a program holds, in lean4-effect4's grid of cells eight pixels wide | nothing moves: every name in rooms of six widths, fitted each by itself and then together; under each table the pairs of different names shown as one text |
 | `cross.html` | `workshop/CrossProbe.lean` | two ranks of a graph of fibers and the straight links between them | the ends of the links move in three ways; under each the count of crossings at the start and each moment at which it changes |
 | `resume.html` | `workshop/ResumeProbe.lean` | the rank of `between.html`: one box is leaving and two are closing the room when, at the moment 400, a second box is asked to leave | nothing moves on the page: for each of two ways, the last picture of the first step and the first picture of the second, each computed by the browser from tracks opened at the moment and paused; under them where each box stands in the two |
+| `spring.html`, `spring-run.html` | `workshop/SpringProbe.lean` | the rank of `resume.html`, its move eased by the spring that gives lean4-effect4's `settle` table | the second step in three ways: from the still picture, resumed at rest, and resumed with the speed each box has (`Plan.springResume`); each as the pictures a browser computes at the cut and at the next four pieces, to see how far a box goes in the piece after the cut |
+| `scrub-var.html`, `scrub-literal.html`, `scrub-slider.html` | `workshop/CssProbe.lean` | seven things, one for each kind of change | a step that a custom property scrubs: with `--t: 400` on the root, opened at the literal 400, and the kit's reading with no animation; and a slider that sets the one property; the three must agree |
+| `reduced-always.html`, `reduced-media.html` | `workshop/CssProbe.lean` | the same seven things | the rule of reduced motion, once outside any `@media` so that it shows with no setting, and once inside; a running step must show its end at once |
+| `css-facts.html` | written by hand | six boxes | the constructs the writer leans on, each alone: a negative delay, a delay from a custom property, a rule with `!important` over an inline `animation`, two shifts that add, and a registered property that drives a shift; the page is what one browser computes for each |
 
 To write them again, from the repository root after `lake build`:
 
@@ -70,6 +74,16 @@ observation is evidence about that host, and no theorem.
 - A change of shape between two paths of the same commands was drawn point by point: at a
   tenth of a step the first point of an edge stood between its two ends, where the kit's
   `ICubic.mix` puts it.
+
+
+Slice S17, the writer on data (`Whatwg/Html/Node/Css.lean`, one `@keyframes` rule for each change under each easing, the easing in the rule, a reveal with a dash of two thousand):
+
+- `tree.html`: the browser's paused pictures of the five moments stand within 0.044 of a unit of the kit's stills, and a line that is revealed within 0.15 per mille, as before the writer changed.
+- `reduced-always.html`: under the rule, with no setting, every thing computes a duration and a delay of `0s` and shows the pose of the step's end; the greatest difference from the kit's reading of the moment 1000 is 0.
+- `scrub-var.html`: with `--t: 400` on the root, every thing computes the styles of the step opened at the literal moment 400 (greatest difference 0). The kit's whole-number reading is within 0.81 of them, as a floor. Setting the property to 700 by script moved the paused pictures to that moment.
+- `spring.html`: the two kept boxes are 232 apart in every picture of every way. From the still picture the box jumps 41 at the cut. Resumed at rest it stands at 201.0 for the next two pieces (the move has a delay of 100) and is at 196.2 and 181.1 after. Resumed with its speed it is at 201.0, 182.6, 158.5, 134.3 and 112.0, where the kit reads 201, 182, 158, 134 and 111.
+- `resume.html`, now written on `Step` and `Step.nodes`: the same pictures as before, 201.1 and 433.1 at the cut, 160 and 392 from the still picture, 201.0 and 433.0 resumed, with the opacity 0.488 of the box that leaves kept.
+- `css-facts.html`: a paused animation with a delay of `-400ms` and one with `calc(0ms - var(--t) * 1000ms / 1000)` under `--t: 400` both compute a shift of 60 of 100; a rule with `animation-duration: 0s !important` and `animation-delay: 0s !important` over an inline `animation` shows the end; two animations of `translate` with `animation-composition: replace, add` compute 60 and 25 as 85; a registered number animated from 0 to 1 drives a shift through `calc()`.
 
 ## What the probes found
 

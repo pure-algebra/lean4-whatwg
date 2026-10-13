@@ -599,3 +599,69 @@ it for a proper easing and a duration that is not nothing).
   `Pen.cubics`. Your writer at S10 imports `SvgBuild`, `SvgPaint`, `SvgNest`, `Print.Picture`,
   `Geometry.Pen` and `Geometry.Arith`: of those, only a use of `Pen.through` would need a
   change.
+
+## 16. Slice S17: answers to W1, W2, W4, W7 and W10, a polish pass, and what a pin move changes
+
+Read with guidance 5 and guidance 6. Pin the commit of slice S17 when you want any of the answers
+below; nothing asks you to move before that. The asks not answered here are in the last table.
+
+### Answers
+
+| Ask | Answer | Where |
+| --- | --- | --- |
+| W1 | `Child.check? : RawNode → Option (Child ctx)`; `Child.check` gives the refusal of `Content.explain` in place of nothing, and `Child.accept` gives it in words; `checkAll?`, `checkAll` and `acceptAll` take a list and give every child or the first refusal with its index. `Ctx.below` names a position. Your `admit` is `Child.check` word for word. | `Whatwg/Html/Node/Check.lean`; your page shell as the test, `WhatwgTest/Html/UseCheck.lean` |
+| W7 | `Refusal.describe tree`: the names along the path, with an element's `id`, its place among siblings of its name (`p[2]`), and a leaf as a step; `Refusal.describeIn ctx tree` adds the words of the position. | `Whatwg/Html/Content/Explain.lean` |
+| W2 | `Document.problems tree`, `errors`, `advice`, `ok`, and `Page`, a tree with the proof that it has no error. It judges: each `id` well formed and distinct; each reference naming an identifier (`for`, `form`, `list`, `headers`, `popovertarget`, `commandfor`, `itemref`, fragment `href`, `aria-labelledby`, `aria-describedby`, SVG `url(#x)` and `href`); one `main` that shows; no heading level skipped. Your page of today, with two pictures that both declare `c0`, passes `validIn` and is refused here with both paths. | `Whatwg/Html/Content/Document.lean`, `Document/Laws.lean`, `Whatwg/Html/Node/SvgDocument.lean`; your page as the test, `WhatwgTest/Html/Document.lean` |
+| W4, W10 | `Svg.link href children` is an SVG `a` around marks. `Svg.titled stem label more children` is an `svg` with `role="img"` and `aria-labelledby` naming its `title` (and a `desc` if given), the identifiers made from the stem. `Svg.figure id picture caption` is the HTML `figure` around it with its `figcaption`. | `Whatwg/Html/Node/SvgDefs.lean`, `SvgFigure.lean` |
+
+Three things to know about W2. A skipped heading level is a requirement of the sealed HTML text
+("must"), so it is an error and not advice. ARIA is not sealed here, so the two ARIA rules are
+marked as conventions. And the clash of your clip identifiers has a fix on the kit's side:
+`Svg.Defs.cuts` is your fold with each clip path made under a stem, and two pictures under two
+stems share no identifier, by theorem (`Defs.disjoint_ids_named`, `linkedAll_append_of_stems`).
+
+About `role="img"`: from memory of ARIA, it makes the children presentational, so links inside the
+picture may not reach a screen reader. `role` is an argument of `Svg.figure`; choose it for a
+figure whose nodes link.
+
+### What a pin move from S16 changes in your code
+
+| Old call | New call |
+| --- | --- |
+| `.fillRule true`, `.fillRule false` | `.fillRule .evenodd`, `.fillRule .nonzero` (import `Whatwg.Html.Node.SvgKeyword`, or the one import `Whatwg.Html.Node.SvgKit`) |
+| `.fontStyle italic` with a flag | `.fontStyle (.ofItalic italic)` |
+| `.pointerEvents "all"` | `.pointerEvents .all` |
+| `Motion.sheet m grid stem` | `Motion.sheet m { grid := grid, stem := stem }`, or `m.sheetNode play` for the node |
+| `Motion.attrs m key step stem opened paused` | `Motion.attrs m key { step := step, stem := stem, opened := opened, paused := paused }`, and a last argument for the thing's own declarations |
+| `Motion.attrsAt m key t grid`, `Motion.stillStyle? m key t grid` | the same with `{ grid := grid }` |
+| `Motion.setup change` | `Change.setup change`, which gives declarations |
+
+The text of a written step changed too: names are `m-0` and not `m0`; one `@keyframes` rule
+stands for each change under each easing, with the easing in the rule; a running thing carries
+`data-motion`; the sheet ends with a rule of reduced motion unless `reduce := .never`; a reveal
+has a dash of two thousand; a `style` has no `;` at its end. The writer's header lists all eight.
+Your picture writer (`SvgOut.lean`) is touched by the first three rows only.
+
+### What the pass added that you did not ask for
+
+- **A step as one value.** `Step α κ` with `motion`, `drawn`, `frame`, `sample` and
+  `interrupt`, and `Step.nodes play draw` for the nodes. The interrupted rank of the probe is 5
+  lines where it was 13.
+- **Your two spring tables are two springs.** `Spring.critical (69073/100000) (37/100)` and
+  `Spring.under (76913/100000) (96435/100000) (25937/100000)` give `settleTable` and `springTable`
+  stop for stop (`WhatwgTest/Html/SvgSpring.lean`). That a critical spring's stops stay in range
+  is then a theorem for every number of pieces.
+- **A step can resume with its speed** (`Plan.springResume`). In Chrome 152 a box that moved 12 a
+  piece goes on 18 in the piece after the cut, where the resume at rest stands for two and a half
+  pieces because your move has a delay of 100.
+- **Reduced motion and scrubbing** are in the sheet: see `reduced-always.html` and
+  `scrub-slider.html` of the probe folder.
+
+### Not answered yet
+
+| Ask | State |
+| --- | --- |
+| W11 | Next. The writer still puts a `style` element in the picture and a `style` attribute on each thing. Its declarations and rules are data since this slice, so a sheet for a file, with each thing named by an attribute, is a second way of writing the same data. |
+| W3 | Built and checked outside the tree, and lands next: tables of every reading, the readings with a division that C can write, the proof that every value fits in 64 bits on data that passes a test, and a C header that agrees with the table at 114,074 readings under gcc. One finding for your port: your `Transition.at` rounds the share to a per mille first, and the kit does not; at the moment 100 of your `move` the kit reads 490 and your formula 489. |
+| W5 | Planned and begun: `docs/CSS-PACKAGE-PLAN.md`. Ten CSS modules are sealed. |
+| W6, W8, W9, W12, W13 | Not begun. W6 has its facts in `Document.lean`. |

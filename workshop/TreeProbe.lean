@@ -128,7 +128,7 @@ def nodeMark (p : Placed) : Mark :=
   let el : ({t : Tag} → List (SvgAttr t)) → SvgNode := fun more =>
     Svg.g more
       [Svg.loops [Cubic.roundRect b 5] [.fill (.rgb ground)],
-        Svg.loops (Cubic.ring b 5 1) [.fill (.rgb ink), .fillRule true],
+        Svg.loops (Cubic.ring b 5 1) [.fill (.rgb ink), .fillRule .evenodd],
         Svg.label ⟨(centre p).x, (centre p).y + 5⟩ p.label face]
   { key := p.key, place := centre p, depth := p.span.depth, kind := .box, shape := [], node := el,
     fresh := el }
@@ -233,14 +233,14 @@ def picture (attrs : String → ({t : Tag} → List (SvgAttr t))) (sheet : Optio
       after.map fun k => if isNew k then k.fresh (attrs k.key) else k.node (attrs k.key))
 
 def animated : SvgNode :=
-  picture (fun key => Motion.attrs step key stepMs) (some (Motion.sheet step 1000)) 640 420
+  picture (fun key => Motion.attrs step key { step := stepMs, grid := 1000 }) (some (Motion.sheet step { step := stepMs, grid := 1000 })) 640 420
 
-def still (t : Nat) : SvgNode := picture (fun key => Motion.attrsAt step key t 1000) none 320 210
+def still (t : Nat) : SvgNode := picture (fun key => Motion.attrsAt step key t { grid := 1000 }) none 320 210
 
 /-- The browser's own still picture of the moment `t`: the same tracks, opened at that moment
 and paused. No script runs. The rules of the sheet are those of the animated picture. -/
 def paused (t : Nat) : SvgNode :=
-  picture (fun key => Motion.attrs step key stepMs "m" t true) none 320 210
+  picture (fun key => Motion.attrs step key { step := stepMs, grid := 1000, opened := t, paused := true }) none 320 210
 
 def page : String :=
   "<!doctype html>\n<meta charset=\"utf-8\">\n<title>pFork: a tree that grows</title>\n" ++

@@ -100,7 +100,7 @@ def face : List (SvgAttr .text) :=
 def boxNode (i : Item) (more : List (SvgAttr .g)) : SvgNode :=
   let b : Box := .ofSize ⟨i.x, 40⟩ i.w 48
   Svg.g more
-    [Svg.loops (Cubic.ring b 4 1) [.fill (.rgb ink), .fillRule true],
+    [Svg.loops (Cubic.ring b 4 1) [.fill (.rgb ink), .fillRule .evenodd],
       Svg.label ⟨(i.x : Rat) + 8, 68⟩ i.key face]
 
 /-- One panel: the rank under a motion. The sheet's names start with `stem`, so that three
@@ -110,9 +110,9 @@ def panel (m : Motion String) (stem : String) : SvgNode :=
   Svg.svg
     [.attr .width (.user (.ofNat 720)), .attr .height (.user (.ofNat 128)),
       .attr .viewBox (ViewBox.ofSize 720 128)]
-    (Svg.styleSheet (Motion.sheet m 1 stem) ::
+    (m.sheetNode { step := stepMs, stem := stem } ::
       Svg.box (.ofSize ⟨0, 0⟩ 720 128) [.fill (.rgb ground)] ::
-      (after ++ leaving).map fun i => boxNode i (Motion.attrs m i.key stepMs stem))
+      (after ++ leaving).map fun i => boxNode i (Motion.attrs m i.key { step := stepMs, stem := stem }))
 
 def verdict (name : String) (m : Motion String) (stem : String) : String :=
   let (g, t) := leastGap m

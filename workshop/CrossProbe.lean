@@ -92,16 +92,16 @@ def panel (before after : List Link) (stem : String) : SvgNode :=
   let m := motion before after
   let dot (x y : Int) (key : String) : SvgNode :=
     Svg.loops [Cubic.roundRect (.ofSize ⟨x - 18, y - 9⟩ 36 18) 4]
-      ([.fill (.rgb boxInk)] ++ Motion.attrs m key stepMs stem)
+      ([.fill (.rgb boxInk)] ++ Motion.attrs m key { step := stepMs, stem := stem, grid := 1000 })
   Svg.svg
     [.attr .width (.user (.ofNat 540)), .attr .height (.user (.ofNat 160)),
       .attr .viewBox (ViewBox.ofSize 540 160)]
-    (Svg.styleSheet (Motion.sheet m 1000 stem) ::
+    (m.sheetNode { step := stepMs, stem := stem, grid := 1000 } ::
       Svg.box (.ofSize ⟨0, 0⟩ 540 160) [.fill (.rgb ground)] ::
       (after.map fun l =>
         Svg.cubics (segment l)
           ([.fill .none, .stroke (.rgb ink), .strokeWidth (.ofRat 2 1)] ++
-            Motion.attrs m l.1 stepMs stem)) ++
+            Motion.attrs m l.1 { step := stepMs, stem := stem, grid := 1000 })) ++
       after.flatMap fun l => [dot l.2.1 upper (l.1 ++ " upper"), dot l.2.2 lower (l.1 ++ " lower")])
 
 def verdict (before after : List Link) : String :=

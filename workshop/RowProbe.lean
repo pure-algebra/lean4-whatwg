@@ -120,12 +120,12 @@ def panel (m : Motion String) (stem : String) : SvgNode :=
   Svg.svg
     [.attr .width (.user (.ofNat 720)), .attr .height (.user (.ofNat 128)),
       .attr .viewBox (ViewBox.ofSize 720 128)]
-    (Svg.styleSheet (Motion.sheet m 1000 stem) ::
+    (m.sheetNode { step := stepMs, stem := stem, grid := 1000 } ::
       Svg.box (.ofSize ⟨0, 0⟩ 720 128) [.fill (.rgb ground)] ::
       ((boxes (Row.spans left after)).zip names).zipIdx.flatMap fun ((n, name), i) =>
         [Svg.loops [outline n]
-            ([.fill (.rgb boxInk)] ++ Motion.attrs m ("box " ++ toString i) stepMs stem),
-          Svg.g (Motion.attrs m ("label " ++ toString i) stepMs stem)
+            ([.fill (.rgb boxInk)] ++ Motion.attrs m ("box " ++ toString i) { step := stepMs, stem := stem, grid := 1000 }),
+          Svg.g (Motion.attrs m ("label " ++ toString i) { step := stepMs, stem := stem, grid := 1000 })
             [Svg.label ⟨(n.1 : Rat) + 8, 68⟩ name face]])
 
 def numbers (way : Nat → List (Int × Int)) : String :=

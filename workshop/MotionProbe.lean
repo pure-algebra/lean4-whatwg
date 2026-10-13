@@ -100,7 +100,7 @@ def fiberMark (f : Fiber) : Mark :=
   { key := f.key, place := ⟨f.box.x0.floor, f.box.y0.floor⟩, kind := .box
     node := fun more => Svg.g more
       (Svg.loops [Cubic.roundRect f.box 4] [.fill (.rgb ground)] ::
-        Svg.loops (Cubic.ring f.box 4 1) [.fill (.rgb ink), .fillRule true] ::
+        Svg.loops (Cubic.ring f.box 4 1) [.fill (.rgb ink), .fillRule .evenodd] ::
         f.lines.zipIdx.map fun (s, i) =>
           Svg.label ⟨f.box.x0 + 8, f.box.y0 + 16 + 24 * (i : Rat)⟩ s face) }
 
@@ -197,7 +197,7 @@ def step : Motion String := motion before after
 def marks : List Mark := after ++ (join Mark.key before after).exit
 
 def animated : SvgNode :=
-  picture marks (fun key => Motion.attrs step key stepMs) (some (Motion.sheet step)) 800 520
+  picture marks (fun key => Motion.attrs step key { step := stepMs }) (some (Motion.sheet step { step := stepMs })) 800 520
 
 def still (t : Nat) : SvgNode := picture marks (fun key => Motion.attrsAt step key t) none 400 260
 

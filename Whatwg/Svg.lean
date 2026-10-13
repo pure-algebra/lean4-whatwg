@@ -75,10 +75,16 @@ import Whatwg.Svg.Scene.Frame
 import Whatwg.Svg.Scene.Together
 import Whatwg.Svg.Scene.Resume
 import Whatwg.Svg.Scene.Strip
+import Whatwg.Svg.Scene.Step
+import Whatwg.Svg.Scene.Step.Laws
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
 import Whatwg.Svg.Geometry.Stack
 import Whatwg.Svg.Geometry.Moment
+import Whatwg.Svg.Geometry.Spring
+import Whatwg.Svg.Geometry.Spring.Laws
+import Whatwg.Svg.Geometry.Spring.Resume
+import Whatwg.Svg.Geometry.Spring.Follow
 
 /-!
 # Whatwg.Svg

@@ -3,6 +3,7 @@ import Whatwg.Svg.Geometry.Pen
 import Whatwg.Svg.Geometry.Shape.Laws
 import Whatwg.Svg.Geometry.Affine
 import Whatwg.Html.Node.SvgPaint
+import Whatwg.Html.Node.SvgKeyword
 import Whatwg.Html.Node.SvgBuild
 import Whatwg.Html.Node.SvgDraw
 import Whatwg.Html.Node.SvgNest
@@ -145,7 +146,7 @@ def textNode (look : Look) (ratio : Nat) (face : Face) (x base : Int) (content k
     SvgNode :=
   Svg.text x base content
     ([.className ("e4-text e4-face-" ++ face.token), .fontFamily (look.faces face).family,
-      .fontStyle (look.faces face).italic, .fontWeight (look.faces face).weight,
+      .fontStyle (.ofItalic (look.faces face).italic), .fontWeight (look.faces face).weight,
       .fontSize (.fixed 3 (look.faces face).size), .fill (look.color .ink),
       .attr .transform [.zoom ratio], .xmlSpacePreserve] ++ SvgAttr.dataKey? key)
 
@@ -156,13 +157,13 @@ def shown (room : Nat) (s : String) : String :=
 /-- An invisible box that takes the pointer. -/
 def hitNode (b : Rect) (key : String) : SvgNode :=
   Svg.rect b.x0 b.y0 (.clamp (b.x1 - b.x0)) (.clamp (b.y1 - b.y0))
-    ([.fill .none, .pointerEvents "all"] ++ SvgAttr.dataKey? key)
+    ([.fill .none, .pointerEvents .all] ++ SvgAttr.dataKey? key)
 
 /-- A filled shape of several closed paths in one `d`. -/
 def shapeNode (look : Look) (role : Role) (value : Nat) (paths : List (List Cubic))
     (key : String) : SvgNode :=
   Svg.loops paths
-    ([.className ("e4-fill-" ++ role.token), .fillRule true, .fill (look.color role),
+    ([.className ("e4-fill-" ++ role.token), .fillRule .evenodd, .fill (look.color role),
       .fillOpacity (opacity value)] ++ SvgAttr.dataKey? key)
 
 /-- An open cut: the index of its call, and its box in logical pixels. -/

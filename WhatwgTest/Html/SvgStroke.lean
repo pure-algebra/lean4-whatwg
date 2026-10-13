@@ -5,6 +5,7 @@ import Whatwg.Svg.Geometry.Root.Laws
 import Whatwg.Svg.Geometry.Stroke.Laws
 import Whatwg.Html.Node.SvgDraw
 import Whatwg.Html.Node.SvgPaint
+import Whatwg.Html.Node.SvgKeyword
 import Whatwg.Html.Node.SvgValid
 
 /-!
@@ -363,7 +364,7 @@ theorem arrowhead_move (d : Vec) (c : Cubic) :
 `.shape`, in the ink. -/
 def shapeNode (ink : Rgb) (outlines : List (List Cubic)) (key : String) : SvgNode :=
   Svg.loops outlines
-    ([.className "e4-fill-ink", .fillRule true, .fill ink] ++ SvgAttr.dataKey? key)
+    ([.className "e4-fill-ink", .fillRule .evenodd, .fill ink] ++ SvgAttr.dataKey? key)
 
 /-- **An organic stroke as a mark of a picture**: one closed path with a fill, as the consumer
 draws the body of a forward edge. -/

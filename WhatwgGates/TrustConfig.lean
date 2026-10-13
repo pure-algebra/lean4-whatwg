@@ -218,7 +218,7 @@ def extensionAllowlist : List ExtensionAllowlistEntry :=
   ⟨"Lean.attributeExtension", "read by a pass: attributes made from a builder, today the parser attribute of each syntax category of the listed module Whatwg.Html.Syntax.Elaborator; rule 1 reads the category from the parser extension and refuses one outside the list"⟩ ::
   ⟨"Lean.auxRecExt", "elaboration hint: the tag on generated auxiliary recursors such as casesOn and brecOn, which are kernel-checked definitions"⟩ ::
   ⟨"Lean.backwardDefeqAttr", "elaboration hint: the backward_defeq tag on rfl theorems, which dsimp reads only under an option; a dsimp step is a proof the kernel checks"⟩ ::
-  ⟨"Lean.classExtension", "elaboration hint: which structures are type classes and their output parameters, today the finite universe Whatwg.Svg.Data.Universe; instance search reads it, and every term the search builds is kernel-checked"⟩ ::
+  ⟨"Lean.classExtension", "elaboration hint: which structures are type classes and their output parameters, today the finite universe Whatwg.Svg.Data.Universe and the class of keyword types Whatwg.Html.Keyword; instance search reads it, and every term the search builds is kernel-checked"⟩ ::
   ⟨"Lean.declRangeExt", "bookkeeping: each declaration's source range"⟩ ::
   ⟨"Lean.defeqAttr", "elaboration hint: the defeq tag on rfl theorems that dsimp may use; a dsimp step is a proof the kernel checks"⟩ ::
   ⟨"Lean.deprecatedModuleExt", "bookkeeping: one entry per module saying whether it is deprecated, which makes Lean warn at an import"⟩ ::

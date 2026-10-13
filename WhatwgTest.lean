@@ -86,6 +86,14 @@ import WhatwgTest.Html.SvgXml
 import WhatwgTest.Html.SvgKit
 import WhatwgTest.Html.SvgStroke
 import WhatwgTest.Html.SvgMotion
+import WhatwgTest.Html.SvgStep
+import WhatwgTest.Html.SvgSpring
+import WhatwgTest.Html.SvgSpringResume
+import WhatwgTest.Html.SvgUseKit
+import WhatwgTest.Html.Describe
+import WhatwgTest.Html.UseCheck
+import WhatwgTest.Html.SvgFigure
+import WhatwgTest.Html.Document
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
