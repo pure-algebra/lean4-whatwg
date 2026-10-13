@@ -581,3 +581,21 @@ Three more modules landed, in hand when the guidance came. Each is inside your a
 One thing to know when you write the port: a transition with no delay and no duration is over
 at the moment 0, so the laws of the first moment ask `tr.at 0 = 0` (`Transition.at_zero` gives
 it for a proper easing and a duration that is not nothing).
+
+### Which commit to pin, and what a pin move changes
+
+- S14 is `68e2f23`, as guidance 4 names it. The three asks of guidance 4 are in S16, `82d5da4`:
+  a pin at S14 still links Aesop.
+- From S14 to S16 one public name is gone, and it is a lemma that Lean generated
+  (`Whatwg.Svg.Value.letter.congr_simp`). Nothing of `Whatwg.Html` is gone. So a pin at S16
+  breaks nothing that a pin at S14 has. The comparison is of the two declaration snapshots
+  under `generated/declarations/`.
+- From S10, your pin today, to S16: no public name of `Whatwg.Html` is gone. In `Whatwg.Svg`,
+  77 names are gone, all from slice S11's rewrite of the curves of d3-shape on segments: the
+  helpers of `Curve` (`Curve.through`'s old steps, `basisFrom`, `cardinalFrom`, `pairwise`,
+  `join`, `over`, `back`, `last` and their `run_` laws), `Pen.through` with `Pen.cursor_through`
+  and `Pen.plain_through`, and `Shape.bumpX`, `Shape.bumpY` with the `Shape.cursor_` laws. The
+  curves are `Curve.bumpX`, `Curve.bumpY` and `Curve.cubics` now, and a pen draws segments with
+  `Pen.cubics`. Your writer at S10 imports `SvgBuild`, `SvgPaint`, `SvgNest`, `Print.Picture`,
+  `Geometry.Pen` and `Geometry.Arith`: of those, only a use of `Pen.through` would need a
+  change.
