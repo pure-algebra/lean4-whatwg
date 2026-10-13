@@ -2,7 +2,7 @@
 
 # Graph ledger index
 
-Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-applicable), 3 leaf record(s), 14 unrouted prefix(es).
+Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-applicable), 3 leaf record(s), 15 unrouted prefix(es).
 
 ## Graphs
 
@@ -36,6 +36,7 @@ Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-app
 | Prefix | Recorded by |
 | --- | --- |
 | `Whatwg.Html` | D57 |
+| `Whatwg.Css` | D141 |
 | `Whatwg.Infra.Namespaces` | D57 |
 | `Whatwg.Infra.Bytes.Byte` | D57 |
 | `Whatwg.Infra.Bytes.Sequence` | D57 |

@@ -1,0 +1,11 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-easing-2 input=vendor/w3c-csswg-drafts-50337328/css-easing-2/Overview.bs input-sha256=650cdccf65fe523627ce7917c8d1bef1361dac6bf62a82f8f75c89524a521554 blocks=4 rows=8 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Easing Functions Module Level 2, https://drafts.csswg.org/css-easing-2/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-easing-2	pre.prod	<easing-function>	6828	7021	5728f5a3994ec54f6cf66846477512ded853725de0506b2d017804a3e46df012		1	<dfn>	<linear-easing-function> | <cubic-bezier-easing-function> | <step-easing-function>
+css-easing-2	pre.prod	<linear-easing-function>	8648	8811	016bdb8a64445a71c21bf3bdccd3b8d404f3ed2b20f850c53ebe49ad6f9e1fa6		1	<dfn>	linear | <linear()>
+css-easing-2	pre.prod	linear()	8648	8811	016bdb8a64445a71c21bf3bdccd3b8d404f3ed2b20f850c53ebe49ad6f9e1fa6		2	<dfn>	linear( [ <number> && <percentage>{0,2} ]# )
+css-easing-2	pre.prod	<cubic-bezier-easing-function>	21530	21797	1af7709db052b0c35c35d1d9859d38fda2ed8863ba2c920d8bdac7b72bd5953b		1	<dfn>	ease | ease-in | ease-out | ease-in-out | <cubic-bezier()>
+css-easing-2	pre.prod	cubic-bezier()	21530	21797	1af7709db052b0c35c35d1d9859d38fda2ed8863ba2c920d8bdac7b72bd5953b		2	<dfn>	cubic-bezier( [ <number [0,1]>, <number> ]#{2} )
+css-easing-2	pre.prod	<step-easing-function>	28506	28875	1e1b13d87e2d762d70ef91b57ff257436a6950b23d1f7d0af5b7edad1686ee27		1	<dfn>	step-start | step-end | <steps()>
+css-easing-2	pre.prod	steps()	28506	28875	1e1b13d87e2d762d70ef91b57ff257436a6950b23d1f7d0af5b7edad1686ee27		2	<dfn>	steps( <integer>, <step-position>?)
+css-easing-2	pre.prod	<step-position>	28506	28875	1e1b13d87e2d762d70ef91b57ff257436a6950b23d1f7d0af5b7edad1686ee27		3	<dfn type>	jump-start | jump-end | jump-none | jump-both | start | end

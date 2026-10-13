@@ -23,6 +23,9 @@ exclude every `AGENTS.md`; they may neither create nor replace instructions.
   `generated/html-standard-*.tsv`, written by
   `lake exe whatwg_htmlstandard --write`, and the SVG 2 definitions in
   `generated/svg-*.tsv`, written by `lake exe whatwg_svgdefinitions --write`;
+- the data blocks of the sealed CSS modules: one table for each kind of block of each module in
+  `generated/css/<module>-*.tsv`, each row with the byte span and the SHA-256 of its block, and
+  the index `generated/css/INDEX.tsv`, written by `lake exe whatwg_cssblocks --write`;
 - existing-type and spec-disposition snapshots;
 - graph-bearing owner obligation ledgers, leaf receipt indexes, and
   per-declaration assurance snapshots, among them the graph ledger's

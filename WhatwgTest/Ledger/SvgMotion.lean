@@ -32,8 +32,9 @@ def svgMotion : Graph where
     `Whatwg.Svg.Scene.Frame, `Whatwg.Svg.Scene.Together, `Whatwg.Svg.Scene.Resume,
     `Whatwg.Svg.Geometry.Easing, `Whatwg.Svg.Geometry.Moment, `Whatwg.Svg.Scene.Step,
     `Whatwg.Svg.Scene.Step.Laws, `Whatwg.Svg.Geometry.Spring, `Whatwg.Svg.Geometry.Spring.Laws,
-    `Whatwg.Svg.Geometry.Spring.Resume, `Whatwg.Svg.Geometry.Spring.Follow]
-  acknowledged := ["R-S29", "R-S30", "R-S31", "R-S33"]
+    `Whatwg.Svg.Geometry.Spring.Resume, `Whatwg.Svg.Geometry.Spring.Follow,
+    `Whatwg.Svg.Scene.Vector, `Whatwg.Svg.Scene.Machine]
+  acknowledged := ["R-S29", "R-S30", "R-S31", "R-S33", "R-S34"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -82,7 +83,9 @@ def svgMotion : Graph where
         `Whatwg.Svg.Scene.Transition.exact, `Whatwg.Svg.Scene.mixExact,
         `Whatwg.Svg.Scene.Step.drawn, `Whatwg.Svg.Scene.Step.frame, `Whatwg.Svg.Scene.Step.sample,
         `Whatwg.Svg.Scene.Spring.run, `Whatwg.Svg.Scene.Spring.interrupted,
-        `Whatwg.Svg.Scene.Spring.followed]]
+        `Whatwg.Svg.Scene.Spring.followed, `Whatwg.Svg.Scene.Easing.table,
+        `Whatwg.Svg.Scene.Transition.table, `Whatwg.Svg.Scene.Track.table,
+        `Whatwg.Svg.Scene.fdiv, `Whatwg.Svg.Scene.Track.at?]]
       note := "`Track.at` is the meaning of a track: the pose of a thing at a moment, by the easing of the share of the duration that has passed, with one rounding down. `Motion.frame` is the meaning of a motion for one thing: its poses put on the still picture in the order of the tracks, a later pose of one property in place of an earlier one. `Join.drawn` says which things a reader draws at a moment of a step. `Transition.exact` and `mixExact` are the same readings in rational numbers at a rational time, and the whole-number readings are their floors." }
     laws := {
       status := .requiredOpen
@@ -133,7 +136,11 @@ def svgMotion : Graph where
         `Whatwg.Svg.Scene.Spring.critical_interrupted_gap,
         `Whatwg.Svg.Scene.Spring.critical_followed_gap,
         `Whatwg.Svg.Scene.Motion.springResume_end,
-        `Whatwg.Svg.Scene.Motion.springResume_nothing_moves]]
+        `Whatwg.Svg.Scene.Motion.springResume_nothing_moves,
+        `Whatwg.Svg.Scene.fdiv_eq, `Whatwg.Svg.Scene.mix_fdiv,
+        `Whatwg.Svg.Scene.Easing.cubicOf_fdiv, `Whatwg.Svg.Scene.Easing.stopsOf_fdiv,
+        `Whatwg.Svg.Scene.Track.at?_eq, `Whatwg.Svg.Scene.Track.at?_sound,
+        `Whatwg.Svg.Scene.Track.table_machine, `Whatwg.Svg.Scene.Track.eq_of_table]]
       note := "The end law: a track whose transition is over stands at the end of its change, so a step's last moment is the next picture, and with a plan that settles every thing of the new list then looks as the still picture has it. Between the two pictures: a kept edge that changes its shape by its nodes' transition stays joined to them, and a relation of both pictures is a relation of every whole moment, and of every rational time in exact numbers, where the things share one timing and the easing stays in range. In time: a delay by depth, a fit to a length, a reduction to the ends and a step in stages each keep the order that the tracks had, and in a staged step no new thing appears before the kept things are at rest. Of a thing: where no thing has two tracks of one property, its frame shows the pose of each of its tracks and does not depend on their order. Of a whole step: kept things that take one transition with an easing in range keep, where they stand at every moment, each relation that their places have in both pictures. Of an interruption: at the first moment of a step that resumes from where things are seen, each kept thing shows every pose that it showed and stands where it stood, and the step ends on the next picture." }
     representation := {
       status := .requiredOpen
@@ -163,7 +170,7 @@ def svgMotion : Graph where
     targets := {
       status := .requiredOpen
       remaining := [
-        .named "one target, a CSS style sheet inside the picture; a second writer, for a host that does not read `d` as a property or runs no CSS, is not built (debt D125)"]
+        .named "one target is written by this package, a CSS style sheet inside the picture; a second writer, for a host that does not read `d` as a property or runs no CSS, is not built (debt D125). For a player that samples the tracks itself, slice S18 gives the readings as tables and in a form a 64-bit machine computes (`Whatwg/Svg/Scene/Vector.lean`, `Machine.lean`), and a C transcription that one compiler ran against the table; no theorem is about C"]
       grounds := [.modules [`Whatwg.Html.Node.SvgMotion, `Whatwg.Html.Node.Css,
         `Whatwg.Html.Node.SvgStep]] }
     trust := {
@@ -177,10 +184,11 @@ def svgMotion : Graph where
         `Whatwg.Svg.Geometry.Moment, `Whatwg.Html.Node.SvgMotion, `WhatwgTest.Html.SvgMotion,
         `Whatwg.Svg.Scene.Step, `Whatwg.Svg.Scene.Step.Laws, `Whatwg.Svg.Geometry.Spring,
         `Whatwg.Svg.Geometry.Spring.Laws, `Whatwg.Svg.Geometry.Spring.Resume,
-        `Whatwg.Svg.Geometry.Spring.Follow, `Whatwg.Html.Node.Css, `Whatwg.Html.Node.SvgStep,
+        `Whatwg.Svg.Geometry.Spring.Follow, `Whatwg.Svg.Scene.Vector,
+        `Whatwg.Svg.Scene.Machine, `Whatwg.Html.Node.Css, `Whatwg.Html.Node.SvgStep,
         `WhatwgTest.Html.SvgStep, `WhatwgTest.Html.SvgSpring, `WhatwgTest.Html.SvgSpringResume],
         .gate .build]
-      note := "The eleven modules under `Whatwg.Svg.Scene` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception (ruling R-S27). The six under `Whatwg.Svg.Geometry` and the writer are under the ceiling of ruling R-11." }
+      note := "The thirteen modules under `Whatwg.Svg.Scene` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception (ruling R-S27). The six under `Whatwg.Svg.Geometry` and the writer are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen
       remaining := [

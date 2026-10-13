@@ -1,0 +1,103 @@
+#css-tables format=1 generator=Gates.CssBlocks module=css-syntax-3 input=vendor/w3c-csswg-drafts-50337328/css-syntax-3/Overview.bs input-sha256=690223b6eb537625eb92e0d144bfacab2009fb4f3912bbe1a1e8457b930701d3 blocks=1 rows=100 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Syntax Module Level 3, https://drafts.csswg.org/css-syntax-3/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	cell	row	column
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		(
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		*
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	column		%
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	ident	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	at-keyword	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	hash	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	dimension	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	#	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	-	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	number	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	@	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	.	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	+	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	row	/	
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	ident	(
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	at-keyword	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	hash	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	dimension	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	#	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	-	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	number	%
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	@	ident
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	@	function
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	@	url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	@	bad url
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	@	-
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	@	CDC
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	.	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	.	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	.	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	+	number
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	+	percentage
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	+	dimension
+css-syntax-3	table	serialization-tables	131437	132734	6a85c9b904276475f1288a9bb8b424aec198f0594e15c1a91398fe626d553432	note	pair	/	*

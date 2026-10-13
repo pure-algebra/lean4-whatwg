@@ -1,0 +1,12 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-animations-1 input=vendor/w3c-csswg-drafts-50337328/css-animations-1/Overview.bs input-sha256=2727c211033d4568621965aa5b2b9f3873a49ab8ae85223e8272803f143a3ccf blocks=6 rows=9 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Animations Module Level 1, https://drafts.csswg.org/css-animations-1/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-animations-1	pre	@keyframes	10101	10411	9e5241a91465796e12b9373fa54f9b9849142576a1876ceacbaf936fae404812		1		@keyframes <keyframes-name> { <qualified-rule-list> }
+css-animations-1	pre	<keyframes-name>	10101	10411	9e5241a91465796e12b9373fa54f9b9849142576a1876ceacbaf936fae404812		2	<dfn>	<custom-ident> | <string>
+css-animations-1	pre	<keyframe-block>	10101	10411	9e5241a91465796e12b9373fa54f9b9849142576a1876ceacbaf936fae404812		3	<dfn>	<keyframe-selector># { <declaration-list> }
+css-animations-1	pre	<keyframe-selector>	10101	10411	9e5241a91465796e12b9373fa54f9b9849142576a1876ceacbaf936fae404812		4	<dfn>	from | to | <percentage [0,100]>
+css-animations-1	span.prod	<single-animation-iteration-count>	23688	23792	81d3a7554876f92555578706f0bb56ec96f1f835b55dd0c82e6e495519451330		1	<dfn>	infinite | <number [0,∞]>
+css-animations-1	span.prod	<single-animation-direction>	25123	25240	aa77589aa4db789f6f4d786d294d5c3518b4f0bc036f3cb35b74b6569ef35c22		1	<dfn>	normal | reverse | alternate | alternate-reverse
+css-animations-1	span.prod	<single-animation-play-state>	26555	26641	cbd8e3d3e1cb0839bce05252710eae88123689f0d6a2b275a11c3db12e932ecc		1	<dfn>	running | paused
+css-animations-1	span.prod	<single-animation-fill-mode>	29916	30019	cbcf3cdc2c8e064e4de45a8e9d58ed12a0ee233fb56ed0697b7240da3c8a670f		1	<dfn>	none | forwards | backwards | both
+css-animations-1	span.prod	<single-animation>	32237	32524	114fd14ac3fc7cd3d40a53a493ab0f2e1a558417c0440ca26356b4dc610f6ed0		1	<dfn>	<time [0s,∞]> || <easing-function> || <time> || <single-animation-iteration-count> || <single-animation-direction> || <single-animation-fill-mode> || <single-animation-play-state> || [ none | <keyframes-name> ]

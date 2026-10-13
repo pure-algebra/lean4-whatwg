@@ -1,6 +1,7 @@
 # Plan: `Whatwg.Css`, CSS adopted as data
 
-Status: **design, 2026-10-12.** Slice K0 (the pins) is in the tree; K1 to K3 are being
+Status: **K0 and K1 landed, 2026-10-12** (K1: 178 blocks of eleven modules as 351 rows, no
+construct refused; section 7 has what the extractor found). K2 and K3 are being
 built. The owner asked for it in these words: "seal the css syntax spec", and "figure a way to
 mechanize css spec adoption for rigorous foolproof reification". lean4-effect4 asks for the same
 thing from its side (entry W5 of `docs/research/2026-10-12-whatwg-requests.md`: a stylesheet
@@ -27,7 +28,7 @@ sources, and they carry four kinds of block that are data already:
 | --- | --- | --- |
 | `<pre class='propdef'>` | a property: name, value grammar, initial value, what it applies to, whether it inherits, its animation type | 9 in CSS Animations 1, 7 in CSS Transforms 2 |
 | `<pre class='descdef'>` | a descriptor of an at-rule or a media feature | 38 in Media Queries 5 |
-| `class=prod` | a production, in the value definition syntax | 12 in CSS Values 4, 14 in CSS Color 4 |
+| `class=prod` | a production, in the value definition syntax | 12 in CSS Values 4, 13 in CSS Color 4 (and one more inside a comment, which is passed over) |
 | `<pre class='railroad'>` | a diagram of a token or a rule, in a small notation of its own | 28 in CSS Syntax 3 |
 
 And CSS Syntax 3 gives its tokenizer and parser as algorithms, in `<div algorithm>` blocks that
@@ -99,8 +100,8 @@ Chrome 152's readings of the constructs the kit writes are host observations
 
 ```text
 vendor/w3c-csswg-drafts-50337328/   css-syntax-3 sealed; the modules of section 5 as they are sealed
-WhatwgGates/CssBlocks.lean          the extractor and its emitter (whatwgbin/, lakefile, CI as the other gates)
-generated/css/                      <module>-properties.tsv, -descriptors.tsv, -productions.tsv, -diagrams.tsv, -tables.tsv
+WhatwgGates/CssBlocks.lean          the extractor; CssBlocksEmit.lean, its tables, drift check and controls (whatwgbin/, lakefile, CI as the other gates)
+generated/css/                      <module>-properties.tsv, -descriptors.tsv, -productions.tsv, -diagrams.tsv, -tables.tsv, and INDEX.tsv
 Whatwg/Css/
   Syntax/   Token  Tokenize  Tree  Parse  Serialize     the model of CSS Syntax 3, and the writer
   Values/   Definition  Admits                          the value definition syntax as data, and its interpreter
@@ -168,3 +169,21 @@ Open questions, each for the slice named: a round trip for every token list, not
 writer's (K2 states the premise it needs and leaves the general law as an open edge); whether
 the interpreter of `||` and `&&` is decidable at the sizes the properties use without a search
 bound (K3); escapes in identifiers that the kit's stems could need (K2, with `cssom-1`).
+
+## 7. What slice K1 found in the sources
+
+- **A fifth and a sixth kind of block.** Besides the four kinds of section 0 and the data
+  tables, two `pre` elements with no class hold productions that slice K5 needs: the grammar of
+  `@keyframes` in CSS Animations 1, and the whole grammar of a media query in Media Queries 5.
+  The extractor reads a `pre` with no attribute where one of its lines opens with a `dfn` and
+  `=`; such rows have the kind `pre`.
+- **A block inside a comment** (CSS Color 4) is passed over and counted, so that a block class
+  that the scanner did not read cannot go unseen.
+- **Not resolved, for slice K3's reader**: a footnote mark inside a production of CSS Syntax 3
+  (`'+'?† n`, five times); four expressions of CSS Values 4 whose name stands outside their
+  block; four diagrams of Media Queries 5 with no name.
+- **The texts of `Animation type`**, for slice K5: `by computed value` and its variants 8 times,
+  `discrete` 4, `not animatable` 14, and one each of `as SLERP` and `transform list`.
+- **For ruling CS-8**: the diagram of `wsp` in CSS Transforms 1 has a form feed where its prose
+  has a line feed. The diagram is informative; the module `Whatwg/Svg/Value/Transform.lean`
+  follows the prose.

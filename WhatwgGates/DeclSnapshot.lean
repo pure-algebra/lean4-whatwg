@@ -203,7 +203,7 @@ def libraries : List (String × Name) :=
   [("Whatwg", `Whatwg), ("WhatwgInfra", `Whatwg.Infra), ("WhatwgEcma262", `Whatwg.Ecma262),
    ("WhatwgWebIdl", `Whatwg.WebIdl), ("WhatwgUrl", `Whatwg.Url), ("WhatwgHtml", `Whatwg.Html),
    ("WhatwgStreams", `Whatwg.Streams), ("WhatwgSignatures", `Whatwg.Signatures),
-   ("WhatwgSvg", `Whatwg.Svg), ("WhatwgAuto", `Whatwg.Auto)]
+   ("WhatwgSvg", `Whatwg.Svg), ("WhatwgAuto", `Whatwg.Auto), ("WhatwgCss", `Whatwg.Css)]
 
 /-- The roles a record may give its declaration. -/
 def roles : List String :=

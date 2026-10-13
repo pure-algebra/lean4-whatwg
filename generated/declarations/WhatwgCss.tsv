@@ -1,0 +1,7 @@
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgCss rows=5 regenerate=lake exe whatwg_declsnapshot --write
+#name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
+Whatwg.Css.Data.Pairs.columns	Whatwg.Css.Data.Pairs	definition	authored	0	7e0b5e93114afeb4cfebd768cc5a3e1e87d5b69050cf5aa923a90cf890442778	-	-	-	-	-	-	-	-
+Whatwg.Css.Data.Pairs.digest	Whatwg.Css.Data.Pairs	definition	authored	0	662a8a03f749a02990a6a8822dec6eeeb9ae86cecf2e6a3d04dbb1707453637c	-	-	-	-	-	-	-	-
+Whatwg.Css.Data.Pairs.marked	Whatwg.Css.Data.Pairs	definition	authored	0	55a34dfcd8c764032414f39936b0d54ba89ba92e4a9a41eb95c0584f8a344cf1	-	-	-	-	-	-	-	-
+Whatwg.Css.Data.Pairs.rows	Whatwg.Css.Data.Pairs	definition	authored	0	7e0b5e93114afeb4cfebd768cc5a3e1e87d5b69050cf5aa923a90cf890442778	-	-	-	-	-	-	-	-
+Whatwg.Css.Data.Pairs.span	Whatwg.Css.Data.Pairs	definition	authored	0	b74b83b8e5804a000fd700627442efdf113819468782878fd05d23b2293a6139	-	-	-	-	-	-	-	-

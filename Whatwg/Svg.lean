@@ -77,6 +77,8 @@ import Whatwg.Svg.Scene.Resume
 import Whatwg.Svg.Scene.Strip
 import Whatwg.Svg.Scene.Step
 import Whatwg.Svg.Scene.Step.Laws
+import Whatwg.Svg.Scene.Vector
+import Whatwg.Svg.Scene.Machine
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
 import Whatwg.Svg.Geometry.Stack

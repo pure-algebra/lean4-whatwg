@@ -1,0 +1,13 @@
+#css-index format=1 generator=Gates.CssBlocks pin=vendor/w3c-csswg-drafts-50337328 modules=11 regenerate=lake exe whatwg_cssblocks --write
+#module	title	input	input-sha256	bytes	propdef-blocks	property-rows	descdef-blocks	descriptor-rows	prod-blocks	pre-blocks	production-rows	railroad-blocks	diagram-rows	tables	table-rows	passed-over
+css-syntax-3	CSS Syntax Module Level 3	vendor/w3c-csswg-drafts-50337328/css-syntax-3/Overview.bs	690223b6eb537625eb92e0d144bfacab2009fb4f3912bbe1a1e8457b930701d3	150058	0	0	0	0	1	0	1	28	28	1	100	0
+css-transforms-1	CSS Transforms Module Level 1	vendor/w3c-csswg-drafts-50337328/css-transforms-1/Overview.bs	efa546b47442be30a773fd60b1a236b206720ea7942d88cfd539ebc6b32c95ee	73009	3	3	0	0	12	0	12	11	11	0	0	0
+css-values-4	CSS Values and Units Module Level 4	vendor/w3c-csswg-drafts-50337328/css-values-4/Overview.bs	2004252d1473a1b6b3d72f0a7fcda4ff4e6821d774a1f4d7c0dc82ba220cdf46	231897	0	0	0	0	12	0	40	0	0	0	0	0
+css-animations-1	CSS Animations Module Level 1	vendor/w3c-csswg-drafts-50337328/css-animations-1/Overview.bs	2727c211033d4568621965aa5b2b9f3873a49ab8ae85223e8272803f143a3ccf	54937	9	9	0	0	5	1	9	0	0	0	0	0
+css-animations-2	CSS Animations Module Level 2	vendor/w3c-csswg-drafts-50337328/css-animations-2/Overview.bs	518624a57f5496f8f804b3f079da9efdc5493e18e9b00439b9c54ccf3fd9df34	45969	6	6	0	0	3	0	3	0	0	0	0	0
+css-easing-2	CSS Easing Functions Module Level 2	vendor/w3c-csswg-drafts-50337328/css-easing-2/Overview.bs	650cdccf65fe523627ce7917c8d1bef1361dac6bf62a82f8f75c89524a521554	36116	0	0	0	0	4	0	8	0	0	0	0	0
+css-transforms-2	CSS Transforms Module Level 2	vendor/w3c-csswg-drafts-50337328/css-transforms-2/Overview.bs	088bd50ed41701612c3f9b6672c5092c5749991d4a54fe49d74ea9c903bdd078	79384	7	7	0	0	13	0	13	0	0	0	0	0
+mediaqueries-5	Media Queries Level 5	vendor/w3c-csswg-drafts-50337328/mediaqueries-5/Overview.bs	aaf84f652a8363510be733bc9a5498aac24f16fb803e4aa6ce228cd080dce026	166185	0	0	38	38	1	1	20	4	4	0	0	0
+cssom-1	CSS Object Model (CSSOM) Module Level 1	vendor/w3c-csswg-drafts-50337328/cssom-1/Overview.bs	b5dddd12b06f24336fab26f5c0f878f5eee92c2e2973a119234ac48710d0f948	155470	0	0	0	0	0	0	0	0	0	0	0	0
+css-color-4	CSS Color Module Level 4	vendor/w3c-csswg-drafts-50337328/css-color-4/Overview.bs	c06655afa62f635cd7bfeb58612a1506bec775fbb683e9bb254879918b56ca6a	469216	2	2	0	0	13	0	34	0	0	0	0	1
+css-variables-1	CSS Custom Properties for Cascading Variables Module Level 1	vendor/w3c-csswg-drafts-50337328/css-variables-1/Overview.bs	99b56b75eac13bf1c9d0dea99140cb177a08586e693493f2761d37cd07e4c724	37179	1	1	0	0	2	0	2	0	0	0	0	0

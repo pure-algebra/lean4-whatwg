@@ -4,6 +4,7 @@ import Whatwg.WebIdl
 import Whatwg.Streams
 import Whatwg.Html
 import Whatwg.Svg
+import Whatwg.Css
 import Whatwg.Auto
 import Whatwg.Url
 import Whatwg.Signatures

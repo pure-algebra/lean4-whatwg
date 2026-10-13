@@ -1,0 +1,37 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-color-4 input=vendor/w3c-csswg-drafts-50337328/css-color-4/Overview.bs input-sha256=c06655afa62f635cd7bfeb58612a1506bec775fbb683e9bb254879918b56ca6a blocks=13 rows=34 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Color Module Level 4, https://drafts.csswg.org/css-color-4/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-color-4	pre.prod	<opacity-value>	29509	29585	1c116c6352b2bfdc7c2177188e2fc96d54b50fd9a49d27c899538078127c8d42		1		<number> | <percentage>
+css-color-4	pre.prod	<color>	41654	42039	f202d7e61f2ec3bcfb6a17314b626f818ae4d909c71bd817beccf86998839192		1		<color-base> | currentColor | <system-color>
+css-color-4	pre.prod	<color-base>	41654	42039	f202d7e61f2ec3bcfb6a17314b626f818ae4d909c71bd817beccf86998839192		2	<dfn>	<hex-color> | <color-function> | <named-color> | transparent
+css-color-4	pre.prod	<color-function>	41654	42039	f202d7e61f2ec3bcfb6a17314b626f818ae4d909c71bd817beccf86998839192		3	<dfn export>	<rgb()> | <rgba()> | <hsl()> | <hsla()> | <hwb()> | <lab()> | <lch()> | <oklab()> | <oklch()> | <color()>
+css-color-4	pre.prod	<alpha-value>	45137	45240	5fc53487210665d987fdb0dc500f398d76e6e12cc6b9101a659570230497a550		1	<dfn dfn-for="<color>">	<number> | <percentage>
+css-color-4	pre.prod	<hue>	45943	46014	86ebf5132028e3dfff806db0e8f6a9d6a4fdf119a07412291c953ba2abbee580		1	<dfn>	<number> | <angle>
+css-color-4	pre.prod	rgb()	56027	56712	9f30a532652e03c2fb39762faab79454c52e1863d8f094440b95593c8d9c1ec5		1	<dfn>	[ <legacy-rgb-syntax> | <modern-rgb-syntax> ]
+css-color-4	pre.prod	rgba()	56027	56712	9f30a532652e03c2fb39762faab79454c52e1863d8f094440b95593c8d9c1ec5		2	<dfn>	[ <legacy-rgba-syntax> | <modern-rgba-syntax> ]
+css-color-4	pre.prod	<legacy-rgb-syntax>	56027	56712	9f30a532652e03c2fb39762faab79454c52e1863d8f094440b95593c8d9c1ec5		3	<dfn>	rgb( <percentage>#{3} , <alpha-value>? ) | rgb( <number>#{3} , <alpha-value>? )
+css-color-4	pre.prod	<legacy-rgba-syntax>	56027	56712	9f30a532652e03c2fb39762faab79454c52e1863d8f094440b95593c8d9c1ec5		4	<dfn>	rgba( <percentage>#{3} , <alpha-value>? ) | rgba( <number>#{3} , <alpha-value>? )
+css-color-4	pre.prod	<modern-rgb-syntax>	56027	56712	9f30a532652e03c2fb39762faab79454c52e1863d8f094440b95593c8d9c1ec5		5	<dfn>	rgb( [ <number> | <percentage> | none]{3} [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	<modern-rgba-syntax>	56027	56712	9f30a532652e03c2fb39762faab79454c52e1863d8f094440b95593c8d9c1ec5		6	<dfn>	rgba( [ <number> | <percentage> | none]{3} [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	hsl()	103194	103925	c8880bf929f52c424944443b0adeaaa5b72f74913d816ce3c4552587fdb40ae5		1	<dfn>	[ <legacy-hsl-syntax> | <modern-hsl-syntax> ]
+css-color-4	pre.prod	hsla()	103194	103925	c8880bf929f52c424944443b0adeaaa5b72f74913d816ce3c4552587fdb40ae5		2	<dfn>	[ <legacy-hsla-syntax> | <modern-hsla-syntax> ]
+css-color-4	pre.prod	<modern-hsl-syntax>	103194	103925	c8880bf929f52c424944443b0adeaaa5b72f74913d816ce3c4552587fdb40ae5		3	<dfn>	hsl( [<hue> | none] [<percentage> | <number> | none] [<percentage> | <number> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	<modern-hsla-syntax>	103194	103925	c8880bf929f52c424944443b0adeaaa5b72f74913d816ce3c4552587fdb40ae5		4	<dfn>	hsla( [<hue> | none] [<percentage> | <number> | none] [<percentage> | <number> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	<legacy-hsl-syntax>	103194	103925	c8880bf929f52c424944443b0adeaaa5b72f74913d816ce3c4552587fdb40ae5		5	<dfn>	hsl( <hue>, <percentage>, <percentage>, <alpha-value>? )
+css-color-4	pre.prod	<legacy-hsla-syntax>	103194	103925	c8880bf929f52c424944443b0adeaaa5b72f74913d816ce3c4552587fdb40ae5		6	<dfn>	hsla( <hue>, <percentage>, <percentage>, <alpha-value>? )
+css-color-4	pre.prod	hwb()	161144	161333	ba8fd0112bc256b1d2841e977e961d24d411f749a33b55dd3d0f090df0257e19		1	<dfn>	hwb( [<hue> | none] [<percentage> | <number> | none] [<percentage> | <number> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	lab()	195582	195792	5a7dccf48ec357ebf162609c942bffcc6138f9b5d3d501e53cd62eee7978adeb		1	<dfn>	lab( [<percentage> | <number> | none] [ <percentage> | <number> | none] [ <percentage> | <number> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	lch()	197988	198178	ba67c47f79084d4f2c17742e2e931315a707fbed6d8c509790fa00252f219a28		1	<dfn>	lch( [<percentage> | <number> | none] [ <percentage> | <number> | none] [ <hue> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	oklab()	201269	201481	2b684af056d09662c08276a79b7a8a664846dc1c9104933705f74f7e2a80cf83		1	<dfn>	oklab( [ <percentage> | <number> | none] [ <percentage> | <number> | none] [ <percentage> | <number> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	oklch()	203643	203843	7e1630fb03319e0bdb7d4c566c452ecc39609438959ae4e6d122bc3b7354e981		1	<dfn>	oklch( [ <percentage> | <number> | none] [ <percentage> | <number> | none] [ <hue> | none] [ / [<alpha-value> | none] ]? )
+css-color-4	pre.prod	color()	210997	211671	b50f4e71f0c46f7f0a3dc6253f1ec7ab4b7d1d99e9616cff41349475b94e5e49		1	<dfn>	color( <colorspace-params> [ / [ <alpha-value> | none ] ]? )
+css-color-4	pre.prod	<colorspace-params>	210997	211671	b50f4e71f0c46f7f0a3dc6253f1ec7ab4b7d1d99e9616cff41349475b94e5e49		2	<dfn>	[ <predefined-rgb-params> | <xyz-params>]
+css-color-4	pre.prod	<predefined-rgb-params>	210997	211671	b50f4e71f0c46f7f0a3dc6253f1ec7ab4b7d1d99e9616cff41349475b94e5e49		3	<dfn>	<predefined-rgb> [ <number> | <percentage> | none ]{3}
+css-color-4	pre.prod	<predefined-rgb>	210997	211671	b50f4e71f0c46f7f0a3dc6253f1ec7ab4b7d1d99e9616cff41349475b94e5e49		4	<dfn>	srgb | srgb-linear | display-p3 | display-p3-linear | a98-rgb | prophoto-rgb | rec2020
+css-color-4	pre.prod	<xyz-params>	210997	211671	b50f4e71f0c46f7f0a3dc6253f1ec7ab4b7d1d99e9616cff41349475b94e5e49		5	<dfn>	<xyz-space> [ <number> | <percentage> | none ]{3}
+css-color-4	pre.prod	<xyz-space>	210997	211671	b50f4e71f0c46f7f0a3dc6253f1ec7ab4b7d1d99e9616cff41349475b94e5e49		6	<dfn>	xyz | xyz-d50 | xyz-d65
+css-color-4	pre.prod	<color-space>	268839	269616	3cfaedf7faaad796a54447d6d94d0f7fb6fdbef5a70a9355eaf9fd658a83680e		1	<dfn export>	<rectangular-color-space> | <polar-color-space>
+css-color-4	pre.prod	<rectangular-color-space>	268839	269616	3cfaedf7faaad796a54447d6d94d0f7fb6fdbef5a70a9355eaf9fd658a83680e		2	<dfn export>	srgb | srgb-linear | display-p3 | display-p3-linear | a98-rgb | prophoto-rgb | rec2020 | lab | oklab | <xyz-space>
+css-color-4	pre.prod	<polar-color-space>	268839	269616	3cfaedf7faaad796a54447d6d94d0f7fb6fdbef5a70a9355eaf9fd658a83680e		3	<dfn export>	hsl | hwb | lch | oklch
+css-color-4	pre.prod	<hue-interpolation-method>	268839	269616	3cfaedf7faaad796a54447d6d94d0f7fb6fdbef5a70a9355eaf9fd658a83680e		4	<dfn export>	[ shorter | longer | increasing | decreasing ] hue
+css-color-4	pre.prod	<color-interpolation-method>	268839	269616	3cfaedf7faaad796a54447d6d94d0f7fb6fdbef5a70a9355eaf9fd658a83680e		5	<dfn export id="color-interpolation-method">	in [ <rectangular-color-space> | <polar-color-space> <hue-interpolation-method>? ]

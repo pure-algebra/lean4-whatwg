@@ -109,6 +109,7 @@ import WhatwgTest.Svg.Greedy
 import WhatwgTest.Svg.Deterministic
 import WhatwgTest.Svg.Refusal
 import WhatwgTest.Svg.D3Shape
+import WhatwgTest.Svg.MotionVector
 import WhatwgTest.Auto.Banks
 import WhatwgTest.Audit.AutoCensus
 import WhatwgTest.Audit.BankCensus

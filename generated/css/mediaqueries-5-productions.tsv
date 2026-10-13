@@ -1,0 +1,23 @@
+#css-productions format=1 generator=Gates.CssBlocks module=mediaqueries-5 input=vendor/w3c-csswg-drafts-50337328/mediaqueries-5/Overview.bs input-sha256=aaf84f652a8363510be733bc9a5498aac24f16fb803e4aa6ce228cd080dce026 blocks=2 rows=20 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from Media Queries Level 5, https://drafts.csswg.org/mediaqueries-5/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+mediaqueries-5	pre	<media-query>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		1	<dfn>	<media-condition> | [ not | only ]? <media-type> [ and <media-condition-without-or> ]?
+mediaqueries-5	pre	<media-type>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		2	<dfn>	<ident>
+mediaqueries-5	pre	<media-condition>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		3	<dfn>	<media-not> | <media-in-parens> [ <media-and>* | <media-or>* ]
+mediaqueries-5	pre	<media-condition-without-or>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		4	<dfn>	<media-not> | <media-in-parens> <media-and>*
+mediaqueries-5	pre	<media-not>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		5	<dfn>	not <media-in-parens>
+mediaqueries-5	pre	<media-and>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		6	<dfn>	and <media-in-parens>
+mediaqueries-5	pre	<media-or>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		7	<dfn>	or <media-in-parens>
+mediaqueries-5	pre	<media-in-parens>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		8	<dfn>	( <media-condition> ) | ( <media-feature> ) | <general-enclosed>
+mediaqueries-5	pre	<media-feature>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		9	<dfn>	[ <mf-plain> | <mf-boolean> | <mf-range> ]
+mediaqueries-5	pre	<mf-plain>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		10	<dfn>	<mf-name> : <mf-value>
+mediaqueries-5	pre	<mf-boolean>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		11	<dfn>	<mf-name>
+mediaqueries-5	pre	<mf-range>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		12	<dfn>	<mf-name> <mf-comparison> <mf-value> | <mf-value> <mf-comparison> <mf-name> | <mf-value> <mf-lt> <mf-name> <mf-lt> <mf-value> | <mf-value> <mf-gt> <mf-name> <mf-gt> <mf-value>
+mediaqueries-5	pre	<mf-name>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		13	<dfn>	<ident>
+mediaqueries-5	pre	<mf-value>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		14	<dfn>	<number> | <dimension> | <ident> | <ratio>
+mediaqueries-5	pre	<mf-lt>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		15	<dfn>	'<' '='?
+mediaqueries-5	pre	<mf-gt>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		16	<dfn>	'>' '='?
+mediaqueries-5	pre	<mf-eq>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		17	<dfn>	'='
+mediaqueries-5	pre	<mf-comparison>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		18	<dfn>	<mf-lt> | <mf-gt> | <mf-eq>
+mediaqueries-5	pre	<general-enclosed>	34345	35837	547aff792b7adb93fb73bcbe53659fb53f26251ee7c6adc90e07b6e40a565010		19	<dfn>	[ <function-token> <any-value>? ) ] | [ ( <any-value>? ) ]
+mediaqueries-5	pre.prod	@custom-media	108467	108597	725bdd5601894c94e4f242151aa2792220441516e2823ac81e9cd5d5a0aca17a		1	<dfn>	@custom-media <extension-name> [ <media-query-list> | true | false ] ;

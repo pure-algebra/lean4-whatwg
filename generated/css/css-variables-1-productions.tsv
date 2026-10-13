@@ -1,0 +1,5 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-variables-1 input=vendor/w3c-csswg-drafts-50337328/css-variables-1/Overview.bs input-sha256=99b56b75eac13bf1c9d0dea99140cb177a08586e693493f2761d37cd07e4c724 blocks=2 rows=2 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Custom Properties for Cascading Variables Module Level 1, https://drafts.csswg.org/css-variables-1/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-variables-1	pre.prod	var()	20738	20841	823bb80d2d13374f59c82d6ca3eb039a990f3a042853704b13a45b75ccc8f021		1	<dfn>	var( <custom-property-name> , <declaration-value>? )
+css-variables-1	pre.prod	<var-args>	20946	21053	3d8b92e463b694155cc9ef072a32d8cc6758166a095da418c8fa1ca097a998e4		1	<dfn>	var( <declaration-value> , <declaration-value>? )

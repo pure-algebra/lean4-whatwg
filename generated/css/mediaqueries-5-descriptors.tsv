@@ -1,0 +1,41 @@
+#css-descriptors format=1 generator=Gates.CssBlocks module=mediaqueries-5 input=vendor/w3c-csswg-drafts-50337328/mediaqueries-5/Overview.bs input-sha256=aaf84f652a8363510be733bc9a5498aac24f16fb803e4aa6ce228cd080dce026 blocks=38 rows=38 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from Media Queries Level 5, https://drafts.csswg.org/mediaqueries-5/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	grammar	For	Value	Type
+mediaqueries-5	descdef mq	width	45419	45509	994c86552d1c2ba31a80c3ed5cf317f2d84766667b90e86dc8c970fd39e37872		<length>	@media	<<length>>	range
+mediaqueries-5	descdef mq	height	46957	47048	44c812e023e77a06e4a8b9bb465126d2f327a41c2e98baf479dd81d8937ef50f		<length>	@media	<<length>>	range
+mediaqueries-5	descdef mq	aspect-ratio	47522	47618	f1d38a159feab82671204d323bd8a3849f20debf3b1194064dcbf3f7737b97e6		<ratio>	@media	<<ratio>>	range
+mediaqueries-5	descdef mq	orientation	48056	48165	4e716fa72a76f11fc18de609e57c460650467015a49e88f98a4d61b93084f80b		portrait | landscape	@media	portrait | landscape	discrete
+mediaqueries-5	descdef mq	overflow-block	48796	48909	28fbaa24f135fd4da14fef84bfbbe9baae43992367a59f94f73ec92269d38198		none | scroll | paged	@media	none | scroll | paged	discrete
+mediaqueries-5	descdef mq	overflow-inline	50863	50969	3ff2d48dd74a2d038d2e5c66999ea29f5f68cf260d831bea9be06da4a8bcbe7f		none | scroll	@media	none | scroll	discrete
+mediaqueries-5	descdef mq	horizontal-viewport-segments	51851	51965	61d43ba8a06739af92afd2083b9d5132789c28f496c1e08021ccb37f2945fa22		<integer>	@media	<<integer>>	range
+mediaqueries-5	descdef mq	vertical-viewport-segments	52577	52689	b9c0528ca90dd77937e45bf043aa44fe45ff71e9991ef7182c82e9ae8a8f7d83		<integer>	@media	<<integer>>	range
+mediaqueries-5	descdef mq	display-mode	53233	53390	f661d6a4100726aec66e7ae8ee3cb1a24e9a7886ef2337d926222596187203a1		fullscreen | standalone | minimal-ui | browser | picture-in-picture	@media	fullscreen | standalone | minimal-ui | browser | picture-in-picture	discrete
+mediaqueries-5	descdef mq	resolution	59310	59420	051c881d88abd8b08e4419e09bf84a9353dc149b1ad654ab4d22f33059a303c2		<resolution> | infinite	@media	<<resolution>> | infinite	range
+mediaqueries-5	descdef mq	scan	62025	62130	d363fbdfe53dd34f1da00926def107ccfdc6af8277920700b0fb316c65ac53cf		interlace | progressive	@media	interlace | progressive	discrete
+mediaqueries-5	descdef mq	grid	63792	63888	55e2faaf04012d099c7087bc288ab875581513f15a7e5a4744092fefb116b4c5		<mq-boolean>	@media	<<mq-boolean>>	discrete
+mediaqueries-5	descdef mq	update	64950	65052	8e14343467e3964bff843011d0e58be14d154b8dc68a242838c248d594bcf34c		none | slow | fast	@media	none | slow | fast	discrete
+mediaqueries-5	descdef mq	environment-blending	66540	66669	3fcf5b00f47b3c73b9cd3015bef381b759c21721e4b8d9e15c8bffe12f27c2e4		opaque | additive | subtractive	@media	opaque | additive | subtractive	discrete
+mediaqueries-5	descdef mq	color	68796	68887	d6de1990961807baa2918ac685b67d1ce65e1f0bdae6854c574da63ee73d4d07		<integer>	@media	<<integer>>	range
+mediaqueries-5	descdef mq	color-index	70366	70463	f73b667b1d37611b8ada1b2fb7b58fb1c4aa9645db6c09f600937606254a28c1		<integer>	@media	<<integer>>	range
+mediaqueries-5	descdef mq	monochrome	71263	71359	129ccb866322e1298482ee582e9da755d079927d07d116a66cf58bb0d9177f4d		<integer>	@media	<<integer>>	range
+mediaqueries-5	descdef mq	color-gamut	72323	72431	8abcd8cb85e1dffc4e98f517c925dbbf9213d88cae1a2d48c729982de15d0fd5		srgb | p3 | rec2020	@media	srgb | p3 | rec2020	discrete
+mediaqueries-5	descdef mq	dynamic-range	76410	76516	e27e54900082d4849cac8e371a04528b6ce046cd25418a7f2833ab64a7f0f148		standard | high	@media	standard | high	discrete
+mediaqueries-5	descdef mq	inverted-colors	79287	79395	cc15224962bba0a8574cca9312cdb9d9c5056825f674435c4f9d1e051c356e07		none | inverted	@media	none | inverted	discrete
+mediaqueries-5	descdef mq	pointer	85837	85942	67cb96b231456a2e87914cc84ac55f4d0dee1d207a980ea168e620cda3a59a67		none | coarse | fine	@media	none | coarse | fine	discrete
+mediaqueries-5	descdef mq	hover	88717	88812	43278401884e8832da585f6d3aff27e87c51e297571c42203a7ca3a7c133f8ed		none | hover	@media	none | hover	discrete
+mediaqueries-5	descdef mq	any-pointer	91416	91525	76cf5ecf7e528aeb7c8ff572212e826c6435496e597aafd43cd7c705af192f14		none | coarse | fine	@media	none | coarse | fine	discrete
+mediaqueries-5	descdef mq	any-hover	91528	91627	5449bf53a8e76789821ad2feb0f8e219f820ec11c2b8feed1e024133d51dc673		none | hover	@media	none | hover	discrete
+mediaqueries-5	descdef mq	nav-controls	96068	96169	6a9a03ba9647fac8e530597aa31b58e2129f780a9981718f9a19f936fed9c77a		none | back	@media	none | back	discrete
+mediaqueries-5	descdef mq	video-color-gamut	101262	101376	605abf66ce271dfbea87d7c0e0bda52f7ea19ccd4360c578593c9303f5442454		srgb | p3 | rec2020	@media	srgb | p3 | rec2020	discrete
+mediaqueries-5	descdef mq	video-dynamic-range	101880	101992	9194ec21d91c0bfc795fbc0c1ec8582e44805fce2647da9d4134a15848c29cfd		standard | high	@media	standard | high	discrete
+mediaqueries-5	descdef mq	scripting	103393	103509	aeef86377c36f7f55b967e919f38a1c6357b3c9415f81b36dc970ea34f9bde2d		none | initial-only | enabled	@media	none | initial-only | enabled	discrete
+mediaqueries-5	descdef mq	prefers-reduced-motion	114844	114966	f5744ceef80fa2218443c3ea3c55928325f0a031e08e5b3ad5a0def6318f09f6		no-preference | reduce	@media	no-preference | reduce	discrete
+mediaqueries-5	descdef mq	prefers-reduced-transparency	115893	116021	7d136dec0337aa5f22a86103dd4af359ac24d84615e4fbf652f688dbe4df7052		no-preference | reduce	@media	no-preference | reduce	discrete
+mediaqueries-5	descdef mq	prefers-contrast	117043	117173	1a72552b1ee2bd46a537284c1020372dab0c99f7e9a2afb800de629b76131289		no-preference | less | more | custom	@media	no-preference | less | more | custom	discrete
+mediaqueries-5	descdef mq	forced-colors	121122	121226	7fe2aa7ede49f11c01d527eba23f714f46dfd8cc9cb04207482c5fbe3a785bff		none | active	@media	none | active	discrete
+mediaqueries-5	descdef mq	prefers-color-scheme	123070	123180	8dd42286922502d522813b58f0beafc19615370b68ffac58a5ab3f413d03dea1		light | dark	@media	light | dark	discrete
+mediaqueries-5	descdef mq	ua-color-scheme	125143	125248	ce4293aec8a6805e3d7b6499fdf45f7315552ed991b776e36212a04de2435e70		light | dark	@media	light | dark	discrete
+mediaqueries-5	descdef mq	prefers-reduced-data	127507	127627	b276eca9333fe91cf3eb69e2c082c8dd473772f5ac91e51f83232b35ffb498ae		no-preference | reduce	@media	no-preference | reduce	discrete
+mediaqueries-5	descdef mq	device-width	151181	151278	3591bde521db5988074827cd1624c554976f9d1e641bb54ea8bd867d26883016		<length>	@media	<<length>>	range
+mediaqueries-5	descdef mq	device-height	152106	152204	dbb6658e66b4b7ae156fdaebf28ef4895d044ec0274851acdf609a89dacdbbaf		<length>	@media	<<length>>	range
+mediaqueries-5	descdef mq	device-aspect-ratio	152907	153010	90cbbd558dc551be8b5833c536dce5c9714703975dc0834066557e27de22258b		<ratio>	@media	<<ratio>>	range

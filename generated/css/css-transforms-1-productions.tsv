@@ -1,0 +1,15 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-transforms-1 input=vendor/w3c-csswg-drafts-50337328/css-transforms-1/Overview.bs input-sha256=efa546b47442be30a773fd60b1a236b206720ea7942d88cfd539ebc6b32c95ee blocks=12 rows=12 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Transforms Module Level 1, https://drafts.csswg.org/css-transforms-1/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-transforms-1	pre.prod	<transform-list>	21766	21844	b5440c06c66eadc95dac1c92cd1efa3a0efbf0c6edf1c7e62cbdc3d2ef743d3f		1	<dfn>	<transform-function>+
+css-transforms-1	span.prod	matrix()	43699	43771	56f4724482cc6ea0a9f8239ac3112c5a8257dc2b3580d0f231cc9e0161ae4d1c		1	<dfn>	matrix( <number>#{6} )
+css-transforms-1	span.prod	translate()	43920	44030	67bd74e03ca90d750b8b2f685950bda579e887c516ca66acebecc218e24e4e80		1	<dfn>	translate( <length-percentage> , <length-percentage>? )
+css-transforms-1	span.prod	translateX()	44298	44385	68747115ecdea1130da7299aae19e70385fe1b85b1996a806244594a3fd61b18		1	<dfn>	translateX( <length-percentage> )
+css-transforms-1	span.prod	translateY()	44496	44583	bb12613a710f0d404cea1c6a81d9a764b941c0d141b0a11877f35023a284ba44		1	<dfn>	translateY( <length-percentage> )
+css-transforms-1	span.prod	scale()	44694	44774	c5cf86e5a7d2f5a52e77c443fc990e38357603d2342a0f10d4b9fa335fe435c3		1	<dfn>	scale( <number> , <number>? )
+css-transforms-1	span.prod	scaleX()	45171	45239	bbd465741def64c97fc961283adcfd4401b35d1dd23e892787b600a2865f09b6		1	<dfn>	scaleX( <number> )
+css-transforms-1	span.prod	scaleY()	45382	45450	8514051661babb0d1410af2f562fb497265a0280ef2a5ba5fd2051f5e04e2e8d		1	<dfn>	scaleY( <number> )
+css-transforms-1	span.prod	rotate()	45593	45675	65537b520ae4ae331f3e0148be0bba067dda9da4cfb9be20db34edbda446a967		1	<dfn>	rotate( [ <angle> | <zero> ] )
+css-transforms-1	span.prod	skew()	45983	46089	1994f066f51796196b36866fd6c290b42bff3038d8ee71521fee121bb33fd83b		1	<dfn>	skew( [ <angle> | <zero> ] , [ <angle> | <zero> ]? )
+css-transforms-1	span.prod	skewX()	46477	46557	de1349b0cecc0717480f0b6f8fa80ff874360b0ef271771909145db4533ca898		1	<dfn>	skewX( [ <angle> | <zero> ] )
+css-transforms-1	span.prod	skewY()	46672	46752	11642ff4f24bdc1cd2107dec7b23c4fdbd5d9e8a5a778ac15dba2446417d50b9		1	<dfn>	skewY( [ <angle> | <zero> ] )

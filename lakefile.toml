@@ -5,11 +5,11 @@ keywords = ["whatwg", "streams", "infra", "verified", "lean4"]
 license = "MIT"
 readmeFile = "README.md"
 defaultTargets = ["Whatwg", "WhatwgInfra", "WhatwgEcma262", "WhatwgWebIdl",
-                  "WhatwgUrl", "WhatwgHtml", "WhatwgSvg", "WhatwgAuto", "WhatwgStreams", "WhatwgSignatures",
+                  "WhatwgUrl", "WhatwgHtml", "WhatwgSvg", "WhatwgCss", "WhatwgAuto", "WhatwgStreams", "WhatwgSignatures",
                   "WhatwgGates", "WhatwgTest",
                   "whatwg_vendorseal", "whatwg_citations", "whatwg_census",
                   "whatwg_urlinventory", "whatwg_urlcensus", "whatwg_htmlstandard",
-                  "whatwg_svgdefinitions", "whatwg_svggrammar", "whatwg_xmlproductions",
+                  "whatwg_svgdefinitions", "whatwg_svggrammar", "whatwg_xmlproductions", "whatwg_cssblocks",
                   "whatwg_ledger", "whatwg_declsnapshot", "whatwg_trustgate"]
 
 # Ruling R-6 (docs/SHA256-DAG.md §9), package-wide: no implicit binder is
@@ -64,6 +64,12 @@ globs = ["Whatwg.Html.*"]
 name = "WhatwgSvg"
 roots = ["Whatwg.Svg"]
 globs = ["Whatwg.Svg.*"]
+
+# CSS adopted as data (docs/CSS-PACKAGE-PLAN.md): W3C modules, sealed as Bikeshed sources.
+[[lean_lib]]
+name = "WhatwgCss"
+roots = ["Whatwg.Css"]
+globs = ["Whatwg.Css.*"]
 
 # Proof search for the law graphs: the named Aesop rule banks. The one library
 # that imports Aesop directly; a proof module imports its banks (ruling
@@ -164,6 +170,13 @@ root = "whatwgbin.SvgGrammar"
 [[lean_exe]]
 name = "whatwg_xmlproductions"
 root = "whatwgbin.XmlProductions"
+
+# The data blocks of the sealed CSS modules as tables (slice K1 of docs/CSS-PACKAGE-PLAN.md):
+# `generated/css/` and `Whatwg/Css/Data/Pairs.lean`, regenerated from the sealed sources under
+# `vendor/w3c-csswg-drafts-50337328/` and checked for byte drift, with the extractor's controls.
+[[lean_exe]]
+name = "whatwg_cssblocks"
+root = "whatwgbin.CssBlocks"
 
 # The P1 specification-algorithm census, and since slice Q2 the Web IDL and
 # ECMA-262 censuses, each with its coverage report.

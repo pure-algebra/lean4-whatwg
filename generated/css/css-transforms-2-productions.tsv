@@ -1,0 +1,16 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-transforms-2 input=vendor/w3c-csswg-drafts-50337328/css-transforms-2/Overview.bs input-sha256=088bd50ed41701612c3f9b6672c5092c5749991d4a54fe49d74ea9c903bdd078 blocks=13 rows=13 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Transforms Module Level 2, https://drafts.csswg.org/css-transforms-2/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-transforms-2	span.prod	scale()	52855	52948	ee93bab55a53969b3ccd24827bdcf574a59033c49cdd363a75ad18d5df44e2f3		1	<dfn>	scale( [ <number> | <percentage> ]#{1,2} )
+css-transforms-2	span.prod	scaleX()	52951	53040	ba581e7e97058c0ba06e8114ddf173ed7210a3e93a01ba071be4dd1a80813bea		1	<dfn>	scaleX( [ <number> | <percentage> ] )
+css-transforms-2	span.prod	scaleY()	53043	53132	76ff9c14211cf577edd9b2aa760f9e42925f42cfbfc7658ed2305bdda116f807		1	<dfn>	scaleY( [ <number> | <percentage> ] )
+css-transforms-2	span.prod	matrix3d()	53580	53657	1c5f00c4e3547040e6e4ebfd6433d18747a202471350c1965b1d72eca0d957b5		1	<dfn>	matrix3d( <number>#{16} )
+css-transforms-2	span.prod	translate3d()	53757	53883	8708864adbf9db28ca80913c80366a3ec5bf40306c9ccad96452b71045a834e4		1	<dfn>	translate3d( <length-percentage> , <length-percentage> , <length> )
+css-transforms-2	span.prod	translateZ()	54072	54148	149ba184cd1112c21b625a5609c3b7f92f89243f2ccd7bff57c4cfdde44a0878		1	<dfn>	translateZ( <length> )
+css-transforms-2	span.prod	scale3d()	54280	54375	faca06115215c1e2c73dcc76e2a26e1e8e4ad92c3198d8ffd1518b5c0632c6dd		1	<dfn>	scale3d( [ <number> | <percentage> ]#{3} )
+css-transforms-2	span.prod	scaleZ()	54506	54595	ee4ac099b03c0a2ed42d58cccfa9f700b83a7013a745e7376f53af4728111cf6		1	<dfn>	scaleZ( [ <number> | <percentage> ] )
+css-transforms-2	span.prod	rotate3d()	54733	54858	74d3ae6fa8225611fee6fca6b09cfb8579c645c43ab7a8ee1677dfc9d88be24b		1	<dfn>	rotate3d( <number> , <number> , <number> , [ <angle> | <zero> ] )
+css-transforms-2	span.prod	rotateX()	55236	55320	dc9ce6d2826b1c61be88c735c6aca32fb5fbb21cb1e13060035bf22693341090		1	<dfn>	rotateX( [ <angle> | <zero> ] )
+css-transforms-2	span.prod	rotateY()	55369	55453	697ee92349597407be21a415c0a376ebc3a8b5cc8d10c94ec1c9ed81724bc5c2		1	<dfn>	rotateY( [ <angle> | <zero> ] )
+css-transforms-2	span.prod	rotateZ()	55502	55586	a852837ada986eca64a255f9ebdab8490eacdf1f62ea6b2c7b4425d71a436fd0		1	<dfn>	rotateZ( [ <angle> | <zero> ] )
+css-transforms-2	span.prod	perspective()	55714	55893	4b95be768d2289fe5cde407f8b3c8991779e85fb20e48a02cfb8137915589fd6		1	<dfn>	perspective( [ <length [0,∞]> | none ] )

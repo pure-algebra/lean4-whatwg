@@ -1,0 +1,43 @@
+#css-productions format=1 generator=Gates.CssBlocks module=css-values-4 input=vendor/w3c-csswg-drafts-50337328/css-values-4/Overview.bs input-sha256=2004252d1473a1b6b3d72f0a7fcda4ff4e6821d774a1f4d7c0dc82ba220cdf46 blocks=12 rows=40 regenerate=lake exe whatwg_cssblocks --write
+#notice Copyright (c) 2026 World Wide Web Consortium. This file includes material derived from CSS Values and Units Module Level 4, https://drafts.csswg.org/css-values-4/, under the W3C Software and Document License, https://www.w3.org/copyright/software-license-2023/
+#module	kind	name	start	end	sha256	within	ordinal	head	rhs
+css-values-4	pre.prod		8538	8604	b2a71067efb27b8259bcd9db6ff3835b781dfe7cea01f044f222299fe5c898da	example	1		example( first? , second? , third? )
+css-values-4	xmp.prod		16730	16789	38111a64d49f13eb529b616e0d4edc08a7484c460ba0d1a5c8736ce709a7240e	example	1		example( <length> , <length> )
+css-values-4	xmp.prod	<pseudo-class-selector>	17063	17168	cc3d61c099cc3ec1b9a1a9763f67aaacda458f7e66a6f6cd1e6ff9ac9eab3e1e	example	1		: <ident-token> | : <function-token> <any-value> )
+css-values-4	xmp.prod	<foo>	19266	19385	230a16569b44bc70092815f60badb3a7df9cd0d3be38bd9e6804a5bc6185e7df	example	1		keyword | <bar> | some-really-long-pattern-of-stuff
+css-values-4	xmp.prod	<bar>	19266	19385	230a16569b44bc70092815f60badb3a7df9cd0d3be38bd9e6804a5bc6185e7df	example	2		<length>
+css-values-4	pre.prod	<url>	36197	36403	8970061edb506ce4a5295b1cf8436d6ce52cb4ce2284fec8cc56c9e0478d7f59		1	<dfn id="url-value">	<url()> | <src()>
+css-values-4	pre.prod	<url()>	36197	36403	8970061edb506ce4a5295b1cf8436d6ce52cb4ce2284fec8cc56c9e0478d7f59		2		url( <string> <url-modifier>* ) | <url-token>
+css-values-4	pre.prod	<src()>	36197	36403	8970061edb506ce4a5295b1cf8436d6ce52cb4ce2284fec8cc56c9e0478d7f59		3		src( <string> <url-modifier>* )
+css-values-4	code.prod		60927	60982	fe2e685e8ae14d0e315066f418242e678fdc97cbff5b013981ba7f71b5a99696		1		[ <length> | <percentage> ]
+css-values-4	code.prod		61099	61157	dc4d503baf85d4a8258323f6db11d265156b29f069c1e49f877bb26da3c8105d		1		[ <frequency> | <percentage> ]
+css-values-4	code.prod		61273	61327	35aa7cf8d75c002804e7ea344b7d471b5f95029bc0ed7490e26df54852aeac27		1		[ <angle> | <percentage> ]
+css-values-4	code.prod		61439	61492	7bb5919782c1d52e79eced0291675aaad9ac66d2fcc2b316f3822fad5796c7b9		1		[ <time> | <percentage> ]
+css-values-4	pre.prod	<ratio>	64401	64484	83890b9fdc7b31937103e0728104013fea928f6c7e228c2920baa423a3cf72b4		1		<number [0,∞]> [ / <number [0,∞]> ]?
+css-values-4	pre.prod	<position>	113492	113884	f1182a543d7c1efbc92a7acaa6e30fdccd8173c8e255ac07f929d0a46c065518		1		[ [ left | center | right | top | bottom | <length-percentage> ] | [ left | center | right ] && [ top | center | bottom ] | [ left | center | right | <length-percentage> ] [ top | center | bottom | <length-percentage> ] | [ [ left | right ] <length-percentage> ] && [ [ top | bottom ] <length-percentage> ] ]
+css-values-4	pre.prod	<calc()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		1		calc( <calc-sum> )
+css-values-4	pre.prod	<min()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		2		min( <calc-sum># )
+css-values-4	pre.prod	<max()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		3		max( <calc-sum># )
+css-values-4	pre.prod	<clamp()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		4		clamp( [ <calc-sum> | none ], <calc-sum>, [ <calc-sum> | none ] )
+css-values-4	pre.prod	<round()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		5		round( <rounding-strategy>?, <calc-sum>, <calc-sum>? )
+css-values-4	pre.prod	<mod()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		6		mod( <calc-sum>, <calc-sum> )
+css-values-4	pre.prod	<rem()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		7		rem( <calc-sum>, <calc-sum> )
+css-values-4	pre.prod	<sin()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		8		sin( <calc-sum> )
+css-values-4	pre.prod	<cos()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		9		cos( <calc-sum> )
+css-values-4	pre.prod	<tan()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		10		tan( <calc-sum> )
+css-values-4	pre.prod	<asin()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		11		asin( <calc-sum> )
+css-values-4	pre.prod	<acos()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		12		acos( <calc-sum> )
+css-values-4	pre.prod	<atan()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		13		atan( <calc-sum> )
+css-values-4	pre.prod	<atan2()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		14		atan2( <calc-sum>, <calc-sum> )
+css-values-4	pre.prod	<pow()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		15		pow( <calc-sum>, <calc-sum> )
+css-values-4	pre.prod	<sqrt()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		16		sqrt( <calc-sum> )
+css-values-4	pre.prod	<hypot()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		17		hypot( <calc-sum># )
+css-values-4	pre.prod	<log()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		18		log( <calc-sum>, <calc-sum>? )
+css-values-4	pre.prod	<exp()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		19		exp( <calc-sum> )
+css-values-4	pre.prod	<abs()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		20		abs( <calc-sum> )
+css-values-4	pre.prod	<sign()>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		21		sign( <calc-sum> )
+css-values-4	pre.prod	<calc-sum>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		22	<dfn>	<calc-product> [ [ '+' | '-' ] <calc-product> ]*
+css-values-4	pre.prod	<calc-product>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		23	<dfn>	<calc-value> [ [ '*' | / ] <calc-value> ]*
+css-values-4	pre.prod	<calc-value>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		24	<dfn>	<number> | <dimension> | <percentage> | <calc-keyword> | ( <calc-sum> )
+css-values-4	pre.prod	<calc-keyword>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		25	<dfn>	e | pi | infinity | -infinity | NaN
+css-values-4	pre.prod	<rounding-strategy>	169016	170378	13f0e0503ad8d1d496b1416d763a76ec605b23353ee4f5a98643f897f18d582f		26		nearest | up | down | to-zero | line-width
