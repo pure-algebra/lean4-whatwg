@@ -40,7 +40,9 @@ the file has three kinds of thing, and says which is which.
    and the sheet (`Motion.rules`, `Motion.sheetNode`) and each thing (`Motion.attrs`) are given
    the same one. A thing of the consumer keeps its class and its key. Its own declarations go in
    as `own`, and the thing has one `style`. The consumer's own rules go in the same sheet, after
-   the step's.
+   the step's. A page that may hold nothing inline takes the same step by the sheet (`filed`):
+   the `Play` says `reach := .sheet`, each thing carries a name and no `style`, and
+   `Motion.sheet` is the text of a file.
 
 **What is the consumer's code, restated.** The easings and their two tables (`Ease`, `Ease.at`,
 `tableAt`, `Ease.points`), the timing of a transition (`Ease.timed`), the writing of a number
@@ -157,8 +159,9 @@ formula, the timing of each default transition against the consumer's, the numbe
 default choreography in per mille, a step of five things at three of its moments, the two steps
 side by side, and the CSS of the consumer's step: the rules of its sheet as data, how much is
 written, the style of three things, a route of the consumer with the step on it, the same step
-scrubbed by one number, and which things carry the mark of reduced motion. The CSS is text
-written by rule; no browser read it here.
+scrubbed by one number, which things carry the mark of reduced motion, and the step by the
+sheet: the text of its file, that the two ways say the same of each thing, and that no
+attribute is a `style`. The CSS is text written by rule; no browser read it here.
 
 Every theorem of this module depends on `propext` and `Quot.sound` at most.
 -/
@@ -1020,5 +1023,118 @@ def marked (m : Motion String) (key : String) (p : Play) : Bool :=
 -- size.
 #guard (["a", "c", "a c", "d", "b"].map fun k => (fiveStep.frame k 1000).css) ==
   ["", "", "", "", "scale: 0; transform-box: fill-box; transform-origin: center"]
+
+/-! ### The step by the sheet
+
+A page may refuse what is inline: a `style` element and a `style` attribute. The consumer's
+site is served with the policy `default-src 'self'`, and asks for motion that passes it (ask
+W11 of `docs/research/2026-10-12-whatwg-requests.md`). The same step is written with nothing
+inline: every rule in the text of a file, and each thing named by an attribute. -/
+
+/-- The step of 600 ms, its declarations in the sheet. -/
+def filed : Play := { play with reach := .sheet }
+
+-- The text of the file: the four `@keyframes` rules of the inline way, then one rule for each
+-- thing that moves, under the name of the place of its first track, then the rule of reduced
+-- motion. Each rule of a thing says what the thing's `style` said.
+#guard (fiveStep.rules filed).take 4 == (fiveStep.rules play).take 4
+
+#guard ((Motion.sheet fiveStep filed).splitOn "\n").drop 4 ==
+  ["[data-track=\"m-0\"] { animation: m-0 270ms 0ms both }",
+    "[data-track=\"m-1\"] { animation: m-1 126ms 264ms both; transform-box: fill-box; " ++
+      "transform-origin: center }",
+    "[data-track=\"m-2\"] { animation: m-2 94.2ms 180ms both; stroke-dasharray: 2000 }",
+    "[data-track=\"m-3\"] { animation: m-1 126ms 474ms both; transform-box: fill-box; " ++
+      "transform-origin: center }",
+    "[data-track=\"m-4\"] { animation: m-4 150ms 0ms both; transform-box: fill-box; " ++
+      "transform-origin: center }",
+    "@media (prefers-reduced-motion: reduce) { [data-motion=\"m\"] { " ++
+      "animation-duration: 0s !important; animation-delay: 0s !important } }"]
+
+-- What each thing carries by the sheet: the mark that the rule of reduced motion selects, its
+-- name, and for the route the length that its dash counts in. A thing with no track carries
+-- nothing.
+#guard (["a", "c", "a c", "d", "b", "z"].map fun k =>
+    (Motion.attrs fiveStep k filed : List (SvgAttr .path)).map SvgAttr.toPair) ==
+  [[("data-motion", "m"), ("data-track", "m-0")], [("data-motion", "m"), ("data-track", "m-1")],
+    [("pathLength", "1000"), ("data-motion", "m"), ("data-track", "m-2")],
+    [("data-motion", "m"), ("data-track", "m-3")], [("data-motion", "m"), ("data-track", "m-4")],
+    []]
+
+-- The consumer's route by the sheet: its own class and key, and no `style`. The element takes
+-- the list.
+#guard (routeAttrs "a c" (Motion.attrs fiveStep "a c" filed)).map SvgAttr.toPair ==
+  [("class", "e4-stroke-rule"), ("fill", "none"), ("stroke", "#14110d"), ("stroke-width", "2"),
+    ("data-key", "a c"), ("pathLength", "1000"), ("data-motion", "m"), ("data-track", "m-2")]
+
+#guard SvgAttr.allOk (routeAttrs "a c" (Motion.attrs fiveStep "a c" filed))
+
+/-- The declarations of the style rule of a sheet under a selector. -/
+def ruleOf (sheet : Css.Sheet) (selector : String) : Option Css.Decls :=
+  sheet.findSome? fun r =>
+    match r with
+    | .qualified prelude decls [] => if prelude == selector then some decls else none
+    | _ => none
+
+/-- The declarations of the `style` among the attributes of a thing, as text. -/
+def styleOf (attrs : List (SvgAttr .g)) : Option String :=
+  (attrs.map SvgAttr.toPair).lookup "style"
+
+-- The two ways say the same of each thing that moves. The rule that the thing's name selects
+-- by the sheet holds the declarations that the thing's `style` holds the inline way.
+#guard ["a", "c", "a c", "d", "b"].all fun k =>
+  ruleOf (fiveStep.rules filed) (filed.thingSelector (fiveStep.thingIndex k)) ==
+      some (fiveStep.given k play) &&
+    styleOf (Motion.attrs fiveStep k play) == some (fiveStep.given k play).css
+
+-- By the sheet no attribute of any thing is a `style`.
+#guard ["a", "c", "a c", "d", "b", "z"].all fun k =>
+  (styleOf (Motion.attrs fiveStep k filed)).isNone
+
+-- A route with declarations of its own: by the sheet they are in its rule, merged as they are
+-- in its `style` the inline way.
+#guard ruleOf (fiveStep.rules filed fun k => if k == "a c" then [("cursor", "pointer")] else [])
+    "[data-track=\"m-2\"]" ==
+  some ([("cursor", "pointer"), ("animation", "m-2 94.2ms 180ms both"),
+    ("stroke-dasharray", "2000")] : Css.Decls)
+
+-- A control: a thing with no track and a style of its own. The inline way it keeps its `style`.
+-- By the sheet the step gives it nothing and writes no rule for it: its declarations are the
+-- caller's to put under a selector of the caller's.
+#guard styleOf (Motion.attrs fiveStep "z" play [("cursor", "pointer")]) == some "cursor: pointer"
+
+#guard (Motion.attrs fiveStep "z" filed [("cursor", "pointer")] : List (SvgAttr .g)).isEmpty &&
+  (fiveStep.rules filed fun _ => [("cursor", "pointer")]).length == (fiveStep.rules filed).length
+
+-- The step opened at the moment 400 and paused, by the sheet: the route carries its name and
+-- no mark, and its delay is in its rule.
+#guard (Motion.attrs fiveStep "a c" { filed with opened := 400, paused := true } :
+    List (SvgAttr .path)).map SvgAttr.toPair == [("pathLength", "1000"), ("data-track", "m-2")]
+
+#guard ruleOf (fiveStep.rules { filed with opened := 400, paused := true })
+    "[data-track=\"m-2\"]" ==
+  some ([("animation", "m-2 94.2ms -60ms both paused"), ("stroke-dasharray", "2000")] : Css.Decls)
+
+-- A step that `--t` scrubs, on a page that may hold no `style` attribute: the rule that sets
+-- the property, for the root of the page or under a selector of the caller's. No rule for a
+-- step that no property scrubs.
+#guard (filed.scrubbed.atRule 400).css == ":root { --t: 400 }"
+
+#guard (filed.scrubbed.atRule 400 "#fig3").css == "#fig3 { --t: 400 }"
+
+#guard (filed.atRule 400).isEmpty
+
+-- The moment 400 with no animation, by the sheet: the route carries its name, and its pose is
+-- in the rule of `Motion.rulesAt`, as the kit reads it.
+#guard (Motion.attrsAt fiveStep "a c" 400 filed : List (SvgAttr .path)).map SvgAttr.toPair ==
+  [("pathLength", "1000"), ("data-track", "m-2")]
+
+#guard ruleOf (fiveStep.rulesAt 400 filed) "[data-track=\"m-2\"]" ==
+  some ([("stroke-dashoffset", "1048"), ("stroke-dasharray", "2000")] : Css.Decls)
+
+-- How much is written by the sheet: the file has 1324 characters where the sheet of the inline
+-- way has 875, and the attributes that the step gives the five things have 178 where they had
+-- 467.
+#guard (Motion.sheet fiveStep filed).length == 1324 && (Motion.sheet fiveStep play).length == 875
 
 end WhatwgTest.Html.SvgMotion

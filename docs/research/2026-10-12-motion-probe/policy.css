@@ -1,0 +1,48 @@
+body { background: #14110d; color: #f3f4f6; font-family: Georgia, serif }
+h1, h2 { font-weight: 400 }
+table { border-collapse: collapse; font: 12px Menlo, monospace }
+td, th { border: 1px solid #555; padding: 2px 6px; text-align: left }
+input { width: 360px }
+@keyframes p-0 { from { translate: -60px 0px; animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { translate: 0px 0px } }
+@keyframes p-1 { from { opacity: 1; animation-timing-function: cubic-bezier(0.333333, 0, 0.666667, 0) } to { opacity: 0 } }
+@keyframes p-2 { from { stroke-dashoffset: 2000; animation-timing-function: cubic-bezier(0.333333, 1.567, 0.666667, 1) } to { stroke-dashoffset: 1000 } }
+@keyframes p-3 { from { scale: 0; animation-timing-function: linear(0, 0.059, 0.195, 0.363, 0.531, 0.681, 0.804, 0.898, 0.964, 1.007, 1.032, 1.043, 1.045, 1.041, 1.034, 1.026, 1.019, 1.012, 1.007, 1.003, 1) } to { scale: 1 } }
+@keyframes p-5 { from { d: path("M20,150C40,130 60,130 80,150C100,170 120,170 140,150"); animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { d: path("M20,160C40,180 60,180 80,160C100,140 120,140 140,160") } }
+@keyframes p-6 { from { d: path("M190,150C210,130 230,130 250,150M260,150C280,170 300,170 320,150"); animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { d: path("M190,160C210,180 230,180 255,160M255,160C280,140 300,140 320,160") } }
+[data-track="p-0"] { animation: p-0 720ms 0ms both }
+[data-track="p-1"] { cursor: pointer; animation: p-1 960ms 0ms both }
+[data-track="p-2"] { animation: p-2 640ms 160ms both; stroke-dasharray: 2000 }
+[data-track="p-3"] { animation: p-3 480ms 480ms both; transform-box: fill-box; transform-origin: center }
+[data-track="p-4"] { animation: p-3 480ms 960ms both; transform-box: fill-box; transform-origin: center }
+[data-track="p-5"] { animation: p-5 960ms 0ms both }
+[data-track="p-6"] { animation: p-6 960ms 0ms both }
+@media (prefers-reduced-motion: reduce) { [data-motion="p"] { animation-duration: 0s !important; animation-delay: 0s !important } }
+@keyframes q-0 { from { translate: -60px 0px; animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { translate: 0px 0px } }
+@keyframes q-1 { from { opacity: 1; animation-timing-function: cubic-bezier(0.333333, 0, 0.666667, 0) } to { opacity: 0 } }
+@keyframes q-2 { from { stroke-dashoffset: 2000; animation-timing-function: cubic-bezier(0.333333, 1.567, 0.666667, 1) } to { stroke-dashoffset: 1000 } }
+@keyframes q-3 { from { scale: 0; animation-timing-function: linear(0, 0.059, 0.195, 0.363, 0.531, 0.681, 0.804, 0.898, 0.964, 1.007, 1.032, 1.043, 1.045, 1.041, 1.034, 1.026, 1.019, 1.012, 1.007, 1.003, 1) } to { scale: 1 } }
+@keyframes q-5 { from { d: path("M20,150C40,130 60,130 80,150C100,170 120,170 140,150"); animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { d: path("M20,160C40,180 60,180 80,160C100,140 120,140 140,160") } }
+@keyframes q-6 { from { d: path("M190,150C210,130 230,130 250,150M260,150C280,170 300,170 320,150"); animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { d: path("M190,160C210,180 230,180 255,160M255,160C280,140 300,140 320,160") } }
+[data-track="q-0"] { animation: q-0 720ms calc((0 - var(--t, 0)) * 1.6ms) both paused }
+[data-track="q-1"] { cursor: pointer; animation: q-1 960ms calc((0 - var(--t, 0)) * 1.6ms) both paused }
+[data-track="q-2"] { animation: q-2 640ms calc((100 - var(--t, 0)) * 1.6ms) both paused; stroke-dasharray: 2000 }
+[data-track="q-3"] { animation: q-3 480ms calc((300 - var(--t, 0)) * 1.6ms) both paused; transform-box: fill-box; transform-origin: center }
+[data-track="q-4"] { animation: q-3 480ms calc((600 - var(--t, 0)) * 1.6ms) both paused; transform-box: fill-box; transform-origin: center }
+[data-track="q-5"] { animation: q-5 960ms calc((0 - var(--t, 0)) * 1.6ms) both paused }
+[data-track="q-6"] { animation: q-6 960ms calc((0 - var(--t, 0)) * 1.6ms) both paused }
+@media (prefers-reduced-motion: reduce) { [data-motion="q"] { animation-duration: 0s !important; animation-delay: 0s !important } }
+#scrubbed { --t: 400 }
+@keyframes r-0 { from { translate: -60px 0px; animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { translate: 0px 0px } }
+@keyframes r-1 { from { opacity: 1; animation-timing-function: cubic-bezier(0.333333, 0, 0.666667, 0) } to { opacity: 0 } }
+@keyframes r-2 { from { stroke-dashoffset: 2000; animation-timing-function: cubic-bezier(0.333333, 1.567, 0.666667, 1) } to { stroke-dashoffset: 1000 } }
+@keyframes r-3 { from { scale: 0; animation-timing-function: linear(0, 0.059, 0.195, 0.363, 0.531, 0.681, 0.804, 0.898, 0.964, 1.007, 1.032, 1.043, 1.045, 1.041, 1.034, 1.026, 1.019, 1.012, 1.007, 1.003, 1) } to { scale: 1 } }
+@keyframes r-5 { from { d: path("M20,150C40,130 60,130 80,150C100,170 120,170 140,150"); animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { d: path("M20,160C40,180 60,180 80,160C100,140 120,140 140,160") } }
+@keyframes r-6 { from { d: path("M190,150C210,130 230,130 250,150M260,150C280,170 300,170 320,150"); animation-timing-function: linear(0, 0.054, 0.171, 0.306, 0.438, 0.555, 0.654, 0.734, 0.799, 0.849, 0.888, 0.918, 0.941, 0.958, 0.97, 0.98, 0.986, 0.992, 0.995, 0.998, 1) } to { d: path("M190,160C210,180 230,180 255,160M255,160C280,140 300,140 320,160") } }
+[data-track="r-0"] { animation: r-0 720ms 0ms both }
+[data-track="r-1"] { cursor: pointer; animation: r-1 960ms 0ms both }
+[data-track="r-2"] { animation: r-2 640ms 160ms both; stroke-dasharray: 2000 }
+[data-track="r-3"] { animation: r-3 480ms 480ms both; transform-box: fill-box; transform-origin: center }
+[data-track="r-4"] { animation: r-3 480ms 960ms both; transform-box: fill-box; transform-origin: center }
+[data-track="r-5"] { animation: r-5 960ms 0ms both }
+[data-track="r-6"] { animation: r-6 960ms 0ms both }
+[data-motion="r"] { animation-duration: 0s !important; animation-delay: 0s !important }

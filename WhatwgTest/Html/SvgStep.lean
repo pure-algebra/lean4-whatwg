@@ -1,4 +1,6 @@
 import Whatwg.Svg.Scene.Step.Laws
+import Whatwg.Html.Print.Picture
+import Whatwg.Html.Node.SvgStep
 import WhatwgTest.Html.SvgMotion
 
 /-!
@@ -37,6 +39,12 @@ What is new here, and was not shown before:
   guard.
 - `rank_stands`: across the interruption no kept box of the rank moves, as a theorem of the two
   steps and not as a row of numbers.
+
+- *The step as nodes, both ways* (`draw`, `filed`, `both`): the consumer's step written by
+  `Step.nodes`, with its declarations inline and by the sheet. By the sheet the markup holds no
+  `style` at all, and the rules of two steps stand in one sheet with no name said twice. The
+  consumer's site is served with a policy that refuses what is inline (ask W11 of
+  `docs/research/2026-10-12-whatwg-requests.md`).
 
 How many lines the two forms take, counting code and no comment, is in the report of the slice.
 
@@ -374,5 +382,104 @@ def comesFirst (old new : List Thing) (a b : String) : Bool :=
 -- drawing when the box starts to grow.
 #guard !decide ((stagedStep {} before after).motion.Respects
   fun a b => (a, b) = ("a c", "c"))
+
+/-! ### The step as nodes, both ways
+
+`Step.nodes` (`Whatwg/Html/Node/SvgStep.lean`) writes a step from how one thing is drawn. The
+inline way it gives a `style` element and a `style` on each thing that moves. By the sheet it
+gives neither: each thing carries a name, and `Step.sheet` is the text of a file. -/
+
+section Nodes
+
+open Whatwg.Html
+open Whatwg.Svg.Value (Cubic)
+
+/-- How one thing of the consumer is drawn: a route as its path, with the consumer's class and
+key, and a box as a group around its rectangle. The motion goes on the path and on the
+group. -/
+def draw (n : Thing) (motion : Svg.Moving) : SvgNode :=
+  match n.kind with
+  | .route =>
+    Svg.cubics [Cubic.line ⟨n.place.x, 0⟩ ⟨n.place.x, n.place.y⟩]
+      (SvgMotion.routeAttrs n.key (motion .path))
+  | .box =>
+    Svg.g (SvgAttr.dataKey? n.key ++ motion .g)
+      [Svg.box (.ofSize ⟨n.place.x, n.place.y⟩ 60 28) [.className "e4-fill-ink"]]
+
+/-- The consumer's step of five things, as one value. -/
+def five : Step Thing String := step {} before after
+
+/-- The step back, from the scene after to the scene before: a second step of the same page. -/
+def back : Step Thing String := step {} after before
+
+/-- The first step by the sheet, under the stem `s1`. -/
+def filed : Play := { step := 600, stem := "s1", reach := .sheet }
+
+/-- How often a text stands in another. -/
+def count (part whole : String) : Nat := (whole.splitOn part).length - 1
+
+-- The inline way the markup of the step holds one `style` element and a `style` on each of the
+-- five things that move.
+#guard
+  let text := (Svg.svg [] (five.nodes { filed with reach := .inline } draw)).render
+  count "<style>" text == 1 && count " style=\"" text == 5
+
+-- By the sheet the markup holds no `style`: no element, no attribute. It has one node for each
+-- thing drawn, each with its name, and the picture is right by its tags and its keys.
+#guard count "style" (Svg.svg [] (five.nodes filed draw)).render == 0
+
+#guard (five.nodes filed draw).length == (five.drawn 0).length &&
+  count " data-track=\"s1-" (Svg.svg [] (five.nodes filed draw)).render == 5 &&
+  (Svg.svg [] (five.nodes filed draw)).okIn Whatwg.Html.Content.Ctx.flow
+
+-- The file of the step is the sheet that the inline way puts in its `style` element, and then
+-- the five rules of the things, before the rule of reduced motion.
+#guard (five.sheet filed).length == (five.sheet { filed with reach := .inline }).length + 5
+
+/-- What a rule names: the animation of a `@keyframes` rule, the selector of a style rule, and
+the selectors of the style rules of any other at-rule. -/
+def names (r : Css.Rule) : List String :=
+  match r with
+  | .qualified selector _ _ => [selector]
+  | .at "keyframes" name _ _ => ["@keyframes " ++ name]
+  | .at _ _ _ rules =>
+    rules.filterMap fun x =>
+      match x with
+      | .qualified selector _ _ => some selector
+      | _ => none
+  | .statement _ _ => []
+
+/-- **Two steps of one page in one file**: the rules of the first, and then the rules of the
+second under another stem. -/
+def both : Css.Sheet := five.sheet filed ++ back.sheet { filed with stem := "s2" }
+
+-- The stems keep the two steps apart: no animation and no selector is named twice in the file.
+#guard (both.flatMap names).eraseDups.length == (both.flatMap names).length
+
+-- A control: with one stem for both steps the file names three animations, five things and the
+-- selector of the rule of reduced motion twice each, nine names, and the second step's rules
+-- would stand over the first's.
+#guard
+  let clash := (five.sheet filed ++ back.sheet filed).flatMap names
+  clash.length - clash.eraseDups.length == 9
+
+-- Each thing of each step finds its own rule in the one file: the rule under the selector of
+-- its name says what the step gives the thing.
+#guard (five.motion.keys.all fun k =>
+    SvgMotion.ruleOf both (filed.thingSelector (five.motion.thingIndex k)) ==
+      some (five.motion.given k filed)) &&
+  back.motion.keys.all fun k =>
+    SvgMotion.ruleOf both ({ filed with stem := "s2" }.thingSelector (back.motion.thingIndex k)) ==
+      some (back.motion.given k { filed with stem := "s2" })
+
+-- A moment of the step with no animation, by the sheet: `Step.still` gives no `style` either,
+-- and `Step.stillSheet` has the rule of each thing with its pose then.
+#guard
+  let at400 : Play := { filed with stem := "s1-400" }
+  count "style" (Svg.svg [] (five.still 400 at400 draw)).render == 0 &&
+    SvgMotion.ruleOf (five.stillSheet 400 at400) "[data-track=\"s1-400-2\"]" ==
+      some ([("stroke-dashoffset", "1048"), ("stroke-dasharray", "2000")] : Css.Decls)
+
+end Nodes
 
 end WhatwgTest.Html.SvgStep

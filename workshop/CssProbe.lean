@@ -7,8 +7,8 @@ reduced motion. Run it from the repository root after `lake build`:
 
     lake env lean workshop/CssProbe.lean
 
-It writes five pages into the directory `out`. No module imports this file, and no gate reads
-its output.
+It writes eight pages and two files beside them into the directory `out`. No module imports this
+file, and no gate reads its output.
 
 The step has a thing for each kind of change: a box that moves, a box that fades, a line that
 draws itself by an easing that passes its end, two boxes that grow by one change under one
@@ -29,7 +29,27 @@ at both ends, and the second starts a subpath at one end where it goes on at the
 
 Each page reads the computed styles of its pictures with a small script and prints them side by
 side, with the greatest difference. The script draws nothing: every picture is the kit's markup
-and CSS as written. Nothing here was opened in a browser by the seat that wrote it. -/
+and CSS as written.
+
+Three more pages are of a page's policy (the consumer's ask W11 of
+`docs/research/2026-10-12-whatwg-requests.md`). The consumer's site is served with
+`Content-Security-Policy: default-src 'self'`, which refuses a `style` element, a `style`
+attribute and a script that is inline, and takes a sheet and a script of the page's own origin
+(from memory of that policy).
+
+- `policy-inline.html`: the step the inline way, with no policy. It moves.
+- `policy-linked.html`: the step by the sheet, with no policy: the page links `policy.css`, and
+  the picture holds no `style`. It moves. Under it the same step by the sheet with the rule of
+  reduced motion outside any `@media`: the rule must stand over the rules of the things, and
+  the picture must show the step's end at once.
+- `policy.html`: the policy, as a `meta` element, and three pictures: the inline one, which must
+  stand still; the linked one, which must move; and a linked one that `--t` scrubs, whose
+  property a rule of the file sets to 400 and a slider then sets through the object model.
+- `policy.css`: the rules of the three steps by the sheet in one file, kept apart by their
+  stems, after the page's own rules. `policy.js`: the script of the three pages, which fills a table of
+  what each thing computes and listens to the slider.
+
+Nothing of these three pages was opened in a browser by the seat that wrote them. -/
 
 open Whatwg.Html
 open Whatwg.Svg.Schema (Tag)
@@ -288,6 +308,149 @@ def reducedMedia : String :=
       "is as <code>reduced-always.html</code>. Where it does not, the step plays: the first " ++
       "table shows the start and has differences, and the second has none.</p>\n") .asked
 
+/-! ## A page's policy
+
+The same step, the inline way and by the sheet, and a page that carries the policy
+`default-src 'self'`. Under it nothing inline is taken: the pages have no `style` element of
+their own, no `style` attribute and no script but a file. -/
+
+/-- The step the inline way, under the stem `i`. -/
+def inlinePlay : Play := { play with stem := "i" }
+
+/-- The step by the sheet, under the stem `p`. -/
+def linkedPlay : Play := { play with stem := "p", reach := .sheet }
+
+/-- The step by the sheet, paused and scrubbed by `--t`, under the stem `q`. -/
+def scrubPlay : Play := ({ play with stem := "q", reach := .sheet } : Play).scrubbed
+
+/-- The step by the sheet with the rule of reduced motion outside any `@media`, under the stem
+`r`: the rule must stand over the rules of the things, which are in the same file. -/
+def reducedPlay : Play := { play with stem := "r", reach := .sheet, reduce := .always }
+
+/-- The own declarations of the thing with a key. -/
+def ownOf (key : String) : Css.Decls :=
+  ((things.find? fun th => th.key == key).map Thing.own).getD []
+
+/-- The page's own rules. Under the policy they cannot stand in a `style` element. -/
+def pageRules : Css.Sheet :=
+  [.style "body"
+      [("background", "#14110d"), ("color", "#f3f4f6"), ("font-family", "Georgia, serif")],
+    .style "h1, h2" [("font-weight", "400")],
+    .style "table" [("border-collapse", "collapse"), ("font", "12px Menlo, monospace")],
+    .style "td, th" [("border", "1px solid #555"), ("padding", "2px 6px"), ("text-align", "left")],
+    .style "input" [("width", "360px")]]
+
+/-- **The file**: the page's rules, the rules of the step by the sheet, the rules of the
+scrubbed step, the rule that puts the scrubbed step at its moment, and the rules of the step
+under the rule of reduced motion. Three steps in one sheet: their stems keep them apart. -/
+def policySheet : Css.Sheet :=
+  pageRules ++ step.rules linkedPlay ownOf ++ step.rules scrubPlay ownOf ++
+    scrubPlay.atRule moment "#scrubbed" ++ step.rules reducedPlay ownOf
+
+/-- The script of the three pages, as a file of the page's own origin. -/
+def policyScript : String := r#"// What each thing of each picture computes.
+// A page under the policy default-src 'self' runs this file, which is of its own origin, and
+// runs no script that is inline.
+function report() {
+  const table = document.getElementById('computed');
+  if (!table) return;
+  let rows = '<tr><th>picture</th><th>thing</th><th>has a style attribute</th>' +
+    '<th>animation-name</th><th>animation-duration</th><th>play state</th>' +
+    '<th>animations</th></tr>';
+  for (const svg of document.querySelectorAll('svg[id]')) {
+    for (const el of svg.querySelectorAll('[data-key]')) {
+      const cs = getComputedStyle(el);
+      rows += '<tr><td>' + svg.id + '</td><td>' + el.dataset.key + '</td><td>' +
+        (el.hasAttribute('style') ? 'yes' : 'no') + '</td><td>' +
+        cs.getPropertyValue('animation-name') + '</td><td>' +
+        cs.getPropertyValue('animation-duration') + '</td><td>' +
+        cs.getPropertyValue('animation-play-state') + '</td><td>' +
+        el.getAnimations().length + '</td></tr>';
+    }
+  }
+  table.innerHTML = rows;
+  const scrubbed = document.getElementById('scrubbed');
+  const says = document.getElementById('says');
+  if (scrubbed && says) {
+    says.textContent = getComputedStyle(scrubbed).getPropertyValue('--t').trim();
+  }
+}
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => requestAnimationFrame(report));
+  const slider = document.getElementById('slider');
+  const scrubbed = document.getElementById('scrubbed');
+  if (slider && scrubbed) slider.addEventListener('input', () => {
+    scrubbed.style.setProperty('--t', slider.value);
+    report();
+  });
+});
+"#
+
+/-- The head of a page of the policy: the policy where `policy`, and the one sheet. Nothing in
+it is inline. -/
+def policyHead (title : String) (policy : Bool) : String :=
+  "<!doctype html>\n<meta charset=\"utf-8\">\n" ++
+    (if policy then
+      "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'\">\n"
+    else "") ++
+    "<title>" ++ title ++ "</title>\n<link rel=\"stylesheet\" href=\"policy.css\">\n" ++
+    "<h1>" ++ title ++ "</h1>\n"
+
+/-- The foot of a page of the policy: the table that the script fills, and the script. -/
+def policyFoot : String :=
+  "<h2>What each thing computes</h2>\n<table id=\"computed\"></table>\n" ++
+    "<script src=\"policy.js\"></script>\n"
+
+/-- The step the inline way: a `style` element in the picture, and a `style` on each thing. -/
+def inlineNode : SvgNode := played "inline" inlinePlay
+
+/-- The step by the sheet: the picture holds no `style`. -/
+def linkedNode : SvgNode := played "linked" linkedPlay [] false
+
+/-- The scrubbed step by the sheet: the property is set by a rule of the file. -/
+def scrubLinkedNode : SvgNode := played "scrubbed" scrubPlay [] false
+
+/-- The step by the sheet under the rule of reduced motion. -/
+def reducedLinkedNode : SvgNode := played "reduced" reducedPlay [] false
+
+def policyInline : String :=
+  policyHead "A step, the inline way" false ++
+    "<p>The step with its rules in a <code>style</code> element of the picture and its " ++
+    "declarations in a <code>style</code> attribute of each thing. This page has no policy, " ++
+    "and the step must move.</p>\n" ++ shown "inline" inlineNode ++ policyFoot
+
+def policyLinked : String :=
+  policyHead "A step, by the sheet" false ++
+    "<p>The same step with every rule in the file <code>policy.css</code>, which the page " ++
+    "links, and each thing named by <code>data-track</code>. The picture holds no " ++
+    "<code>style</code>. This page has no policy, and the step must move as the inline one " ++
+    "does.</p>\n" ++ shown "linked" linkedNode ++
+    "<p>The same step by the sheet, with the rule of reduced motion outside any " ++
+    "<code>@media</code>. The rule and the rules of the things are in the one file. Its two " ++
+    "declarations are important, so it must stand over them: each thing must compute a " ++
+    "duration of <code>0s</code>, and the picture must show the step's end at once, as " ++
+    "<code>reduced-always.html</code> does the inline way.</p>\n" ++
+    shown "reduced: must show the end at once" reducedLinkedNode ++ policyFoot
+
+def policyPage : String :=
+  policyHead "A step under a page's policy" true ++
+    "<p>This page carries the policy <code>default-src 'self'</code>, as a <code>meta</code> " ++
+    "element. The first picture is the step the inline way: its <code>style</code> element and " ++
+    "its <code>style</code> attributes are refused, so it must stand still, every thing as it " ++
+    "is drawn. The second is the step by the sheet, and must move. The third is the step by " ++
+    "the sheet, paused, and scrubbed by <code>--t</code>: a rule of the file sets the property " ++
+    "to " ++ toString moment ++ ", and the slider sets it through the object model, from a " ++
+    "script that is a file of this page's origin.</p>\n" ++
+    shown "inline: must stand still" inlineNode ++ shown "linked: must move" linkedNode ++
+    "<h2>scrubbed: <code>--t</code> is <span id=\"says\"></span></h2>\n" ++
+    "<p><input id=\"slider\" type=\"range\" min=\"0\" max=\"1000\" value=\"" ++ toString moment ++
+    "\"></p>\n" ++ scrubLinkedNode.render ++ "\n" ++ policyFoot
+
+/-- Whether the markup of a picture holds a `style`, as an element or as an attribute. -/
+def holdsStyle (node : SvgNode) : Bool := (node.render.splitOn "style").length > 1
+#eval [holdsStyle inlineNode, holdsStyle linkedNode, holdsStyle scrubLinkedNode,
+  holdsStyle reducedLinkedNode]
+#eval IO.println (step.rules linkedPlay ownOf ++ scrubPlay.atRule moment "#scrubbed").css
 #eval step.rules play
 #eval things.map fun th => (th.key, (step.frame th.key moment).css, (step.frame th.key 1000).css)
 #eval do
@@ -297,3 +460,8 @@ def reducedMedia : String :=
   IO.FS.writeFile (out / "scrub-slider.html") scrubSlider
   IO.FS.writeFile (out / "reduced-always.html") reducedAlways
   IO.FS.writeFile (out / "reduced-media.html") reducedMedia
+  IO.FS.writeFile (out / "policy-inline.html") policyInline
+  IO.FS.writeFile (out / "policy-linked.html") policyLinked
+  IO.FS.writeFile (out / "policy.html") policyPage
+  IO.FS.writeFile (out / "policy.css") (policySheet.css ++ "\n")
+  IO.FS.writeFile (out / "policy.js") policyScript

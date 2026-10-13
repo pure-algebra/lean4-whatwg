@@ -34,7 +34,7 @@ def svgMotion : Graph where
     `Whatwg.Svg.Scene.Step.Laws, `Whatwg.Svg.Geometry.Spring, `Whatwg.Svg.Geometry.Spring.Laws,
     `Whatwg.Svg.Geometry.Spring.Resume, `Whatwg.Svg.Geometry.Spring.Follow,
     `Whatwg.Svg.Scene.Vector, `Whatwg.Svg.Scene.Machine]
-  acknowledged := ["R-S29", "R-S30", "R-S31", "R-S33", "R-S34"]
+  acknowledged := ["R-S29", "R-S30", "R-S31", "R-S33", "R-S34", "R-S37"]
   edges := {
     identity := {
       status := .requiredOpen
