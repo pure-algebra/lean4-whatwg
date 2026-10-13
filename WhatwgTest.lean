@@ -103,6 +103,10 @@ import WhatwgTest.Html.Runs
 import WhatwgTest.Html.RegionWords
 import WhatwgTest.Html.SheetFacts
 import WhatwgTest.Html.AdmitBlind
+import WhatwgTest.Html.Links
+import WhatwgTest.Html.Navs
+import WhatwgTest.Html.Outlines
+import WhatwgTest.Html.Tables
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar

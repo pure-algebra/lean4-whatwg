@@ -758,3 +758,18 @@ The typed sheet of facts that W14 asks for is not built yet. Its two halves are 
 facts and their places on the HTML side (`Whatwg/Html/Content/Structure.lean`, section 17), and
 on the CSS side the builders of selectors and values (`Whatwg/Css/Syntax/Build.lean`) with the
 parser that reads a sheet back.
+
+## 20. Slice S22, third part: links, navigation, a contents list and a table for the site
+
+Ruling R-S43 of `COORDINATION.md`. Everything is added. Read at your checkout `6ad8f7b8d`.
+
+| You write today (`tools/Tools/Site.lean`, `Document/Html.lean`) | The package now has | The port to read |
+| --- | --- | --- |
+| `linkTo`, `up`, `folders` | `Site.linkTo here there` (`Whatwg/Html/Content/Site/Link.lean`), with the law that `Site.resolve` reads it back as the page. It is your `linkTo`, text for text (`linkTo_eq_theirs`). `linkToPart` for a fragment, `linkToFile` for a sheet or a data file | `WhatwgTest/Html/Links.lean` |
+| `sectionItem`, `crumb`, `pagerLink` and their three `nav` elements | `Nav.list`, `Nav.trail`, `Nav.pager` over `Nav.Item` (`Whatwg/Html/Node/Nav.lean`), each your node by theorem; a navigation from a sound site's pages holds no dead link | `WhatwgTest/Html/Navs.lean` |
+| `parts`, `tocItem`, `tocSub`, `toc` | `Outline.contents` over `Outline.Entry` of any depth (`Whatwg/Html/Node/Outline.lean`), closed against a page with the outline's identifiers | `WhatwgTest/Html/Outlines.lean` |
+| `algebra.table`, and the check that a row's width differs | `Table ctx width` with rows as vectors (`Whatwg/Html/Node/Table.lean`): a row of another width is a type error; `Table.ofLists?` for rows that are lists; `Table.scrolling` puts it in the region | `WhatwgTest/Html/Tables.lean` |
+
+One finding in your code: `slug` of a key that ends in a colon (`claim:`) is the empty name. The
+link from the page above is then `/`, which leads to the root, and no check reports it. The
+package's `plain` refuses the name.
