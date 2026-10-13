@@ -84,6 +84,12 @@ import Whatwg.Svg.Scene.Extent
 import Whatwg.Svg.Scene.Layout
 import Whatwg.Svg.Scene.Ease
 import Whatwg.Svg.Scene.Timeline
+import Whatwg.Svg.Scene.Join.Whole
+import Whatwg.Svg.Scene.Patch
+import Whatwg.Svg.Scene.Patch.Laws
+import Whatwg.Svg.Scene.Patch.Order
+import Whatwg.Svg.Scene.Step.Patch
+import Whatwg.Svg.Scene.Tree.Fold
 import Whatwg.Svg.Geometry.Monotone
 import Whatwg.Svg.Geometry.Monotone.Laws
 import Whatwg.Svg.Geometry.Ease

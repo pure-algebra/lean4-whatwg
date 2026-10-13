@@ -773,3 +773,24 @@ Ruling R-S43 of `COORDINATION.md`. Everything is added. Read at your checkout `6
 One finding in your code: `slug` of a key that ends in a colon (`claim:`) is the empty name. The
 link from the page above is then `/`, which leads to the root, and no check reports it. The
 package's `plain` refuses the name.
+
+## 21. Slice S22, fourth part: a change as a value, and the fold of a tree
+
+Ruling R-S44 of `COORDINATION.md`. Everything is added. Read at your checkout `6ad8f7b8d`.
+
+| You write today (`tools/Tools/View/`) | The package now has | The port to read |
+| --- | --- | --- |
+| `Retained.lean`: `Op`, `Patch`, `diff`, `apply`, `apply_diff` with sixteen helper lemmas, and `apply_diff_order` with eleven | `Whatwg/Svg/Scene/Patch.lean` and `Patch/Laws.lean`: `put`, `move`, `drop` and the order; `diff`, `Patch.apply`, `apply_diff`. Your `KeyMap` is an instance of the class `Store` by its own two laws (`get?_insert`, `get?_erase`) and converts nothing; your law is then twelve lines and the law of the order three | `WhatwgTest/Svg/UsePatch.lean` |
+| the short writing of an order | `Reorder` (`Patch/Order.lean`), with its round trip | the same |
+| nothing: the patch of one step | `Step.patch` (`Step/Patch.lean`): applying it to the old picture gives the new one | the same |
+| `Algebra.lean`: `cata_fusion`, `cata_prod`, `cata_keeps` | `Tree.fold` with `fold_fusion`, `fold_both`, `fold_keeps` (`Whatwg/Svg/Scene/Tree/Fold.lean`). Your `ChildBlind` and its three lemmas have no counterpart: a step of a fold reads no child, by its type | `WhatwgTest/Svg/UseFold.lean` |
+| the join of a list with itself | `update_self`, `join_self`, `join_map` (`Join/Whole.lean`) | `WhatwgTest/Svg/UseJoin.lean` |
+
+To port: your anchor `Int × Int` becomes `IVec` (or two one-line instances); your `WF` gains a
+clause that a group with an origin is listed; a group listed twice takes its shift twice, which
+the law's premise (an order with no repeat) excludes. A thing whose new value is the old one
+moved is one `move`: this is the first half of your ask W21.
+
+Your asks W15 to W22 are with seats now: scales (W16), a ribbon and a vessel (W17, W22), a flow
+network on layers and units in a vessel (W18, W20), areas and stacks (W19), a frame and rules of
+a layout (W15). W21's second half, a body moved along a path in one beat, follows this landing.

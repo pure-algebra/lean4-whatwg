@@ -129,6 +129,9 @@ import WhatwgTest.Svg.D3Monotone
 import WhatwgTest.Svg.Monotone
 import WhatwgTest.Svg.Ease
 import WhatwgTest.Svg.Timeline
+import WhatwgTest.Svg.UseJoin
+import WhatwgTest.Svg.UsePatch
+import WhatwgTest.Svg.UseFold
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values
