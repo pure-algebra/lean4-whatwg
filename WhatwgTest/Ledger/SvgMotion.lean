@@ -33,8 +33,9 @@ def svgMotion : Graph where
     `Whatwg.Svg.Geometry.Easing, `Whatwg.Svg.Geometry.Moment, `Whatwg.Svg.Scene.Step,
     `Whatwg.Svg.Scene.Step.Laws, `Whatwg.Svg.Geometry.Spring, `Whatwg.Svg.Geometry.Spring.Laws,
     `Whatwg.Svg.Geometry.Spring.Resume, `Whatwg.Svg.Geometry.Spring.Follow,
-    `Whatwg.Svg.Scene.Vector, `Whatwg.Svg.Scene.Machine]
-  acknowledged := ["R-S29", "R-S30", "R-S31", "R-S33", "R-S34", "R-S37"]
+    `Whatwg.Svg.Scene.Vector, `Whatwg.Svg.Scene.Machine, `Whatwg.Svg.Scene.Ease,
+    `Whatwg.Svg.Scene.Timeline, `Whatwg.Svg.Geometry.Ease]
+  acknowledged := ["R-S29", "R-S30", "R-S31", "R-S33", "R-S34", "R-S37", "R-S41"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -186,9 +187,11 @@ def svgMotion : Graph where
         `Whatwg.Svg.Geometry.Spring.Laws, `Whatwg.Svg.Geometry.Spring.Resume,
         `Whatwg.Svg.Geometry.Spring.Follow, `Whatwg.Svg.Scene.Vector,
         `Whatwg.Svg.Scene.Machine, `Whatwg.Html.Node.Css, `Whatwg.Html.Node.SvgStep,
-        `WhatwgTest.Html.SvgStep, `WhatwgTest.Html.SvgSpring, `WhatwgTest.Html.SvgSpringResume],
+        `WhatwgTest.Html.SvgStep, `WhatwgTest.Html.SvgSpring, `WhatwgTest.Html.SvgSpringResume,
+        `Whatwg.Svg.Scene.Ease, `Whatwg.Svg.Scene.Timeline, `Whatwg.Svg.Geometry.Ease,
+        `WhatwgTest.Svg.Ease, `WhatwgTest.Svg.Timeline],
         .gate .build]
-      note := "The thirteen modules under `Whatwg.Svg.Scene` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception (ruling R-S27). The six under `Whatwg.Svg.Geometry` and the writer are under the ceiling of ruling R-11." }
+      note := "The fifteen modules under `Whatwg.Svg.Scene` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception (ruling R-S27). The seven under `Whatwg.Svg.Geometry` and the writer are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen
       remaining := [

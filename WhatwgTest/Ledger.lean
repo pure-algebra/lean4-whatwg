@@ -105,7 +105,8 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid, `Whatwg.Svg.Value.Curve.smooth_windows,
     `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Noise.two_band,
     `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move,
-    `Whatwg.Svg.Value.stack, `Whatwg.Svg.Value.Length.tail_total]
+    `Whatwg.Svg.Value.stack, `Whatwg.Svg.Value.Length.tail_total,
+    `Whatwg.Svg.Value.Curve.monotoneX, `Whatwg.Svg.Value.Curve.monotoneX_within]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -160,13 +161,16 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Stroke.stroke_move, `Whatwg.Svg.Value.Stroke.organic_band,
       `Whatwg.Svg.Value.Stroke.commutes_onGrid, `Whatwg.Svg.Value.Curve.through_move,
       `Whatwg.Svg.Value.stack_lengths, `Whatwg.Svg.Value.stack_apart,
-      `Whatwg.Svg.Value.ports_move],
+      `Whatwg.Svg.Value.ports_move, `Whatwg.Svg.Value.Curve.chained_monotoneX,
+      `Whatwg.Svg.Value.Curve.monotoneX_within, `Whatwg.Svg.Value.Curve.monotoneX_range,
+      `Whatwg.Svg.Value.Curve.monotoneX_rises, `Whatwg.Svg.Value.Curve.monotoneX_move],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,
       `WhatwgTest.Svg.Greedy,
       `WhatwgTest.Svg.Deterministic,
-      `WhatwgTest.Svg.Refusal, `WhatwgTest.Svg.D3Shape]]
+      `WhatwgTest.Svg.Refusal, `WhatwgTest.Svg.D3Shape, `WhatwgTest.Svg.D3Monotone,
+      `WhatwgTest.Svg.Monotone]]
 
 /-- The leaf-receipt record `SVG-LF-SCENE`: the passive data of the layer with no rational
 number, `Whatwg.Svg.Scene`, under the strict axiom ceiling (ruling SV-79 of

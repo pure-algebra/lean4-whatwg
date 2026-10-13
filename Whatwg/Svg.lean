@@ -82,6 +82,11 @@ import Whatwg.Svg.Scene.Machine
 import Whatwg.Svg.Scene.Layers
 import Whatwg.Svg.Scene.Extent
 import Whatwg.Svg.Scene.Layout
+import Whatwg.Svg.Scene.Ease
+import Whatwg.Svg.Scene.Timeline
+import Whatwg.Svg.Geometry.Monotone
+import Whatwg.Svg.Geometry.Monotone.Laws
+import Whatwg.Svg.Geometry.Ease
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
 import Whatwg.Svg.Geometry.Stack

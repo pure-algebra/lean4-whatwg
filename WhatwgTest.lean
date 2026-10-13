@@ -121,6 +121,10 @@ import WhatwgTest.Svg.D3Shape
 import WhatwgTest.Svg.MotionVector
 import WhatwgTest.Svg.UseLayers
 import WhatwgTest.Svg.UseLayout
+import WhatwgTest.Svg.D3Monotone
+import WhatwgTest.Svg.Monotone
+import WhatwgTest.Svg.Ease
+import WhatwgTest.Svg.Timeline
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values

@@ -702,3 +702,17 @@ give one picture.
 One finding bears on you: the checker reads a conditional category only at the bases flow and
 phrasing, so `<meta charset>` is refused in a `div` and admitted in a `figure` or a `details`
 (debt D142). Nothing of your site meets it.
+
+## 18. Slice S22, second part: the family of an easing, a curve that does not overshoot, motions in time
+
+Ruling R-S41 of `COORDINATION.md`. Everything is added; no call of yours changes.
+
+| You write today | The package now has | The port to read |
+| --- | --- | --- |
+| `Ease.at` with `in_`, `out`, `inOut`, `outBack` as four formulas (`Look.lean`) | `Whatwg/Svg/Scene/Ease.lean`: `Easing.out` and `Easing.inOut` of any easing. Your seven easings are written with no formula, and each is the easing your formula samples | `WhatwgTest/Svg/Ease.lean` |
+| nothing: no check that a `move` goes one way | `Easing.Rises`, decided by `decide`, and `Transition.mix_mono`: under an easing that passes, a value on its way up is never lower at a later moment. Your five easings that do not overshoot pass. A look check could ask it of the `move` easing beside the `bounded` check of guidance 4 | the same |
+| `lineAt` with `c.write.after (i * c.stagger)` (`Motion.lean`) | `Whatwg/Svg/Scene/Timeline.lean`: `Motion.later`, with what a later motion shows and when it ends; `andThen` as a monoid; `Motion.inOrder` | `WhatwgTest/Svg/Timeline.lean` |
+| no chart yet | `Whatwg/Svg/Geometry/Monotone.lean`: `Curve.monotoneX points`, d3's monotone curve, exact. It never leaves the range of its data and never falls between two points of which the second is no lower: a line through counts is never negative | `WhatwgTest/Svg/Monotone.lean` |
+
+The kit's `backOut` has the overshoot `1.701`, since its heights are whole per mille; d3's is
+`1.70158`. The two read within a ten-thousandth of each other.

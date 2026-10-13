@@ -81,10 +81,12 @@ more where it started and writes no `Z`, and `Shape.loop` writes one.
 
 ## Not covered
 
-107 assertions of `test/curve/` have no form in the kit and are left out:
+The 42 assertions of `monotoneX-test.js` and `monotoneY-test.js` are converted in
+`WhatwgTest/Svg/D3Monotone.lean`. 65 assertions of `test/curve/` have no form in the kit and
+are left out:
 
-- `curveMonotoneX`, `curveMonotoneY`, `curveNatural` and `curveBundle`: the 55 assertions of
-  `monotoneX-test.js`, `monotoneY-test.js`, `natural-test.js` and `bundle-test.js`;
+- `curveNatural` and `curveBundle`: the 13 assertions of `natural-test.js` and
+  `bundle-test.js`;
 - `curveCatmullRom` with a positive `alpha`, which is also its own `alpha` of a half: 46
   assertions of `catmullRom-test.js`, `catmullRomClosed-test.js` and `catmullRomOpen-test.js`;
 - a tension given as the string `"0.5"`: 6 assertions of the three cardinal files. A tension
