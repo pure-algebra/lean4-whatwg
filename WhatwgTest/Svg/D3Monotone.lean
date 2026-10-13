@@ -21,9 +21,11 @@ uses (`point`, `pathEqual`): one `#guard` for one assertion of d3, with d3's cal
   every piece of a monotone curve as a `C`, also a level one, and the straight segment between
   two points as an `L`. `line` writes so: a `C` for each piece where three points or more are
   left, and an `L` for two.
-- `area().curve(curveMonotoneX)(data)` has d3's own `y0` of zero. The kit has no area for this
-  curve, so `area` puts the outline together as d3 does: the curve of the top, a straight line
-  to the last point of the base, the curve of the base taken backwards, and a `Z`.
+- `area().curve(curveMonotoneX)(data)` has d3's own `y0` of zero. `area` here puts the outline
+  together as d3 does, so that the letters of d3's path can be compared: the curve of the top, a
+  straight line to the last point of the base, the curve of the base taken backwards, and a
+  `Z`. The kit's own area of this curve is `Curve.Through.monotoneX.areaCubics`, and
+  `WhatwgTest/Svg/D3Through.lean` compares the same ten assertions with it, as outlines.
 - `curveMonotoneY` is `Curve.monotoneY`, and d3's `reflect` is `Monotone.swap`.
 
 ## What was found

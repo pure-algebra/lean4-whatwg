@@ -127,6 +127,12 @@ import WhatwgTest.Svg.MotionVector
 import WhatwgTest.Svg.UseLayers
 import WhatwgTest.Svg.UseLayout
 import WhatwgTest.Svg.D3Monotone
+import WhatwgTest.Svg.D3Through
+import WhatwgTest.Svg.StackLayers
+import WhatwgTest.Svg.D3Natural
+import WhatwgTest.Svg.Around
+import WhatwgTest.Svg.Nearest
+import WhatwgTest.Svg.Reel
 import WhatwgTest.Svg.Monotone
 import WhatwgTest.Svg.Ease
 import WhatwgTest.Svg.Timeline

@@ -109,7 +109,11 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Curve.monotoneX, `Whatwg.Svg.Value.Curve.monotoneX_within,
     `Whatwg.Svg.Value.Ticks.ticks, `Whatwg.Svg.Value.Ticks.mem_ticks,
     `Whatwg.Svg.Value.Ticks.plain_count, `Whatwg.Svg.Value.Ticks.nice_contains,
-    `Whatwg.Svg.Value.Ticks.marks]
+    `Whatwg.Svg.Value.Ticks.marks, `Whatwg.Svg.Value.Curve.Through,
+    `Whatwg.Svg.Value.Curve.Through.commutes, `Whatwg.Svg.Value.Stack.pile,
+    `Whatwg.Svg.Value.Stack.heights_pile, `Whatwg.Svg.Value.Curve.natural,
+    `Whatwg.Svg.Value.Curve.smooth_natural, `Whatwg.Svg.Value.Cubic.around,
+    `Whatwg.Svg.Value.Curve.monotoneX_falls]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -170,14 +174,23 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.Ticks.step_mantissa, `Whatwg.Svg.Value.Ticks.mem_ticks,
       `Whatwg.Svg.Value.Ticks.ticks_rising, `Whatwg.Svg.Value.Ticks.plain_count,
       `Whatwg.Svg.Value.Ticks.nice_contains, `Whatwg.Svg.Value.Ticks.nice_settled,
-      `Whatwg.Svg.Value.Ticks.marks_rise],
+      `Whatwg.Svg.Value.Ticks.marks_rise, `Whatwg.Svg.Value.Curve.Through.commutes,
+      `Whatwg.Svg.Value.Curve.Through.chained_areaCubics,
+      `Whatwg.Svg.Value.Curve.Through.monotoneX_area_range,
+      `Whatwg.Svg.Value.Curve.Through.chained_between, `Whatwg.Svg.Value.Stack.heights_pile,
+      `Whatwg.Svg.Value.Stack.bases_pile, `Whatwg.Svg.Value.Stack.heights_signed,
+      `Whatwg.Svg.Value.Stack.over_level, `Whatwg.Svg.Value.Curve.chained_natural,
+      `Whatwg.Svg.Value.Curve.smooth_natural, `Whatwg.Svg.Value.Curve.natural_move,
+      `Whatwg.Svg.Value.Cubic.around_x_le, `Whatwg.Svg.Value.Cubic.around_touches,
+      `Whatwg.Svg.Value.Curve.monotoneX_falls, `Whatwg.Svg.Value.Curve.monotoneY_within],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,
       `WhatwgTest.Svg.Greedy,
       `WhatwgTest.Svg.Deterministic,
       `WhatwgTest.Svg.Refusal, `WhatwgTest.Svg.D3Shape, `WhatwgTest.Svg.D3Monotone,
-      `WhatwgTest.Svg.Monotone]]
+      `WhatwgTest.Svg.Monotone, `WhatwgTest.Svg.D3Through, `WhatwgTest.Svg.StackLayers,
+      `WhatwgTest.Svg.D3Natural, `WhatwgTest.Svg.Around]]
 
 /-- The leaf-receipt record `SVG-LF-SCENE`: the passive data of the layer with no rational
 number, `Whatwg.Svg.Scene`, under the strict axiom ceiling (ruling SV-79 of

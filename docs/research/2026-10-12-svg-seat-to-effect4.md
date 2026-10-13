@@ -866,3 +866,23 @@ What the types do not check: `plain` judges a property by its name, so `text-dec
 passes; the properties that carry a colour are a list from memory; and that a browser's selector
 matches a place is not a theorem here, since Selectors is not sealed (debt D144). Your check
 `Sheet.problem` becomes the types within those limits.
+
+## 25. Slice S22, eighth part: areas and stacks (your ask W19), and curves as values
+
+Ruling R-S48 of `COORDINATION.md`. Everything is added. Read at your checkout `6ad8f7b8d`.
+
+| Your ask, or what you write today | The package now has | The port to read |
+| --- | --- | --- |
+| W19: stacked layers with a signed baseline | `Stack.signed layers` (`Whatwg/Svg/Geometry/Stack/Layers.lean`): layers above zero stack up and layers below hang down. At each beat a layer's height is its value, exactly, and neighbours share their edge | `WhatwgTest/Svg/StackLayers.lean` |
+| W19: an area between two curves, through the monotone curve | `Curve.Through.between`, one closed outline; with `Curve.Through.monotoneX` each edge stays between its two values between beats, so no quantity is invented | the same |
+| a curve through points | `Curve.Through` (`Whatwg/Svg/Geometry/Through.lean`): the monotone curves, the natural spline and every form of `Curve` are values of one type, and a line, a link, a pen and an area take any | `WhatwgTest/Svg/D3Through.lean` |
+| the `back` case and `loop` of `Graph.lean` | `Cubic.around p q reach` (`Whatwg/Svg/Geometry/Around.lean`), never past its reach | `WhatwgTest/Svg/Around.lean` |
+| `Ease.bezier`, `roundDiv` (`Look.lean`) | `Easing.nearestCubic` (`Whatwg/Svg/Scene/Nearest.lean`); it is your function on your seven easings | `WhatwgTest/Svg/Nearest.lean` |
+| `Run.framesBuilt` and the player | `Reel` (`Whatwg/Svg/Scene/Reel.lean`): a run of steps as one value | `WhatwgTest/Svg/Reel.lean` |
+
+Four things to know. Two edges of a layer can cross between two beats in general; over a level
+baseline they cannot, which covers your queue. The last piece of your sketch's level is not d3's
+monotone curve: its control point is at 141.3 where d3's slope gives 137. Your comment that the
+arc's widest point reaches the lane holds only where its two ends stand at one abscissa, and
+your loop reaches one and a half times `LOOP_REACH`. `Stack.signed` puts a value of zero on the
+edge of its layer's side, where d3's diverging offset puts it at zero.
