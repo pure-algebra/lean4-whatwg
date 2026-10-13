@@ -146,10 +146,42 @@ no Lean identifier is a string literal: `"xml:space"`, and `"in"`, `"from"`,
 `"by"` and `"end"`, which are Lean keywords. `<rect />` is an element with no
 child. No child is spliced inside an SVG subtree.
 
+## Parts that are data
+
+Since the second round of slice S17 (entries W9 and W12 of
+`docs/research/2026-10-12-whatwg-requests.md`; the laws are those of
+`Whatwg/Html/Node/Splice.lean`) the type of a spliced term says what it is.
+No form of markup is new.
+
+- A spliced child `{e}` is a `Child` of the position, a `List` of them, or an
+  `Option` of one. The term is elaborated before its type is fixed, and the
+  head of its type decides. A list stands among the written children: its raw
+  nodes are appended there, valid by `validAll_children` and
+  `Content.validAll_append`. A list that is spliced last is the rest itself, so
+  `<ol>{items}</ol>` holds what `E.ol items` holds. A child that may be absent
+  is the list of none or one.
+- A spliced attribute value `name={e}` is a `String`, or an `Option String` for
+  an attribute that may be absent: the attribute list then holds the segment
+  `A.opt (fun value => ⟨attr, name, value⟩) e`, and each obligation that reads
+  the list is proved for either case, by `Option.casesOn` with `Eq.refl true`
+  in each (`proofOf`). The admission is tested in each case when the term is
+  built. A spliced value, absent or not, is refused with words where the
+  checker reads the value of the attribute (`Content.attrFree`): the kernel
+  checks the obligation with the value free.
+- With the expected type `Element ?t ctx`, where the tag is not yet known, the
+  position is taken from the type and the tag is the root's:
+  `E.el (html! <td>…</td>)`.
+- Under an element with an ordered model, a spliced child that shows its
+  element, `{E.el e}` with `e : Element t ctx`, is read as that element, and
+  the model is checked when the term is built. Where a splice does not show
+  it, as a variable or a list does not, the kernel is left to evaluate the
+  model, as before.
+
 ## What is not here
 
-An HTML attribute value is a `String`; comments and entities have no markup
-form.
+A spliced HTML attribute value is a `String` or an `Option String`; comments
+and entities have no markup form. No list and no absent child is shown to an
+ordered model.
 
 The walker recurses on a fuel that starts at 4096 levels of nesting, which
 no well-formed document exhausts; the trust gate forbids `partial`.
@@ -238,18 +270,37 @@ def elabClosed (stx : Syntax) (type : Expr) : TermElabM Expr := do
   synthesizeSyntheticMVarsNoPostponing
   instantiateMVars e
 
-/-- A proof of a closed obligation `lhs = true`: `Eq.refl true`, which the
-kernel checks against the obligation where the term is used. The obligation
-is taken and not read, so that each caller still states what it proves. -/
-def proofOf (_lhs : Expr) : TermElabM Expr :=
-  pure Admit.reflTrue
+/-- A proof of an obligation `lhs = true`. A closed obligation is `Eq.refl true`,
+which the kernel checks against the obligation where the term is used: the
+obligation is then taken and not read, so that each caller still states what it
+proves. An obligation that holds attributes that may be absent is proved for
+either case of each of their options, `options`, each a term of type
+`Option String`: by `Option.casesOn` at the obligation with the option
+abstracted, and `Eq.refl true` in each case. -/
+def proofOf (lhs : Expr) : (options : List Expr := []) → MetaM Expr
+  | [] => pure Admit.reflTrue
+  | option :: rest => do
+    let stringT := Lean.mkConst ``String
+    let optionT := mkApp (mkConst ``Option [Level.zero]) stringT
+    let body ← kabstract lhs option
+    let motive := mkLambda `option .default optionT
+      (mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool) body (mkConst ``Bool.true))
+    let absent ← proofOf (body.instantiate1 (mkApp (mkConst ``Option.none [Level.zero]) stringT)) rest
+    let present ← withLocalDeclD `value stringT fun value => do
+      let case ← proofOf
+        (body.instantiate1 (mkApp2 (mkConst ``Option.some [Level.zero]) stringT value)) rest
+      mkLambdaFVars #[value] case
+    return mkAppN (mkConst ``Option.casesOn [Level.zero, Level.zero])
+      #[stringT, motive, option, absent, present]
 
 def admitsProof (ctxE : Expr) (t : Tag) : TermElabM Expr := do
   proofOf (mkApp2 (mkConst ``Ctx.admits) ctxE (← tagExpr t))
 
-/-- The admission of an element with its attributes. -/
-def admitsWithProof (ctxE : Expr) (t : Tag) (attrsE : Expr) : TermElabM Expr := do
+/-- The admission of an element with its attributes, some of which may be absent. -/
+def admitsWithProof (ctxE : Expr) (t : Tag) (attrsE : Expr) (options : List Expr := []) :
+    TermElabM Expr := do
   proofOf (mkApp3 (mkConst ``Ctx.admitsWith) ctxE (← tagExpr t) (mkApp (mkConst ``rawAttrs) attrsE))
+    options
 
 /-! ## Attributes -/
 
@@ -257,6 +308,25 @@ structure AttrOut where
   tag : Attr
   markup : String
   value : Expr
+  /-- The attribute may be absent: `value` is then a term of type `Option String`. -/
+  optional : Bool := false
+
+/-- The options of the attributes that may be absent. -/
+def optionsOf (attrs : Array AttrOut) : List Expr :=
+  (attrs.toList.filter (·.optional)).map (·.value)
+
+/-- Elaborate a spliced attribute value and settle it: a `String`, or an
+`Option String` for an attribute that may be absent. The second answer says
+which, and the type of the term decides it. -/
+def elabAttrValue (stx : Syntax) : TermElabM (Expr × Bool) := do
+  let value ← elabTerm stx (← mkFreshTypeMVar)
+  let type ← whnfR (← instantiateMVars (← inferType value))
+  let optional := type.isAppOfArity ``Option 1
+  let wanted := if optional then mkApp (mkConst ``Option [Level.zero]) (mkConst ``String)
+    else mkConst ``String
+  let value ← ensureHasType wanted value
+  synthesizeSyntheticMVarsNoPostponing
+  return (← instantiateMVars value, optional)
 
 /-- Elaborate the attributes of an element, blaming one token at a time, and
 check every literal value against the index. -/
@@ -285,20 +355,40 @@ def elabAttrs (t : Tag) (stxs : Array Syntax) : TermElabM (Array AttrOut) := do
         -- a spliced value: only the admission of the name is checked
         if problem.startsWith ("attribute `" ++ markup ++ "` is not admitted") || problem.startsWith "unknown" then
           throwErrorAt stx problem
-    let value ← if presence then pure (mkStrLit "") else
+    let (value, optional) ← if presence then pure (mkStrLit "", false) else
       let v := opt[1]
       match v.isStrLit? with
-      | some s => pure (mkStrLit s)
-      | none => elabClosed v[1] (mkConst ``String)
-    out := out.push { tag := a, markup, value }
+      | some s => pure (mkStrLit s, false)
+      | none => elabAttrValue v[1]
+    if literal?.isNone && !Whatwg.Html.Content.attrFree t markup then
+      -- the kernel checks the obligation with the value free, which it can do only where the
+      -- checker reads no value of the attribute
+      throwErrorAt stx ("the value of `" ++ markup ++ "` on <" ++ name ++ "> is spliced, and the " ++
+        "checker reads the value of this attribute: write a literal")
+    out := out.push { tag := a, markup, value, optional }
   return out
 
+/-- The attribute list as a term. An attribute that is always there is a cell
+of the list. One that may be absent is the segment
+`A.opt (fun value => ⟨attr, name, value⟩) option`, appended before the rest. -/
 def attrsTerm (attrs : Array AttrOut) : MetaM Expr := do
-  let vals ← attrs.toList.mapM fun a => do
-    return mkApp3 (mkConst ``AttrVal.mk) (← attrExpr a.tag) (mkStrLit a.markup) a.value
-  mkListLit (mkConst ``AttrVal) vals
+  let attrT := Lean.mkConst ``AttrVal
+  attrs.foldrM (init := ← mkListLit attrT []) fun a rest => do
+    let attrE ← attrExpr a.tag
+    if a.optional then
+      let make := mkLambda `value .default (mkConst ``String)
+        (mkApp3 (mkConst ``AttrVal.mk) attrE (mkStrLit a.markup) (mkBVar 0))
+      mkAppM ``HAppend.hAppend
+        #[mkApp3 (mkConst ``Whatwg.Html.A.opt) (mkConst ``String) make a.value, rest]
+    else
+      return mkApp3 (mkConst ``List.cons [Level.zero]) attrT
+        (mkApp3 (mkConst ``AttrVal.mk) attrE (mkStrLit a.markup) a.value) rest
 
+/-- The raw attribute list as a term: a literal list of pairs, or `rawAttrs` of
+the attribute list when an attribute may be absent. -/
 def rawAttrsTerm (attrs : Array AttrOut) : MetaM Expr := do
+  if attrs.any (·.optional) then
+    return mkApp (mkConst ``rawAttrs) (← attrsTerm attrs)
   let pairT := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
   let pairs := attrs.toList.map fun a =>
     mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) (mkConst ``String) (mkConst ``String)
@@ -628,6 +718,55 @@ def rawAttrValues (attrs : Array AttrOut) : List (String × String) :=
     | .lit (.strVal v) => some (a.markup, v)
     | _ => some (a.markup, "")
 
+/-- The raw attributes of an element in each case of its attributes that may be
+absent: every list that leaves some of them out. An admission is tested in each. -/
+def rawAttrCases (attrs : Array AttrOut) : List (List (String × String)) :=
+  attrs.toList.foldr (fun a cases =>
+    let value := match a.value with
+      | .lit (.strVal v) => v
+      | _ => ""
+    let present := cases.map fun rest => (a.markup, value) :: rest
+    if a.optional then present ++ cases else present) [[]]
+
+/-- What a spliced term is, by its type. -/
+inductive Spliced where
+  /-- One child. -/
+  | child (term : Expr)
+  /-- A list of children: a term of type `List (Child ctx)`. A child that may be
+  absent, `Option (Child ctx)`, is its list. -/
+  | list (term : Expr)
+
+/-- Elaborate a spliced child and settle it: a `Child` of the position, a list
+of them, or one that may be absent. The term is elaborated before its type is
+fixed, and the head of its type decides which: `List`, `Option`, or else a
+child. `childT` is the type of a child of the position. -/
+def elabSplice (stx : Syntax) (childT : Expr) : TermElabM Spliced := do
+  let term ← elabTerm stx (← mkFreshTypeMVar)
+  let type ← whnfR (← instantiateMVars (← inferType term))
+  let settle (wanted : Expr) : TermElabM Expr := do
+    let term ← ensureHasType wanted term
+    synthesizeSyntheticMVarsNoPostponing
+    instantiateMVars term
+  if type.isAppOfArity ``List 1 then
+    return .list (← settle (mkApp (mkConst ``List [Level.zero]) childT))
+  if type.isAppOfArity ``Option 1 then
+    let term ← settle (mkApp (mkConst ``Option [Level.zero]) childT)
+    return .list (mkApp2 (mkConst ``Option.toList [Level.zero]) childT term)
+  return .child (← settle childT)
+
+/-- The node that a spliced child counts as in an ordered model, when its raw
+node shows it: an HTML element by its name, or a text. `none` when the term
+does not show it, as a variable does not. A `let` is read through. -/
+def splicedNode? (raw : Expr) : MetaM (Option RawNode) := do
+  let raw ← withConfig (fun config => { config with zetaDelta := true }) (whnf raw)
+  if raw.isAppOfArity ``RawNode.element 3 then
+    let some name ← Admit.str? (raw.getArg! 0) | return none
+    let some tag := Tag.ofName? name | return none
+    return some (.element tag.markupText [] [])
+  if raw.isAppOfArity ``RawNode.text 1 || raw.isAppOfArity ``RawNode.entity 1 then
+    return some (.text "")
+  return none
+
 /-- Elaborate an element placed in the context `ctx` (as a value and as the
 expression `ctxE`): the raw literal and a term of type `Element tag ctx`. -/
 def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → TermElabM (Expr × Expr × Array AttrOut)
@@ -645,9 +784,17 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
     -- identical positions then share one obligation type (performance review §3)
     let innerE ← ctxExprCached cache inner
     let rawT := Lean.mkConst ``RawNode
+    let childT := mkApp (mkConst ``Child) innerE
+    -- one entry for each child as written: a raw node, or the raw nodes of a spliced list
     let mut raws : Array Expr := #[]
+    let mut lists : Array Bool := #[]
+    -- for a spliced list, the proof that its raw nodes alone are valid
+    let mut alone : Array (Option Expr) := #[]
     let mut steps : Array (Expr → Expr → Expr → Expr) := #[]
+    -- what each child counts as in an ordered model; `none` where a splice does not show it
+    let mut seen : Array (Option RawNode) := #[]
     for kid in o.kids do
+      alone := alone.push none
       if kid.isOfKind ``htmlText then
         let some s := kid[0].isStrLit? | throwErrorAt kid "html!: malformed text"
         unless inner.admits .pcdata do
@@ -655,19 +802,37 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
         let h ← admitsProof innerE .pcdata
         let raw := mkApp (mkConst ``RawNode.text) (mkStrLit s)
         raws := raws.push raw
+        lists := lists.push false
+        seen := seen.push (some (.text ""))
         steps := steps.push fun n rest hrest =>
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
             mkApp3 (mkConst ``Whatwg.Html.Content.validIn_text) innerE (mkStrLit s) h, hrest]
       else if kid.isOfKind ``htmlSplice then
-        let child ← elabClosed kid[1] (mkApp (mkConst ``Child) innerE)
-        raws := raws.push (mkApp2 (mkConst ``Child.raw) innerE child)
-        steps := steps.push fun n rest hrest =>
-          mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
-            mkApp2 (mkConst ``Child.valid) innerE child, hrest]
+        match ← elabSplice kid[1] childT with
+        | .child child =>
+          let raw := mkApp2 (mkConst ``Child.raw) innerE child
+          raws := raws.push raw
+          lists := lists.push false
+          seen := seen.push (← if t.seq?.isSome then splicedNode? raw else pure none)
+          steps := steps.push fun n rest hrest =>
+            mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
+              mkApp2 (mkConst ``Child.valid) innerE child, hrest]
+        | .list children =>
+          -- the raw nodes of the list, appended before the rest: valid by `validAll_children`
+          let valid := mkApp2 (mkConst ``Whatwg.Html.validAll_children) innerE children
+          raws := raws.push (mkApp4 (mkConst ``List.map [Level.zero, Level.zero]) childT rawT
+            (mkApp (mkConst ``Child.raw) innerE) children)
+          lists := lists.push true
+          alone := alone.set! (alone.size - 1) (some valid)
+          seen := seen.push none
+          steps := steps.push fun n rest hrest =>
+            mkAppN (mkConst ``Whatwg.Html.Content.validAll_append) #[innerE, n, rest, valid, hrest]
       else if (foreignName? kid).isSome then
         -- an `svg` subtree: the raw tree of a typed tree, valid by the law of structure
         let tree ← foreignTree fuel inner kid
         raws := raws.push (mkApp (mkConst ``SvgNode.toRaw) tree)
+        lists := lists.push false
+        seen := seen.push ((foreignName? kid).map fun name => .element name [] [])
         steps := steps.push fun n rest hrest =>
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
             foreignValid innerE tree, hrest]
@@ -675,10 +840,12 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
         let some k ← openOf kid | throwErrorAt kid "html!: unsupported node"
         let c := k.tag
         let (raw, e, kattrs) ← elabElement cache fuel k inner innerE false
-        unless inner.admitsWith c (rawAttrValues kattrs) do
+        unless (rawAttrCases kattrs).all (inner.admitsWith c ·) do
           throwErrorAt k.nameStx (Admit.admitMessage inner c)
-        let h ← admitsWithProof innerE c (← attrsTerm kattrs)
+        let h ← admitsWithProof innerE c (← attrsTerm kattrs) (optionsOf kattrs)
         raws := raws.push raw
+        lists := lists.push false
+        seen := seen.push (some (.element c.markupText [] []))
         let cE ← tagExpr c
         steps := steps.push fun n rest hrest =>
           mkAppN (mkConst ``Whatwg.Html.Content.validAll_cons) #[innerE, n, rest,
@@ -687,23 +854,26 @@ def elabElement (cache : CtxCache) : Nat → Open → Ctx → Expr → Bool → 
     let mut hc := mkApp (mkConst ``Whatwg.Html.Content.validAll_nil) innerE
     for i in [0:steps.size] do
       let j := steps.size - 1 - i
-      hc := steps[j]! raws[j]! rest hc
-      rest := mkApp3 (mkConst ``List.cons [Level.zero]) rawT raws[j]! rest
+      if let (0, some valid) := (i, alone[j]!) then
+        -- a list that is spliced last is the rest itself: `<ol>{items}</ol>` holds the raw
+        -- nodes of `items` and nothing appended, as `E.ol items` does
+        hc := valid
+        rest := raws[j]!
+      else
+        hc := steps[j]! raws[j]! rest hc
+        rest ← if lists[j]! then mkAppM ``HAppend.hAppend #[raws[j]!, rest]
+          else pure (mkApp3 (mkConst ``List.cons [Level.zero]) rawT raws[j]! rest)
     let childrenE := rest
     let rawAttrsE ← rawAttrsTerm attrs
     let raw := mkApp3 (mkConst ``RawNode.element) (mkStrLit name) rawAttrsE childrenE
 
-    -- the ordered model, checked on the children's tags as written
-    let kidTags := o.kids.toList.filterMap fun kid =>
-      if kid.isOfKind ``htmlText then some (Whatwg.Html.RawNode.text "")
-      else if kid.isOfKind ``htmlSplice then none
-      else match Tag.ofName? (nameString kid[1]) with
-        | some tg => some (Whatwg.Html.RawNode.element tg.markupText [] [])
-        | none => (foreignName? kid).map fun name => Whatwg.Html.RawNode.element name [] []
-    if o.kids.all (fun kid => !kid.isOfKind ``htmlSplice) then
-      if let some problem := Whatwg.Html.Content.seqProblem? inner t kidTags then
+    -- The ordered model, checked on the children as written, and on a spliced child that
+    -- shows its element. Where one does not show it, the kernel is left to evaluate the model.
+    if seen.all (·.isSome) then
+      if let some problem := Whatwg.Html.Content.seqProblem? inner t (seen.toList.filterMap id) then
         throwErrorAt o.nameStx problem
     let ho ← proofOf (mkApp4 (mkConst ``Whatwg.Html.Content.elementOk) ctxE tE (mkApp (mkConst ``rawAttrs) attrsE) childrenE)
+      (optionsOf attrs)
     let ht ← proofOf (mkApp2 (mkConst ``Option.isSome [Level.zero]) (mkConst ``String) (mkApp (mkConst ``Tag.markupName) tE))
     let evidence ← if root then do
         let type := mkApp3 (mkConst ``Eq [Level.succ Level.zero]) (mkConst ``Bool)
@@ -727,7 +897,12 @@ def defaultCtx (t : Tag) : Ctx :=
   let node := stx[1]
   let fuel := 4096
   let cache : CtxCache ← IO.mkRef {}
-  let expectedType? ← tryPostponeIfHasMVars? expectedType?
+  -- An expected type that is not yet known is waited for. One that is still not known in full
+  -- when nothing more can wait is read as far as it goes: `Element ?t ctx` names the position.
+  let expectedType? ← expectedType?.mapM fun type => do
+    let type ← instantiateMVars type
+    if type.hasExprMVar then tryPostpone
+    pure type
   let expected := expectedType?.map fun e => e.consumeMData
   if (foreignName? node).isSome then
     -- a foreign root is a `Child` of its context: the expected one, or flow content
@@ -748,12 +923,18 @@ def defaultCtx (t : Tag) : Ctx :=
       if let some ctx ← Admit.ctx? 4096 (e.getArg! 0) then
         let ctxE := e.getArg! 0
         let (_, elem, rattrs) ← elabElement cache fuel o ctx ctxE true
-        unless ctx.admitsWith t (rawAttrValues rattrs) do throwErrorAt o.nameStx (Admit.admitMessage ctx t)
-        return mkApp4 (mkConst ``Child.of) (← tagExpr t) ctxE elem (← admitsWithProof ctxE t (← attrsTerm rattrs))
+        unless (rawAttrCases rattrs).all (ctx.admitsWith t ·) do
+          throwErrorAt o.nameStx (Admit.admitMessage ctx t)
+        return mkApp4 (mkConst ``Child.of) (← tagExpr t) ctxE elem
+          (← admitsWithProof ctxE t (← attrsTerm rattrs) (optionsOf rattrs))
     if e.isAppOfArity ``Element 2 then
-      if let some t' ← Admit.tag? (e.getArg! 0) then
+      let named? ← Admit.tag? (e.getArg! 0)
+      if let some t' := named? then
         unless t' == t do
           throwErrorAt o.nameStx ("the expected type names <" ++ t'.markupText ++ "> but the root is <" ++ t.markupText ++ ">")
+      -- A tag that the expected type does not yet name is the root's: the context is taken
+      -- from the type, and the term's own type then names the tag (`E.el (html! …)`).
+      if named?.isSome || (← instantiateMVars (e.getArg! 0)).isMVar then
         if let some ctx ← Admit.ctx? 4096 (e.getArg! 1) then
           return (← elabElement cache fuel o ctx (e.getArg! 1) true).2.1
   let ctx := defaultCtx t

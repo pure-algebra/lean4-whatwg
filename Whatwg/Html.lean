@@ -13,6 +13,8 @@ import Whatwg.Html.Node.Raw
 import Whatwg.Html.Node.Walk
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Check
+import Whatwg.Html.Node.Splice
+import Whatwg.Html.Node.Region
 import Whatwg.Html.Node.Svg
 import Whatwg.Html.Node.SvgRead
 import Whatwg.Html.Node.SvgKeys

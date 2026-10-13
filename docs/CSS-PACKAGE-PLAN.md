@@ -228,8 +228,8 @@ bound (K3); escapes in identifiers that the kit's stems could need (K2, with `cs
   missing from the table: the identifier `--` before the delimiter `>`, and the delimiters `<`
   and `!` before anything that opens with `--`. Each reads back as a token of HTML comments. The
   writer marks both apart from the sealed table (`extraPairs`). The table is a note of the
-  standard, so this is no fault of its requirements; whether to tell its editors is the owner's
-  to say.
+  standard, so this is no fault of its requirements. Reported on the owner's word, 2026-10-12:
+  `https://github.com/w3c/csswg-drafts/issues/14592`.
 - **CSSOM's rule for an identifier does not round-trip above U+007F.** It writes such a code
   point as itself, and the tokenizer takes only some of them in a name. The writer escapes the
   others. This is the one place where it leaves the sealed CSSOM text.

@@ -1,6 +1,7 @@
 import Lean
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Content.Explain
+import Whatwg.Html.Node.Splice
 
 /-!
 # Whatwg.Html.Node.Admit
@@ -30,6 +31,24 @@ refusal is absent it closes the goal with `Eq.refl true`. Otherwise it reports
 the refusal: the node, its path and the reason. `explain_none_iff` says that
 this report is complete: the tactic has something to say exactly when the
 checker refuses.
+
+Since the second round of slice S17 the tactic also closes an obligation whose
+tree holds a part that is data (entries W8, W9 and W12 of
+`docs/research/2026-10-12-whatwg-requests.md`; the laws are those of
+`Whatwg/Html/Node/Splice.lean`):
+
+- A name that is computed from closed parts, `"aria-" ++ "label"`, is read as
+  its text (`str?`).
+- A value that is no closed string is left unread. The attribute must then
+  pass `Content.attrFree`, the checker's test with the test of the value left
+  out, and the kernel checks the obligation with the value free. An attribute
+  whose value has a rule is refused with words, and so is an admission that
+  reads such a value (`input` and its `type`).
+- An attribute list that is not written out, `(f x).attrs`, is no obstacle to
+  the admission of an element whose categories read no attribute
+  (`Content.unconditional`): the proof is `Ctx.admitsWith_unread`.
+- An attribute that may be absent, `A.opt make o`, is proved by cases on `o`:
+  the two obligations are closed as above, the second with its value free.
 -/
 
 namespace Whatwg.Html.Admit
@@ -113,9 +132,36 @@ def char? (e : Expr) : MetaM (Option Char) := do
     | _ => return none
   return none
 
-/-- A closed string: a literal, or `String.mk` of a closed character list,
-which is what a computed name such as `"data-" ++ suffix` reduces to. -/
+/-- The two sides of an append of strings, in any of its three spellings. -/
+def append? (e : Expr) : Option (Expr × Expr) :=
+  if e.isAppOfArity ``HAppend.hAppend 6 then some (e.getArg! 4, e.getArg! 5)
+  else if e.isAppOfArity ``Append.append 4 then some (e.getArg! 2, e.getArg! 3)
+  else if e.isAppOfArity ``String.append 2 then some (e.getArg! 0, e.getArg! 1)
+  else none
+
+/-- A string made of closed parts, read one step at a time, to `fuel` steps: a
+literal, or an append of two such strings. A step is a reduction that unfolds
+no definition, or one definition unfolded. An append is so met before it is
+unfolded: the normal form of a computed name such as `"aria-" ++ suffix` is
+bytes, which `str?` does not read. -/
+def strSteps? : Nat → Expr → MetaM (Option String)
+  | 0, _ => return none
+  | fuel + 1, e => do
+    let e ← instantiateMVars e
+    if let .lit (.strVal v) := e then return some v
+    if let some (left, right) := append? e then
+      let some left ← strSteps? fuel left | return none
+      let some right ← strSteps? fuel right | return none
+      return some (left ++ right)
+    let reduced ← whnfCore e
+    if reduced != e then return ← strSteps? fuel reduced
+    let some unfolded ← unfoldDefinition? e | return none
+    strSteps? fuel unfolded
+
+/-- A closed string: a literal or an append of closed strings (`strSteps?`), or
+`String.mk` of a closed character list. -/
 def str? (e : Expr) : MetaM (Option String) := do
+  if let some s ← strSteps? 64 e then return some s
   let e ← whnf e
   match e with
   | .lit (.strVal v) => return some v
@@ -125,14 +171,20 @@ def str? (e : Expr) : MetaM (Option String) := do
       return some (String.ofList cs)
     return none
 
-/-- A closed raw attribute list as values. -/
-def rawAttrs? (e : Expr) : MetaM (Option (List (String × String))) :=
+/-- A raw attribute list whose names are closed: each name, and each value that
+is a closed string. A value that is none is `none`: data, such as an address
+that a program computes. -/
+def looseAttrs? (e : Expr) : MetaM (Option (List (String × Option String))) :=
   list? (fun p => do
     let p ← whnf p
     unless p.isAppOfArity ``Prod.mk 4 do return none
     let some n ← str? (p.getArg! 2) | return none
-    let some v ← str? (p.getArg! 3) | return none
-    return some (n, v)) 256 e
+    return some (n, ← str? (p.getArg! 3))) 256 e
+
+/-- A closed raw attribute list as values. -/
+def rawAttrs? (e : Expr) : MetaM (Option (List (String × String))) := do
+  let some attrs ← looseAttrs? e | return none
+  return attrs.mapM fun attr => attr.2.map fun v => (attr.1, v)
 
 /-- A closed raw node as a value, to `fuel` levels of nesting. -/
 def rawNode? : Nat → Expr → MetaM (Option Whatwg.Html.RawNode)
@@ -198,9 +250,66 @@ def childTags? (e : Expr) : MetaM (Option (List Tag)) := do
 def admitMessage (c : Ctx) (t : Tag) : String :=
   describe t ++ " is not admitted here: the context is " ++ c.describe
 
+/-- Why the element does not take an attribute of this name, whatever its
+value; `none` when it takes one. -/
+def nameProblem? (t : Tag) (name : String) : Option String :=
+  if Whatwg.Html.Content.isPrefixed name then none else
+  match Attr.ofName? name with
+  | none => some ("unknown attribute `" ++ name ++ "`")
+  | some a =>
+    match t.attribs? with
+    | none => some ("<" ++ t.markupText ++ "> takes no attributes")
+    | some set =>
+      if set.contains a then none else Whatwg.Html.Content.attrProblem? t name ""
+
+/-- Why an attribute list is refused on the element, where a value may be data
+(`none`). A closed value is judged as the attribute index states it. A value
+that is data is not read: its attribute must be one whose value the checker
+does not read (`Content.attrFree`). Then a name that repeats. `none` when the
+kernel can check the list with those values free. -/
+def attrsProblem? (t : Tag) (attrs : List (String × Option String)) : Option String :=
+  let each := attrs.findSome? fun attr =>
+    match attr.2 with
+    | some value => Whatwg.Html.Content.attrProblem? t attr.1 value
+    | none =>
+      if Whatwg.Html.Content.attrFree t attr.1 then none
+      else some ((nameProblem? t attr.1).getD
+        ("the value of `" ++ attr.1 ++ "` on " ++ describe t ++ " is no literal, and the " ++
+          "checker reads the value of this attribute: write a literal, or case on the value"))
+  each.orElse fun _ =>
+    let names := attrs.map (·.1)
+    if names.eraseDups.length != names.length then
+      some ("an attribute is given twice on " ++ describe t)
+    else none
+
+/-- The attributes as a test that reads no data is given them: an empty text
+where a value is data. -/
+def blanks (attrs : List (String × Option String)) : List (String × String) :=
+  attrs.map fun attr => (attr.1, attr.2.getD "")
+
+/-- The attribute whose value a conditional category of the element reads,
+when that value is data: the admission cannot then be evaluated. -/
+def conditionReads? (t : Tag) (attrs : List (String × Option String)) : Option String :=
+  [t.interactiveIf, t.flowIf, t.phrasingIf].findSome? fun condition =>
+    match condition with
+    | some (.attrNot name _) =>
+      if attrs.any (fun attr => attr.1 == name && attr.2.isNone) then some name else none
+    | _ => none
+
+/-- The option of an attribute that may be absent, `A.opt make o`, somewhere in
+the obligation, when `o` is not yet `none` or `some`. -/
+def openOption? (e : Expr) : Option Expr :=
+  (e.find? fun sub =>
+    sub.isAppOfArity ``Whatwg.Html.A.opt 3 && !sub.hasLooseBVars &&
+      !(sub.getArg! 2).isAppOf ``Option.none && !(sub.getArg! 2).isAppOf ``Option.some).map
+    (·.getArg! 2)
+
 syntax (name := admitsTactic) "admits" : tactic
 
-@[tactic admitsTactic] def evalAdmits : Tactic := fun _ => do
+/-- The tactic, to `fuel` attributes that may be absent in one obligation. -/
+def admitsCore : Nat → TacticM Unit
+  | 0 => do evalTactic (← `(tactic| decide))
+  | fuel + 1 => do
   let goal ← getMainGoal
   let ty ← instantiateMVars (← goal.getType)
   if ty.isAppOfArity ``Eq 3 then
@@ -232,19 +341,25 @@ syntax (name := admitsTactic) "admits" : tactic
     if lhs.isAppOfArity ``Ctx.admitsWith 3 then
       if let some c ← ctx? 4096 (lhs.getArg! 0) then
         if let some t ← tag? (lhs.getArg! 1) then
-          if let some attrs ← rawAttrs? (lhs.getArg! 2) then
-            unless c.admitsWith t attrs do throwError admitMessage c t
+          if let some attrs ← looseAttrs? (lhs.getArg! 2) then
+            if let some name := conditionReads? t attrs then
+              throwError ("whether " ++ describe t ++ " is admitted here reads the value of `" ++
+                name ++ "`, which is no literal: write a literal, or case on the value")
+            unless c.admitsWith t (blanks attrs) do throwError admitMessage c t
             goal.assign reflTrue
+            replaceMainGoal []
+            return
+          -- the attributes are not written out: `E.el e` for a variable `e`
+          if Whatwg.Html.Content.unconditional t then
+            unless c.admits t do throwError admitMessage c t
+            goal.assign (mkAppN (mkConst ``Whatwg.Html.Content.Ctx.admitsWith_unread)
+              #[lhs.getArg! 0, lhs.getArg! 1, lhs.getArg! 2, reflTrue, reflTrue])
             replaceMainGoal []
             return
     if lhs.isAppOfArity ``Whatwg.Html.Content.elementOk 4 then
       if let some t ← tag? (lhs.getArg! 1) then
-        if let some attrs ← rawAttrs? (lhs.getArg! 2) then
-          for (n, v) in attrs do
-            if let some problem := Whatwg.Html.Content.attrProblem? t n v then throwError problem
-          let names := attrs.map (·.1)
-          if names.eraseDups.length != names.length then
-            throwError ("an attribute is given twice on " ++ describe t)
+        if let some attrs ← looseAttrs? (lhs.getArg! 2) then
+          if let some problem := attrsProblem? t attrs then throwError problem
           if t.seq?.isNone then
             goal.assign reflTrue
             replaceMainGoal []
@@ -274,16 +389,38 @@ syntax (name := admitsTactic) "admits" : tactic
             return
     if lhs.isAppOfArity ``Whatwg.Html.Content.attrsOk 2 then
       if let some t ← tag? (lhs.getArg! 0) then
-        if let some attrs ← rawAttrs? (lhs.getArg! 1) then
-          for (n, v) in attrs do
-            if let some problem := Whatwg.Html.Content.attrProblem? t n v then
-              throwError problem
-          let names := attrs.map (·.1)
-          if names.eraseDups.length != names.length then
-            throwError ("an attribute is given twice on " ++ describe t)
+        if let some attrs ← looseAttrs? (lhs.getArg! 1) then
+          if let some problem := attrsProblem? t attrs then throwError problem
           goal.assign reflTrue
           replaceMainGoal []
           return
+  -- An attribute that may be absent: the obligation is proved for either case. The proof is
+  -- `Option.casesOn` at the obligation with the option abstracted. It is built here and not by
+  -- the tactics `generalize` and `cases`, which check the type of the abstracted obligation:
+  -- that check would evaluate, in the elaborator, every proof the obligation holds.
+  if let some option := openOption? ty then
+    let optionType ← whnfR (← inferType option)
+    if optionType.isAppOfArity ``Option 1 then
+      let rest := (← getGoals).drop 1
+      let α := optionType.getArg! 0
+      let levels := optionType.getAppFn.constLevels!
+      let body ← kabstract ty option
+      let noneGoal ← mkFreshExprSyntheticOpaqueMVar
+        (body.instantiate1 (mkApp (mkConst ``Option.none levels) α))
+      let someType ← withLocalDeclD `value α fun value =>
+        mkForallFVars #[value]
+          (body.instantiate1 (mkApp2 (mkConst ``Option.some levels) α value))
+      let someGoal ← mkFreshExprSyntheticOpaqueMVar someType
+      goal.assign (mkAppN (mkConst ``Option.casesOn (Level.zero :: levels))
+        #[α, mkLambda `option .default optionType body, option, noneGoal, someGoal])
+      let (_, someInner) ← someGoal.mvarId!.intro `value
+      for subgoal in [noneGoal.mvarId!, someInner] do
+        setGoals [subgoal]
+        subgoal.withContext (admitsCore fuel)
+      setGoals rest
+      return
   evalTactic (← `(tactic| decide))
+
+@[tactic admitsTactic] def evalAdmits : Tactic := fun _ => admitsCore 8
 
 end Whatwg.Html.Admit

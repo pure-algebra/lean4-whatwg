@@ -95,6 +95,10 @@ import WhatwgTest.Html.UseCheck
 import WhatwgTest.Html.SvgFigure
 import WhatwgTest.Html.Document
 import WhatwgTest.Html.Site
+import WhatwgTest.Html.AdmitData
+import WhatwgTest.Html.MarkupData
+import WhatwgTest.Html.Region
+import WhatwgTest.Html.SiteShell
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar

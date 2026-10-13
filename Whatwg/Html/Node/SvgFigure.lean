@@ -1,4 +1,5 @@
 import Whatwg.Html.Node.SvgBuild
+import Whatwg.Html.Node.Splice
 
 /-!
 # Whatwg.Html.Node.SvgFigure
@@ -142,99 +143,6 @@ theorem admitsWith_figcaption_child_figure (ctx : Ctx) (attrs : List (String × 
   rfl
 
 end Content.Ctx
-
-/-! ## An attribute whose value is not read
-
-The identifier of a caption is data. The checker's test of an attribute reads the value only
-where the attribute index gives the attribute a kind with a rule: a boolean attribute, a closed
-list of keywords, an integer. `attrFree` is the rest of that test, which reads no value, so
-one evaluation of it answers for every value. -/
-
-namespace Content
-
-open Whatwg.Html.Schema (Tag Attr)
-
-/-- The checker reads no value of the attribute on the element: no row of the index applies,
-or the row's kind is one that takes any text. -/
-def valueFree (a : Attr) (t : Tag) : Bool :=
-  match rowsFor a t with
-  | [] => true
-  | row :: _ =>
-    match row.kind with
-    | .boolean => false
-    | .keywords false => false
-    | .integer => false
-    | .nonNegInteger => false
-    | _ => true
-
-theorem valueOk_of_valueFree {a : Attr} {t : Tag} (h : valueFree a t = true)
-    (markup value : String) : valueOk a t markup value = true := by
-  unfold valueFree at h
-  unfold valueOk
-  cases hrows : rowsFor a t with
-  | nil => rfl
-  | cons row rest =>
-    rw [hrows] at h
-    dsimp only at h ⊢
-    revert h
-    cases row.kind with
-    | boolean => exact fun h => Bool.noConfusion h
-    | keywords isOpen =>
-      cases isOpen with
-      | false => exact fun h => Bool.noConfusion h
-      | true => exact fun _ => rfl
-    | integer => exact fun h => Bool.noConfusion h
-    | nonNegInteger => exact fun h => Bool.noConfusion h
-    | float => exact fun _ => rfl
-    | url => exact fun _ => rfl
-    | text => exact fun _ => rfl
-    | namePrefix => exact fun _ => rfl
-/-- The element takes the attribute of this name with any value: `attrOk` with the value's
-test replaced by `valueFree`. The test is closed, so one evaluation answers it. -/
-def attrFree (t : Tag) (name : String) : Bool :=
-  isPrefixed name ||
-  match Attr.ofName? name with
-  | some a =>
-    (match t.attribs? with
-      | some set => set.contains a
-      | none => false) && valueFree a t
-  | none => false
-
-/-- An attribute that passes `attrFree` is admitted with every value. -/
-theorem attrOk_of_attrFree {t : Tag} {name : String} (h : attrFree t name = true)
-    (value : String) : attrOk t name value = true := by
-  unfold attrFree at h
-  unfold attrOk
-  cases hprefix : isPrefixed name with
-  | true => rfl
-  | false =>
-    rw [hprefix, Bool.false_or] at h
-    rw [Bool.false_or]
-    cases hname : Attr.ofName? name with
-    | none =>
-      rw [hname] at h
-      exact Bool.noConfusion h
-    | some a =>
-      rw [hname] at h
-      dsimp only at h ⊢
-      rw [Bool.and_eq_true] at h
-      rw [valueOk_of_valueFree h.2, Bool.and_true]
-      cases hset : t.attribs? with
-      | none =>
-        rw [hset] at h
-        exact Bool.noConfusion h.1
-      | some set =>
-        rw [hset] at h
-        exact h.1
-
-/-- One attribute that passes `attrFree` is a good attribute list, whatever its value. -/
-theorem attrsOk_single {t : Tag} {name : String} (h : attrFree t name = true) (value : String) :
-    attrsOk t [(name, value)] = true := by
-  rw [attrsOk, List.all_cons, List.all_nil, Bool.and_true, attrOk_of_attrFree h value,
-    Bool.true_and]
-  rfl
-
-end Content
 
 /-! ## The figure -/
 
