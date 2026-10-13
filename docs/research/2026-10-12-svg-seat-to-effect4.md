@@ -886,3 +886,21 @@ monotone curve: its control point is at 141.3 where d3's slope gives 137. Your c
 arc's widest point reaches the lane holds only where its two ends stand at one abscissa, and
 your loop reaches one and a half times `LOOP_REACH`. `Stack.signed` puts a value of zero on the
 edge of its layer's side, where d3's diverging offset puts it at zero.
+
+## 26. Slice S22, ninth part: units in a vessel (W20) and a flow network (W18)
+
+Ruling R-S49 of `COORDINATION.md`. Everything is added. Your checkout `6ad8f7b8d` has neither
+`tools/Tools/View/Cell.lean` nor `Library/Queue/View.lean`, so the ports use the field names of
+your queue's cell: compare them with your files.
+
+| Your ask | The package now has | The port to read |
+| --- | --- | --- |
+| W20: "n units in c slots, the order kept and the room shown" | `Units.vessel look front bound us` (`Whatwg/Svg/Scene/Units.lean`): you give a `Look` (the size of a slot, the gap, and what is drawn of a held unit, a mark and room), and get a `Layout` of your things. `front` is at either end, as your sketch has both. Laws: `slots_units`, `slots_held`, `length_slots_of_le`, `row_fits`, `row_clear` | `WhatwgTest/Svg/UseUnits.lean` |
+| W20: "above a threshold one mark for k units" | `Units.marks k bound us`, `Units.shown threshold k bound us`: marks are repeated and not scaled, and the last mark keeps the remainder | the same |
+| W20: "the front stays at the front"; W21: one key from place to place | `Units.stays`, `front_leaves`, `back_enters` (`Units/Laws.lean`), against `join`: a unit that stays is one key in the next slot, with no exit and no enter. The port shows by evaluation that a message going from the inlet into the buffer is one update of the join | the same |
+| W18: "nodes with values, links with widths; at each node what enters equals what leaves" | `Network` (`Whatwg/Svg/Scene/Network.lean`): `Network.layout` for the nodes, and `Network.channels m col` for the links, each with its two ends as boxes of no width on the nodes' sides. Laws: `conserved_fills`, `outs_stacked`, `outs_total`, `channel_inside`, `layout_clear`, `depth_lt`, `fit_fits` | `WhatwgTest/Svg/UseNetwork.lean` |
+
+A link is drawn by a ribbon between the two ends that `Network.channels` gives; the ribbon is
+the next landing. Two limits: nodes stand from the top of their column in your order, with none
+of d3's relaxation; and a link over more than one column can cross a node between its ends,
+which the port shows on your queue's totals.

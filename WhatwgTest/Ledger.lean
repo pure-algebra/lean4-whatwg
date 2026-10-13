@@ -222,7 +222,9 @@ def svgScene : Leaf where
     `Whatwg.Svg.Scene.Layers.sorted, `Whatwg.Svg.Scene.AGraph,
     `Whatwg.Svg.Scene.Layout.Realizes, `Whatwg.Svg.Scene.Boxed.pick,
     `Whatwg.Svg.Scene.Row.spread, `Whatwg.Svg.Scene.Span.box, `Whatwg.Svg.Scene.Strip.box,
-    `Whatwg.Svg.Scene.Rank.reorder]
+    `Whatwg.Svg.Scene.Rank.reorder, `Whatwg.Svg.Scene.Units.vessel,
+    `Whatwg.Svg.Scene.Units.stays, `Whatwg.Svg.Scene.Network,
+    `Whatwg.Svg.Scene.Network.conserved_fills, `Whatwg.Svg.Scene.Network.fit_fits]
   parent := none
   receipts := [
     .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
@@ -273,11 +275,19 @@ def svgScene : Leaf where
       `Whatwg.Svg.Scene.AGraph.decompose, `Whatwg.Svg.Scene.Layout.Realizes.above,
       `Whatwg.Svg.Scene.Boxed.pick_iff, `Whatwg.Svg.Scene.Row.spread_pairwise,
       `Whatwg.Svg.Scene.Row.spread_least, `Whatwg.Svg.Scene.Tree.spans_clear,
-      `Whatwg.Svg.Scene.Strip.lanes_clear, `Whatwg.Svg.Scene.Rank.reorder_nodup],
+      `Whatwg.Svg.Scene.Strip.lanes_clear, `Whatwg.Svg.Scene.Rank.reorder_nodup,
+      `Whatwg.Svg.Scene.Units.slots_units, `Whatwg.Svg.Scene.Units.slots_held,
+      `Whatwg.Svg.Scene.Units.row_clear, `Whatwg.Svg.Scene.Units.stays,
+      `Whatwg.Svg.Scene.Units.front_leaves, `Whatwg.Svg.Scene.Units.back_enters,
+      `Whatwg.Svg.Scene.Network.conserved_fills, `Whatwg.Svg.Scene.Network.outs_stacked,
+      `Whatwg.Svg.Scene.Network.outs_total, `Whatwg.Svg.Scene.Network.channel_inside,
+      `Whatwg.Svg.Scene.Network.layout_clear, `Whatwg.Svg.Scene.Network.depth_lt,
+      `Whatwg.Svg.Scene.Network.channel_misses, `Whatwg.Svg.Scene.Network.fit_fits],
     .modules [`WhatwgTest.Svg.UseLayers, `WhatwgTest.Svg.UseLayout, `WhatwgTest.Svg.UseJoin,
       `WhatwgTest.Svg.UsePatch, `WhatwgTest.Svg.UseFold, `WhatwgTest.Svg.UseScale,
       `WhatwgTest.Svg.UseLevel, `WhatwgTest.Svg.UseLayered, `WhatwgTest.Svg.UseFrame,
-      `WhatwgTest.Svg.UseSorted, `WhatwgTest.Svg.UseOrder, `WhatwgTest.Svg.UsePlaces],
+      `WhatwgTest.Svg.UseSorted, `WhatwgTest.Svg.UseOrder, `WhatwgTest.Svg.UsePlaces,
+      `WhatwgTest.Svg.UseUnits, `WhatwgTest.Svg.UseNetwork],
     .gate .build]
 
 /-- The ledger: the twelve graphs of slices A and B, the graph

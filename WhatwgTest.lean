@@ -146,6 +146,8 @@ import WhatwgTest.Svg.UseFrame
 import WhatwgTest.Svg.UseSorted
 import WhatwgTest.Svg.UseOrder
 import WhatwgTest.Svg.UsePlaces
+import WhatwgTest.Svg.UseUnits
+import WhatwgTest.Svg.UseNetwork
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values
