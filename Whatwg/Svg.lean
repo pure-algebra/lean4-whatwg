@@ -90,6 +90,16 @@ import Whatwg.Svg.Scene.Patch.Laws
 import Whatwg.Svg.Scene.Patch.Order
 import Whatwg.Svg.Scene.Step.Patch
 import Whatwg.Svg.Scene.Tree.Fold
+import Whatwg.Svg.Scene.Scale.Invert
+import Whatwg.Svg.Scene.Scale.Linear
+import Whatwg.Svg.Scene.Scale.Band
+import Whatwg.Svg.Scene.Scale.Band.Laws
+import Whatwg.Svg.Scene.Scale.Chain
+import Whatwg.Svg.Geometry.Ticks
+import Whatwg.Svg.Geometry.Ticks.Laws
+import Whatwg.Svg.Geometry.Ticks.Count
+import Whatwg.Svg.Geometry.Ticks.Nice
+import Whatwg.Svg.Geometry.Ticks.Axis
 import Whatwg.Svg.Geometry.Monotone
 import Whatwg.Svg.Geometry.Monotone.Laws
 import Whatwg.Svg.Geometry.Ease

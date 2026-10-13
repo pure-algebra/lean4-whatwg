@@ -106,7 +106,10 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Noise.two_band,
     `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move,
     `Whatwg.Svg.Value.stack, `Whatwg.Svg.Value.Length.tail_total,
-    `Whatwg.Svg.Value.Curve.monotoneX, `Whatwg.Svg.Value.Curve.monotoneX_within]
+    `Whatwg.Svg.Value.Curve.monotoneX, `Whatwg.Svg.Value.Curve.monotoneX_within,
+    `Whatwg.Svg.Value.Ticks.ticks, `Whatwg.Svg.Value.Ticks.mem_ticks,
+    `Whatwg.Svg.Value.Ticks.plain_count, `Whatwg.Svg.Value.Ticks.nice_contains,
+    `Whatwg.Svg.Value.Ticks.marks]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -163,7 +166,11 @@ def svgGrammar : Leaf where
       `Whatwg.Svg.Value.stack_lengths, `Whatwg.Svg.Value.stack_apart,
       `Whatwg.Svg.Value.ports_move, `Whatwg.Svg.Value.Curve.chained_monotoneX,
       `Whatwg.Svg.Value.Curve.monotoneX_within, `Whatwg.Svg.Value.Curve.monotoneX_range,
-      `Whatwg.Svg.Value.Curve.monotoneX_rises, `Whatwg.Svg.Value.Curve.monotoneX_move],
+      `Whatwg.Svg.Value.Curve.monotoneX_rises, `Whatwg.Svg.Value.Curve.monotoneX_move,
+      `Whatwg.Svg.Value.Ticks.step_mantissa, `Whatwg.Svg.Value.Ticks.mem_ticks,
+      `Whatwg.Svg.Value.Ticks.ticks_rising, `Whatwg.Svg.Value.Ticks.plain_count,
+      `Whatwg.Svg.Value.Ticks.nice_contains, `Whatwg.Svg.Value.Ticks.nice_settled,
+      `Whatwg.Svg.Value.Ticks.marks_rise],
     .modules [`WhatwgTest.Svg.Grammar, `WhatwgTest.Svg.Number, `WhatwgTest.Svg.Path,
       `WhatwgTest.Svg.Points, `WhatwgTest.Svg.ViewBox, `WhatwgTest.Svg.Transform,
       `WhatwgTest.Svg.Length, `WhatwgTest.Svg.Extent, `WhatwgTest.Svg.Lists,
@@ -194,7 +201,9 @@ def svgScene : Leaf where
     `Whatwg.Svg.Scene.Layers.heights, `Whatwg.Svg.Scene.IBox, `Whatwg.Svg.Scene.Boxed,
     `Whatwg.Svg.Scene.Layout, `Whatwg.Svg.Scene.Join.map, `Whatwg.Svg.Scene.Store,
     `Whatwg.Svg.Scene.Patch, `Whatwg.Svg.Scene.diff, `Whatwg.Svg.Scene.apply_diff,
-    `Whatwg.Svg.Scene.Reorder, `Whatwg.Svg.Scene.Step.patch, `Whatwg.Svg.Scene.Tree.fold]
+    `Whatwg.Svg.Scene.Reorder, `Whatwg.Svg.Scene.Step.patch, `Whatwg.Svg.Scene.Tree.fold,
+    `Whatwg.Svg.Scene.Scale.invert, `Whatwg.Svg.Scene.Scale.baseline, `Whatwg.Svg.Scene.Band,
+    `Whatwg.Svg.Scene.Band.fit_inside, `Whatwg.Svg.Scene.Scale.andThen]
   parent := none
   receipts := [
     .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
@@ -232,9 +241,15 @@ def svgScene : Leaf where
       `Whatwg.Svg.Scene.apply_diff, `Whatwg.Svg.Scene.diff_self, `Whatwg.Svg.Scene.diff_moved,
       `Whatwg.Svg.Scene.apply_append_diff, `Whatwg.Svg.Scene.Patch.append_assoc,
       `Whatwg.Svg.Scene.Reorder.apply_ofBy, `Whatwg.Svg.Scene.Step.apply_patch,
-      `Whatwg.Svg.Scene.Tree.fold_fusion, `Whatwg.Svg.Scene.Tree.spans_map],
+      `Whatwg.Svg.Scene.Tree.fold_fusion, `Whatwg.Svg.Scene.Tree.spans_map,
+      `Whatwg.Svg.Scene.Scale.invert_galois, `Whatwg.Svg.Scene.Scale.invert_galois_of_falling,
+      `Whatwg.Svg.Scene.Scale.linear_height, `Whatwg.Svg.Scene.Scale.linear_undo_value,
+      `Whatwg.Svg.Scene.Band.fit_inside, `Whatwg.Svg.Scene.Band.fit_plain_tiles,
+      `Whatwg.Svg.Scene.Band.invert_at, `Whatwg.Svg.Scene.Band.row_ofGap,
+      `Whatwg.Svg.Scene.Scale.andThen_galois],
     .modules [`WhatwgTest.Svg.UseLayers, `WhatwgTest.Svg.UseLayout, `WhatwgTest.Svg.UseJoin,
-      `WhatwgTest.Svg.UsePatch, `WhatwgTest.Svg.UseFold],
+      `WhatwgTest.Svg.UsePatch, `WhatwgTest.Svg.UseFold, `WhatwgTest.Svg.UseScale,
+      `WhatwgTest.Svg.UseLevel],
     .gate .build]
 
 /-- The ledger: the twelve graphs of slices A and B, the graph

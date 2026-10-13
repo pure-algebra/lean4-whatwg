@@ -794,3 +794,20 @@ moved is one `move`: this is the first half of your ask W21.
 Your asks W15 to W22 are with seats now: scales (W16), a ribbon and a vessel (W17, W22), a flow
 network on layers and units in a vessel (W18, W20), areas and stacks (W19), a frame and rules of
 a layout (W15). W21's second half, a body moved along a path in one beat, follows this landing.
+
+## 22. Slice S22, fifth part: scales (your ask W16)
+
+Ruling R-S45 of `COORDINATION.md`. Everything is added.
+
+| Your ask, or what you write today | The package now has | The port to read |
+| --- | --- | --- |
+| "linear with an exact inverse" | `Scale.invert` (`Whatwg/Svg/Scene/Scale/Invert.lean`) for every kind of scale, with `at v ≤ y ↔ v ≤ invert y`. For a straight line `linear_undo_value` and `linear_undo_mark` say how far a round trip is from the identity, and both are equalities at one unit of length for one unit of quantity | `WhatwgTest/Svg/UseLevel.lean` |
+| a count below zero: a deficit | `Scale.baseline`, where zero stands; `linear_height`: a height is the value times the unit | the same |
+| "bands for the beats of a run" | `Band.fit count lo hi` (`Scale/Band.lean`): the beats tile the range, and what is left over stands at the two ends (`fit_plain_tiles`, `fit_plain_ends`); `Band.invert` is the beat under a place | the same |
+| "ticks" | `Ticks.ticks`, `Ticks.nice`, `Ticks.marks` (`Whatwg/Svg/Geometry/Ticks.lean`): d3's round numbers, exact, each handed down with its mark on a scale | `WhatwgTest/Svg/UseScale.lean` |
+| `Grid.col`, `Page.cols`, the y and the height of `Graph.layout` | each is a band scale | the same |
+| the edge width `max fine (trunk * share / 1000000)` | `Scale.linear 125000 1000000 1 8`, by theorem (`edgeWidth_eq`) | the same |
+
+`UseLevel.lean` draws the queue of your sketch (capacity 2, nine steps): its bar lines, knots,
+slots and arrows come out of two scales and the counts. Your `Live.ratchet` is the upper nice
+bound in whole numbers, which the strict layer does not have yet.

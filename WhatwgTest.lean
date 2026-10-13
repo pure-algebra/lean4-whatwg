@@ -132,6 +132,8 @@ import WhatwgTest.Svg.Timeline
 import WhatwgTest.Svg.UseJoin
 import WhatwgTest.Svg.UsePatch
 import WhatwgTest.Svg.UseFold
+import WhatwgTest.Svg.UseScale
+import WhatwgTest.Svg.UseLevel
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values
