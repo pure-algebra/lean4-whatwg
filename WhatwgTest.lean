@@ -110,6 +110,7 @@ import WhatwgTest.Svg.Deterministic
 import WhatwgTest.Svg.Refusal
 import WhatwgTest.Svg.D3Shape
 import WhatwgTest.Svg.MotionVector
+import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values
 import WhatwgTest.Auto.Banks

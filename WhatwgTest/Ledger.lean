@@ -12,6 +12,7 @@ import WhatwgTest.Ledger.UrlCensus
 import WhatwgTest.Ledger.PromiseAgent
 import WhatwgTest.Ledger.SvgSeam
 import WhatwgTest.Ledger.SvgMotion
+import WhatwgTest.Ledger.CssSyntax
 
 /-!
 # WhatwgTest.Ledger
@@ -224,9 +225,10 @@ graph routes, so no prefix names them. -/
 def ledger : Ledger where
   graphs := [dataQueue, promiseFirst, configurationOrdering, readableDefault, writableDefault,
     transformBackpressure, pipingForwardShutdown, infraUtf8, infraScalar, urlPercent, urlCensus,
-    promiseAgent, svgSeam, svgMotion]
+    promiseAgent, svgSeam, svgMotion, cssSyntax]
   leaves := [infraInteger, svgGrammar, svgScene]
-  unrouted := [⟨`Whatwg.Html, "D57"⟩, ⟨`Whatwg.Css, "D141"⟩, ⟨`Whatwg.Infra.Namespaces, "D57"⟩,
+  unrouted := [⟨`Whatwg.Html, "D57"⟩, ⟨`Whatwg.Css.Values.Definition, "D141"⟩, ⟨`Whatwg.Css.Values.Admits, "D141"⟩,
+    ⟨`Whatwg.Css.Data.Pairs, "D141"⟩, ⟨`Whatwg.Infra.Namespaces, "D57"⟩,
     ⟨`Whatwg.Infra.Bytes.Byte, "D57"⟩, ⟨`Whatwg.Infra.Bytes.Sequence, "D57"⟩,
     ⟨`Whatwg.Infra.Primitive.Singleton, "D57"⟩, ⟨`Whatwg.Infra.Text.Case, "D57"⟩,
     ⟨`Whatwg.Infra.Text.Codec, "D57"⟩, ⟨`Whatwg.Infra.Text.CodePoint, "D57"⟩,

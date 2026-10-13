@@ -2,7 +2,7 @@
 
 # Graph ledger index
 
-Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-applicable), 3 leaf record(s), 15 unrouted prefix(es).
+Totals: 15 graph(s), 150 edges (97 required-open, 39 required-closed, 14 not-applicable), 3 leaf record(s), 17 unrouted prefix(es).
 
 ## Graphs
 
@@ -22,6 +22,7 @@ Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-app
 | [`PROMISE-PG-AGENT`](PROMISE-PG-AGENT.md) | `docs/PROMISE-AGENT-DAG.md` | 10 | 0 | 0 |
 | [`SVG-PG-SEAM`](SVG-PG-SEAM.md) | `docs/SVG-SEAM-DAG.md` | 9 | 0 | 1 |
 | [`SVG-PG-MOTION`](SVG-PG-MOTION.md) | `docs/SVG-MOTION-DAG.md` | 10 | 0 | 0 |
+| [`CSS-PG-SYNTAX`](CSS-PG-SYNTAX.md) | `docs/CSS-SYNTAX-DAG.md` | 10 | 0 | 0 |
 
 ## Leaf records
 
@@ -36,7 +37,9 @@ Totals: 14 graph(s), 140 edges (87 required-open, 39 required-closed, 14 not-app
 | Prefix | Recorded by |
 | --- | --- |
 | `Whatwg.Html` | D57 |
-| `Whatwg.Css` | D141 |
+| `Whatwg.Css.Values.Definition` | D141 |
+| `Whatwg.Css.Values.Admits` | D141 |
+| `Whatwg.Css.Data.Pairs` | D141 |
 | `Whatwg.Infra.Namespaces` | D57 |
 | `Whatwg.Infra.Bytes.Byte` | D57 |
 | `Whatwg.Infra.Bytes.Sequence` | D57 |

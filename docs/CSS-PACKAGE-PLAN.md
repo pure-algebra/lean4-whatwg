@@ -3,7 +3,9 @@
 Status: **K0 and K1 landed, 2026-10-12** (K1: 178 blocks of eleven modules as 351 rows, no
 construct refused; section 7 has what the extractor found). **K3 landed the same day**: the
 value definition syntax reads all 186 collected definitions and prints each back, and its
-interpreter admits the values the picture kit writes; section 8 has what it found. K2 is being
+interpreter admits the values the picture kit writes; section 8 has what it found. **K2 landed
+after it**: the tokenizer, the writer of tokens and the round trip, with the proof graph
+`CSS-PG-SYNTAX` (`docs/CSS-SYNTAX-DAG.md`); section 9 has what it found. K4 to K6 are not
 built. The owner asked for it in these words: "seal the css syntax spec", and "figure a way to
 mechanize css spec adoption for rigorous foolproof reification". lean4-effect4 asks for the same
 thing from its side (entry W5 of `docs/research/2026-10-12-whatwg-requests.md`: a stylesheet
@@ -219,3 +221,22 @@ bound (K3); escapes in identifiers that the kit's stems could need (K2, with `cs
   proved); laws for a juxtaposition with commas and for `{A,B}`, which `cubic-bezier()` and
   `translate()` need in slice K5; the test's corpus is a file written by a script and not yet
   the extractor's tables read by a gate.
+
+## 9. What slice K2 found
+
+- **The round trip holds, and the sealed table of pairs is not enough for it.** Two cases are
+  missing from the table: the identifier `--` before the delimiter `>`, and the delimiters `<`
+  and `!` before anything that opens with `--`. Each reads back as a token of HTML comments. The
+  writer marks both apart from the sealed table (`extraPairs`). The table is a note of the
+  standard, so this is no fault of its requirements; whether to tell its editors is the owner's
+  to say.
+- **CSSOM's rule for an identifier does not round-trip above U+007F.** It writes such a code
+  point as itself, and the tokenizer takes only some of them in a name. The writer escapes the
+  others. This is the one place where it leaves the sealed CSSOM text.
+- **The premise is a test that computes** (`Writable`): every name the tokenizer can give, with
+  its escapes; every string without U+0000; a number whose value a decimal text writes; a unit
+  that is a plain identifier and reads as no exponent. Outside it, and written with guards only:
+  a URL token, a range of code points, a unit that needs an escape.
+- **The standard has no "convert a string to a number" at this pin.** The value of a number is
+  read exactly as a rational: its digits, then ten to its exponent.
+- **Speed.** 195,000 code points tokenize inside a two-second check under the evaluator.
