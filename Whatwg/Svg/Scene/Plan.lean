@@ -1,4 +1,5 @@
 import Whatwg.Svg.Scene.Motion.Laws
+import Whatwg.Svg.Scene.Frame
 
 /-!
 # Whatwg.Svg.Scene.Plan
@@ -23,8 +24,13 @@ plan, so a caller states it once.
 - `Motion.tracks k cs`: the tracks of one thing, one for each of its changes.
   `Motion.staying`: the tracks of the things of the new picture. `Motion.leaving`: the tracks of
   the things that leave. `Motion.ofJoin`: the two in a row (`Motion.ofJoin_eq`).
+  `Motion.keeping` and `Motion.entering`: the tracks of the kept things and of the new things,
+  which are `staying` in a row (`Motion.staying_eq`).
 - `Plan.Settles`: every change that `kept` and `enter` give ends at rest. `Plan.Proper`: every
   easing of the plan starts at `0` and ends at `1000`.
+- `Plan.Single`: no thing has two changes of one property in any answer of the plan.
+  `Plan.MovesBy p place move`: the plan moves each kept thing by the one transition `move`, and
+  in no other way.
 - `Join.drawn`: the things that a reader draws at a moment.
 
 A plan is a structure of three functions, and a caller may write one directly:
@@ -51,11 +57,30 @@ What the laws say of a step:
   staying track held inside the step is at rest at the step's end, and after it
   (`Motion.staying_after`). Every track of the step, staying or leaving, is over by then
   (`Motion.ofJoin_done`).
+- **The poses of one thing** (`Motion.posesOf_kept`, `Motion.posesOf_entering`,
+  `Motion.posesOf_leaving`): with distinct keys, the poses of a kept thing, of a new thing and
+  of a thing that leaves are the changes that the plan gives it, in the plan's order, each read
+  at its moment. No other track of the step has the thing's key (`Motion.ofJoin_of_kept` says it
+  of the tracks of a kept thing). They rest on `Motion.posesOf_tracks`, the poses of a thing
+  among its own tracks, and on `Motion.update_distinct`: with distinct keys in the new list, no
+  two kept pairs have one key.
 - `Motion.staying_still`: a kept thing that the plan gives no change has no pose at any moment,
-  where the keys of the new list are distinct. A reader draws it as it is.
+  where the keys of the new list are distinct. A reader draws it as it is. It is
+  `Motion.posesOf_kept` of a pair with no change.
 - **The last picture** (`Motion.ofJoin_end`): at the step's end and after, every pose that the
   step sets on a thing of the new list is at rest. With `Join.drawn_end`, the things drawn then
   are the new list, each as the still picture has it.
+- **One track for each property** (`Motion.single_ofJoin`): under a plan with one change for
+  each property of a thing (`Plan.Single`), with distinct keys in the old list and in the new
+  one, the step is `Motion.Single`. So the reader of `Whatwg/Svg/Scene/Frame.lean` reads it:
+  each track is in the frame of its thing. `Plan.moving` and `Plan.still` give one change for
+  each property (`Plan.moving_single`, `Plan.still_single`), and the tracks of one such thing
+  are `Single` (`Motion.single_tracks`).
+- `Plan.movesBy_moving`, `Plan.MovesBy.and`: a plan whose `kept` is `Plan.moving place move`
+  moves each kept thing by `move`, and so does such a plan together with a plan that changes no
+  place. `Plan.moving_start_shift`: the start of `moving` puts the thing at its old place.
+- `Join.drawn_distinct`: the things drawn at a moment have distinct keys, where the old list
+  and the new list have.
 - `Motion.ofJoin_still`: the plan in which nothing happens gives no track.
   `Motion.mem_ofJoin_and`: a track of two plans together is a track of one or of the other.
 
@@ -66,9 +91,21 @@ leaving things, and the poses of the others change nothing.
 
 What this module does not claim: that a thing that leaves ends as nothing, since the plan's
 `leave` may be any changes and a caller chooses some that end so; that two changes of one kind
-on one thing agree, since the later one wins in a reader that sets a property once; an order in
-time among the tracks, which is `Whatwg/Svg/Scene/Score.lean`; what holds between the two
-pictures, which is `Whatwg/Svg/Scene/Between.lean`.
+on one thing agree, since the later one wins in a reader that sets a property once, and
+`Plan.Single` is the plan that gives no two; an order in time among the tracks, which is
+`Whatwg/Svg/Scene/Score.lean`; what holds between the two pictures, which is
+`Whatwg/Svg/Scene/Between.lean`.
+
+What came here in the tidy of slice S16, each under the name it had, and what the module now
+cites. It imports `Whatwg/Svg/Scene/Frame.lean`, for `Motion.Single`, `Motion.posesOf_append`
+and `Frame.ofPoses`. From `Whatwg/Svg/Scene/Resume.lean` came `Plan.Single` with
+`Plan.moving_single` and `Plan.still_single`, `Motion.single_tracks`, `Motion.single_ofJoin`,
+the laws of the poses of one thing with `Motion.posesOf_tracks`, `Motion.posesOf_tracks_of_ne`
+and `Motion.update_distinct`, `Plan.moving_start_shift` and `Join.drawn_distinct`. From
+`Whatwg/Svg/Scene/Together.lean` came `Plan.MovesBy`, `Plan.movesBy_moving`, `Plan.MovesBy.and`
+and `Motion.ofJoin_of_kept`. From `Whatwg/Svg/Scene/Stage.lean` came `Motion.keeping`,
+`Motion.entering` and `Motion.staying_eq`. It cites `nodup_append_of` and `nodup_pair` of
+`Whatwg/Svg/Scene/Join/Laws.lean`.
 
 Every law here depends on `propext` and `Quot.sound` at most.
 -/
@@ -159,6 +196,26 @@ theorem moving_proper (place : α → IVec) (move : Transition) (hm : move.ease.
   rw [mem_moving place move h]
   exact hm
 
+/-- `moving` gives changes of distinct properties: one shift at most. -/
+theorem moving_single (place : α → IVec) (move : Transition) (o n : α) :
+    ((moving place move o n).map fun c => c.1.property).Nodup := by
+  rcases Decidable.em (place o = place n) with h | h
+  · rw [(moving_nil place move o n).mpr h]
+    exact List.nodup_nil
+  · rw [moving_of_ne place move h]
+    exact List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩
+
+/-- **The start of `moving` puts the thing at its old place**: the step from its new place to
+its old one, and no step where the two are one. -/
+theorem moving_start_shift (place : α → IVec) (move : Transition) (o n : α) :
+    (Frame.ofPoses ((moving place move o n).map fun c => c.1.start)).shift =
+      place o - place n := by
+  rcases Decidable.em (place o = place n) with h | h
+  · rw [(moving_nil place move o n).mpr h, h]
+    exact (IVec.sub_self (place n)).symm
+  · rw [moving_of_ne place move h]
+    rfl
+
 /-! ### No plan, and two plans together -/
 
 /-- The plan in which no thing does anything. -/
@@ -191,6 +248,52 @@ theorem and_proper {p q : Plan α} (hp : p.Proper) (hq : q.Proper) : (p.and q).P
     fun n c h => (List.mem_append.mp h).elim (hp.2.1 n c) (hq.2.1 n c),
     fun o c h => (List.mem_append.mp h).elim (hp.2.2 o c) (hq.2.2 o c)⟩
 
+/-! ### One change for each property of a thing -/
+
+/-- **No thing has two changes of one property in any answer of the plan.** The tracks of a join
+under such a plan are `Motion.Single`, where the keys of each list are distinct
+(`Motion.single_ofJoin`). -/
+def Single (p : Plan α) : Prop :=
+  (∀ o n, ((p.kept o n).map fun c => c.1.property).Nodup) ∧
+    (∀ n, ((p.enter n).map fun c => c.1.property).Nodup) ∧
+    ∀ o, ((p.leave o).map fun c => c.1.property).Nodup
+
+/-- The plan in which nothing happens has one change for each property: none. -/
+theorem still_single : (still : Plan α).Single :=
+  ⟨fun _ _ => List.nodup_nil, fun _ => List.nodup_nil, fun _ => List.nodup_nil⟩
+
+/-! ### A plan that moves each kept thing by one transition -/
+
+/-- **The plan moves each kept thing by the one transition `move`, and in no other way.** The
+changes of the place that `kept` gives a pair are those of `Plan.moving place move`: the one
+shift from the old place where the place changed, and none where it did not. What else `kept`
+gives, a change of shape or of opacity, is not asked about. This is the check on a look that
+every kept thing takes one timing. -/
+def MovesBy (p : Plan α) (place : α → IVec) (move : Transition) : Prop :=
+  ∀ o n, ∀ c : Change × Transition, c.1.property = .place →
+    (c ∈ p.kept o n ↔ c ∈ Plan.moving place move o n)
+
+/-- A plan whose `kept` is `Plan.moving place move` moves each kept thing by `move`. -/
+theorem movesBy_moving (place : α → IVec) (move : Transition)
+    (enter leave : α → List (Change × Transition)) :
+    (⟨Plan.moving place move, enter, leave⟩ : Plan α).MovesBy place move :=
+  fun _ _ _ _ => Iff.rfl
+
+/-- A plan that moves each kept thing by `move`, together with a plan that gives a kept thing
+no change of its place, moves each kept thing by `move`: a plan for places and a plan for
+shapes or for opacity. -/
+theorem MovesBy.and {p q : Plan α} {place : α → IVec} {move : Transition}
+    (hp : p.MovesBy place move) (hq : ∀ o n, ∀ c ∈ q.kept o n, c.1.property ≠ .place) :
+    (p.and q).MovesBy place move := by
+  intro o n c hc
+  constructor
+  · intro h
+    rcases List.mem_append.mp h with h1 | h2
+    · exact (hp o n c hc).mp h1
+    · exact absurd hc (hq o n c h2)
+  · intro h
+    exact List.mem_append_left _ ((hp o n c hc).mpr h)
+
 end Plan
 
 /-- **The things that a reader draws at the moment `t`** of the step of a join to the list
@@ -208,6 +311,23 @@ theorem Join.drawn_before (j : Join α) (new : List α) {t : Nat} (h : t < 1000)
 theorem Join.drawn_end (j : Join α) (new : List α) {t : Nat} (h : 1000 ≤ t) :
     j.drawn new t = new :=
   congrArg (· ++ new) (if_neg (Nat.not_lt_of_le h))
+
+/-- **The things drawn at a moment of a step have distinct keys**, where the old list and the
+new list have. So the things drawn at an interruption can be the old list of the next join. -/
+theorem Join.drawn_distinct [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α)
+    (ho : Distinct key old) (hn : Distinct key new) (t : Nat) :
+    Distinct key ((join key old new).drawn new t) := by
+  unfold Join.drawn
+  rcases Decidable.em (t < 1000) with h | h
+  · rw [if_pos h]
+    show (((join key old new).exit ++ new).map key).Nodup
+    rw [List.map_append]
+    refine nodup_append_of (distinct_exit key old new ho) hn fun a ha hb => ?_
+    obtain ⟨o, hom, rfl⟩ := List.mem_map.mp ha
+    obtain ⟨n, hnm, e⟩ := List.mem_map.mp hb
+    exact ((mem_exit key old new).mp hom).2 n hnm e
+  · rw [if_neg h]
+    exact hn
 
 /-! ## The tracks of a join -/
 
@@ -236,6 +356,19 @@ gives nothing. A new thing has a track for each change that `enter` gives it. -/
 def staying (key : α → κ) (j : Join α) (p : Plan α) : Motion κ :=
   j.update.flatMap (fun q => tracks (key q.2) (p.kept q.1 q.2)) ++
     j.enter.flatMap (fun n => tracks (key n) (p.enter n))
+
+/-- The tracks of the kept things of a join, as the plan times them. -/
+def keeping (key : α → κ) (j : Join α) (p : Plan α) : Motion κ :=
+  j.update.flatMap fun q => tracks (key q.2) (p.kept q.1 q.2)
+
+/-- The tracks of the new things of a join, as the plan times them. -/
+def entering (key : α → κ) (j : Join α) (p : Plan α) : Motion κ :=
+  j.enter.flatMap fun n => tracks (key n) (p.enter n)
+
+/-- The tracks of the things of the new picture are those of the kept things, then those of the
+new things. -/
+theorem staying_eq (key : α → κ) (j : Join α) (p : Plan α) :
+    staying key j p = keeping key j p ++ entering key j p := rfl
 
 /-- The tracks of the things that leave: one for each change that `leave` gives an old thing
 that exits. -/
@@ -423,6 +556,169 @@ theorem staying_end (key : α → κ) (j : Join α) (p : Plan α) (hs : p.Settle
     ∀ tr ∈ (staying key j p).within, (tr.at 1000).AtRest :=
   staying_after key j p hs hp (Nat.le_refl 1000)
 
+/-! ### The poses of the things of a join
+
+These laws are of `Motion.ofJoin` of every plan. They say what the poses of one thing are, as a
+list: the changes that the plan gives the thing, in the plan's order, each read at its
+moment. -/
+
+/-- The poses of a thing among its own tracks are its changes, each read at its moment. -/
+theorem posesOf_tracks [BEq κ] [LawfulBEq κ] (k : κ) (cs : List (Change × Transition))
+    (t : Nat) : (tracks k cs).posesOf k t = cs.map fun c => c.1.at (c.2.at t) := by
+  have hf : (tracks k cs).filter (fun tr => tr.key == k) = tracks k cs :=
+    List.filter_eq_self.mpr fun tr htr => by
+      obtain ⟨c, _, rfl⟩ := mem_tracks.mp htr
+      exact beq_iff_eq.mpr rfl
+  show ((tracks k cs).filter fun tr => tr.key == k).map (fun tr => tr.at t) = _
+  rw [hf]
+  exact List.map_map
+
+/-- The tracks of one thing set no pose on another. -/
+theorem posesOf_tracks_of_ne [BEq κ] [LawfulBEq κ] {k k' : κ} (h : k ≠ k')
+    (cs : List (Change × Transition)) (t : Nat) : (tracks k cs).posesOf k' t = [] :=
+  still_of_no_track _ k' t fun tr htr he => by
+    obtain ⟨c, _, rfl⟩ := mem_tracks.mp htr
+    exact h he
+
+/-- Among the tracks of things with distinct keys, the poses of one thing are its own
+changes. -/
+private theorem posesOf_flatMap [BEq κ] [LawfulBEq κ] {β : Type} (k : β → κ)
+    (g : β → List (Change × Transition)) : ∀ (l : List β), Distinct k l → ∀ (x : β), x ∈ l →
+      ∀ (t : Nat), Motion.posesOf (l.flatMap fun y => tracks (k y) (g y)) (k x) t =
+        (g x).map fun c => c.1.at (c.2.at t)
+  | [], _, _, hx, _ => nomatch hx
+  | y :: rest, hd, x, hx, t => by
+    have hd' : k y ∉ rest.map k ∧ (rest.map k).Nodup := List.nodup_cons.mp hd
+    have hsplit : Motion.posesOf ((y :: rest).flatMap fun y => tracks (k y) (g y)) (k x) t =
+        Motion.posesOf (tracks (k y) (g y)) (k x) t ++
+          Motion.posesOf (rest.flatMap fun y => tracks (k y) (g y)) (k x) t := by
+      rw [List.flatMap_cons]
+      exact posesOf_append _ _ _ _
+    rw [hsplit]
+    cases hb : k y == k x with
+    | true =>
+      have hk : k y = k x := beq_iff_eq.mp hb
+      have hxy : x = y := by
+        rcases List.mem_cons.mp hx with e | hr
+        · exact e
+        · exact absurd (List.mem_map.mpr ⟨x, hr, hk.symm⟩) hd'.1
+      subst hxy
+      have hrest : Motion.posesOf (rest.flatMap fun y => tracks (k y) (g y)) (k x) t = [] :=
+        still_of_no_track _ (k x) t fun tr htr he => by
+          obtain ⟨z, hz, htz⟩ := List.mem_flatMap.mp htr
+          obtain ⟨c, _, rfl⟩ := mem_tracks.mp htz
+          exact hd'.1 (List.mem_map.mpr ⟨z, hz, he⟩)
+      rw [posesOf_tracks, hrest, List.append_nil]
+    | false =>
+      have hne : k y ≠ k x := fun e => Bool.false_ne_true (hb.symm.trans (beq_iff_eq.mpr e))
+      have hr : x ∈ rest := by
+        rcases List.mem_cons.mp hx with e | hr
+        · exact absurd (congrArg k e).symm hne
+        · exact hr
+      rw [posesOf_tracks_of_ne hne, List.nil_append]
+      exact posesOf_flatMap k g rest hd'.2 x hr t
+
+/-- The keys of the new things of the kept pairs are among the keys of the new list, in its
+order. -/
+private theorem update_keys_sublist [BEq κ] (key : α → κ) (old : List α) : ∀ new : List α,
+    List.Sublist ((join key old new).update.map fun q => key q.2) (new.map key)
+  | [] => List.Sublist.slnil
+  | n :: new => by
+    have ih := update_keys_sublist key old new
+    show List.Sublist (((n :: new).filterMap fun n =>
+      (old.find? fun o => key o == key n).map (·, n)).map fun q => key q.2) ((n :: new).map key)
+    cases hf : old.find? (fun o => key o == key n) with
+    | none =>
+      have h1 : (fun n => (old.find? fun o => key o == key n).map (·, n)) n = none :=
+        congrArg (Option.map (·, n)) hf
+      rw [List.filterMap_cons_none
+        (f := fun n => (old.find? fun o => key o == key n).map (·, n)) h1]
+      exact ih.cons (key n)
+    | some o =>
+      have h1 : (fun n => (old.find? fun o => key o == key n).map (·, n)) n = some (o, n) :=
+        congrArg (Option.map (·, n)) hf
+      rw [List.filterMap_cons_some
+        (f := fun n => (old.find? fun o => key o == key n).map (·, n)) h1]
+      exact ih.cons_cons (key n)
+
+/-- **With distinct keys in the new list, no two kept pairs have one key.** -/
+theorem update_distinct [BEq κ] (key : α → κ) (old new : List α) (hd : Distinct key new) :
+    Distinct (fun q : α × α => key q.2) (join key old new).update :=
+  List.Nodup.sublist (update_keys_sublist key old new) hd
+
+/-- **The poses of a kept thing are the changes that the plan gives its pair**, in the plan's
+order, each read at its moment. The keys of the new list are distinct. No other track of the
+step has the thing's key. -/
+theorem posesOf_kept [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α) (p : Plan α)
+    (hd : Distinct key new) {o n : α} (hu : (o, n) ∈ (join key old new).update) (t : Nat) :
+    (ofJoin key (join key old new) p).posesOf (key n) t =
+      (p.kept o n).map fun c => c.1.at (c.2.at t) := by
+  obtain ⟨ho, hn, hon⟩ := mem_update key old new hu
+  have h1 : Motion.posesOf ((join key old new).update.flatMap fun q =>
+      tracks (key q.2) (p.kept q.1 q.2)) (key n) t =
+      (p.kept o n).map fun c => c.1.at (c.2.at t) :=
+    posesOf_flatMap (fun q : α × α => key q.2) (fun q => p.kept q.1 q.2) _
+      (update_distinct key old new hd) (o, n) hu t
+  have h2 : Motion.posesOf ((join key old new).enter.flatMap fun n =>
+      tracks (key n) (p.enter n)) (key n) t = [] :=
+    still_of_no_track _ (key n) t fun tr htr he => by
+      obtain ⟨n', hn', htr'⟩ := List.mem_flatMap.mp htr
+      obtain ⟨c, _, rfl⟩ := mem_tracks.mp htr'
+      exact ((mem_enter key old new).mp hn').2 o ho (hon.trans he.symm)
+  have h3 : (leaving key (join key old new) p).posesOf (key n) t = [] :=
+    still_of_no_track _ (key n) t fun tr htr he => by
+      obtain ⟨_, _, _, hne⟩ := mem_leaving_key key old new p htr
+      exact hne n hn he.symm
+  show Motion.posesOf (((join key old new).update.flatMap fun q =>
+      tracks (key q.2) (p.kept q.1 q.2)) ++
+    ((join key old new).enter.flatMap fun n => tracks (key n) (p.enter n)) ++
+    leaving key (join key old new) p) (key n) t = _
+  rw [posesOf_append, posesOf_append, h1, h2, h3, List.append_nil, List.append_nil]
+
+/-- **The poses of a new thing are the changes that the plan gives it to enter**, in the plan's
+order, each read at its moment. The keys of the new list are distinct. -/
+theorem posesOf_entering [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α) (p : Plan α)
+    (hd : Distinct key new) {n : α} (hn : n ∈ (join key old new).enter) (t : Nat) :
+    (ofJoin key (join key old new) p).posesOf (key n) t =
+      (p.enter n).map fun c => c.1.at (c.2.at t) := by
+  have hn' := (mem_enter key old new).mp hn
+  have h1 : Motion.posesOf ((join key old new).update.flatMap fun q =>
+      tracks (key q.2) (p.kept q.1 q.2)) (key n) t = [] :=
+    still_of_no_track _ (key n) t fun tr htr he => by
+      obtain ⟨⟨o', n''⟩, hq, htr'⟩ := List.mem_flatMap.mp htr
+      obtain ⟨c, _, rfl⟩ := mem_tracks.mp htr'
+      obtain ⟨ho', _, hk⟩ := mem_update key old new hq
+      exact hn'.2 o' ho' (hk.trans he)
+  have h2 : Motion.posesOf ((join key old new).enter.flatMap fun n =>
+      tracks (key n) (p.enter n)) (key n) t = (p.enter n).map fun c => c.1.at (c.2.at t) :=
+    posesOf_flatMap key p.enter _ (distinct_enter key old new hd) n hn t
+  have h3 : (leaving key (join key old new) p).posesOf (key n) t = [] :=
+    still_of_no_track _ (key n) t fun tr htr he => by
+      obtain ⟨_, _, _, hne⟩ := mem_leaving_key key old new p htr
+      exact hne n hn'.1 he.symm
+  show Motion.posesOf (((join key old new).update.flatMap fun q =>
+      tracks (key q.2) (p.kept q.1 q.2)) ++
+    ((join key old new).enter.flatMap fun n => tracks (key n) (p.enter n)) ++
+    leaving key (join key old new) p) (key n) t = _
+  rw [posesOf_append, posesOf_append, h1, h2, h3, List.append_nil, List.nil_append]
+
+/-- **The poses of a thing that leaves are the changes that the plan gives it to leave**, in
+the plan's order, each read at its moment. The keys of the old list are distinct. -/
+theorem posesOf_leaving [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α) (p : Plan α)
+    (hd : Distinct key old) {o : α} (ho : o ∈ (join key old new).exit) (t : Nat) :
+    (ofJoin key (join key old new) p).posesOf (key o) t =
+      (p.leave o).map fun c => c.1.at (c.2.at t) := by
+  have h1 : (staying key (join key old new) p).posesOf (key o) t = [] :=
+    still_of_no_track _ (key o) t fun tr htr he => by
+      obtain ⟨n, hn, hk⟩ := mem_staying_key key old new p htr
+      exact ((mem_exit key old new).mp ho).2 n hn (hk.trans he)
+  have h2 : Motion.posesOf ((join key old new).exit.flatMap fun o =>
+      tracks (key o) (p.leave o)) (key o) t = (p.leave o).map fun c => c.1.at (c.2.at t) :=
+    posesOf_flatMap key p.leave _ (distinct_exit key old new hd) o ho t
+  show Motion.posesOf (staying key (join key old new) p ++
+    ((join key old new).exit.flatMap fun o => tracks (key o) (p.leave o))) (key o) t = _
+  rw [posesOf_append, h1, h2, List.nil_append]
+
 /-- **A kept thing that the plan gives no change has no pose**, at any moment, where the keys
 of the new list are distinct. With `Plan.moving`, that is a thing whose place did not change
 (`Plan.moving_nil`). -/
@@ -430,19 +726,38 @@ theorem staying_still [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List 
     (hd : Distinct key new) {o n : α} (hu : (o, n) ∈ (join key old new).update)
     (hk : p.kept o n = []) (t : Nat) :
     (staying key (join key old new) p).posesOf (key n) t = [] := by
-  refine still_of_no_track _ (key n) t fun tr htr he => ?_
+  have h : (staying key (join key old new) p).posesOf (key n) t ++
+      (leaving key (join key old new) p).posesOf (key n) t = [] := by
+    rw [← posesOf_append]
+    exact (posesOf_kept key old new p hd hu t).trans
+      (congrArg (List.map fun c : Change × Transition => c.1.at (c.2.at t)) hk)
+  refine eq_nil_of_no_mem fun q hq => ?_
+  have hm : q ∈ (staying key (join key old new) p).posesOf (key n) t ++
+      (leaving key (join key old new) p).posesOf (key n) t := List.mem_append_left _ hq
+  rw [h] at hm
+  exact absurd hm List.not_mem_nil
+
+/-- **Every track of a kept thing in a step is a change that the plan's `kept` gives its
+pair**, where the keys of the new list are distinct. No track of a new thing or of a thing that
+leaves has its key. -/
+theorem ofJoin_of_kept [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α) (p : Plan α)
+    (hd : Distinct key new) {o n : α} (hu : (o, n) ∈ (join key old new).update) {tr : Track κ}
+    (htr : tr ∈ ofJoin key (join key old new) p) (hk : tr.key = key n) :
+    ∃ c ∈ p.kept o n, tr = ⟨key n, c.1, c.2⟩ := by
   obtain ⟨ho, hn, hon⟩ := mem_update key old new hu
-  rcases (mem_staying key (join key old new) p).mp htr with
-    ⟨⟨o', n'⟩, hq, c, hc, rfl⟩ | ⟨n', hn', _, _, rfl⟩
-  · have hc' : c ∈ p.kept o' n' := hc
-    have e : n' = n := eq_of_distinct key new hd n' n (mem_update key old new hq).2.1 hn he
-    subst e
-    have e2 : o' = o := Option.some.inj
-      (((mem_update_find key old new).mp hq).2.symm.trans ((mem_update_find key old new).mp hu).2)
-    subst e2
-    rw [hk] at hc'
-    exact absurd hc' List.not_mem_nil
-  · exact ((mem_enter key old new).mp hn').2 o ho (hon.trans he.symm)
+  rcases List.mem_append.mp htr with hst | hlv
+  · rcases (mem_staying key (join key old new) p).mp hst with
+      ⟨⟨o', n'⟩, hq, c, hc, rfl⟩ | ⟨n', hn', _, _, rfl⟩
+    · have e : n' = n := eq_of_distinct key new hd n' n (mem_update key old new hq).2.1 hn hk
+      subst e
+      have e2 : o' = o := Option.some.inj
+        (((mem_update_find key old new).mp hq).2.symm.trans
+          ((mem_update_find key old new).mp hu).2)
+      subst e2
+      exact ⟨c, hc, rfl⟩
+    · exact absurd (hon.trans hk.symm) (((mem_enter key old new).mp hn').2 o ho)
+  · obtain ⟨_, _, _, hne⟩ := mem_leaving_key key old new p hlv
+    exact absurd hk.symm (hne n hn)
 
 /-- **The last picture.** At the step's end and after, every pose that the tracks of a join
 set on a thing of the new list is at rest, with a plan that settles and is proper. A track of a
@@ -458,6 +773,80 @@ theorem ofJoin_end [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α)
   · obtain ⟨tr0, h0, rfl⟩ := mem_within _ hlv
     obtain ⟨_, _, _, hne⟩ := mem_leaving_key key old new p h0
     exact absurd (beq_iff_eq.mp hk).symm (hne n hn)
+
+/-! ### One track for each property of a thing -/
+
+/-- The tracks of one thing with one change for each property are `Single`. -/
+theorem single_tracks (k : κ) {cs : List (Change × Transition)}
+    (h : (cs.map fun c => c.1.property).Nodup) : (tracks k cs).Single := by
+  show ((cs.map fun c => (⟨k, c.1, c.2⟩ : Track κ)).map fun tr : Track κ =>
+    (tr.key, tr.change.property)).Nodup
+  rw [List.map_map]
+  exact nodup_pair k (fun c : Change × Transition => c.1.property) cs h
+
+/-- The tracks of things with distinct keys, each with one change for each property, are
+`Single`. -/
+private theorem single_flatMap {β : Type} (k : β → κ) (g : β → List (Change × Transition)) :
+    ∀ (l : List β), Distinct k l → (∀ y ∈ l, ((g y).map fun c => c.1.property).Nodup) →
+      Motion.Single (l.flatMap fun y => tracks (k y) (g y))
+  | [], _, _ => List.nodup_nil
+  | y :: rest, hd, hg => by
+    have hd' : k y ∉ rest.map k ∧ (rest.map k).Nodup := List.nodup_cons.mp hd
+    show (((y :: rest).flatMap fun y => tracks (k y) (g y)).map fun tr : Track κ =>
+      (tr.key, tr.change.property)).Nodup
+    rw [List.flatMap_cons, List.map_append]
+    refine nodup_append_of (single_tracks (k y) (hg y List.mem_cons_self))
+      (single_flatMap k g rest hd'.2 fun z hz => hg z (List.mem_cons_of_mem y hz))
+      fun a ha hb => ?_
+    obtain ⟨tr, htr, rfl⟩ := List.mem_map.mp ha
+    obtain ⟨tr', htr', e⟩ := List.mem_map.mp hb
+    obtain ⟨c, _, rfl⟩ := mem_tracks.mp htr
+    obtain ⟨z, hz, htz⟩ := List.mem_flatMap.mp htr'
+    obtain ⟨c', _, rfl⟩ := mem_tracks.mp htz
+    exact hd'.1 (List.mem_map.mpr ⟨z, hz, congrArg Prod.fst e⟩)
+
+/-- **The tracks of a join under a plan with one change for each property are `Single`**, where
+the keys of the old list and of the new list are distinct. So every law of a `Single` motion
+holds of the step: each track is in the frame of its thing (`Motion.frame_has`). -/
+theorem single_ofJoin [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α) (p : Plan α)
+    (hp : p.Single) (hdo : Distinct key old) (hdn : Distinct key new) :
+    (ofJoin key (join key old new) p).Single := by
+  have hU : Motion.Single ((join key old new).update.flatMap fun q =>
+      tracks (key q.2) (p.kept q.1 q.2)) :=
+    single_flatMap (fun q : α × α => key q.2) (fun q => p.kept q.1 q.2) _
+      (update_distinct key old new hdn) fun q _ => hp.1 q.1 q.2
+  have hE : Motion.Single ((join key old new).enter.flatMap fun n =>
+      tracks (key n) (p.enter n)) :=
+    single_flatMap key p.enter _ (distinct_enter key old new hdn) fun n _ => hp.2.1 n
+  have hL : Motion.Single ((join key old new).exit.flatMap fun o =>
+      tracks (key o) (p.leave o)) :=
+    single_flatMap key p.leave _ (distinct_exit key old new hdo) fun o _ => hp.2.2 o
+  show ((((join key old new).update.flatMap fun q => tracks (key q.2) (p.kept q.1 q.2)) ++
+      ((join key old new).enter.flatMap fun n => tracks (key n) (p.enter n)) ++
+      ((join key old new).exit.flatMap fun o => tracks (key o) (p.leave o))).map
+    fun tr : Track κ => (tr.key, tr.change.property)).Nodup
+  rw [List.map_append, List.map_append]
+  refine nodup_append_of (nodup_append_of hU hE fun a ha hb => ?_) hL fun a ha hb => ?_
+  · obtain ⟨tr, htr, rfl⟩ := List.mem_map.mp ha
+    obtain ⟨tr', htr', e⟩ := List.mem_map.mp hb
+    obtain ⟨⟨o', n'⟩, hq, htq⟩ := List.mem_flatMap.mp htr
+    obtain ⟨c, _, rfl⟩ := mem_tracks.mp htq
+    obtain ⟨n, hn, htn⟩ := List.mem_flatMap.mp htr'
+    obtain ⟨c', _, rfl⟩ := mem_tracks.mp htn
+    obtain ⟨ho', _, hk⟩ := mem_update key old new hq
+    exact ((mem_enter key old new).mp hn).2 o' ho' (hk.trans (congrArg Prod.fst e).symm)
+  · obtain ⟨tr', htr', e⟩ := List.mem_map.mp hb
+    have hst : ∃ tr ∈ staying key (join key old new) p,
+        (tr.key, tr.change.property) = a := by
+      rcases List.mem_append.mp ha with h | h
+      · obtain ⟨tr, htr, e'⟩ := List.mem_map.mp h
+        exact ⟨tr, List.mem_append_left _ htr, e'⟩
+      · obtain ⟨tr, htr, e'⟩ := List.mem_map.mp h
+        exact ⟨tr, List.mem_append_right _ htr, e'⟩
+    obtain ⟨tr, htr, e'⟩ := hst
+    obtain ⟨n, hn, hk⟩ := mem_staying_key key old new p htr
+    obtain ⟨_, _, _, hne⟩ := mem_leaving_key key old new p htr'
+    exact hne n hn (hk.trans (congrArg Prod.fst (e'.trans e.symm)))
 
 end Motion
 

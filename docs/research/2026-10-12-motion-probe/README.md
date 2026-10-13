@@ -1,6 +1,6 @@
 # Motion probes
 
-2026-10-12. Seven pages that programs of the workshop write from the kit, with data like
+2026-10-12. Eight pages that programs of the workshop write from the kit, with data like
 lean4-effect4's. The first two show one step twice: animated by a browser from the CSS that the kit
 wrote, and as five still pictures at the moments 0, 250, 500, 750 and 1000 that the kit's own
 reading (`Track.at`) computes. The two must agree.
@@ -14,6 +14,7 @@ reading (`Track.at`) computes. The two must agree.
 | `row.html` | `workshop/RowProbe.lean` | a rank of four boxes with the gap of lean4-effect4's flow layout; one box gets wider, as when its label grows, and its neighbour narrower by as much | the rank changes in four ways; under each the least and the greatest gap, and the least and the greatest length of the rank, over the step |
 | `label.html` | `workshop/LabelProbe.lean` | eight qualified names such as a picture of a program holds, in lean4-effect4's grid of cells eight pixels wide | nothing moves: every name in rooms of six widths, fitted each by itself and then together; under each table the pairs of different names shown as one text |
 | `cross.html` | `workshop/CrossProbe.lean` | two ranks of a graph of fibers and the straight links between them | the ends of the links move in three ways; under each the count of crossings at the start and each moment at which it changes |
+| `resume.html` | `workshop/ResumeProbe.lean` | the rank of `between.html`: one box is leaving and two are closing the room when, at the moment 400, a second box is asked to leave | nothing moves on the page: for each of two ways, the last picture of the first step and the first picture of the second, each computed by the browser from tracks opened at the moment and paused; under them where each box stands in the two |
 
 To write them again, from the repository root after `lake build`:
 
@@ -43,6 +44,10 @@ lake env lean workshop/LabelProbe.lean
 
 ```bash
 lake env lean workshop/CrossProbe.lean
+```
+
+```bash
+lake env lean workshop/ResumeProbe.lean
 ```
 
 ## What a browser said
@@ -102,7 +107,14 @@ observation is evidence about that host, and no theorem.
   times written exactly it draws the line to 952.145 and a size of 0.768857, and the kit reads
   952 and 768: each the browser's value, rounded down (`Transition.at_eq_floor`). The two rows
   agree to 0.05 of a unit.
-- A rank whose boxes change their widths keeps its gaps and its length only if its edges move,
+- An edit moves a tree in rigid groups. The step of `tree.html` is one edit: the subtree at the
+  fork is replaced (`Tree.replace`), and the page reads from the two spans of each node what the
+  edit did to it. The root and `withFiber`, on the way to the address, are stretched: each keeps
+  its first column, and its last moves by the leaf that the edit gains. `awaitFiber`, after the
+  edit, is shifted by that leaf with its width as it was. The rest is the new subtree.
+  `Tree.spans_replace` says that every kept node of every edit is in one of the three groups,
+  and `Span.Shifted.moment` that the nodes after an edit keep the steps between them at every
+  moment, so the edges among them need no change of shape.- A rank whose boxes change their widths keeps its gaps and its length only if its edges move,
   and not its boxes or its lengths one by one. In `row.html` both pictures have a gap of 16 and
   a rank of 664. With each box at its own time the gap runs from -42 to 17 over the step. With
   one timing and each length mixed by itself the gaps hold and the rank is 663 at some moments:
@@ -130,3 +142,11 @@ observation is evidence about that host, and no theorem.
   It gave 16.0000 for the first, where `Transition.exact_gap` of
   `Whatwg/Svg/Geometry/Moment.lean` says that no rational time has less, and -140.25 and -1.59
   for the two that break a premise.
+- A step that starts from the still picture makes every moving thing jump when it interrupts
+  another. In `resume.html` two boxes stand at 201 and 433 at the moment 400 of the first step,
+  and the box that is leaving has 488 of a thousand of its opacity. A second step from the still
+  picture starts the two at 160 and 392, a jump of 41 pixels, and the leaving box at full
+  opacity. The step that resumes (`Plan.resume`) starts them at 201 and 433 and at 488, and ends
+  on the third picture. Chrome 152 drew the four pictures with no script and measured 201.1
+  and 433.1, then 160 and 392 in the first way and 201 and 433 in the second, with the opacity
+  0.488 kept. `Motion.nothing_jumps` and `Motion.nothing_moves` are the laws.

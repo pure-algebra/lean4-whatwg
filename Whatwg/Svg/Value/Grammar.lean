@@ -1,5 +1,3 @@
-import Whatwg.Auto.RuleSets
-
 /-!
 # Whatwg.Svg.Value.Grammar
 
@@ -31,9 +29,15 @@ ASCII is in no set, so no description reads one.
 `Syn.erase` is the regular expression of a description, and `Regex.Matches` its language.
 
 A `Grammar α` is a description with the two premises: `ok`, and `Syn.Total`, which says that
-every value is printable. A description of typed parts is total, and the bank `Whatwg.Syn`
-holds the rules that say so, one per form. Each value grammar of this package is one value of
-`Grammar`: a carrier discharges `ok` by one evaluation and `Total` by the bank.
+every value is printable. A description of typed parts is total, and the rules `Syn.Total.seq`,
+`Syn.Total.alt` and the others say so, one per form. Each value grammar of this package is one
+value of `Grammar`: a carrier discharges `ok` by one evaluation and `Total` by a term of those
+rules, which follows its description part by part. A description that holds the parts of
+another one reads its totality off the other's.
+
+This module and the carriers ask for no proof search, so a program that imports a grammar
+reaches Lean alone. `Whatwg/Svg/Value/Bank.lean` registers the rules in the bank `Whatwg.Syn`,
+for a proof that asks for the search.
 
 What this module does not claim: anything of how `read` and `print` agree. That is the
 retraction and the soundness of the reader, in `Whatwg/Svg/Value/Grammar/Laws.lean`.
@@ -396,10 +400,6 @@ theorem Total.right {β : Type} {a : Syn Unit} {b : Syn β} (ha : a.Total) (hb :
 
 theorem Total.sepBy1 {α : Type} {a : Syn α} {sep : Syn Unit} (ha : a.Total) (hsep : sep.Total) :
     (a.sepBy1 sep).Total := Total.seq ha (Total.many (Total.right hsep ha))
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])]
-  Total.eps Total.seq Total.alt Total.many Total.map Total.opt Total.many1 Total.left Total.right
-  Total.sepBy1
 
 end Syn
 

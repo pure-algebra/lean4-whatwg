@@ -3,7 +3,7 @@ import Whatwg.Html.Print.Picture
 import Whatwg.Svg.Geometry.Outline
 import Whatwg.Svg.Geometry.Stroke.Laws
 import Whatwg.Svg.Geometry.Stack
-import Whatwg.Svg.Scene.Tree
+import Whatwg.Svg.Scene.Tree.Edit
 import Whatwg.Svg.Scene.Stage
 
 /-! A probe of a tree that grows (slice S13 of `docs/SVG-PACKAGE-PLAN.md`), with data like
@@ -43,19 +43,48 @@ structure Placed where
 
 def placedOf (t : Tree Node) : List Placed := (t.spans 0 0).map fun (v, s) => ⟨v.1, v.2, s⟩
 
-def treeAfter : Tree Node :=
-  .node ("[]", "bind") [
-    .node ("[0]", "withFiber") [
-      .node ("[0 0]", "fork") [
-        .node ("[0 0 0]", "bind") [
-          .node ("[0 0 0 0]", "yieldNow 0") [],
-          .node ("[0 0 0 1]", "succeed (lit 7)") []]]],
-    .node ("[1]", "awaitFiber") []]
-
 def treeBefore : Tree Node :=
   .node ("[]", "bind") [
     .node ("[0]", "withFiber") [.node ("[0 0]", "fork") []],
     .node ("[1]", "awaitFiber") []]
+
+/-- The address of the fork: the first child of the first child of the root. -/
+def forkAt : List Nat := [0, 0]
+
+/-- The fork with its body written. -/
+def forkWritten : Tree Node :=
+  .node ("[0 0]", "fork") [
+    .node ("[0 0 0]", "bind") [
+      .node ("[0 0 0 0]", "yieldNow 0") [],
+      .node ("[0 0 0 1]", "succeed (lit 7)") []]]
+
+/-- The tree after the edit: the subtree at the fork is replaced, and nothing else
+(`Tree.replace` of `Whatwg/Svg/Scene/Tree/Edit.lean`). -/
+def treeAfter : Tree Node := Tree.replace forkWritten forkAt treeBefore
+
+/-- **What the edit does to a node of the new picture**, read from the two spans by the
+relations of `Tree.spans_replace`: a node of the new subtree; a node before the edit, as it
+was; a node on the way to the address, stretched; a node after the edit, shifted. -/
+def groupOf (p : Placed) : String :=
+  let col := Tree.column 0 forkAt treeBefore
+  let gain := forkWritten.leaves
+  let loss := ((Tree.subtree? forkAt treeBefore).map Tree.leaves).getD 0
+  match (placedOf treeBefore).find? fun o => o.key == p.key with
+  | none => "of the new subtree"
+  | some o =>
+    if forkAt.length ≤ o.span.depth ∧ col ≤ o.span.first ∧ o.span.last < col + loss then
+      "of the new subtree"
+    else if o.span.last < col then "as it was"
+    else if decide (Span.Stretched gain loss o.span p.span) then "stretched"
+    else if decide (Span.Shifted gain loss o.span p.span) then "shifted"
+    else "in no group"
+
+/-- The nodes of the new picture, group by group. -/
+def groups : List (String × List String) :=
+  ["as it was", "stretched", "shifted", "of the new subtree", "in no group"].filterMap fun g =>
+    match ((placedOf treeAfter).filter fun p => groupOf p == g).map fun p => p.label with
+    | [] => none
+    | labels => some (g, labels)
 /-! ## A tree as marks -/
 
 def ink : Rgb := .ofNat 0xf3f4f6
@@ -226,8 +255,13 @@ def page : String :=
     String.join ([0, 250, 500, 750, 1000].map fun t => (still t).render) ++ "</div>\n" ++
     "<p>The same five moments as the browser computes them: the animated picture's own tracks, " ++
     "opened at each moment and paused. The two rows must look the same.</p>\n<div id=\"paused\">" ++
-    String.join ([0, 250, 500, 750, 1000].map fun t => (paused t).render) ++ "</div>\n</body>\n"
+    String.join ([0, 250, 500, 750, 1000].map fun t => (paused t).render) ++ "</div>\n" ++
+    "<p>The step is one edit: the subtree at the fork is replaced. What the edit does to each " ++
+    "node of the new picture, read from its two spans: " ++
+    "; ".intercalate (groups.map fun (g, labels) => "<b>" ++ g ++ "</b>: " ++
+      ", ".intercalate labels) ++ ".</p>\n</body>\n"
 
 #eval animated.okIn Whatwg.Html.Content.Ctx.flow
+#eval groups
 #eval step.map fun tr => (tr.key, tr.timing.delay, tr.timing.duration)
 #eval IO.FS.writeFile "docs/research/2026-10-12-motion-probe/tree.html" page

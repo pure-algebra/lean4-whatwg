@@ -20,3 +20,11 @@ rational time). Two open items of the semantics edge were answered and are repla
 ones: a moment was a whole thousandth of a step, and no function of the kit put the poses on a
 thing. Ruling R-S30 of `COORDINATION.md` records what landed, the commands run and their results.
 No edge closed.
+
+## Slice S16, 2026-10-12
+
+The fence gained two modules: `Together` (what the kept things of a step keep, the law that the
+check of a look's read buys) and `Resume` (a step that is interrupted and resumes where each
+thing is seen). `Plan` imports `Frame` now and holds `Plan.Single` with the law that the step of
+such a plan has one track for each property of each thing, which pays debt D127. Ruling R-S31 of
+`COORDINATION.md` records what landed, the commands run and their results. No edge closed.

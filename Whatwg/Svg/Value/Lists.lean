@@ -48,12 +48,20 @@ def Length.item : Syn Length :=
   .map Length.ofReading Length.toReading Length.ofReading_toReading
     (.seq sign.opt (.seq fractionalConstant Length.tail))
 
-/-- Every length prints as an item. -/
-theorem Length.item_total : Length.item.Total := by
-  unfold Length.item
-  aesop (rule_sets := [Whatwg.Syn])
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Length.item_total
+/-- Every length prints as an item. An item is the three parts of `Length.syn` without the
+white space, so `h` is `Length.syn_total` with those parts in view, and the item's three are
+among its five. -/
+theorem Length.item_total : Length.item.Total := fun l => by
+  have h : (wsps.valid () && (sign.opt.valid (Length.toReading l).1 &&
+      (fractionalConstant.valid (Length.toReading l).2.1 &&
+        (Length.tail.valid (Length.toReading l).2.2 && wsps.valid ())))) = true :=
+    Length.syn_total l
+  simp only [Bool.and_eq_true] at h
+  show (sign.opt.valid (Length.toReading l).1 &&
+    (fractionalConstant.valid (Length.toReading l).2.1 &&
+      Length.tail.valid (Length.toReading l).2.2)) = true
+  simp only [Bool.and_eq_true]
+  exact ⟨h.2.1, h.2.2.1, h.2.2.2.1⟩
 
 /-! ## A list of lengths -/
 
@@ -81,9 +89,10 @@ def syn : Syn LengthList :=
     (.right wsps (.left (Length.item.sepBy1 spaceSep) wsps))
 
 /-- Every value prints: a `LengthList` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map
+    (Syn.Total.right wsps_total
+      (Syn.Total.left (Syn.Total.sepBy1 Length.item_total spaceSep_total) wsps_total))
 
 /-- The grammar of a list of lengths. -/
 def grammar : Grammar LengthList := ⟨syn, by decide +kernel, syn_total⟩
@@ -121,9 +130,10 @@ def syn : Syn NumberList :=
     (.right wsps (.left (Decimal.syn.sepBy1 spaceSep) wsps))
 
 /-- Every value prints: a `NumberList` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map
+    (Syn.Total.right wsps_total
+      (Syn.Total.left (Syn.Total.sepBy1 Decimal.syn_total spaceSep_total) wsps_total))
 
 /-- The grammar of a list of numbers. -/
 def grammar : Grammar NumberList := ⟨syn, by decide +kernel, syn_total⟩

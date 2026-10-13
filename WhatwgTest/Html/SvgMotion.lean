@@ -1,24 +1,81 @@
-import Whatwg.Svg.Scene.Plan
+import Whatwg.Svg.Scene.Frame
+import Whatwg.Svg.Scene.Stage
 import Whatwg.Html.Node.SvgMotion
 
 /-!
 # WhatwgTest.Html.SvgMotion
 
-The motion of a step of lean4-effect4 on the motion as data of the kit (slice S13 of
-`docs/SVG-PACKAGE-PLAN.md`; ruling SV-71). The consumer is read at its checkout `707b9a01`:
-the sections "Easing", "Transitions" and "The choreography" of `tools/Tools/View/Look.lean`,
-and the join, the layout of a moment and the end laws of `tools/Tools/View/Motion.lean`. This
-module imports nothing of that package. It restates the consumer's easings (`Ease`) and its
-choreography (`Choreography`) under the consumer's names, and copies the consumer's formulas
-(`Ease.at`, `tableAt`, `Ease.timed`, `decimal`, `Ease.css`) as the reference of the guards.
+The motion of a step of lean4-effect4 on the kit's motion as data (slice S13 of
+`docs/SVG-PACKAGE-PLAN.md`; ruling SV-71). The step is one `Plan` since slice S14. Since slice
+S15 the kit has a reader (`Whatwg/Svg/Scene/Frame.lean`) and a step in stages
+(`Whatwg/Svg/Scene/Stage.lean`), and this port is on both. The consumer is read at its checkout
+`707b9a01`: the sections "Easing", "Transitions" and "The choreography" of
+`tools/Tools/View/Look.lean`, and the join, the layout of a moment and the end laws of
+`tools/Tools/View/Motion.lean`. This module imports nothing of that package.
 
-**What the kit carries.** The consumer wrote for itself a mix of two values, seven easings, a
-transition with its timing, a join by key, and a sample of a step with its end law. All of it
-is now in the kit, in whole numbers and under the strict ceiling as the consumer has it:
-`Whatwg/Svg/Scene/Join.lean`, `Whatwg/Svg/Scene/Motion.lean` and `Whatwg/Svg/Scene/Plan.lean`,
-with their laws. What is here is what the consumer brings: its two tables, its seven names, its
-default numbers, the levels of a layout, the things of a scene, and one `Plan` that says what
-each thing of a step does.
+The kit owns the mechanism of motion, and lean4-effect4's own port is written from this file. So
+the file has three kinds of thing, and says which is which.
+
+**What a real port copies.** Four things, each short.
+
+1. *The plan* (`plan`): one `Plan` that says what each thing of a step does. It settles
+   (`plan_settles`), and it is proper where the choreography is (`plan_proper`). The motion of a
+   step is `Motion.ofJoin` of the plan, held in its step (`motion`).
+2. *The reader* (`sample`): `Join.drawn` says which things are drawn at a moment, and
+   `Motion.frame` says what each looks like. A port writes no reader of its own. Where a kept
+   thing stands at a moment is read from its frame (`kept_place`, by `Motion.frame_shift`). That
+   law asks that no thing has two tracks of one property (`Motion.Single`). A port shows that
+   its plan gives each thing one change for each property (`plan_single`), and the kit gives the
+   rest: `motion_single` is `Motion.single_ofJoin`, held in its step by `Motion.Single.within`.
+3. *The end law* (`sample_end`): at the step's end the sample is the new scene, each thing with
+   a frame at rest. It follows from `Motion.ofJoin_end` and `Motion.frame_atRest`.
+4. *The staged step* (`stagedPlan`, `stagedMotion`): the same things and the same changes on
+   `Motion.staged`, with the consumer's two entrances as parts of a level's window and its own
+   durations as caps (`Transition.atMost`). The kit's laws of a staged step are then laws of the
+   port, one line each: the kept things first (`staged_kept_first`), at rest from the moment the
+   new things enter (`staged_kept_rest`), level by level (`staged_levels`), the last picture
+   (`staged_end`), and one track for each property (`stagedMotion_single`, which is
+   `Motion.staged_single` of `stagedPlan_single`).
+
+**What is the consumer's code, restated.** The easings and their two tables (`Ease`, `Ease.at`,
+`tableAt`, `Ease.points`), the timing of a transition (`Ease.timed`), the writing of a number
+(`decimal`, `Ease.css`), the choreography and its numbers (`Choreography`, `Choreography.norm`),
+and the arithmetic of a step (`levels`, `slot`, `entrance`, `lateness`). They are here under the
+consumer's names as the reference of the guards. `motion` is the consumer's choreography as its
+sampler has it today, number for number: it is the record of what the consumer's code does. A
+real port has all of this already and copies none of it.
+
+**What the port cites from the kit.** No lemma of lists or of plans is proved here. The file
+cites, each under the kit's own name:
+
+- `Plan.Single`, `Plan.moving_single` and `Motion.single_ofJoin` of
+  `Whatwg/Svg/Scene/Plan.lean`: a plan with one change for each property gives a step with one
+  track for each property, where the keys of each scene are distinct;
+- `Motion.Single.within` and `Motion.frame_shift` of `Whatwg/Svg/Scene/Frame.lean`: the step held
+  in itself is still so, and the frame of a thing then shows the pose of its track;
+- `Motion.staged_single` of `Whatwg/Svg/Scene/Stage.lean`: the same for a step in stages.
+
+Until slice S16 this file carried seven such lemmas of its own. They are in the kit now, or the
+kit's laws say more: `single_of_keys`, `single_within` and `single_of_untimed` are
+`Motion.single_of_keys`, `Motion.Single.within` and `Motion.single_of_untimed`; `nodup_append_of`
+is in `Whatwg/Svg/Scene/Join/Laws.lean`; and `ofJoin_single`, with its two helpers
+`keys_sublist` and `map_filterMap_sublist`, gave way to `Motion.single_ofJoin`, which asks for
+one change for each property and not for one change at most.
+
+**The two steps, and what they differ in.** `motion` and `stagedMotion` move the same things by
+the same changes and the same easings. They differ in when.
+
+- *The new things* have the same delays and the same durations in both, at every number of
+  levels: the staged step's shares of a window are the consumer's per cents, and the caps are
+  the consumer's `min`.
+- *The first stage* differs at the consumer's defaults. The consumer's kept things move for 450
+  of a thousand, and its first new thing starts at 300. So its kept things are still moving when
+  a new thing appears (debt D131 of `COORDINATION.md`). `Motion.staged` ends the first stage by
+  the moment the new things enter: in the five-thing step the kept box moves for 300 and not for
+  450. Which of the two numbers gives way is the look's to say. With the new things from 450 on
+  (270 ms of the step's 600), the two steps are equal track for track, and a guard says so.
+- *What the staged step buys* is the four laws above. The consumer's step has none of the first
+  three: its arithmetic is inside its sampler, and no theorem is about it.
 
 | The consumer's | Here |
 | --- | --- |
@@ -32,21 +89,13 @@ each thing of a step does.
 | `Transition.within_end`, `within_at_end`, `after_at_end` | the kit's, under the same names |
 | `Join`, `join`, `join_new`, `join_old` | the kit's, for a key of any type |
 | `Choreography`, `Choreography.norm` | the same, of kit transitions, by `Transition.per` |
-| `placedAt`, `routeAt` | the tracks that `plan` gives the things of the new scene; `Seen.under` |
-| `levels`, `slot`, `start` | `levels`, `slot`, `lateness` |
-| `drawAt`, `expandAt` | `entrance`, started later by `lateness`, in the plan's `enter` |
+| `placedAt`, `routeAt` | the tracks that `plan` gives the new scene, read by `Motion.frame` |
+| `levels`, `slot`, `start` | `levels`, `slot`, `lateness`; staged: `Motion.slot`, `rank` |
+| `drawAt`, `expandAt` | `entrance`, started later by `lateness`; staged: two parts of a window |
 | `gone`, `retracting` | the plan's `leave`, and `Join.drawn` |
 | `sampleLaid` | `motion`, the tracks of the step, and `sample`, their reading |
-| `Laid.AtRest` | `Pose.AtRest`, and `Thing.still` |
+| `Laid.AtRest` | `Frame.AtRest` |
 | `placedAt_end`, `routeAt_end`, `sampleLaid_end` | `motion_end`, `sample_end` |
-
-**The laws.** The consumer's end law is `sampleLaid_end`: the layout at a step's end is the
-next frame's. A step here is one `Plan` of the kit (`plan`). It settles (`plan_settles`), and it
-is proper where the choreography is (`plan_proper`). The kit's laws of a plan then give the two
-statements. At the end every track is at rest, or is of a thing that the new scene does not
-have (`motion_end`, by `Motion.staying_end` and `Motion.mem_leaving_key`). The scene read at the
-end is the new scene (`sample_end`, by `Motion.ofJoin_end` and `Join.drawn_end`). A kept thing
-under its track stands where the consumer's `lerp` puts it (`under_shift`, by `mix_shift`).
 
 **The easings.** Four of the seven read as the consumer's at every moment. `linear` is
 `Easing.linear` (`kit_linear`, up to `1000`), `in_` is `Easing.cubicIn` (`kit_in`), and
@@ -64,12 +113,13 @@ much; no theorem states it.
   twenty-one stops with straight lines between them, which is what the consumer writes to CSS
   (`sampled_points`). Between two stops it is up to five per mille off the formula.
 
-**How it differs from the consumer.**
+**How the kit differs from the consumer.**
 
 - *A step is tracks.* The consumer's moment is a layout whose things have fields: a place, a
   growth, a part drawn. Here a step is the new scene and one track for each change, so a
   browser can draw the moments from CSS (`Motion.sheet`, `Motion.style?`). `sample` reads the
-  tracks back into things with fields, to state the consumer's law.
+  tracks back with the kit's reader, and `fields` writes a frame in the consumer's fields for
+  the guards.
 - *The share of a duration.* The consumer rounds the share that has passed to a per mille and
   then reads its easing. The kit reads the easing at the share itself (`Easing.of`). On the
   consumer's default choreography the two readings differ by three per mille at most.
@@ -87,16 +137,24 @@ much; no theorem states it.
 
 **What is not ported.** The lines of a page (`lineAt`, `sampleLines`), so `write` and `stagger`
 are numbers of the choreography that no track here reads. `Ease.bezier`, the nearest cubic to
-an easing: the kit writes a cubic as it is. The width and the height of a layout.
+an easing: the kit writes a cubic as it is. The width and the height of a layout. In the staged
+step, the choreography's own delay of a draw and of a growth, which the consumer's defaults
+leave at `0`.
+
+**What this file does not show.** That the frame at the step's end is `Frame.rest` itself: it is
+at rest, and that it has no shape of a track needs a law of motions with no change of shape,
+which the kit does not have yet. That the staged step is over at the step's end with no cut:
+`Motion.staged_end` asks that each new thing's rank is below the number of levels, and here the
+rank is a place in a sorted list, so `staged_end` cuts the step and asks nothing.
 
 **The guards.** Each is a finite evaluation: the spread of each easing against the consumer's
 formula, the timing of each default transition against the consumer's, the numbers of the
-default choreography in per mille, a step of five things at three of its moments, and the CSS
-of that step. The CSS is text written by rule; no browser read it here.
+default choreography in per mille, a step of five things at three of its moments, the two steps
+side by side, and the CSS of the consumer's step. The CSS is text written by rule; no browser
+read it here.
 
 Every theorem of this module depends on `propext` and `Quot.sound` at most.
 -/
-
 namespace WhatwgTest.Html.SvgMotion
 
 open Whatwg.Html
@@ -440,73 +498,233 @@ theorem motion_end (c : Choreography) (old new : List Thing) (h : c.Proper) :
     obtain ⟨_, _, _, hn⟩ := Motion.mem_leaving_key Thing.key old new _ h0
     exact Or.inr hn
 
+/-! ## One track for each thing
+
+`Motion.frame_shift` reads where a thing stands in a motion where no thing has two tracks of one
+property (`Motion.Single`). The kit says when a step is so: its plan gives each thing one change
+for each property at most (`Plan.Single`), and the keys of each scene are distinct
+(`Motion.single_ofJoin`). Holding the step in itself keeps it so (`Motion.Single.within`). A
+port shows `Plan.Single` of its plan, and cites the kit for the rest. -/
+
+/-- **The plan of a step gives each thing one change for each property**: a kept thing its move
+or nothing, a new thing its entrance, an old thing its leaving. -/
+theorem plan_single (c : Choreography) (j : Join Thing) : (plan c j).Single :=
+  ⟨Plan.moving_single Thing.place c.move,
+    fun _ => List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩,
+    fun _ => List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩⟩
+
+/-- **No thing of a step has two tracks of one property**, where the keys of each scene are
+distinct: a kept thing has its move or nothing, a new thing its entrance, an old thing its
+leaving. So the frame of a thing shows the pose of each of its tracks. -/
+theorem motion_single (c : Choreography) (old new : List Thing) (ho : Distinct Thing.key old)
+    (hn : Distinct Thing.key new) : (motion c old new).Single :=
+  (Motion.single_ofJoin Thing.key old new _ (plan_single _ _) ho hn).within
+
 /-! ## A moment of a step -/
 
-/-- A thing at a moment: the consumer's `Placed` with its `grow`, and its `Route` with its
-`reveal`. -/
-structure Seen where
-  key : String
-  place : IVec
-  grow : Int := 1000
-  reveal : Int := 1000
-  deriving DecidableEq, Repr
+/-- **The scene at the moment `t` of a step**: the consumer's `sampleLaid`, by the kit's reader.
+The things drawn are those of `Join.drawn`: the things that leave come first, until the step's
+end, and then the things of the new scene. Each comes with its frame: what `Motion.frame` says
+it looks like under the tracks of the step. -/
+def sample (c : Choreography) (old new : List Thing) (t : Nat) : List (Thing × Frame) :=
+  ((join Thing.key old new).drawn new t).map fun n => (n, (motion c old new).frame n.key t)
 
-/-- A thing of a still scene: at its place, at its whole size, drawn whole. -/
-def Thing.still (n : Thing) : Seen := { key := n.key, place := n.place }
+/-- A sampled thing in the consumer's fields: its key, where it stands, its growth and how much
+of it is drawn. The guards read a sample so. -/
+def fields (x : Thing × Frame) : String × IVec × Int × Int :=
+  (x.1.key, x.1.place + x.2.shift, x.2.size, x.2.part)
 
-/-- A pose put on a thing: what the consumer's `placedAt` and `routeAt` set. -/
-def Seen.under (s : Seen) : Pose → Seen
-  | .shift step => { s with place := Moves.move step s.place }
-  | .grow size => { s with grow := size }
-  | .reveal part => { s with reveal := part }
-  | _ => s
+/-- **Where a kept thing stands at a moment**: at the consumer's `lerp` of its old place and its
+new one, at the eased progress of the move. It is the consumer's `placedAt`, read from the frame
+of the thing by `Motion.frame_shift`. -/
+theorem kept_place (c : Choreography) (old new : List Thing) (hs : (motion c old new).Single)
+    {o n : Thing} (hu : (o, n) ∈ (join Thing.key old new).update) (hne : o.place ≠ n.place)
+    (t : Nat) :
+    n.place + ((motion c old new).frame n.key t).shift =
+      ⟨mix o.place.x n.place.x (c.norm.move.within.at t),
+        mix o.place.y n.place.y (c.norm.move.within.at t)⟩ := by
+  have hc : (Change.shift (o.place - n.place) 0, c.norm.move) ∈
+      Plan.moving Thing.place c.norm.move o n := by
+    rw [Plan.moving_of_ne Thing.place c.norm.move hne]
+    exact List.mem_singleton.mpr rfl
+  have h0 : (⟨n.key, .shift (o.place - n.place) 0, c.norm.move⟩ : Track String) ∈
+      Motion.ofJoin Thing.key (join Thing.key old new) (plan c.norm (join Thing.key old new)) :=
+    List.mem_append_left _ ((Motion.mem_staying Thing.key _ _).mpr
+      (Or.inl ⟨(o, n), hu, _, hc, rfl⟩))
+  have htr : (⟨n.key, .shift (o.place - n.place) 0, c.norm.move.within⟩ : Track String) ∈
+      motion c old new := List.mem_map.mpr ⟨_, h0, rfl⟩
+  rw [Motion.frame_shift hs htr t]
+  exact IVec.ext (mix_shift o.place.x n.place.x _).symm (mix_shift o.place.y n.place.y _).symm
 
-/-- **The scene at the moment `t` of a step**: the consumer's `sampleLaid`. The things drawn
-are those of `Join.drawn`: the things that leave come first, until the step's end, and then the
-things of the new scene. Each is drawn under the poses of its key. -/
-def sample (c : Choreography) (old new : List Thing) (t : Nat) : List Seen :=
-  ((join Thing.key old new).drawn new t).map fun n =>
-    ((motion c old new).posesOf n.key t).foldl Seen.under n.still
-
-/-- **A kept thing under its track stands where the consumer's `placedAt` puts it**: at the
-consumer's `lerp` of its old place and its new one. -/
-theorem under_shift (o n : Thing) (e : Int) :
-    (n.still.under ((Change.shift (o.place - n.place) 0).at e)).place =
-      ⟨mix o.place.x n.place.x e, mix o.place.y n.place.y e⟩ :=
-  IVec.ext (mix_shift o.place.x n.place.x e).symm (mix_shift o.place.y n.place.y e).symm
-
-/-- A pose at rest leaves a still thing as it is. -/
-theorem under_atRest (n : Thing) (p : Pose) (h : p.AtRest) : n.still.under p = n.still := by
-  cases p with
-  | shift step =>
-    cases (show step = 0 from h)
-    exact congrArg (fun q => ({ key := n.key, place := q } : Seen)) (IVec.add_zero n.place)
-  | grow size =>
-    cases (show size = 1000 from h)
-    rfl
-  | reveal part =>
-    cases (show part = 1000 from h)
-    rfl
-  | fade shown => rfl
-  | shape segments => rfl
-
-/-- Poses at rest leave a still thing as it is. -/
-theorem foldl_under_atRest (n : Thing) :
-    ∀ ps : List Pose, (∀ p ∈ ps, p.AtRest) → ps.foldl Seen.under n.still = n.still
-  | [], _ => rfl
-  | p :: ps, h => by
-    rw [List.foldl_cons, under_atRest n p (h p List.mem_cons_self)]
-    exact foldl_under_atRest n ps fun q hq => h q (List.mem_cons_of_mem p hq)
-
-/-- **The consumer's end law, `sampleLaid_end`.** A step's last moment is the next scene: every
-thing of it on its place, at its whole size and drawn whole, and no other thing. -/
+/-- **The consumer's end law, `sampleLaid_end`.** A step's last moment is the next scene: the
+things of the new scene and no other, each with a frame at rest, so on its place, at its whole
+size and drawn whole. -/
 theorem sample_end (c : Choreography) (old new : List Thing) (h : c.Proper) :
-    sample c old new 1000 = new.map Thing.still := by
-  show ((join Thing.key old new).drawn new 1000).map _ = new.map Thing.still
-  rw [Join.drawn_end _ _ (Nat.le_refl 1000)]
-  exact List.map_congr_left fun n hn => foldl_under_atRest n _
-    (Motion.ofJoin_end Thing.key old new _ (plan_settles _ _)
-      (plan_proper _ _ (c.norm_proper h)) hn (Nat.le_refl 1000))
+    (sample c old new 1000).map Prod.fst = new ∧ ∀ x ∈ sample c old new 1000, x.2.AtRest := by
+  have e : sample c old new 1000 =
+      new.map fun n => (n, (motion c old new).frame n.key 1000) :=
+    congrArg (List.map _) (Join.drawn_end _ new (Nat.le_refl 1000))
+  rw [e]
+  refine ⟨(List.map_map.trans (List.map_congr_left fun _ _ => rfl)).trans (List.map_id new),
+    fun x hx => ?_⟩
+  obtain ⟨n, hn, rfl⟩ := List.mem_map.mp hx
+  exact Motion.frame_atRest (Motion.ofJoin_end Thing.key old new _ (plan_settles _ _)
+    (plan_proper _ _ (c.norm_proper h)) hn (Nat.le_refl 1000))
+
+/-! ## The staged step
+
+The same things and the same changes on `Motion.staged`. The consumer's sampler gives a new
+edge the first 45 per cent of its level's slot and the box at its end the slot from 40 per cent
+on, each for the choreography's own duration where that is less. Here each is a part of a
+window with a cap, and the arithmetic is the kit's. -/
+
+/-- The levels of the new things of a step, from the top. -/
+def stepLevels (old new : List Thing) : List Int := levels (join Thing.key old new).enter
+
+/-- The level of a thing in a step: the place of its row among the levels of the new things. It
+is the consumer's `levels.findIdx`. -/
+def rank (old new : List Thing) (n : Thing) : Nat :=
+  (stepLevels old new).findIdx (· == n.place.y)
+
+/-- How long the window of one level of a step is, in the choreography's per mille. -/
+def stepSlot (c : Choreography) (old new : List Thing) : Nat :=
+  Motion.slot c.norm.enterFrom (stepLevels old new).length
+
+/-- **The plan of a staged step.** A kept thing and an old thing do what `plan` gives them. A
+new route draws in the first 45 per cent of its level's window, and a new box grows from 40 per
+cent on, each for the choreography's own duration at most in a window `slot` long. -/
+def stagedPlan (c : Choreography) (slot : Nat) : Plan Thing where
+  kept := Plan.moving Thing.place c.move
+  enter := fun n =>
+    match n.kind with
+    | .route => [(.reveal 0 1000, ({ delay := 0, duration := 450, ease := c.draw.ease } :
+        Transition).atMost c.draw.duration slot)]
+    | .box => [(.grow 0 1000, ({ delay := 400, duration := 600, ease := c.expand.ease } :
+        Transition).atMost c.expand.duration slot)]
+  leave := fun _ => [(.grow 1000 0, c.leave)]
+
+/-- **The staged step** from an old scene to a new one: the kept things and the old things
+first, over by the moment the new things enter, and then the new things level by level. -/
+def stagedMotion (c : Choreography) (old new : List Thing) : Motion String :=
+  Motion.staged Thing.key (join Thing.key old new) (stagedPlan c.norm (stepSlot c old new))
+    c.norm.enterFrom (stepLevels old new).length (rank old new)
+
+/-- The first stage of the staged step, as its plan times it: the tracks of the kept things and
+of the old things. -/
+def stagedFirst (c : Choreography) (old new : List Thing) : Motion String :=
+  Motion.firstStage Thing.key (join Thing.key old new) (stagedPlan c.norm (stepSlot c old new))
+
+/-- The tracks of one new thing in the staged step. -/
+def stagedOf (c : Choreography) (old new : List Thing) (n : Thing) : Motion String :=
+  Motion.stagedOf Thing.key (stagedPlan c.norm (stepSlot c old new)) c.norm.enterFrom
+    (stepLevels old new).length (rank old new) n
+
+/-- The plan of a staged step settles, as `plan` does. -/
+theorem stagedPlan_settles (c : Choreography) (slot : Nat) : (stagedPlan c slot).Settles :=
+  ⟨Plan.moving_settles Thing.place c.move, fun n x h => by
+    cases n with
+    | mk key place kind =>
+      cases kind with
+      | box => exact List.mem_singleton.mp h ▸ rfl
+      | route => exact List.mem_singleton.mp h ▸ rfl⟩
+
+/-- The plan of a staged step is proper, where the choreography is. -/
+theorem stagedPlan_proper (c : Choreography) (slot : Nat) (h : c.Proper) :
+    (stagedPlan c slot).Proper :=
+  ⟨Plan.moving_proper Thing.place c.move h.1, fun n x hm => by
+    cases n with
+    | mk key place kind =>
+      cases kind with
+      | box => exact List.mem_singleton.mp hm ▸ h.2.2.2
+      | route => exact List.mem_singleton.mp hm ▸ h.2.2.1,
+    fun _ _ hm => List.mem_singleton.mp hm ▸ h.2.1⟩
+
+/-- The plan of a staged step gives each thing one change for each property, as `plan` does. -/
+theorem stagedPlan_single (c : Choreography) (slot : Nat) : (stagedPlan c slot).Single :=
+  ⟨Plan.moving_single Thing.place c.move, fun n => by
+    cases n with
+    | mk key place kind =>
+      cases kind with
+      | box => exact List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩
+      | route => exact List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩,
+    fun _ => List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩⟩
+
+/-- Each entrance of a staged step fits in its window: its delay and its duration are a
+thousand together at most. -/
+theorem stagedPlan_fits (c : Choreography) (slot : Nat) (n : Thing) :
+    ∀ x ∈ (stagedPlan c slot).enter n, x.2.delay + x.2.duration ≤ 1000 := by
+  intro x hx
+  cases n with
+  | mk key place kind =>
+    cases kind with
+    | box =>
+      rw [List.mem_singleton.mp hx]
+      show 400 + min 600 ((c.expand.duration * 1000 + (slot - 1)) / slot) ≤ 1000
+      omega
+    | route =>
+      rw [List.mem_singleton.mp hx]
+      show 0 + min 450 ((c.draw.duration * 1000 + (slot - 1)) / slot) ≤ 1000
+      omega
+
+/-- A track of the staged step is a track of its first stage, retimed, or a track of a new
+thing in the window of its level. The three laws below are of these two kinds of track. -/
+theorem mem_stagedMotion (c : Choreography) (old new : List Thing) {tr : Track String} :
+    tr ∈ stagedMotion c old new ↔
+      (∃ tr0 ∈ stagedFirst c old new,
+        tr = tr0.endBy c.norm.enterFrom (stagedFirst c old new).finish) ∨
+        ∃ n ∈ (join Thing.key old new).enter, tr ∈ stagedOf c old new n :=
+  Motion.mem_staged Thing.key _ _ _ _ _
+
+/-- The staged step moves the things of the step by the changes and the easings of its plan,
+track for track: staging changes when a thing moves, and nothing else. -/
+theorem stagedMotion_untimed (c : Choreography) (old new : List Thing) :
+    (stagedMotion c old new).map Track.untimed =
+      (Motion.ofJoin Thing.key (join Thing.key old new)
+        (stagedPlan c.norm (stepSlot c old new))).map Track.untimed :=
+  Motion.staged_untimed Thing.key _ _ _ _ _
+
+/-- No thing of a staged step has two tracks of one property, where the keys of each scene are
+distinct: the kit's reader reads the staged step as it reads the consumer's. -/
+theorem stagedMotion_single (c : Choreography) (old new : List Thing)
+    (ho : Distinct Thing.key old) (hn : Distinct Thing.key new) :
+    (stagedMotion c old new).Single :=
+  Motion.staged_single Thing.key old new _ _ _ _ (stagedPlan_single _ _) ho hn
+
+/-- **The kept things first.** Every track of a kept thing and of an old thing is over before
+any track of a new thing starts. The consumer's own step does not have this at its defaults. -/
+theorem staged_kept_first (c : Choreography) (old new : List Thing) {tr0 y : Track String}
+    {n : Thing} (h0 : tr0 ∈ stagedFirst c old new) (hy : y ∈ stagedOf c old new n) :
+    (tr0.endBy c.norm.enterFrom (stagedFirst c old new).finish).timing.delay +
+      (tr0.endBy c.norm.enterFrom (stagedFirst c old new).finish).timing.duration ≤
+        y.timing.delay :=
+  Motion.staged_kept_first Thing.key _ _ _ _ _ h0 hy
+
+/-- **The kept things are at rest from the moment the new things enter**: each stands on its
+place when the first new thing may appear. -/
+theorem staged_kept_rest (c : Choreography) (old new : List Thing) (h : c.Proper)
+    {tr0 : Track String}
+    (h0 : tr0 ∈ Motion.keeping Thing.key (join Thing.key old new)
+      (stagedPlan c.norm (stepSlot c old new))) {t : Nat} (ht : c.norm.enterFrom ≤ t) :
+    ((tr0.endBy c.norm.enterFrom (stagedFirst c old new).finish).at t).AtRest :=
+  Motion.staged_kept_rest Thing.key _ _ _ (stagedPlan_settles _ _)
+    (stagedPlan_proper _ _ (c.norm_proper h)) h0 ht
+
+/-- **Level by level.** A track of a new thing of one level is over before a track of a new
+thing of a deeper level starts: nothing appears before the level above it is done. -/
+theorem staged_levels (c : Choreography) (old new : List Thing) {n n' : Thing}
+    (hr : rank old new n < rank old new n') {x y : Track String}
+    (hx : x ∈ stagedOf c old new n) (hy : y ∈ stagedOf c old new n') :
+    x.timing.delay + x.timing.duration ≤ y.timing.delay :=
+  Motion.staged_levels Thing.key _ _ _ _ hr (stagedPlan_fits _ _ n) hx hy
+
+/-- **The last picture of the staged step.** Held in its step, the staged step shows each thing
+of the new scene with a frame at rest at the step's end and after. It asks nothing of the ranks
+or of the number of levels. -/
+theorem staged_end (c : Choreography) (old new : List Thing) (h : c.Proper) {n : Thing}
+    (hn : n ∈ new) {t : Nat} (ht : 1000 ≤ t) :
+    ((stagedMotion c old new).within.frame n.key t).AtRest :=
+  Motion.frame_atRest (Motion.staged_within_end Thing.key old new _ _ _ _ (stagedPlan_settles _ _)
+    (stagedPlan_proper _ _ (c.norm_proper h)) hn ht)
 
 /-! ## A step of five things -/
 
@@ -522,26 +740,61 @@ def after : List Thing :=
 /-- The step between the two, at the consumer's defaults. -/
 def fiveStep : Motion String := motion {} before after
 
+/-- The key, the delay and the duration of each track of a motion. -/
+def times (m : Motion String) : List (String × Nat × Nat) :=
+  m.map fun tr => (tr.key, tr.timing.delay, tr.timing.duration)
+
+/-- Each track of a motion, whole: its key, its change and its transition. -/
+def whole (m : Motion String) : List (String × Change × Transition) :=
+  m.map fun tr => (tr.key, tr.change, tr.timing)
+
 -- One track for each thing: the kept box, the three new things, and the box that leaves.
 -- Level by level from the top: the route at 300, the box at its end at 440, and the box of
 -- the second level at 790, which ends with the step.
-#guard fiveStep.map (fun tr => (tr.key, tr.timing.delay, tr.timing.duration)) ==
+#guard times fiveStep ==
   [("a", 0, 450), ("c", 440, 210), ("a c", 300, 157), ("d", 790, 210), ("b", 0, 250)]
 
 -- The first moment: the old scene, and the new things not yet there.
-#guard sample {} before after 0 ==
-  [⟨"b", ⟨40, 80⟩, 1000, 1000⟩, ⟨"a", ⟨40, 20⟩, 1000, 1000⟩, ⟨"c", ⟨100, 140⟩, 0, 1000⟩,
-    ⟨"a c", ⟨100, 140⟩, 1000, 0⟩, ⟨"d", ⟨100, 200⟩, 0, 1000⟩]
+#guard (sample {} before after 0).map fields ==
+  [("b", ⟨40, 80⟩, 1000, 1000), ("a", ⟨40, 20⟩, 1000, 1000), ("c", ⟨100, 140⟩, 0, 1000),
+    ("a c", ⟨100, 140⟩, 1000, 0), ("d", ⟨100, 200⟩, 0, 1000)]
 
 -- Half way: `a` has settled and `b` has shrunk, the route is drawn, its box is growing, and
 -- the second level has not started.
-#guard sample {} before after 500 ==
-  [⟨"b", ⟨40, 80⟩, 0, 1000⟩, ⟨"a", ⟨100, 20⟩, 1000, 1000⟩, ⟨"c", ⟨100, 140⟩, 768, 1000⟩,
-    ⟨"a c", ⟨100, 140⟩, 1000, 1000⟩, ⟨"d", ⟨100, 200⟩, 0, 1000⟩]
+#guard (sample {} before after 500).map fields ==
+  [("b", ⟨40, 80⟩, 0, 1000), ("a", ⟨100, 20⟩, 1000, 1000), ("c", ⟨100, 140⟩, 768, 1000),
+    ("a c", ⟨100, 140⟩, 1000, 1000), ("d", ⟨100, 200⟩, 0, 1000)]
 
 -- Near the end: the box of the second level is past its size, on the spring.
-#guard (sample {} before after 900).getLast? == some ⟨"d", ⟨100, 200⟩, 1037, 1000⟩
+#guard ((sample {} before after 900).map fields).getLast? == some ("d", ⟨100, 200⟩, 1037, 1000)
 
+/-! ### The two steps side by side -/
+
+-- The staged step at the consumer's defaults. The three new things have the consumer's delays
+-- and durations. The first stage is over by 300, the moment the new things enter: the kept box
+-- moves for 300 and the old box shrinks for 166, where the consumer has 450 and 250.
+#guard times (stagedMotion {} before after) ==
+  [("a", 0, 300), ("c", 440, 210), ("a c", 300, 157), ("d", 790, 210), ("b", 0, 166)]
+
+-- The tracks of the three new things are the consumer's, whole: key, change, delay, duration
+-- and easing.
+#guard
+  let isNew (x : String × Change × Transition) := x.1 != "a" && x.1 != "b"
+  (whole (stagedMotion {} before after)).filter isNew == (whole fiveStep).filter isNew
+
+-- With the new things from 270 ms of the step's 600, the consumer's first stage is over when
+-- they enter, and the two steps are equal track for track. The second scene has one level,
+-- where the consumer's own durations are the shorter and the caps are what make the two agree.
+#guard [after, [⟨"a", ⟨100, 20⟩, .box⟩, ⟨"c", ⟨100, 140⟩, .box⟩, ⟨"a c", ⟨100, 140⟩, .route⟩]].all
+  fun new =>
+    let c : Choreography := { enterFrom := 270 }
+    whole (stagedMotion c before new) == whole (motion c before new)
+
+-- The reader reads the staged step as it reads the consumer's. At the moment 300 the first new
+-- thing starts. In the consumer's step the kept box then stands three units short of its
+-- place, and in the staged step it is at rest on it.
+#guard ((motion {} before after).frame "a" 300).shift == ⟨-3, 0⟩
+#guard ((stagedMotion {} before after).frame "a" 300).AtRest
 /-! ## The step as CSS -/
 
 -- The style sheet: one `@keyframes` rule for each track, in the order of the tracks.

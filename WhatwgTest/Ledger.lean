@@ -104,7 +104,7 @@ def svgGrammar : Leaf where
     `Whatwg.Svg.Value.Vec.toGrid_add_ofGrid, `Whatwg.Svg.Value.Curve.smooth_windows,
     `Whatwg.Svg.Value.Cubic.written_near, `Whatwg.Svg.Value.Noise.two_band,
     `Whatwg.Svg.Value.Stroke.stroke, `Whatwg.Svg.Value.Stroke.stroke_move,
-    `Whatwg.Svg.Value.stack]
+    `Whatwg.Svg.Value.stack, `Whatwg.Svg.Value.Length.tail_total]
   parent := some ("SVG-PG-SEAM", .representation)
   receipts := [
     .theorems [`Whatwg.Svg.Value.Syn.read_print, `Whatwg.Svg.Value.Syn.check_print,
@@ -171,8 +171,9 @@ def svgGrammar : Leaf where
 number, `Whatwg.Svg.Scene`, under the strict axiom ceiling (ruling SV-79 of
 `docs/SVG-PACKAGE-PLAN.md`). A thing that moves and the law of a stored result, the join of two
 lists by key, the placement of a tree, the share of a branch, a row whose lengths change, a scale
-with its ties, what a host says of a face, a label fitted to a room, and where two lines cross
-(since slice S15). Each is a value with
+with its ties, what a host says of a face, a label fitted to a room, where two lines cross
+(since slice S15), what an edit does to a tree's placement and lanes of states over a run
+(since slice S16). Each is a value with
 its laws and has no reading in time: motion, which has one, is the graph `SVG-PG-MOTION`. The
 record is standalone. -/
 def svgScene : Leaf where
@@ -181,7 +182,8 @@ def svgScene : Leaf where
   declarations := [`Whatwg.Svg.Scene.IVec, `Whatwg.Svg.Scene.Moves, `Whatwg.Svg.Scene.join,
     `Whatwg.Svg.Scene.join_new, `Whatwg.Svg.Scene.Tree, `Whatwg.Svg.Scene.Share,
     `Whatwg.Svg.Scene.Row.between, `Whatwg.Svg.Scene.Scale, `Whatwg.Svg.Scene.Metrics,
-    `Whatwg.Svg.Scene.Piece, `Whatwg.Svg.Scene.Label.fit, `Whatwg.Svg.Scene.crosses]
+    `Whatwg.Svg.Scene.Piece, `Whatwg.Svg.Scene.Label.fit, `Whatwg.Svg.Scene.crosses,
+    `Whatwg.Svg.Scene.Tree.replace, `Whatwg.Svg.Scene.Strip.runs]
   parent := none
   receipts := [
     .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
@@ -201,7 +203,13 @@ def svgScene : Leaf where
       `Whatwg.Svg.Scene.Label.fitAll_distinct, `Whatwg.Svg.Scene.IVec.turn_move,
       `Whatwg.Svg.Scene.crosses_shared, `Whatwg.Svg.Scene.crosses_layered,
       `Whatwg.Svg.Scene.crosses_on_way, `Whatwg.Svg.Scene.mem_crossings,
-      `Whatwg.Svg.Scene.crossings_move, `Whatwg.Svg.Scene.crossings_links_length],
+      `Whatwg.Svg.Scene.crossings_move, `Whatwg.Svg.Scene.crossings_links_length,
+      `Whatwg.Svg.Scene.Tree.leaves_replace, `Whatwg.Svg.Scene.Tree.spans_replace,
+      `Whatwg.Svg.Scene.Tree.spans_replace_old, `Whatwg.Svg.Scene.Span.Shifted.moment,
+      `Whatwg.Svg.Scene.Tree.spansAll_apart_between, `Whatwg.Svg.Scene.Strip.runs_expand,
+      `Whatwg.Svg.Scene.Strip.boxes_tile, `Whatwg.Svg.Scene.Strip.boxes_snoc,
+      `Whatwg.Svg.Scene.Strip.lane_absent, `Whatwg.Svg.Scene.Strip.line_mono,
+      `Whatwg.Svg.Scene.Strip.marks_least],
     .gate .build]
 
 /-- The ledger: the twelve graphs of slices A and B, the graph

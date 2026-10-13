@@ -128,8 +128,9 @@ namespace Extent
 
 /-! ## The length that is not negative
 
-A part with no type of its own is an `abbrev`: the search that proves a grammar total
-(`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
+A part with no type of its own is an `abbrev`, and it states no totality lemma of its own.
+`Length.syn_total` says in place that `fractional-constant` and `Length.tail` are total, and
+`syn_total` below reads that off it. -/
 
 /-- The value of a reading: the digits and the exponent as `Magnitude.ofReading` reads them,
 and the unit. -/
@@ -161,10 +162,23 @@ abbrev core : Syn Extent :=
 `Magnitude.syn` prints it, and the mark after it in lower case. -/
 def syn : Syn Extent := .right wsps (.left core wsps)
 
-/-- Every value prints: an `Extent` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+/-- The extent as a length: every extent is a length. -/
+def toLength (e : Extent) : Length := ⟨⟨e.value.mantissa, e.value.exponent⟩, e.unit⟩
+
+/-- Every value prints: an `Extent` is made of typed parts. An extent is a length with no sign
+(`toLength`), and `h` is `Length.syn_total` at that length with its parts in view: the white
+space, no sign, the digits and the tail. The extent has the same digits and the same tail, so
+they print, and `plus` prints. -/
+theorem syn_total : syn.Total := fun e => by
+  have h : (wsps.valid () && (sign.opt.valid none &&
+      (fractionalConstant.valid (toReading e).1 &&
+        (Length.tail.valid (toReading e).2 && wsps.valid ())))) = true :=
+    Length.syn_total e.toLength
+  simp only [Bool.and_eq_true] at h
+  show (wsps.valid () && ((plus.valid () && (fractionalConstant.valid (toReading e).1 &&
+    Length.tail.valid (toReading e).2)) && wsps.valid ())) = true
+  simp only [Bool.and_eq_true]
+  exact ⟨h.1, ⟨plus_total (), h.2.2.1, h.2.2.2.1⟩, h.1⟩
 
 /-- The grammar of an extent: `<length-percentage> | <number>` over the ten kinds of the table,
 with no minus sign. -/
@@ -176,9 +190,6 @@ def user (m : Magnitude) : Extent := ⟨m, .number⟩
 /-- A numeral is that many user units: `5 : Extent`. -/
 instance (n : Nat) : OfNat Extent n := ⟨user (.ofNat n)⟩
 
-/-- The extent as a length: every extent is a length. -/
-def toLength (e : Extent) : Length := ⟨⟨e.value.mantissa, e.value.exponent⟩, e.unit⟩
-
 /-- An extent's text is its length's text: a length that is not negative prints with no sign,
 so the two printers write the same number and the same mark. The two texts differ only in
 where the empty text of the last `wsp*` is appended. -/
@@ -188,8 +199,6 @@ theorem print_eq_length (e : Extent) : grammar.print e = Length.grammar.print e.
   rfl
 
 end Extent
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Extent.syn_total
 
 namespace AutoExtent
 
@@ -222,10 +231,13 @@ abbrev core : Syn AutoExtent :=
 /-- The description of `auto` or an extent: `wsp*`, the core, and `wsp*`. -/
 def syn : Syn AutoExtent := .right wsps (.left core wsps)
 
-/-- Every value prints: an `AutoExtent` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+/-- Every value prints: an `AutoExtent` is made of typed parts. The keyword prints by one
+evaluation. An extent prints as `Extent.syn` prints it: the two descriptions put the same white
+space around `Extent.core`, so the validity of one is the validity of the other. -/
+theorem syn_total : syn.Total := fun v => by
+  cases v with
+  | auto => decide
+  | extent e => exact Extent.syn_total e
 
 /-- The grammar of `auto` or an extent: `<length-percentage> | <number> | auto`, with no minus
 sign. -/
@@ -243,7 +255,5 @@ difference decides here what a negative one is. -/
 def ofInt? (v : Int) : Option AutoExtent := (Magnitude.ofInt? v).map user
 
 end AutoExtent
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] AutoExtent.syn_total
 
 end Whatwg.Svg.Value

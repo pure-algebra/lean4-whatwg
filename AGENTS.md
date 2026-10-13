@@ -80,12 +80,18 @@ representative slice before one category is developed far beyond the others.
 Proof search is `aesop` (`https://github.com/leanprover-community/aesop`), used as
 lean4-effect4 uses it and pinned at the commit it pins (owner direction of
 2026-10-11, ruling R-S10 of `COORDINATION.md`). `Whatwg/Auto/RuleSets.lean`
-declares the named rule banks. A proof module imports that module, and
+declares the named rule banks. A law module imports that module, and
 nothing else in the audited trees imports `Aesop` for its rules.
 
-- Register a lemma in the named bank that fits it, beside the lemma. Ask for a
+- Register a lemma in the named bank that fits it, in the bank's law module
+  (`Whatwg/Svg/Data/Mask/Laws.lean`, `Whatwg/Svg/Value/Bank.lean`). Ask for a
   bank by name: `aesop (rule_sets := [Whatwg.Mask])`. Register nothing in the
   `default` rule set, which every call pays for.
+- A module of definitions that a consumer imports asks for no search and
+  imports no bank: its own proofs are terms, so that its import closure is
+  Lean alone (ruling SV-91 of `docs/SVG-PACKAGE-PLAN.md`, on the Effect4
+  coordinator's guidance 4). `workshop/Closure.lean` prints what the
+  consumer's roots reach.
 - For a definition or an equation, use
   `@[aesop norm simp (rule_sets := [X])]`. For a fact, use `safe` or `unsafe`
   with the builder that fits it: `constructors` or `cases` for an inductive

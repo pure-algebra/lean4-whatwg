@@ -20,6 +20,9 @@ This module is the reader that says so.
   property on one element, the later in the list is the one shown.
 - `Frame.under`, `Frame.ofPoses`: the poses of a list put on a frame, or on the still picture,
   one after another. `Frame.poses`: the poses that take the still picture to a frame.
+- `Frame.Shows f p`: the frame shows the pose. Putting the pose on the frame changes nothing. It
+  is the reader for a caller: one statement for any pose, in place of five for the five values.
+  `Frame.stand f p`: where a thing stands at a frame, its place and the frame's shift.
 - `Motion.frame m key t`: the frame of a thing at a moment, its poses put on the still picture
   in the order of the tracks.
 - `Motion.Single`: no thing has two tracks of one property. The frame of such a motion does not
@@ -45,6 +48,13 @@ What the laws say:
   was, and so at rest from the still picture (`Frame.shift_under_of_no` and the four others).
   Two lists with the same members, the first with distinct properties, give the same frame
   (`Frame.ofPoses_congr`): the order of poses of different properties does not matter.
+- What a frame shows. A frame shows a shift exactly when the thing stands that far off its
+  place, and so for the four other poses (`Frame.shows_shift`, `Frame.shows_grow`,
+  `Frame.shows_reveal`, `Frame.shows_fade`, `Frame.shows_shape`). It shows one pose of each
+  property at most (`Pose.eq_of_shows`), and a frame that shows a shape has one
+  (`Frame.shape_ne_none_of_shows`). A frame under a list of poses shows a pose where every pose
+  of that property in the list is that pose, and where the frame showed it already if the list
+  has none (`Frame.shows_under`, `Frame.shows_ofPoses`). This asks for no distinct properties.
 - The poses of a frame. They give the frame back (`Frame.ofPoses_poses`). They are of distinct
   properties (`Frame.poses_distinct`), and there is none exactly when the frame is the still
   picture (`Frame.poses_eq_nil`).
@@ -55,8 +65,13 @@ What the laws say:
   is the frame of the first under the poses of the second (`Motion.frame_append`). Where every
   pose of a thing is at rest, its frame is at rest (`Motion.frame_atRest`,
   `Motion.frame_atRest_of_tracks`). This takes the end laws of
-  `Whatwg/Svg/Scene/Motion/Laws.lean`, which are of poses, to what is seen.
-- One track for each property. In a `Single` motion the poses of a thing are of distinct
+  `Whatwg/Svg/Scene/Motion/Laws.lean`, which are of poses, to what is seen
+  (`Motion.within_frame_atRest`). Holding a motion inside its step does not change its first
+  moment: every thing has the same poses and the same frame there
+  (`Motion.within_posesOf_zero`, `Motion.within_frame_zero`).
+- One track for each property. A motion whose tracks have distinct keys is `Single`
+  (`Motion.single_of_keys`), and a motion held inside its step is `Single` where the motion is
+  (`Motion.Single.within`). In a `Single` motion the poses of a thing are of distinct
   properties (`Motion.posesOf_distinct`), so the pose of every track is in the frame of its
   thing (`Motion.frame_has`). `Motion.frame_shift`, `Motion.frame_size`, `Motion.frame_part`,
   `Motion.frame_shown` and `Motion.frame_shape` say it value by value, and `Motion.frame_done`
@@ -105,6 +120,15 @@ rows because it holds of their parts, unless both rows are `Single`. `Frame.toRe
 changes and no transition: when a thing goes to rest is the caller's. A frame knows no rest of
 a shape, so `Frame.toRest` has no change of shape. The laws about keys ask for an equality test
 on keys that is lawful, and say so.
+
+What came here in the tidy of slice S16, each under the name it had. `Frame.Shows` with its
+laws, `Motion.within_posesOf_zero` and `Motion.within_frame_zero` came from
+`Whatwg/Svg/Scene/Resume.lean`, and `Frame.stand` from `Whatwg/Svg/Scene/Together.lean`: each is
+of a frame alone. `Motion.single_of_keys` and `Motion.Single.within` came from the port
+`WhatwgTest/Html/SvgMotion.lean`, which now cites them. That a step of a plan is `Single` is
+`Motion.single_ofJoin` of `Whatwg/Svg/Scene/Plan.lean`. The proofs of this module still read a
+frame through a private function, one property at a time; `Frame.Shows` is the public form of
+the same reading.
 
 Every law here depends on `propext` and `Quot.sound` at most.
 -/
@@ -176,6 +200,16 @@ def Pose.onto : Pose → Frame → Frame
   | .reveal part, f => { f with part := part }
   | .fade shown, f => { f with shown := shown }
   | .shape segments, f => { f with shape := some segments }
+
+/-- **A frame shows a pose**: putting the pose on the frame changes nothing. The thing is drawn
+as the pose says. -/
+def Frame.Shows (f : Frame) (p : Pose) : Prop := p.onto f = f
+
+instance (f : Frame) (p : Pose) : Decidable (f.Shows p) :=
+  inferInstanceAs (Decidable (p.onto f = f))
+
+/-- Where a thing stands at a frame: its place and the frame's shift. -/
+def Frame.stand (f : Frame) (place : IVec) : IVec := place + f.shift
 
 namespace Frame
 
@@ -581,6 +615,131 @@ theorem ofPoses_congr {ps qs : List Pose} (hd : (ps.map Pose.property).Nodup)
     (h : ∀ p, p ∈ ps ↔ p ∈ qs) : ofPoses ps = ofPoses qs :=
   under_congr hd h rest
 
+/-! ### What a frame shows
+
+`Frame.Shows` is the reader of a frame for a caller: one statement for any pose, in place of
+five for the five values. -/
+
+/-- A frame shows a shift exactly when the thing stands that far off its place. -/
+theorem shows_shift {f : Frame} {s : IVec} : f.Shows (.shift s) ↔ f.shift = s := by
+  constructor
+  · intro h
+    exact (congrArg Frame.shift h).symm
+  · intro h
+    subst h
+    exact (rfl : (Pose.shift f.shift).onto f = f)
+
+/-- A frame shows a size exactly when the thing is drawn at that size. -/
+theorem shows_grow {f : Frame} {s : Int} : f.Shows (.grow s) ↔ f.size = s := by
+  constructor
+  · intro h
+    exact (congrArg Frame.size h).symm
+  · intro h
+    subst h
+    exact (rfl : (Pose.grow f.size).onto f = f)
+
+/-- A frame shows a part exactly when that much of the thing's line is drawn. -/
+theorem shows_reveal {f : Frame} {s : Int} : f.Shows (.reveal s) ↔ f.part = s := by
+  constructor
+  · intro h
+    exact (congrArg Frame.part h).symm
+  · intro h
+    subst h
+    exact (rfl : (Pose.reveal f.part).onto f = f)
+
+/-- A frame shows an opacity exactly when the thing has that much of its opacity. -/
+theorem shows_fade {f : Frame} {s : Int} : f.Shows (.fade s) ↔ f.shown = s := by
+  constructor
+  · intro h
+    exact (congrArg Frame.shown h).symm
+  · intro h
+    subst h
+    exact (rfl : (Pose.fade f.shown).onto f = f)
+
+/-- A frame shows a shape exactly when the thing is drawn with that shape in place of its
+own. -/
+theorem shows_shape {f : Frame} {s : List ICubic} : f.Shows (.shape s) ↔ f.shape = some s := by
+  constructor
+  · intro h
+    exact (congrArg Frame.shape h).symm
+  · intro h
+    obtain ⟨shift, size, part, shown, shape⟩ := f
+    have e : shape = some s := h
+    subst e
+    exact (rfl : (Pose.shape s).onto _ = _)
+
+/-- A frame that shows a shape has one. The still picture shows none. -/
+theorem shape_ne_none_of_shows {f : Frame} {q : Pose} (hq : f.Shows q)
+    (hs : q.property = .shape) : f.shape ≠ none := by
+  cases q with
+  | shape s =>
+    rw [shows_shape.mp hq]
+    exact fun e => nomatch e
+  | _ => cases hs
+
+/-- **What a frame under a list of poses shows.** It shows a pose where every pose of that
+property in the list is that pose, and where the frame showed it already if the list has no pose
+of that property. -/
+theorem shows_under {ps : List Pose} {q : Pose} (f : Frame)
+    (ha : ∀ p ∈ ps, p.property = q.property → p = q)
+    (hb : (∀ p ∈ ps, p.property ≠ q.property) → f.Shows q) : (f.under ps).Shows q := by
+  cases hfind : ps.find? (fun p => decide (p.property = q.property)) with
+  | none =>
+    have hno : ∀ p ∈ ps, p.property ≠ q.property := fun p hp e =>
+      List.find?_eq_none.mp hfind p hp (decide_eq_true e)
+    exact (onto_under hno f).trans (congrArg (fun g : Frame => g.under ps) (hb hno))
+  | some p =>
+    have hp : p ∈ ps := List.mem_of_find?_eq_some hfind
+    have he : p.property = q.property :=
+      of_decide_eq_true
+        (List.find?_some (p := fun p : Pose => decide (p.property = q.property)) hfind)
+    have hpq : p = q := ha p hp he
+    subst hpq
+    exact under_has hp ha f
+
+/-- What the frame of a list of poses shows: `shows_under` from the still picture. -/
+theorem shows_ofPoses {ps : List Pose} {q : Pose}
+    (ha : ∀ p ∈ ps, p.property = q.property → p = q)
+    (hb : (∀ p ∈ ps, p.property ≠ q.property) → rest.Shows q) : (ofPoses ps).Shows q :=
+  shows_under rest ha hb
+
+end Frame
+
+/-- **A frame shows one pose of each property at most.** Two poses of one property that a frame
+shows are one pose. -/
+theorem Pose.eq_of_shows {f : Frame} {p q : Pose} (hp : f.Shows p) (hq : f.Shows q)
+    (h : p.property = q.property) : p = q := by
+  cases p with
+  | shift a =>
+    cases q with
+    | shift b =>
+      exact congrArg Pose.shift ((Frame.shows_shift.mp hp).symm.trans (Frame.shows_shift.mp hq))
+    | _ => cases h
+  | grow a =>
+    cases q with
+    | grow b =>
+      exact congrArg Pose.grow ((Frame.shows_grow.mp hp).symm.trans (Frame.shows_grow.mp hq))
+    | _ => cases h
+  | reveal a =>
+    cases q with
+    | reveal b =>
+      exact congrArg Pose.reveal
+        ((Frame.shows_reveal.mp hp).symm.trans (Frame.shows_reveal.mp hq))
+    | _ => cases h
+  | fade a =>
+    cases q with
+    | fade b =>
+      exact congrArg Pose.fade ((Frame.shows_fade.mp hp).symm.trans (Frame.shows_fade.mp hq))
+    | _ => cases h
+  | shape a =>
+    cases q with
+    | shape b =>
+      exact congrArg Pose.shape
+        (Option.some.inj ((Frame.shows_shape.mp hp).symm.trans (Frame.shows_shape.mp hq)))
+    | _ => cases h
+
+namespace Frame
+
 /-! ### The poses of a frame -/
 
 /-- One pose, or none where it would change nothing: either way the frame is under the pose. -/
@@ -862,12 +1021,50 @@ theorem within_frame_atRest [BEq κ] (m : Motion κ) (hp : ∀ tr ∈ m, tr.timi
     (m.within.frame key t).AtRest :=
   frame_atRest_of_tracks (within_after m hp hs ht) key
 
+/-- **Holding a motion inside its step does not change the poses of its first moment.** -/
+theorem within_posesOf_zero [BEq κ] (m : Motion κ) (key : κ) :
+    m.within.posesOf key 0 = m.posesOf key 0 := by
+  show ((m.map fun tr => ({ tr with timing := tr.timing.within } : Track κ)).filter
+      fun tr => tr.key == key).map (fun tr => tr.at 0) =
+    (m.filter fun tr => tr.key == key).map fun tr => tr.at 0
+  rw [List.filter_map, List.map_map]
+  exact List.map_congr_left fun tr _ =>
+    congrArg tr.change.at (Transition.within_at_zero tr.timing)
+
+/-- **Holding a motion inside its step does not change its first moment**: every thing has the
+same frame there. So a law of the moment `0` holds of the step that a caller plays. -/
+theorem within_frame_zero [BEq κ] (m : Motion κ) (key : κ) :
+    m.within.frame key 0 = m.frame key 0 :=
+  congrArg Frame.ofPoses (within_posesOf_zero m key)
+
 /-! ### One track for each property of a thing -/
 
 /-- Whether no thing has two tracks of one property: a program can test its motion. -/
 instance [DecidableEq κ] (m : Motion κ) : Decidable m.Single :=
   inferInstanceAs
     (Decidable (m.map fun tr : Track κ => (tr.key, tr.change.property)).Nodup)
+
+/-- **A motion whose tracks have distinct keys is `Single`.** A thing with one track at most has
+no two tracks of one property, so the frame of each thing shows the pose of its track. -/
+theorem single_of_keys : ∀ {m : Motion κ}, Distinct (fun tr : Track κ => tr.key) m → m.Single
+  | [], _ => List.nodup_nil
+  | tr :: rest, h => by
+    have hd : tr.key ∉ rest.map (fun tr : Track κ => tr.key) ∧
+        (rest.map fun tr : Track κ => tr.key).Nodup := List.nodup_cons.mp h
+    refine List.nodup_cons.mpr ⟨fun hm => ?_, single_of_keys hd.2⟩
+    obtain ⟨tr', htr', e⟩ := List.mem_map.mp hm
+    exact hd.1 (List.mem_map.mpr ⟨tr', htr', congrArg Prod.fst e⟩)
+
+/-- **A motion held inside its step is `Single` where the motion is.** The cut at the step's end
+changes times only: each track keeps its thing and its property. So the reader reads the step
+that a caller plays as it reads the step of the plan. -/
+theorem Single.within {m : Motion κ} (h : m.Single) : m.within.Single := by
+  have e : (m.within.map fun tr : Track κ => (tr.key, tr.change.property)) =
+      m.map fun tr : Track κ => (tr.key, tr.change.property) :=
+    List.map_map.trans (List.map_congr_left fun _ _ => rfl)
+  show (m.within.map fun tr : Track κ => (tr.key, tr.change.property)).Nodup
+  rw [e]
+  exact h
 
 /-- **In a motion where no thing has two tracks of one property, the poses of a thing are of
 distinct properties** at every moment. -/

@@ -3,7 +3,7 @@
 # Current state of `SVG-PG-SEAM`
 
 Graph document: `docs/SVG-SEAM-DAG.md`. Receipts log: `docs/receipts/SVG-PG-SEAM.md`.
-Fence: `Whatwg.Svg.Data.Universe`, `Whatwg.Svg.Data.Mask`, `Whatwg.Svg.Data.NameTable`, `Whatwg.Svg.Schema.Tags`, `Whatwg.Svg.Schema.Categories`, `Whatwg.Svg.Schema.Attributes`, `Whatwg.Svg.Schema.ContentModel`, `Whatwg.Svg.Schema.Readings`, `Whatwg.Svg.Schema.Universe`, `Whatwg.Svg.Content.Context` and `Whatwg.Svg.Value.Attribute`.
+Fence: `Whatwg.Svg.Data.Universe`, `Whatwg.Svg.Data.Mask`, `Whatwg.Svg.Data.Mask.Laws`, `Whatwg.Svg.Data.NameTable`, `Whatwg.Svg.Schema.Tags`, `Whatwg.Svg.Schema.Categories`, `Whatwg.Svg.Schema.Attributes`, `Whatwg.Svg.Schema.ContentModel`, `Whatwg.Svg.Schema.Readings`, `Whatwg.Svg.Schema.Universe`, `Whatwg.Svg.Content.Context` and `Whatwg.Svg.Value.Attribute`.
 Depends on: none.
 
 | Edge | Status | Ground |

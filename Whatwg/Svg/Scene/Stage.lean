@@ -40,6 +40,12 @@ What the laws say of a step:
 - **The same things, the same changes** (`Motion.staged_untimed`): a staged step has the tracks
   of `Motion.ofJoin`, one for one and in the same order, each with its key, its change and its
   easing. Only the delays and the durations differ.
+- **One track for each property** (`Motion.staged_single`): with a plan that gives each thing
+  one change for each property (`Plan.Single`) and distinct keys in the old list and in the new
+  one, a staged step is `Motion.Single`, so the reader of `Whatwg/Svg/Scene/Frame.lean` reads
+  it. A motion with the untimed tracks of another is `Single` where the other is
+  (`Motion.single_of_untimed`), and the step of the plan is by `Motion.single_ofJoin` of
+  `Whatwg/Svg/Scene/Plan.lean`.
 - **The kept things first** (`Motion.staged_kept_first`): every track of a kept thing and of a
   thing that leaves is over by `enterFrom`, and every track of a new thing starts then or
   later. This asks nothing of the plan. With a plan that settles and is proper, each kept thing
@@ -98,21 +104,20 @@ interrupted; that the ranks follow the tree, which is the caller's to show; that
 empty, since with more levels than room a slot is `0` and every new thing appears at once at
 its moment.
 
+What this module holds, and what it cites. It holds the windows, `Motion.endBy`,
+`Motion.staged` and their laws. Since the tidy of slice S16 it is shorter by six declarations
+that other modules own, each under the same name: `map_flatMap_congr` is in
+`Whatwg/Svg/Scene/Join/Laws.lean`; `Transition.within_of_le` and `Motion.within_of_ends` are in
+`Whatwg/Svg/Scene/Motion/Laws.lean`; and `Motion.keeping`, `Motion.entering` and
+`Motion.staying_eq` are in `Whatwg/Svg/Scene/Plan.lean`. It gained `Motion.single_of_untimed`,
+from the port `WhatwgTest/Html/SvgMotion.lean`, and `Motion.staged_single`. It cites the plan
+and its tracks from `Plan.lean`, and `Motion.finish`, `Motion.fit` and `Motion.Respects` from
+`Whatwg/Svg/Scene/Score.lean`.
+
 Every law here depends on `propext` and `Quot.sound` at most.
 -/
 
 namespace Whatwg.Svg.Scene
-
-/-! ## Lists -/
-
-/-- Two `flatMap`s whose results agree under a function, member by member, agree under it. -/
-theorem map_flatMap_congr {α β γ : Type} (f : β → γ) (A B : α → List β)
-    (h : ∀ a, (A a).map f = (B a).map f) : ∀ l : List α,
-    (l.flatMap A).map f = (l.flatMap B).map f
-  | [] => rfl
-  | a :: l => by
-    rw [List.flatMap_cons, List.flatMap_cons, List.map_append, List.map_append, h a,
-      map_flatMap_congr f A B h l]
 
 variable {α κ : Type}
 
@@ -163,13 +168,6 @@ theorem inWindow_whole (ease : Easing) (start slot : Nat) :
   show ({ delay := start + 0 * slot / 1000, duration := 1000 * slot / 1000, ease := ease } :
     Transition) = _
   rw [Nat.zero_mul, Nat.zero_div, Nat.add_zero, Nat.mul_div_cancel_left slot (by decide)]
-
-/-- A transition that is over by the step's end is held inside the step as it is: the cut at
-the step's end changes nothing. -/
-theorem within_of_le (tr : Transition) (h : tr.delay + tr.duration ≤ 1000) : tr.within = tr := by
-  have e1 : min tr.delay 1000 = tr.delay := by omega
-  have e2 : min tr.duration (1000 - min tr.delay 1000) = tr.duration := by omega
-  exact congr (congrArg (fun d u => (⟨d, u, tr.ease⟩ : Transition)) e1) e2
 
 /-- **The same share of a window, and no longer than `most`.** The duration, a share of a
 window `slot` long, is cut to the least share that lasts `most`. Placed in such a window the
@@ -337,14 +335,6 @@ theorem slotted_finish (m : Motion κ) (start slot levels : Nat) (rank : κ → 
   have h2 : (rank tr0.key + 1) * slot ≤ levels * slot := Nat.mul_le_mul_right slot (hr tr0 h0)
   exact Nat.le_trans h1 (Nat.add_le_add_left h2 start)
 
-/-- A motion whose every track is over by the step's end is held inside the step as it is. -/
-theorem within_of_ends (m : Motion κ)
-    (h : ∀ tr ∈ m, tr.timing.delay + tr.timing.duration ≤ 1000) : m.within = m :=
-  (List.map_congr_left fun tr htr =>
-    show ({ tr with timing := tr.timing.within } : Track κ) = id tr from
-      congrArg (fun u => ({ tr with timing := u } : Track κ))
-        (Transition.within_of_le tr.timing (h tr htr))).trans (List.map_id m)
-
 /-! ## A motion that ends by a moment -/
 
 /-- **The motion made to end by `budget`.** A motion that ends by then is left as it is. A
@@ -402,19 +392,6 @@ theorem slot_window_le {enterFrom levels r : Nat} (he : enterFrom ≤ 1000) (hr 
 it. -/
 theorem slot_le (enterFrom levels : Nat) : slot enterFrom levels ≤ 1000 :=
   Nat.le_trans (Nat.div_le_self _ _) (Nat.sub_le _ _)
-
-/-- The tracks of the kept things of a join, as the plan times them. -/
-def keeping (key : α → κ) (j : Join α) (p : Plan α) : Motion κ :=
-  j.update.flatMap fun q => tracks (key q.2) (p.kept q.1 q.2)
-
-/-- The tracks of the new things of a join, as the plan times them. -/
-def entering (key : α → κ) (j : Join α) (p : Plan α) : Motion κ :=
-  j.enter.flatMap fun n => tracks (key n) (p.enter n)
-
-/-- The tracks of the things of the new picture are those of the kept things, then those of the
-new things. -/
-theorem staying_eq (key : α → κ) (j : Join α) (p : Plan α) :
-    staying key j p = keeping key j p ++ entering key j p := rfl
 
 /-- The tracks of the first stage of a step, as the plan times them: those of the kept things
 and those of the things that leave. -/
@@ -529,6 +506,32 @@ theorem mem_ofJoin_staged (key : α → κ) (j : Join α) (p : Plan α) (enterFr
   have h1 : tr0.untimed ∈ (ofJoin key j p).map Track.untimed := List.mem_map_of_mem h
   rw [← staged_untimed key j p enterFrom levels rank] at h1
   exact List.mem_map.mp h1
+
+/-! ### One track for each property of a thing -/
+
+/-- **A motion with the things, the changes and the easings of another, track for track, is
+`Single` where the other is.** Retiming changes no thing and no property, so no thing gets a
+second track of one property. -/
+theorem single_of_untimed {m n : Motion κ} (e : m.map Track.untimed = n.map Track.untimed)
+    (h : n.Single) : m.Single := by
+  have em : ∀ l : Motion κ,
+      (l.map Track.untimed).map (fun u : κ × Change × Easing => (u.1, u.2.1.property)) =
+        l.map fun tr : Track κ => (tr.key, tr.change.property) := fun l =>
+    List.map_map.trans (List.map_congr_left fun _ _ => rfl)
+  show (m.map fun tr : Track κ => (tr.key, tr.change.property)).Nodup
+  rw [← em m, e, em n]
+  exact h
+
+/-- **A step in stages is `Single`**, where the plan has one change for each property of a thing
+and the keys of the old list and of the new list are distinct. So the reader reads a staged step
+as it reads the step of the plan: each track is in the frame of its thing
+(`Motion.frame_has`). -/
+theorem staged_single [BEq κ] [LawfulBEq κ] (key : α → κ) (old new : List α) (p : Plan α)
+    (enterFrom levels : Nat) (rank : α → Nat) (hp : p.Single) (hdo : Distinct key old)
+    (hdn : Distinct key new) :
+    (staged key (join key old new) p enterFrom levels rank).Single :=
+  single_of_untimed (staged_untimed key (join key old new) p enterFrom levels rank)
+    (single_ofJoin key old new p hp hdo hdn)
 
 /-! ### The order of a staged step -/
 

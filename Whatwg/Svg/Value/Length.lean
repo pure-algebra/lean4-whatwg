@@ -149,9 +149,9 @@ namespace Length
 
 /-! ## The marks
 
-A part with no type of its own is an `abbrev`: the search that proves a grammar total
-(`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. A letter is the
-one part with a lemma, because its totality is an evaluation at that letter. -/
+A part with no type of its own is an `abbrev`, and it states no totality lemma of its own:
+the proof of a grammar that holds the part says in place that the part is total. A letter is
+the one part with a lemma, because its totality is an evaluation at that letter. -/
 
 /-- One letter of a unit mark: read in either case, printed in lower case. -/
 def letter (c : Char) : Syn Unit := .skip (.one (.ofList [c, c.toUpper])) c
@@ -159,8 +159,6 @@ def letter (c : Char) : Syn Unit := .skip (.one (.ofList [c, c.toUpper])) c
 /-- A letter prints, when it is ASCII: one evaluation. -/
 theorem letter_total (c : Char) (h : (letter c).valid () = true) : (letter c).Total :=
   Syn.Total.of_unit h
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] letter_total
 
 /-- `"m" | "x"`: what is left of the marks `em` and `ex` after their `e`. -/
 abbrev emOrEx : Syn (Unit ⊕ Unit) := .alt (letter 'm') (letter 'x')
@@ -292,10 +290,39 @@ def syn : Syn Length :=
   .map ofReading toReading ofReading_toReading
     (.right wsps (.seq sign.opt (.seq fractionalConstant (.left tail wsps))))
 
-/-- Every value prints: a `Length` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+/-- Every value prints: a `Length` is made of typed parts. The term follows the description:
+`fractional-constant`, then the marks from the letters up to `tail`, then the value. -/
+theorem syn_total : syn.Total :=
+  have hfraction : fraction.Total :=
+    Syn.Total.right (lit_total _ (by decide)) (Syn.Total.many1 digit_total)
+  have hconstant : fractionalConstant.Total :=
+    Syn.Total.alt (Syn.Total.seq (Syn.Total.many1 digit_total) (Syn.Total.opt hfraction)) hfraction
+  have hemOrEx : emOrEx.Total :=
+    Syn.Total.alt (letter_total _ (by decide)) (letter_total _ (by decide))
+  have hother : otherMark.Total :=
+    Syn.Total.alt (lit_total _ (by decide))
+      (Syn.Total.alt
+        (Syn.Total.right (letter_total _ (by decide))
+          (Syn.Total.alt (letter_total _ (by decide))
+            (Syn.Total.alt (letter_total _ (by decide)) (letter_total _ (by decide)))))
+        (Syn.Total.alt (Syn.Total.right (letter_total _ (by decide)) (letter_total _ (by decide)))
+          (Syn.Total.alt
+            (Syn.Total.right (letter_total _ (by decide)) (letter_total _ (by decide)))
+            (Syn.Total.right (letter_total _ (by decide)) (letter_total _ (by decide))))))
+  have hmark : mark.Total :=
+    Syn.Total.alt (Syn.Total.right (letter_total _ (by decide)) hemOrEx) (Syn.Total.opt hother)
+  have htail : tail.Total :=
+    Syn.Total.map
+      (Syn.Total.alt
+        (Syn.Total.right (letter_total _ (by decide))
+          (Syn.Total.alt
+            (Syn.Total.seq (Syn.Total.seq (Syn.Total.opt sign_total) natural_total) hmark)
+            hemOrEx))
+        (Syn.Total.opt hother))
+  Syn.Total.map
+    (Syn.Total.right wsps_total
+      (Syn.Total.seq (Syn.Total.opt sign_total)
+        (Syn.Total.seq hconstant (Syn.Total.left htail wsps_total))))
 
 /-- The grammar of a length: `<length-percentage> | <number>` over the ten kinds of the
 table. -/
@@ -308,7 +335,5 @@ def user (d : Decimal) : Length := ⟨d, .number⟩
 instance (n : Nat) : OfNat Length n := ⟨user (.ofInt n)⟩
 
 end Length
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Length.syn_total
 
 end Whatwg.Svg.Value

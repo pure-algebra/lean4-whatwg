@@ -22,6 +22,12 @@ three selections. These laws say that it sorts every thing, and where each thing
 - Distinct keys stay distinct among the entering things and among the exiting ones
   (`distinct_enter`, `distinct_exit`). With distinct keys, two things of a list with one key are
   one thing (`eq_of_distinct`).
+- Lists. The section "Lists" holds the plain list lemmas of this layer, for the modules above
+  it: a list with no member is empty (`eq_nil_of_no_mem`), two lists with no repeat and no
+  common member make a list with no repeat (`nodup_append_of`), values with no repeat stay so
+  when each is paired with one key (`nodup_pair`), and two `flatMap`s that agree under a
+  function member by member agree under it (`map_flatMap_congr`). The last three came from
+  `Whatwg/Svg/Scene/Resume.lean` and `Whatwg/Svg/Scene/Stage.lean` in slice S16.
 
 The key is of any type with an equality test. A law that needs the test to be lawful says so,
 and the others hold of any test. Every law here depends on `propext` and `Quot.sound` at most.
@@ -68,6 +74,37 @@ theorem length_flatMap_le {α β : Type} (f : α → List β) (k : Nat) : ∀ l 
     have h2 := h a List.mem_cons_self
     rw [List.flatMap_cons, List.length_append, List.length_cons, Nat.mul_add, Nat.mul_one]
     omega
+
+/-- Two `flatMap`s whose results agree under a function, member by member, agree under it. -/
+theorem map_flatMap_congr {α β γ : Type} (f : β → γ) (A B : α → List β)
+    (h : ∀ a, (A a).map f = (B a).map f) : ∀ l : List α,
+    (l.flatMap A).map f = (l.flatMap B).map f
+  | [] => rfl
+  | a :: l => by
+    rw [List.flatMap_cons, List.flatMap_cons, List.map_append, List.map_append, h a,
+      map_flatMap_congr f A B h l]
+
+/-- Two lists with no repeat and no common member make a list with no repeat. -/
+theorem nodup_append_of {β : Type} : ∀ {l r : List β}, l.Nodup → r.Nodup →
+    (∀ a ∈ l, a ∉ r) → (l ++ r).Nodup
+  | [], _, _, hr, _ => hr
+  | a :: l, r, hl, hr, h => by
+    have hl' : a ∉ l ∧ l.Nodup := List.nodup_cons.mp hl
+    refine List.nodup_cons.mpr ⟨fun hm => ?_,
+      nodup_append_of hl'.2 hr fun b hb => h b (List.mem_cons_of_mem a hb)⟩
+    rcases List.mem_append.mp hm with h1 | h1
+    · exact hl'.1 h1
+    · exact h a List.mem_cons_self h1
+
+/-- Values with no repeat, each paired with one key, are pairs with no repeat. -/
+theorem nodup_pair {β γ δ : Type} (k : γ) (f : β → δ) : ∀ l : List β,
+    (l.map f).Nodup → (l.map fun c => (k, f c)).Nodup
+  | [], _ => List.nodup_nil
+  | a :: l, h => by
+    have h' : f a ∉ l.map f ∧ (l.map f).Nodup := List.nodup_cons.mp h
+    refine List.nodup_cons.mpr ⟨fun hm => ?_, nodup_pair k f l h'.2⟩
+    obtain ⟨b, hb, e⟩ := List.mem_map.mp hm
+    exact h'.1 (List.mem_map.mpr ⟨b, hb, congrArg Prod.snd e⟩)
 
 /-- The things of a list that pass a test keep distinct keys. -/
 theorem distinct_filter {α κ : Type} (key : α → κ) {l : List α} (hd : Distinct key l)

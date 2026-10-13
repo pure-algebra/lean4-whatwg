@@ -177,13 +177,20 @@ of seat SVG, ruling R-S1), which makes 54: the tactic-elaborator and
 term-elaborator attributes, which rule 1 reads as it reads the
 command-elaborator attribute, and the attribute extension, which holds the
 parser attribute of each syntax category that rule 1 reads from the parser
-extension. All three are held only by the two listed modules of that package. -/
+extension. All three are held only by the two listed modules of that package.
+
+One entry joined at slice S16 of seat SVG (ruling R-S31): `Lean.indirectModUseExt`.
+The registrations of the two rule banks moved out of the modules of definitions,
+so that a consumer's import closure is Lean alone, and an `attribute` command
+that names a declaration of another module leaves an entry there. It is held
+only by the two law modules of the banks. -/
 def extensionAllowlist : List ExtensionAllowlistEntry :=
   -- trust-selftest: extension-allowlist entries are inserted below this line
   ⟨"Whatwg.Mask", "proof search: the rules of the Aesop bank Whatwg.Mask of the listed module Whatwg.Auto.RuleSets; a proof asks for the bank by name, and the term the search builds is kernel-checked and audited"⟩ ::
   ⟨"«aesop_Whatwg.Mask»", "proof search: the simp lemmas of the Aesop bank Whatwg.Mask; every rewrite simp makes is a proof the kernel checks"⟩ ::
   ⟨"Whatwg.Syn", "proof search: the rules of the Aesop bank Whatwg.Syn of the listed module Whatwg.Auto.RuleSets; a proof asks for the bank by name, and the term the search builds is kernel-checked and audited"⟩ ::
   ⟨"_private.Lean.ExtraModUses.0.Lean.isExtraRevModUseExt", "bookkeeping: marks a module whose initializer its importers depend on, today the rule banks of the listed module Whatwg.Auto.RuleSets; Lean reads it to record import dependencies, and the kernel never reads it"⟩ ::
+  ⟨"Lean.indirectModUseExt", "bookkeeping: records that an attribute command names a declaration of another module, today the registrations of the rule banks in their law modules Whatwg.Svg.Data.Mask.Laws and Whatwg.Svg.Value.Bank; Lean reads it to record import dependencies, and the kernel never reads it"⟩ ::
   ⟨"Lean.Compiler.LCNF.UnreachableBranches.functionSummariesExt", "compiler metadata: the dead-branch analysis's summary of each compiled function, read by the code generator only"⟩ ::
   ⟨"Lean.Compiler.LCNF.baseExt", "compiler metadata: each compiled function's LCNF body in the base phase, read by the code generator only"⟩ ::
   ⟨"Lean.Compiler.LCNF.impureSigExt", "compiler metadata: the impure-phase signature of each compiled function, read by the code generator only"⟩ ::

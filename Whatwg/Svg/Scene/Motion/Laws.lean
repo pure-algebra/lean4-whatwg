@@ -31,7 +31,10 @@ that reading starts and where it ends, so that the last moment of a step is the 
   duration that has passed (`Transition.at_between`). A transition held inside a step ends by
   the step's end (`Transition.within_end`), keeps its easing (`Transition.within_ease`,
   `Transition.after_ease`), and reads the end of its easing at the step's end
-  (`Transition.within_at_end`, `Transition.after_at_end`).
+  (`Transition.within_at_end`, `Transition.after_at_end`). A transition that is over by the
+  step's end is held as it is (`Transition.within_of_le`). At the moment `0` a transition reads
+  `0`, where its easing is proper and it has a delay or a duration (`Transition.at_zero`), and
+  holding it inside its step does not change what it reads there (`Transition.within_at_zero`).
 - Changes and tracks. A change is its start at `0` and its end at `1000` (`Change.at_start`,
   `Change.at_end`). A change of shape between two lists of one length mixes them segment by
   segment (`Change.at_morph`), and a shape that is only moved changes as a shift does
@@ -42,7 +45,8 @@ that reading starts and where it ends, so that the last moment of a step is the 
   (`Motion.poses_done`). A motion held inside a step is over at the step's end
   (`Motion.within_done`). Where its tracks settle it is at rest there
   (`Motion.within_atRest`), and at every later moment (`Motion.within_after`). Its tracks are
-  the motion's with their transitions held (`Motion.mem_within`). A pose of a key is the pose
+  the motion's with their transitions held (`Motion.mem_within`), and a motion whose every track
+  is over by the step's end is held as it is (`Motion.within_of_ends`). A pose of a key is the pose
   of a track with that key (`Motion.mem_posesOf`), and a key with no track has no pose
   (`Motion.still_of_no_track`).
 - Tracks started later. A delayed motion has the same tracks with the same keys and changes
@@ -51,6 +55,10 @@ that reading starts and where it ends, so that the last moment of a step is the 
   the step's end (`Motion.delayed_within_atRest`).
 
 The tracks of a join, and the end law of a step, are in `Whatwg/Svg/Scene/Plan.lean`.
+
+`Transition.within_of_le` and `Motion.within_of_ends` came from `Whatwg/Svg/Scene/Stage.lean`,
+and `Transition.at_zero` and `Transition.within_at_zero` from `Whatwg/Svg/Scene/Resume.lean`, in
+slice S16: each is a law of a transition or of a motion alone.
 
 Every law here depends on `propext` and `Quot.sound` at most.
 -/
@@ -366,6 +374,35 @@ theorem within_at_end (tr : Transition) : tr.within.at 1000 = tr.ease.at 1000 :=
 theorem after_at_end (tr : Transition) (d : Nat) : (tr.after d).at 1000 = tr.ease.at 1000 :=
   within_at_end ({ tr with delay := tr.delay + d } : Transition)
 
+/-- A transition that is over by the step's end is held inside the step as it is: the cut at
+the step's end changes nothing. -/
+theorem within_of_le (tr : Transition) (h : tr.delay + tr.duration ≤ 1000) : tr.within = tr := by
+  have e1 : min tr.delay 1000 = tr.delay := by omega
+  have e2 : min tr.duration (1000 - min tr.delay 1000) = tr.duration := by omega
+  exact congr (congrArg (fun d u => (⟨d, u, tr.ease⟩ : Transition)) e1) e2
+
+/-- **A transition reads `0` at the moment `0`**, where its easing is proper and it is not over
+at once: it has a delay or a duration. A transition with neither is over at the moment `0`, and
+reads the end of its easing there. -/
+theorem at_zero (tm : Transition) (hp : tm.ease.Proper) (h : 0 < tm.delay + tm.duration) :
+    tm.at 0 = 0 :=
+  (at_before tm 0 (Nat.zero_le _) h).trans hp.1
+
+/-- **Holding a transition inside its step does not change what it reads at the moment `0`.** -/
+theorem within_at_zero (tm : Transition) : tm.within.at 0 = tm.at 0 := by
+  cases Nat.eq_zero_or_pos (tm.delay + tm.duration) with
+  | inl h =>
+    have hw : tm.within.delay + tm.within.duration ≤ 0 := by
+      show min tm.delay 1000 + min tm.duration (1000 - min tm.delay 1000) ≤ 0
+      omega
+    exact (at_done tm.within 0 hw).trans (at_done tm 0 (Nat.le_of_eq h)).symm
+  | inr h =>
+    have hw : 0 < tm.within.delay + tm.within.duration := by
+      show 0 < min tm.delay 1000 + min tm.duration (1000 - min tm.delay 1000)
+      omega
+    exact (at_before tm.within 0 (Nat.zero_le _) hw).trans
+      (at_before tm 0 (Nat.zero_le _) h).symm
+
 end Transition
 
 /-! ## Changes and tracks -/
@@ -484,6 +521,14 @@ theorem mem_within {κ : Type} (m : Motion κ) {tr : Track κ} (h : tr ∈ m.wit
     ∃ tr0 ∈ m, tr = { tr0 with timing := tr0.timing.within } := by
   obtain ⟨tr0, h0, rfl⟩ := List.mem_map.mp h
   exact ⟨tr0, h0, rfl⟩
+
+/-- A motion whose every track is over by the step's end is held inside the step as it is. -/
+theorem within_of_ends {κ : Type} (m : Motion κ)
+    (h : ∀ tr ∈ m, tr.timing.delay + tr.timing.duration ≤ 1000) : m.within = m :=
+  (List.map_congr_left fun tr htr =>
+    show ({ tr with timing := tr.timing.within } : Track κ) = id tr from
+      congrArg (fun u => ({ tr with timing := u } : Track κ))
+        (Transition.within_of_le tr.timing (h tr htr))).trans (List.map_id m)
 
 /-- A pose of a key at a moment is the pose of a track with that key. -/
 theorem mem_posesOf {κ : Type} [BEq κ] (m : Motion κ) (key : κ) (t : Nat) {p : Pose}

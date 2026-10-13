@@ -13,9 +13,10 @@ owns the elements, their content models, their attributes and the grammars of th
 CSS Transforms 1 at `w3c/csswg-drafts` commit `50337328` owns the value of the three transform
 attributes. `SPEC-MANIFEST.md` holds the pins, and `docs/PROVENANCE.md` their digests.
 
-**Fence.** The graph owns eleven modules of `Whatwg/Svg/`: the three of `Data`, the five of
-`Schema`, the authored `Schema/Universe`, `Content/Context`, and `Value/Attribute`, which says
-which grammar judges which attribute. The value grammars under `Whatwg/Svg/Value/` are the leaf
+**Fence.** The graph owns twelve modules of `Whatwg/Svg/`: the three of `Data` and
+`Data/Mask/Laws`, which holds the rules of the proof-search bank `Whatwg.Mask` apart from the
+definitions since slice S16, the five of `Schema`, the authored `Schema/Universe`,
+`Content/Context`, and `Value/Attribute`, which says which grammar judges which attribute. The value grammars under `Whatwg/Svg/Value/` are the leaf
 record `SVG-LF-GRAMMAR`, which contributes to this graph's representation edge. The seam itself
 is modules of `Whatwg/Html/`: `Svg`, `Node/Walk`, `Schema/Foreign`, `Content/Values`, and the
 typed node `Node/Svg` with its reader `Node/SvgRead`. They stay under the unrouted prefix

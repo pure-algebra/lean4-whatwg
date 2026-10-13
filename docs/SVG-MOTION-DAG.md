@@ -17,17 +17,18 @@ rounding down. The writer's target is CSS: its animations, its easing functions,
 transform properties, and `d` as a property. None of those texts is sealed under `vendor/`
 (debt D119), so no theorem of this graph names an algorithm of CSS.
 
-**Fence.** The graph owns nine modules. Seven are under `Whatwg/Svg/Scene/`, the layer with no
+**Fence.** The graph owns eleven modules. Nine are under `Whatwg/Svg/Scene/`, the layer with no
 rational number and the strict axiom ceiling: `Motion` (the data and its reading), `Motion/Laws`,
 `Between` (what holds at every moment), `Score` (order in time), `Plan` (the motion of a join
-as one value), `Stage` (a step in stages) and `Frame` (what a thing looks like at a moment). Two
+as one value), `Stage` (a step in stages), `Frame` (what a thing looks like at a moment),
+`Together` (what the kept things of a step keep) and `Resume` (a step that is interrupted). Two
 are under `Whatwg/Svg/Geometry/`: `Easing`, which says that the reading in whole numbers is the
 exact polynomial, rounded down once, and `Moment`, the motion at every rational time. The writer
 `Whatwg/Html/Node/SvgMotion` stays
 under the unrouted prefix `Whatwg.Html` (debt D57): this graph cites it and does not own it. The
 things that a motion acts on are passive data and are the leaf `SVG-LF-SCENE`: a thing that
-moves, the join by key, a tree, a share, a row, a scale, a face's metrics, a label and the
-crossings of lines.
+moves, the join by key, a tree and its edits, a share, a row, a scale, a face's metrics, a
+label, the crossings of lines and lanes of states.
 
 **Observation.** There is one observation, the reading. `Motion.frame m key t` is what the thing
 `key` looks like at the moment `t`, a whole number of thousandths of the step: the poses that the
@@ -65,6 +66,13 @@ document is in `docs/receipts/SVG-PG-MOTION.md`.
   before both only where no thing has two tracks of one property.
 - A step in stages keeps the kept things first and the levels in order. It keeps no order
   inside one level.
+- The law of the kept things of a step (`Motion.together`) asks one transition for their
+  places and an easing that passes `Easing.bounded`. It is of two kept things, at whole
+  moments. A kept thing against a new one is a case of the general law and has no statement
+  for a step.
+- A step that resumes starts each thing where it is seen and from standing: nothing is said of
+  its speed. A kept thing whose shape was changing jumps to its own shape where the plan gives
+  no change of shape and its own shape is not given.
 - No law relates the written sheet to the reading. One browser was observed by hand, at the
   moments that `docs/research/2026-10-12-motion-probe/README.md` lists, and no harness runs the
   observation again.

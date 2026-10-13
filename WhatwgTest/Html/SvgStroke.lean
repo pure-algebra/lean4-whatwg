@@ -1,4 +1,5 @@
 import Whatwg.Svg.Geometry.Shape.Laws
+import Whatwg.Svg.Scene.Branch
 import Whatwg.Svg.Geometry.Outline.Laws
 import Whatwg.Svg.Geometry.Root.Laws
 import Whatwg.Svg.Geometry.Stroke.Laws
@@ -12,8 +13,15 @@ import Whatwg.Html.Node.SvgValid
 The geometry of lines of lean4-effect4 on the exact geometry of slice S11 of
 `docs/SVG-PACKAGE-PLAN.md`: `tools/Tools/View/Organic.lean`, whole, and `straight`, `stepDown`,
 `revealed` and `arrowhead` of `tools/Tools/View/Graph.lean`. The consumer is read at its
-checkout `707b9a01`. This module imports nothing of that package, and restates its settings
-(`Organic`) and the forms of an edge (`Form`) under the consumer's names.
+checkout `707b9a01`, and its look at `c7504d69`: since its slice D2 the default noise is zero,
+and the look `organic` turns it on (`Organic.noisy` here). This module imports nothing of that
+package, and restates its settings (`Organic`) and the forms of an edge (`Form`) under the
+consumer's names.
+
+**The check of a look's noise.** A width means a share, so a branch must not be drawn as wide
+as its trunk. `Organic.refusal?` is the check that the consumer makes when it reads a look: the
+noise is within `Branch.wobbleRoom` of the look's widths, or the refusal names the field.
+`fork_apart` is what a look that passes is promised.
 
 **What moved to the kit.** This port first wrote for itself what the kit did not have: the
 noise, a smooth path with its end points twice, the samples of a line, the outline of a stroke
@@ -155,11 +163,51 @@ structure Organic where
   fine : Rat := 0.8
   /-- the radius of a collar where a line of the trunk's width meets a box or a bar -/
   flare : Rat := 6
-  /-- how far the noise moves each edge of a line, as a share of its half-width -/
-  noise : Rat := 0.35
+  /-- how far the noise moves each edge of a line, as a share of its half-width. Zero by
+  default, as in the consumer since its slice D2: the look `organic` turns it on -/
+  noise : Rat := 0
   /-- the noise's wavelength along a line -/
   wave : Rat := 40
   deriving Repr, DecidableEq
+
+/-- The look `organic` of the consumer (`tools/view/looks/organic.tokens.json`): the noise on,
+the edges of a line inside a band of 35 per cent of its half-width. -/
+def Organic.noisy : Organic := { noise := 0.35 }
+
+/-- The room that a look's widths leave its noise, in per mille: that of a trunk and a branch
+that carries half of what the trunk carries, at Leonardo's exponent (`Branch.wobbleRoom`). -/
+def Organic.room (o : Organic) : Nat :=
+  let trunk := (o.trunk * 1000).floor.toNat
+  Whatwg.Svg.Scene.Branch.wobbleRoom (Whatwg.Svg.Scene.Share.width 2 trunk ⟨1, 2⟩) trunk
+
+/-- **The check of a look's noise at its read** (the Effect4 coordinator's guidance 4, the
+second check): the noise is within the room, or the refusal names the field. A look that passes
+draws no branch of a fork of two as wide as its trunk (`fork_apart`). -/
+def Organic.refusal? (o : Organic) : Option String :=
+  if (o.noise * 1000).floor.toNat ≤ o.room then none
+  else some ("organic.noise: " ++ toString (o.noise * 1000).floor ++
+    " per mille is over the room of " ++ toString o.room ++
+    " per mille that a trunk and a branch of half its share leave")
+
+/-- **Within the room, a branch of a fork of two is narrower than its trunk at every point**: at
+its widest the branch is no wider than the trunk at its narrowest, for a noise of `amp` per
+mille that passes the check. The law is the kit's (`Branch.wobbleRoom_apart`). -/
+theorem fork_apart (trunk amp : Nat)
+    (h : amp ≤ Whatwg.Svg.Scene.Branch.wobbleRoom (Whatwg.Svg.Scene.Share.width 2 trunk ⟨1, 2⟩) trunk) :
+    Whatwg.Svg.Scene.Share.width 2 trunk ⟨1, 2⟩ * (1000 + amp) ≤ trunk * (1000 - amp) := by
+  have hc : (⟨1, 2⟩ : Whatwg.Svg.Scene.Share) ∈ Whatwg.Svg.Scene.Share.whole.split [1, 1] := by
+    decide
+  have hle := Whatwg.Svg.Scene.Share.width_split_le 2 trunk Whatwg.Svg.Scene.Share.whole [1, 1] hc
+  rw [Whatwg.Svg.Scene.Share.width_whole 2 trunk (by decide)] at hle
+  exact Whatwg.Svg.Scene.Branch.wobbleRoom_apart _ _ amp hle h
+
+-- The default look has no noise and passes. The look `organic` has 350 per mille against a
+-- room of 171, and is refused with the field's name.
+#guard ({} : Organic).refusal? = none
+#guard Organic.noisy.room = 171
+#guard Organic.noisy.refusal? ==
+  some ("organic.noise: 350 per mille is over the room of 171 per mille that a trunk and a " ++
+    "branch of half its share leave")
 
 /-- The circle constant of a quarter arc by one cubic, as the consumer has it (`Grow.KAPPA`).
 The kit's own, `Cubic.kappa`, is `0.5523`. -/
@@ -406,7 +454,7 @@ def milli (x y : Int) : Vec := .fixed 3 x y
 -- (9741, 24794) (10310, 26219) (11245, 27432) (12218, 28553). Over the eighteen segments of
 -- this outline no knot of the port is more than four thousandths from the consumer's.
 #guard toString (Path.ofCubics
-    ((stroke (seedOf "e1") {} 2.4 [⟨⟨10, 20⟩, ⟨10, 33⟩, ⟨30, 33⟩, ⟨30, 46⟩⟩] false).take 2)) ==
+    ((stroke (seedOf "e1") Organic.noisy 2.4 [⟨⟨10, 20⟩, ⟨10, 33⟩, ⟨30, 33⟩, ⟨30, 46⟩⟩] false).take 2)) ==
   "M8.8,20C8.957,20.8 9.173,23.372 9.743,24.798C10.312,26.223 11.245,27.435 12.218,28.556"
 
 -- A reveal of 12 of the 20 pixels of an edge of two straight segments, down 10 and across 10.

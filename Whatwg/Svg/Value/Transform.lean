@@ -131,12 +131,10 @@ theorem wsps_total : wsps.Total := Syn.Total.of_unit (by decide)
 /-- `argSep` prints its one value. -/
 theorem argSep_total : argSep.Total := Syn.Total.of_unit (by decide)
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] wsps_total argSep_total
-
 /-! ## The arguments
 
-A part with no type of its own is an `abbrev`: the search that proves a grammar total
-(`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
+A part with no type of its own is an `abbrev`, and it states no totality lemma of its own:
+the proof of a grammar that holds the part says in place that the part is total. -/
 
 /-- `comma-wsp? number`: a number after another one. -/
 abbrev next : Syn Decimal := .right argSep Decimal.syn
@@ -212,17 +210,39 @@ theorem ofReading_toReading (t : Transform) : ofReading (toReading t) = t := by
 /-- The description of `transform`. -/
 def syn : Syn Transform := .map ofReading toReading ofReading_toReading spellings
 
-/-- Every function prints. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+/-- Every function prints. `hcall` is the shape of `call`: the letters, and the arguments
+between their parentheses. The term follows `spellings` alternative by alternative. -/
+theorem syn_total : syn.Total :=
+  have hnext : next.Total := Syn.Total.right argSep_total Decimal.syn_total
+  have honeOrTwo : oneOrTwo.Total := Syn.Total.seq Decimal.syn_total (Syn.Total.opt hnext)
+  have hcall {α : Type} {letters : List Char} {args : Syn α}
+      (hletters : (Syn.lit letters).valid () = true) (hargs : args.Total) :
+      (call letters args).Total :=
+    Syn.Total.right (lit_total _ hletters)
+      (Syn.Total.right wsps_total
+        (Syn.Total.right (lit_total _ (by decide))
+          (Syn.Total.right wsps_total
+            (Syn.Total.left hargs (Syn.Total.right wsps_total (lit_total _ (by decide)))))))
+  Syn.Total.map
+    (Syn.Total.alt
+      (hcall (by decide)
+        (Syn.Total.seq Decimal.syn_total
+          (Syn.Total.seq hnext
+            (Syn.Total.seq hnext (Syn.Total.seq hnext (Syn.Total.seq hnext hnext))))))
+      (Syn.Total.alt (hcall (by decide) honeOrTwo)
+        (Syn.Total.alt
+          (Syn.Total.right (lit_total _ (by decide))
+            (Syn.Total.alt (hcall (by decide) honeOrTwo)
+              (Syn.Total.right (lit_total _ (by decide))
+                (Syn.Total.alt (hcall (by decide) Decimal.syn_total)
+                  (hcall (by decide) Decimal.syn_total)))))
+          (hcall (by decide)
+            (Syn.Total.seq Decimal.syn_total (Syn.Total.opt (Syn.Total.seq hnext hnext)))))))
 
 /-- The grammar of `transform`: one function. -/
 def grammar : Grammar Transform := ⟨syn, by decide +kernel, syn_total⟩
 
 end Transform
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Transform.syn_total
 
 /-! ## The list -/
 
@@ -237,8 +257,6 @@ def sep : Syn Unit := spaceSepOf Transform.wspSet
 
 /-- `sep` prints its one value. -/
 theorem sep_total : sep.Total := Syn.Total.of_unit (by decide)
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] sep_total
 
 /-- The production `transforms` as a repetition: `transform (comma-wsp? transform)*`. -/
 abbrev transforms : Syn (Transform × List Transform) :=
@@ -264,16 +282,16 @@ def syn : Syn TransformList :=
     (.right Transform.wsps (.left transforms.opt Transform.wsps))
 
 /-- Every list of functions prints. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map
+    (Syn.Total.right Transform.wsps_total
+      (Syn.Total.left (Syn.Total.opt (Syn.Total.sepBy1 Transform.syn_total sep_total))
+        Transform.wsps_total))
 
 /-- The grammar of `transform-list`: the value of a `transform`, `gradientTransform` or
 `patternTransform` attribute. -/
 def grammar : Grammar TransformList := ⟨syn, by decide +kernel, syn_total⟩
 
 end TransformList
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] TransformList.syn_total
 
 end Whatwg.Svg.Value

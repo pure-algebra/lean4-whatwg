@@ -8,15 +8,16 @@ R-W6). The graph opened at slice S3b of `docs/SVG-PACKAGE-PLAN.md`, when the che
 admitted a tree that holds `svg`. Every ground names a theorem, a declaration or a module of
 the built tree, and each open item is a slice of that plan or a named gap.
 
-The fence is the eleven modules of `Whatwg/Svg/` that declare a constant and are no value
-grammar: the ten of the schema and the position, and `Value/Attribute`, which says which
-grammar judges which attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`. The seam's
+The fence is the twelve modules of `Whatwg/Svg/` that declare a constant and are no value
+grammar: the ten of the schema and the position, `Data/Mask/Laws`, which holds the rules of the
+bank `Whatwg.Mask` since slice S16, and `Value/Attribute`, which says which grammar judges which
+attribute. The value grammars are the leaf `SVG-LF-GRAMMAR`. The seam's
 own modules are under `Whatwg/Html/` and stay with the unrouted prefix `Whatwg.Html` (debt
 D57): this entry cites their theorems and does not fence them.
 
 No edge is closed. Rulings R-S4, R-S9 to R-S14, R-S16, R-S17, R-S19 to R-S21 and R-S23 to
-R-S29 of `COORDINATION.md` name this graph and change no edge's status, so the entry
-acknowledges the nineteen.
+R-S29, and R-S31 of `COORDINATION.md` name this graph and change no edge's status, so the entry
+acknowledges the twenty.
 -/
 
 namespace WhatwgTest.Ledger
@@ -26,11 +27,12 @@ open Gates.Ledger
 def svgSeam : Graph where
   id := "SVG-PG-SEAM"
   document := "docs/SVG-SEAM-DAG.md"
-  fence := [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask, `Whatwg.Svg.Data.NameTable,
+  fence := [`Whatwg.Svg.Data.Universe, `Whatwg.Svg.Data.Mask, `Whatwg.Svg.Data.Mask.Laws,
+    `Whatwg.Svg.Data.NameTable,
     `Whatwg.Svg.Schema.Tags, `Whatwg.Svg.Schema.Categories, `Whatwg.Svg.Schema.Attributes,
     `Whatwg.Svg.Schema.ContentModel, `Whatwg.Svg.Schema.Readings, `Whatwg.Svg.Schema.Universe,
     `Whatwg.Svg.Content.Context, `Whatwg.Svg.Value.Attribute]
-  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24", "R-S25", "R-S26", "R-S27", "R-S28", "R-S29"]
+  acknowledged := ["R-S4", "R-S9", "R-S10", "R-S11", "R-S12", "R-S13", "R-S14", "R-S16", "R-S17", "R-S19", "R-S20", "R-S21", "R-S23", "R-S24", "R-S25", "R-S26", "R-S27", "R-S28", "R-S29", "R-S31"]
   edges := {
     identity := {
       status := .requiredOpen

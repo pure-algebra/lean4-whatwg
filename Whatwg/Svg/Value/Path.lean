@@ -135,8 +135,6 @@ theorem letter_total {upper lower : Char} {h : letterPair upper lower = true} :
     show ((CharSet.single upper).union (.single lower)).mem upper = true
     rw [CharSet.mem_union, CharSet.mem_single_self h'.1.1, Bool.true_or]
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] flag_total letter_total
-
 /-! ## Argument groups -/
 
 /-- `coordinate_pair_double`: `coordinate_pair comma_wsp? coordinate_pair`, printed with a
@@ -179,13 +177,16 @@ def syn : Syn Arc :=
       (.seq (.right commaWsp flag) (.seq (.right commaSep flag) (.right spaceSep Point.syn))))))
 
 /-- Every arc prints. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map
+    (Syn.Total.seq Magnitude.syn_total
+      (Syn.Total.seq (Syn.Total.right commaSep_total Magnitude.syn_total)
+        (Syn.Total.seq (Syn.Total.right spaceSep_total Magnitude.syn_total)
+          (Syn.Total.seq (Syn.Total.right commaWsp_total flag_total)
+            (Syn.Total.seq (Syn.Total.right commaSep_total flag_total)
+              (Syn.Total.right spaceSep_total Point.syn_total))))))
 
 end Arc
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Arc.syn_total
 
 /-! ## The ten commands
 
@@ -193,8 +194,8 @@ One description for each alternative of `drawto_command`, under the production's
 is a letter in either case, `wsp*`, and one argument group or more. The value is the case of
 the letter and the groups.
 
-A part with no type of its own is an `abbrev`: the search that proves a grammar total
-(`Whatwg.Syn`) reads through it, so a part states no totality lemma of its own. -/
+A part with no type of its own is an `abbrev`, and it states no totality lemma of its own:
+the proof of a grammar that holds the part says in place that the part is total. -/
 
 namespace Drawto
 
@@ -329,14 +330,30 @@ def syn : Syn Command :=
         (.alt Drawto.quadraticBezierCurveto
           (.alt Drawto.smoothQuadraticBezierCurveto Drawto.ellipticalArc)))))))))
 
-/-- Every command prints. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+/-- Every command prints. `hgroups` is the shape that nine alternatives share: a letter,
+`wsp*`, and one argument group or more. The term follows the ten alternatives in order. -/
+theorem syn_total : syn.Total :=
+  have hgroups {α : Type} {upper lower : Char} {h : letterPair upper lower = true} {a : Syn α}
+      (ha : a.Total) : (Syn.seq (letter upper lower h) (.right wsps (a.sepBy1 spaceSep))).Total :=
+    Syn.Total.seq letter_total (Syn.Total.right wsps_total (Syn.Total.sepBy1 ha spaceSep_total))
+  have hdouble : coordinatePairDouble.Total :=
+    Syn.Total.seq Point.syn_total (Syn.Total.right spaceSep_total Point.syn_total)
+  have htriplet : coordinatePairTriplet.Total :=
+    Syn.Total.seq Point.syn_total
+      (Syn.Total.seq (Syn.Total.right spaceSep_total Point.syn_total)
+        (Syn.Total.right spaceSep_total Point.syn_total))
+  Syn.Total.map
+    (Syn.Total.alt (hgroups Point.syn_total)
+      (Syn.Total.alt letter_total
+        (Syn.Total.alt (hgroups Point.syn_total)
+          (Syn.Total.alt (hgroups Decimal.syn_total)
+            (Syn.Total.alt (hgroups Decimal.syn_total)
+              (Syn.Total.alt (hgroups htriplet)
+                (Syn.Total.alt (hgroups hdouble)
+                  (Syn.Total.alt (hgroups hdouble)
+                    (Syn.Total.alt (hgroups Point.syn_total) (hgroups Arc.syn_total))))))))))
 
 end Command
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Command.syn_total
 
 /-! ## The path -/
 
@@ -373,9 +390,16 @@ def syn : Syn Path :=
     (.right wsps (.left (Syn.opt (.seq Drawto.moveto (.many (.right wsps Command.syn)))) wsps))
 
 /-- Every path prints. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  have hmoveto : Drawto.moveto.Total :=
+    Syn.Total.seq letter_total
+      (Syn.Total.right wsps_total (Syn.Total.sepBy1 Point.syn_total spaceSep_total))
+  Syn.Total.map
+    (Syn.Total.right wsps_total
+      (Syn.Total.left
+        (Syn.Total.opt
+          (Syn.Total.seq hmoveto (Syn.Total.many (Syn.Total.right wsps_total Command.syn_total))))
+        wsps_total))
 
 /-- The grammar of `svg_path`. -/
 def grammar : Grammar Path := ⟨syn, by decide +kernel, syn_total⟩
@@ -398,8 +422,6 @@ theorem ofSubpaths_singleton (start : Point) (commands : List Command) :
 
 end Path
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Path.syn_total
-
 /-! ## The value of `d` -/
 
 /-- The keyword `none` of the property `d`, as the sealed text writes it. -/
@@ -407,8 +429,6 @@ def noneKeyword : Syn Unit := .lit ['n', 'o', 'n', 'e']
 
 /-- The keyword prints. -/
 theorem noneKeyword_total : noneKeyword.Total := lit_total _ (by decide)
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] noneKeyword_total
 
 /-- The typed value of the attribute `d`, whose property has the value `none | <string>`
 (`TheDProperty`): the keyword, or a path data string. -/
@@ -440,15 +460,12 @@ opens with `n`, so the first character decides. -/
 def syn : Syn PathData := .map ofReading toReading ofReading_toReading (.alt noneKeyword Path.syn)
 
 /-- Every value of `d` prints. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map (Syn.Total.alt noneKeyword_total Path.syn_total)
 
 /-- The grammar of the value of `d`. -/
 def grammar : Grammar PathData := ⟨syn, by decide +kernel, syn_total⟩
 
 end PathData
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] PathData.syn_total
 
 end Whatwg.Svg.Value

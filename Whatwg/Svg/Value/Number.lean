@@ -124,9 +124,6 @@ theorem commaSep_total : commaSep.Total := Syn.Total.of_unit (by decide)
 theorem lit_total (cs : List Char) (h : (Syn.lit cs).valid () = true) : (Syn.lit cs).Total :=
   Syn.Total.of_unit h
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])]
-  wsps_total commaWsp_total spaceSep_total commaSep_total lit_total
-
 /-! ## Digits -/
 
 /-- One digit, as its value. -/
@@ -243,8 +240,6 @@ def natural : Syn Nat :=
 
 theorem natural_total : natural.Total := Syn.Total.map (Syn.Total.many1 digit_total)
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] digit_total natural_total
-
 /-! ## The unsigned number -/
 
 /-- An unsigned exact decimal, `mantissa × 10 ^ exponent`: the typed value of the production
@@ -270,10 +265,8 @@ def plus : Syn Unit := .skip (Syn.one (.single '+')).opt none
 /-- The one value of `plus` prints: its canonical reading is no sign. -/
 theorem plus_total : plus.Total := Syn.Total.of_unit (by decide)
 
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] plus_total
-
-/-- `"." digit+`. A part with no type of its own is an `abbrev`: the search that proves a
-grammar total (`Whatwg.Syn`) reads through it, so a part states no totality lemma. -/
+/-- `"." digit+`. A part with no type of its own is an `abbrev`, and it states no totality
+lemma: the proof of a grammar that holds the part says in place that the part is total. -/
 abbrev fraction : Syn (Fin 10 × List (Fin 10)) := .right (.lit ['.']) digit.many1
 
 /-- `fractional-constant`: digits with or without a fraction, or a fraction alone. -/
@@ -289,8 +282,6 @@ def exponentPart : Syn (Option (Option Bool × Nat)) :=
 theorem exponentPart_total : exponentPart.Total :=
   Syn.Total.opt (Syn.Total.right (Syn.Total.of_unit (by decide))
     (Syn.Total.seq (Syn.Total.opt sign_total) natural_total))
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] sign_total exponentPart_total
 
 /-- The exponent that a reading states. No exponent is zero. -/
 def exponentValue : Option (Option Bool × Nat) → Int
@@ -378,9 +369,14 @@ theorem ofReading_toReading (u : Magnitude) : ofReading (toReading u) = u := by
 def syn : Syn Magnitude :=
   .map ofReading toReading ofReading_toReading (.seq fractionalConstant exponentPart)
 
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+/-- Every value prints: the term follows the description, `fractional-constant` and then
+`exponent?`. -/
+theorem syn_total : syn.Total :=
+  have hfraction : fraction.Total :=
+    Syn.Total.right (lit_total _ (by decide)) (Syn.Total.many1 digit_total)
+  have hconstant : fractionalConstant.Total :=
+    Syn.Total.alt (Syn.Total.seq (Syn.Total.many1 digit_total) (Syn.Total.opt hfraction)) hfraction
+  Syn.Total.map (Syn.Total.seq hconstant exponentPart_total)
 
 /-- The grammar of `number`. -/
 def grammar : Grammar Magnitude := ⟨syn, by decide +kernel, syn_total⟩
@@ -410,8 +406,6 @@ theorem ofInt?_of_neg {v : Int} (h : v < 0) : ofInt? v = none := by
   | negSucc n => rfl
 
 end Magnitude
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Magnitude.syn_total
 
 /-! ## The signed number -/
 
@@ -447,9 +441,8 @@ theorem ofReading_toReading (d : Decimal) : ofReading (toReading d) = d := by
 def syn : Syn Decimal :=
   .map ofReading toReading ofReading_toReading (.seq sign.opt Magnitude.syn)
 
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map (Syn.Total.seq (Syn.Total.opt sign_total) Magnitude.syn_total)
 
 /-- The grammar of `coordinate`. -/
 def grammar : Grammar Decimal := ⟨syn, by decide +kernel, syn_total⟩
@@ -469,8 +462,6 @@ instance (n : Nat) : OfNat Decimal n := ⟨ofInt n⟩
 instance : Neg Decimal := ⟨fun d => ⟨-d.mantissa, d.exponent⟩⟩
 
 end Decimal
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Decimal.syn_total
 
 /-! ## The zeros at the end of a number
 
@@ -510,15 +501,13 @@ def syn : Syn Point :=
   .map (fun p => ⟨p.1, p.2⟩) (fun p => (p.x, p.y)) (fun _ => rfl)
     (.seq Decimal.syn (.right commaSep Decimal.syn))
 
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map
+    (Syn.Total.seq Decimal.syn_total (Syn.Total.right commaSep_total Decimal.syn_total))
 
 /-- The grammar of `coordinate_pair`. -/
 def grammar : Grammar Point := ⟨syn, by decide +kernel, syn_total⟩
 
 end Point
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Point.syn_total
 
 end Whatwg.Svg.Value

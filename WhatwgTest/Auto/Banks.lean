@@ -9,7 +9,7 @@ holds the control for each bank: the same goal, where the search without the cla
 the search with it closes.
 
 A line here is a control of the bank, not of the law: the law is the theorem beside the bank's
-rules, and this module restates none.
+rules, in the bank's law module, and this module restates none.
 -/
 
 namespace WhatwgTest.Auto.Banks
@@ -28,9 +28,10 @@ example {α : Type} [Universe α] {m n k : Mask α} (h : m.subset n = true) {a :
 /-! ## `Whatwg.Syn` -/
 
 open Whatwg.Svg.Value in
--- Control: a description of typed parts, as in `Decimal.syn_total`. The default rule set does
--- not know that each form of a description keeps totality, so the search fails without the
--- clause and closes with it.
+-- Control: a description of typed parts, such as the one whose totality `Decimal.syn_total`
+-- states by a term. The default rule set does not know that each form of a description keeps
+-- totality, so the search fails without the clause and closes with it. The bank's own theorem
+-- is `Length.tail_total` of `Whatwg/Svg/Value/Bank.lean`.
 example : (Syn.seq sign.opt natural).Total := by
   fail_if_success aesop
   aesop (rule_sets := [Whatwg.Syn])

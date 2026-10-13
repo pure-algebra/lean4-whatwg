@@ -109,15 +109,18 @@ def syn : Syn ViewBox :=
       (.seq (.right spaceSep extent) (.left (.right spaceSep extent) wsps)))))
 
 /-- Every value prints: a `ViewBox` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  have hextent : extent.Total := Syn.Total.right plus_total Magnitude.syn_total
+  Syn.Total.map
+    (Syn.Total.right wsps_total
+      (Syn.Total.seq Decimal.syn_total
+        (Syn.Total.seq (Syn.Total.right spaceSep_total Decimal.syn_total)
+          (Syn.Total.seq (Syn.Total.right spaceSep_total hextent)
+            (Syn.Total.left (Syn.Total.right spaceSep_total hextent) wsps_total)))))
 
 /-- The grammar of `viewBox`. -/
 def grammar : Grammar ViewBox := ⟨syn, by decide +kernel, syn_total⟩
 
 end ViewBox
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] ViewBox.syn_total
 
 end Whatwg.Svg.Value

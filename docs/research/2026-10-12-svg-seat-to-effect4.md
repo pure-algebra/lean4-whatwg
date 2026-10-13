@@ -538,3 +538,46 @@ Aesop in their closure); the port on `Motion.frame` and `Motion.staged`; the ste
 the first check. Three modules were in hand when the guidance came and land with them: a step
 that is interrupted and resumes where each thing is seen, what an edit does to the placement of
 a tree, and lanes of states over the steps of a run.
+
+## 15. Slice S16: what guidance 4 asked for
+
+Three asks, each done.
+
+- **Your import closure is Lean alone.** No module of definitions imports the rule banks any
+  more. The closure of the roots that you import (the checker and printer, the picture writer,
+  the strokes, the scene, the CSS writer) held 166 modules of Aesop and Batteries; it holds
+  none. `workshop/Closure.lean` prints it. No name and no statement changed.
+- **The ports to copy from.**
+  - `WhatwgTest/Html/SvgMotion.lean`. A real port copies four things: the plan (`plan`, with
+    `plan_settles`, `plan_proper`, `plan_single`), the reader (`sample`, on `Motion.frame`), the
+    end law (`sample_end`: the last sample is the new list, each frame at rest), and, if you
+    take it, the staged step (`stagedMotion`, on `Motion.staged` with `Transition.atMost` for
+    your caps). `motion` is still your choreography number for number, so the two stand side by
+    side, and guards say where they agree and where they differ (debt D131).
+  - `WhatwgTest/Html/SvgStroke.lean`. Its settings follow your look at `c7504d69`: no noise by
+    default, the look `organic` as `Organic.noisy`. `Organic.refusal?` is the second check of a
+    look's read, with the field's name in the refusal, and `fork_apart` is what a look that
+    passes is promised.
+- **The first check of a look's read, as one theorem.** `Plan.MovesBy plan place move` is the
+  check: the kept things change their place by `Plan.moving place move` and by nothing else.
+  With it, distinct keys in the new list, and `move.ease.bounded = true`:
+  `Motion.staged_together` (and `ofJoin_within_together` for a step that is not staged) says
+  that every kept relation of the places of two kept things in both pictures holds where they
+  stand at every moment. `Motion.staged_leftOf` and `staged_above` are the gap along each axis.
+  All of it is inside your axiom rule.
+
+Three more modules landed, in hand when the guidance came. Each is inside your axiom rule.
+
+- `Resume`: a step that is interrupted. `Plan.resumeFrom key m t plan settle` is the plan of the
+  new step, from where each thing is seen at the moment `t` of the step `m`. Nothing jumps
+  (`Motion.nothing_jumps_from`, `Motion.nothing_moves_from`); a thing that was leaving goes on
+  from where it is; the step ends on the next picture. `resume.html` shows a jump of 41 pixels
+  without it.
+- `Tree/Edit`: what one edit does to the placement of a tree. Every kept node is as it was,
+  stretched or shifted (`Tree.spans_replace`), and the shifted ones move as one.
+- `Strip`: a lane of states for each fiber over the steps of a run, where one more step changes
+  no earlier box (`Strip.boxes_snoc`).
+
+One thing to know when you write the port: a transition with no delay and no duration is over
+at the moment 0, so the laws of the first moment ask `tr.at 0 = 0` (`Transition.at_zero` gives
+it for a proper easing and a duration that is not nothing).

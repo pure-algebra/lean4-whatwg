@@ -96,15 +96,14 @@ def syn : Syn Points :=
     (.right wsps (.left (Point.syn.sepBy1 spaceSep) wsps))
 
 /-- Every value prints: a `Points` is made of typed parts. -/
-theorem syn_total : syn.Total := by
-  unfold syn
-  aesop (rule_sets := [Whatwg.Syn])
+theorem syn_total : syn.Total :=
+  Syn.Total.map
+    (Syn.Total.right wsps_total
+      (Syn.Total.left (Syn.Total.sepBy1 Point.syn_total spaceSep_total) wsps_total))
 
 /-- The grammar of `<points>`. -/
 def grammar : Grammar Points := ⟨syn, by decide +kernel, syn_total⟩
 
 end Points
-
-attribute [aesop safe apply (rule_sets := [Whatwg.Syn])] Points.syn_total
 
 end Whatwg.Svg.Value

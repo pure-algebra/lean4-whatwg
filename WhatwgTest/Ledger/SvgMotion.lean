@@ -8,15 +8,16 @@ R-W6). The graph opened at slice S14 of `docs/SVG-PACKAGE-PLAN.md` (ruling SV-79
 motion of a join became one value. Every ground names a theorem, a declaration or a module of
 the built tree, and each open item is a named gap or a recorded debt.
 
-The fence is the nine modules of motion. Seven are under `Whatwg/Svg/Scene/`: the data and its
+The fence is the eleven modules of motion. Nine are under `Whatwg/Svg/Scene/`: the data and its
 reading, its laws, what holds at every moment, the order in time, the plan of a join, a step in
-stages, and the frame of a thing at a moment. Two are under `Whatwg/Svg/Geometry/`: the bridge
+stages, the frame of a thing at a moment, what the kept things of a step keep, and a step that
+is interrupted. Two are under `Whatwg/Svg/Geometry/`: the bridge
 from the reading in whole numbers to the exact polynomial, and the motion at every rational
 time. The writer of CSS is `Whatwg/Html/Node/SvgMotion.lean`, under the unrouted prefix
 `Whatwg.Html` (debt D57): this entry cites its declarations and does not fence it.
 
-No edge is closed. Rulings R-S29 and R-S30 of `COORDINATION.md` name this graph and change no
-edge's status, so the entry acknowledges the two.
+No edge is closed. Rulings R-S29, R-S30 and R-S31 of `COORDINATION.md` name this graph and
+change no edge's status, so the entry acknowledges the three.
 -/
 
 namespace WhatwgTest.Ledger
@@ -28,8 +29,9 @@ def svgMotion : Graph where
   document := "docs/SVG-MOTION-DAG.md"
   fence := [`Whatwg.Svg.Scene.Motion, `Whatwg.Svg.Scene.Motion.Laws, `Whatwg.Svg.Scene.Between,
     `Whatwg.Svg.Scene.Score, `Whatwg.Svg.Scene.Plan, `Whatwg.Svg.Scene.Stage,
-    `Whatwg.Svg.Scene.Frame, `Whatwg.Svg.Geometry.Easing, `Whatwg.Svg.Geometry.Moment]
-  acknowledged := ["R-S29", "R-S30"]
+    `Whatwg.Svg.Scene.Frame, `Whatwg.Svg.Scene.Together, `Whatwg.Svg.Scene.Resume,
+    `Whatwg.Svg.Geometry.Easing, `Whatwg.Svg.Geometry.Moment]
+  acknowledged := ["R-S29", "R-S30", "R-S31"]
   edges := {
     identity := {
       status := .requiredOpen
@@ -43,14 +45,17 @@ def svgMotion : Graph where
     construction := {
       status := .requiredOpen
       remaining := [
-        .named "nothing in the type of a motion says that a thing has one track at most for a property: `Motion.Single` says it as a predicate, and no function that builds a motion proves it of its result (debt D127)"]
+        .named "nothing in the type of a motion says that a thing has one track at most for a property: `Motion.Single` says it as a predicate, and it is proved of the step of a plan that changes no property twice (`Motion.single_ofJoin`); a motion that a caller builds by hand has no such proof"]
       grounds := [.declarations [`Whatwg.Svg.Scene.Motion.ofJoin, `Whatwg.Svg.Scene.Motion.staying,
         `Whatwg.Svg.Scene.Motion.leaving, `Whatwg.Svg.Scene.Plan.moving,
         `Whatwg.Svg.Scene.Plan.and, `Whatwg.Svg.Scene.Motion.within,
         `Whatwg.Svg.Scene.Motion.delayed, `Whatwg.Svg.Scene.Motion.andThen,
         `Whatwg.Svg.Scene.Motion.fit, `Whatwg.Svg.Scene.Motion.reduced,
         `Whatwg.Svg.Scene.Motion.slotted, `Whatwg.Svg.Scene.Motion.staged,
-        `Whatwg.Svg.Scene.Change.morphOf, `Whatwg.Svg.Scene.Transition.per]]
+        `Whatwg.Svg.Scene.Change.morphOf, `Whatwg.Svg.Scene.Transition.per,
+        `Whatwg.Svg.Scene.Plan.Single, `Whatwg.Svg.Scene.Plan.MovesBy,
+        `Whatwg.Svg.Scene.Plan.resume, `Whatwg.Svg.Scene.Plan.sprout,
+        `Whatwg.Svg.Scene.Change.from, `Whatwg.Svg.Scene.Frame.toRest]]
       note := "A step's motion is built from the join of two pictures and a plan: what a kept thing does, how a new thing enters and how an old one leaves. A motion is then held in its step, started later thing by thing, put after another, fitted to a length, reduced to its ends, or put in stages: the kept things first, then the new things level by level, each level in a slot of its own." }
     semantics := {
       status := .requiredOpen
@@ -63,7 +68,8 @@ def svgMotion : Graph where
         `Whatwg.Svg.Scene.Track.at, `Whatwg.Svg.Scene.Motion.poses,
         `Whatwg.Svg.Scene.Motion.posesOf, `Whatwg.Svg.Scene.Join.drawn,
         `Whatwg.Svg.Scene.Pose.onto, `Whatwg.Svg.Scene.Motion.frame,
-        `Whatwg.Svg.Scene.Motion.Same, `Whatwg.Svg.Scene.Easing.exact,
+        `Whatwg.Svg.Scene.Motion.Same, `Whatwg.Svg.Scene.Frame.Shows,
+        `Whatwg.Svg.Scene.Frame.stand, `Whatwg.Svg.Scene.Easing.exact,
         `Whatwg.Svg.Scene.Transition.exact, `Whatwg.Svg.Scene.mixExact]]
       note := "`Track.at` is the meaning of a track: the pose of a thing at a moment, by the easing of the share of the duration that has passed, with one rounding down. `Motion.frame` is the meaning of a motion for one thing: its poses put on the still picture in the order of the tracks, a later pose of one property in place of an earlier one. `Join.drawn` says which things a reader draws at a moment of a step. `Transition.exact` and `mixExact` are the same readings in rational numbers at a rational time, and the whole-number readings are their floors." }
     laws := {
@@ -72,7 +78,9 @@ def svgMotion : Graph where
         .named "a fact of an easing at whole stops does not reach a transition of a duration other than a thousand, and the duration that a distance asks for has no law of order (debt D126)",
         .named "no law says that a thing that leaves ends as nothing: a plan's `leave` may be any change",
         .named "`Motion.Same` is kept by `++` in its second part only where both rows are `Single`: the law without that premise is false, and an example of `Frame.lean` refutes it",
-        .named "a step in stages has no order inside one level: with lean4-effect4's shares a new edge and the box at its end overlap by a twentieth of the slot"]
+        .named "a step in stages has no order inside one level: with lean4-effect4's shares a new edge and the box at its end overlap by a twentieth of the slot",
+        .named "a thing that resumes starts the new change from standing: nothing is said of its speed at the interruption, and no law of a resumed step states what `Motion.together` keeps in it",
+        .named "the law of the kept things of a step is of two kept things at whole moments: a kept thing against a new or a leaving one, and the same law at a rational time, are not stated for a step"]
       grounds := [.theorems [`Whatwg.Svg.Scene.Easing.stopsAt_stop,
         `Whatwg.Svg.Scene.Easing.proper_cubic, `Whatwg.Svg.Scene.Easing.of_thousand,
         `Whatwg.Svg.Scene.Transition.at_done, `Whatwg.Svg.Scene.Track.at_done,
@@ -96,8 +104,13 @@ def svgMotion : Graph where
         `Whatwg.Svg.Scene.Motion.Same.of_mem, `Whatwg.Svg.Scene.Motion.Same.append_comm,
         `Whatwg.Svg.Scene.Transition.exact_mem, `Whatwg.Svg.Scene.Transition.exact_gap,
         `Whatwg.Svg.Scene.KeptExact.moment, `Whatwg.Svg.Scene.KeptExact.along,
-        `Whatwg.Svg.Scene.Transition.mix_near]]
-      note := "The end law: a track whose transition is over stands at the end of its change, so a step's last moment is the next picture, and with a plan that settles every thing of the new list then looks as the still picture has it. Between the two pictures: a kept edge that changes its shape by its nodes' transition stays joined to them, and a relation of both pictures is a relation of every whole moment, and of every rational time in exact numbers, where the things share one timing and the easing stays in range. In time: a delay by depth, a fit to a length, a reduction to the ends and a step in stages each keep the order that the tracks had, and in a staged step no new thing appears before the kept things are at rest. Of a thing: where no thing has two tracks of one property, its frame shows the pose of each of its tracks and does not depend on their order." }
+        `Whatwg.Svg.Scene.Transition.mix_near, `Whatwg.Svg.Scene.Motion.single_ofJoin,
+        `Whatwg.Svg.Scene.Motion.together, `Whatwg.Svg.Scene.Motion.ofJoin_together,
+        `Whatwg.Svg.Scene.Motion.staged_together, `Whatwg.Svg.Scene.Motion.staged_leftOf,
+        `Whatwg.Svg.Scene.Plan.resume_settles, `Whatwg.Svg.Scene.Plan.resume_of_rest,
+        `Whatwg.Svg.Scene.Motion.resume_end, `Whatwg.Svg.Scene.Motion.nothing_jumps,
+        `Whatwg.Svg.Scene.Motion.nothing_moves, `Whatwg.Svg.Scene.Motion.resume_leaving_held]]
+      note := "The end law: a track whose transition is over stands at the end of its change, so a step's last moment is the next picture, and with a plan that settles every thing of the new list then looks as the still picture has it. Between the two pictures: a kept edge that changes its shape by its nodes' transition stays joined to them, and a relation of both pictures is a relation of every whole moment, and of every rational time in exact numbers, where the things share one timing and the easing stays in range. In time: a delay by depth, a fit to a length, a reduction to the ends and a step in stages each keep the order that the tracks had, and in a staged step no new thing appears before the kept things are at rest. Of a thing: where no thing has two tracks of one property, its frame shows the pose of each of its tracks and does not depend on their order. Of a whole step: kept things that take one transition with an easing in range keep, where they stand at every moment, each relation that their places have in both pictures. Of an interruption: at the first moment of a step that resumes from where things are seen, each kept thing shows every pose that it showed and stands where it stood, and the step ends on the next picture." }
     representation := {
       status := .requiredOpen
       remaining := [
@@ -132,10 +145,11 @@ def svgMotion : Graph where
         .named "the port of lean4-effect4's motion code is this repository's copy of that code on the kit, and no build of lean4-effect4 itself imports the kit's motion yet"]
       grounds := [.modules [`Whatwg.Svg.Scene.Motion, `Whatwg.Svg.Scene.Motion.Laws,
         `Whatwg.Svg.Scene.Between, `Whatwg.Svg.Scene.Score, `Whatwg.Svg.Scene.Plan,
-        `Whatwg.Svg.Scene.Stage, `Whatwg.Svg.Scene.Frame, `Whatwg.Svg.Geometry.Easing,
+        `Whatwg.Svg.Scene.Stage, `Whatwg.Svg.Scene.Frame, `Whatwg.Svg.Scene.Together,
+        `Whatwg.Svg.Scene.Resume, `Whatwg.Svg.Geometry.Easing,
         `Whatwg.Svg.Geometry.Moment, `Whatwg.Html.Node.SvgMotion, `WhatwgTest.Html.SvgMotion],
         .gate .build]
-      note := "The seven modules under `Whatwg.Svg.Scene` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception (ruling R-S27). The two under `Whatwg.Svg.Geometry` and the writer are under the ceiling of ruling R-11." }
+      note := "The nine modules under `Whatwg.Svg.Scene` are under the strict ceiling, `propext` and `Quot.sound` only, with no exact exception (ruling R-S27). The two under `Whatwg.Svg.Geometry` and the writer are under the ceiling of ruling R-11." }
     coverage := {
       status := .requiredOpen
       remaining := [

@@ -1,5 +1,6 @@
 import Whatwg.Svg.Data.Universe
 import Whatwg.Svg.Data.Mask
+import Whatwg.Svg.Data.Mask.Laws
 import Whatwg.Svg.Data.NameTable
 import Whatwg.Svg.Schema.Tags
 import Whatwg.Svg.Schema.Categories
@@ -23,6 +24,7 @@ import Whatwg.Svg.Value.Length
 import Whatwg.Svg.Value.Extent
 import Whatwg.Svg.Value.Lists
 import Whatwg.Svg.Value.Attribute
+import Whatwg.Svg.Value.Bank
 import Whatwg.Svg.Geometry.Arith
 import Whatwg.Svg.Geometry.Arith.Laws
 import Whatwg.Svg.Geometry.Arith.Same
@@ -58,6 +60,7 @@ import Whatwg.Svg.Scene.Join.Laws
 import Whatwg.Svg.Scene.Motion
 import Whatwg.Svg.Scene.Motion.Laws
 import Whatwg.Svg.Scene.Tree
+import Whatwg.Svg.Scene.Tree.Edit
 import Whatwg.Svg.Scene.Between
 import Whatwg.Svg.Scene.Branch
 import Whatwg.Svg.Scene.Score
@@ -69,6 +72,9 @@ import Whatwg.Svg.Scene.Label
 import Whatwg.Svg.Scene.Cross
 import Whatwg.Svg.Scene.Stage
 import Whatwg.Svg.Scene.Frame
+import Whatwg.Svg.Scene.Together
+import Whatwg.Svg.Scene.Resume
+import Whatwg.Svg.Scene.Strip
 import Whatwg.Svg.Geometry.Grid
 import Whatwg.Svg.Geometry.Easing
 import Whatwg.Svg.Geometry.Stack
@@ -85,7 +91,8 @@ standard, as the schema an HTML tree's SVG subtree is checked against. The plan 
 The library has five layers:
 
 - `Whatwg.Svg.Data` names no schema: a finite universe, a set as a mask over it, and a name
-  table with its two laws;
+  table with its two laws. `Mask.Laws` registers the laws of membership in the bank
+  `Whatwg.Mask`, in a module of its own so that `Mask` imports no proof search;
 - `Whatwg.Svg.Schema.Tags`, `Categories`, `Attributes` and `ContentModel` are generated from
   the pin's definitions files by `lake exe whatwg_svgdefinitions`, which fails on a byte of
   drift. `Readings` is authored: it reads the four content models that the definitions state
@@ -100,7 +107,9 @@ The library has five layers:
   against it. `Deterministic` proves that the reader of a deterministic description accepts
   exactly the language of its expression, and `Refusal` gives a refused value the offset at
   which no reading continues. `Attribute` is the table that says which grammar judges which
-  attribute on which element, and gives the type of an attribute's value.
+  attribute on which element, and gives the type of an attribute's value. `Bank` registers the
+  rules of totality in the bank `Whatwg.Syn`, in a module of its own so that no grammar imports
+  proof search.
 - `Whatwg.Svg.Geometry` is what a program computes with, on those typed values (slice S10).
   It is under the repository's ordinary axiom ceiling, so that it can use the arithmetic of
   Lean's core library; the four layers above stay under the strict one. `Arith` is the exact
@@ -161,6 +170,15 @@ The library has five layers:
   done before the next begins. `Cross` says where two lines cross, with the laws that the
   crossings of a layered picture are the inversions of its order and that a step which keeps
   the order creates no crossing on the way.
+
+  Since slice S16: `Together` is the law of a whole step that lean4-effect4's check of a look
+  buys: kept things that take one timing with an easing in range keep, where they stand at
+  every moment, each relation that their places have in both pictures. `Resume` is a step that
+  is interrupted and resumes from where each thing is seen, with the law that nothing jumps.
+  `Tree.Edit` says what an edit of a tree does to the placement of the nodes it did not touch:
+  each is as it was, stretched, or shifted, and the shifted ones move as one. `Strip` is a
+  sequence in the room of a word: lanes of states over the steps of a run, where one more step
+  changes no earlier box.
 
 The library imports no module of `Whatwg.Html` (ruling SV-6). The seam that admits `svg` in an
 HTML tree is in `Whatwg.Html`, and so is the judgment of the values of a tree.
