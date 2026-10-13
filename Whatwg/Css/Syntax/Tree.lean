@@ -117,13 +117,20 @@ structure Declaration where
   important : Bool := false
   deriving Inhabited
 
-/-- A rule: an at-rule that ends in a semicolon, an at-rule that ends in a block, or a qualified
-rule. A block holds a list of declarations and a list of child rules. -/
+/-- A rule: an at-rule that ends in a semicolon, an at-rule that ends in a block, a qualified
+rule, or a nested declarations rule. A block holds a list of declarations and a list of child
+rules.
+
+The standard's `consume a block's contents` gives rules and lists of declarations in the order
+they stand. The first list, where the block opens with one, is the block's declarations. Each
+later list stands among the child rules as a nested declarations rule (`consume a qualified
+rule`), so the order of a block is kept. -/
 inductive Rule where
   | statement (name : List Char) (prelude : List Component)
   | blockAt (name : List Char) (prelude : List Component) (declarations : List Declaration)
       (rules : List Rule)
   | qualified (prelude : List Component) (declarations : List Declaration) (rules : List Rule)
+  | nested (declarations : List Declaration)
   deriving Inhabited
 
 /-- A stylesheet: a list of rules. -/

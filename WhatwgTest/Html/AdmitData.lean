@@ -147,10 +147,7 @@ def page (title : String) (charset : Bool) (content : List (Child ((Ctx.document
 /--
 info: could not synthesize default value for parameter 'h' using tactics
 ---
-info: Expected type must not contain free variables
-  (Ctx.flow.child Tag.button).admitsWith Tag.a (rawAttrs e.attrs) = true
-
-Hint: Use the `+revert` option to automatically clean up and revert free variables
+info: <a> is not admitted here by its tag alone: the context is phrasing, excluding interactive content. Whether it is admitted reads its attributes, which are not written out
 ---
 info: fun e => E.button [E.el e ⋯] [] ⋯ : Element Tag.a (Ctx.flow.child Tag.button) → Element Tag.button Ctx.flow
 -/

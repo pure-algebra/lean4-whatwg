@@ -7,6 +7,9 @@ import Whatwg.Html.Content.Document
 import Whatwg.Html.Content.Document.Laws
 import Whatwg.Html.Content.Site
 import Whatwg.Html.Content.Site.Laws
+import Whatwg.Html.Content.Automaton
+import Whatwg.Html.Content.Monotone
+import Whatwg.Html.Content.Structure
 import Whatwg.Html.Content.Values
 import Whatwg.Html.Content.Lattice
 import Whatwg.Html.Node.Raw
@@ -15,6 +18,8 @@ import Whatwg.Html.Node.Typed
 import Whatwg.Html.Node.Check
 import Whatwg.Html.Node.Splice
 import Whatwg.Html.Node.Region
+import Whatwg.Html.Node.Run
+import Whatwg.Html.Node.Region.Words
 import Whatwg.Html.Node.Svg
 import Whatwg.Html.Node.SvgRead
 import Whatwg.Html.Node.SvgKeys

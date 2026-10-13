@@ -671,3 +671,34 @@ Your picture writer (`SvgOut.lean`) is touched by the first three rows only.
 | W9 | Answered in part at slice S21. `E.el e` for a variable `e` whose tag has no conditional category is admitted by a law (`Ctx.admitsWith_unread`), so your `head_attrs` proof can go; `html!` under `E.el` takes its position from the expected type; an ordered model is checked through a spliced child that shows its element. `{e}` in `html!` is a child, a list of children or an optional child, by its type. Still left to the kernel, which stops there: a list or a variable `Child` under an element with an ordered model, and `E.el e` for a tag with a conditional category (`a`, `input`). |
 | The scrollable region of W13 | Answered at slice S21. `region` and `regionRaw` (`Whatwg/Html/Node/Region.lean`): a focusable `div` with `role="region"` and a name, your table region node for node. `Region.figure` and `Region.figureRaw`: a figure in a region named by its caption, with its words named by `aria-describedby`. That tree differs from your `graph` case (`aria-labelledby` where you write `aria-label`, and the words inside the figure): take it or keep yours with `regionRaw`. The words have no typed form yet, since `details` has an ordered model. |
 | One message changed | A spliced value on an attribute whose value the checker reads (`<p dir={d}>`) is refused by `html!` in words; before, the kernel refused it. |
+
+## 17. Slice S22, first part: layers, rooms and layouts for the view; runs, words and facts for the site
+
+The owner asked for a review of the theory of pictures and of documents against your code and
+d3 (ruling R-S40 of `COORDINATION.md`). Read at your checkout `6ad8f7b8d`. Everything is added;
+no call of yours changes.
+
+### For the view
+
+| You write today | The package now has | The port to read |
+| --- | --- | --- |
+| `Graph.ranks`, `ranks_forward`; `Flow.relax`, `assign`, `heightsOf` and their laws | `Whatwg/Svg/Scene/Layers.lean`: `Layers.heights`, with every link met, the least such places, and one picture for every order that serves the links. You give three functions that read your links (`Layers.Reading`) and convert nothing | `WhatwgTest/Svg/UseLayers.lean` |
+| `Rect`, `Rect.Disjoint`, `holds`, `move`; the frame of a region as folds of `min` and `max` | `Whatwg/Svg/Scene/Extent.lean`: `IBox`, `hull`, `hullAll`, and the class `Boxed` that your `Placed` instantiates | `WhatwgTest/Svg/UseLayout.lean` |
+| `span`, `stack`, `stackIn`, `framed`, and the places in `lay_good` | `Whatwg/Svg/Scene/Layout.lean`: `beside`, `above`, `row`, `column`, `inset`, `centred`, `stack`; `Fits` and `Clear` are kept by each, so "inside the width" and "apart" hold of a fold with one line for each constructor | the same |
+
+A room of `Layout` is counted in `Nat` (the owner's ruling). Your widths are `Int` with a proof
+that they are not negative, so a leaf takes `w.toNat`. The port places boxes only: edges, ports,
+marks and lanes are not placed by `Layout`, and no theorem yet says that the layers and a column
+give one picture.
+
+### For the site
+
+| Ask | Answer |
+| --- | --- |
+| W9, what was left | `Whatwg/Html/Node/Run.lean`. Children of an element with an ordered model are a `Run`, runs are joined with `append`, any number of equal groups is `Run.loop`, children whose tags are data are `Run.content`, and `Element.ofRun` closes a run into the element. Your `algebra.fields` (a `dl` of rows), `algebra.code` and `algebra.graph` (a `details` with a body) and your `head` are written so in `WhatwgTest/Html/Runs.lean`, each with a theorem that it erases to your node. `E.el e` for a variable `a` or `input` now elaborates. Still left to the kernel: a list splice `{rows}` inside `html!` under an ordered model; write that element with `Element.ofRun` |
+| W13, the figure in words | `Whatwg/Html/Node/Region/Words.lean`: `Region.words`, `described`, `withWords`, typed and placed after the figure (`WhatwgTest/Html/RegionWords.lean`) |
+| W14, the HTML half | `Whatwg/Html/Content/Structure.lean`: a structural fact is a place in a tree (`Where`), `places` finds it, and a type of facts is an instance of `Vocabulary`. The package's own `Fact` has fifteen; yours (a status, a key) is a type of your own beside it. `unused facts trees` is the rules that draw nothing. The rules of your `page.css` are read against it in `WhatwgTest/Html/SheetFacts.lean`. The CSS half (a rule as a fact with its selector and declarations, printed through the one tree) follows the parser |
+
+One finding bears on you: the checker reads a conditional category only at the bases flow and
+phrasing, so `<meta charset>` is refused in a `div` and admitted in a `figure` or a `details`
+(debt D142). Nothing of your site meets it.

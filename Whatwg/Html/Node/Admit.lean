@@ -2,6 +2,7 @@ import Lean
 import Whatwg.Html.Node.Typed
 import Whatwg.Html.Content.Explain
 import Whatwg.Html.Node.Splice
+import Whatwg.Html.Content.Monotone
 
 /-!
 # Whatwg.Html.Node.Admit
@@ -45,8 +46,11 @@ tree holds a part that is data (entries W8, W9 and W12 of
   whose value has a rule is refused with words, and so is an admission that
   reads such a value (`input` and its `type`).
 - An attribute list that is not written out, `(f x).attrs`, is no obstacle to
-  the admission of an element whose categories read no attribute
-  (`Content.unconditional`): the proof is `Ctx.admitsWith_unread`.
+  the admission of an element where no attribute can change the answer
+  (`Content.attrBlind`, slice S22): the proof is `Ctx.admitsWith_of_admits`.
+  An `a` or an `input` that a function returns is placed so wherever its tag
+  is admitted as interactive content. Before slice S22 the test was
+  `Content.unconditional`, which those two fail.
 - An attribute that may be absent, `A.opt make o`, is proved by cases on `o`:
   the two obligations are closed as above, the second with its value free.
 -/
@@ -350,12 +354,18 @@ def admitsCore : Nat → TacticM Unit
             replaceMainGoal []
             return
           -- the attributes are not written out: `E.el e` for a variable `e`
-          if Whatwg.Html.Content.unconditional t then
-            unless c.admits t do throwError admitMessage c t
-            goal.assign (mkAppN (mkConst ``Whatwg.Html.Content.Ctx.admitsWith_unread)
+          if Whatwg.Html.Content.attrBlind c.base t then
+            unless c.admits t do
+              throwError (if Whatwg.Html.Content.unconditional t then admitMessage c t else
+                describe t ++ " is not admitted here by its tag alone: the context is " ++
+                  c.describe ++ ". Whether it is admitted reads its attributes, which are " ++
+                  "not written out")
+            goal.assign (mkAppN (mkConst ``Whatwg.Html.Content.Ctx.admitsWith_of_admits)
               #[lhs.getArg! 0, lhs.getArg! 1, lhs.getArg! 2, reflTrue, reflTrue])
             replaceMainGoal []
             return
+          throwError ("whether " ++ describe t ++ " is admitted here reads its attributes, " ++
+            "which are not written out: the context is " ++ c.describe)
     if lhs.isAppOfArity ``Whatwg.Html.Content.elementOk 4 then
       if let some t ← tag? (lhs.getArg! 1) then
         if let some attrs ← looseAttrs? (lhs.getArg! 2) then

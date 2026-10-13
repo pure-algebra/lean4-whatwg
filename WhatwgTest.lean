@@ -99,6 +99,10 @@ import WhatwgTest.Html.AdmitData
 import WhatwgTest.Html.MarkupData
 import WhatwgTest.Html.Region
 import WhatwgTest.Html.SiteShell
+import WhatwgTest.Html.Runs
+import WhatwgTest.Html.RegionWords
+import WhatwgTest.Html.SheetFacts
+import WhatwgTest.Html.AdmitBlind
 import WhatwgTest.Svg.Schema
 import WhatwgTest.Svg.Context
 import WhatwgTest.Svg.Grammar
@@ -115,6 +119,8 @@ import WhatwgTest.Svg.Deterministic
 import WhatwgTest.Svg.Refusal
 import WhatwgTest.Svg.D3Shape
 import WhatwgTest.Svg.MotionVector
+import WhatwgTest.Svg.UseLayers
+import WhatwgTest.Svg.UseLayout
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values

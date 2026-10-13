@@ -174,7 +174,8 @@ number, `Whatwg.Svg.Scene`, under the strict axiom ceiling (ruling SV-79 of
 lists by key, the placement of a tree, the share of a branch, a row whose lengths change, a scale
 with its ties, what a host says of a face, a label fitted to a room, where two lines cross
 (since slice S15), what an edit does to a tree's placement and lanes of states over a run
-(since slice S16). Each is a value with
+(since slice S16), and the layers of a graph with no cycle, a box of whole units and parts of a
+picture put together (since slice S22). Each is a value with
 its laws and has no reading in time: motion, which has one, is the graph `SVG-PG-MOTION`. The
 record is standalone. -/
 def svgScene : Leaf where
@@ -184,7 +185,9 @@ def svgScene : Leaf where
     `Whatwg.Svg.Scene.join_new, `Whatwg.Svg.Scene.Tree, `Whatwg.Svg.Scene.Share,
     `Whatwg.Svg.Scene.Row.between, `Whatwg.Svg.Scene.Scale, `Whatwg.Svg.Scene.Metrics,
     `Whatwg.Svg.Scene.Piece, `Whatwg.Svg.Scene.Label.fit, `Whatwg.Svg.Scene.crosses,
-    `Whatwg.Svg.Scene.Tree.replace, `Whatwg.Svg.Scene.Strip.runs]
+    `Whatwg.Svg.Scene.Tree.replace, `Whatwg.Svg.Scene.Strip.runs,
+    `Whatwg.Svg.Scene.Layers.heights, `Whatwg.Svg.Scene.IBox, `Whatwg.Svg.Scene.Boxed,
+    `Whatwg.Svg.Scene.Layout]
   parent := none
   receipts := [
     .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
@@ -210,7 +213,15 @@ def svgScene : Leaf where
       `Whatwg.Svg.Scene.Tree.spansAll_apart_between, `Whatwg.Svg.Scene.Strip.runs_expand,
       `Whatwg.Svg.Scene.Strip.boxes_tile, `Whatwg.Svg.Scene.Strip.boxes_snoc,
       `Whatwg.Svg.Scene.Strip.lane_absent, `Whatwg.Svg.Scene.Strip.line_mono,
-      `Whatwg.Svg.Scene.Strip.marks_least],
+      `Whatwg.Svg.Scene.Strip.marks_least, `Whatwg.Svg.Scene.Layers.heights_meets,
+      `Whatwg.Svg.Scene.Layers.heights_least, `Whatwg.Svg.Scene.Layers.heights_unique,
+      `Whatwg.Svg.Scene.Layers.serves_iff, `Whatwg.Svg.Scene.IBox.hull_least,
+      `Whatwg.Svg.Scene.IBox.disjoint_iff, `Whatwg.Svg.Scene.IBox.hullAll_append,
+      `Whatwg.Svg.Scene.Boxed.commutes, `Whatwg.Svg.Scene.Layout.beside_assoc,
+      `Whatwg.Svg.Scene.Layout.above_assoc, `Whatwg.Svg.Scene.Layout.room_beside,
+      `Whatwg.Svg.Scene.Layout.Fits.stack, `Whatwg.Svg.Scene.Layout.Clear.stack,
+      `Whatwg.Svg.Scene.Layout.Clear.place],
+    .modules [`WhatwgTest.Svg.UseLayers, `WhatwgTest.Svg.UseLayout],
     .gate .build]
 
 /-- The ledger: the twelve graphs of slices A and B, the graph

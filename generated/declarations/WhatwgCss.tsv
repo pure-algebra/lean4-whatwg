@@ -1,4 +1,4 @@
-#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgCss rows=1977 regenerate=lake exe whatwg_declsnapshot --write
+#declarations format=1 generator=Gates.DeclSnapshot library=WhatwgCss rows=1983 regenerate=lake exe whatwg_declsnapshot --write
 #name	module	kind	origin	universes	type-sha256	axioms	frozen-by	mask	anchor	graph	counterexamples	record	route
 GetElem.getElem.hcongr_8	Whatwg.Css.Syntax.Tokenize	theorem	generated	3	3fdcc20dc1ead04eec133322e564d7802c0dd4831bb98d18f5c045a3234c697c	-	-	-	-	-	-	-	-
 Whatwg.Css.Data.Pairs.columns	Whatwg.Css.Data.Pairs	definition	authored	0	7e0b5e93114afeb4cfebd768cc5a3e1e87d5b69050cf5aa923a90cf890442778	-	-	-	-	-	-	-	-
@@ -146,7 +146,7 @@ Whatwg.Css.Syntax.Rule.below	Whatwg.Css.Syntax.Tree	definition	authored	1	8540b6
 Whatwg.Css.Syntax.Rule.below_1	Whatwg.Css.Syntax.Tree	definition	authored	1	dc5f2fab04a50a877b864c1b321931249a028e6cfbb4856428122e9d4f1f6b75	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.blockAt	Whatwg.Css.Syntax.Tree	constructor	authored	0	42de4f75c0b2dc310fd0b9d454f28b12923b90447cfedfd1a3061a6977000f28	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.blockAt.elim	Whatwg.Css.Syntax.Tree	definition	authored	1	b865bd5dd4d86a866ac2f50db24c3f2676f6f74953002fa3671b48307a71b052	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.blockAt.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	895196af0245266e8b14244e4fdd792264d4b42f32a54c606c9a274dfce00cf9	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.blockAt.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	ad47ab93800394b1772a5691ad944861cc522f237d7f31e15805846778412ab4	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.blockAt.injEq	Whatwg.Css.Syntax.Tree	theorem	generated	0	3f1ded39f9813f81ad9ece2a19f34a0f758e1dd659fcff2e9acf4a2c933e733d	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.blockAt.noConfusion	Whatwg.Css.Syntax.Tree	definition	authored	1	1793a6c6d8a24596d2fb59b72e5c313217277c6b4518e3f1ac04563fad85f7c1	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.blockAt.sizeOf_spec	Whatwg.Css.Syntax.Tree	theorem	generated	0	52ea1eeb57035ecac08576da5edaf3f9c65593f9e9df68298d7162178301a93c	-	-	-	-	-	-	-	-
@@ -156,24 +156,30 @@ Whatwg.Css.Syntax.Rule.brecOn.go	Whatwg.Css.Syntax.Tree	definition	generated	1	9
 Whatwg.Css.Syntax.Rule.brecOn_1	Whatwg.Css.Syntax.Tree	definition	authored	1	fb4105ff547125358ff96a8fc97eb8afc6379b60b82d362608aa789a12178530	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.brecOn_1.eq	Whatwg.Css.Syntax.Tree	theorem	generated	1	ac5de510268541f82ab39323ba33f98f835852d1088c26b79bfb0701fcb92b79	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.brecOn_1.go	Whatwg.Css.Syntax.Tree	definition	generated	1	b0145e8f862986a65b60582264417d5f949fdd35368a8b3369e67fbd10da5ee6	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.casesOn	Whatwg.Css.Syntax.Tree	definition	authored	1	767ecc8b00ac4c49f9a3d623051fb122c5542ac704709b3636bc6f7252a9fc45	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.casesOn	Whatwg.Css.Syntax.Tree	definition	authored	1	318aa40099bfb89ffe83a706c395c9132bbc390533d73c44e3f6887cc8153fb5	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.ctorElim	Whatwg.Css.Syntax.Tree	definition	authored	1	88ce74b14724699333ce75bba0b7063a782f0c9f98d177a6455b958db553ee65	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.ctorElimType	Whatwg.Css.Syntax.Tree	definition	generated	1	3c3a0a1250ce2d5deaf009eaa125ce127e3dd83cb9cad986016193ab96c81188	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.ctorIdx	Whatwg.Css.Syntax.Tree	definition	generated	0	7da391dadb84837b5212ef3645e3ee249b5d93e3554c64ffceee747caa2882f8	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.ctorIdx	Whatwg.Css.Syntax.Tree	definition	generated	0	adba5a26db967b375a2679956414244176ae4b3405ae2a8b9517420d31a7452c	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.nested	Whatwg.Css.Syntax.Tree	constructor	authored	0	a505b43a651d9cde4b55f6ec25a2f7ac5d34acf8a5ee3808e9ab17c876240f45	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.nested.elim	Whatwg.Css.Syntax.Tree	definition	authored	1	fefd1c6b10fd39e7989b00b8d510db84766c635827b99e08128d290cc38755f7	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.nested.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	2aa22d078342990b216ae4aa8478f37f0aa28f22bb1fadec9822bb8a682d3946	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.nested.injEq	Whatwg.Css.Syntax.Tree	theorem	generated	0	1d17823cb4a5a134a9a5a94179578da5126b653f87e6b297b451727b1686c26e	propext	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.nested.noConfusion	Whatwg.Css.Syntax.Tree	definition	authored	1	667891efdebd023e9a0d7df55052f334290d1ca6b80faea7914e1087230e1fba	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.nested.sizeOf_spec	Whatwg.Css.Syntax.Tree	theorem	generated	0	d48537c8b545e5a042fa8f18af094be2da03c14249c9f983dae5736fd52a6454	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.noConfusion	Whatwg.Css.Syntax.Tree	definition	authored	1	941cbb0632a40e08732aadfbab8cc2b45f6863956a86b1dccb6fd02a12dfc55e	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.noConfusionType	Whatwg.Css.Syntax.Tree	definition	generated	1	5c8f8aba064c29bb1ec568a358d0fa6f10efe084ba5d89a8b5421b60be69396c	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.qualified	Whatwg.Css.Syntax.Tree	constructor	authored	0	775d4f561426fd16ae6ce9cb56d761d6cb044a44cab95047d1308376fa5f45a5	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.qualified.elim	Whatwg.Css.Syntax.Tree	definition	authored	1	7c83cc46f10d840e792e45e1cf6ec4dc86ae88d0a02155e1e1138d9201d0d827	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.qualified.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	a894c4e2688e86045feffae40f9d66a9482770d38fad5d749e3e8ce03196a1cc	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.qualified.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	39a2c8cb8016811b939d1e4a66d9c96ca40fc204fadbcf6bb6c89190a8d1fda2	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.qualified.injEq	Whatwg.Css.Syntax.Tree	theorem	generated	0	9d1478be2c300873e9c3b071bef2f4c2fd70fa36da8afcf9634e71cafc5ae0bf	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.qualified.noConfusion	Whatwg.Css.Syntax.Tree	definition	authored	1	e3c37b21c468ccac08265f53647dcb3afc80e921fa1986c86cf95f68800f6cf5	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.qualified.sizeOf_spec	Whatwg.Css.Syntax.Tree	theorem	generated	0	7617cf19c52e940c23767e6342f0c00e34d57e95e0fcc9ea8d5dd9faaffcc0f5	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.rec	Whatwg.Css.Syntax.Tree	recursor	authored	1	02506e4abe6305c9b49817b5545c9b84ad0682b0cf2201f770706415c67f935e	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.recOn	Whatwg.Css.Syntax.Tree	definition	authored	1	c88e80fa5cf5b0b66773bf2fa4c46e37a4f64f0856cdcbe4c3e0c71279a7b6f3	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.rec_1	Whatwg.Css.Syntax.Tree	recursor	authored	1	40650c8d6d2009d5bbb0507c32441f92fd633a00fac57a9cdbfd4dd6d96888a8	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.rec	Whatwg.Css.Syntax.Tree	recursor	authored	1	c29e5011794550238c0c4c94d77c3dd995a302f421cb3aa68bbd2d21f26ba295	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.recOn	Whatwg.Css.Syntax.Tree	definition	authored	1	deae284ac084ccac215fd641032a88d471e99722b5d01a2c453ec37cb821c9fb	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.rec_1	Whatwg.Css.Syntax.Tree	recursor	authored	1	6b63aceec8178980128e51bd2dfe5788b34e45da19e8b384ce5590b1b9b25cad	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.statement	Whatwg.Css.Syntax.Tree	constructor	authored	0	9f42a979e67c670324850ee48c588adaee31e3f374f8875049ae3aab9ae30092	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.statement.elim	Whatwg.Css.Syntax.Tree	definition	authored	1	34275c136ca72f6a5bfa0cc511f474b3c583087c2213b281036954afd1ac8463	-	-	-	-	-	-	-	-
-Whatwg.Css.Syntax.Rule.statement.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	4df588fe4a2c9e33269f29bf65cf1152e5f5a5dfea18078016f72034130a40f1	-	-	-	-	-	-	-	-
+Whatwg.Css.Syntax.Rule.statement.inj	Whatwg.Css.Syntax.Tree	theorem	generated	0	212da695768c24236294c9c5c6f9e8fb16080a72fdbc949e34ab4f1e1990a9bc	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.statement.injEq	Whatwg.Css.Syntax.Tree	theorem	generated	0	679e2b273ba0de93f34bcc675d12044f689f9da35faf4ee44c1ea70b12efe29c	propext	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.statement.noConfusion	Whatwg.Css.Syntax.Tree	definition	authored	1	a1b08236e436241d14ca7d02d0cb02e7050897f8e58426d8a9dba2e9c51938b6	-	-	-	-	-	-	-	-
 Whatwg.Css.Syntax.Rule.statement.sizeOf_spec	Whatwg.Css.Syntax.Tree	theorem	generated	0	b28cfbd092c2658d1e6fa8025003b32b42d74417a62792a5670e9665482abc34	-	-	-	-	-	-	-	-
