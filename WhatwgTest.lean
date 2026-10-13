@@ -134,6 +134,11 @@ import WhatwgTest.Svg.UsePatch
 import WhatwgTest.Svg.UseFold
 import WhatwgTest.Svg.UseScale
 import WhatwgTest.Svg.UseLevel
+import WhatwgTest.Svg.UseLayered
+import WhatwgTest.Svg.UseFrame
+import WhatwgTest.Svg.UseSorted
+import WhatwgTest.Svg.UseOrder
+import WhatwgTest.Svg.UsePlaces
 import WhatwgTest.Css.Syntax
 import WhatwgTest.Css.Corpus
 import WhatwgTest.Css.Values

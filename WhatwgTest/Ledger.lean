@@ -203,7 +203,13 @@ def svgScene : Leaf where
     `Whatwg.Svg.Scene.Patch, `Whatwg.Svg.Scene.diff, `Whatwg.Svg.Scene.apply_diff,
     `Whatwg.Svg.Scene.Reorder, `Whatwg.Svg.Scene.Step.patch, `Whatwg.Svg.Scene.Tree.fold,
     `Whatwg.Svg.Scene.Scale.invert, `Whatwg.Svg.Scene.Scale.baseline, `Whatwg.Svg.Scene.Band,
-    `Whatwg.Svg.Scene.Band.fit_inside, `Whatwg.Svg.Scene.Scale.andThen]
+    `Whatwg.Svg.Scene.Band.fit_inside, `Whatwg.Svg.Scene.Scale.andThen,
+    `Whatwg.Svg.Scene.Row.spans_ordered, `Whatwg.Svg.Scene.Layout.Stands,
+    `Whatwg.Svg.Scene.Layout.layered, `Whatwg.Svg.Scene.Layout.framed,
+    `Whatwg.Svg.Scene.Layers.sorted, `Whatwg.Svg.Scene.AGraph,
+    `Whatwg.Svg.Scene.Layout.Realizes, `Whatwg.Svg.Scene.Boxed.pick,
+    `Whatwg.Svg.Scene.Row.spread, `Whatwg.Svg.Scene.Span.box, `Whatwg.Svg.Scene.Strip.box,
+    `Whatwg.Svg.Scene.Rank.reorder]
   parent := none
   receipts := [
     .theorems [`Whatwg.Svg.Scene.Commutes.stored, `Whatwg.Svg.Scene.Commutes.from_origin,
@@ -246,10 +252,19 @@ def svgScene : Leaf where
       `Whatwg.Svg.Scene.Scale.linear_height, `Whatwg.Svg.Scene.Scale.linear_undo_value,
       `Whatwg.Svg.Scene.Band.fit_inside, `Whatwg.Svg.Scene.Band.fit_plain_tiles,
       `Whatwg.Svg.Scene.Band.invert_at, `Whatwg.Svg.Scene.Band.row_ofGap,
-      `Whatwg.Svg.Scene.Scale.andThen_galois],
+      `Whatwg.Svg.Scene.Scale.andThen_galois, `Whatwg.Svg.Scene.Layout.column_items,
+      `Whatwg.Svg.Scene.Layout.columnParts_below, `Whatwg.Svg.Scene.Layers.rows_down,
+      `Whatwg.Svg.Scene.Layout.layered_link, `Whatwg.Svg.Scene.Layout.clear_framed_iff,
+      `Whatwg.Svg.Scene.Layout.ruledRow_joint, `Whatwg.Svg.Scene.Layout.Clear.ruledRow,
+      `Whatwg.Svg.Scene.Layers.sorted_serves, `Whatwg.Svg.Scene.Layers.sorted_of_serves,
+      `Whatwg.Svg.Scene.AGraph.decompose, `Whatwg.Svg.Scene.Layout.Realizes.above,
+      `Whatwg.Svg.Scene.Boxed.pick_iff, `Whatwg.Svg.Scene.Row.spread_pairwise,
+      `Whatwg.Svg.Scene.Row.spread_least, `Whatwg.Svg.Scene.Tree.spans_clear,
+      `Whatwg.Svg.Scene.Strip.lanes_clear, `Whatwg.Svg.Scene.Rank.reorder_nodup],
     .modules [`WhatwgTest.Svg.UseLayers, `WhatwgTest.Svg.UseLayout, `WhatwgTest.Svg.UseJoin,
       `WhatwgTest.Svg.UsePatch, `WhatwgTest.Svg.UseFold, `WhatwgTest.Svg.UseScale,
-      `WhatwgTest.Svg.UseLevel],
+      `WhatwgTest.Svg.UseLevel, `WhatwgTest.Svg.UseLayered, `WhatwgTest.Svg.UseFrame,
+      `WhatwgTest.Svg.UseSorted, `WhatwgTest.Svg.UseOrder, `WhatwgTest.Svg.UsePlaces],
     .gate .build]
 
 /-- The ledger: the twelve graphs of slices A and B, the graph

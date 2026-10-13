@@ -811,3 +811,22 @@ Ruling R-S45 of `COORDINATION.md`. Everything is added.
 `UseLevel.lean` draws the queue of your sketch (capacity 2, nine steps): its bar lines, knots,
 slots and arrows come out of two scales and the counts. Your `Live.ratchet` is the upper nice
 bound in whole numbers, which the strict layer does not have yet.
+
+## 23. Slice S22, sixth part: a layered picture, a frame and rules (your ask W15), an order made
+
+Ruling R-S46 of `COORDINATION.md`. Everything is added. Read at your checkout `6ad8f7b8d`, which
+has no `tools/Tools/View/Cell.lean`: the answer to W15 is written from the ask's words, so
+compare it with your file.
+
+| Your ask, or what you write today | The package now has | The port to read |
+| --- | --- | --- |
+| W15: a part centred down a height | `Layout.centredDown` (`Whatwg/Svg/Scene/Layout/Frame.lean`), the twin of `centred` | `WhatwgTest/Svg/UseFrame.lean` |
+| W15: a frame around a composite | `Layout.framed frame a`: your function from the room, an `IBox`, to a thing. It keeps `Fits`; it cannot keep `Clear`, since a frame holds what it frames, and `clear_framed_iff` says exactly when | the same |
+| W15: a rule where two parts of a row or a column meet | `Layout.ruledRow`, `ruledColumn`: one rule a joint, each a part of its own, so the composite stays `Clear`; `ruledRow_joint` says where each stands | the same |
+| `boxesApart`, `edgesDescend` as checks of each picture (`Graph.lean`) | theorems of `Layout.layered` over `Layers.rows` (`Whatwg/Svg/Scene/Layered.lean`) | `WhatwgTest/Svg/UseLayered.lean` |
+| Kahn's algorithm with a fallback (`Flow.lean`) | `Layers.sorted` (`Layers/Sorted.lean`): it serves whenever some order does, so the fallback goes | `WhatwgTest/Svg/UseSorted.lean` |
+| `AGraph` with its laws; `Realizes`, `lay_realizes`, `place_keeps_order` (`AlgGraph.lean`, `FlowOrder.lean`) | `AGraph` (`Whatwg/Svg/Scene/Order.lean`) and `Layout.Realizes` (`Layout/Order.lean`): one law for each operation of a layout, so `lay_realizes` is a fold | `WhatwgTest/Svg/UseOrder.lean` |
+| `pick`, `spread` (`Picture.lean`, `Place.lean`) | `Boxed.pick`, exact among disjoint boxes; `Row.spread`, pairwise apart and the least such (your law covers neighbours only) | `WhatwgTest/Svg/UsePlaces.lean` |
+
+The layered picture here packs rows from the left and gives a long edge no points, so it is not
+yet your picture; the two laws do not depend on what is left out.
